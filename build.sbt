@@ -12,7 +12,7 @@ homepage := Some(url("https://github.com/http4s/http4s"))
 startYear := Some(2013)
 
 licenses := Seq(
-  ("BSD 2-clause", url("http://www.gnu.org/licenses/gpl-3.0.txt"))
+  ("BSD 2-clause", url("https://raw.github.com/http4s/http4s/develop/LICENSE"))
 )
 
 scmInfo := Some(
@@ -23,12 +23,8 @@ scmInfo := Some(
   )
 )
 
-// organizationName := "My Company"
-
 /* scala versions and options */
 scalaVersion := "2.10.0"
-
-// crossScalaVersions := Seq("2.9.1")
 
 offline := false
 
@@ -89,6 +85,12 @@ pomExtra := (
       <name>Ross A. Baker</name>
       <email>baker@alumni.indiana.edu</email>
       <!-- <url></url> -->
+    </developer>
+    <developer>
+      <id>casualjim</id>
+      <name>Ivan Porto Carrero</name>
+      <email>ivan@flanders.co.nz</email>
+      <url>http://flanders.co.nz</url>
     </developer>
   </developers>
 )
