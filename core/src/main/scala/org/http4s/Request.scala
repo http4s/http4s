@@ -1,7 +1,7 @@
 package org.http4s
 
 import java.io.File
-import java.net.InetAddress
+import java.net.{URL, InetAddress}
 
 import play.api.libs.iteratee.Enumerator
 
@@ -14,15 +14,15 @@ trait Request {
 
   def http4sVersion: Http4sVersion = Http4sVersion
 
-  def pathInfo: String
+  def pathInfo: String = url.getPath
 
   def pathTranslated: Option[File] = None
 
-  def queryString: String
+  def queryString: String = Option(url.getQuery).getOrElse("")
 
-  def remoteAddr: InetAddress
+  def remoteAddr: InetAddress = InetAddress.getByName(remoteHost)
 
-  def remoteHost: String
+  def remoteHost: String = url.getHost
 
   def remoteIdent: Option[String]
 
@@ -30,11 +30,11 @@ trait Request {
 
   def requestMethod: Method
 
-  def scriptName: String
+  def scriptName: String = ""
 
   def serverName: InetAddress
 
-  def serverPort: Short
+  def serverPort: Int = url.getPort
 
   def serverProtocol: ServerProtocol
 
@@ -43,4 +43,11 @@ trait Request {
   def headers: RequestHeaders
 
   def entityBody: Enumerator[Array[Byte]] = Enumerator.eof
+
+  def urlScheme: UrlScheme = url.getProtocol match {
+    case "http" => UrlScheme.Http
+    case "https" => UrlScheme.Https
+  }
+
+  def url: URL
 }
