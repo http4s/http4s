@@ -3,8 +3,6 @@ package org.http4s
 import java.io.File
 import java.net.{URL, InetAddress}
 
-import play.api.libs.iteratee.Enumerator
-
 trait Request {
   def authType: Option[AuthType]
 
@@ -41,8 +39,6 @@ trait Request {
   def serverSoftware: ServerSoftware
 
   def headers: RequestHeaders
-
-  def entityBody: Enumerator[Array[Byte]] = Enumerator.eof
 
   def urlScheme: UrlScheme = url.getProtocol match {
     case "http" => UrlScheme.Http
