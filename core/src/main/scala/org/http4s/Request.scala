@@ -28,7 +28,7 @@ trait Request {
 
   def remoteUser: Option[String] = None
 
-  def requestMethod: HttpMethod = HttpMethod.Get
+  def requestMethod: Method = Method.Get
 
   def scriptName: String = ""
 
