@@ -7,12 +7,11 @@ trait Header {
   def value: String
 }
 
-trait RequestHeaders extends Headers
+trait RequestHeaders extends Headers {
+  def contentType: Option[ContentType]
+  def contentLength: Option[Long]
+}
 
 object RequestHeaders {
-  val Empty: RequestHeaders = new RequestHeaders {
-    def length = 0
-    def apply(idx: Int) = throw new NoSuchElementException
-    def iterator = Iterator.empty
-  }
+  val Empty: RequestHeaders = ???
 }

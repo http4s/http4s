@@ -6,45 +6,41 @@ import java.net.InetAddress
 import play.api.libs.iteratee.Enumerator
 
 trait Request {
-  def authType: Option[AuthType] = None
+  def authType: Option[AuthType]
 
-  def contentLength: Option[Long] = None
+  def contentLength: Option[Long] = headers.contentLength
 
-  def contentType: Option[ContentType] = None
+  def contentType: Option[ContentType] = headers.contentType
 
   def http4sVersion: Http4sVersion = Http4sVersion
 
-  def pathInfo: String = "/"
+  def pathInfo: String
 
   def pathTranslated: Option[File] = None
 
-  def queryString: String = ""
+  def queryString: String
 
-  def remoteAddr: InetAddress = Request.Localhost
+  def remoteAddr: InetAddress
 
-  def remoteHost: String = remoteAddr.toString
+  def remoteHost: String
 
-  def remoteIdent: Option[String] = None
+  def remoteIdent: Option[String]
 
-  def remoteUser: Option[String] = None
+  def remoteUser: Option[String]
 
-  def requestMethod: Method = Method.Get
+  def requestMethod: Method
 
-  def scriptName: String = ""
+  def scriptName: String
 
-  def serverName: InetAddress = Request.Localhost
+  def serverName: InetAddress
 
-  def serverPort: Short = 80
+  def serverPort: Short
 
-  def serverProtocol: ServerProtocol = HttpVersion.Http_1_1
+  def serverProtocol: ServerProtocol
 
   def serverSoftware: ServerSoftware
 
-  def headers: RequestHeaders = RequestHeaders.Empty
+  def headers: RequestHeaders
 
   def entityBody: Enumerator[Array[Byte]] = Enumerator.eof
-}
-
-object Request {
-  private val Localhost = InetAddress.getLocalHost
 }
