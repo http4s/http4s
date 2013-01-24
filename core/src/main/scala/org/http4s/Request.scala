@@ -20,9 +20,9 @@ trait Request {
 
   def queryString: String = Option(url.getQuery).getOrElse("")
 
-  def remoteAddr: InetAddress = InetAddress.getByName(remoteHost)
+  def remoteAddr: InetAddress
 
-  def remoteHost: String = url.getHost
+  def remoteHost: String
 
   def remoteIdent: Option[String]
 
@@ -32,7 +32,7 @@ trait Request {
 
   def scriptName: String = ""
 
-  def serverName: InetAddress
+  def serverName: String = url.getHost
 
   def serverPort: Int = url.getPort
 
@@ -49,5 +49,5 @@ trait Request {
     case "https" => UrlScheme.Https
   }
 
-  def url: URL
+  def url: URL = url
 }
