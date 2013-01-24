@@ -3,6 +3,8 @@ target/
 
 *~
 /.ensime
+/.idea/
+/.idea_modules/
 
 /.cache
 /.classpath
