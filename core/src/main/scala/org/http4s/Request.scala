@@ -45,5 +45,5 @@ trait Request {
     case "https" => UrlScheme.Https
   }
 
-  def url: URL = url
+  def url: URL
 }
