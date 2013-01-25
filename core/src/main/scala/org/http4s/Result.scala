@@ -4,14 +4,14 @@ import scala.concurrent.Future
 
 import play.api.libs.iteratee.Enumerator
 
-trait Response
+trait Result
 
 case class HttpResponse(
   statusLine: StatusLine = StatusLine.Ok,
   headers: ResponseHeaders = ResponseHeaders.Empty,
   entityBody: Enumerator[Array[Byte]] = Enumerator.eof,
   trailer: Future[Option[Headers]] = Future.successful(None)
-) extends Response
+) extends Result
 
 case class StatusLine(code: Int, reason: String)
 object StatusLine {
@@ -24,4 +24,4 @@ object ResponseHeaders {
   val Empty = ???
 }
 
-trait Websocket extends Response
+trait WebSocket extends Result
