@@ -25,11 +25,3 @@ object ResponseHeaders {
 }
 
 trait Websocket extends Response
-
-/*
-// Controversial. Would live in the servlet module. For legacy integration only.
-// Non-servlet backends would respond with some sort of 500.
-sealed trait ServletResponse extends Response {
-  def respond: (HttpServletRequest, HttpServletResponse) => Unit
-}
-*/
