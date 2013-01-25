@@ -22,4 +22,6 @@ case class Request(
   def contentType: Option[ContentType] = headers.contentType
   lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
   lazy val authType: Option[AuthType] = None
+  lazy val remoteAddr = remote.getHostAddress
+  lazy val remoteHost = remote.getHostName
 }
