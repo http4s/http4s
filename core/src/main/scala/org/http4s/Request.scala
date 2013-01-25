@@ -16,10 +16,10 @@ case class Request(
   val serverPort: Int = 80,
   val serverSoftware: Option[ServerSoftware] = None,
   val remote: InetAddress = InetAddress.getLocalHost,
-  val authType: Option[AuthType] = None,
   val http4sVersion: Http4sVersion = Http4sVersion
 ) {
   def contentLength: Option[Long] = headers.contentLength
   def contentType: Option[ContentType] = headers.contentType
   lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
+  lazy val authType: Option[AuthType] = None
 }
