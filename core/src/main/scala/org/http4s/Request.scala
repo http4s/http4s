@@ -25,3 +25,9 @@ case class Request(
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName
 }
+
+trait RequestHeaders extends Headers
+
+object RequestHeaders {
+  val Empty: RequestHeaders = ???
+}
