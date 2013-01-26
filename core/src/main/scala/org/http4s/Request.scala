@@ -4,19 +4,19 @@ import java.io.File
 import java.net.{URI, URL, InetAddress}
 
 case class Request(
-  val requestMethod: Method = Method.Get,
-  val scriptName: String = "",
-  val pathInfo: String = "",
-  val queryString: String = "",
-  val pathTranslated: Option[File] = None,
-  val protocol: ServerProtocol = HttpVersion.Http_1_1,
-  val headers: RequestHeaders,
-  val urlScheme: UrlScheme = UrlScheme.Http,
-  val serverName: String = InetAddress.getLocalHost.getHostName,
-  val serverPort: Int = 80,
-  val serverSoftware: Option[ServerSoftware] = None,
-  val remote: InetAddress = InetAddress.getLocalHost,
-  val http4sVersion: Http4sVersion = Http4sVersion
+  requestMethod: Method = Method.Get,
+  scriptName: String = "",
+  pathInfo: String = "",
+  queryString: String = "",
+  pathTranslated: Option[File] = None,
+  protocol: ServerProtocol = HttpVersion.Http_1_1,
+  headers: RequestHeaders,
+  urlScheme: UrlScheme = UrlScheme.Http,
+  serverName: String = InetAddress.getLocalHost.getHostName,
+  serverPort: Int = 80,
+  serverSoftware: Option[ServerSoftware] = None,
+  remote: InetAddress = InetAddress.getLocalHost,
+  http4sVersion: Http4sVersion = Http4sVersion
 ) {
   def contentLength: Option[Long] = headers.contentLength
   def contentType: Option[ContentType] = headers.contentType
