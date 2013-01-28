@@ -1,4 +1,4 @@
-package org.htt4ps
+package org.http4s
 
 import scala.language.reflectiveCalls
 
@@ -9,7 +9,6 @@ import scala.io.Codec
 
 import org.specs2.mutable.Specification
 import play.api.libs.iteratee._
-import org.http4s.{Request, Response, Method, MockServer}
 import java.lang.String
 
 class MockServerSpec extends Specification {
