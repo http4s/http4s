@@ -4,7 +4,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee.Enumerator
 
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
-  def apply(req: Request, body: Enumerator[Array[Byte]]): Future[Response] = {
+  def apply(req: Request, body: Enumerator[Chunk]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) {
         handler => body.run(handler)

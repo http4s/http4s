@@ -5,7 +5,7 @@ import play.api.libs.iteratee.Iteratee
 package object http4s {
   type Route = PartialFunction[Request, Handler]
 
-  type Handler = Iteratee[Array[Byte], Response]
+  type Handler = Iteratee[Chunk, Response]
 
   type Middleware = (Route => Route)
 

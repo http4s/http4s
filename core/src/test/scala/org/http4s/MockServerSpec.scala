@@ -9,7 +9,6 @@ import scala.io.Codec
 
 import org.specs2.mutable.Specification
 import play.api.libs.iteratee._
-import java.lang.String
 
 class MockServerSpec extends Specification {
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -18,8 +17,9 @@ class MockServerSpec extends Specification {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       // Iteratee brain teaser: how can we return the response header immediately while
       // continuing to consume the request body?
-      Iteratee.consume[Array[Byte]]().asInstanceOf[Iteratee[Array[Byte], Array[Byte]]]
-        .map { bytes => Response(entityBody = Enumerator(bytes)) }
+      Enumeratee.map[Chunk] { chunk => chunk.bytes }
+        .transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]])
+        .map { bytes => Response(entityBody = Enumerator(bytes).through(Enumeratee.map(Chunk.chunk(_)))) }
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   })
@@ -27,10 +27,10 @@ class MockServerSpec extends Specification {
   "A mock server" should {
     "handle matching routes" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/echo")
-      val reqBody = Enumerator("one", "two", "three").through(Enumeratee.map(Codec.toUTF8))
+      val reqBody = Enumerator("one", "two", "three").through(Enumeratee.map(Codec.toUTF8)).through(Enumeratee.map(Chunk.chunk(_)))
       Await.result(for {
         res <- server(req, reqBody)
-        resBytes <- res.entityBody.run(Iteratee.consume[Array[Byte]]()).asInstanceOf[Future[Array[Byte]]]
+        resBytes <- res.entityBody.run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
         resString = new String(resBytes)
       } yield {
         resString should_==("onetwothree")
@@ -39,7 +39,7 @@ class MockServerSpec extends Specification {
 
     "fall through to not found" in {
       val req = Request(pathInfo = "/bielefield")
-      val reqBody = Enumerator.eof[Array[Byte]]
+      val reqBody = Enumerator.eof[Chunk]
       Await.result(for {
         res <- server(req, reqBody)
       } yield {
@@ -50,7 +50,7 @@ class MockServerSpec extends Specification {
 
     "handle exceptions" in {
       val req = Request(pathInfo = "/fail")
-      val reqBody = Enumerator.eof[Array[Byte]]
+      val reqBody = Enumerator.eof[Chunk]
       Await.result(for {
         res <- server(req, reqBody)
       } yield {
