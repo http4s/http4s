@@ -18,9 +18,12 @@ case class MessageBody(body: Enumerator[BodyChunk] = Enumerator.eof,
 }
 
 object MessageBody {
+  def apply[A](a: A*)(implicit writable: Writable[A], executor: ExecutionContext): MessageBody =
+    new MessageBody(enumerate(a).map(x => BodyChunk(writable.toBytes(x))))
+
   def fromBodyChunkEnumerator(enumerator: Enumerator[BodyChunk]): MessageBody = MessageBody(body = enumerator)
 
-  val Empty = MessageBody()
+  val Empty = new MessageBody()
 }
 
 sealed trait Chunk {
