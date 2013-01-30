@@ -14,9 +14,9 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
     }
   }
 
-  def onNotFound: Response = Response(statusLine = StatusLine(404, "Not found"))
+  def onNotFound: Response = Response(statusLine = StatusLine.NotFound)
 
   def onError: PartialFunction[Throwable, Response] = {
-    case e: Exception => Response(statusLine = StatusLine(500, "Internal server error"))
+    case e: Exception => Response(statusLine = StatusLine.InternalServerError)
   }
 }
