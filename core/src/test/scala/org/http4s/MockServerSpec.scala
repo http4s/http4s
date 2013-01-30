@@ -19,11 +19,11 @@ class MockServerSpec extends Specification {
       // continuing to consume the request body?
       Enumeratee.collect[Chunk] { case chunk: BodyChunk => chunk.bytes }
         .transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]])
-        .map { bytes => Response(entityBody = Enumerator(bytes).through(Enumeratee.map(BodyChunk(_)))) }
+        .map { bytes => Response(entityBody = new MessageBody(body = Enumerator(bytes).through(Enumeratee.map(BodyChunk(_))))) }
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
       Enumeratee.collect[Chunk] { case chunk: BodyChunk => new String(chunk.bytes).toInt }
         .transform(Iteratee.fold(0)((sum, i) => sum + i))
-        .map { sum => Response(entityBody = Enumerator(BodyChunk(sum.toString.getBytes))) }
+        .map { sum => Response(entityBody = MessageBody(sum)) }
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   })
@@ -34,7 +34,7 @@ class MockServerSpec extends Specification {
       val reqBody = MessageBody("one", "two", "three")
       Await.result(for {
         res <- server(req, reqBody)
-        resBytes <- res.entityBody.run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
+        resBytes <- res.entityBody.enumerate.run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
         resString = new String(resBytes)
       } yield {
         resString should_==("onetwothree")
@@ -46,7 +46,7 @@ class MockServerSpec extends Specification {
       val reqBody = MessageBody(1, 2, 3)
       Await.result(for {
         res <- server(req, reqBody)
-        resBytes <- res.entityBody.run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
+        resBytes <- res.entityBody.enumerate.run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
         resString = new String(resBytes)
       } yield {
         resString should_==("6")
