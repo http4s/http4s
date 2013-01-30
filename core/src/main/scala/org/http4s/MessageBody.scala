@@ -1,9 +1,12 @@
 package org.http4s
 
+import scala.language.reflectiveCalls
+
 import concurrent.{Promise, ExecutionContext, Future, future}
 
 import play.api.libs.iteratee._
 import play.api.libs.iteratee.Enumerator._
+import io.Codec
 
 case class MessageBody(body: Enumerator[BodyChunk] = Enumerator.eof,
                        last: Promise[LastChunk] = LastChunk.EmptyPromise) {
@@ -15,6 +18,14 @@ case class MessageBody(body: Enumerator[BodyChunk] = Enumerator.eof,
     val lastChunkEnum = last.future.map(chunk => enumInput(Input.El[Chunk](chunk)))
     bodyEnum andThen flatten(lastChunkEnum) andThen Enumerator.eof
   }
+
+  def run[A](iteratee: Iteratee[Chunk, A])(implicit executor: ExecutionContext): Future[A] = enumerate.run(iteratee)
+
+  def asBytes(implicit executor: ExecutionContext): Future[Array[Byte]] =
+    run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
+
+  def asString(implicit codec: Codec, executor: ExecutionContext): Future[String] =
+    asBytes.map(new String(_, codec.charSet))
 }
 
 object MessageBody {
