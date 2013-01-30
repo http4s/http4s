@@ -2,16 +2,17 @@ package org.http4s
 
 import scala.language.reflectiveCalls
 
-import java.util.concurrent.TimeUnit
 import scala.concurrent.{Future, Await}
-import scala.concurrent.duration.Duration
-import scala.io.Codec
+import scala.concurrent.duration._
 
 import org.specs2.mutable.Specification
 import play.api.libs.iteratee._
+import org.specs2.time.NoTimeConversions
 
-class MockServerSpec extends Specification {
+class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  val timeout = 5 seconds
 
   val server = new MockServer({
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
@@ -37,7 +38,7 @@ class MockServerSpec extends Specification {
         resString <- res.entityBody.asString
       } yield {
         resString should_==("onetwothree")
-      }, Duration(5, TimeUnit.SECONDS))
+      }, timeout)
     }
 
     "runs a sum" in {
@@ -48,7 +49,7 @@ class MockServerSpec extends Specification {
         resString <- res.entityBody.asString
       } yield {
         resString should_==("6")
-      }, Duration(5, TimeUnit.SECONDS))
+      }, timeout)
     }
 
     "fall through to not found" in {
@@ -57,8 +58,7 @@ class MockServerSpec extends Specification {
         res <- server(req)
       } yield {
         res.statusLine.code should_==(404)
-      }, Duration(5, TimeUnit.SECONDS))
-
+      }, timeout)
     }
 
     "handle exceptions" in {
@@ -67,7 +67,7 @@ class MockServerSpec extends Specification {
         res <- server(req)
       } yield {
         res.statusLine.code should_==(500)
-      }, Duration(5, TimeUnit.SECONDS))
+      }, timeout)
     }
   }
 }
