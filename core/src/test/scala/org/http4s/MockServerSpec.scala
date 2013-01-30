@@ -31,7 +31,7 @@ class MockServerSpec extends Specification {
   "A mock server" should {
     "handle matching routes" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/echo")
-      val reqBody = Enumerator("one", "two", "three").through(Enumeratee.map(Codec.toUTF8)).through(Enumeratee.map(BodyChunk(_)))
+      val reqBody = MessageBody(Enumerator("one", "two", "three").through(Enumeratee.map(Codec.toUTF8)).through(Enumeratee.map(BodyChunk(_))))
       Await.result(for {
         res <- server(req, reqBody)
         resBytes <- res.entityBody.run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
@@ -43,7 +43,7 @@ class MockServerSpec extends Specification {
 
     "runs a sum" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/sum")
-      val reqBody = Enumerator(1, 2, 3).through(Enumeratee.map(i => Codec.toUTF8(i.toString))).through(Enumeratee.map(BodyChunk(_)))
+      val reqBody = MessageBody(Enumerator(1, 2, 3).through(Enumeratee.map(i => Codec.toUTF8(i.toString))).through(Enumeratee.map(BodyChunk(_))))
       Await.result(for {
         res <- server(req, reqBody)
         resBytes <- res.entityBody.run(Enumeratee.map[Chunk](_.bytes).transform(Iteratee.consume[Array[Byte]](): Iteratee[Array[Byte], Array[Byte]]))
@@ -55,7 +55,6 @@ class MockServerSpec extends Specification {
 
     "fall through to not found" in {
       val req = Request(pathInfo = "/bielefield")
-      val reqBody = Enumerator.eof[BodyChunk]
       Await.result(for {
         res <- server(req)
       } yield {

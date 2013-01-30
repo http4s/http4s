@@ -7,7 +7,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
   def apply(req: Request, body: MessageBody = MessageBody.Empty): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) {
-        handler => body.run(handler)
+        handler => body.enumerate.run(handler)
       }
     } catch {
       case t: Throwable => Future.successful(onError(t))
