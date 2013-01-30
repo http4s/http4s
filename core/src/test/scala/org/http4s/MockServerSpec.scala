@@ -12,8 +12,6 @@ import org.specs2.time.NoTimeConversions
 class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val timeout = 5 seconds
-
   val server = new MockServer({
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       // Iteratee brain teaser: how can we return the response header immediately while
@@ -29,45 +27,31 @@ class MockServerSpec extends Specification with NoTimeConversions {
       sys.error("FAIL")
   })
 
+  def response(req: Request, reqBody: MessageBody = MessageBody.Empty): Response = {
+    Await.result(server(req, reqBody), 5 seconds)
+  }
+
   "A mock server" should {
     "handle matching routes" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/echo")
       val reqBody = MessageBody("one", "two", "three")
-      Await.result(for {
-        res <- server(req, reqBody)
-        resString <- res.entityBody.asString
-      } yield {
-        resString should_==("onetwothree")
-      }, timeout)
+      Await.result(response(req, reqBody).entityBody.asString, 5 seconds) should_==("onetwothree")
     }
 
     "runs a sum" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/sum")
       val reqBody = MessageBody(1, 2, 3)
-      Await.result(for {
-        res <- server(req, reqBody)
-        resString <- res.entityBody.asString
-      } yield {
-        resString should_==("6")
-      }, timeout)
+      Await.result(response(req, reqBody).entityBody.asString, 5 seconds) should_==("6")
     }
 
     "fall through to not found" in {
       val req = Request(pathInfo = "/bielefield")
-      Await.result(for {
-        res <- server(req)
-      } yield {
-        res.statusLine.code should_==(404)
-      }, timeout)
+      response(req).statusLine should_== StatusLine.NotFound
     }
 
     "handle exceptions" in {
       val req = Request(pathInfo = "/fail")
-      Await.result(for {
-        res <- server(req)
-      } yield {
-        res.statusLine.code should_==(500)
-      }, timeout)
+      response(req).statusLine should_== StatusLine.InternalServerError
     }
   }
 }
