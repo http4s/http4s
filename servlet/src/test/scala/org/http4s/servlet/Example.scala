@@ -5,7 +5,8 @@ import play.api.libs.iteratee.{Concurrent, Enumerator, Done}
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-import concurrent.ExecutionContext
+
+import Bodies._
 
 /**
  * @author ross
@@ -13,7 +14,7 @@ import concurrent.ExecutionContext
 object Example extends App {
   val http4sServlet = new Http4sServlet({
     case req if req.pathInfo == "/ping" =>
-      Done(Responder(body = Enumerator.apply("pong".toString.getBytes)))
+      Done(Responder(body = "pong"))
 
     case req if req.pathInfo == "/stream" =>
       Done(Responder(body = Concurrent.unicast({

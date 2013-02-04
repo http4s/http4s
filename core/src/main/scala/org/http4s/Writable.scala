@@ -1,15 +1,28 @@
 package org.http4s
 
-import io.Codec
+import scala.language.implicitConversions
+
+import scala.io.Codec
+import play.api.libs.iteratee.Enumerator
 
 trait Writable[-A] {
-  def toBytes(a: A): Array[Byte]
+  def toChunk(a: A): Chunk
 }
 
 object Writable {
-  def apply[A](f: A => Array[Byte]) = new Writable[A] { def toBytes(a: A) = f(a) }
+  def apply[A](f: A => Chunk) = new Writable[A] { def toChunk(a: A) = f(a) }
 
-  implicit def stringWritable(implicit codec: Codec) = apply { s: String => s.getBytes(codec.charSet) }
+  implicit def stringWritable(implicit codec: Codec) =
+    Writable { s: String => s.getBytes(codec.charSet) }
 
-  implicit def intWriteable(implicit codec: Codec) = apply { i: Int => i.toString.getBytes(codec.charSet) }
+  implicit def intWritable(implicit codec: Codec) =
+    Writable { i: Int => i.toString.getBytes(codec.charSet) }
+}
+
+object Bodies {
+  implicit def writableToBody[A](a: A)(implicit w: Writable[A]): Enumerator[Chunk] =
+    Enumerator(w.toChunk(a))
+
+  implicit def writableSeqToBody[A](a: Seq[A])(implicit w: Writable[A]): Enumerator[Chunk] =
+    Enumerator(a.map { w.toChunk }: _*)
 }
