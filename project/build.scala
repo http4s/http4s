@@ -15,11 +15,17 @@ object build extends Build {
     "project",
     file("."),
     settings = http4sSettings
-  ) aggregate(core)
+  ) aggregate(core, servlet)
 
   lazy val core = Project(
     "core",
     file("core"),
     settings = http4sSettings
   )
+
+  lazy val servlet = Project(
+    "servlet",
+    file("servlet"),
+    settings = http4sSettings
+  ) dependsOn(core)
 }
