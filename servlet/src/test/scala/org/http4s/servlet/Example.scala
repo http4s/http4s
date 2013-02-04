@@ -1,10 +1,11 @@
 package org.http4s
 package servlet
 
-import play.api.libs.iteratee.{Enumerator, Done}
+import play.api.libs.iteratee.{Concurrent, Enumerator, Done}
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
+import concurrent.ExecutionContext
 
 /**
  * @author ross
@@ -13,6 +14,16 @@ object Example extends App {
   val http4sServlet = new Http4sServlet({
     case req if req.pathInfo == "/ping" =>
       Done(Responder(body = Enumerator.apply(Chunk("pong".toString.getBytes))))
+
+    case req if req.pathInfo == "/stream" =>
+      Done(Responder(body = Concurrent.unicast({
+        channel =>
+          for (i <- 1 to 10) {
+            channel.push(Chunk("%d\n".format(i).getBytes))
+            Thread.sleep(1000)
+          }
+          channel.eofAndEnd()
+      })))
   })
 
   val rawServlet = new HttpServlet {

@@ -26,7 +26,10 @@ class Http4sServlet(route: Route)(implicit executor: ExecutionContext = Executio
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
     }
-    val it = Iteratee.foreach[Chunk](chunk => resp.getOutputStream.write(chunk.bytes))
+    val it = Iteratee.foreach[Chunk] { chunk =>
+      resp.getOutputStream.write(chunk.bytes)
+      resp.getOutputStream.flush()
+    }
     responder.body.run(it).onComplete {
       case _ => ctx.complete()
     }
