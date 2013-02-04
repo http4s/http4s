@@ -8,7 +8,7 @@ import scala.collection.JavaConverters._
 import concurrent.ExecutionContext
 import javax.servlet.AsyncContext
 
-class Http4sServlet(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
+class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
   override def service(req: HttpServletRequest, resp: HttpServletResponse) {
     val request = toRequest(req)
     val ctx = req.startAsync()
@@ -43,7 +43,7 @@ class Http4sServlet(route: Route)(implicit executor: ExecutionContext = Executio
       queryString = Option(req.getQueryString).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol),
       headers = toHeaders(req),
-      body = Enumerator.fromStream(req.getInputStream).map(Chunk(_)),
+      body = Enumerator.fromStream(req.getInputStream, chunkSize).map(Chunk(_)),
       urlScheme = UrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,
