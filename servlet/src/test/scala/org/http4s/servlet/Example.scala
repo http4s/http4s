@@ -33,6 +33,14 @@ object Example extends App {
     override def service(req: HttpServletRequest, resp: HttpServletResponse) {
       if (req.getPathInfo == "/ping")
         resp.getWriter.write("pong")
+      else if (req.getPathInfo == "/echo") {
+        val bytes = new Array[Byte](8 * 1024);
+        var in = 0
+        while ({in = req.getInputStream.read(bytes); in >= 0}) {
+          resp.getOutputStream.write(bytes, 0, in)
+          resp.flushBuffer()
+        }
+      }
     }
   }
 
