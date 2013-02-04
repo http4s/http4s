@@ -24,6 +24,9 @@ object Example extends App {
           }
           channel.eofAndEnd()
       })))
+
+    case req if req.pathInfo == "/echo" =>
+      Done(Responder(body = req.body))
   })
 
   val rawServlet = new HttpServlet {
