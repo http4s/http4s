@@ -4,10 +4,10 @@ import scala.concurrent.Future
 
 import play.api.libs.iteratee.Enumerator
 
-case class Response(
+case class Responder(
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  entityBody: MessageBody = MessageBody.Empty
+  body: Enumerator[Chunk] = Enumerator.eof
 )
 
 case class StatusLine(code: Int, reason: String)

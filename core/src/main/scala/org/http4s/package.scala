@@ -5,10 +5,11 @@ import play.api.libs.iteratee.Iteratee
 package object http4s {
   type Route = PartialFunction[Request, Handler]
 
-  type Handler = Iteratee[Chunk, Response]
+  type Handler = Iteratee[Chunk, Responder]
 
   type Middleware = (Route => Route)
 
+  /*
   type RequestRewriter = PartialFunction[Request, Request]
 
   def rewriteRequest(f: RequestRewriter): Middleware = {
@@ -20,4 +21,5 @@ package object http4s {
   def transformResponse(f: ResponseTransformer): Middleware = {
     route: Route => route andThen { handler => handler.map(f) }
   }
+  */
 }
