@@ -7,6 +7,8 @@ package object http4s {
 
   type Handler = Iteratee[Chunk, Responder]
 
+  type Chunk = Array[Byte]
+
   type Middleware = (Route => Route)
 
   /*

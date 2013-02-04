@@ -16,9 +16,9 @@ class MockServerSpec extends Specification with NoTimeConversions {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Done(Responder(body = req.body))
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
-      Enumeratee.map[Chunk] { case chunk => new String(chunk.bytes).toInt }
+      Enumeratee.map[Chunk] { case chunk => new String(chunk).toInt }
         .transform(Iteratee.fold(0) { _ + _ })
-        .map { sum => Responder(body = Enumerator.apply(Chunk(sum.toString.getBytes))) }
+        .map { sum => Responder(body = Enumerator.apply(sum.toString.getBytes)) }
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   })
@@ -30,13 +30,13 @@ class MockServerSpec extends Specification with NoTimeConversions {
   "A mock server" should {
     "handle matching routes" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/echo",
-        body = Enumerator("one", "two", "three").map { s => Chunk(s.getBytes) })
+        body = Enumerator("one", "two", "three").map { s => s.getBytes })
       new String(response(req).body) should_==("onetwothree")
     }
 
     "runs a sum" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/sum",
-        body = Enumerator("1", "2", "3").map { s => Chunk(s.getBytes) })
+        body = Enumerator("1", "2", "3").map { s => s.getBytes })
       new String(response(req).body) should_==("6")
     }
 

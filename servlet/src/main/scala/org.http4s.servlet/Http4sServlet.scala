@@ -27,7 +27,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       resp.addHeader(header.name, header.value)
     }
     val it = Iteratee.foreach[Chunk] { chunk =>
-      resp.getOutputStream.write(chunk.bytes)
+      resp.getOutputStream.write(chunk)
       resp.getOutputStream.flush()
     }
     responder.body.run(it).onComplete {
@@ -43,7 +43,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       queryString = Option(req.getQueryString).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol),
       headers = toHeaders(req),
-      body = Enumerator.fromStream(req.getInputStream, chunkSize).map(Chunk(_)),
+      body = Enumerator.fromStream(req.getInputStream, chunkSize),
       urlScheme = UrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,

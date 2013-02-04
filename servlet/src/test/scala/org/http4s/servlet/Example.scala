@@ -13,13 +13,13 @@ import concurrent.ExecutionContext
 object Example extends App {
   val http4sServlet = new Http4sServlet({
     case req if req.pathInfo == "/ping" =>
-      Done(Responder(body = Enumerator.apply(Chunk("pong".toString.getBytes))))
+      Done(Responder(body = Enumerator.apply("pong".toString.getBytes)))
 
     case req if req.pathInfo == "/stream" =>
       Done(Responder(body = Concurrent.unicast({
         channel =>
           for (i <- 1 to 10) {
-            channel.push(Chunk("%d\n".format(i).getBytes))
+            channel.push("%d\n".format(i).getBytes)
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
