@@ -35,7 +35,9 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
   def onNotFound: MockServer.Response = Response(statusLine = StatusLine.NotFound)
 
   def onError: PartialFunction[Throwable, Response] = {
-    case e: Exception => Response(statusLine = StatusLine.InternalServerError)
+    case e: Exception =>
+      e.printStackTrace()
+      Response(statusLine = StatusLine.InternalServerError)
   }
 }
 
