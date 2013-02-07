@@ -71,11 +71,22 @@ object Method {
 
   /**
    * Retrieves a method from the registry.
+   *
    * @param name the name, case insensitive
    * @return the method, if registered
    */
-  def apply(name: String): Option[Method] = {
+  def get(name: String): Option[Method] = {
     val canonicalName = name.toUpperCase(Locale.ENGLISH)
     registry.get(canonicalName)
   }
+
+  /**
+   * Retrieves a method from the registry, or creates an extension method otherwise.
+   * The extension method is not registered, and assumed to be neither safe nor
+   * idempotent.
+   *
+   * @param name the name, case insensitive
+   * @return the method, if registered; otherwise, an extension method
+   */
+  def apply(name: String): Method = get(name).getOrElse(new ExtensionMethod(name, isSafe = false, isIdempotent = false))
 }
