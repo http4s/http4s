@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 
+
 object build extends Build {
 
   val gc = TaskKey[Unit]("gc", "runs garbage collector")
@@ -26,6 +27,12 @@ object build extends Build {
   lazy val servlet = Project(
     "servlet",
     file("servlet"),
+    settings = http4sSettings
+  ) dependsOn(core)
+  
+  lazy val grizzly = Project(
+    "grizzly",
+    file("grizzly"),
     settings = http4sSettings
   ) dependsOn(core)
 }
