@@ -37,7 +37,8 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
 
   protected def toRequest(req: HttpServletRequest): Request =
     Request(
-      requestMethod = Method(req.getMethod),
+      requestMethod = Method(req.getMethod).getOrElse(
+        new ExtensionMethod(req.getMethod.toUpperCase, isSafe = false, isIdempotent = false)),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
       queryString = Option(req.getQueryString).getOrElse(""),

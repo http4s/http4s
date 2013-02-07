@@ -1,35 +1,81 @@
 package org.http4s
 
 import java.util.Locale
+import scala.collection
+import collection.concurrent.TrieMap
+import annotation.tailrec
 
-sealed trait Method
+/**
+ * An HTTP method.
+ *
+ * @param name the name of the method.
+ * @param isSafe true if the method is safe.  See RFC 2616, Section 9.1.1.
+ * @param isIdempotent true if the method is idempotent.  See RFC 2616, Section 9.1.2.
+ * @param register true if the method should be registered
+ */
+sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempotent: Boolean, register: Boolean = false) {
+  override def toString = name
+
+  if (register)
+    Method.register(this)
+}
+
+/**
+ * Denotes a method defined by the HTTP 1.1 specification.  Ensures that the
+ * method is registered.
+ *
+ * @param name the name of the method.
+ * @param isSafe true if the method is safe.  See RFC 2616, Section 9.1.1.
+ * @param isIdempotent true if the method is idempotent.  See RFC 2616, Section 9.1.2.
+ */
+sealed class StandardMethod(name: String, isSafe: Boolean, isIdempotent: Boolean)
+  extends Method(name, isSafe, isIdempotent, true)
+
+/**
+ * Denotes an extension method allowed, but not defined, by the HTTP 1.1 specification.
+ * These methods are not registered by default.
+ *
+ * @param name the name of the method.
+ * @param isSafe true if the method is safe.  See RFC 2616, Section 9.1.1.
+ * @param isIdempotent true if the method is idempotent.  See RFC 2616, Section 9.1.2.
+ */
+class ExtensionMethod(name: String, isSafe: Boolean, isIdempotent: Boolean, register: Boolean = false)
+  extends Method(name, isSafe, isIdempotent, register)
 
 object Method {
-  case object Get extends Method
-  case object Post extends Method
-  case object Head extends Method
-  case object Put extends Method
-  case object Delete extends Method
-  case object Options extends Method
-  case object Trace extends Method
-  case object Connect extends Method
-  case object Patch extends Method
-  case class ExtensionMethod(name: String) extends Method
+  val Options = new StandardMethod("OPTIONS", isSafe = false, isIdempotent = true)
+  val Get     = new StandardMethod("GET",     isSafe = true,  isIdempotent = true)
+  val Head    = new StandardMethod("HEAD",    isSafe = true,  isIdempotent = true)
+  val Post    = new StandardMethod("POST",    isSafe = false, isIdempotent = false)
+  val Put     = new StandardMethod("PUT",     isSafe = false, isIdempotent = true)
+  val Delete  = new StandardMethod("DELETE",  isSafe = false, isIdempotent = true)
+  val Trace   = new StandardMethod("TRACE",   isSafe = false, isIdempotent = true)
+  val Connect = new StandardMethod("CONNECT", isSafe = true,  isIdempotent = false)
 
-  private val StringsToMethods = Map(
-    "GET" -> Get,
-    "POST" -> Post,
-    "HEAD" -> Head,
-    "PUT" -> Put,
-    "DELETE" -> Delete,
-    "OPTIONS" -> Options,
-    "TRACE" -> Trace,
-    "CONNECT" -> Connect,
-    "PATCH" -> Patch
-  )
+  // PATCH is not part of the RFC, but common enough we'll support it.
+  val Patch   = new ExtensionMethod("PATCH",  isSafe = false, isIdempotent = false, register = true)
 
-  def apply(name: String): Method = {
-    val upName = name.toUpperCase(Locale.US)
-    StringsToMethods.getOrElse(upName, ExtensionMethod(upName))
+  private[this] lazy val registry: collection.concurrent.Map[String, Method] = TrieMap.empty
+
+  @tailrec
+  private def register(method: Method) {
+    val oldValue = registry.putIfAbsent(method.name, method)
+    if (oldValue.isDefined && !registry.replace(method.name, oldValue.get, method))
+      register(method)
+  }
+
+  /**
+   * Returns a set of all registered methods.
+   */
+  def methods: Iterable[Method] = registry.values
+
+  /**
+   * Retrieves a method from the registry.
+   * @param name the name, case insensitive
+   * @return the method, if registered
+   */
+  def apply(name: String): Option[Method] = {
+    val canonicalName = name.toUpperCase(Locale.ENGLISH)
+    registry.get(canonicalName)
   }
 }
