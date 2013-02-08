@@ -43,7 +43,7 @@ object Example extends App {
       })))
 
     case req if req.pathInfo == "/echo" =>
-      println("Doing Echo")
+      //println("Doing Echo")
       Done(Responder(body = req.body))
 
     case req =>
