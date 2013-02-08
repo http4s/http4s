@@ -1,15 +1,27 @@
-package org.http4s
-package grizzly
+package org.http4s.test
 
-import play.api.libs.iteratee.{Concurrent, Enumerator, Done}
+import play.api.libs.iteratee.{Concurrent, Enumerator, Done, Iteratee}
 import org.glassfish.grizzly.http.server._
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig
 
-import Bodies._
+import org.http4s.grizzly.Http4sGrizzly
+import org.http4s.Responder
+import scala.Responder
 
 
 /**
  * @author ross
+ */
+
+/*
+  The idea is that you have a partial function that gets called to return an iteratee.
+  That iteratee returns Responder which contains an Enumerator in the body field that will
+  be used to fulfill the rest of the request.
+
+  The problem is that the body is pushed into the first iteratee, which mucks up the
+  Concurrent.unicast which is clearly the right Enumerator to use for dealing wtih the body
+  of the request.
+
  */
 object Example extends App {
   val http4sServlet = new Http4sGrizzly({
