@@ -2,7 +2,7 @@ package org.http4s.test
 
 import org.http4s._
 
-import play.api.libs.iteratee.{Concurrent, Done}
+import play.api.libs.iteratee._
 import org.glassfish.grizzly.http.server._
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig
 
@@ -11,6 +11,7 @@ import org.http4s.Responder
 
 import org.http4s.Writable._
 import org.http4s.Bodies._
+import org.http4s.Responder
 
 
 /**
@@ -45,6 +46,24 @@ object Example extends App {
     case req if req.pathInfo == "/echo" =>
       //println("Doing Echo")
       Done(Responder(body = req.body))
+
+      // Just stack the remaining info into the returned Enumerator
+    case req if req.pathInfo == "/determine_echo1" =>
+      println("Doing Read a bit and echo Echo")
+
+      def getChunk(input: Input[Chunk]): Iteratee[Chunk, Responder] = {
+        Done(Responder(body = Enumerator.enumInput(input) >>> req.body))
+      }
+      Cont(getChunk)
+
+      // We want http4s to deal with our remaining data
+    case req if req.pathInfo == "/determine_echo2" =>
+      println("Doing Read a bit and echo Echo")
+
+      def getChunk(input: Input[Chunk]): Iteratee[Chunk, Responder] = {
+        Done(Responder(body = req.body), input)
+      }
+      Cont(getChunk)
 
     case req =>
       println(s"Request path: ${req.pathInfo}")

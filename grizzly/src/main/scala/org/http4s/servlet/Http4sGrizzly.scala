@@ -2,10 +2,11 @@ package org.http4s
 package grizzly
 
 import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq,HttpHandler}
-import play.api.libs.iteratee.Iteratee
+import play.api.libs.iteratee.{Enumerator, Input, Step, Iteratee}
+
 import java.net.InetAddress
 import scala.collection.JavaConverters._
-import concurrent.ExecutionContext
+import concurrent.{Future, ExecutionContext}
 
 /**
  * @author Bryce Anderson
@@ -20,15 +21,37 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val handler = route(request)
 
     // First run of the Enumerator
-    val responder = request.body.run(handler)
+    // This isn't correct, as it may contain unused data that will get ignored
+    //val responder = request.body.run(handler)
+    val responder = run(request.body |>> handler)
 
     // fold on the second one
-    responder.onSuccess { case responder =>
-      renderResponse(responder, resp)
+    responder.onSuccess { case (responder,leftOvers) =>
+      renderResponse(responder,
+        leftOvers match {
+          case Some(d) => Enumerator.enumInput(d)
+          case None => Enumerator.enumInput(Input.Empty)
+        },
+        resp)
     }
   }
 
-  protected def renderResponse(responder: Responder, resp: Response) {
+  /*
+  Helper method that gets any returned input by the enumerator it can be stacked back onto the body
+   */
+  private[this] def run(it: Future[Handler]): Future[(Responder,Option[Input[Chunk]])] = it.flatMap(_.fold({
+    case Step.Done(a, d@Input.El(_)) => Future.successful((a,Some(d)))
+    case Step.Done(a, _) => Future.successful((a,None))
+    case Step.Cont(k) => k(Input.EOF).fold({
+      case Step.Done(a1, d@Input.El(_)) => Future.successful((a1, Some(d)))
+      case Step.Done(a1, _) => Future.successful((a1, None))
+      case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
+      case Step.Error(msg, e) => sys.error(msg)
+    })
+    case Step.Error(msg, e) => sys.error(msg)
+  }))
+
+  protected def renderResponse(responder: Responder, preBodyEnum: Enumerator[Chunk], resp: Response) {
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
     }
@@ -36,7 +59,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       resp.getOutputStream.write(chunk)   // Would this be better as a buffer?
       resp.getOutputStream.flush()
     }
-    responder.body.run(it).onComplete {
+    (preBodyEnum >>> responder.body).run(it).onComplete {
       case _ => resp.resume
     }
   }
