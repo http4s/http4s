@@ -1,12 +1,16 @@
 package org.http4s.test
 
-import play.api.libs.iteratee.{Concurrent, Enumerator, Done, Iteratee}
+import org.http4s._
+
+import play.api.libs.iteratee.{Concurrent, Done}
 import org.glassfish.grizzly.http.server._
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig
 
 import org.http4s.grizzly.Http4sGrizzly
 import org.http4s.Responder
-import scala.Responder
+
+import org.http4s.Writable._
+import org.http4s.Bodies._
 
 
 /**
@@ -66,7 +70,7 @@ object Example extends App {
 
   httpServer.getServerConfiguration().addHttpHandler(new HttpHandler() {
 
-    override def service(request: Request, response: Response) {
+    override def service(request: org.glassfish.grizzly.http.server.Request, response: Response) {
       response.setContentType("text/plain")
       response.getWriter().write("Simple task is done!")
     }
@@ -78,8 +82,8 @@ object Example extends App {
     httpServer.start()
     println("Press any key to stop the server...")
     readLine
+    Thread.currentThread().join()
 
-    httpServer.stop()
   } catch  {
     case e: Throwable => println(e)
   }

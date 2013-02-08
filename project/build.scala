@@ -1,6 +1,7 @@
 import sbt._
 import Keys._
 
+import spray.revolver.RevolverPlugin._
 
 object build extends Build {
 
@@ -33,6 +34,6 @@ object build extends Build {
   lazy val grizzly = Project(
     "grizzly",
     file("grizzly"),
-    settings = http4sSettings
+    settings = http4sSettings ++ Revolver.settings
   ) dependsOn(core)
 }

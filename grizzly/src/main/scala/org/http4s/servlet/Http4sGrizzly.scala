@@ -31,9 +31,10 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     */
     val handler = route(request)
 
+    // First run of the Enumerator
     val responder = request.body.run(handler)
+
     responder.onSuccess { case responder =>
-      println("Got here") // Am I getting to the end before I should be?
       renderResponse(responder, resp)
     }
   }
@@ -53,65 +54,6 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
 
   protected def toRequest(req: GrizReq): Request = {
     val input = req.getNIOInputStream
-
-    val enumer = Concurrent.unicast[Chunk](
-      channel => {
-
-        def pushAll(): Unit = if (!input.isFinished) {
-
-          val bytes = new Array[Byte](input.readyData)
-          println(s"Chunk available: ${input.readyData}")
-          val bytesRead = input.read(bytes)
-          //val tmp = new String(bytes,"UTF8")
-
-          //println(s"Bytes: ${bytesRead}\n$tmp")
-          //channel.push("Test".getBytes)
-          if (bytesRead > 0 ) {
-            channel.push(bytes.take(bytesRead))
-            //channel.push("Garbage".getBytes)
-          }
-          //channel.push("H help".getBytes)
-        }
-
-        input.notifyAvailable(new ReadHandler {
-          def onDataAvailable() {
-            println(s"Chunk available: ${input.readyData}")
-            pushAll()
-            //input.notifyAvailable(this)
-
-          }
-
-          def onError(t: Throwable) {
-            println(s"Was an error in the ReadHandler! $t")
-          }
-
-          def onAllDataRead() { // Now not getting here...
-            println("All data read!")
-            pushAll()
-
-            channel.eofAndEnd
-          }
-        })
-
-
-        //println(s"Data available: ${input.readyData}")
-        //channel.eofAndEnd
-      },
-    onError = {
-      (str, _) =>
-        println(s"Error: $str")
-    }
-    )
-
-    val enumer_test = Concurrent.unicast[Chunk]({
-      channel =>
-        println("Started channel.")
-        for ( i <- 0 until 4) {
-          channel.push(s"Try $i\n".getBytes)
-        }
-        channel.eofAndEnd()
-    })
-
     Request(
       requestMethod = Method(req.getMethod.toString),
 
@@ -123,7 +65,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     // This is the enumerator that we will need to change in order to make it totally async
     // getting the NIOInputStream must be called before the service method ends, which it should as is
       //body = Enumerator.fromStream(req.getInputStream),
-      body = enumer,
+      body = new org.http4s.test.CustomEnumerator(input),
       urlScheme = UrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,
