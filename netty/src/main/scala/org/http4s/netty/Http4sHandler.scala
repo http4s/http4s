@@ -159,9 +159,8 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
         Future.successful(None)
       case (None, chunk) =>
         val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
-        if (!responder.headers.exists(h => (h.name equalsIgnoreCase "TRANSFER-ENCODING") && h.value.equalsIgnoreCase("CHUNKED")))
+        if (!(responder.headers.exists(h => (h.name equalsIgnoreCase "TRANSFER-ENCODING") && h.value.equalsIgnoreCase("CHUNKED"))))
           resp.addHeader(http.HttpHeaders.Names.TRANSFER_ENCODING, http.HttpHeaders.Values.CHUNKED)
-        resp.setChunked(true)
         ctx.getChannel.write(resp) map (_ => Some(msg))
       case (Some(toWrite), chunk) =>
         val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))

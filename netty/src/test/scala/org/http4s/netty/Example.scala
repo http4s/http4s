@@ -8,7 +8,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 object Example extends App with Logging {
 
-  SimpleNettyServer {
+  SimpleNettyServer() {
 
     case req if req.pathInfo == "/ping" =>
       logger.info("Got a ping request")
