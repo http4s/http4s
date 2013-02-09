@@ -13,20 +13,18 @@ import concurrent.{Future, ExecutionContext}
  */
 
 class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpHandler {
-  override def service(req: GrizReq, resp: Response) {
 
+  override def service(req: GrizReq, resp: Response) {
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
     val handler = route(request)
 
-    // First run of the Enumerator
-    // This isn't correct, as it may contain unused data that will get ignored
-    //val responder = request.body.run(handler)
-    val responder = run(request.body |>> handler)
+    // First runAndCollect of the Enumerator
+    val responderAndRemainingBody = runAndCollect(request.body |>> handler)
 
     // fold on the second one
-    responder.onSuccess { case (responder,leftOvers) =>
+    responderAndRemainingBody.onSuccess { case (responder,leftOvers) =>
       renderResponse(responder,
         leftOvers match {
           case Some(d) => Enumerator.enumInput(d)
@@ -39,7 +37,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
   /*
   Helper method that gets any returned input by the enumerator it can be stacked back onto the body
    */
-  private[this] def run(it: Future[Handler]): Future[(Responder,Option[Input[Chunk]])] = it.flatMap(_.fold({
+  private[this] def runAndCollect(it: Future[Handler]): Future[(Responder,Option[Input[Chunk]])] = it.flatMap(_.fold({
     case Step.Done(a, d@Input.El(_)) => Future.successful((a,Some(d)))
     case Step.Done(a, _) => Future.successful((a,None))
     case Step.Cont(k) => k(Input.EOF).fold({

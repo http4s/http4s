@@ -20,6 +20,7 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
           var currentContinuation = f
 
           def onError(t: Throwable) {
+            promise.failure(t)
             sys.error(s"Error in ReadHandler of custom iterattor: $t")
           }
 
@@ -43,7 +44,7 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
                   currentContinuation = f
                   is.notifyAvailable(this)
 
-                case Step.Done(a,e) => promise.completeWith(Future(Done(a,e)))
+                case Step.Done(a,e) => promise.success(Done(a,e))
                 case Step.Error(msg,e) => sys.error(s"Iteratee returned an error: $e")
             }
           }
@@ -51,7 +52,6 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
         promise.future
       } // case Step.Cont
 
-        // TODO: Should probably deal with the remaining input, in case an interatee just got too much...
       case Step.Done(result,remaining) => Future(Done(result,remaining))
       case Step.Error(msg, remaining) => sys.error(msg)
     }
