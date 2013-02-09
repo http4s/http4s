@@ -153,37 +153,34 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
     val content = ChannelBuffers.buffer(512 * 1024)
     resp.setContent(content)
-    val chf = Iteratee.foldM[Chunk, (Channel, Option[HttpChunk])]((ctx.getChannel, None)) {
-      case (r @ (_, None), chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
+    val chf = Iteratee.foldM[Chunk, Option[HttpChunk]](None) {
+      case (None, chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
         content.writeBytes(chunk)
-        Future.successful(r)
-      case ((ch, None), chunk) =>
+        Future.successful(None)
+      case (None, chunk) =>
         val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
+        if (!responder.headers.exists(h => (h.name equalsIgnoreCase "TRANSFER-ENCODING") && h.value.equalsIgnoreCase("CHUNKED")))
+          resp.addHeader(http.HttpHeaders.Names.TRANSFER_ENCODING, http.HttpHeaders.Values.CHUNKED)
         resp.setChunked(true)
-        ch.write(resp) flatMap (ch => ch.write(msg) map (c => (c, Some(msg))))
-      case ((ch, _), chunk) =>
+        ctx.getChannel.write(resp) map (_ => Some(msg))
+      case (Some(toWrite), chunk) =>
         val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
-        ch.write(msg) map (c => (c, Some(msg)))
+        ctx.getChannel.write(toWrite) map (_ => Some(msg))
     }
 
-    responder.body.run(chf) onComplete {
-      case Success((channel, None)) =>
+    responder.body.run(chf) flatMap {
+      case None =>
         if (!responder.headers.exists(_.name equalsIgnoreCase "CONTENT-LENGTH"))
           resp.addHeader("Content-Length", resp.getContent.readableBytes())
         resp.setContent(content)
-        channel.write(resp) onComplete {
-          case Success(channel: Channel) => closeChannel(channel)
-          case Failure(c: Cancelled) => closeChannel(c.channel)
-          case Failure(t: ChannelError) =>
-            t.reason.printStackTrace()
-            closeChannel(t.channel)
-          case Failure(t) =>
-            t.printStackTrace()
-            closeChannel(ctx.getChannel)
-        }
-      case Success((channel, Some(_))) =>
-        closeChannel(channel)
-
+        ctx.getChannel.write(resp)
+      case Some(chunk) =>
+        val trailer = new DefaultHttpChunkTrailer()
+        val ch = ctx.getChannel
+        ch.write(chunk) flatMap (_ write trailer)
+    } onComplete {
+      case Success(ch) =>
+        closeChannel(ch)
       case Failure(t) =>
         t.printStackTrace()
         closeChannel(ctx.getChannel)
