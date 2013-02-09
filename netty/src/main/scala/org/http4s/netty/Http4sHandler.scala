@@ -6,7 +6,7 @@ import org.jboss.netty.channel._
 import scala.util.control.Exception.allCatch
 import org.jboss.netty.buffer.ChannelBuffers
 import io.Codec
-import play.api.libs.iteratee.{Iteratee, Concurrent, Enumerator}
+import play.api.libs.iteratee._
 import java.net.{InetSocketAddress, SocketAddress, URI, InetAddress}
 import collection.JavaConverters._
 import HeaderNames._
@@ -26,6 +26,12 @@ import util.Success
 import org.http4s.Request
 import org.http4s.Header
 import java.util.concurrent.{TimeUnit, LinkedBlockingDeque, ConcurrentLinkedDeque}
+import org.http4s.Responder
+import util.Failure
+import scala.Some
+import util.Success
+import org.http4s.Request
+import org.http4s.Header
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -119,13 +125,18 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       val request = toRequest(ctx, req, rem.getAddress)
       val handler = route(request)
       logger.info(s"Got request $request")
-      val responder = request.body.run(handler)
-      responder onSuccess {
-        case responder =>
+      val responderAndRemainingBody = runAndCollect(request.body |>> handler)
+      responderAndRemainingBody onSuccess {
+        case (responder, leftOvers) =>
           logger.info(s"Response generated in the handler for request $request")
-          renderResponse(ctx, req, responder)
+          val enum = leftOvers match {
+            case Some(d) => Enumerator.enumInput[Chunk](d)
+            case None => Enumerator.enumInput[Chunk](Input.Empty)
+          }
+          val newBody = enum >>> responder.body
+          renderResponse(ctx, req, responder.copy(body = newBody))
       }
-      responder onFailure {
+      responderAndRemainingBody onFailure {
         case t => logger.error(t.getMessage, t)
       }
 
@@ -145,10 +156,27 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       }
   }
 
+  /** Helper method that gets any returned input by the enumerator it can be stacked back onto the body
+  */
+  private[this] def runAndCollect(it: Future[Handler]): Future[(Responder,Option[Input[Chunk]])] = {
 
+    it.flatMap(iter => {
+      println("In Run and collect")
+      iter.fold({
+        case Step.Done(a, d@Input.El(_)) => Future.successful((a,Some(d)))
+        case Step.Done(a, _) => Future.successful((a,None))
+        case Step.Cont(k) => k(Input.EOF).fold({
+          case Step.Done(a1, d@Input.El(_)) => Future.successful((a1, Some(d)))
+          case Step.Done(a1, _) => Future.successful((a1, None))
+          case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
+          case Step.Error(msg, e) => sys.error(msg)
+        })
+        case Step.Error(msg, e) => sys.error(msg)
+      })
+    })
+  }
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder) {
-
     def closeChannel(channel: Channel) = {
       logger.info("Closing the channel")
       if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
@@ -165,6 +193,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     resp.setContent(content)
     val chf = Iteratee.foldM[Chunk, Option[HttpChunk]](None) {
       case (None, chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
+        println("collecting response buffer chunks")
         content.writeBytes(chunk)
         Future.successful(None)
       case (None, chunk) =>
@@ -198,7 +227,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
   }
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {
-    Stream.continually()
     val uri = URI.create(req.getUri)
     val hdrs = toHeaders(req)
     val scheme = {
@@ -239,7 +267,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
     Request(
       requestMethod = Method(req.getMethod.getName),
-      scriptName = uri.getRawPath,
+      scriptName = "",
       pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),

@@ -28,5 +28,5 @@ case class Request(
   lazy val authType: Option[AuthType] = ???
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName
-  lazy val remoteUser: Option[String] = ???
+  lazy val remoteUser: Option[String] = None
 }

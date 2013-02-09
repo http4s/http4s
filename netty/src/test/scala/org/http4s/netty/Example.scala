@@ -24,6 +24,7 @@ object Example extends App with Logging {
       }))
 
     case req if req.pathInfo == "/echo" =>
+      println("In the route")
       Done(Responder(body = req.body))
   }
 
