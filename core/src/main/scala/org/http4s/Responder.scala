@@ -2,12 +2,12 @@ package org.http4s
 
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.{Input, Iteratee, Enumerator}
 
 case class Responder(
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  body: Enumerator[Chunk] = Enumerator.eof
+  body: (Iteratee[Chunk, _] => _) = { it:Iteratee[Chunk, _] => it.feed(Input.EOF) }
 )
 
 case class StatusLine(code: Int, reason: String)

@@ -31,7 +31,9 @@ class MockServerSpec extends Specification with NoTimeConversions {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Done(Responder(body = req.body))
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
-      stringHandler(req.charset, 16)(s => Responder(body = s.split('\n').map(_.toInt).sum))
+      stringHandler(req.charset, 16)(s => Responder(body = {
+        it: Iteratee[Chunk, _] => Enumerator(s.split('\n').map(_.toInt).sum.toString.getBytes).run(it)
+      }))
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   })
@@ -43,19 +45,19 @@ class MockServerSpec extends Specification with NoTimeConversions {
   "A mock server" should {
     "handle matching routes" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/echo",
-        body = Seq("one", "two", "three"))
+        body = {it: Iteratee[Chunk, _] => Enumerator("one", "two", "three").map(_.getBytes).run(it)})
       new String(response(req).body) should_==("onetwothree")
     }
 
     "runs a sum" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/sum",
-        body = Seq("1\n", "2\n3", "\n4"))
+        body = {it: Iteratee[Chunk, _] => Enumerator("1\n", "2\n3", "\n4").map(_.getBytes).run(it)})
       new String(response(req).body) should_==("10")
     }
 
     "runs too large of a sum" in {
       val req = Request(requestMethod = Method.Post, pathInfo = "/sum",
-        body = "12345678\n901234567")
+        body = {it: Iteratee[Chunk, _] => Enumerator("12345678\n901234567").map(_.getBytes).run(it)})
       response(req).statusLine should_==(StatusLine.RequestEntityTooLarge)
     }
 

@@ -2,8 +2,9 @@ package org.http4s
 
 import scala.language.reflectiveCalls
 
-import scala.concurrent.{ExecutionContext, Future}
+import concurrent.{Promise, ExecutionContext, Future}
 import play.api.libs.iteratee.{Enumeratee, Iteratee}
+import util.Success
 
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
@@ -12,11 +13,9 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
     try {
       route.lift(req).fold(Future.successful(onNotFound)) {
         handler =>
-          req.body.run(handler) flatMap {
-            responder => render(responder)
-          } recover {
-            case t => onError(t)
-          }
+          val responder = Promise[Responder]
+          req.body(handler.map(responder.success))
+          responder.future.flatMap(render).recover(onError)
       }
     } catch {
       case t: Throwable => Future.successful(onError(t))
@@ -25,11 +24,11 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
 
   def render(responder: Responder): Future[Response] = {
     val it: Iteratee[Chunk, Chunk] = Iteratee.consume()
-    val bytes = responder.body.run(it)
-    bytes map { body =>
+    val bytes = Promise[Array[Byte]]
+    responder.body(it.map(bytes.success))
+    bytes.future map { body =>
       Response(statusLine = responder.statusLine, headers = responder.headers, body = body)
     }
-
   }
 
   def onNotFound: MockServer.Response = Response(statusLine = StatusLine.NotFound)

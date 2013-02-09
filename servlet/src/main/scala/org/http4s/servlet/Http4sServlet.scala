@@ -1,3 +1,4 @@
+/*
 package org.http4s
 package servlet
 
@@ -59,3 +60,4 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     Headers(headers.toSeq : _*)
   }
 }
+*/

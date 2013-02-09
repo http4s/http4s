@@ -1,3 +1,4 @@
+/*
 package org.http4s
 package servlet
 
@@ -54,3 +55,4 @@ object Example extends App {
   server.start()
   server.join()
 }
+*/*/*/
