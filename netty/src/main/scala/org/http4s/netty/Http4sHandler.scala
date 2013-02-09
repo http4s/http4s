@@ -22,6 +22,7 @@ import org.http4s.Header
 import util.{Failure, Success}
 import scala.language.implicitConversions
 import com.typesafe.scalalogging.slf4j.Logging
+import java.util.concurrent.atomic.AtomicBoolean
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -106,7 +107,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   import ScalaUpstreamHandler._
 
-  def handle: ScalaUpstreamHandler.UpstreamHandler = {
+  val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
       val request = toRequest(ctx, req, rem.getAddress)
       val handler = route(request)
@@ -134,58 +135,67 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       }
   }
 
-  class Cancelled(val channel: Channel) extends Throwable
-  class ChannelError(val channel: Channel, val reason: Throwable) extends Throwable
-  implicit def channelFuture2Future(cf: ChannelFuture): Future[Channel] = {
-    val prom = Promise[Channel]()
-    cf.addListener(new ChannelFutureListener {
-      def operationComplete(future: ChannelFuture) {
-        if (future.isSuccess) {
-          prom.complete(Success(future.getChannel))
-        } else if (future.isCancelled) {
-          prom.complete(Failure(new Cancelled(future.getChannel)))
-        } else {
-          prom.complete(Failure(new ChannelError(future.getChannel, future.getCause)))
-        }
-      }
-    })
-    prom.future
-  }
-
   protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder) {
-    val stat = new HttpResponseStatus(responder.statusLine.code, responder.statusLine.reason)
-    val resp = new http.DefaultHttpResponse(req.getProtocolVersion, stat)
-    for (header <- responder.headers) {
-      resp.addHeader(header.name, header.value)
-    }
-    val it = Iteratee.foreach[Chunk] { chunk =>
-      logger.info("Writing chunk")
-      ctx.getChannel.write(new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk)))
-    }
+
     def closeChannel(channel: Channel) = {
       logger.info("Closing the channel")
       if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
     }
 
-    ctx.getChannel.write(resp) onComplete {
-      case Success(channel: Channel) =>
-        responder.body.run(it) onComplete {
-          case _ => closeChannel(channel)
+
+    val stat = new HttpResponseStatus(responder.statusLine.code, responder.statusLine.reason)
+    val resp = new http.DefaultHttpResponse(req.getProtocolVersion, stat)
+    for (header <- responder.headers) {
+      resp.addHeader(header.name, header.value)
+    }
+    val headersWritten = new AtomicBoolean(false)
+    val content = ChannelBuffers.buffer(512 * 1024)
+    val it = Iteratee.foreach[Chunk] { chunk =>
+      if ((content.readableBytes() + chunk.length) <= content.writableBytes())
+        content.writeBytes(chunk)
+      else {
+        if (headersWritten.compareAndSet(false, true)) {
+          resp.setChunked(true)
+          resp.setContent(content)
+          val fut: Future[Channel] = ctx.getChannel.write(resp)
+          fut onSuccess {
+            case _ =>
+              ctx.getChannel.write(new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk)))
+          }
+        } else {
+          ctx.getChannel.write(new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk)))
         }
+      }
 
-      case Failure(c: Cancelled) =>
-        closeChannel(c.channel)
-
-      case Failure(t: ChannelError) =>
-        t.reason.printStackTrace()
-        closeChannel(t.channel)
-
-      case Failure(t) =>
-        t.printStackTrace()
-        closeChannel(ctx.getChannel)
     }
 
 
+    responder.body.run(it) onComplete {
+      case _ =>
+        if (headersWritten.compareAndSet(false, true)) {
+          if (!responder.headers.exists(_.name equalsIgnoreCase "CONTENT-LENGTH"))
+            resp.addHeader("Content-Length", content.readableBytes())
+          resp.setContent(content)
+          ctx.getChannel.write(resp) onComplete {
+            case Success(channel: Channel) =>
+              closeChannel(channel)
+
+            case Failure(c: Cancelled) =>
+              closeChannel(c.channel)
+
+            case Failure(t: ChannelError) =>
+              t.reason.printStackTrace()
+              closeChannel(t.channel)
+
+            case Failure(t) =>
+              t.printStackTrace()
+              closeChannel(ctx.getChannel)
+          }
+        } else {
+          closeChannel(ctx.getChannel)
+        }
+
+    }
 
   }
 

@@ -12,7 +12,7 @@ object Example extends App with Logging {
 
     case req if req.pathInfo == "/ping" =>
       logger.info("Got a ping request")
-      Done(Responder(body = "pong", headers = Headers(Header("Content-Length", "4"))))
+      Done(Responder(body = "pong"))
 
     case req if req.pathInfo == "/stream" =>
       Done(Responder(body = Concurrent unicast { channel =>

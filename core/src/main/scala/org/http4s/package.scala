@@ -2,6 +2,7 @@ package org
 
 import http4s.ext.Http4sString
 import play.api.libs.iteratee.Iteratee
+import scala.language.implicitConversions
 
 package object http4s {
   type Route = PartialFunction[Request, Handler]

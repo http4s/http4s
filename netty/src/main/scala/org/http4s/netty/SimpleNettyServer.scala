@@ -11,9 +11,9 @@ import java.net.InetSocketAddress
 import concurrent.ExecutionContext
 
 object SimpleNettyServer {
-  def apply(route: Route)(implicit executionContext: ExecutionContext) = new SimpleNettyServer(Seq(route))
+  def apply(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) = new SimpleNettyServer(Seq(route))
 }
-class SimpleNettyServer private(routes: Seq[Route])(implicit executionContext: ExecutionContext) {
+class SimpleNettyServer private(routes: Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
   val channelFactory = new ChannelPipelineFactory {
     def getPipeline: ChannelPipeline = {
       val pipe = Channels.pipeline()
