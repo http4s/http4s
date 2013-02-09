@@ -1,5 +1,6 @@
 package org
 
+import http4s.ext.Http4sString
 import play.api.libs.iteratee.Iteratee
 
 package object http4s {
@@ -10,6 +11,16 @@ package object http4s {
   type Chunk = Array[Byte]
 
   type Middleware = (Route => Route)
+
+  object HeaderNames {
+    val XForwardedFor = "X-Forwarded-For"
+    val XForwardedProto = "X-Forwarded-Proto"
+    val FrontEndHttps = "Front-End-Https"
+    val Referer = "Referer"
+    val AcceptLanguage = "Accept-Language"
+  }
+
+  private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
 
   /*
   type RequestRewriter = PartialFunction[Request, Request]
