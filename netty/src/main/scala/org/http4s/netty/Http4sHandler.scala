@@ -20,6 +20,8 @@ import org.http4s.Responder
 import org.http4s.Request
 import org.http4s.Header
 import util.{Failure, Success}
+import scala.language.implicitConversions
+import com.typesafe.scalalogging.slf4j.Logging
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -39,7 +41,7 @@ object ScalaUpstreamHandler {
 
   type UpstreamHandler = PartialFunction[NettyUpstreamHandlerEvent, Unit]
 }
-trait ScalaUpstreamHandler extends SimpleChannelUpstreamHandler {
+trait ScalaUpstreamHandler extends SimpleChannelUpstreamHandler with Logging {
   import ScalaUpstreamHandler._
   def handle: UpstreamHandler
 
@@ -108,25 +110,26 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
       val request = toRequest(ctx, req, rem.getAddress)
       val handler = route(request)
+      logger.info(s"Got request $request")
       val responder = request.body.run(handler)
       responder onSuccess {
         case responder =>
-          println(s"Response generated in the handler for request $request")
+          logger.info(s"Response generated in the handler for request $request")
           renderResponse(ctx, req, responder)
       }
       responder onFailure {
-        case t => t.printStackTrace()
+        case t => logger.error(t.getMessage, t)
       }
 
     case ExceptionCaught(ctx, e) =>
       try {
-        Option(e.getCause) foreach (_.printStackTrace())
+        Option(e.getCause) foreach (t => logger.error(t.getMessage, t))
         val resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR)
         resp.setContent(ChannelBuffers.copiedBuffer((e.getCause.getMessage + "\n" + e.getCause.getStackTraceString).getBytes(Codec.UTF8.charSet)))
         ctx.getChannel.write(resp).addListener(ChannelFutureListener.CLOSE)
       } catch {
         case t: Throwable =>
-          t.printStackTrace()
+          logger.error(t.getMessage, t)
           allCatch(ctx.getChannel.close().await())
       }
   }
@@ -156,9 +159,14 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       resp.addHeader(header.name, header.value)
     }
     val it = Iteratee.foreach[Chunk] { chunk =>
+      logger.info("Writing chunk")
       ctx.getChannel.write(new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk)))
     }
-    def closeChannel(channel: Channel) = if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
+    def closeChannel(channel: Channel) = {
+      logger.info("Closing the channel")
+      if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
+    }
+
     ctx.getChannel.write(resp) onComplete {
       case Success(channel: Channel) =>
         responder.body.run(it) onComplete {
@@ -166,7 +174,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
         }
 
       case Failure(c: Cancelled) =>
-        println("Cancelled response")
         closeChannel(c.channel)
 
       case Failure(t: ChannelError) =>

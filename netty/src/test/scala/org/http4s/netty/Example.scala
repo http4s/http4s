@@ -11,17 +11,19 @@ import java.net.InetSocketAddress
 import java.util.concurrent.{CountDownLatch, Executors}
 import org.jboss.netty.bootstrap.ServerBootstrap
 import org.jboss.netty.channel.socket.nio.NioServerSocketChannelFactory
+import com.typesafe.scalalogging.slf4j.Logging
 
-object Example extends App {
+object Example extends App with Logging {
 
   def routeHandler = Routes {
     case req if req.pathInfo == "/ping" =>
-      Done(Responder(body = "pong"))
+      logger.info("Got a ping request")
+      Done(Responder(body = "pong", headers = Headers(Header("Content-Length", "4"))))
 
     case req if req.pathInfo == "/stream" =>
       Done(Responder(body = Concurrent unicast { channel =>
           for (i <- 1 to 10) {
-            channel.push("%d\n".format(i).getBytes)
+            channel.push(s"$i".getBytes))
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
