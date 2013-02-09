@@ -12,10 +12,7 @@ import collection.JavaConverters._
 import HeaderNames._
 import org.jboss.netty.handler.ssl.SslHandler
 import org.jboss.netty.handler.codec.http
-import http.DefaultHttpResponse
-import http.HttpRequest
-import http.HttpResponseStatus
-import http.HttpVersion
+import http._
 import org.http4s.Responder
 import org.http4s.Request
 import org.http4s.Header
@@ -23,6 +20,11 @@ import util.{Failure, Success}
 import scala.language.implicitConversions
 import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.atomic.AtomicBoolean
+import org.http4s.Responder
+import util.Failure
+import util.Success
+import org.http4s.Request
+import org.http4s.Header
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -148,59 +150,49 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
     }
-    val headersWritten = new AtomicBoolean(false)
-    val content = ChannelBuffers.buffer(512 * 1024)
-    val it = Iteratee.foreach[Chunk] { chunk =>
-      if ((content.readableBytes() + chunk.length) <= content.writableBytes())
-        content.writeBytes(chunk)
-      else {
-        if (headersWritten.compareAndSet(false, true)) {
-          resp.setChunked(true)
-          resp.setContent(content)
-          val fut: Future[Channel] = ctx.getChannel.write(resp)
-          fut onSuccess {
-            case _ =>
-              ctx.getChannel.write(new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk)))
-          }
-        } else {
-          ctx.getChannel.write(new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk)))
-        }
-      }
 
+    val content = ChannelBuffers.buffer(512 * 1024)
+    resp.setContent(content)
+    val chf = Iteratee.foldM[Chunk, (Channel, Option[HttpChunk])]((ctx.getChannel, None)) {
+      case (r @ (_, None), chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
+        content.writeBytes(chunk)
+        Future.successful(r)
+      case ((ch, None), chunk) =>
+        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
+        resp.setChunked(true)
+        ch.write(resp) flatMap (ch => ch.write(msg) map (c => (c, Some(msg))))
+      case ((ch, _), chunk) =>
+        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
+        ch.write(msg) map (c => (c, Some(msg)))
     }
 
-
-    responder.body.run(it) onComplete {
-      case _ =>
-        if (headersWritten.compareAndSet(false, true)) {
-          if (!responder.headers.exists(_.name equalsIgnoreCase "CONTENT-LENGTH"))
-            resp.addHeader("Content-Length", content.readableBytes())
-          resp.setContent(content)
-          ctx.getChannel.write(resp) onComplete {
-            case Success(channel: Channel) =>
-              closeChannel(channel)
-
-            case Failure(c: Cancelled) =>
-              closeChannel(c.channel)
-
-            case Failure(t: ChannelError) =>
-              t.reason.printStackTrace()
-              closeChannel(t.channel)
-
-            case Failure(t) =>
-              t.printStackTrace()
-              closeChannel(ctx.getChannel)
-          }
-        } else {
-          closeChannel(ctx.getChannel)
+    responder.body.run(chf) onComplete {
+      case Success((channel, None)) =>
+        if (!responder.headers.exists(_.name equalsIgnoreCase "CONTENT-LENGTH"))
+          resp.addHeader("Content-Length", resp.getContent.readableBytes())
+        resp.setContent(content)
+        channel.write(resp) onComplete {
+          case Success(channel: Channel) => closeChannel(channel)
+          case Failure(c: Cancelled) => closeChannel(c.channel)
+          case Failure(t: ChannelError) =>
+            t.reason.printStackTrace()
+            closeChannel(t.channel)
+          case Failure(t) =>
+            t.printStackTrace()
+            closeChannel(ctx.getChannel)
         }
+      case Success((channel, Some(_))) =>
+        closeChannel(channel)
 
+      case Failure(t) =>
+        t.printStackTrace()
+        closeChannel(ctx.getChannel)
     }
 
   }
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {
-    println("")
+    Stream.continually()
     val uri = URI.create(req.getUri)
     val hdrs = toHeaders(req)
     val scheme = {
