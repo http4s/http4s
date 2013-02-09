@@ -7,7 +7,7 @@ import scala.util.control.Exception.allCatch
 import org.jboss.netty.handler.codec.http.{HttpRequest, DefaultHttpResponse, HttpVersion, HttpResponseStatus}
 import org.jboss.netty.buffer.ChannelBuffers
 import io.Codec
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.{Concurrent, Enumerator}
 import java.net.{InetSocketAddress, SocketAddress, URI, InetAddress}
 import collection.JavaConverters._
 import HeaderNames._
@@ -121,11 +121,11 @@ class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.globa
     Request(
       requestMethod = Method(req.getMethod.getName),
       scriptName = uri.getRawPath,
-      pathInfo = "",
+      pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      body = Enumerator.enumerate(Seq(req.getContent.array())),
+      body = Enumerator(req.getContent.array()),
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
