@@ -7,7 +7,7 @@ import play.api.libs.iteratee.{Input, Iteratee, Enumerator}
 case class Responder(
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  body: (Iteratee[Chunk, _] => _) = { it:Iteratee[Chunk, _] => it.feed(Input.EOF) }
+  body: (Iteratee[Chunk, Unit] => Any) = _.feed(Input.EOF)
 )
 
 case class StatusLine(code: Int, reason: String)

@@ -13,7 +13,7 @@ case class Request(
   pathTranslated: Option[File] = None,
   protocol: ServerProtocol = HttpVersion.Http_1_1,
   headers: Headers = Headers.Empty,
-  body: (Iteratee[Chunk, _] => _) = { it: Iteratee[Chunk, _] => it.feed(Input.EOF) },
+  body: (Iteratee[Chunk, Unit] => Any) = _.feed(Input.EOF),
   urlScheme: UrlScheme = UrlScheme.Http,
   serverName: String = InetAddress.getLocalHost.getHostName,
   serverPort: Int = 80,
