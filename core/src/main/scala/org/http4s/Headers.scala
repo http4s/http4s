@@ -3,7 +3,7 @@ package org.http4s
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 
-class Headers private[http4s](headers: Seq[Header])
+class Headers private(headers: Seq[Header])
   extends immutable.Seq[Header]
   with collection.SeqLike[Header, Headers]
 {
