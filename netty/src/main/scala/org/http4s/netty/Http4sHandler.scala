@@ -93,10 +93,10 @@ trait ScalaUpstreamHandler extends SimpleChannelUpstreamHandler {
   }
 }
 
-object Http4sRouteHandler {
-  def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Http4sRouteHandler(route)
+object Routes {
+  def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Routes(route)
 }
-class Http4sRouteHandler(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sHandler
+class Routes(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sHandler
 
 abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
 
@@ -110,7 +110,12 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       val handler = route(request)
       val responder = request.body.run(handler)
       responder onSuccess {
-        case responder => renderResponse(ctx, req, responder)
+        case responder =>
+          println(s"Response generated in the handler for request $request")
+          renderResponse(ctx, req, responder)
+      }
+      responder onFailure {
+        case t => t.printStackTrace()
       }
 
     case ExceptionCaught(ctx, e) =>
@@ -178,6 +183,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
   }
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {
+    println("")
     val uri = URI.create(req.getUri)
     val hdrs = toHeaders(req)
     val scheme = {
