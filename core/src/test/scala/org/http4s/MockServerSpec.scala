@@ -3,7 +3,7 @@ package org.http4s
 import scala.language.implicitConversions
 import scala.language.reflectiveCalls
 
-import scala.concurrent.Await
+import concurrent.{Promise, Future, Await}
 import scala.concurrent.duration._
 
 import org.specs2.mutable.Specification
@@ -18,7 +18,7 @@ import java.nio.charset.Charset
 class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def stringHandler(charset: Charset, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder)= {
+  def stringHandler(charset: Charset, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[Chunk, Responder] = {
     Traversable.takeUpTo[Chunk](maxSize)
       .transform(Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map {
         bs => new String(bs, charset)
@@ -29,11 +29,15 @@ class MockServerSpec extends Specification with NoTimeConversions {
 
   val server = new MockServer({
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Done(Responder(body = req.body))
+      Future.successful(Responder(body = req.body))
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
-      stringHandler(req.charset, 16)(s => Responder(body = {
-        Enumerator(s.split('\n').map(_.toInt).sum.toString.getBytes).run
-      }))
+      val resp = Promise[Responder]()
+      val it = stringHandler(req.charset, 16) { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Responder(body = Enumerator(sum.toString.getBytes).run)
+      }
+      req.body(it.map { r => resp.success(r); () })
+      resp.future
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   })

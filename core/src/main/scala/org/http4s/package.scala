@@ -1,11 +1,9 @@
 package org
 
-import play.api.libs.iteratee.Iteratee
+import scala.concurrent.Future
 
 package object http4s {
-  type Route = PartialFunction[Request, Handler]
-
-  type Handler = Iteratee[Chunk, Responder]
+  type Route = PartialFunction[Request, Future[Responder]]
 
   type Chunk = Array[Byte]
 
