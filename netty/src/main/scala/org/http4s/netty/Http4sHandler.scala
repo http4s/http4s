@@ -25,6 +25,7 @@ import util.Failure
 import util.Success
 import org.http4s.Request
 import org.http4s.Header
+import java.util.concurrent.{TimeUnit, LinkedBlockingDeque, ConcurrentLinkedDeque}
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -109,8 +110,12 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   import ScalaUpstreamHandler._
 
+  val chunks = new LinkedBlockingDeque[HttpChunk]()
+
   val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
+      println("offering another request")
+      chunks.offer(new DefaultHttpChunk(req.getContent))
       val request = toRequest(ctx, req, rem.getAddress)
       val handler = route(request)
       logger.info(s"Got request $request")
@@ -124,6 +129,9 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
         case t => logger.error(t.getMessage, t)
       }
 
+    case MessageReceived(ctx, chunk: HttpChunk, _) =>
+      chunks.offer(chunk)
+
     case ExceptionCaught(ctx, e) =>
       try {
         Option(e.getCause) foreach (t => logger.error(t.getMessage, t))
@@ -136,6 +144,8 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
           allCatch(ctx.getChannel.close().await())
       }
   }
+
+
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder) {
 
@@ -200,6 +210,33 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       }
     }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
+
+    @volatile var canClose = !req.isChunked
+
+    val enum =
+      Concurrent.unicast[Chunk] { channel =>
+        val c = chunks.poll()
+
+        println(s"Got a chunk: $c")
+        c match {
+          case null =>
+            println("Got null, ignoring")
+            if (canClose) channel.eofAndEnd()
+          case trailer: HttpChunkTrailer =>
+            channel.eofAndEnd()
+          case chunk: HttpChunk =>
+            println(s"This regular http chunk is the last: ${chunk.isLast} and the request is ${if (req.isChunked) "" else "not"} chunked")
+            println(s"The content of the request ${chunk.getContent.toString(Codec.UTF8.charSet)}")
+            channel.push(chunk.getContent.array())
+            if (!req.isChunked || chunk.isLast) {
+              println("Closing the channel")
+              canClose = true
+              channel.eofAndEnd()
+            }
+            println(s"should close next time? $canClose")
+        }
+      }
+
     Request(
       requestMethod = Method(req.getMethod.getName),
       scriptName = uri.getRawPath,
@@ -207,7 +244,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      body = Enumerator(req.getContent.array()),
+      body = enum,
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
