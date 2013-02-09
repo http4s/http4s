@@ -1,17 +1,25 @@
 package org.http4s
 package netty
 
-import concurrent.ExecutionContext
+import concurrent.{Promise, Future, ExecutionContext}
 import org.jboss.netty.channel._
 import scala.util.control.Exception.allCatch
-import org.jboss.netty.handler.codec.http.{HttpRequest, DefaultHttpResponse, HttpVersion, HttpResponseStatus}
 import org.jboss.netty.buffer.ChannelBuffers
 import io.Codec
-import play.api.libs.iteratee.{Concurrent, Enumerator}
+import play.api.libs.iteratee.{Iteratee, Concurrent, Enumerator}
 import java.net.{InetSocketAddress, SocketAddress, URI, InetAddress}
 import collection.JavaConverters._
 import HeaderNames._
 import org.jboss.netty.handler.ssl.SslHandler
+import org.jboss.netty.handler.codec.http
+import http.DefaultHttpResponse
+import http.HttpRequest
+import http.HttpResponseStatus
+import http.HttpVersion
+import org.http4s.Responder
+import org.http4s.Request
+import org.http4s.Header
+import util.{Failure, Success}
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -85,13 +93,25 @@ trait ScalaUpstreamHandler extends SimpleChannelUpstreamHandler {
   }
 }
 
-class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
+object Http4sRouteHandler {
+  def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Http4sRouteHandler(route)
+}
+class Http4sRouteHandler(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sHandler
+
+abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
+
+  def route: Route
 
   import ScalaUpstreamHandler._
 
   def handle: ScalaUpstreamHandler.UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
-      toRequest(ctx, req, rem.getAddress)
+      val request = toRequest(ctx, req, rem.getAddress)
+      val handler = route(request)
+      val responder = request.body.run(handler)
+      responder onSuccess {
+        case responder => renderResponse(ctx, req, responder)
+      }
 
     case ExceptionCaught(ctx, e) =>
       try {
@@ -104,6 +124,57 @@ class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.globa
           t.printStackTrace()
           allCatch(ctx.getChannel.close().await())
       }
+  }
+
+  class Cancelled(val channel: Channel) extends Throwable
+  class ChannelError(val channel: Channel, val reason: Throwable) extends Throwable
+  implicit def channelFuture2Future(cf: ChannelFuture): Future[Channel] = {
+    val prom = Promise[Channel]()
+    cf.addListener(new ChannelFutureListener {
+      def operationComplete(future: ChannelFuture) {
+        if (future.isSuccess) {
+          prom.complete(Success(future.getChannel))
+        } else if (future.isCancelled) {
+          prom.complete(Failure(new Cancelled(future.getChannel)))
+        } else {
+          prom.complete(Failure(new ChannelError(future.getChannel, future.getCause)))
+        }
+      }
+    })
+    prom.future
+  }
+
+  protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder) {
+    val stat = new HttpResponseStatus(responder.statusLine.code, responder.statusLine.reason)
+    val resp = new http.DefaultHttpResponse(req.getProtocolVersion, stat)
+    for (header <- responder.headers) {
+      resp.addHeader(header.name, header.value)
+    }
+    val it = Iteratee.foreach[Chunk] { chunk =>
+      ctx.getChannel.write(new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk)))
+    }
+    def closeChannel(channel: Channel) = if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
+    ctx.getChannel.write(resp) onComplete {
+      case Success(channel: Channel) =>
+        responder.body.run(it) onComplete {
+          case _ => closeChannel(channel)
+        }
+
+      case Failure(c: Cancelled) =>
+        println("Cancelled response")
+        closeChannel(c.channel)
+
+      case Failure(t: ChannelError) =>
+        t.reason.printStackTrace()
+        closeChannel(t.channel)
+
+      case Failure(t) =>
+        t.printStackTrace()
+        closeChannel(ctx.getChannel)
+    }
+
+
+
   }
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {
