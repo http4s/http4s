@@ -18,10 +18,10 @@ object Example extends App {
 
   val http4sServlet = new Http4sServlet({
     case req if req.pathInfo == "/ping" =>
-      Future(Responder(body = "pong"))
+      Future.successful(Responder(body = Enumerator("pong".getBytes())))
 
     case req if req.pathInfo == "/stream" =>
-      Future(Responder(body = Concurrent.unicast({
+      Future.successful(Responder(body = Concurrent.unicast({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
@@ -31,7 +31,7 @@ object Example extends App {
       })))
 
     case req if req.pathInfo == "/echo" =>
-      Future(Responder(body = req.body))
+      Future.successful(Responder(body = req.body))
   })
 
   val rawServlet = new HttpServlet {
