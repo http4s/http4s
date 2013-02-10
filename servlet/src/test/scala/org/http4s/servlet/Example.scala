@@ -1,4 +1,3 @@
-/*
 package org.http4s
 package servlet
 
@@ -8,6 +7,7 @@ import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 
 import Bodies._
+import concurrent.Future
 
 /**
  * @author ross
@@ -15,10 +15,10 @@ import Bodies._
 object Example extends App {
   val http4sServlet = new Http4sServlet({
     case req if req.pathInfo == "/ping" =>
-      Done(Responder(body = "pong"))
+      Future.successful(Responder(body = Enumerator("pong".getBytes())))
 
     case req if req.pathInfo == "/stream" =>
-      Done(Responder(body = Concurrent.unicast({
+      Future.successful(Responder(body = Concurrent.unicast({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
@@ -28,7 +28,7 @@ object Example extends App {
       })))
 
     case req if req.pathInfo == "/echo" =>
-      Done(Responder(body = req.body))
+      Future.successful(Responder(body = req.body))
   })
 
   val rawServlet = new HttpServlet {
@@ -55,4 +55,3 @@ object Example extends App {
   server.start()
   server.join()
 }
-*/*/*/

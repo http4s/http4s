@@ -1,4 +1,3 @@
-/*
 package org.http4s
 package servlet
 
@@ -15,14 +14,14 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val ctx = req.startAsync()
     executor.execute(new Runnable {
       def run() {
-        val handler = route(request)
-        val responder = request.body.run(handler)
-        responder.onSuccess { case responder => renderResponse(responder, resp, ctx) }
+        route(request).onSuccess {
+          case responder => renderResponse(responder, resp, ctx)
+        }
       }
     })
   }
 
-  protected def renderResponse(responder: Responder, resp: HttpServletResponse, ctx: AsyncContext) {
+  protected def renderResponse(responder: Responder[Raw], resp: HttpServletResponse, ctx: AsyncContext) {
     resp.setStatus(responder.statusLine.code, responder.statusLine.reason)
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
@@ -36,7 +35,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def toRequest(req: HttpServletRequest): Request =
+  protected def toRequest(req: HttpServletRequest): Request[Raw] =
     Request(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
@@ -60,4 +59,3 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     Headers(headers.toSeq : _*)
   }
 }
-*/
