@@ -1,14 +1,21 @@
 package org
 
 import http4s.ext.Http4sString
-import play.api.libs.iteratee.Iteratee
+import play.api.libs.iteratee.Enumerator
 import scala.language.implicitConversions
-import concurrent.Future
+import scala.concurrent.Future
 
 package object http4s {
-  type Route = PartialFunction[Request, Handler]
+  type Route = PartialFunction[Request[Raw], Future[Responder[Raw]]]
 
-  type Handler = Future[Responder]
+  /*
+   * Alternatively...
+   *
+   * type Raw = (Iteratee[Chunk, Any] => Any)
+   * val EmptyBody: Raw = { it: Iteratee[Chunk, Any] => it.feed(Input.EOF) }
+   */
+  type Raw = Enumerator[Chunk]
+  val EmptyBody: Raw = Enumerator.eof
 
   type Chunk = Array[Byte]
 

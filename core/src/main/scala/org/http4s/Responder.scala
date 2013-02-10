@@ -2,13 +2,15 @@ package org.http4s
 
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.{Input, Iteratee, Enumerator}
 
-case class Responder(
+case class Responder[+A](
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  body: Enumerator[Chunk] = Enumerator.eof
-)
+  body: A
+) {
+  def map[B](f: A => B): Responder[B] = copy(body = f(body))
+}
 
 case class StatusLine(code: Int, reason: String)
 
