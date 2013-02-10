@@ -14,7 +14,7 @@ class ScopeSpec extends Specification {
     }
   }
 
-  val req = Request[Raw](body = Enumerator.eof)
+  val req = Request[Chunk](body = Enumerator.eof)
 
   val sess = ThisSession("blah")
 
