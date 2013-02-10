@@ -12,13 +12,9 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
   override def service(req: HttpServletRequest, resp: HttpServletResponse) {
     val request = toRequest(req)
     val ctx = req.startAsync()
-    executor.execute(new Runnable {
-      def run() {
-        val handler = route(request)
-        val responder = request.body.run(handler)
-        responder.onSuccess { case responder => renderResponse(responder, resp, ctx) }
-      }
-    })
+
+    route(request).map { renderResponse(_, resp, ctx) }
+
   }
 
   protected def renderResponse(responder: Responder, resp: HttpServletResponse, ctx: AsyncContext) {

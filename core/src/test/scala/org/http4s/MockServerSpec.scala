@@ -31,6 +31,7 @@ class MockServerSpec extends Specification with NoTimeConversions {
   val server = new MockServer({
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Future(Responder(body = req.body))
+
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
       req.body.run(stringHandler(req.charset, 16)(s => Responder(body = s.split('\n').map(_.toInt).sum)))
 
