@@ -1,6 +1,7 @@
 package org.http4s
 
 import scala.language.implicitConversions
+import concurrent.Future
 import scala.language.reflectiveCalls
 
 import concurrent.{Promise, Future, Await}

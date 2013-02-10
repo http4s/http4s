@@ -1,6 +1,8 @@
 import sbt._
 
 object Dependencies {
+  val GrizzlyHttpServer = "org.glassfish.grizzly" % "grizzly-http-server" % "2.2.19"
+
   private val jettyVersion = "8.1.8.v20121106"
   val JettyServer = "org.eclipse.jetty" % "jetty-server" % "8.1.8.v20121106"
   val JettyServlet = "org.eclipse.jetty" % "jetty-servlet" % "8.1.8.v20121106"

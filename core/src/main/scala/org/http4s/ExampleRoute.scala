@@ -35,8 +35,30 @@ private[http4s] object ExampleRoute {
           channel.eofAndEnd()
       })))
 
+    // Reads the whole body before responding
+    case req if req.pathInfo == "/determine_echo1" =>
+      println("Doing Read a bit and echo Echo")
+      req.body.run( Iteratee.getChunks).map {bytes =>
+        Responder( body = Enumerator(bytes:_*))
+      }
+
+    // Demonstrate how simple it is to read some and then continue
+    case req if req.pathInfo == "/determine_echo2" =>
+      println("Doing Read a bit and echo Echo")
+      val bit: Future[Option[Chunk]] = req.body.run(Iteratee.head)
+      bit.map {
+        case Some(bit) => Responder( body = Enumerator(bit) >>> req.body )
+        case None => Responder( body = Enumerator.eof )
+      }
+
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
+
+    case req =>
+      println(s"Request path: ${req.pathInfo}")
+      Future.successful(Responder(body =
+        Enumerator(s"${req.pathInfo}\n${req.uri}".getBytes)
+      ))
   }
 
   def stringHandler(req: Request[Raw], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Raw]): Future[Responder[Raw]] = {

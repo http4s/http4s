@@ -15,6 +15,9 @@ import org.http4s.Request
  * @author ross
  */
 object Example extends App {
+
+  import concurrent.ExecutionContext.Implicits.global
+
   val http4sServlet = new Http4sServlet(ExampleRoute())
 
   val rawServlet = new HttpServlet {

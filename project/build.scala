@@ -1,6 +1,8 @@
 import sbt._
 import Keys._
 
+import spray.revolver.RevolverPlugin._
+
 object build extends Build {
 
   val gc = TaskKey[Unit]("gc", "runs garbage collector")
@@ -15,7 +17,7 @@ object build extends Build {
     "project",
     file("."),
     settings = http4sSettings
-  ) aggregate(core, servlet, netty)
+  ) aggregate(core, servlet, netty, grizzly)
 
   lazy val core = Project(
     "core",
@@ -33,5 +35,11 @@ object build extends Build {
     "netty",
     file("netty"),
     settings = http4sSettings
+  ) dependsOn(core % "compile;test->test")
+
+  lazy val grizzly = Project(
+    "grizzly",
+    file("grizzly"),
+    settings = http4sSettings ++ Revolver.settings
   ) dependsOn(core % "compile;test->test")
 }

@@ -14,6 +14,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
       route.lift(req).fold(Future.successful(onNotFound)) {
         responder => responder.flatMap(render).recover(onError)
       }
+
     } catch {
       case t: Throwable => Future.successful(onError(t))
     }
