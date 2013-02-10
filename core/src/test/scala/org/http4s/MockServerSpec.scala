@@ -1,6 +1,7 @@
 package org.http4s
 
 import scala.language.implicitConversions
+import concurrent.Future
 import scala.language.reflectiveCalls
 
 import scala.concurrent.Await
@@ -18,22 +19,23 @@ import java.nio.charset.Charset
 class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def stringHandler(charset: Charset, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder)= {
+  def stringHandler(charset: Charset, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[Chunk, Responder] = {
     Traversable.takeUpTo[Chunk](maxSize)
       .transform(Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map {
-        bs => new String(bs, charset)
-      })
+      bs => new String(bs, charset)
+    })
       .flatMap(Iteratee.eofOrElse(Responder(statusLine = StatusLine.RequestEntityTooLarge)))
       .map(_.right.map(f).merge)
   }
 
   val server = new MockServer({
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Done(Responder(body = req.body))
+      Future(Responder(body = req.body))
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
-      stringHandler(req.charset, 16)(s => Responder(body = s.split('\n').map(_.toInt).sum))
+      req.body.run(stringHandler(req.charset, 16)(s => Responder(body = s.split('\n').map(_.toInt).sum)))
+
     case req if req.pathInfo == "/fail" =>
-      sys.error("FAIL")
+      Future(Responder( statusLine = StatusLine.InternalServerError))
   })
 
   def response(req: Request): MockServer.Response = {

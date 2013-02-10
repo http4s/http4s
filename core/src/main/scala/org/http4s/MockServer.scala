@@ -11,11 +11,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
   def apply(req: Request): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) {
-        _.flatMap { responder =>
-          responder.body.run(Iteratee.getChunks).map { lst =>
-            Response( body = lst.toArray.flatten )
-          }
-        }
+        _.flatMap { render }
       }
 
     } catch {
