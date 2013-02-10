@@ -11,7 +11,7 @@ case class Responder[A](
   headers: Headers = Headers.Empty,
   body: Enumerator[A]
 ) {
-  import scala.language.reflectiveCalls // So the compiler doesn't complain...
+  //import scala.language.reflectiveCalls // So the compiler doesn't complain...
   def map[B](f: A => B): Responder[B] = copy(body = body &> Enumeratee.map(f)) : Responder[B]
 }
 

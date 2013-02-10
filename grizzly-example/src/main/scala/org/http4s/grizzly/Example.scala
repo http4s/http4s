@@ -11,7 +11,6 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig
 
 object Example extends App {
 
-
   val http4sServlet = new Http4sGrizzly(ExampleRoute())
 
   val httpServer = new HttpServer
@@ -38,7 +37,7 @@ object Example extends App {
 
   try {
     httpServer.start()
-    println("Press any key to stop the server...")
+    //println("Press any key to stop the server...")
     Thread.currentThread().join()
 
   } catch  {

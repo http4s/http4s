@@ -40,6 +40,12 @@ object build extends Build {
   lazy val grizzly = Project(
     "grizzly",
     file("grizzly"),
-    settings = http4sSettings ++ Revolver.settings
+    settings = http4sSettings
   ) dependsOn(core % "compile;test->test")
+  
+  lazy val grizzly_example = Project(
+    "grizzly-example",
+    file("grizzly-example"),
+    settings = http4sSettings ++ Revolver.settings
+  ) dependsOn(grizzly, core % "compile->test")
 }
