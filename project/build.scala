@@ -17,7 +17,7 @@ object build extends Build {
     "project",
     file("."),
     settings = http4sSettings
-  ) aggregate(core, servlet, netty, grizzly)
+  ) aggregate(core, servlet, netty, grizzly, grizzly_example)
 
   lazy val core = Project(
     "core",

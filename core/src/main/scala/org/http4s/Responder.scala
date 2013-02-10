@@ -9,9 +9,9 @@ import play.api.libs.iteratee.{Enumeratee, Input, Iteratee, Enumerator}
 case class Responder[A](
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  body: Enumerator[A]
+  body: Enumerator[A] = Enumerator.eof
 ) {
-  //import scala.language.reflectiveCalls // So the compiler doesn't complain...
+  import scala.language.reflectiveCalls // So the compiler doesn't complain...
   def map[B](f: A => B): Responder[B] = copy(body = body &> Enumeratee.map(f)) : Responder[B]
 }
 
