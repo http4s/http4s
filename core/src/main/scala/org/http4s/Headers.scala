@@ -38,3 +38,12 @@ object Headers {
 }
 
 case class Header(name: String, value: String)
+
+// OCD: Alphabetize please
+object HeaderNames {
+  val AcceptLanguage = "Accept-Language"
+  val FrontEndHttps = "Front-End-Https"
+  val Referer = "Referer"
+  val XForwardedFor = "X-Forwarded-For"
+  val XForwardedProto = "X-Forwarded-Proto"
+}
