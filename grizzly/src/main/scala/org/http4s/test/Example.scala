@@ -34,23 +34,7 @@ object Example extends App {
 
   import concurrent.ExecutionContext.Implicits.global
 
-  val http4sServlet = new Http4sGrizzly({
-    case req if req.pathInfo == "/ping" =>
-      Future(Responder(body = "pong"))
-
-    case req if req.pathInfo == "/stream" =>
-      Future(Responder(body = Concurrent.unicast({
-        channel =>
-          for (i <- 1 to 10) {
-            channel.push("%d\n".format(i).getBytes)
-            Thread.sleep(1000)
-          }
-          channel.eofAndEnd()
-      })))
-
-    case req if req.pathInfo == "/echo" =>
-      Future(Responder(body = req.body))
-  })
+  val http4sServlet = new Http4sGrizzly(ExampleRoute())
 
   val httpServer = new HttpServer
   val networkListener = new NetworkListener("sample-listener", "0.0.0.0", 8080)
