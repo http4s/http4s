@@ -1,7 +1,7 @@
 package org.http4s
 package netty
 
-import play.api.libs.iteratee.{Concurrent, Done}
+import play.api.libs.iteratee.{Enumeratee, Concurrent, Done}
 import org.http4s._
 import Bodies._
 import com.typesafe.scalalogging.slf4j.Logging
@@ -22,6 +22,9 @@ object Example extends App with Logging {
           }
           channel.eofAndEnd()
       }))
+
+    case req if req.pathInfo == "/echo2" =>
+      Done(Responder(body = req.body &> Enumeratee.map[Chunk](e => e.slice(6, e.length-1))))
 
     case req if req.pathInfo == "/echo" =>
       println("In the route")
