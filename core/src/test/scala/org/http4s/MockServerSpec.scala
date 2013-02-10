@@ -19,29 +19,7 @@ import java.nio.charset.Charset
 class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def stringHandler(req: Request[Raw], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Raw]): Future[Responder[Raw]] = {
-    val it = Traversable.takeUpTo[Chunk](maxSize)
-      .transform(Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map {
-        bs => new String(bs, req.charset)
-      })
-      .flatMap(Iteratee.eofOrElse(Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody)))
-      .map(_.right.map(f).merge)
-    req.body.run(it)
-  }
-
-  val server = new MockServer({
-    case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Future.successful(Responder(body = req.body))
-
-    case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
-      stringHandler(req, 16) { s =>
-        val sum = s.split('\n').map(_.toInt).sum
-        Responder[Raw](body = Enumerator(sum.toString.getBytes))
-      }
-
-    case req if req.pathInfo == "/fail" =>
-      Future.successful(Responder(statusLine = StatusLine.InternalServerError, body = EmptyBody))
-  })
+  val server = new MockServer(ExampleRoute())
 
   def response(req: Request[Raw]): MockServer.Response = {
     Await.result(server(req), 5 seconds)

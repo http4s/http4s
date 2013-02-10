@@ -29,11 +29,11 @@ object build extends Build {
     "servlet",
     file("servlet"),
     settings = http4sSettings
-  ) dependsOn(core)
+  ) dependsOn(core % "compile;test->test")
   
   lazy val grizzly = Project(
     "grizzly",
     file("grizzly"),
     settings = http4sSettings ++ Revolver.settings
-  ) dependsOn(core)
+  ) dependsOn(core % "compile;test->test")
 }
