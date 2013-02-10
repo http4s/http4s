@@ -17,7 +17,7 @@ import org.http4s.Responder
 import org.http4s.Request
 import org.http4s.Header
 import util.{Failure, Success}
-import scala.language.implicitConversions
+import scala.language.{ implicitConversions, reflectiveCalls }
 import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.Responder
@@ -28,10 +28,11 @@ import org.http4s.Header
 import java.util.concurrent.{TimeUnit, LinkedBlockingDeque, ConcurrentLinkedDeque}
 import org.http4s.Responder
 import util.Failure
-import scala.Some
 import util.Success
 import org.http4s.Request
 import org.http4s.Header
+import collection.mutable
+import play.api.libs.iteratee.Enumerator.TreatCont0
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -110,6 +111,17 @@ object Routes {
 }
 class Routes(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sHandler
 
+//class RequestBodyEnumerator(req: HttpRequest, queue: mutable.Queue[HttpChunk]) extends Enumerator[Chunk] {
+//  def apply[A](i: Iteratee[_root_.org.http4s.Chunk, A]): Future[Iteratee[_root_.org.http4s.Chunk, A]] = {
+//    def step(it: Iteratee[Chunk, A]): Future[Iteratee[Chunk, A]] = it.fold {
+//        case Step.Done(a, e) => Future.successful(Done(a,e))
+//        case Step.Cont(k) => inner[A](step,k)
+//        case Step.Error(msg, e) => Future.successful(Error(msg,e))
+//    }
+//    step(i)
+//  }
+//}
+
 abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
 
   def route: Route
@@ -118,6 +130,8 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   val chunks = new LinkedBlockingDeque[HttpChunk]()
 
+
+
   val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
       println("offering another request")
@@ -125,6 +139,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       val request = toRequest(ctx, req, rem.getAddress)
       val handler = route(request)
       logger.info(s"Got request $request")
+
       val responderAndRemainingBody = runAndCollect(request.body |>> handler)
       responderAndRemainingBody onSuccess {
         case (responder, leftOvers) =>
@@ -239,31 +254,35 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
 
-    @volatile var canClose = !req.isChunked
 
-    val enum =
-      Concurrent.unicast[Chunk] { channel =>
-        val c = chunks.poll()
-
-        println(s"Got a chunk: $c")
-        c match {
-          case null =>
-            println("Got null, ignoring")
-            if (canClose) channel.eofAndEnd()
-          case trailer: HttpChunkTrailer =>
-            channel.eofAndEnd()
-          case chunk: HttpChunk =>
-            println(s"This regular http chunk is the last: ${chunk.isLast} and the request is ${if (req.isChunked) "" else "not"} chunked")
-            println(s"The content of the request ${chunk.getContent.toString(Codec.UTF8.charSet)}")
-            channel.push(chunk.getContent.array())
-            if (!req.isChunked || chunk.isLast) {
-              println("Closing the channel")
-              canClose = true
-              channel.eofAndEnd()
+    def requestChunks = new Enumerator[HttpChunk] {
+      def apply[A](i: Iteratee[HttpChunk, A]): Future[Iteratee[HttpChunk, A]] = {
+        def step(i: Iteratee[HttpChunk, A]): Future[Iteratee[HttpChunk, A]] = i.fold({
+          case Step.Cont(k) =>
+            chunks.poll() match {
+              case null => Future.successful(k(Input.Empty))
+              case trailer: HttpChunkTrailer => Future.successful(k(Input.EOF))
+              case chunk: HttpChunk =>
+                if (!req.isChunked || chunk.isLast) {
+                  Future.successful(k(Input.El(chunk)).flatMap(r => Done(r, Input.EOF)))
+                } else {
+                  val ii = k(Input.El(chunk))
+                  Future.successful(ii)
+                }
             }
-            println(s"should close next time? $canClose")
-        }
+          case Step.Done(r, re) =>
+            Future.successful(Done(r, re))
+          case Step.Error(msg, re) =>
+            println("got error")
+            Future.failed(sys.error(msg))
+        })
+        step(i)
       }
+    }
+
+    val et = Enumeratee.map[HttpChunk] { e =>
+      e.getContent.array(): Chunk
+    }
 
     Request(
       requestMethod = Method(req.getMethod.getName),
@@ -272,7 +291,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      body = enum,
+      body = requestChunks &> et,
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
