@@ -111,17 +111,6 @@ object Routes {
 }
 class Routes(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sHandler
 
-//class RequestBodyEnumerator(req: HttpRequest, queue: mutable.Queue[HttpChunk]) extends Enumerator[Chunk] {
-//  def apply[A](i: Iteratee[_root_.org.http4s.Chunk, A]): Future[Iteratee[_root_.org.http4s.Chunk, A]] = {
-//    def step(it: Iteratee[Chunk, A]): Future[Iteratee[Chunk, A]] = it.fold {
-//        case Step.Done(a, e) => Future.successful(Done(a,e))
-//        case Step.Cont(k) => inner[A](step,k)
-//        case Step.Error(msg, e) => Future.successful(Error(msg,e))
-//    }
-//    step(i)
-//  }
-//}
-
 abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
 
   def route: Route
@@ -140,19 +129,14 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       val handler = route(request)
       logger.info(s"Got request $request")
 
-      val responderAndRemainingBody = runAndCollect(request.body |>> handler)
-      responderAndRemainingBody onSuccess {
-        case (responder, leftOvers) =>
+      val responder = request.body.run(handler)
+      responder onSuccess {
+        case r =>
           logger.info(s"Response generated in the handler for request $request")
-          val enum = leftOvers match {
-            case Some(d) => Enumerator.enumInput[Chunk](d)
-            case None => Enumerator.enumInput[Chunk](Input.Empty)
-          }
-          val newBody = enum >>> responder.body
-          renderResponse(ctx, req, responder.copy(body = newBody))
+          renderResponse(ctx, req, r)
       }
-      responderAndRemainingBody onFailure {
-        case t => logger.error(t.getMessage, t)
+      responder onFailure {
+        case t => t.printStackTrace()
       }
 
     case MessageReceived(ctx, chunk: HttpChunk, _) =>
@@ -169,26 +153,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
           logger.error(t.getMessage, t)
           allCatch(ctx.getChannel.close().await())
       }
-  }
-
-  /** Helper method that gets any returned input by the enumerator it can be stacked back onto the body
-  */
-  private[this] def runAndCollect(it: Future[Handler]): Future[(Responder,Option[Input[Chunk]])] = {
-
-    it.flatMap(iter => {
-      println("In Run and collect")
-      iter.fold({
-        case Step.Done(a, d@Input.El(_)) => Future.successful((a,Some(d)))
-        case Step.Done(a, _) => Future.successful((a,None))
-        case Step.Cont(k) => k(Input.EOF).fold({
-          case Step.Done(a1, d@Input.El(_)) => Future.successful((a1, Some(d)))
-          case Step.Done(a1, _) => Future.successful((a1, None))
-          case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
-          case Step.Error(msg, e) => sys.error(msg)
-        })
-        case Step.Error(msg, e) => sys.error(msg)
-      })
-    })
   }
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder) {
