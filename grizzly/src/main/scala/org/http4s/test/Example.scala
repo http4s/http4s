@@ -50,29 +50,6 @@ object Example extends App {
 
     case req if req.pathInfo == "/echo" =>
       Future(Responder(body = req.body))
-
-      // Reads the whole body before responding
-    case req if req.pathInfo == "/determine_echo1" =>
-      println("Doing Read a bit and echo Echo")
-      req.body.run( Iteratee.getChunks).map {bytes =>
-        Responder( body = Enumerator(bytes:_*))
-      }
-
-      // Demonstrate how simple it is to read some and then continue
-    case req if req.pathInfo == "/determine_echo2" =>
-      println("Doing Read a bit and echo Echo")
-      val bit: Future[Option[Chunk]] = req.body.run(Iteratee.head)
-      bit.map {
-        case Some(bit) => Responder( body = Enumerator(bit) >>> req.body )
-        case None => Responder( body = Enumerator.eof )
-      }
-
-    case req =>
-      println(s"Request path: ${req.pathInfo}")
-      Future(Responder(body =
-        s"${req.pathInfo}\n" +
-        s"${req.uri}"
-      ))
   })
 
   val httpServer = new HttpServer
