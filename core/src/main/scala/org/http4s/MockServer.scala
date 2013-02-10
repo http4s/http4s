@@ -21,9 +21,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
 
   def render(responder: Responder[Raw]): Future[Response] = {
     val it: Iteratee[Chunk, Chunk] = Iteratee.consume()
-    val bytes = Promise[Array[Byte]]
-    responder.body(it.map(bytes.success))
-    bytes.future map { body =>
+    responder.body.run(it).map { body =>
       Response(statusLine = responder.statusLine, headers = responder.headers, body = body)
     }
   }

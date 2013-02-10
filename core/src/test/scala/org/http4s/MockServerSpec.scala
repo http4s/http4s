@@ -19,15 +19,13 @@ class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
 
   def stringHandler(req: Request[Raw], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Raw]): Future[Responder[Raw]] = {
-    val resp = Promise[Responder[Raw]]()
     val it = Traversable.takeUpTo[Chunk](maxSize)
       .transform(Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map {
         bs => new String(bs, req.charset)
       })
       .flatMap(Iteratee.eofOrElse(Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody)))
       .map(_.right.map(f).merge)
-    req.body(it.map { r => resp.success(r); ()})
-    resp.future
+    req.body.run(it)
   }
 
   val server = new MockServer({
@@ -36,7 +34,7 @@ class MockServerSpec extends Specification with NoTimeConversions {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
-        Responder[Raw](body = Enumerator(sum.toString.getBytes).run)
+        Responder[Raw](body = Enumerator(sum.toString.getBytes))
       }
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
@@ -49,19 +47,19 @@ class MockServerSpec extends Specification with NoTimeConversions {
   "A mock server" should {
     "handle matching routes" in {
       val req = Request[Raw](requestMethod = Method.Post, pathInfo = "/echo",
-        body = Enumerator("one", "two", "three").map(_.getBytes).run)
+        body = Enumerator("one", "two", "three").map(_.getBytes))
       new String(response(req).body) should_==("onetwothree")
     }
 
     "runs a sum" in {
       val req = Request[Raw](requestMethod = Method.Post, pathInfo = "/sum",
-        body = Enumerator("1\n", "2\n3", "\n4").map(_.getBytes).run)
+        body = Enumerator("1\n", "2\n3", "\n4").map(_.getBytes))
       new String(response(req).body) should_==("10")
     }
 
     "runs too large of a sum" in {
       val req = Request[Raw](requestMethod = Method.Post, pathInfo = "/sum",
-        body = Enumerator("12345678\n901234567").map(_.getBytes).run)
+        body = Enumerator("12345678\n901234567").map(_.getBytes))
       response(req).statusLine should_==(StatusLine.RequestEntityTooLarge)
     }
 
