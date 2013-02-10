@@ -6,7 +6,7 @@ import scala.language.implicitConversions
 import scala.concurrent.Future
 
 package object http4s {
-  type Route = PartialFunction[Request[Raw], Future[Responder[Raw]]]
+  type Route = PartialFunction[Request[Chunk], Future[Responder[Chunk]]]
 
   /*
    * Alternatively...

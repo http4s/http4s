@@ -8,7 +8,7 @@ import play.api.libs.iteratee.Iteratee
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
 
-  def apply(req: Request[Raw]): Future[Response] = {
+  def apply(req: Request[Chunk]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) {
         responder => responder.flatMap(render).recover(onError)
@@ -19,7 +19,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
     }
   }
 
-  def render(responder: Responder[Raw]): Future[Response] = {
+  def render(responder: Responder[Chunk]): Future[Response] = {
     val it: Iteratee[Chunk, Chunk] = Iteratee.consume()
     responder.body.run(it).map { body =>
       Response(statusLine = responder.statusLine, headers = responder.headers, body = body)

@@ -21,11 +21,10 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
 
           def onError(t: Throwable) {
             promise.failure(t)
-            sys.error(s"Error in ReadHandler of custom iterattor: $t")
+            sys.error(s"Error in ReadHandler of Grizzly custom Enumerator: $t")
           }
 
           def onAllDataRead() {
-            //println("Got here: onAllDataRead")
             val bytes = new Chunk(is.readyData())
             val readBytes = is.read(bytes,0,bytes.length)
             val newItter = f(Input.El(bytes.take(readBytes)))
@@ -34,7 +33,6 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
           }
 
           def onDataAvailable() {
-            //println("Got here: onDataAvailable")
             val bytes = new Chunk(is.readyData())
             val readBytes = is.read(bytes,0,bytes.length)
             val newItter = f(Input.El(bytes.take(readBytes)))

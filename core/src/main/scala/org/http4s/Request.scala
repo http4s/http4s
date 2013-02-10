@@ -2,11 +2,11 @@ package org.http4s
 
 import java.io.File
 import java.net.{URI, URL, InetAddress}
-import play.api.libs.iteratee.{Input, Iteratee, Enumerator}
+import play.api.libs.iteratee.{Enumeratee, Input, Iteratee, Enumerator}
 import java.nio.charset.Charset
 import java.util.UUID
 
-case class Request[+A](
+case class Request[A](
   requestMethod: Method = Method.Get,
   scriptName: String = "",
   pathInfo: String = "",
@@ -14,7 +14,7 @@ case class Request[+A](
   pathTranslated: Option[File] = None,
   protocol: ServerProtocol = HttpVersion.`Http/1.1`,
   headers: Headers = Headers.Empty,
-  body: A,
+  body: Enumerator[A],
   urlScheme: UrlScheme = UrlScheme.Http,
   serverName: String = InetAddress.getLocalHost.getHostName,
   serverPort: Int = 80,
@@ -32,5 +32,6 @@ case class Request[+A](
   lazy val remoteHost = remote.getHostName
   lazy val remoteUser: Option[String] = None
 
-  def map[B](f: A => B) = copy(body = f(body))
+  def map[B](f: A => B) = copy(body = body &> Enumeratee.map(f)): Request[B]
+  def flatMap[B<:Enumerator[B]](f: )
 }

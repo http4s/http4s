@@ -19,7 +19,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val handler:Future[Responder[Raw]] = route(request)
+    val handler:Future[Responder[Chunk]] = route(request)
 
 
     // fold on the second one
@@ -28,12 +28,12 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def renderResponse(responder: Responder[Raw], resp: Response) {
+  protected def renderResponse(responder: Responder[Chunk], resp: Response) {
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
     }
     val it = Iteratee.foreach[Chunk] { chunk =>
-      resp.getOutputStream.write(chunk)   // Would this be better as a buffer?
+      resp.getOutputStream.write(chunk)
       resp.getOutputStream.flush()
     }
     responder.body.run(it).onComplete {
@@ -41,7 +41,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def toRequest(req: GrizReq): Request[Raw] = {
+  protected def toRequest(req: GrizReq): Request[Chunk] = {
     val input = req.getNIOInputStream
     Request(
       requestMethod = Method(req.getMethod.toString),
