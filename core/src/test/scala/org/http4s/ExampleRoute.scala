@@ -49,13 +49,7 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
-
-    case req =>
-      println(s"Request path: ${req.pathInfo}")
-      Future.successful(Responder(body =
-        Enumerator(s"${req.pathInfo}\n${req.uri}".getBytes)
-      ))
-  }
+ }
 
   def stringHandler(req: Request[Raw], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Raw]): Future[Responder[Raw]] = {
     val it = Traversable.takeUpTo[Chunk](maxSize)
