@@ -2,9 +2,8 @@ package org.http4s
 
 import scala.language.reflectiveCalls
 
-import concurrent.{Promise, ExecutionContext, Future}
-import play.api.libs.iteratee.{Enumerator, Enumeratee, Iteratee}
-import util.Success
+import concurrent.{ExecutionContext, Future}
+import play.api.libs.iteratee.Iteratee
 
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response

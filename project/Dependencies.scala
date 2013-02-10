@@ -25,4 +25,6 @@ object Dependencies {
   val Specs2 = "org.specs2" %% "specs2" % "1.13"
 
   val SprayHttp = Seq("io.spray" % "spray-http" % "1.1-M7", "io.spray" % "spray-httpx" % "1.1-M7")
+
+  val Shapeless = "com.chuusai" % "shapeless_2.10" % "1.2.3"
 }

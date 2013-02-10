@@ -27,14 +27,14 @@ object Headers {
 
   def apply(headers: Header*): Headers = new Headers(headers)
 
-  implicit def canBuildFrom: CanBuildFrom[Headers, Header, Headers] =
-    new CanBuildFrom[Headers, Header, Headers] {
-      def apply(from: Headers): mutable.Builder[Header, Headers] = newBuilder
+  implicit def canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
+    new CanBuildFrom[Traversable[Header], Header, Headers] {
+      def apply(from: Traversable[Header]): mutable.Builder[Header, Headers] = newBuilder
       def apply(): mutable.Builder[Header, Headers] = newBuilder
     }
 
   private def newBuilder: mutable.Builder[Header, Headers] =
-    new mutable.ListBuffer[Header] mapResult(xs => new Headers(xs))
+    mutable.ListBuffer.newBuilder[Header] mapResult (new Headers(_))
 }
 
 case class Header(name: String, value: String)
