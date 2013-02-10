@@ -1,9 +1,14 @@
 package org
 
 import scala.concurrent.Future
+import play.api.libs.iteratee.{Input, Iteratee, Enumerator}
 
 package object http4s {
-  type Route = PartialFunction[Request, Future[Responder]]
+  type Route = PartialFunction[Request[Raw], Future[Responder[Raw]]]
+
+  type Raw = (Iteratee[Chunk, Any] => Any)
+
+  val EmptyBody: Raw = { it: Iteratee[Chunk, Any] => it.feed(Input.EOF) }
 
   type Chunk = Array[Byte]
 

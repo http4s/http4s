@@ -4,11 +4,13 @@ import scala.concurrent.Future
 
 import play.api.libs.iteratee.{Input, Iteratee, Enumerator}
 
-case class Responder(
+case class Responder[+A](
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  body: (Iteratee[Chunk, Unit] => Any) = _.feed(Input.EOF)
-)
+  body: A
+) {
+  def map[B](f: A => B): Responder[B] = copy(body = f(body))
+}
 
 case class StatusLine(code: Int, reason: String)
 
