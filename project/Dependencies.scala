@@ -13,7 +13,7 @@ object Dependencies {
 
   val Junit = "junit" % "junit" % "4.11"
 
-  val LogbackParent = "ch.qos.logback" % "logback-parent" % "1.0.9"
+  val LogbackParent = "ch.qos.logback" % "logback-classic" % "1.0.9"
 
   val Netty = "org.jboss.netty" % "netty" % "3.2.9.Final"
 
@@ -27,5 +27,9 @@ object Dependencies {
 
   val SprayHttp = "io.spray" % "spray-http" % "1.1-M7"
 
-  val Shapeless = "com.chuusai" % "shapeless_2.10" % "1.2.3"
+  val Shapeless = "com.chuusai" %% "shapeless" % "1.2.3"
+
+  val Scalaz = "org.scalaz" %% "scalaz-effect" % "7.0.0-M7"
+
+  val ScalaReflect = (sv: String) => "org.scala-lang" % "scala-reflect" % sv
 }

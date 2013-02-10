@@ -5,6 +5,8 @@ import java.net.{URI, URL, InetAddress}
 import play.api.libs.iteratee.{Enumeratee, Input, Iteratee, Enumerator}
 import java.nio.charset.Charset
 import java.util.UUID
+import spray.http.parser.HttpParser
+import spray.http.ContentType
 
 case class Request[A](
   requestMethod: Method = Method.Get,
@@ -21,17 +23,25 @@ case class Request[A](
   serverSoftware: ServerSoftware = ServerSoftware.Unknown,
   remote: InetAddress = InetAddress.getLocalHost,
   http4sVersion: Http4sVersion = Http4sVersion,
-  requestId: UUID = UUID.randomUUID()
+  private val requestId: UUID = UUID.randomUUID()
 ) {
-  lazy val contentLength: Option[Long] = headers.get("Content-Length").map(_.toLong)
-  lazy val contentType: Option[ContentType] = headers.get("Content-Type").map(???)
-  lazy val charset: Charset = Charset.defaultCharset() // TODO get from content type
+
+  lazy val contentLength: Option[Long] = headers.get("Content-Length").map(_.value.toLong)
+
+  lazy val contentType: Option[ContentType] = headers.get("Content-Type").map(_.asInstanceOf[ContentType])
+
+  lazy val charset: Charset = contentType.map(_.charset.nioCharset) getOrElse Charset.defaultCharset()
+
   lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
+
   lazy val authType: Option[AuthType] = ???
+
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName
+
   lazy val remoteUser: Option[String] = None
 
   import scala.language.reflectiveCalls // So the compiler doesn't complain...
   def map[B](f: A => B) = copy(body = body &> Enumeratee.map(f)): Request[B]
+
 }

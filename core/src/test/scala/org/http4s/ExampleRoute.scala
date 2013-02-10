@@ -47,6 +47,8 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
+
+    case r => sys.error(s"can't handle $r")
  }
 
   def stringHandler(req: Request[Chunk], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Chunk]): Future[Responder[Chunk]] = {

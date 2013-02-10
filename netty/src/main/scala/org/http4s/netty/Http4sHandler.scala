@@ -9,7 +9,6 @@ import io.Codec
 import play.api.libs.iteratee._
 import java.net.{InetSocketAddress, SocketAddress, URI, InetAddress}
 import collection.JavaConverters._
-import HeaderNames._
 import org.jboss.netty.handler.ssl.SslHandler
 import org.jboss.netty.handler.codec.http
 import http._
@@ -141,10 +140,8 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       enumerator = new RequestChunksEnumerator(req)
       val request = toRequest(ctx, req, rem.getAddress)
       val responder = route(request)
-      logger.info(s"Got request $request")
       responder onSuccess {
         case r =>
-          logger.info(s"Response generated in the handler for request $request")
           renderResponse(ctx, req, r)
       }
       responder onFailure {
@@ -169,7 +166,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder[Chunk]) {
     def closeChannel(channel: Channel) = {
-      logger.info("Closing the channel")
       if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
     }
 
@@ -217,12 +213,14 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   }
 
+  import HeaderNames._
+
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {
     val uri = URI.create(req.getUri)
     val hdrs = toHeaders(req)
     val scheme = {
-      hdrs.get(XForwardedProto).flatMap(_.blankOption) orElse {
-        val fhs = hdrs.get(FrontEndHttps).flatMap(_.blankOption)
+      hdrs.get(XForwardedProto).flatMap(_.value.blankOption) orElse {
+        val fhs = hdrs.get(FrontEndHttps).flatMap(_.value.blankOption)
         fhs.filter(_ equalsIgnoreCase "ON").map(_ => "https")
       } getOrElse {
         if (ctx.getPipeline.get(classOf[SslHandler]) != null) "http" else "https"
