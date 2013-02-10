@@ -7,6 +7,7 @@ import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.ExecutionContext
 import javax.servlet.AsyncContext
+import spray.http.HttpHeaders
 
 class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
   override def service(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -51,7 +52,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header(name, value)
+    } yield HttpHeaders.RawHeader(name, value)
     Headers(headers.toSeq : _*)
   }
 }

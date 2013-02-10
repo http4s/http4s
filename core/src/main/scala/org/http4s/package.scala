@@ -23,6 +23,10 @@ package object http4s {
 
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
 
+  trait RouteHandler {
+    def route: Route
+  }
+
   /*
   type RequestRewriter = PartialFunction[Request, Request]
 

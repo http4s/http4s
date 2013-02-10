@@ -7,8 +7,9 @@ object Dependencies {
   val GrizzlyHttpServer = "org.glassfish.grizzly" % "grizzly-http-server" % "2.2.19"
 
   private val jettyVersion = "8.1.8.v20121106"
-  val JettyServer = "org.eclipse.jetty" % "jetty-server" % "8.1.8.v20121106"
-  val JettyServlet = "org.eclipse.jetty" % "jetty-servlet" % "8.1.8.v20121106"
+  val JettyServer = "org.eclipse.jetty" % "jetty-server" % jettyVersion
+  val JettyServlet = "org.eclipse.jetty" % "jetty-servlet" % jettyVersion
+  val JettyWebSocket = "org.eclipse.jetty" % "jetty-websocket" % jettyVersion
 
   val Junit = "junit" % "junit" % "4.11"
 
@@ -24,7 +25,7 @@ object Dependencies {
 
   val Specs2 = "org.specs2" %% "specs2" % "1.13"
 
-  val SprayHttp = Seq("io.spray" % "spray-http" % "1.1-M7", "io.spray" % "spray-httpx" % "1.1-M7")
+  val SprayHttp = "io.spray" % "spray-http" % "1.1-M7"
 
   val Shapeless = "com.chuusai" % "shapeless_2.10" % "1.2.3"
 }

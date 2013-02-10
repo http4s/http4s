@@ -2,42 +2,41 @@ package org.http4s
 
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
+import spray.http.HttpHeader
 
-class Headers private(headers: Seq[Header])
-  extends immutable.Seq[Header]
-  with collection.SeqLike[Header, Headers]
+class Headers private(headers: Seq[HttpHeader])
+  extends immutable.Seq[HttpHeader]
+  with collection.SeqLike[HttpHeader, Headers]
 {
-  override protected[this] def newBuilder: mutable.Builder[Header, Headers] = Headers.newBuilder
+  override protected[this] def newBuilder: mutable.Builder[HttpHeader, Headers] = Headers.newBuilder
 
   def length: Int = headers.length
 
-  def apply(idx: Int): Header = headers(idx)
+  def apply(idx: Int): HttpHeader = headers(idx)
 
-  def iterator: Iterator[Header] = headers.iterator
+  def iterator: Iterator[HttpHeader] = headers.iterator
 
   def apply(name: String): String = get(name).get
 
-  def get(name: String): Option[String] = find(_.name == name).map(_.value)
+  def get(name: String): Option[String] = find(_ is name.toLowerCase).map(_.value)
 
-  def getAll(name: String): Seq[String] = filter(_.name == name).map(_.value)
+  def getAll(name: String): Seq[String] = filter(_ is name.toLowerCase).map(_.value)
 }
 
 object Headers {
   val Empty = apply()
 
-  def apply(headers: Header*): Headers = new Headers(headers)
+  def apply(headers: HttpHeader*): Headers = new Headers(headers)
 
-  implicit def canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
-    new CanBuildFrom[Traversable[Header], Header, Headers] {
-      def apply(from: Traversable[Header]): mutable.Builder[Header, Headers] = newBuilder
-      def apply(): mutable.Builder[Header, Headers] = newBuilder
+  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, Headers] =
+    new CanBuildFrom[Traversable[HttpHeader], HttpHeader, Headers] {
+      def apply(from: Traversable[HttpHeader]): mutable.Builder[HttpHeader, Headers] = newBuilder
+      def apply(): mutable.Builder[HttpHeader, Headers] = newBuilder
     }
 
-  private def newBuilder: mutable.Builder[Header, Headers] =
-    mutable.ListBuffer.newBuilder[Header] mapResult (new Headers(_))
+  private def newBuilder: mutable.Builder[HttpHeader, Headers] =
+    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (new Headers(_))
 }
-
-case class Header(name: String, value: String)
 
 // OCD: Alphabetize please
 object HeaderNames {

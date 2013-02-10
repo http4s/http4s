@@ -16,7 +16,7 @@ import org.http4s.HttpVersion
 import io.Codec
 import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
-import util.Try
+import scala.util.Try
 
 object StaticFileHandler {
   def serveFile(ctx: ChannelHandlerContext, request: HttpRequest, file: File, contentType: Option[String] = None) = {
@@ -143,7 +143,7 @@ class StaticFileHandler(publicDirectory: String) extends SimpleChannelUpstreamHa
     }
   }
 
-  import util.control.Exception.catching
+  import scala.util.control.Exception.catching
   private def sanitizeUri(uri: String) = {
     val tryOrFallback = catching(classOf[UnsupportedEncodingException]).withApply(_ => uri.urlDecode(Codec.ISO8859))
     val decoded = tryOrFallback(uri.urlDecode())

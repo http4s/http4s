@@ -17,10 +17,9 @@ import scala.language.{ implicitConversions, reflectiveCalls }
 import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.LinkedBlockingDeque
 import org.http4s.Responder
-import util.Failure
-import util.Success
+import scala.util.{ Failure, Success }
 import org.http4s.Request
-import org.http4s.Header
+import spray.http.HttpHeaders
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -251,6 +250,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     (for {
       name  <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header(name, value)).toSeq:_*
+    } yield HttpHeaders.RawHeader(name, value)).toSeq:_*
   )
 }

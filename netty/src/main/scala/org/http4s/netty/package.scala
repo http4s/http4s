@@ -2,7 +2,7 @@ package org.http4s
 
 import org.jboss.netty.channel.{ChannelFutureListener, ChannelFuture, Channel}
 import concurrent.{ExecutionContext, Promise, Future}
-import util.{Failure, Success}
+import scala.util.{Failure, Success}
 import scala.language.implicitConversions
 import org.jboss.netty.handler.codec.http.{ HttpMethod => JHttpMethod, HttpResponseStatus }
 import Method._

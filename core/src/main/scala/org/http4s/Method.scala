@@ -89,4 +89,6 @@ object Method {
    * @return the method, if registered; otherwise, an extension method
    */
   def apply(name: String): Method = get(name).getOrElse(new ExtensionMethod(name, isSafe = false, isIdempotent = false))
+
+
 }

@@ -4,6 +4,7 @@ import java.io.File
 import java.net.{URI, URL, InetAddress}
 import play.api.libs.iteratee.{Input, Iteratee, Enumerator}
 import java.nio.charset.Charset
+import java.util.UUID
 
 case class Request[+A](
   requestMethod: Method = Method.Get,
@@ -19,7 +20,8 @@ case class Request[+A](
   serverPort: Int = 80,
   serverSoftware: ServerSoftware = ServerSoftware.Unknown,
   remote: InetAddress = InetAddress.getLocalHost,
-  http4sVersion: Http4sVersion = Http4sVersion
+  http4sVersion: Http4sVersion = Http4sVersion,
+  requestId: UUID = UUID.randomUUID()
 ) {
   lazy val contentLength: Option[Long] = headers.get("Content-Length").map(_.toLong)
   lazy val contentType: Option[ContentType] = headers.get("Content-Type").map(???)

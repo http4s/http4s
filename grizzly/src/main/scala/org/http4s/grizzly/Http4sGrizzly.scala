@@ -7,6 +7,7 @@ import play.api.libs.iteratee.{Enumerator, Input, Step, Iteratee}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{Future, ExecutionContext}
+import spray.http.HttpHeaders
 
 /**
  * @author Bryce Anderson
@@ -63,7 +64,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header(name, value)
+    } yield HttpHeaders.RawHeader(name, value)
     Headers(headers.toSeq : _*)
   }
 }
