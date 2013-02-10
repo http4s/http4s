@@ -4,10 +4,7 @@ import scala.language.reflectiveCalls
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee._
 
-/**
- * Centralized scratch pad for various http4s use cases.  Should not ship with final product.
- */
-private[http4s] object ExampleRoute {
+object ExampleRoute {
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
       Future.successful(Responder(body = Enumerator("pong".getBytes())))
