@@ -11,6 +11,6 @@ target/
 /.project
 /.settings/
 atlassian-ide-plugin.xml
-*.sublime-project
+*.sublime-*
 .tags
 .tags_sorted_by_file

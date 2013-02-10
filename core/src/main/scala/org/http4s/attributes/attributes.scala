@@ -23,5 +23,5 @@ case class ScopedKey[T](scope: Scope, key: AttributeKey[T])
 //    f(y).s(a)
 //  })
 //}
-case class Setting[T](key: ScopedKey[T], value: State)
+case class Setting[T](key: ScopedKey[T], value: State[_, T])
 

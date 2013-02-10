@@ -94,8 +94,8 @@ object StatusLine {
   private[this] val ReasonMap = Map(
     (for {
       line <- getClass.getMethods
-      if line.getReturnType.isInstanceOf[StatusLine]
-      status = line.asInstanceOf[StatusLine]
+      if line.getReturnType.isAssignableFrom(classOf[StatusLine]) && line.getParameterTypes.isEmpty
+      status = line.invoke(this).asInstanceOf[StatusLine]
     } yield status.code -> status.reason):_*
   )
 
