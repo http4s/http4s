@@ -27,5 +27,5 @@ object build extends Build {
     "servlet",
     file("servlet"),
     settings = http4sSettings
-  ) dependsOn(core)
+  ) dependsOn(core % "compile;test->test")
 }
