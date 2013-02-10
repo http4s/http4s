@@ -27,22 +27,6 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  /*
-  Helper method that gets any returned input by the enumerator it can be stacked back onto the body
-
-  private[this] def runAndCollect(it: Future[Handler]): Future[(Responder,Option[Input[Chunk]])] = it.flatMap(_.fold({
-    case Step.Done(a, d@Input.El(_)) => Future.successful((a,Some(d)))
-    case Step.Done(a, _) => Future.successful((a,None))
-    case Step.Cont(k) => k(Input.EOF).fold({
-      case Step.Done(a1, d@Input.El(_)) => Future.successful((a1, Some(d)))
-      case Step.Done(a1, _) => Future.successful((a1, None))
-      case Step.Cont(_) => sys.error("diverging iteratee after Input.EOF")
-      case Step.Error(msg, e) => sys.error(msg)
-    })
-    case Step.Error(msg, e) => sys.error(msg)
-
-  })  ) */
-
   protected def renderResponse(responder: Responder, resp: Response) {
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)

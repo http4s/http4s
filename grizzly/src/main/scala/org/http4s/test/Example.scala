@@ -58,7 +58,7 @@ object Example extends App {
         Responder( body = Enumerator(bytes:_*))
       }
 
-      // We want http4s to deal with our remaining data
+      // Demonstrate how simple it is to read some and then continue
     case req if req.pathInfo == "/determine_echo2" =>
       println("Doing Read a bit and echo Echo")
       val bit: Future[Option[Chunk]] = req.body.run(Iteratee.head)
