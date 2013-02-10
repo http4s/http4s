@@ -1,9 +1,8 @@
 package org.http4s
 
+import scala.language.reflectiveCalls
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee._
-import org.http4s.Responder
-import org.http4s.Request
 
 /**
  * Centralized scratch pad for various http4s use cases.  Should not ship with final product.
