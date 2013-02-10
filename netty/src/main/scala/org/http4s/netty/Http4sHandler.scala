@@ -140,10 +140,8 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       enumerator = new RequestChunksEnumerator(req)
       val request = toRequest(ctx, req, rem.getAddress)
       val responder = route(request)
-      logger.info(s"Got request $request")
       responder onSuccess {
         case r =>
-          logger.info(s"Response generated in the handler for request $request")
           renderResponse(ctx, req, r)
       }
       responder onFailure {
@@ -168,7 +166,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder[Raw]) {
     def closeChannel(channel: Channel) = {
-      logger.info("Closing the channel")
       if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
     }
 
