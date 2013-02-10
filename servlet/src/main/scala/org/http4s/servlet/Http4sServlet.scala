@@ -18,7 +18,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
 
   }
 
-  protected def renderResponse(responder: Responder[Raw], resp: HttpServletResponse, ctx: AsyncContext) {
+  protected def renderResponse(responder: Responder[Chunk], resp: HttpServletResponse, ctx: AsyncContext) {
     resp.setStatus(responder.statusLine.code, responder.statusLine.reason)
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
@@ -32,7 +32,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def toRequest(req: HttpServletRequest): Request[Raw] =
+  protected def toRequest(req: HttpServletRequest): Request[Chunk] =
     Request(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,

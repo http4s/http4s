@@ -167,7 +167,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       }
   }
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder[Raw]) {
+  protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder[Chunk]) {
     def closeChannel(channel: Channel) = {
       logger.info("Closing the channel")
       if (!http.HttpHeaders.isKeepAlive(req)) channel.close()

@@ -6,7 +6,7 @@ import play.api.libs.iteratee.{Enumeratee, Input, Iteratee, Enumerator}
 import java.nio.charset.Charset
 import java.util.UUID
 
-case class Request[+A](
+case class Request[A](
   requestMethod: Method = Method.Get,
   scriptName: String = "",
   pathInfo: String = "",
