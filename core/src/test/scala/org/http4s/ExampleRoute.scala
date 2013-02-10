@@ -18,7 +18,7 @@ object ExampleRoute {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
-        Responder[Raw](body = Enumerator(sum.toString.getBytes))
+        Responder[Chunk](body = Enumerator(sum.toString.getBytes))
       }
 
     case req if req.pathInfo == "/stream" =>
@@ -49,7 +49,7 @@ object ExampleRoute {
       sys.error("FAIL")
  }
 
-  def stringHandler(req: Request[Raw], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Raw]): Future[Responder[Raw]] = {
+  def stringHandler(req: Request[Chunk], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Chunk]): Future[Responder[Chunk]] = {
     val it = (Traversable.takeUpTo[Chunk](maxSize)
                 transform bytesAsString(req)
                 flatMap eofOrRequestTooLarge(f)
@@ -57,10 +57,10 @@ object ExampleRoute {
     req.body.run(it)
   }
 
-  private[this] def bytesAsString(req: Request[Raw]) =
+  private[this] def bytesAsString(req: Request[Chunk]) =
     Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map(new String(_, req.charset))
 
-  private[this] def eofOrRequestTooLarge[B](f: String => Responder[Raw])(s: String) =
+  private[this] def eofOrRequestTooLarge[B](f: String => Responder[Chunk])(s: String) =
     Iteratee.eofOrElse[B](Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody))(s).map(_.right.map(f))
 
 }

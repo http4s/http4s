@@ -33,5 +33,4 @@ case class Request[A](
   lazy val remoteUser: Option[String] = None
 
   def map[B](f: A => B) = copy(body = body &> Enumeratee.map(f)): Request[B]
-  def flatMap[B<:Enumerator[B]](f: )
 }

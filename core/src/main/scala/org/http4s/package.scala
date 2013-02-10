@@ -14,8 +14,8 @@ package object http4s {
    * type Raw = (Iteratee[Chunk, Any] => Any)
    * val EmptyBody: Raw = { it: Iteratee[Chunk, Any] => it.feed(Input.EOF) }
    */
-  type Raw = Enumerator[Chunk]
-  val EmptyBody: Raw = Enumerator.eof
+  //type Raw = Enumerator[Chunk]
+  val EmptyBody: Enumerator[Chunk] = Enumerator.eof
 
   type Chunk = Array[Byte]
 

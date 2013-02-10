@@ -1,5 +1,7 @@
 package org.http4s
 
+
+
 import scala.concurrent.Future
 
 import play.api.libs.iteratee.{Enumeratee, Input, Iteratee, Enumerator}
@@ -9,7 +11,8 @@ case class Responder[A](
   headers: Headers = Headers.Empty,
   body: Enumerator[A]
 ) {
-  def map[B](f: A => B): Responder[B] = copy(body = body &> Enumeratee.map(f))
+  import scala.language.reflectiveCalls // So the compiler doesn't complain...
+  def map[B](f: A => B): Responder[B] = copy(body = body &> Enumeratee.map(f)) : Responder[B]
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
