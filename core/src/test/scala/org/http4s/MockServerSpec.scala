@@ -18,26 +18,26 @@ import java.nio.charset.Charset
 class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  def stringHandler(charset: Charset, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[Chunk, Responder] = {
-    Traversable.takeUpTo[Chunk](maxSize)
+  def stringHandler[A](req: Request, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Future[Responder] = {
+    val resp = Promise[Responder]()
+    val it = Traversable.takeUpTo[Chunk](maxSize)
       .transform(Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map {
-        bs => new String(bs, charset)
+        bs => new String(bs, req.charset)
       })
       .flatMap(Iteratee.eofOrElse(Responder(statusLine = StatusLine.RequestEntityTooLarge)))
       .map(_.right.map(f).merge)
+    req.body(it.map { r => resp.success(r); ()})
+    resp.future
   }
 
   val server = new MockServer({
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Future.successful(Responder(body = req.body))
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
-      val resp = Promise[Responder]()
-      val it = stringHandler(req.charset, 16) { s =>
+      stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Responder(body = Enumerator(sum.toString.getBytes).run)
       }
-      req.body(it.map { r => resp.success(r); () })
-      resp.future
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   })
