@@ -2,6 +2,8 @@ package org.http4s.test
 
 import org.http4s._
 
+import concurrent.Future
+
 import play.api.libs.iteratee._
 import org.glassfish.grizzly.http.server._
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig
@@ -29,12 +31,15 @@ import org.http4s.Responder
 
  */
 object Example extends App {
+
+  import concurrent.ExecutionContext.Implicits.global
+
   val http4sServlet = new Http4sGrizzly({
     case req if req.pathInfo == "/ping" =>
-      Done(Responder(body = "pong"))
+      Future(Responder(body = "pong"))
 
     case req if req.pathInfo == "/stream" =>
-      Done(Responder(body = Concurrent.unicast({
+      Future(Responder(body = Concurrent.unicast({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
@@ -44,37 +49,34 @@ object Example extends App {
       })))
 
     case req if req.pathInfo == "/echo" =>
-      //println("Doing Echo")
-      Done(Responder(body = req.body))
+      Future(Responder(body = req.body))
 
-      // Just stack the remaining info into the returned Enumerator
+      // Reads the whole body before responding
     case req if req.pathInfo == "/determine_echo1" =>
       println("Doing Read a bit and echo Echo")
-
-      def getChunk(input: Input[Chunk]): Iteratee[Chunk, Responder] = {
-        Done(Responder(body = Enumerator.enumInput(input) >>> req.body))
+      req.body.run( Iteratee.getChunks).map {bytes =>
+        Responder( body = Enumerator(bytes:_*))
       }
-      Cont(getChunk)
 
       // We want http4s to deal with our remaining data
     case req if req.pathInfo == "/determine_echo2" =>
       println("Doing Read a bit and echo Echo")
-
-      def getChunk(input: Input[Chunk]): Iteratee[Chunk, Responder] = {
-        Done(Responder(body = req.body), input)
+      val bit: Future[Option[Chunk]] = req.body.run(Iteratee.head)
+      bit.map {
+        case Some(bit) => Responder( body = Enumerator(bit) >>> req.body )
+        case None => Responder( body = Enumerator.eof )
       }
-      Cont(getChunk)
 
     case req =>
       println(s"Request path: ${req.pathInfo}")
-      Done(Responder(body =
+      Future(Responder(body =
         s"${req.pathInfo}\n" +
         s"${req.uri}"
       ))
   })
 
   val httpServer = new HttpServer
-  val networkListener = new NetworkListener("sample-listener", "brycepc.dyndns.org", 8080)
+  val networkListener = new NetworkListener("sample-listener", "0.0.0.0", 8080)
 
   // Configure NetworkListener thread pool to have just one thread,
   // so it would be easier to reproduce the problem

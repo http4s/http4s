@@ -18,25 +18,18 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val handler = route(request)
+    val handler:Future[Responder] = route(request)
 
-    // First runAndCollect of the Enumerator
-    val responderAndRemainingBody = runAndCollect(request.body |>> handler)
 
     // fold on the second one
-    responderAndRemainingBody.onSuccess { case (responder,leftOvers) =>
-      renderResponse(responder,
-        leftOvers match {
-          case Some(d) => Enumerator.enumInput(d)
-          case None => Enumerator.enumInput(Input.Empty)
-        },
-        resp)
+    handler.onSuccess { case responder =>
+      renderResponse(responder, resp)
     }
   }
 
   /*
   Helper method that gets any returned input by the enumerator it can be stacked back onto the body
-   */
+
   private[this] def runAndCollect(it: Future[Handler]): Future[(Responder,Option[Input[Chunk]])] = it.flatMap(_.fold({
     case Step.Done(a, d@Input.El(_)) => Future.successful((a,Some(d)))
     case Step.Done(a, _) => Future.successful((a,None))
@@ -47,9 +40,10 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       case Step.Error(msg, e) => sys.error(msg)
     })
     case Step.Error(msg, e) => sys.error(msg)
-  }))
 
-  protected def renderResponse(responder: Responder, preBodyEnum: Enumerator[Chunk], resp: Response) {
+  })  ) */
+
+  protected def renderResponse(responder: Responder, resp: Response) {
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
     }
@@ -57,7 +51,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       resp.getOutputStream.write(chunk)   // Would this be better as a buffer?
       resp.getOutputStream.flush()
     }
-    (preBodyEnum >>> responder.body).run(it).onComplete {
+    responder.body.run(it).onComplete {
       case _ => resp.resume
     }
   }
