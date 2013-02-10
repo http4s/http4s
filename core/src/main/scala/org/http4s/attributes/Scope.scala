@@ -1,6 +1,8 @@
 package org.http4s
 package attributes
 
+import scala.language.implicitConversions
+
 object Scope {
   implicit def req2scope[T](req: Request[T]) = ThisRequest(req)
 
