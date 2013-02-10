@@ -52,13 +52,17 @@ object ExampleRoute {
  }
 
   def stringHandler(req: Request[Raw], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Raw]): Future[Responder[Raw]] = {
-    val it = Traversable.takeUpTo[Chunk](maxSize)
-      .transform(Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map {
-      bs => new String(bs, req.charset)
-    })
-      .flatMap(Iteratee.eofOrElse(Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody)))
-      .map(_.right.map(f).merge)
+    val it = (Traversable.takeUpTo[Chunk](maxSize)
+                transform bytesAsString(req)
+                flatMap eofOrRequestTooLarge(f)
+                map (_.merge))
     req.body.run(it)
   }
+
+  private[this] def bytesAsString(req: Request[Raw]) =
+    Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map(new String(_, req.charset))
+
+  private[this] def eofOrRequestTooLarge[B](f: String => Responder[Raw])(s: String) =
+    Iteratee.eofOrElse[B](Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody))(s).map(_.right.map(f))
 
 }

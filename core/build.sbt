@@ -5,7 +5,10 @@ name := "http4s-core"
 description := "Core http4s framework"
 
 libraryDependencies ++= Seq(
-  Junit % "test",
+  Rl,
   PlayIteratees,
+  Junit % "test",
   Specs2 % "test"
 )
+
+libraryDependencies ++= SprayHttp

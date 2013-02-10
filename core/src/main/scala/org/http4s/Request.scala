@@ -11,7 +11,7 @@ case class Request[+A](
   pathInfo: String = "",
   queryString: String = "",
   pathTranslated: Option[File] = None,
-  protocol: ServerProtocol = HttpVersion.Http_1_1,
+  protocol: ServerProtocol = HttpVersion.`Http/1.1`,
   headers: Headers = Headers.Empty,
   body: A,
   urlScheme: UrlScheme = UrlScheme.Http,

@@ -9,3 +9,4 @@ libraryDependencies ++= Seq(
   Netty,
   ScalaloggingSlf4j
 )
+

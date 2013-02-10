@@ -136,8 +136,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   @volatile var enumerator: RequestChunksEnumerator = _
 
-
-
   val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
       println("offering another request")

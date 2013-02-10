@@ -1,6 +1,7 @@
 package org.http4s
 package netty
 
+import handlers.StaticFileHandler
 import org.jboss.netty.channel.{Channels, ChannelPipeline, ChannelPipelineFactory}
 import org.jboss.netty.handler.codec.http.{HttpResponseEncoder, HttpRequestDecoder}
 import org.jboss.netty.handler.stream.ChunkedWriteHandler
@@ -11,16 +12,17 @@ import java.net.InetSocketAddress
 import concurrent.ExecutionContext
 
 object SimpleNettyServer {
-  def apply(port: Int = 8080)(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
-    new SimpleNettyServer(port, Seq(route))
+  def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
+    new SimpleNettyServer(port, staticFiles, Seq(route))
 }
-class SimpleNettyServer private(port: Int, routes: Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
+class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
   val channelFactory = new ChannelPipelineFactory {
     def getPipeline: ChannelPipeline = {
       val pipe = Channels.pipeline()
       pipe.addLast("decoder", new HttpRequestDecoder)
       pipe.addLast("encoder", new HttpResponseEncoder)
       pipe.addLast("chunkedWriter", new ChunkedWriteHandler)
+      pipe.addLast("staticFiles", new StaticFileHandler(staticFiles))
       pipe.addLast("route", Routes(routes reduce (_ orElse _)))
       pipe
     }
@@ -46,6 +48,7 @@ class SimpleNettyServer private(port: Int, routes: Seq[Route])(implicit executio
     bossThreadPool.shutdown()
     latch.countDown()
   }
+
 
   latch.await()
 }
