@@ -3,11 +3,12 @@ package org
 import http4s.ext.Http4sString
 import play.api.libs.iteratee.Iteratee
 import scala.language.implicitConversions
+import concurrent.Future
 
 package object http4s {
   type Route = PartialFunction[Request, Handler]
 
-  type Handler = Iteratee[Chunk, Responder]
+  type Handler = Future[Responder]
 
   type Chunk = Array[Byte]
 
