@@ -1,20 +1,8 @@
-package org.http4s.test
+package org.http4s
+package grizzly
 
-import org.http4s._
-
-import concurrent.Future
-
-import play.api.libs.iteratee._
 import org.glassfish.grizzly.http.server._
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig
-
-import org.http4s.grizzly.Http4sGrizzly
-import org.http4s.Responder
-
-import org.http4s.Writable._
-import org.http4s.Bodies._
-import org.http4s.Responder
-
 
 /**
  * @author ross
@@ -32,7 +20,6 @@ import org.http4s.Responder
  */
 object Example extends App {
 
-  import concurrent.ExecutionContext.Implicits.global
 
   val http4sServlet = new Http4sGrizzly(ExampleRoute())
 

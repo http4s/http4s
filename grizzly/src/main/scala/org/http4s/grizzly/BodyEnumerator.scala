@@ -1,10 +1,10 @@
-package org.http4s
-package test
+package org.http4s.grizzly
 
 import play.api.libs.iteratee._
 import concurrent.{ExecutionContext, Promise, Future}
 import org.glassfish.grizzly.http.server.io.NIOInputStream
 import org.glassfish.grizzly.ReadHandler
+import org.http4s._
 
 /**
  * @author Bryce Anderson
