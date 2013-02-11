@@ -24,8 +24,6 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
         )
     ) }
 
-
-    // fold on the second one
     handler.onSuccess { case responder =>
       renderResponse(responder, resp)
     }
