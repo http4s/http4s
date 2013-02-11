@@ -2,94 +2,23 @@ package org.http4s
 package netty
 
 import concurrent.{Future, ExecutionContext}
+import handlers.ScalaUpstreamHandler
 import org.jboss.netty.channel._
 import scala.util.control.Exception.allCatch
 import org.jboss.netty.buffer.ChannelBuffers
 import io.Codec
 import play.api.libs.iteratee._
-import java.net.{InetSocketAddress, SocketAddress, URI, InetAddress}
+import java.net.{InetSocketAddress, URI, InetAddress}
 import collection.JavaConverters._
 import org.jboss.netty.handler.ssl.SslHandler
 import org.jboss.netty.handler.codec.http
 import http._
 import scala.language.{ implicitConversions, reflectiveCalls }
-import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.LinkedBlockingDeque
 import org.http4s.Responder
 import scala.util.{ Failure, Success }
 import org.http4s.Request
 
-object ScalaUpstreamHandler {
-  sealed trait NettyHandlerMessage
-  sealed trait NettyUpstreamHandlerEvent extends NettyHandlerMessage
-  case class MessageReceived(ctx: ChannelHandlerContext, e: Any, remoteAddress: SocketAddress) extends NettyUpstreamHandlerEvent
-  case class ExceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) extends NettyUpstreamHandlerEvent
-  case class ChannelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class ChannelBound(ctx: ChannelHandlerContext, e: ChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class ChannelUnbound(ctx: ChannelHandlerContext, e: ChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class ChannelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class ChannelInterestChanged(ctx: ChannelHandlerContext, e: ChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class ChannelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class ChannelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class WriteComplete(ctx: ChannelHandlerContext, e: WriteCompletionEvent) extends NettyUpstreamHandlerEvent
-  case class ChildChannelOpen(ctx: ChannelHandlerContext, e: ChildChannelStateEvent) extends NettyUpstreamHandlerEvent
-  case class ChildChannelClosed(ctx: ChannelHandlerContext, e: ChildChannelStateEvent) extends NettyUpstreamHandlerEvent
-
-  type UpstreamHandler = PartialFunction[NettyUpstreamHandlerEvent, Unit]
-}
-trait ScalaUpstreamHandler extends SimpleChannelUpstreamHandler with Logging {
-  import ScalaUpstreamHandler._
-  def handle: UpstreamHandler
-
-  override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
-    val m = MessageReceived(ctx, e.getMessage, e.getRemoteAddress)
-    if (handle.isDefinedAt(m)) handle(m) else super.messageReceived(ctx, e)
-  }
-  override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    val m = ExceptionCaught(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.exceptionCaught(ctx, e)
-  }
-  override def channelOpen(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val m = ChannelOpen(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.channelOpen(ctx, e)
-  }
-  override def channelBound(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val m = ChannelBound(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.channelBound(ctx, e)
-  }
-  override def channelConnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val m = ChannelConnected(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.channelConnected(ctx, e)
-  }
-  override def channelInterestChanged(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val m = ChannelInterestChanged(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.channelInterestChanged(ctx, e)
-  }
-  override def channelDisconnected(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val m = ChannelDisconnected(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.channelDisconnected(ctx, e)
-  }
-  override def channelUnbound(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val m = ChannelUnbound(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.channelUnbound(ctx, e)
-  }
-  override def channelClosed(ctx: ChannelHandlerContext, e: ChannelStateEvent) {
-    val m = ChannelClosed(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.channelClosed(ctx, e)
-  }
-  override def writeComplete(ctx: ChannelHandlerContext, e: WriteCompletionEvent) {
-    val m = WriteComplete(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.writeComplete(ctx, e)
-  }
-  override def childChannelOpen(ctx: ChannelHandlerContext, e: ChildChannelStateEvent) {
-    val m = ChildChannelOpen(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.childChannelOpen(ctx, e)
-  }
-  override def childChannelClosed(ctx: ChannelHandlerContext, e: ChildChannelStateEvent) {
-    val m = ChildChannelClosed(ctx, e)
-    if (handle.isDefinedAt(m)) handle(m) else super.childChannelClosed(ctx, e)
-  }
-}
 
 object Routes {
   def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Routes(route)
@@ -137,13 +66,20 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
 //      enumerator = new RequestChunksEnumerator(req)
       val request = toRequest(ctx, req, rem.getAddress)
-      val responder = route(request)
-      responder onSuccess {
-        case r =>
-          renderResponse(ctx, req, r)
-      }
-      responder onFailure {
-        case t => t.printStackTrace()
+      if (route.isDefinedAt(request)) {
+        val responder = route(request)
+        responder onSuccess {
+          case r =>
+            renderResponse(ctx, req, r)
+        }
+        responder onFailure {
+          case t => t.printStackTrace()
+        }
+      } else {
+        import org.http4s.HttpVersion
+        val res = new http.DefaultHttpResponse(HttpVersion.`Http/1.1`, StatusLine.NotFound)
+        res.setContent(ChannelBuffers.copiedBuffer("Not Found", Codec.UTF8.name))
+        ctx.getChannel.write(res).addListener(ChannelFutureListener.CLOSE)
       }
 
     case MessageReceived(ctx, chunk: HttpChunk, _) =>
