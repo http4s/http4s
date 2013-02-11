@@ -6,14 +6,11 @@ import org.glassfish.grizzly.threadpool.ThreadPoolConfig
 import concurrent.ExecutionContext
 
 /**
- * Created with IntelliJ IDEA.
- * User: brycea
- * Date: 2/10/13
- * Time: 3:06 PM
- * To change this template use File | Settings | File Templates.
+ * @author Bryce Anderson
+ * Created on 2/10/13 at 3:06 PM
  */
 
-object SimpleGrizzlySever {
+object SimpleGrizzlyServer {
   def apply(port: Int = 8080, serverRoot:String = "/*")(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
   new SimpleGrizzlyServer(port = port, serverRoot = serverRoot)(Seq(route))
 }

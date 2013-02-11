@@ -5,7 +5,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import play.api.libs.iteratee.{Iteratee, Enumerator}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
-import concurrent.ExecutionContext
+import concurrent.{ExecutionContext,Future}
 import javax.servlet.AsyncContext
 
 class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
@@ -13,7 +13,19 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val request = toRequest(req)
     val ctx = req.startAsync()
 
-    route(request).map { renderResponse(_, resp, ctx) }
+    val handler: Future[Responder[Chunk]] = Future.successful() flatMap { Unit =>
+      route.lift(request).getOrElse{
+        Future.successful(ResponderGenerators.genRouteNotFound(request))
+      }
+    }
+
+    handler.onSuccess { case responder =>
+      renderResponse(responder, resp, ctx)
+    }
+
+    handler.onFailure{ case t =>
+      renderResponse(ResponderGenerators.genRouteErrorResponse(t), resp, ctx)
+    }
 
   }
 

@@ -4,7 +4,7 @@ package org.http4s
 
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.{Enumeratee, Input, Iteratee, Enumerator}
+import play.api.libs.iteratee.{Enumeratee, Enumerator}
 
 case class Responder[A](
   statusLine: StatusLine = StatusLine.Ok,
@@ -106,4 +106,15 @@ object StatusLine {
   def apply(code: Int): StatusLine =
     StatusLine(code, ReasonMap.getOrElse(code, ""))
 
+}
+
+object ResponderGenerators {
+  import Bodies._
+  def genRouteErrorResponse(t: Throwable): Responder[Chunk] = {
+    Responder( StatusLine.InternalServerError, body = s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}" )
+  }
+
+  def genRouteNotFound(request: Request[_]): Responder[Chunk] = {
+    Responder( StatusLine.NotFound, body = s"${request.pathInfo} Not Found." )
+  }
 }

@@ -64,7 +64,9 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
+
 //      enumerator = new RequestChunksEnumerator(req)
+
       val request = toRequest(ctx, req, rem.getAddress)
       if (route.isDefinedAt(request)) {
         val responder = route(request)
@@ -115,6 +117,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     resp.setContent(content)
     val chf = Iteratee.foldM[Chunk, Option[HttpChunk]](None) {
       case (None, chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
+
         content.writeBytes(chunk)
         Future.successful(None)
       case (None, chunk) =>
