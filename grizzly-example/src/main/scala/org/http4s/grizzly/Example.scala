@@ -10,6 +10,6 @@ object Example extends App {
 
   import concurrent.ExecutionContext.Implicits.global
 
-  SimpleGrizzlySever(serverRoot = "/http4s/*")(ExampleRoute())
+  SimpleGrizzlyServer(serverRoot = "/http4s/*")(ExampleRoute())
 
 }

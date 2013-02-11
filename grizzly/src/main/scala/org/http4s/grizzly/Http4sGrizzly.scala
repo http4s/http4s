@@ -18,14 +18,20 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val handler:Future[Responder[Chunk]] = route.lift(request).getOrElse(
-    Future.successful(Responder(statusLine = StatusLine.NotFound, body = Enumerator(s"${request.pathInfo} Not Found.".getBytes)))
-    )
+    val handler:Future[Responder[Chunk]] = Future.successful() flatMap { Unit =>
+      route.lift(request).getOrElse(
+          Future.successful(ResponderGenerators.genRouteNotFound(request)
+        )
+    ) }
 
 
     // fold on the second one
     handler.onSuccess { case responder =>
       renderResponse(responder, resp)
+    }
+
+    handler.onFailure{ case t =>
+      renderResponse(ResponderGenerators.genRouteErrorResponse(t), resp)
     }
   }
 

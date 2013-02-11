@@ -17,6 +17,8 @@ object Writable {
 
   implicit def intWritable(implicit codec: Codec) =
     Writable { i: Int => i.toString.getBytes(codec.charSet) }
+
+  implicit def chunkWritable = Writable { i: Chunk => i }
 }
 
 object Bodies {
