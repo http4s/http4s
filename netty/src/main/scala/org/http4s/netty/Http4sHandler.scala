@@ -5,7 +5,7 @@ import concurrent.{Future, ExecutionContext}
 import handlers.ScalaUpstreamHandler
 import org.jboss.netty.channel._
 import scala.util.control.Exception.allCatch
-import org.jboss.netty.buffer.ChannelBuffers
+import org.jboss.netty.buffer.{ChannelBuffer, ChannelBuffers}
 import io.Codec
 import play.api.libs.iteratee._
 import java.net.{InetSocketAddress, URI, InetAddress}
@@ -103,7 +103,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder[Chunk]) {
     def closeChannel(channel: Channel) = {
-      if (!http.HttpHeaders.isKeepAlive(req)) channel.close()
+      if (!http.HttpHeaders.isKeepAlive(req) && channel.isConnected) channel.close()
     }
 
 
@@ -113,40 +113,57 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       resp.addHeader(header.name, header.value)
     }
 
-    val content = ChannelBuffers.buffer(512 * 1024)
-    resp.setContent(content)
-    val chf = Iteratee.foldM[Chunk, Option[HttpChunk]](None) {
-      case (None, chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
+    val channelBuffer = ChannelBuffers.dynamicBuffer(8912)
+    val writer: (ChannelBuffer, Chunk) => Unit = (c, x) => c.writeBytes(x)
+    val stringIteratee = Iteratee.fold(channelBuffer)((c, e: Chunk) => { writer(c, e); c })
 
-        content.writeBytes(chunk)
-        Future.successful(None)
-      case (None, chunk) =>
-        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
-        if (!(responder.headers.exists(h => (h.name equalsIgnoreCase "TRANSFER-ENCODING") && h.value.equalsIgnoreCase("CHUNKED"))))
-          resp.addHeader(http.HttpHeaders.Names.TRANSFER_ENCODING, http.HttpHeaders.Values.CHUNKED)
-        ctx.getChannel.write(resp) map (_ => Some(msg))
-      case (Some(toWrite), chunk) =>
-        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
-        ctx.getChannel.write(toWrite) map (_ => Some(msg))
-    }
+    val p = (responder.body |>>> Enumeratee.grouped(stringIteratee) &>> Cont {
+      case Input.El(buffer) =>
+        resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, channelBuffer.readableBytes)
+        resp.setContent(buffer)
+        val f = ctx.getChannel.write(resp)
+        f onComplete {
+          case _ => closeChannel(ctx.getChannel)
+        }
+        Iteratee.flatten(f.map(_ => Done(1,Input.Empty:Input[org.jboss.netty.buffer.ChannelBuffer])))
 
-    responder.body.run(chf) flatMap {
-      case None =>
-        if (!responder.headers.exists(_.name equalsIgnoreCase "CONTENT-LENGTH"))
-          resp.addHeader("Content-Length", resp.getContent.readableBytes())
-        resp.setContent(content)
-        ctx.getChannel.write(resp)
-      case Some(chunk) =>
-        val trailer = new DefaultHttpChunkTrailer()
-        val ch = ctx.getChannel
-        ch.write(chunk) flatMap (_ write trailer)
-    } onComplete {
-      case Success(ch) =>
-        closeChannel(ch)
-      case Failure(t) =>
-        t.printStackTrace()
-        closeChannel(ctx.getChannel)
-    }
+      case other => Error("unexepected input",other)
+    })
+    p
+//
+//    val content = ChannelBuffers.buffer(512 * 1024)
+//    resp.setContent(content)
+//    val chf = Iteratee.foldM[Chunk, Option[HttpChunk]](None) {
+//      case (None, chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
+//        content.writeBytes(chunk)
+//        Future.successful(None)
+//      case (None, chunk) =>
+//        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
+//        if (!(responder.headers.exists(h => (h.name equalsIgnoreCase "TRANSFER-ENCODING") && h.value.equalsIgnoreCase("CHUNKED"))))
+//          resp.addHeader(http.HttpHeaders.Names.TRANSFER_ENCODING, http.HttpHeaders.Values.CHUNKED)
+//        ctx.getChannel.write(resp) map (_ => Some(msg))
+//      case (Some(toWrite), chunk) =>
+//        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
+//        ctx.getChannel.write(toWrite) map (_ => Some(msg))
+//    }
+//
+//    responder.body.run(chf) flatMap {
+//      case None =>
+//        if (!responder.headers.exists(_.name equalsIgnoreCase "CONTENT-LENGTH"))
+//          resp.addHeader("Content-Length", resp.getContent.readableBytes())
+//        resp.setContent(content)
+//        ctx.getChannel.write(resp)
+//      case Some(chunk) =>
+//        val trailer = new DefaultHttpChunkTrailer()
+//        val ch = ctx.getChannel
+//        ch.write(chunk) flatMap (_ write trailer)
+//    } onComplete {
+//      case Success(ch) =>
+//        closeChannel(ch)
+//      case Failure(t) =>
+//        t.printStackTrace()
+//        closeChannel(ctx.getChannel)
+//    }
 
   }
 
