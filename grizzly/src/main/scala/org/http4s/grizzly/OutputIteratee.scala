@@ -6,8 +6,14 @@ import org.glassfish.grizzly.WriteHandler
 import concurrent.{ExecutionContext, Future, Promise}
 import org.glassfish.grizzly.http.server.io.NIOOutputStream
 
-object OutputIteratee {
-  private class PromisedWriteHandler(os: NIOOutputStream, chunkSize: Int) extends WriteHandler {
+/**
+ * @author Bryce Anderson
+ * Created on 2/11/13 at 8:44 AM
+ */
+class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionContext: ExecutionContext) extends Iteratee[Chunk,Unit] {
+
+  // Keep a persistent listener. No need to make more objects than we have too
+   private[this] object writeWatcher extends WriteHandler {
     var promise: Promise[Unit] = _
 
     // Makes a new promise and registers the callback to complete it
@@ -24,18 +30,6 @@ object OutputIteratee {
 
     def onWritePossible() = promise.success(Unit)
   }
-}
-/**
- * @author Bryce Anderson
- * Created on 2/11/13 at 8:44 AM
- */
-class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionContext: ExecutionContext) extends Iteratee[Chunk,Unit] {
-
-  import OutputIteratee._
-  // Keep a persistent listener. No need to make more objects than we have too
-   private[this] val writeWatcher = new PromisedWriteHandler(os, chunkSize)
-
-  // Complains about reflective if I try to use an anonymous class
 
   def push(in: Input[Chunk]): Iteratee[Chunk,Unit] = {
     in match {
