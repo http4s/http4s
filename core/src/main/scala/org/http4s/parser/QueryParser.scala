@@ -4,7 +4,6 @@ package parser
 import org.parboiled.scala._
 import java.io.UnsupportedEncodingException
 import org.parboiled.errors.ParsingException
-import spray.http._
 import io.Codec
 import java.net.URLDecoder
 
@@ -34,7 +33,7 @@ object QueryParser extends Http4sParser {
     }
   }
 
-  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[RequestErrorInfo, Seq[(String, String)]] =
+  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[(String, String)]] =
     parse(QueryString, queryString).left.map(_.withFallbackSummary("Illegal query string"))
 
 

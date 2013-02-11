@@ -18,7 +18,6 @@ import java.util.concurrent.LinkedBlockingDeque
 import org.http4s.Responder
 import scala.util.{ Failure, Success }
 import org.http4s.Request
-import spray.http.HttpHeaders
 
 object ScalaUpstreamHandler {
   sealed trait NettyHandlerMessage
@@ -132,12 +131,14 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   import ScalaUpstreamHandler._
 
-  @volatile var enumerator: RequestChunksEnumerator = _
+//  @volatile var enumerator: RequestChunksEnumerator = _
 
   val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
+
       //println("offering another request")
       //enumerator = new RequestChunksEnumerator(req)
+
       val request = toRequest(ctx, req, rem.getAddress)
       val responder = route(request)
       responder onSuccess {
@@ -149,7 +150,8 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       }
 
     case MessageReceived(ctx, chunk: HttpChunk, _) =>
-      enumerator.push(chunk)
+//      enumerator.push(chunk)
+      sys.error("Not supported")
 
     case ExceptionCaught(ctx, e) =>
       try {
@@ -235,8 +237,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      //body = enumerator &> Enumeratee.map[HttpChunk](_.getContent.array()),
-      body = Enumerator(req.getContent.array()),
+      body = Enumerator(req.getContent.array()), //enumerator &> Enumeratee.map[HttpChunk](_.getContent.array()),
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
@@ -249,6 +250,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     (for {
       name  <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield HttpHeaders.RawHeader(name, value)).toSeq:_*
+    } yield org.http4s.HttpHeaders.RawHeader(name, value)).toSeq:_*
   )
 }

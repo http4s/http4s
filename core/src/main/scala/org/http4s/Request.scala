@@ -1,12 +1,11 @@
 package org.http4s
 
 import java.io.File
-import java.net.{URI, URL, InetAddress}
-import play.api.libs.iteratee.{Enumeratee, Input, Iteratee, Enumerator}
+import java.net.{URI, InetAddress}
+import play.api.libs.iteratee.{Enumeratee, Enumerator}
 import java.nio.charset.Charset
 import java.util.UUID
-import spray.http.parser.HttpParser
-import spray.http.ContentType
+import scala.language.reflectiveCalls
 
 case class Request[A](
   requestMethod: Method = Method.Get,
@@ -41,7 +40,8 @@ case class Request[A](
 
   lazy val remoteUser: Option[String] = None
 
-  import scala.language.reflectiveCalls // So the compiler doesn't complain...
+
   def map[B](f: A => B) = copy(body = body &> Enumeratee.map(f)): Request[B]
+
 
 }
