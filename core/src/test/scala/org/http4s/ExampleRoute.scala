@@ -12,6 +12,9 @@ object ExampleRoute {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Future.successful(Responder(body = req.body))
 
+    case req if req.pathInfo == "/echo" =>
+      Future.successful(Responder(body = req.body))
+
     case req if req.pathInfo == "/echo2" =>
       Future.successful(Responder(body = req.body &> Enumeratee.map[Chunk](e => e.slice(6, e.length))))
 
@@ -31,6 +34,15 @@ object ExampleRoute {
           channel.eofAndEnd()
       })))
 
+    case req if req.pathInfo == "/bigstring" =>
+      Future.successful{
+        val builder = new StringBuilder(20*1028)
+
+        Responder( body =Enumerator(((0 until 1000) map { i =>
+          s"This is string number $i".getBytes
+        }): _*) )
+      }
+
     // Reads the whole body before responding
     case req if req.pathInfo == "/determine_echo1" =>
       req.body.run( Iteratee.getChunks).map {bytes =>
@@ -47,8 +59,6 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
-
-    case r => sys.error(s"can't handle $r")
  }
 
   def stringHandler(req: Request[Chunk], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Chunk]): Future[Responder[Chunk]] = {

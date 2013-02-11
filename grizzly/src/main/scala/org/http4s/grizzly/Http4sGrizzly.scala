@@ -2,11 +2,13 @@ package org.http4s
 package grizzly
 
 import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq,HttpHandler}
-import play.api.libs.iteratee.{Enumerator, Input, Step, Iteratee}
+import play.api.libs.iteratee.{Enumerator, Input, Step, Cont, Done, Iteratee}
 
 import java.net.InetAddress
 import scala.collection.JavaConverters._
-import concurrent.{Future, ExecutionContext}
+import concurrent.{Promise, Future, ExecutionContext}
+import shapeless.MapFolder
+import org.glassfish.grizzly.WriteHandler
 
 /**
  * @author Bryce Anderson
@@ -18,7 +20,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val handler:Future[Responder[Chunk]] = Future.successful() flatMap { Unit =>
+    val handler:Future[Responder[Chunk]] = Future.successful() flatMap { _ =>
       route.lift(request).getOrElse(
           Future.successful(ResponderGenerators.genRouteNotFound(request)
         )
@@ -37,11 +39,8 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
     }
-    val it = Iteratee.foreach[Chunk] { chunk =>
-      resp.getOutputStream.write(chunk)
-      resp.getOutputStream.flush()
-    }
-    responder.body.run(it).onComplete {
+
+    responder.body.run(new OutputIteratee(resp.getNIOOutputStream, chunkSize)).onComplete {
       case _ => resp.resume
     }
   }
