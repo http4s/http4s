@@ -135,7 +135,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
   val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
-      println("offering another request")
 //      enumerator = new RequestChunksEnumerator(req)
       val request = toRequest(ctx, req, rem.getAddress)
       val responder = route(request)
@@ -180,7 +179,6 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     resp.setContent(content)
     val chf = Iteratee.foldM[Chunk, Option[HttpChunk]](None) {
       case (None, chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
-        println("collecting response buffer chunks")
         content.writeBytes(chunk)
         Future.successful(None)
       case (None, chunk) =>
@@ -235,7 +233,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      body = Enumerator(req.getContent.array()), //enumerator &> Enumeratee.map[HttpChunk](_.getContent.array()),
+      body = Enumerator(req.getContent.array()).andThen(Enumerator.enumInput(Input.EOF)), //enumerator &> Enumeratee.map[HttpChunk](_.getContent.array()),
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
