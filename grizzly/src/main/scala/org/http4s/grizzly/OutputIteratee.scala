@@ -12,8 +12,8 @@ import org.glassfish.grizzly.http.server.io.NIOOutputStream
  */
 class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionContext: ExecutionContext) extends Iteratee[Chunk,Unit] {
 
-  // Keep a persistant listener. No need to make more objects than we have too
-  val writeWatcher = new WriteHandler {
+  // Keep a persistent listener. No need to make more objects than we have too
+   private[this] val writeWatcher = new WriteHandler {
     var promise: Promise[Unit] = _
 
     // Makes a new promise and registers the callback to complete it
@@ -31,7 +31,9 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
     def onWritePossible() = promise.success(Unit)
   }
 
-  def push[B](in: Input[Chunk]): Iteratee[Chunk,Unit] = {
+  // Complains about reflective if I try to use an anonymous class
+
+  def push(in: Input[Chunk]): Iteratee[Chunk,Unit] = {
     in match {
       case Input.Empty => this
       case Input.EOF => Done(Unit)
@@ -44,5 +46,4 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
   def fold[B](folder: (Step[Chunk, Unit]) => Future[B]): Future[B] = {
     writeWatcher.registerAndListen().flatMap{ _ => folder(Step.Cont(push))}
   }
-
 }

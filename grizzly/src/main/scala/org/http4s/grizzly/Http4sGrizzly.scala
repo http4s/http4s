@@ -2,13 +2,10 @@ package org.http4s
 package grizzly
 
 import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq,HttpHandler}
-import play.api.libs.iteratee.{Enumerator, Input, Step, Cont, Done, Iteratee}
 
 import java.net.InetAddress
 import scala.collection.JavaConverters._
-import concurrent.{Promise, Future, ExecutionContext}
-import shapeless.MapFolder
-import org.glassfish.grizzly.WriteHandler
+import concurrent.{Future, ExecutionContext}
 
 /**
  * @author Bryce Anderson
