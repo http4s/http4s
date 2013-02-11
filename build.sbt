@@ -31,7 +31,8 @@ offline in ThisBuild := false
 scalacOptions in ThisBuild ++= Seq(
   "-feature",
   "-deprecation",
-  "-unchecked"
+  "-unchecked",
+  "-language:implicitConversions"
 )
 
 javacOptions in ThisBuild ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")

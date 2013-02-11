@@ -3,7 +3,6 @@ package parser
 
 import org.specs2.mutable.Specification
 import org.http4s.parser.QueryParser._
-import spray.http.RequestErrorInfo
 
 class QueryParserSpec extends Specification {
 
@@ -27,7 +26,7 @@ class QueryParserSpec extends Specification {
     }
     "produce a proper error message on illegal query strings" in {
       parseQueryString("a=b=c") === Left {
-        RequestErrorInfo(
+        ParseErrorInfo(
           "Illegal query string",
           """|Invalid input '=', expected '&' or EOI (line 1, pos 4):
            |a=b=c
@@ -38,7 +37,7 @@ class QueryParserSpec extends Specification {
     }
     "throw a proper HttpException on illegal URL encodings" in {
       parseQueryString("a=b%G") ===
-        Left(RequestErrorInfo("Illegal query string", "URLDecoder: Incomplete trailing escape (%) pattern"))
+        Left(ParseErrorInfo("Illegal query string", "URLDecoder: Incomplete trailing escape (%) pattern"))
     }
   }
 

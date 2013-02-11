@@ -8,10 +8,10 @@ libraryDependencies <+= scalaVersion(ScalaReflect)
 
 libraryDependencies ++= Seq(
   Rl,
-  Scalaz,
   Shapeless,
-  SprayHttp,
+  ScalaStm,
   PlayIteratees,
+  Parboiled,
   Junit % "test",
   Specs2 % "test"
 )

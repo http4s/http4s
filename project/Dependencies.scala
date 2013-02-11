@@ -25,11 +25,11 @@ object Dependencies {
 
   val Specs2 = "org.specs2" %% "specs2" % "1.13"
 
-  val SprayHttp = "io.spray" % "spray-http" % "1.1-M7"
-
   val Shapeless = "com.chuusai" %% "shapeless" % "1.2.3"
 
-  val Scalaz = "org.scalaz" %% "scalaz-effect" % "7.0.0-M7"
+  val ScalaStm = "org.scala-stm" %% "scala-stm" % "0.7"
 
   val ScalaReflect = (sv: String) => "org.scala-lang" % "scala-reflect" % sv
+
+  val Parboiled = "org.parboiled" %%  "parboiled-scala" % "1.1.4"
 }
