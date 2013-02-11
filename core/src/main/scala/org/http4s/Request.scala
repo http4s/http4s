@@ -7,7 +7,7 @@ import java.nio.charset.Charset
 import java.util.UUID
 import scala.language.reflectiveCalls
 
-case class Request[A](
+case class RequestHead(
   requestMethod: Method = Method.Get,
   scriptName: String = "",
   pathInfo: String = "",
@@ -15,7 +15,6 @@ case class Request[A](
   pathTranslated: Option[File] = None,
   protocol: ServerProtocol = HttpVersion.`Http/1.1`,
   headers: Headers = Headers.Empty,
-  body: Enumerator[A] = Enumerator.eof,
   urlScheme: UrlScheme = UrlScheme.Http,
   serverName: String = InetAddress.getLocalHost.getHostName,
   serverPort: Int = 80,
@@ -39,9 +38,4 @@ case class Request[A](
   lazy val remoteHost = remote.getHostName
 
   lazy val remoteUser: Option[String] = None
-
-
-  def map[B](f: A => B) = copy(body = body &> Enumeratee.map(f)): Request[B]
-
-
 }

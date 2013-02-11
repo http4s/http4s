@@ -21,36 +21,36 @@ class MockServerSpec extends Specification with NoTimeConversions {
 
   val server = new MockServer(ExampleRoute())
 
-  def response(req: Request[Chunk]): MockServer.Response = {
-    Await.result(server(req), 5 seconds)
+  def response(req: RequestHead, body: Enumerator[Chunk] = Enumerator.eof): MockServer.Response = {
+    Await.result(server(req, body), 5 seconds)
   }
 
   "A mock server" should {
     "handle matching routes" in {
-      val req = Request[Chunk](requestMethod = Method.Post, pathInfo = "/echo",
-        body = Enumerator("one", "two", "three").map(_.getBytes))
-      new String(response(req).body) should_==("onetwothree")
+      val req = RequestHead(requestMethod = Method.Post, pathInfo = "/echo")
+      val body = Enumerator("one", "two", "three").map(_.getBytes)
+      new String(response(req, body).body) should_==("onetwothree")
     }
 
     "runs a sum" in {
-      val req = Request[Chunk](requestMethod = Method.Post, pathInfo = "/sum",
-        body = Enumerator("1\n", "2\n3", "\n4").map(_.getBytes))
-      new String(response(req).body) should_==("10")
+      val req = RequestHead(requestMethod = Method.Post, pathInfo = "/sum")
+      val body = Enumerator("1\n", "2\n3", "\n4").map(_.getBytes)
+      new String(response(req, body).body) should_==("10")
     }
 
     "runs too large of a sum" in {
-      val req = Request[Chunk](requestMethod = Method.Post, pathInfo = "/sum",
-        body = Enumerator("12345678\n901234567").map(_.getBytes))
-      response(req).statusLine should_==(StatusLine.RequestEntityTooLarge)
+      val req = RequestHead(requestMethod = Method.Post, pathInfo = "/sum")
+      val body = Enumerator("12345678\n901234567").map(_.getBytes)
+      response(req, body).statusLine should_==(StatusLine.RequestEntityTooLarge)
     }
 
     "fall through to not found" in {
-      val req = Request[Chunk](pathInfo = "/bielefield", body = EmptyBody)
+      val req = RequestHead(pathInfo = "/bielefield")
       response(req).statusLine should_== StatusLine.NotFound
     }
 
     "handle exceptions" in {
-      val req = Request[Chunk](pathInfo = "/fail", body = EmptyBody)
+      val req = RequestHead(pathInfo = "/fail")
       response(req).statusLine should_== StatusLine.InternalServerError
     }
   }

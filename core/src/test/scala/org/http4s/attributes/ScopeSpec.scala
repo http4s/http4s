@@ -3,18 +3,18 @@ package attributes
 
 import org.specs2.mutable.Specification
 import concurrent.Future
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.{Input, Error, Enumerator}
 
 
 class ScopeSpec extends Specification {
 
   val h = new RouteHandler {
     def route: _root_.org.http4s.Route = {
-      case x => Future.failed(sys.error("not used"))
+      case x => Error("not used", Input.Empty)
     }
   }
 
-  val req = Request[Chunk](body = Enumerator.eof)
+  val req = RequestHead()
 
   val sess = ThisSession("blah")
 

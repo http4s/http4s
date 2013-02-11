@@ -4,15 +4,19 @@ package org.http4s
 
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.{Enumeratee, Enumerator}
+import play.api.libs.iteratee._
 
-case class Responder[A](
+case class Responder(
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  body: Enumerator[A] = Enumerator.eof
-) {
-  import scala.language.reflectiveCalls // So the compiler doesn't complain...
-  def map[B](f: A => B): Responder[B] = copy(body = body &> Enumeratee.map(f)) : Responder[B]
+  body: Enumeratee[Chunk, Chunk] = Responder.EmptyBody
+)
+
+object Responder {
+  val EmptyBody = new Enumeratee[Chunk, Chunk] {
+    def applyOn[A](inner: Iteratee[Chunk, A]): Iteratee[Chunk, Iteratee[Chunk, A]] =
+      Done(Iteratee.flatten(inner.feed(Input.EOF)))
+  }
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
@@ -110,11 +114,11 @@ object StatusLine {
 
 object ResponderGenerators {
   import Bodies._
-  def genRouteErrorResponse(t: Throwable): Responder[Chunk] = {
+  def genRouteErrorResponse(t: Throwable): Responder = {
     Responder( StatusLine.InternalServerError, body = s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}" )
   }
 
-  def genRouteNotFound(request: Request[_]): Responder[Chunk] = {
+  def genRouteNotFound(request: RequestHead): Responder = {
     Responder( StatusLine.NotFound, body = s"${request.pathInfo} Not Found." )
   }
 }

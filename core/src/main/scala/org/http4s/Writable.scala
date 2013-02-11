@@ -3,7 +3,7 @@ package org.http4s
 import scala.language.implicitConversions
 
 import scala.io.Codec
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee._
 
 trait Writable[-A] {
   def toChunk(a: A): Chunk
@@ -22,9 +22,14 @@ object Writable {
 }
 
 object Bodies {
-  implicit def writableToBody[A](a: A)(implicit w: Writable[A]): Enumerator[Chunk] =
-    Enumerator(w.toChunk(a))
+  def write[Chunk](enum: Enumerator[Chunk]) = new Enumeratee[Chunk, Chunk] {
+    def applyOn[A](inner: Iteratee[Chunk, A]): Iteratee[Chunk, Iteratee[Chunk, A]] =
+      Done(Iteratee.flatten(enum(inner)))
+  }
 
-  implicit def writableSeqToBody[A](a: Seq[A])(implicit w: Writable[A]): Enumerator[Chunk] =
-    Enumerator(a.map { w.toChunk }: _*)
+  implicit def writableToBody[A](a: A)(implicit w: Writable[A]): Enumeratee[Chunk, Chunk] =
+    write(Enumerator(w.toChunk(a)))
+
+  implicit def writableSeqToBody[A](a: Seq[A])(implicit w: Writable[A]): Enumeratee[Chunk, Chunk] =
+    write(Enumerator(a.map { w.toChunk }: _*))
 }

@@ -4,7 +4,7 @@ package extractors
 trait MethodExtractor {
   protected[this] def method: Method
 
-  def unapply[T](request: Request[T]): Option[Request[T]] =
+  def unapply[T](request: RequestHead): Option[RequestHead] =
     if (request.requestMethod.name.toUpperCase == method.name.toUpperCase) Some(request) else None
 }
 

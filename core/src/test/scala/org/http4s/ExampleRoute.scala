@@ -5,44 +5,51 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee._
 
 object ExampleRoute {
+  import Writable._
+  import Bodies._
+
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
-      Future.successful(Responder(body = Enumerator("pong".getBytes())))
+      Done(Responder(body = "pong"))
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Future.successful(Responder(body = req.body))
+      Done(Responder(body = Enumeratee.passAlong))
 
     case req if req.pathInfo == "/echo" =>
-      Future.successful(Responder(body = req.body))
+      Done(Responder(body = Enumeratee.passAlong))
 
+/*
     case req if req.pathInfo == "/echo2" =>
       Future.successful(Responder(body = req.body &> Enumeratee.map[Chunk](e => e.slice(6, e.length))))
+*/
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
-        Responder[Chunk](body = Enumerator(sum.toString.getBytes))
+        Responder(body = sum)
       }
 
     case req if req.pathInfo == "/stream" =>
-      Future.successful(Responder(body = Concurrent.unicast({
+      Done(Responder(body = write(Concurrent.unicast({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
-      })))
+      }))))
 
     case req if req.pathInfo == "/bigstring" =>
-      Future.successful{
+      Done{
         val builder = new StringBuilder(20*1028)
 
-        Responder( body =Enumerator(((0 until 1000) map { i =>
+        Responder( body = write(Enumerator(((0 until 1000) map { i =>
           s"This is string number $i".getBytes
-        }): _*) )
+        }): _*) ))
       }
 
+/*
+>>>>>>> Responder as an enumeratee makes a stateless request.
     // Reads the whole body before responding
     case req if req.pathInfo == "/determine_echo1" =>
       req.body.run( Iteratee.getChunks).map {bytes =>
@@ -56,23 +63,24 @@ object ExampleRoute {
         case Some(bit) => Responder( body = Enumerator(bit) >>> req.body )
         case None => Responder( body = Enumerator.eof )
       }
+*/
 
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
  }
 
-  def stringHandler(req: Request[Chunk], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Chunk]): Future[Responder[Chunk]] = {
+  def stringHandler(req: RequestHead, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[Chunk, Responder] = {
     val it = (Traversable.takeUpTo[Chunk](maxSize)
                 transform bytesAsString(req)
                 flatMap eofOrRequestTooLarge(f)
                 map (_.merge))
-    req.body.run(it)
+    it
   }
 
-  private[this] def bytesAsString(req: Request[Chunk]) =
+  private[this] def bytesAsString(req: RequestHead) =
     Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map(new String(_, req.charset))
 
-  private[this] def eofOrRequestTooLarge[B](f: String => Responder[Chunk])(s: String) =
+  private[this] def eofOrRequestTooLarge[B](f: String => Responder)(s: String) =
     Iteratee.eofOrElse[B](Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody))(s).map(_.right.map(f))
 
 }
