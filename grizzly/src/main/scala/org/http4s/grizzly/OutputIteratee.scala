@@ -13,7 +13,7 @@ import org.glassfish.grizzly.http.server.io.NIOOutputStream
 class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionContext: ExecutionContext) extends Iteratee[Chunk,Unit] {
 
   // Keep a persistent listener. No need to make more objects than we have too
-   private[this] val writeWatcher = new WriteHandler {
+   private[this] object writeWatcher extends WriteHandler {
     var promise: Promise[Unit] = _
 
     // Makes a new promise and registers the callback to complete it
@@ -30,8 +30,6 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
 
     def onWritePossible() = promise.success(Unit)
   }
-
-  // Complains about reflective if I try to use an anonymous class
 
   def push(in: Input[Chunk]): Iteratee[Chunk,Unit] = {
     in match {
