@@ -3,12 +3,13 @@ package org.http4s
 import scala.language.reflectiveCalls
 
 import concurrent.{ExecutionContext, Future}
-import play.api.libs.iteratee.Iteratee
+import play.api.libs.iteratee.{Done, Cont, Iteratee}
+import play.api.libs.iteratee.Input
 
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
 
-  def apply(req: Request[Chunk]): Future[Response] = {
+  def apply(req: Request[Raw]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) {
         responder => responder.flatMap(render).recover(onError)
@@ -19,9 +20,21 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
     }
   }
 
-  def render(responder: Responder[Chunk]): Future[Response] = {
-    val it: Iteratee[Chunk, Chunk] = Iteratee.consume()
-    responder.body.run(it).map { body =>
+  def render(responder: Responder[HttpObj]): Future[Response] = {
+
+    val it: Iteratee[HttpObj,(Raw, Trailer)] = {
+      def step(result: List[Array[Byte]])(in: Input[HttpObj]): Iteratee[HttpObj,(Raw, Trailer)] = {
+        in match {
+          case Input.El(Chunky(data)) => Cont( i => step(data::result)(i))
+          case Input.El(Tail(trailer)) => Done((result.reverse.toArray.flatten, trailer))
+          case Input.EOF => Done((result.reverse.toArray.flatten ,Map.empty[String,String]))
+        }
+      }
+      Cont{ i => step(Nil)(i)}
+    }
+
+
+    responder.body.run(it).map { case (body,trailer) =>
       Response(statusLine = responder.statusLine, headers = responder.headers, body = body)
     }
   }

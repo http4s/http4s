@@ -7,18 +7,18 @@ import scala.concurrent.Future
 //import spray.http.HttpHeaders.RawHeader
 
 package object http4s {
-  type Route = PartialFunction[Request[Chunk], Future[Responder[Chunk]]]
+  type Route = PartialFunction[Request[Raw], Future[Responder[HttpObj]]]
 
-  /*
-   * Alternatively...
-   *
-   * type Raw = (Iteratee[Chunk, Any] => Any)
-   * val EmptyBody: Raw = { it: Iteratee[Chunk, Any] => it.feed(Input.EOF) }
-   */
-  //type Raw = Enumerator[Chunk]
-  val EmptyBody: Enumerator[Chunk] = Enumerator.eof
+  sealed trait HttpObj
 
-  type Chunk = Array[Byte]
+  type Trailer = Map[String,String]
+  type Raw = Array[Byte]
+
+  case class Chunky(in: Raw) extends HttpObj
+  //case class Head(in :Header)  extends HttpObj
+  case class Tail(in: Trailer)  extends HttpObj
+
+  val EmptyBody: Enumerator[Raw] = Enumerator.eof
 
   type Middleware = (Route => Route)
 
