@@ -20,16 +20,3 @@ object Writable {
 
   implicit def chunkWritable = Writable { i: Chunk => i }
 }
-
-object Bodies {
-  def write[Chunk](enum: Enumerator[Chunk]) = new Enumeratee[Chunk, Chunk] {
-    def applyOn[A](inner: Iteratee[Chunk, A]): Iteratee[Chunk, Iteratee[Chunk, A]] =
-      Done(Iteratee.flatten(enum(inner)))
-  }
-
-  implicit def writableToBody[A](a: A)(implicit w: Writable[A]): Enumeratee[Chunk, Chunk] =
-    write(Enumerator(w.toChunk(a)))
-
-  implicit def writableSeqToBody[A](a: Seq[A])(implicit w: Writable[A]): Enumeratee[Chunk, Chunk] =
-    write(Enumerator(a.map { w.toChunk }: _*))
-}

@@ -6,11 +6,10 @@ import play.api.libs.iteratee._
 
 object ExampleRoute {
   import Writable._
-  import Bodies._
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
-      Done(Responder(body = "pong"))
+      Done(Responder()("pong"))
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Done(Responder(body = Enumeratee.passAlong))
@@ -26,26 +25,24 @@ object ExampleRoute {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
-        Responder(body = sum)
+        Responder()(sum)
       }
 
     case req if req.pathInfo == "/stream" =>
-      Done(Responder(body = write(Concurrent.unicast({
+      Done(Responder().feed(Concurrent.unicast[Chunk]({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
-      }))))
+      })))
 
     case req if req.pathInfo == "/bigstring" =>
       Done{
         val builder = new StringBuilder(20*1028)
 
-        Responder( body = write(Enumerator(((0 until 1000) map { i =>
-          s"This is string number $i".getBytes
-        }): _*) ))
+        Responder().feed(Enumerator.enumerate((0 until 1000) map { i => s"This is string number $i" }))
       }
 
 /*
@@ -81,6 +78,6 @@ object ExampleRoute {
     Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map(new String(_, req.charset))
 
   private[this] def eofOrRequestTooLarge[B](f: String => Responder)(s: String) =
-    Iteratee.eofOrElse[B](Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody))(s).map(_.right.map(f))
+    Iteratee.eofOrElse[B](Responder(statusLine = StatusLine.RequestEntityTooLarge))(s).map(_.right.map(f))
 
 }

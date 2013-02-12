@@ -13,7 +13,6 @@ import org.specs2.time.NoTimeConversions
 import scala.io.Codec
 
 import Writable._
-import Bodies._
 import java.nio.charset.Charset
 
 class MockServerSpec extends Specification with NoTimeConversions {

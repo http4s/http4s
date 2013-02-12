@@ -9,14 +9,7 @@ import scala.concurrent.Future
 package object http4s {
   type Route = PartialFunction[RequestHead, Iteratee[Chunk, Responder]]
 
-  /*
-   * Alternatively...
-   *
-   * type Raw = (Iteratee[Chunk, Any] => Any)
-   * val EmptyBody: Raw = { it: Iteratee[Chunk, Any] => it.feed(Input.EOF) }
-   */
-  //type Raw = Enumerator[Chunk]
-  val EmptyBody: Enumeratee[Chunk, Chunk] = Bodies.write(Enumerator.eof)
+  type ResponderBody = Enumeratee[Chunk, Chunk]
 
   type Chunk = Array[Byte]
 

@@ -9,14 +9,24 @@ import play.api.libs.iteratee._
 case class Responder(
   statusLine: StatusLine = StatusLine.Ok,
   headers: Headers = Headers.Empty,
-  body: Enumeratee[Chunk, Chunk] = Responder.EmptyBody
-)
+  body: Responder.Body = Responder.EmptyBody)
+{
+  def apply[A](body: A)(implicit w: Writable[A]): Responder =
+    copy(body = Responder.replace(Enumerator(w.toChunk(body))))
+
+  def feed[A](enumerator: Enumerator[A])(implicit w: Writable[A]): Responder =
+    copy(body = Responder.replace(enumerator.map(w.toChunk)))
+}
 
 object Responder {
-  val EmptyBody = new Enumeratee[Chunk, Chunk] {
-    def applyOn[A](inner: Iteratee[Chunk, A]): Iteratee[Chunk, Iteratee[Chunk, A]] =
-      Done(Iteratee.flatten(inner.feed(Input.EOF)))
+  type Body = Enumeratee[Chunk, Chunk]
+
+  def replace[F, T](enumerator: Enumerator[T]): Enumeratee[F, T] = new Enumeratee[F, T] {
+    def applyOn[A](inner: Iteratee[T, A]): Iteratee[F, Iteratee[T, A]] =
+      Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
   }
+
+  val EmptyBody: Enumeratee[Chunk, Chunk] = replace(Enumerator.eof)
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
@@ -113,12 +123,11 @@ object StatusLine {
 }
 
 object ResponderGenerators {
-  import Bodies._
   def genRouteErrorResponse(t: Throwable): Responder = {
-    Responder( StatusLine.InternalServerError, body = s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}" )
+    Responder(StatusLine.InternalServerError)(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
   }
 
   def genRouteNotFound(request: RequestHead): Responder = {
-    Responder( StatusLine.NotFound, body = s"${request.pathInfo} Not Found." )
+    Responder(StatusLine.NotFound)(s"${request.pathInfo} Not Found.")
   }
 }
