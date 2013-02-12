@@ -62,6 +62,15 @@ object ExampleRoute {
       }
 */
 
+    // Challenge
+    case req if req.pathInfo == "/challenge" =>
+      val bits: Future[Option[Raw]] = req.body.run(Iteratee.head)
+      bits.map {
+        case Some(bits) if (new String(bits)).startsWith("Go") => Responder( body = Enumerator(bits) >>> req.body )
+        case Some(bits) if (new String(bits)).startsWith("NoGo") => Responder( statusLine = StatusLine.BadRequest, body = "Booo!" )
+        case _ => Responder( statusLine = StatusLine.BadRequest, body = "No data!" )
+      }
+
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
  }
