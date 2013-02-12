@@ -45,12 +45,12 @@ class MockServerSpec extends Specification with NoTimeConversions {
     }
 
     "fall through to not found" in {
-      val req = Request[Raw](pathInfo = "/bielefield", body = EmptyBody)
+      val req = Request[Raw](pathInfo = "/bielefield", body = EmptyRequestBody)
       response(req).statusLine should_== StatusLine.NotFound
     }
 
     "handle exceptions" in {
-      val req = Request[Raw](pathInfo = "/fail", body = EmptyBody)
+      val req = Request[Raw](pathInfo = "/fail", body = EmptyRequestBody)
       response(req).statusLine should_== StatusLine.InternalServerError
     }
   }

@@ -18,7 +18,8 @@ package object http4s {
   //case class Head(in :Header)  extends HttpObj
   case class Tail(in: Trailer)  extends HttpObj
 
-  val EmptyBody: Enumerator[Raw] = Enumerator.eof
+  val EmptyBody: Enumerator[HttpObj] = Enumerator.eof
+  val EmptyRequestBody: Enumerator[Raw] = Enumerator.eof
 
   type Middleware = (Route => Route)
 
