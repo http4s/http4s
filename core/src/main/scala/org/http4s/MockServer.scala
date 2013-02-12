@@ -20,14 +20,15 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
     }
   }
 
-  def render(responder: Responder[HttpObj]): Future[Response] = {
+  def render(responder: Responder[HttpChunk]): Future[Response] = {
 
-    val it: Iteratee[HttpObj,(Raw, Trailer)] = {
-      def step(result: List[Array[Byte]])(in: Input[HttpObj]): Iteratee[HttpObj,(Raw, Trailer)] = {
+    val it: Iteratee[HttpChunk,(Raw, Headers)] = {
+      def step(result: List[Array[Byte]])(in: Input[HttpChunk]): Iteratee[HttpChunk,(Raw, Headers)] = {
         in match {
-          case Input.El(Chunky(data)) => Cont( i => step(data::result)(i))
-          case Input.El(Tail(trailer)) => Done((result.reverse.toArray.flatten, trailer))
-          case Input.EOF => Done((result.reverse.toArray.flatten ,Map.empty[String,String]))
+          case Input.El(HttpEntity(data)) => Cont( i => step(data::result)(i))
+          case Input.El(HttpTrailer(trailer)) => Done((result.reverse.toArray.flatten, trailer))
+          case Input.EOF => Done((result.reverse.toArray.flatten , Headers.Empty))
+          case Input.El(_) => sys.error("Multipart or file not implemented yet") // TODO: make this real
         }
       }
       Cont{ i => step(Nil)(i)}

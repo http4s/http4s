@@ -110,11 +110,11 @@ object StatusLine {
 
 object ResponderGenerators {
   import Bodies._
-  def genRouteErrorResponse(t: Throwable): Responder[HttpObj] = {
+  def genRouteErrorResponse(t: Throwable): Responder[HttpChunk] = {
     Responder( StatusLine.InternalServerError, body = s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}" )
   }
 
-  def genRouteNotFound(request: Request[_]): Responder[HttpObj] = {
+  def genRouteNotFound(request: Request[_]): Responder[HttpChunk] = {
     Responder( StatusLine.NotFound, body = s"${request.pathInfo} Not Found." )
   }
 }

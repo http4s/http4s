@@ -7,18 +7,42 @@ import scala.concurrent.Future
 //import spray.http.HttpHeaders.RawHeader
 
 package object http4s {
-  type Route = PartialFunction[Request[Raw], Future[Responder[HttpObj]]]
+  type Route = PartialFunction[Request[Raw], Future[Responder[HttpChunk]]]
 
-  sealed trait HttpObj
-
-  type Trailer = Map[String,String]
   type Raw = Array[Byte]
+  type URI = String
 
-  case class Chunky(in: Raw) extends HttpObj
-  //case class Head(in :Header)  extends HttpObj
-  case class Tail(in: Trailer)  extends HttpObj
+  // Our Http message "currency" types
+  sealed trait HasHeaders {
+    def headers: Headers
+  }
 
-  val EmptyBody: Enumerator[HttpObj] = Enumerator.eof
+  sealed trait HttpPrelude extends HasHeaders
+
+  sealed trait HttpChunk {
+    def bytes: Raw
+  }
+
+  sealed trait HttpBodyChunk extends HttpChunk
+  case class HttpEntity(bytes: Raw) extends HttpBodyChunk
+
+  sealed trait MultipartEntity extends HttpBodyChunk {
+    def name: String
+    def contentType: String
+  }
+  case class MultipartChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
+  case class FileChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
+
+  case class RequestPrelude(method: Method, headers: Headers, uri: URI) extends HttpPrelude
+  case class ResponsePrelude(status: StatusLine, headers: Headers) extends HttpPrelude
+  case class HttpTrailer(headers: Headers) extends HasHeaders with HttpChunk {
+    final val bytes = Array.empty[Byte]
+  }
+
+  // End currency
+
+
+  val EmptyBody: Enumerator[HttpChunk] = Enumerator.eof
   val EmptyRequestBody: Enumerator[Raw] = Enumerator.eof
 
   type Middleware = (Route => Route)
@@ -43,7 +67,7 @@ package object http4s {
 //        RawHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
 //        RawHeader("Cache-Control", "no-cache"),
 //        RawHeader("Connection", "close"),
-//        RawHeader("Content-Disposition", "form-data"),
+//        RawHeader("Content-Disposition", "form-bytes"),
 //        RawHeader("Content-Encoding", "deflate"),
 //        RawHeader("Content-Length", "42"),
 //        RawHeader("Content-Type", "application/json"),
