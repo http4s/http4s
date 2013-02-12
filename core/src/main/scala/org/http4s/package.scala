@@ -12,6 +12,7 @@ package object http4s {
   type ResponderBody = Enumeratee[Chunk, Chunk]
 
   type Chunk = Array[Byte]
+  type Raw = Chunk
 
   type Middleware = (Route => Route)
 

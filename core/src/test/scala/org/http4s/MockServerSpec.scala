@@ -54,21 +54,21 @@ class MockServerSpec extends Specification with NoTimeConversions {
     }
 
     "Do a Go" in {
-      val req = Request[Raw](pathInfo = "/challenge", body = Enumerator("Go and do something".getBytes))
-      val returned = response(req)
+      val req = RequestHead(pathInfo = "/challenge"); val body = Enumerator("Go and do something".getBytes)
+      val returned = response(req, body)
       returned.statusLine should_== StatusLine.Ok
       new String(returned.body) should_== "Go and do something"
     }
 
     "Do a NoGo" in {
-      val req = Request[Raw](pathInfo = "/challenge", body = Enumerator("Go and do something".getBytes))
-      val returned = response(req)
+      val req = RequestHead(pathInfo = "/challenge"); val body = Enumerator("NoGo and do something".getBytes)
+      val returned = response(req, body)
       returned.statusLine should_== StatusLine.BadRequest
       new String(returned.body) should_== "Booo!"
     }
 
     "Do an Empty Body" in {
-      val req = Request[Raw](pathInfo = "/challenge", body = Enumerator.eof)
+      val req = RequestHead(pathInfo = "/challenge")
       val returned = response(req)
       returned.statusLine should_== StatusLine.BadRequest
       new String(returned.body) should_== "No data!"
