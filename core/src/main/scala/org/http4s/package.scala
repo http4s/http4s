@@ -67,7 +67,7 @@ package object http4s {
 //        RawHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
 //        RawHeader("Cache-Control", "no-cache"),
 //        RawHeader("Connection", "close"),
-//        RawHeader("Content-Disposition", "form-bytes"),
+//        RawHeader("Content-Disposition", "form-data"),
 //        RawHeader("Content-Encoding", "deflate"),
 //        RawHeader("Content-Length", "42"),
 //        RawHeader("Content-Type", "application/json"),

@@ -340,7 +340,7 @@ object MediaTypes extends ObjectRegistry[(String, String), MediaType] {
   class `multipart/mixed`      (boundary: Option[String]) extends MultipartMediaType("mixed", boundary)
   class `multipart/alternative`(boundary: Option[String]) extends MultipartMediaType("alternative", boundary)
   class `multipart/related`    (boundary: Option[String]) extends MultipartMediaType("related", boundary)
-  class `multipart/form-data`  (boundary: Option[String]) extends MultipartMediaType("form-bytes", boundary)
+  class `multipart/form-data`  (boundary: Option[String]) extends MultipartMediaType("form-data", boundary)
   class `multipart/signed`     (boundary: Option[String]) extends MultipartMediaType("signed", boundary)
   class `multipart/encrypted`  (boundary: Option[String]) extends MultipartMediaType("encrypted", boundary)
 
