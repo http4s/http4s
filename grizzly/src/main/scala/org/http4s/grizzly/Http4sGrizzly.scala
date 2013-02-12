@@ -17,7 +17,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val handler:Future[Responder[Chunk]] = Future.successful() flatMap { _ =>
+    val handler:Future[Responder[HttpChunk]] = Future.successful() flatMap { _ =>
       route.lift(request).getOrElse(
           Future.successful(ResponderGenerators.genRouteNotFound(request)
         )
@@ -32,7 +32,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def renderResponse(responder: Responder[Chunk], resp: Response) {
+  protected def renderResponse(responder: Responder[HttpChunk], resp: Response) {
     for (header <- responder.headers) {
       resp.addHeader(header.name, header.value)
     }
@@ -42,7 +42,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def toRequest(req: GrizReq): Request[Chunk] = {
+  protected def toRequest(req: GrizReq): Request[Raw] = {
     val input = req.getNIOInputStream
     Request(
       requestMethod = Method(req.getMethod.toString),
