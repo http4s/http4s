@@ -19,14 +19,14 @@ case class Responder(
 }
 
 object Responder {
-  type Body = Enumeratee[Raw, HttpEntity]
+  type Body = Enumeratee[HttpChunk, HttpChunk]
 
   def replace[F, T](enumerator: Enumerator[T]): Enumeratee[F, T] = new Enumeratee[F, T] {
     def applyOn[A](inner: Iteratee[T, A]): Iteratee[F, Iteratee[T, A]] =
       Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
   }
 
-  val EmptyBody: Enumeratee[Raw, HttpEntity] = replace(Enumerator.eof)
+  val EmptyBody: Enumeratee[HttpChunk, HttpChunk] = replace(Enumerator.eof)
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
@@ -35,7 +35,7 @@ case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
   def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
     Responder(this, Headers.Empty, Responder.replace(body.map(w.toChunk(_))))
 
-  def transform(enumeratee: Enumeratee[Raw, HttpEntity]) =
+  def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
     Responder(this, Headers.Empty, Enumeratee.passAlong compose enumeratee)
 
   def compare(that: StatusLine) = code.compareTo(that.code)

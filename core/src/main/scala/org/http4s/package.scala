@@ -9,9 +9,9 @@ import java.net.URI
 //import spray.http.HttpHeaders.RawHeader
 
 package object http4s {
-  type Route = PartialFunction[RequestHead, Iteratee[Raw, Responder]]
+  type Route = PartialFunction[RequestHead, Iteratee[HttpChunk, Responder]]
 
-  type ResponderBody = Enumeratee[HttpEntity, HttpEntity]
+  type ResponderBody = Enumeratee[HttpChunk, HttpChunk]
 
   type Raw = Array[Byte]
 

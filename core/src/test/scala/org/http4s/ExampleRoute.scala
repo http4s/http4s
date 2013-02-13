@@ -1,7 +1,7 @@
 package org.http4s
 
 import scala.language.reflectiveCalls
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import play.api.libs.iteratee._
 
 import Bodies._
@@ -17,10 +17,10 @@ object ExampleRoute {
       Done(Ok("pong"))
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Done(Ok.transform(Enumeratee.map[Raw]{ HttpEntity(_)}))
+      Done(Ok.transform(Enumeratee.passAlong))
 
     case req if req.pathInfo == "/echo2" =>
-      Done(Ok.transform(Enumeratee.map[Raw](e => HttpEntity(e.slice(6, e.length)))))
+      Done(Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}))
 
 
 
@@ -41,14 +41,15 @@ object ExampleRoute {
           channel.eofAndEnd()
       })))
 
-
+     /*
     case req if req.pathInfo == "/bigstring" =>
       Done{
         val builder = new StringBuilder(20*1028)
-        Ok.feed(Enumerator.enumerate((0 until 1000) map { i => s"This is string number $i" }))
+        Ok((0 until 1000) map { i => s"This is string number $i" })
       }
+    */
 
-     /*
+    /*
     // Reads the whole body before responding
     case req if req.pathInfo == "/determine_echo1" =>
       req.body.run( Iteratee.getChunks).map { bytes =>
@@ -66,10 +67,10 @@ object ExampleRoute {
 
       // Ross wins the challenge
     case req if req.pathInfo == "/challenge" =>
-      Iteratee.head[Raw].map {
-        case Some(bits) if (new String(bits)).startsWith("Go") =>
-          Ok.transform(Enumeratee.heading(Enumerator(bits)) ><> Enumeratee.map[Raw](HttpEntity(_)))
-        case Some(bits) if (new String(bits)).startsWith("NoGo") =>
+      Iteratee.head[HttpChunk].map {
+        case Some(bits) if (new String(bits.bytes)).startsWith("Go") =>
+          Ok.transform(Enumeratee.heading(Enumerator(bits)))
+        case Some(bits) if (new String(bits.bytes)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("No data!")
@@ -81,12 +82,12 @@ object ExampleRoute {
       sys.error("FAIL")
  }
 
-  def stringHandler(req: RequestHead, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[Raw, Responder] = {
+  def stringHandler(req: RequestHead, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[HttpChunk, Responder] = {
     val it = (Traversable.takeUpTo[Raw](maxSize)
                 transform bytesAsString(req)
                 flatMap eofOrRequestTooLarge(f)
                 map (_.merge))
-    it
+    Enumeratee.map[HttpChunk](_.bytes) &>> it
   }
 
   private[this] def bytesAsString(req: RequestHead) =

@@ -6,7 +6,7 @@ import scala.io.Codec
 import play.api.libs.iteratee.{Enumeratee, Enumerator}
 
 trait Writable[-A] {
-  def toChunk(a: A): HttpEntity
+  def toChunk(a: A): HttpChunk
 }
 
 object Writable {

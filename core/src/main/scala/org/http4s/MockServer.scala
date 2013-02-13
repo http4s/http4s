@@ -11,13 +11,13 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
   def apply(req: RequestHead, enum: Enumerator[Raw]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) { parser =>
-        val it: Iteratee[Raw, Response] = parser.flatMap { responder =>
+        val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>
           val responseBodyIt: Iteratee[Raw,Raw] = Iteratee.consume()
           // I'm not sure why we are compelled to make this complicated looking...
-          responder.body ><> Enumeratee.map[HttpEntity]{e => e.bytes} &>> responseBodyIt map{ bytes: Array[Byte] =>
+          responder.body ><> Enumeratee.map[HttpChunk](_.bytes) &>> responseBodyIt map{ bytes: Array[Byte] =>
             Response(responder.statusLine, responder.headers, body = bytes) }
         }
-        enum.run(it)
+        (enum &> Enumeratee.map[Raw]((i => HttpEntity(i)): Raw=>HttpChunk)).run(it)
       }
     } catch {
       case t: Throwable => Future.successful(onError(t))
