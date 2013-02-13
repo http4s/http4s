@@ -3,13 +3,14 @@ package org.http4s
 import scala.language.reflectiveCalls
 import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee._
+import org.http4s.Method.Post
 
 object ExampleRoute {
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
       Future.successful(Responder(body = Enumerator("pong".getBytes())))
 
-    case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
+    case Post(req) if req.pathInfo == "/echo" =>
       Future.successful(Responder(body = req.body))
 
     case req if req.pathInfo == "/echo" =>
@@ -18,7 +19,7 @@ object ExampleRoute {
     case req if req.pathInfo == "/echo2" =>
       Future.successful(Responder(body = req.body &> Enumeratee.map[Chunk](e => e.slice(6, e.length))))
 
-    case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
+    case Post(req) if req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Responder[Chunk](body = Enumerator(sum.toString.getBytes))
