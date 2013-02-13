@@ -2,56 +2,54 @@ package org.http4s
 package servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-import play.api.libs.iteratee.{Iteratee, Enumerator}
+import play.api.libs.iteratee.{Done, Iteratee, Enumerator}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext,Future}
 import javax.servlet.AsyncContext
 
 class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
-  override def service(req: HttpServletRequest, resp: HttpServletResponse) {
-    val request = toRequest(req)
-    val ctx = req.startAsync()
+  override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
+    println(s"SERVLET PATH = ${servletRequest.getServletPath}")
+    println(s"PATH INFO = ${servletRequest.getPathInfo}")
 
-    val handler: Future[Responder[Chunk]] = Future.successful() flatMap { Unit =>
-      route.lift(request).getOrElse{
-        Future.successful(ResponderGenerators.genRouteNotFound(request))
+    val ctx = servletRequest.startAsync()
+    executor.execute {
+      new Runnable {
+        def run() {
+          handle(ctx, servletRequest, servletResponse)
+        }
       }
     }
-
-    handler.onSuccess { case responder =>
-      renderResponse(responder, resp, ctx)
-    }
-
-    handler.onFailure{ case t =>
-      renderResponse(ResponderGenerators.genRouteErrorResponse(t), resp, ctx)
-    }
-
   }
 
-  protected def renderResponse(responder: Responder[Chunk], resp: HttpServletResponse, ctx: AsyncContext) {
-    resp.setStatus(responder.statusLine.code, responder.statusLine.reason)
-    for (header <- responder.headers) {
-      resp.addHeader(header.name, header.value)
+  def handle(ctx: AsyncContext, servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
+    val request = toRequest(servletRequest)
+    val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
+    val handler = parser.flatMap { responder =>
+      servletResponse.setStatus(responder.statusLine.code, responder.statusLine.reason)
+      for (header <- responder.headers)
+        servletResponse.addHeader(header.name, header.value)
+      responder.body.transform(Iteratee.foreach { chunk =>
+        val out = servletResponse.getOutputStream
+        out.write(chunk.bytes)
+        out.flush()
+      })
     }
-    val it = Iteratee.foreach[Chunk] { chunk =>
-      resp.getOutputStream.write(chunk)
-      resp.getOutputStream.flush()
-    }
-    responder.body.run(it).onComplete {
-      case _ => ctx.complete()
-    }
+    Enumerator.fromStream(servletRequest.getInputStream, chunkSize)
+      .map[HttpChunk](HttpEntity(_))
+      .run(handler)
+      .onComplete(_ => ctx.complete())
   }
 
-  protected def toRequest(req: HttpServletRequest): Request[Chunk] =
-    Request(
+  protected def toRequest(req: HttpServletRequest): RequestHead =
+    RequestHead(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
       queryString = Option(req.getQueryString).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol),
       headers = toHeaders(req),
-      body = Enumerator.fromStream(req.getInputStream, chunkSize),
       urlScheme = UrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,
