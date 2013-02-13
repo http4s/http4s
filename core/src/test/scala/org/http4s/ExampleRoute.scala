@@ -4,8 +4,6 @@ import scala.language.reflectiveCalls
 import scala.concurrent.ExecutionContext
 import play.api.libs.iteratee._
 
-import Bodies._
-
 object ExampleRoute {
   import StatusLine._
   import Writable._
@@ -41,13 +39,13 @@ object ExampleRoute {
           channel.eofAndEnd()
       })))
 
-     /*
+
     case req if req.pathInfo == "/bigstring" =>
       Done{
         val builder = new StringBuilder(20*1028)
         Ok((0 until 1000) map { i => s"This is string number $i" })
       }
-    */
+
 
     /*
     // Reads the whole body before responding

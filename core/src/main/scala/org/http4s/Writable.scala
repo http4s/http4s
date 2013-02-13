@@ -19,15 +19,10 @@ object Writable {
     Writable { i: Int => i.toString.getBytes(codec.charSet) }
 
   implicit def chunkWritable = Writable { i: Raw => i }
+
+  // It seems wasteful to wrap and unwrap sequences in HttpEntities
+  implicit def seqWritable[A](implicit writable:Writable[A]) = Writable { i: Seq[A] =>
+    i.map(writable.toChunk(_).bytes).flatten.toArray
+  }
 }
 
-object Bodies {
-  implicit def writableToBody[A](a: A)(implicit w: Writable[A]): Enumerator[HttpChunk] =
-    Enumerator(w.toChunk(a))
-
-  implicit def writableSeqToBody[A](a: Seq[A])(implicit w: Writable[A]): Enumerator[HttpChunk] =
-    Enumerator(a.map { w.toChunk }: _*)
-
-  implicit def writableEnumeratorToBody[A](a: Enumerator[A])(implicit w: Writable[A]): Enumerator[HttpChunk] =
-    a &> Enumeratee.map(w.toChunk)
-}
