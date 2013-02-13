@@ -1,13 +1,15 @@
 package org
 
 import http4s.ext.Http4sString
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import scala.language.implicitConversions
 import scala.concurrent.Future
 //import spray.http.HttpHeaders.RawHeader
 
 package object http4s {
-  type Route = PartialFunction[Request[Raw], Future[Responder[HttpChunk]]]
+  type Route = PartialFunction[RequestHead, Iteratee[Raw, Responder]]
+
+  type ResponderBody = Enumeratee[HttpEntity, HttpEntity]
 
   type Raw = Array[Byte]
   type URI = String

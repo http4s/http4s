@@ -4,7 +4,7 @@ package attributes
 import scala.language.implicitConversions
 
 object Scope {
-  implicit def req2scope[T](req: Request[T]) = ThisRequest(req)
+  implicit def req2scope(req: RequestHead) = ThisRequest(req)
   implicit def routeHandler2Scope(handler: RouteHandler) = ThisApp(handler)
 
   implicit object ScopeOrdering extends Ordering[Scope] {
@@ -35,6 +35,6 @@ sealed trait SessionScope extends Scope {
 case class ThisSession(id: String) extends SessionScope
 
 sealed trait RequestScope extends Scope
-case class ThisRequest[T](request: Request[T]) extends RequestScope {
+case class ThisRequest(request: RequestHead) extends RequestScope {
   val rank = 1000
 }
