@@ -3,17 +3,19 @@ package org.http4s
 import scala.language.reflectiveCalls
 
 import concurrent.{ExecutionContext, Future}
-import play.api.libs.iteratee.{Enumerator, Iteratee}
+import play.api.libs.iteratee.{Enumeratee, Enumerator, Iteratee}
 
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
 
-  def apply(req: RequestHead, enum: Enumerator[Chunk]): Future[Response] = {
+  def apply(req: RequestHead, enum: Enumerator[Raw]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) { parser =>
-        val it = parser.flatMap { responder =>
-          val responseBodyIt: Iteratee[Chunk, Array[Byte]] = Iteratee.consume()
-          responder.body.transform(responseBodyIt).map(Response(responder.statusLine, responder.headers, _))
+        val it: Iteratee[Raw, Response] = parser.flatMap { responder =>
+          val responseBodyIt: Iteratee[Raw,Raw] = Iteratee.consume()
+          // I'm not sure why we are compelled to make this complicated looking...
+          responder.body ><> Enumeratee.map[HttpEntity]{e => e.bytes} &>> responseBodyIt map{ bytes: Array[Byte] =>
+            Response(responder.statusLine, responder.headers, body = bytes) }
         }
         enum.run(it)
       }

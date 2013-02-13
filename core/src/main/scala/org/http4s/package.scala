@@ -4,6 +4,8 @@ import http4s.ext.Http4sString
 import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import scala.language.implicitConversions
 import scala.concurrent.Future
+import java.net.URI
+
 //import spray.http.HttpHeaders.RawHeader
 
 package object http4s {
@@ -12,7 +14,6 @@ package object http4s {
   type ResponderBody = Enumeratee[HttpEntity, HttpEntity]
 
   type Raw = Array[Byte]
-  type URI = String
 
   // Our Http message "currency" types
   sealed trait HasHeaders {
