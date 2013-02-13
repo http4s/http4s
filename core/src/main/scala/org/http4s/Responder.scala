@@ -11,7 +11,7 @@ case class Responder(
   headers: Headers = Headers.Empty,
   body: Responder.Body = Responder.EmptyBody)
 {
-  def apply[A](body: A)(implicit w: Writable[A]): Responder =
+  def body[A](body: A)(implicit w: Writable[A]): Responder =
     copy(body = Responder.replace(Enumerator(w.toChunk(body))))
 
   def feed[A](enumerator: Enumerator[A])(implicit w: Writable[A]): Responder =
@@ -30,6 +30,14 @@ object Responder {
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
+  def apply[A](body: A)(implicit w: Writable[A]): Responder = feed(Enumerator(body))
+
+  def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
+    Responder(this, Headers.Empty, Responder.replace(body.map(w.toChunk(_))))
+
+  def transform(enumeratee: Enumeratee[Chunk, Chunk]) =
+    Responder(this, Headers.Empty, Enumeratee.passAlong compose enumeratee)
+
   def compare(that: StatusLine) = code.compareTo(that.code)
 
   def line = {
@@ -123,11 +131,13 @@ object StatusLine {
 }
 
 object ResponderGenerators {
+  import StatusLine._
+
   def genRouteErrorResponse(t: Throwable): Responder = {
-    Responder(StatusLine.InternalServerError)(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
+    InternalServerError(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
   }
 
   def genRouteNotFound(request: RequestHead): Responder = {
-    Responder(StatusLine.NotFound)(s"${request.pathInfo} Not Found.")
+    NotFound(s"${request.pathInfo} Not Found.")
   }
 }

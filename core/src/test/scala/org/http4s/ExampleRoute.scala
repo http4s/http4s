@@ -5,17 +5,18 @@ import scala.concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee._
 
 object ExampleRoute {
+  import StatusLine._
   import Writable._
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
-      Done(Responder()("pong"))
+      Done(Ok("pong"))
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Done(Responder(body = Enumeratee.passAlong))
+      Done(Ok.transform(Enumeratee.passAlong))
 
     case req if req.pathInfo == "/echo" =>
-      Done(Responder(body = Enumeratee.passAlong))
+      Done(Ok.transform(Enumeratee.passAlong))
 
 /*
     case req if req.pathInfo == "/echo2" =>
@@ -25,11 +26,11 @@ object ExampleRoute {
     case req if req.requestMethod == Method.Post && req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
-        Responder()(sum)
+        Ok(sum)
       }
 
     case req if req.pathInfo == "/stream" =>
-      Done(Responder().feed(Concurrent.unicast[Chunk]({
+      Done(Ok.feed(Concurrent.unicast[Chunk]({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
@@ -42,7 +43,7 @@ object ExampleRoute {
       Done{
         val builder = new StringBuilder(20*1028)
 
-        Responder().feed(Enumerator.enumerate((0 until 1000) map { i => s"This is string number $i" }))
+        Ok.feed(Enumerator.enumerate((0 until 1000) map { i => s"This is string number $i" }))
       }
 
 /*
@@ -66,11 +67,11 @@ object ExampleRoute {
     case req if req.pathInfo == "/challenge" =>
       Iteratee.head[Raw].map {
         case Some(bits) if (new String(bits)).startsWith("Go") =>
-          Responder(body = Enumeratee.passAlong compose Enumeratee.heading(Enumerator(bits)))
+          Ok.transform(Enumeratee.heading(Enumerator(bits)))
         case Some(bits) if (new String(bits)).startsWith("NoGo") =>
-          Responder(statusLine = StatusLine.BadRequest)("Booo!")
+          BadRequest("Booo!")
         case _ =>
-          Responder(statusLine = StatusLine.BadRequest)("No data!")
+          BadRequest("No data!")
       }
 
     case req if req.pathInfo == "/fail" =>
