@@ -18,6 +18,9 @@ sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempo
 
   if (register)
     Method.register(this)
+
+  def unapply[T](request: Request[T]): Option[Request[T]] =
+    if (request.requestMethod.name.toUpperCase == name.toUpperCase) Some(request) else None
 }
 
 /**
@@ -43,21 +46,20 @@ class ExtensionMethod(name: String, isSafe: Boolean, isIdempotent: Boolean, regi
   extends Method(name, isSafe, isIdempotent, register)
 
 object Method {
-  val Options = new StandardMethod("OPTIONS", isSafe = false, isIdempotent = true)
-  val Get     = new StandardMethod("GET",     isSafe = true,  isIdempotent = true)
-  val Head    = new StandardMethod("HEAD",    isSafe = true,  isIdempotent = true)
-  val Post    = new StandardMethod("POST",    isSafe = false, isIdempotent = false)
-  val Put     = new StandardMethod("PUT",     isSafe = false, isIdempotent = true)
-  val Delete  = new StandardMethod("DELETE",  isSafe = false, isIdempotent = true)
-  val Trace   = new StandardMethod("TRACE",   isSafe = false, isIdempotent = true)
-  val Connect = new StandardMethod("CONNECT", isSafe = true,  isIdempotent = false)
+  object Options extends StandardMethod("OPTIONS", isSafe = false, isIdempotent = true)
+  object Get     extends StandardMethod("GET",     isSafe = true,  isIdempotent = true)
+  object Head    extends StandardMethod("HEAD",    isSafe = true,  isIdempotent = true)
+  object Post    extends StandardMethod("POST",    isSafe = false, isIdempotent = false)
+  object Put     extends StandardMethod("PUT",     isSafe = false, isIdempotent = true)
+  object Delete  extends StandardMethod("DELETE",  isSafe = false, isIdempotent = true)
+  object Trace   extends StandardMethod("TRACE",   isSafe = false, isIdempotent = true)
+  object Connect extends StandardMethod("CONNECT", isSafe = true,  isIdempotent = false)
 
   // PATCH is not part of the RFC, but common enough we'll support it.
-  val Patch   = new ExtensionMethod("PATCH",  isSafe = false, isIdempotent = false, register = true)
+  object Patch   extends ExtensionMethod("PATCH",  isSafe = false, isIdempotent = false, register = true)
 
   private[this] lazy val registry: collection.concurrent.Map[String, Method] = TrieMap.empty
 
-  @tailrec
   private def register(method: Method) {
     val oldValue = registry.putIfAbsent(method.name, method)
     if (oldValue.isDefined && !registry.replace(method.name, oldValue.get, method))
