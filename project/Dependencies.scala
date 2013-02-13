@@ -13,7 +13,7 @@ object Dependencies {
 
   val Junit = "junit" % "junit" % "4.11"
 
-  val LogbackParent = "ch.qos.logback" % "logback-classic" % "1.0.9"
+  val LogbackParent = "ch.qos.logback" % "logback-classic" % "1.0.9" % "runtime"
 
   val Netty = "org.jboss.netty" % "netty" % "3.2.9.Final"
 
@@ -32,4 +32,8 @@ object Dependencies {
   val ScalaReflect = (sv: String) => "org.scala-lang" % "scala-reflect" % sv
 
   val Parboiled = "org.parboiled" %%  "parboiled-scala" % "1.1.4"
+
+  val Scalaz = "org.scalaz" %% "scalaz-core" % "7.0.0-M7"
+
+  val Slf4j = "org.slf4j" % "slf4j-api" % "1.7.2"
 }

@@ -173,12 +173,12 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     val uri = URI.create(req.getUri)
     val hdrs = toHeaders(req)
     val scheme = {
-      hdrs.get(XForwardedProto).flatMap(_.value.blankOption) orElse {
-        val fhs = hdrs.get(FrontEndHttps).flatMap(_.value.blankOption)
-        fhs.filter(_ equalsIgnoreCase "ON").map(_ => "https")
-      } getOrElse {
+//      hdrs.get(XForwardedProto).flatMap(_.value.blankOption) orElse {
+//        val fhs = hdrs.get(FrontEndHttps).flatMap(_.value.blankOption)
+//        fhs.filter(_ equalsIgnoreCase "ON").map(_ => "https")
+//      } getOrElse {
         if (ctx.getPipeline.get(classOf[SslHandler]) != null) "http" else "https"
-      }
+//      }
     }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
 
@@ -189,7 +189,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      body = Enumerator(req.getContent.array()).andThen(Enumerator.enumInput(Input.EOF)), //enumerator &> Enumeratee.map[HttpChunk](_.getContent.array()),
+      body = Enumerator(req.getContent.array()) andThen Enumerator.enumInput(Input.EOF), //enumerator &> Enumeratee.map[HttpChunk](_.getContent.array()),
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
