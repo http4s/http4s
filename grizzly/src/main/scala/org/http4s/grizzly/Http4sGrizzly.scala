@@ -17,7 +17,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val handler:Future[Responder[HttpChunk]] = Future.successful() flatMap { _ =>
+    val handler:Future[Responder] = Future.successful() flatMap { _ =>
       route.lift(request).getOrElse(
           Future.successful(ResponderGenerators.genRouteNotFound(request)
         )
@@ -32,8 +32,8 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def renderResponse(responder: Responder[HttpChunk], resp: Response) {
-    for (header <- responder.headers) {
+  protected def renderResponse(responder: Responder, resp: Response) {
+    for (header <- responder.prelude.headers) {
       resp.addHeader(header.name, header.value)
     }
 
@@ -42,9 +42,9 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
   }
 
-  protected def toRequest(req: GrizReq): Request[Raw] = {
+  protected def toRequest(req: GrizReq): RequestHead = {
     val input = req.getNIOInputStream
-    Request(
+    RequestHead(
       requestMethod = Method(req.getMethod.toString),
 
       scriptName = req.getContextPath, // + req.getServletPath,
@@ -52,7 +52,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       queryString = Option(req.getQueryString).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol.getProtocolString),
       headers = toHeaders(req),
-      body = new BodyEnumerator(input, chunkSize),
+//      body = new BodyEnumerator(input, chunkSize),
       urlScheme = UrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,

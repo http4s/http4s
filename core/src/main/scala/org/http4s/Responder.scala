@@ -7,10 +7,9 @@ import scala.concurrent.Future
 import play.api.libs.iteratee._
 
 case class Responder(
-  statusLine: StatusLine = StatusLine.Ok,
-  headers: Headers = Headers.Empty,
-  body: Responder.Body = Responder.EmptyBody)
-{
+  prelude: ResponsePrelude,
+  body: Responder.Body = Responder.EmptyBody) {
+
   def body[A](body: A)(implicit w: Writable[A]): Responder =
     copy(body = Responder.replace(Enumerator(w.toChunk(body))))
 
@@ -33,10 +32,10 @@ case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
   def apply[A](body: A)(implicit w: Writable[A]): Responder = feed(Enumerator(body))
 
   def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
-    Responder(this, Headers.Empty, Responder.replace(body.map(w.toChunk(_))))
+    Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body.map(w.toChunk(_))))
 
   def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
-    Responder(this, Headers.Empty, Enumeratee.passAlong compose enumeratee)
+    Responder(ResponsePrelude(this, Headers.Empty), Enumeratee.passAlong compose enumeratee)
 
   def compare(that: StatusLine) = code.compareTo(that.code)
 

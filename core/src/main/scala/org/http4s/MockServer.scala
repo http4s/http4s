@@ -15,7 +15,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
           val responseBodyIt: Iteratee[Raw,Raw] = Iteratee.consume()
           // I'm not sure why we are compelled to make this complicated looking...
           responder.body ><> Enumeratee.map[HttpChunk](_.bytes) &>> responseBodyIt map{ bytes: Array[Byte] =>
-            Response(responder.statusLine, responder.headers, body = bytes) }
+            Response(responder.prelude.status, responder.prelude.headers, body = bytes) }
         }
         (enum &> Enumeratee.map[Raw]((i => HttpEntity(i)): Raw=>HttpChunk)).run(it)
       }

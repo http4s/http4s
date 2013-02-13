@@ -4,7 +4,10 @@ import http4s.ext.Http4sString
 import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import scala.language.implicitConversions
 import scala.concurrent.Future
-import java.net.URI
+import java.net.{InetAddress, URI}
+import java.io.File
+import java.util.UUID
+import java.nio.charset.Charset
 
 //import spray.http.HttpHeaders.RawHeader
 
@@ -15,32 +18,7 @@ package object http4s {
 
   type Raw = Array[Byte]
 
-  // Our Http message "currency" types
-  sealed trait HasHeaders {
-    def headers: Headers
-  }
 
-  sealed trait HttpPrelude extends HasHeaders
-
-  sealed trait HttpChunk {
-    def bytes: Raw
-  }
-
-  sealed trait HttpBodyChunk extends HttpChunk
-  case class HttpEntity(bytes: Raw) extends HttpBodyChunk
-
-  sealed trait MultipartEntity extends HttpBodyChunk {
-    def name: String
-    def contentType: String
-  }
-  case class MultipartChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
-  case class FileChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
-
-  case class RequestPrelude(method: Method, headers: Headers, uri: URI) extends HttpPrelude
-  case class ResponsePrelude(status: StatusLine, headers: Headers) extends HttpPrelude
-  case class HttpTrailer(headers: Headers) extends HasHeaders with HttpChunk {
-    final val bytes = Array.empty[Byte]
-  }
 
   // End currency
 

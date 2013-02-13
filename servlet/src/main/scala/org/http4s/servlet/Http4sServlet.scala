@@ -27,8 +27,8 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val request = toRequest(servletRequest)
     val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
     val handler = parser.flatMap { responder =>
-      servletResponse.setStatus(responder.statusLine.code, responder.statusLine.reason)
-      for (header <- responder.headers)
+      servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
+      for (header <- responder.prelude.headers)
         servletResponse.addHeader(header.name, header.value)
       responder.body.transform(Iteratee.foreach { chunk =>
         val out = servletResponse.getOutputStream

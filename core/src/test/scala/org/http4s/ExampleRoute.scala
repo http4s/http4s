@@ -92,6 +92,6 @@ object ExampleRoute {
     Iteratee.consume[Raw]().asInstanceOf[Iteratee[Raw, Raw]].map(new String(_, req.charset))
 
   private[this] def eofOrRequestTooLarge[B](f: String => Responder)(s: String) =
-    Iteratee.eofOrElse[B](Responder(statusLine = StatusLine.RequestEntityTooLarge))(s).map(_.right.map(f))
+    Iteratee.eofOrElse[B](Responder(ResponsePrelude(status = StatusLine.RequestEntityTooLarge)))(s).map(_.right.map(f))
 
 }
