@@ -4,18 +4,39 @@ package org.http4s
 
 import scala.concurrent.Future
 
-import play.api.libs.iteratee.{Enumeratee, Enumerator}
+import play.api.libs.iteratee._
 
-case class Responder[A](
-  statusLine: StatusLine = StatusLine.Ok,
-  headers: Headers = Headers.Empty,
-  body: Enumerator[A] = Enumerator.eof
-) {
-  import scala.language.reflectiveCalls // So the compiler doesn't complain...
-  def map[B](f: A => B): Responder[B] = copy(body = body &> Enumeratee.map(f)) : Responder[B]
+case class Responder(
+  prelude: ResponsePrelude,
+  body: Responder.Body = Responder.EmptyBody) {
+
+  def body[A](body: A)(implicit w: Writable[A]): Responder =
+    copy(body = Responder.replace(Enumerator(w.toChunk(body))))
+
+  def feed[A](enumerator: Enumerator[A])(implicit w: Writable[A]): Responder =
+    copy(body = Responder.replace(enumerator.map(w.toChunk)))
+}
+
+object Responder {
+  type Body = Enumeratee[HttpChunk, HttpChunk]
+
+  def replace[F, T](enumerator: Enumerator[T]): Enumeratee[F, T] = new Enumeratee[F, T] {
+    def applyOn[A](inner: Iteratee[T, A]): Iteratee[F, Iteratee[T, A]] =
+      Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
+  }
+
+  val EmptyBody: Enumeratee[HttpChunk, HttpChunk] = replace(Enumerator.eof)
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
+  def apply[A](body: A)(implicit w: Writable[A]): Responder = feed(Enumerator(body))
+
+  def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
+    Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body.map(w.toChunk(_))))
+
+  def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
+    Responder(ResponsePrelude(this, Headers.Empty), Enumeratee.passAlong compose enumeratee)
+
   def compare(that: StatusLine) = code.compareTo(that.code)
 
   def line = {
@@ -109,12 +130,13 @@ object StatusLine {
 }
 
 object ResponderGenerators {
-  import Bodies._
-  def genRouteErrorResponse(t: Throwable): Responder[Chunk] = {
-    Responder( StatusLine.InternalServerError, body = s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}" )
+  import StatusLine._
+
+  def genRouteErrorResponse(t: Throwable): Responder = {
+    InternalServerError(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
   }
 
-  def genRouteNotFound(request: Request[_]): Responder[Chunk] = {
-    Responder( StatusLine.NotFound, body = s"${request.pathInfo} Not Found." )
+  def genRouteNotFound(request: RequestHead): Responder = {
+    NotFound(s"${request.pathInfo} Not Found.")
   }
 }

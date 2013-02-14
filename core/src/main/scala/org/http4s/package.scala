@@ -1,24 +1,30 @@
 package org
 
 import http4s.ext.Http4sString
-import play.api.libs.iteratee.Enumerator
+import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import scala.language.implicitConversions
 import scala.concurrent.Future
+import java.net.{InetAddress, URI}
+import java.io.File
+import java.util.UUID
+import java.nio.charset.Charset
+
 //import spray.http.HttpHeaders.RawHeader
 
 package object http4s {
-  type Route = PartialFunction[Request[Chunk], Future[Responder[Chunk]]]
+  type Route = PartialFunction[RequestHead, Iteratee[HttpChunk, Responder]]
 
-  /*
-   * Alternatively...
-   *
-   * type Raw = (Iteratee[Chunk, Any] => Any)
-   * val EmptyBody: Raw = { it: Iteratee[Chunk, Any] => it.feed(Input.EOF) }
-   */
-  //type Raw = Enumerator[Chunk]
-  val EmptyBody: Enumerator[Chunk] = Enumerator.eof
+  type ResponderBody = Enumeratee[HttpChunk, HttpChunk]
 
-  type Chunk = Array[Byte]
+  type Raw = Array[Byte]
+
+
+
+  // End currency
+
+
+  val EmptyBody: Enumerator[HttpChunk] = Enumerator.eof
+  val EmptyRequestBody: Enumerator[Raw] = Enumerator.eof
 
   type Middleware = (Route => Route)
 

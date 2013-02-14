@@ -1,15 +1,9 @@
 package org.http4s
 package servlet
 
-import play.api.libs.iteratee._
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-
-import Bodies._
-import concurrent.Future
-import org.http4s.Responder
-import org.http4s.Request
 
 /**
  * @author ross

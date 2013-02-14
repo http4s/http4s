@@ -28,6 +28,7 @@ class Headers private(headers: Seq[HttpHeader])
 
 object Headers {
   val Empty = apply()
+  def empty = Empty
 
   def apply(headers: HttpHeader*): Headers = new Headers(headers)
 

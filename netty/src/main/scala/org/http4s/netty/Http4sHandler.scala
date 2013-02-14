@@ -17,13 +17,13 @@ import scala.language.{ implicitConversions, reflectiveCalls }
 import java.util.concurrent.LinkedBlockingDeque
 import org.http4s.Responder
 import scala.util.{ Failure, Success }
-import org.http4s.Request
+import org.http4s.RequestHead
 
 
 object Routes {
-  def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Routes(route)
+   def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Routes(route)
 }
-class Routes(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sHandler
+class Routes(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sNetty
 
 class RequestChunksEnumerator(req: HttpRequest, chunks: LinkedBlockingDeque[HttpChunk] = new LinkedBlockingDeque[HttpChunk]()) extends Enumerator[HttpChunk]{
 
@@ -54,7 +54,7 @@ class RequestChunksEnumerator(req: HttpRequest, chunks: LinkedBlockingDeque[Http
   }
 }
 
-abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
+abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
 
   def route: Route
 
@@ -69,18 +69,21 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
 
       val request = toRequest(ctx, req, rem.getAddress)
       if (route.isDefinedAt(request)) {
-        val responder = route(request)
-        responder onSuccess {
-          case r =>
-            renderResponse(ctx, req, r)
-        }
-        responder onFailure {
-          case t => t.printStackTrace()
-        }
+        val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
+        val handler = parser flatMap (renderResponse(ctx, req, _))
+        Enumerator(req.getContent.array()).map[org.http4s.HttpChunk](org.http4s.HttpEntity(_)).run[Unit](handler)
+//        handler.feed(Input.El(HttpEntity(req.getContent.array()))) flatMap { i => i.feed(Input.EOF)}
+//        responder onSuccess {
+//          case r =>
+//            renderResponse(ctx, req, r)
+//        }
+//        responder onFailure {
+//          case t => t.printStackTrace()
+//        }
       } else {
         import org.http4s.HttpVersion
         val res = new http.DefaultHttpResponse(HttpVersion.`Http/1.1`, StatusLine.NotFound)
-        res.setContent(ChannelBuffers.copiedBuffer("Not Found", Codec.UTF8.name))
+        res.setContent(ChannelBuffers.copiedBuffer("Not Found", Codec.UTF8.charSet))
         ctx.getChannel.write(res).addListener(ChannelFutureListener.CLOSE)
       }
 
@@ -101,23 +104,23 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
       }
   }
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder[Chunk]) {
+  protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, responder: Responder) = {
     def closeChannel(channel: Channel) = {
       if (!http.HttpHeaders.isKeepAlive(req) && channel.isConnected) channel.close()
     }
 
 
-    val stat = new HttpResponseStatus(responder.statusLine.code, responder.statusLine.reason)
+    val stat = new HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
     val resp = new http.DefaultHttpResponse(req.getProtocolVersion, stat)
-    for (header <- responder.headers) {
+    for (header <- responder.prelude.headers) {
       resp.addHeader(header.name, header.value)
     }
 
     val channelBuffer = ChannelBuffers.dynamicBuffer(8912)
-    val writer: (ChannelBuffer, Chunk) => Unit = (c, x) => c.writeBytes(x)
-    val stringIteratee = Iteratee.fold(channelBuffer)((c, e: Chunk) => { writer(c, e); c })
+    val writer: (ChannelBuffer, org.http4s.HttpChunk) => Unit = (c, x) => c.writeBytes(x.bytes)
+    val stringIteratee = Iteratee.fold(channelBuffer)((c, e: org.http4s.HttpChunk) => { writer(c, e); c })
 
-    val p = (responder.body |>>> Enumeratee.grouped(stringIteratee) &>> Cont {
+    val p = (responder.body ><> Enumeratee.grouped(stringIteratee) &>> Cont {
       case Input.El(buffer) =>
         resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, channelBuffer.readableBytes)
         resp.setContent(buffer)
@@ -125,7 +128,7 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
         f onComplete {
           case _ => closeChannel(ctx.getChannel)
         }
-        Iteratee.flatten(f.map(_ => Done(1,Input.Empty:Input[org.jboss.netty.buffer.ChannelBuffer])))
+        Iteratee.flatten(f.map(_ => Done((),Input.Empty:Input[org.jboss.netty.buffer.ChannelBuffer])))
 
       case other => Error("unexepected input",other)
     })
@@ -182,14 +185,13 @@ abstract class Http4sHandler(implicit executor: ExecutionContext = ExecutionCont
     }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
 
-    Request(
+    RequestHead(
       requestMethod = Method(req.getMethod.getName),
       scriptName = "",
       pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      body = Enumerator(req.getContent.array()) andThen Enumerator.enumInput(Input.EOF), //enumerator &> Enumeratee.map[HttpChunk](_.getContent.array()),
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,

@@ -13,7 +13,6 @@ import org.specs2.time.NoTimeConversions
 import scala.io.Codec
 
 import Writable._
-import Bodies._
 import java.nio.charset.Charset
 
 class MockServerSpec extends Specification with NoTimeConversions {
@@ -21,37 +20,58 @@ class MockServerSpec extends Specification with NoTimeConversions {
 
   val server = new MockServer(ExampleRoute())
 
-  def response(req: Request[Chunk]): MockServer.Response = {
-    Await.result(server(req), 5 seconds)
+  def response(req: RequestHead, body: Enumerator[Raw] = Enumerator.eof): MockServer.Response = {
+    Await.result(server(req, body), 5 seconds)
   }
 
   "A mock server" should {
     "handle matching routes" in {
-      val req = Request[Chunk](requestMethod = Method.Post, pathInfo = "/echo",
-        body = Enumerator("one", "two", "three").map(_.getBytes))
-      new String(response(req).body) should_==("onetwothree")
+      val req = RequestHead(requestMethod = Method.Post, pathInfo = "/echo")
+      val body = Enumerator("one", "two", "three").map(_.getBytes)
+      new String(response(req, body).body) should_==("onetwothree")
     }
 
     "runs a sum" in {
-      val req = Request[Chunk](requestMethod = Method.Post, pathInfo = "/sum",
-        body = Enumerator("1\n", "2\n3", "\n4").map(_.getBytes))
-      new String(response(req).body) should_==("10")
+      val req = RequestHead(requestMethod = Method.Post, pathInfo = "/sum")
+      val body = Enumerator("1\n", "2\n3", "\n4").map(_.getBytes)
+      new String(response(req, body).body) should_==("10")
     }
 
     "runs too large of a sum" in {
-      val req = Request[Chunk](requestMethod = Method.Post, pathInfo = "/sum",
-        body = Enumerator("12345678\n901234567").map(_.getBytes))
-      response(req).statusLine should_==(StatusLine.RequestEntityTooLarge)
+      val req = RequestHead(requestMethod = Method.Post, pathInfo = "/sum")
+      val body = Enumerator("12345678\n901234567").map(_.getBytes)
+      response(req, body).statusLine should_==(StatusLine.RequestEntityTooLarge)
     }
 
     "fall through to not found" in {
-      val req = Request[Chunk](pathInfo = "/bielefield", body = EmptyBody)
+      val req = RequestHead(pathInfo = "/bielefield")
       response(req).statusLine should_== StatusLine.NotFound
     }
 
     "handle exceptions" in {
-      val req = Request[Chunk](pathInfo = "/fail", body = EmptyBody)
+      val req = RequestHead(pathInfo = "/fail")
       response(req).statusLine should_== StatusLine.InternalServerError
+    }
+
+    "Do a Go" in {
+      val req = RequestHead(pathInfo = "/challenge"); val body = Enumerator("Go and do something".getBytes)
+      val returned = response(req, body)
+      returned.statusLine should_== StatusLine.Ok
+      new String(returned.body) should_== "Go and do something"
+    }
+
+    "Do a NoGo" in {
+      val req = RequestHead(pathInfo = "/challenge"); val body = Enumerator("NoGo and do something".getBytes)
+      val returned = response(req, body)
+      returned.statusLine should_== StatusLine.BadRequest
+      new String(returned.body) should_== "Booo!"
+    }
+
+    "Do an Empty Body" in {
+      val req = RequestHead(pathInfo = "/challenge")
+      val returned = response(req)
+      returned.statusLine should_== StatusLine.BadRequest
+      new String(returned.body) should_== "No data!"
     }
   }
 }

@@ -1,32 +1,35 @@
 package org.http4s
 
 import scala.language.reflectiveCalls
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.ExecutionContext
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
 
 object ExampleRoute {
+  import StatusLine._
+  import Writable._
+
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
-      Future.successful(Responder(body = Enumerator("pong".getBytes())))
+      Done(Ok("pong"))
 
     case Post(req) if req.pathInfo == "/echo" =>
-      Future.successful(Responder(body = req.body))
+      Done(Ok.transform(Enumeratee.passAlong))
 
     case req if req.pathInfo == "/echo" =>
-      Future.successful(Responder(body = req.body))
+      Done(Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}))
 
     case req if req.pathInfo == "/echo2" =>
-      Future.successful(Responder(body = req.body &> Enumeratee.map[Chunk](e => e.slice(6, e.length))))
+      Done(Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}))
 
     case Post(req) if req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
-        Responder[Chunk](body = Enumerator(sum.toString.getBytes))
+        Ok(sum)
       }
 
     case req if req.pathInfo == "/stream" =>
-      Future.successful(Responder(body = Concurrent.unicast({
+      Done(Ok.feed(Concurrent.unicast[Raw]({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
@@ -36,44 +39,54 @@ object ExampleRoute {
       })))
 
     case req if req.pathInfo == "/bigstring" =>
-      Future.successful{
+      Done{
         val builder = new StringBuilder(20*1028)
-
-        Responder( body =Enumerator(((0 until 1000) map { i =>
-          s"This is string number $i".getBytes
-        }): _*) )
+        Ok((0 until 1000) map { i => s"This is string number $i" })
       }
 
+    /*
     // Reads the whole body before responding
     case req if req.pathInfo == "/determine_echo1" =>
-      req.body.run( Iteratee.getChunks).map {bytes =>
-        Responder( body = Enumerator(bytes:_*))
+      req.body.run( Iteratee.getChunks).map { bytes =>
+        Responder( body = Enumerator(bytes.map(HttpEntity(_)):_*))
       }
 
     // Demonstrate how simple it is to read some and then continue
     case req if req.pathInfo == "/determine_echo2" =>
-      val bit: Future[Option[Chunk]] = req.body.run(Iteratee.head)
+      val bit: Future[Option[Raw]] = req.body.run(Iteratee.head)
       bit.map {
         case Some(bit) => Responder( body = Enumerator(bit) >>> req.body )
         case None => Responder( body = Enumerator.eof )
+      }
+    */
+
+      // Ross wins the challenge
+    case req if req.pathInfo == "/challenge" =>
+      Iteratee.head[HttpChunk].map {
+        case Some(bits) if (new String(bits.bytes)).startsWith("Go") =>
+          Ok.transform(Enumeratee.heading(Enumerator(bits)))
+        case Some(bits) if (new String(bits.bytes)).startsWith("NoGo") =>
+          BadRequest("Booo!")
+        case _ =>
+          BadRequest("No data!")
       }
 
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
  }
 
-  def stringHandler(req: Request[Chunk], maxSize: Int = Integer.MAX_VALUE)(f: String => Responder[Chunk]): Future[Responder[Chunk]] = {
-    val it = (Traversable.takeUpTo[Chunk](maxSize)
+  def stringHandler(req: RequestHead, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[HttpChunk, Responder] = {
+    val it = (Traversable.takeUpTo[Raw](maxSize)
                 transform bytesAsString(req)
                 flatMap eofOrRequestTooLarge(f)
                 map (_.merge))
-    req.body.run(it)
+    Enumeratee.map[HttpChunk](_.bytes) &>> it
   }
 
-  private[this] def bytesAsString(req: Request[Chunk]) =
-    Iteratee.consume[Chunk]().asInstanceOf[Iteratee[Chunk, Chunk]].map(new String(_, req.charset))
+  private[this] def bytesAsString(req: RequestHead) =
+    Iteratee.consume[Raw]().asInstanceOf[Iteratee[Raw, Raw]].map(new String(_, req.charset))
 
-  private[this] def eofOrRequestTooLarge[B](f: String => Responder[Chunk])(s: String) =
-    Iteratee.eofOrElse[B](Responder(statusLine = StatusLine.RequestEntityTooLarge, body = EmptyBody))(s).map(_.right.map(f))
+  private[this] def eofOrRequestTooLarge[B](f: String => Responder)(s: String) =
+    Iteratee.eofOrElse[B](Responder(ResponsePrelude(status = StatusLine.RequestEntityTooLarge)))(s).map(_.right.map(f))
 
 }

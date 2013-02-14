@@ -6,6 +6,7 @@ import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq,HttpHandler}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{Future, ExecutionContext}
+import play.api.libs.iteratee.{Enumerator, Iteratee, Done}
 
 /**
  * @author Bryce Anderson
@@ -17,34 +18,23 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val handler:Future[Responder[Chunk]] = Future.successful() flatMap { _ =>
-      route.lift(request).getOrElse(
-          Future.successful(ResponderGenerators.genRouteNotFound(request)
-        )
-    ) }
-
-    handler.onSuccess { case responder =>
-      renderResponse(responder, resp)
+    val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
+    val handler = parser.flatMap { responder =>
+      resp.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
+      for (header <- responder.prelude.headers)
+        resp.addHeader(header.name, header.value)
+      val out = new OutputIteratee(resp.getNIOOutputStream, chunkSize)
+      responder.body.transform(out)
     }
-
-    handler.onFailure{ case t =>
-      renderResponse(ResponderGenerators.genRouteErrorResponse(t), resp)
-    }
+    new BodyEnumerator(req.getNIOInputStream, chunkSize)
+      .map[HttpChunk](HttpEntity(_))
+      .run(handler)
+      .onComplete(_ => resp.resume())
   }
 
-  protected def renderResponse(responder: Responder[Chunk], resp: Response) {
-    for (header <- responder.headers) {
-      resp.addHeader(header.name, header.value)
-    }
-
-    responder.body.run(new OutputIteratee(resp.getNIOOutputStream, chunkSize)).onComplete {
-      case _ => resp.resume
-    }
-  }
-
-  protected def toRequest(req: GrizReq): Request[Chunk] = {
+  protected def toRequest(req: GrizReq): RequestHead = {
     val input = req.getNIOInputStream
-    Request(
+    RequestHead(
       requestMethod = Method(req.getMethod.toString),
 
       scriptName = req.getContextPath, // + req.getServletPath,
@@ -52,7 +42,6 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       queryString = Option(req.getQueryString).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol.getProtocolString),
       headers = toHeaders(req),
-      body = new BodyEnumerator(input, chunkSize),
       urlScheme = UrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,
