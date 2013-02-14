@@ -17,7 +17,7 @@ object build extends Build {
     "project",
     file("."),
     settings = http4sSettings
-  ) aggregate(core, servlet, netty, grizzly, grizzly_example)
+  ) aggregate(core, servlet, netty, grizzly, examples)
 
   lazy val core = Project(
     "core",
@@ -43,9 +43,9 @@ object build extends Build {
     settings = http4sSettings
   ) dependsOn(core % "compile;test->test")
   
-  lazy val grizzly_example = Project(
+  lazy val examples = Project(
     "examples",
     file("examples"),
-    settings = http4sSettings ++ Revolver.settings
+    settings = http4sSettings ++ Revolver.settings ++ Seq(mainClass in Revolver.reStart := Some("org.http4s.grizzly.Example")) //Temporary
   ) dependsOn(grizzly, netty, servlet)
 }
