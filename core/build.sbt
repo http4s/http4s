@@ -8,7 +8,6 @@ libraryDependencies <+= scalaVersion(ScalaReflect)
 
 libraryDependencies ++= Seq(
   Scalaz,
-  LogbackParent,
   ScalaloggingSlf4j,
   Slf4j,
   Rl,
@@ -19,4 +18,12 @@ libraryDependencies ++= Seq(
   Junit % "test",
   Specs2 % "test"
 )
+
+seq(buildInfoSettings:_*)
+
+sourceGenerators in Compile <+= buildInfo
+
+buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
+
+buildInfoPackage <<= organization
 

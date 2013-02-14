@@ -171,18 +171,20 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
   }
 
   import HeaderNames._
+  val serverSoftware = ServerSoftware("HTTP4S / Netty")
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {
     val uri = URI.create(req.getUri)
     val hdrs = toHeaders(req)
-    val scheme = {
+    val scheme = if (ctx.getPipeline.get(classOf[SslHandler]) != null) "http" else "https" 
+//    val scheme = {
 //      hdrs.get(XForwardedProto).flatMap(_.value.blankOption) orElse {
 //        val fhs = hdrs.get(FrontEndHttps).flatMap(_.value.blankOption)
 //        fhs.filter(_ equalsIgnoreCase "ON").map(_ => "https")
 //      } getOrElse {
-        if (ctx.getPipeline.get(classOf[SslHandler]) != null) "http" else "https"
+//        if (ctx.getPipeline.get(classOf[SslHandler]) != null) "http" else "https"
 //      }
-    }
+//    }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
 
     RequestPrelude(
@@ -195,7 +197,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
       urlScheme = UrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
-      serverSoftware = ServerSoftware("HTTP4S/Netty"),
+      serverSoftware = serverSoftware,
       remote = remote // TODO using remoteName would trigger a lookup
     )
   }

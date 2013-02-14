@@ -44,8 +44,8 @@ object build extends Build {
   ) dependsOn(core % "compile;test->test")
   
   lazy val grizzly_example = Project(
-    "grizzly-example",
-    file("grizzly-example"),
+    "examples",
+    file("examples"),
     settings = http4sSettings ++ Revolver.settings
-  ) dependsOn(grizzly, core % "compile->test")
+  ) dependsOn(grizzly, netty, servlet)
 }
