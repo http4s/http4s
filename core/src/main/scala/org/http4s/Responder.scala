@@ -29,6 +29,8 @@ object Responder {
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
+  def apply(): Responder = Responder(ResponsePrelude(this, Headers.Empty), Responder.EmptyBody)
+
   def apply[A](body: A)(implicit w: Writable[A]): Responder = feed(Enumerator(body))
 
   def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
