@@ -19,7 +19,7 @@ sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempo
   if (register)
     Method.register(this)
 
-  def unapply[T](request: RequestHead): Option[RequestHead] =
+  def unapply[T](request: RequestPrelude): Option[RequestPrelude] =
     if (request.requestMethod.name.toUpperCase == name.toUpperCase) Some(request) else None
 }
 

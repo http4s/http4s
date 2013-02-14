@@ -13,7 +13,7 @@ class ScopeSpec extends Specification {
       case x => Error("not used", Input.Empty)
     }
   }
-  val req = RequestHead()
+  val req = RequestPrelude()
 
   "A list of scopes" should {
     "sort from high to low ranking" in {

@@ -8,7 +8,7 @@ import play.api.libs.iteratee.{Enumeratee, Enumerator, Iteratee}
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
 
-  def apply(req: RequestHead, enum: Enumerator[Raw]): Future[Response] = {
+  def apply(req: RequestPrelude, enum: Enumerator[Raw]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) { parser =>
         val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>

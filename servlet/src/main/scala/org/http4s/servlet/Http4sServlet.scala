@@ -42,8 +42,8 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       .onComplete(_ => ctx.complete())
   }
 
-  protected def toRequest(req: HttpServletRequest): RequestHead =
-    RequestHead(
+  protected def toRequest(req: HttpServletRequest): RequestPrelude =
+    RequestPrelude(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),

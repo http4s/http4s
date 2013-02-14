@@ -136,7 +136,7 @@ object ResponderGenerators {
     InternalServerError(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
   }
 
-  def genRouteNotFound(request: RequestHead): Responder = {
+  def genRouteNotFound(request: RequestPrelude): Responder = {
     NotFound(s"${request.pathInfo} Not Found.")
   }
 }

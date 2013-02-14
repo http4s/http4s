@@ -26,7 +26,7 @@ sealed trait MultipartEntity extends HttpBodyChunk {
 case class MultipartChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
 case class FileChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
 
-case class RequestHead(
+case class RequestPrelude(
   requestMethod: Method = Method.Get,
   scriptName: String = "",
   pathInfo: String = "",

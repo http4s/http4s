@@ -17,7 +17,7 @@ import scala.language.{ implicitConversions, reflectiveCalls }
 import java.util.concurrent.LinkedBlockingDeque
 import org.http4s.Responder
 import scala.util.{ Failure, Success }
-import org.http4s.RequestHead
+import org.http4s.RequestPrelude
 
 
 object Routes {
@@ -185,7 +185,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
     }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
 
-    RequestHead(
+    RequestPrelude(
       requestMethod = Method(req.getMethod.getName),
       scriptName = "",
       pathInfo = uri.getRawPath,

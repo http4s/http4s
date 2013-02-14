@@ -75,7 +75,7 @@ object ExampleRoute {
       sys.error("FAIL")
  }
 
-  def stringHandler(req: RequestHead, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[HttpChunk, Responder] = {
+  def stringHandler(req: RequestPrelude, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[HttpChunk, Responder] = {
     val it = (Traversable.takeUpTo[Raw](maxSize)
                 transform bytesAsString(req)
                 flatMap eofOrRequestTooLarge(f)
@@ -83,7 +83,7 @@ object ExampleRoute {
     Enumeratee.map[HttpChunk](_.bytes) &>> it
   }
 
-  private[this] def bytesAsString(req: RequestHead) =
+  private[this] def bytesAsString(req: RequestPrelude) =
     Iteratee.consume[Raw]().asInstanceOf[Iteratee[Raw, Raw]].map(new String(_, req.charset))
 
   private[this] def eofOrRequestTooLarge[B](f: String => Responder)(s: String) =
