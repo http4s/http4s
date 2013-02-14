@@ -11,7 +11,7 @@ import org.http4s._
  *
  */
 class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx: ExecutionContext) extends Enumerator[Raw] {
-  def apply[A](i: Iteratee[org.http4s.Raw, A]): Future[Iteratee[org.http4s.Raw, A]] = synchronized {
+  def apply[A](i: Iteratee[org.http4s.Raw, A]): Future[Iteratee[org.http4s.Raw, A]] = {
 
     i.fold {
       case Step.Cont(f) => {
@@ -54,6 +54,4 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
       case Step.Error(msg, remaining) => sys.error(msg)
     }
   }
-
-  override def run[A](i: Iteratee[Raw,A]) = synchronized(super.run(i))
 }

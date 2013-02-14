@@ -26,6 +26,11 @@ object Example extends App {
           resp.flushBuffer()
         }
       }
+      else if (req.getPathInfo == "/bigstring") {
+        val builder = new StringBuilder(20*1000)
+        (0 until 1000) foreach { i => builder.append(s"This is string number $i") }
+        resp.getOutputStream.write(builder.result().getBytes)
+      }
     }
   }
 
