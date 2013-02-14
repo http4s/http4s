@@ -10,20 +10,19 @@ import javax.servlet.AsyncContext
 
 class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
-    println(s"SERVLET PATH = ${servletRequest.getServletPath}")
-    println(s"PATH INFO = ${servletRequest.getPathInfo}")
-
     val ctx = servletRequest.startAsync()
     executor.execute {
       new Runnable {
         def run() {
-          handle(ctx, servletRequest, servletResponse)
+          handle(ctx)
         }
       }
     }
   }
 
-  def handle(ctx: AsyncContext, servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
+  protected def handle(ctx: AsyncContext) {
+    val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
+    val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     val request = toRequest(servletRequest)
     val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
     val handler = parser.flatMap { responder =>
@@ -42,12 +41,13 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       .onComplete(_ => ctx.complete())
   }
 
-  protected def toRequest(req: HttpServletRequest): RequestPrelude =
+  protected def toRequest(req: HttpServletRequest): RequestPrelude = {
+    import AsyncContext._
     RequestPrelude(
       requestMethod = Method(req.getMethod),
-      scriptName = req.getContextPath + req.getServletPath,
-      pathInfo = Option(req.getPathInfo).getOrElse(""),
-      queryString = Option(req.getQueryString).getOrElse(""),
+      scriptName = stringAttribute(req, ASYNC_CONTEXT_PATH) + stringAttribute(req, ASYNC_SERVLET_PATH),
+      pathInfo = Option(stringAttribute(req, ASYNC_PATH_INFO)).getOrElse(""),
+      queryString = Option(stringAttribute(req, ASYNC_QUERY_STRING)).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol),
       headers = toHeaders(req),
       urlScheme = UrlScheme(req.getScheme),
@@ -56,6 +56,9 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       serverSoftware = ServerSoftware(getServletContext.getServerInfo),
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )
+  }
+
+  private def stringAttribute(req: HttpServletRequest, key: String): String = req.getAttribute(key).asInstanceOf[String]
 
   protected def toHeaders(req: HttpServletRequest): Headers = {
     val headers = for {
