@@ -6,9 +6,15 @@ import play.api.libs.iteratee.{Done, Iteratee, Enumerator}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext,Future}
-import javax.servlet.AsyncContext
+import javax.servlet.{ServletConfig, AsyncContext}
 
 class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
+  private[this] var serverSoftware: ServerSoftware = _
+
+  override def init(config: ServletConfig) {
+    serverSoftware = ServerSoftware(config.getServletContext.getServerInfo)
+  }
+
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     val ctx = servletRequest.startAsync()
     executor.execute {
@@ -53,7 +59,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       urlScheme = UrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,
-      serverSoftware = ServerSoftware(getServletContext.getServerInfo),
+      serverSoftware = serverSoftware,
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )
   }
