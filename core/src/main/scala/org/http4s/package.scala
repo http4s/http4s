@@ -18,14 +18,6 @@ package object http4s {
 
   type Raw = Array[Byte]
 
-
-
-  // End currency
-
-
-  val EmptyBody: Enumerator[HttpChunk] = Enumerator.eof
-  val EmptyRequestBody: Enumerator[Raw] = Enumerator.eof
-
   type Middleware = (Route => Route)
 
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
