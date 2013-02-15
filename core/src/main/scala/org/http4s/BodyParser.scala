@@ -12,13 +12,6 @@ object BodyParser {
   def text(request: RequestPrelude, limit: Int = DefaultMaxSize)(f: String => Responder): Iteratee[HttpChunk, Responder] =
     consumeUpTo(RawConsumer, limit) { raw => f(new String(raw, request.charset)) }
 
-
-  def tooLargeOrHandleRaw(limit: Int)(f: Raw => Responder): Iteratee[HttpChunk, Responder] =
-    for {
-      raw <- Enumeratee.map[HttpChunk](_.bytes) ><> Traversable.takeUpTo(limit) &>> RawConsumer
-      tooLargeOrRaw <- Iteratee.eofOrElse(StatusLine.RequestEntityTooLarge())(raw)
-    } yield (tooLargeOrRaw.right.map(f).merge)
-
   def consumeUpTo[A](consumer: Iteratee[Raw, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
     Enumeratee.map[HttpChunk](_.bytes) &>> (for {
       raw <- Traversable.takeUpTo[Raw](limit) &>> consumer
