@@ -12,16 +12,16 @@ object ExampleRoute {
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
-      Done(Ok("pong"))
+      Ok("pong")
 
     case Post(req) if req.pathInfo == "/echo" =>
-      Done(Ok.transform(Enumeratee.passAlong))
+      Ok.transform(Enumeratee.passAlong)
 
     case req if req.pathInfo == "/echo" =>
-      Done(Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}))
+      Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))})
 
     case req if req.pathInfo == "/echo2" =>
-      Done(Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}))
+      Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))})
 
     case Post(req) if req.pathInfo == "/sum" =>
       text(req, 16) { s =>
@@ -30,20 +30,18 @@ object ExampleRoute {
       }
 
     case req if req.pathInfo == "/stream" =>
-      Done(Ok.feed(Concurrent.unicast[Raw]({
+      Ok.feed(Concurrent.unicast[Raw]({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
-      })))
+      }))
 
     case req if req.pathInfo == "/bigstring" =>
-      Done{
-        val builder = new StringBuilder(20*1028)
-        Ok((0 until 1000) map { i => s"This is string number $i" })
-      }
+      val builder = new StringBuilder(20*1028)
+      Ok((0 until 1000) map { i => s"This is string number $i" })
 
     /*
     // Reads the whole body before responding

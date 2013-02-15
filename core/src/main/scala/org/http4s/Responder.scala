@@ -26,6 +26,8 @@ object Responder {
   }
 
   val EmptyBody: Enumeratee[HttpChunk, HttpChunk] = replace(Enumerator.eof)
+
+  implicit def responder2Handler(responder: Responder): Iteratee[HttpChunk, Responder] = Done(responder)
 }
 
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
