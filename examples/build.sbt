@@ -5,7 +5,7 @@ name := "http4s-examples"
 description := "Examples of using http4s on various backends"
 
 libraryDependencies ++= Seq(
-  LogbackParent,
+  LogbackClassic,
   JettyServer,
   JettyServlet,
   ServletApi

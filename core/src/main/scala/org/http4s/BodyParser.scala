@@ -1,5 +1,6 @@
 package org.http4s
 
+import scala.language.reflectiveCalls
 import play.api.libs.iteratee._
 import java.io.{File, PrintStream, FileInputStream, FileOutputStream}
 
@@ -9,7 +10,8 @@ object BodyParser {
   private val RawConsumer: Iteratee[Raw, Raw] = Iteratee.consume[Raw]()
 
   def text(request: RequestPrelude, limit: Int = DefaultMaxSize)(f: String => Responder): Iteratee[HttpChunk, Responder] =
-    tooLargeOrHandleRaw(limit) { raw => f(new String(raw, request.charset)) }
+    consumeUpTo(RawConsumer, limit) { raw => f(new String(raw, request.charset)) }
+
 
   def tooLargeOrHandleRaw(limit: Int)(f: Raw => Responder): Iteratee[HttpChunk, Responder] =
     for {
@@ -17,6 +19,13 @@ object BodyParser {
       tooLargeOrRaw <- Iteratee.eofOrElse(StatusLine.RequestEntityTooLarge())(raw)
     } yield (tooLargeOrRaw.right.map(f).merge)
 
+  def consumeUpTo[A](consumer: Iteratee[Raw, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
+    Enumeratee.map[HttpChunk](_.bytes) &>> (for {
+      raw <- Traversable.takeUpTo[Raw](limit) &>> consumer
+      tooLargeOrRaw <- Iteratee.eofOrElse(StatusLine.RequestEntityTooLarge())(raw)
+    } yield (tooLargeOrRaw.right.map(f).merge))
+
+  // File operations
   def binFile(in: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
     val is = new java.io.FileOutputStream(in)
     Iteratee.foreach[HttpChunk]{d=>is.write(d.bytes)}.map{_ => is.close(); f }
