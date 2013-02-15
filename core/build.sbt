@@ -7,16 +7,16 @@ description := "Core http4s framework"
 libraryDependencies <+= scalaVersion(ScalaReflect)
 
 libraryDependencies ++= Seq(
-  Scalaz,
-  ScalaloggingSlf4j,
-  Slf4j,
-  Rl,
-  Shapeless,
-  ScalaStm,
-  PlayIteratees,
-  Parboiled,
   Junit % "test",
-  Specs2 % "test"
+  Rl,
+  Slf4j,
+  ScalaStm,
+  ScalazCore,
+  ScalaloggingSlf4j,
+  Shapeless,
+  Specs2 % "test",
+  ParboiledScala,
+  PlayIteratees
 )
 
 seq(buildInfoSettings:_*)
