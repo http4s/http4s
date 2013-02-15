@@ -1,5 +1,6 @@
 package org.http4s
 
+import scala.language.reflectiveCalls
 import play.api.libs.iteratee._
 
 object BodyParser {
@@ -12,8 +13,8 @@ object BodyParser {
   private val RawConsumer: Iteratee[Raw, Raw] = Iteratee.consume[Raw]()
 
   def tooLargeOrHandleRaw(limit: Int)(f: Raw => Responder): Iteratee[HttpChunk, Responder] =
-    for {
-      raw <- Enumeratee.map[HttpChunk](_.bytes) ><> Traversable.takeUpTo(limit) &>> RawConsumer
+    Enumeratee.map[HttpChunk](_.bytes) &>> (for {
+      raw <- Traversable.takeUpTo[Raw](limit) &>> RawConsumer
       tooLargeOrRaw <- Iteratee.eofOrElse(StatusLine.RequestEntityTooLarge())(raw)
-    } yield (tooLargeOrRaw.right.map(f).merge)
+    } yield (tooLargeOrRaw.right.map(f).merge))
 }
