@@ -12,7 +12,7 @@ import scala.concurrent.Future
   The only point here is to make Enumerators in a more efficient way than the play Iteratee library does.
  */
 object FastEnumerator {
-  def apply[A](in: Seq[A])(implicit ctx:scala.concurrent.ExecutionContext = concurrent.ExecutionContext.Implicits.global): Enumerator[A] = new Enumerator[A] {
+  def apply[A](in: A*)(implicit ctx:scala.concurrent.ExecutionContext = concurrent.ExecutionContext.Implicits.global): Enumerator[A] = new Enumerator[A] {
     def apply[E](it: Iteratee[A, E]): Future[Iteratee[A, E]] = {
       in.foldLeft(Future.successful(it)){(i, e) =>
         i.flatMap(it => it.pureFold{
@@ -22,6 +22,4 @@ object FastEnumerator {
       }
     }
   }
-
-  def apply[A](in : A)(implicit ctx:scala.concurrent.ExecutionContext = concurrent.ExecutionContext.Implicits.global): Enumerator[A] = apply(Seq(in))(ctx)
 }

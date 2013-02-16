@@ -4,7 +4,6 @@ import scala.language.reflectiveCalls
 import scala.concurrent.ExecutionContext
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
-import util.FastEnumerator
 
 object ExampleRoute {
   import StatusLine._
@@ -48,7 +47,7 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/bigstring2" =>
       Done{
-        Ok.feedRaw(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
+        Ok.feedChunk(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
       }
 
     case req if req.pathInfo == "/bigstring3" =>
