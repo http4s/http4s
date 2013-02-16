@@ -4,10 +4,13 @@ import scala.language.reflectiveCalls
 import scala.concurrent.ExecutionContext
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
+import util.FastEnumerator
 
 object ExampleRoute {
   import StatusLine._
   import Writable._
+
+  val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
@@ -45,8 +48,12 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/bigstring2" =>
       Done{
-        val builder = new StringBuilder(20*1028)
         Ok.feedRaw(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
+      }
+
+    case req if req.pathInfo == "/bigstring3" =>
+      Done{
+        Ok(flatBigString)
       }
 
     /*

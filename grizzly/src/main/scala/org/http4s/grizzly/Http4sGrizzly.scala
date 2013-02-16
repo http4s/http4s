@@ -27,7 +27,6 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       responder.body.transform(out)
     }
     new BodyEnumerator(req.getNIOInputStream, chunkSize)
-      .map[HttpChunk](HttpEntity(_))
       .run(handler)
       .onComplete(_ => resp.resume())
   }

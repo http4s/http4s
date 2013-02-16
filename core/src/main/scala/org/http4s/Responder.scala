@@ -1,17 +1,16 @@
 package org.http4s
 
 
-
-import scala.concurrent.Future
-
 import play.api.libs.iteratee._
+import util.FastEnumerator
+
 
 case class Responder(
   prelude: ResponsePrelude,
   body: Responder.Body = Responder.EmptyBody) {
 
   def body[A](body: A)(implicit w: Writable[A]): Responder =
-    copy(body = Responder.replace(Enumerator(w.toChunk(body))))
+    copy(body = Responder.replace(FastEnumerator(w.toChunk(body))))
 
   def feed[A](enumerator: Enumerator[A])(implicit w: Writable[A]): Responder =
     copy(body = Responder.replace(enumerator.map(w.toChunk)))
@@ -33,11 +32,12 @@ object Responder {
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
   def apply(): Responder = Responder(ResponsePrelude(this, Headers.Empty), Responder.EmptyBody)
 
-  def apply[A](body: A)(implicit w: Writable[A]): Responder = feed(Enumerator(body))
+  def apply[A](body: A)(implicit w: Writable[A]): Responder = feedRaw(FastEnumerator(w.toChunk(body)))
 
   def feedRaw(body: Enumerator[HttpChunk]): Responder =
     Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body))
 
+  // Here is our ugly duckling
   def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
     feedRaw(body.map(w.toChunk(_)))
 

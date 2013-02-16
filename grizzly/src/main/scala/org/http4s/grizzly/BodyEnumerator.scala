@@ -10,12 +10,12 @@ import org.http4s._
  * @author Bryce Anderson
  *
  */
-class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx: ExecutionContext) extends Enumerator[Raw] {
-  def apply[A](i: Iteratee[org.http4s.Raw, A]): Future[Iteratee[org.http4s.Raw, A]] = {
+class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx: ExecutionContext) extends Enumerator[HttpChunk] {
+  def apply[A](i: Iteratee[HttpChunk, A]): Future[Iteratee[HttpChunk, A]] = {
 
     i.fold {
       case Step.Cont(f) => {
-        val promise = Promise[Iteratee[_root_.org.http4s.Raw, A]]
+        val promise = Promise[Iteratee[HttpChunk, A]]
         is.notifyAvailable(new ReadHandler {
           var currentContinuation = f
 
@@ -27,7 +27,7 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
           def onAllDataRead() {
             val bytes = new Raw(is.readyData())
             val readBytes = is.read(bytes,0,bytes.length)
-            val newItter = f(Input.El(bytes.take(readBytes)))
+            val newItter = f(Input.El(HttpEntity(bytes.take(readBytes))))
 
             promise.completeWith(Enumerator.eof |>> newItter)
             is.close()
@@ -36,7 +36,7 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
           def onDataAvailable() {
             val bytes = new Raw(is.readyData())
             val readBytes = is.read(bytes,0,bytes.length)
-            val newItter = f(Input.El(bytes.take(readBytes)))
+            val newItter = f(Input.El(HttpEntity(bytes.take(readBytes))))
 
             newItter.pureFold{
                 case Step.Cont(f) =>
