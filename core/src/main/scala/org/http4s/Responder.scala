@@ -2,7 +2,6 @@ package org.http4s
 
 
 import play.api.libs.iteratee._
-import util.FastEnumerator
 
 
 case class Responder(
@@ -10,7 +9,7 @@ case class Responder(
   body: Responder.Body = Responder.EmptyBody) {
 
   def body[A](body: A)(implicit w: Writable[A]): Responder =
-    copy(body = Responder.replace(FastEnumerator(w.toChunk(body))))
+    copy(body = Responder.replace(Enumerator(w.toChunk(body))))
 
   def feed[A](enumerator: Enumerator[A])(implicit w: Writable[A]): Responder =
     copy(body = Responder.replace(enumerator.map(w.toChunk)))
@@ -32,7 +31,7 @@ object Responder {
 case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
   def apply(): Responder = Responder(ResponsePrelude(this, Headers.Empty), Responder.EmptyBody)
 
-  def apply[A](body: A)(implicit w: Writable[A]): Responder = feedChunk(FastEnumerator(w.toChunk(body)))
+  def apply[A](body: A)(implicit w: Writable[A]): Responder = feedChunk(Enumerator(w.toChunk(body)))
 
   def feedChunk(body: Enumerator[HttpChunk]): Responder =
     Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body))
