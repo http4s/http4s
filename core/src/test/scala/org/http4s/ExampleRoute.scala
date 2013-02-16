@@ -70,6 +70,11 @@ object ExampleRoute {
           BadRequest("No data!")
       }
 
+    case req if req.pathInfo == "/root-element-name" =>
+      xml(req) { elem =>
+        Ok(elem.label)
+      }
+
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   }
