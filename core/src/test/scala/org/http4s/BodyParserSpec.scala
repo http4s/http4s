@@ -16,6 +16,25 @@ import concurrent.Await
  */
 
 class BodyParserSpec extends Specification with NoTimeConversions {
+  import BodyParser._
+
+  "xml" should {
+    val server = new MockServer({
+      case req => xml(req) { elem => Ok(elem.label) }
+    })
+
+    "parse the XML" in {
+      val resp = Await.result(server(RequestPrelude(), Enumerator("<html><h1>h1</h1></html>").map(_.getBytes)), 2 seconds)
+      resp.statusLine.code must_==(200)
+      resp.body must_==("html".getBytes)
+    }
+
+    "handle a parse failure" in {
+      val resp = Await.result(server(RequestPrelude(), Enumerator("This is not XML.").map(_.getBytes)), 2 seconds)
+      resp.statusLine.code must_==(400)
+    }
+  }
+
   "A File BodyParser" should {
     val binData: Array[Byte] = "Bytes 10111".getBytes
 
@@ -63,8 +82,6 @@ class BodyParserSpec extends Specification with NoTimeConversions {
       response.body must_== "Hello".getBytes
       readFile(tmpFile) must_== binData
     }
-
-
   }
 
 }
