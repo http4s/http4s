@@ -40,8 +40,13 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/bigstring" =>
       Done{
-        val builder = new StringBuilder(20*1028)
         Ok((0 until 1000) map { i => s"This is string number $i" })
+      }
+
+    case req if req.pathInfo == "/bigstring2" =>
+      Done{
+        val builder = new StringBuilder(20*1028)
+        Ok.feedRaw(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
       }
 
     /*

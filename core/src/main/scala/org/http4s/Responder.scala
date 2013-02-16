@@ -35,8 +35,11 @@ case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
 
   def apply[A](body: A)(implicit w: Writable[A]): Responder = feed(Enumerator(body))
 
+  def feedRaw(body: Enumerator[HttpChunk]): Responder =
+    Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body))
+
   def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
-    Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body.map(w.toChunk(_))))
+    feedRaw(body.map(w.toChunk(_)))
 
   def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
     Responder(ResponsePrelude(this, Headers.Empty), Enumeratee.passAlong compose enumeratee)

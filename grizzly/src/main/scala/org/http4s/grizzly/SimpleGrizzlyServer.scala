@@ -1,7 +1,7 @@
 package org.http4s
 package grizzly
 
-import org.glassfish.grizzly.http.server.{Response, HttpHandler, NetworkListener, HttpServer}
+import org.glassfish.grizzly.http.server.{NetworkListener, HttpServer}
 import org.glassfish.grizzly.threadpool.ThreadPoolConfig
 import concurrent.ExecutionContext
 
@@ -11,7 +11,7 @@ import concurrent.ExecutionContext
  */
 
 object SimpleGrizzlyServer {
-  def apply(port: Int = 8080, serverRoot:String = "/*")(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
+  def apply(port: Int = 8080, serverRoot:String = "/*")(route: Route)(implicit executionContext: ExecutionContext = concurrent.ExecutionContext.fromExecutorService(java.util.concurrent.Executors.newCachedThreadPool())) =
   new SimpleGrizzlyServer(port = port, serverRoot = serverRoot)(Seq(route))
 }
 
@@ -19,8 +19,8 @@ class SimpleGrizzlyServer(port: Int=8080,
                           address: String = "0.0.0.0",
                           serverRoot:String = "/*",
                           serverName:String="simple-grizzly-server",
-                          corePoolSize:Int = 4,
-                          maxPoolSize:Int = 10)(routes:Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global)
+                          corePoolSize:Int = 10,
+                          maxPoolSize:Int = 20)(routes:Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global)
 {
   val http4sServlet = new Http4sGrizzly(routes reduce (_ orElse _))(executionContext)
   val httpServer = new HttpServer

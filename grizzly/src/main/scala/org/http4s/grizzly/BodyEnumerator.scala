@@ -30,6 +30,7 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
             val newItter = f(Input.El(bytes.take(readBytes)))
 
             promise.completeWith(Enumerator.eof |>> newItter)
+            is.close()
           }
 
           def onDataAvailable() {

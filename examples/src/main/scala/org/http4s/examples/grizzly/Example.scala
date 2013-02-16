@@ -8,8 +8,6 @@ package grizzly
 
 object Example extends App {
 
-  import concurrent.ExecutionContext.Implicits.global
-
   SimpleGrizzlyServer(serverRoot = "/http4s/*")(ExampleRoute())
 
 }

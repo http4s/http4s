@@ -6,7 +6,7 @@ import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq,HttpHandler}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{Future, ExecutionContext}
-import play.api.libs.iteratee.{Enumerator, Iteratee, Done}
+import play.api.libs.iteratee.Done
 
 /**
  * @author Bryce Anderson
