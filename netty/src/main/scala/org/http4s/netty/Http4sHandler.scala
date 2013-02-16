@@ -27,47 +27,14 @@ object Routes {
 }
 class Routes(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sNetty
 
-class RequestChunksEnumerator(req: HttpRequest, chunks: LinkedBlockingDeque[HttpChunk] = new LinkedBlockingDeque[HttpChunk]()) extends Enumerator[HttpChunk]{
-
-  def push(chunk: HttpChunk) = chunks.offer(chunk)
-
-  def apply[A](i: Iteratee[HttpChunk, A]): Future[Iteratee[HttpChunk, A]] = {
-    def step(i: Iteratee[HttpChunk, A]): Future[Iteratee[HttpChunk, A]] = i.fold({
-      case Step.Cont(k) =>
-        chunks.poll() match {
-          case null if req.isChunked => Future.successful(k(Input.Empty))
-          case null =>
-            Future.successful(k(Input.El(new http.DefaultHttpChunk(req.getContent))).flatMap(r => Done(r, Input.EOF)))
-          case trailer: HttpChunkTrailer => Future.successful(k(Input.EOF))
-          case chunk: HttpChunk =>
-            if (!req.isChunked || chunk.isLast) {
-              Future.successful(k(Input.El(chunk)).flatMap(r => Done(r, Input.EOF)))
-            } else {
-              val ii = k(Input.El(chunk))
-              Future.successful(ii)
-            }
-        }
-      case Step.Done(r, re) =>
-        Future.successful(Done(r, re))
-      case Step.Error(msg, re) =>
-        Future.failed(sys.error(msg))
-    })
-    step(i)
-  }
-}
-
 abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
 
   def route: Route
 
   import ScalaUpstreamHandler._
 
-//  @volatile var enumerator: RequestChunksEnumerator = _
-
   val handle: UpstreamHandler = {
     case MessageReceived(ctx, req: HttpRequest, rem: InetSocketAddress) =>
-
-//      enumerator = new RequestChunksEnumerator(req)
 
       val request = toRequest(ctx, req, rem.getAddress)
       if (route.isDefinedAt(request)) {
@@ -92,7 +59,6 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
       }
 
     case MessageReceived(ctx, chunk: HttpChunk, _) =>
-//      enumerator.push(chunk)
       sys.error("Not supported")
 
     case ExceptionCaught(ctx, e) =>
@@ -124,7 +90,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
     val writer: (ChannelBuffer, org.http4s.HttpChunk) => Unit = (c, x) => c.writeBytes(x.bytes.asByteBuffer)
     val stringIteratee = Iteratee.fold(channelBuffer)((c, e: org.http4s.HttpChunk) => { writer(c, e); c })
 
-    val p = (responder.body ><> Enumeratee.grouped(stringIteratee) &>> Cont {
+    (responder.body ><> Enumeratee.grouped(stringIteratee) &>> Cont {
       case Input.El(buffer) =>
         resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, channelBuffer.readableBytes)
         resp.setContent(buffer)
@@ -136,42 +102,6 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
 
       case other => Error("unexepected input",other)
     })
-    p
-//
-//    val content = ChannelBuffers.buffer(512 * 1024)
-//    resp.setContent(content)
-//    val chf = Iteratee.foldM[Chunk, Option[HttpChunk]](None) {
-//      case (None, chunk) if ((content.readableBytes() + chunk.length) <= content.writableBytes()) =>
-//        content.writeBytes(chunk)
-//        Future.successful(None)
-//      case (None, chunk) =>
-//        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
-//        if (!(responder.headers.exists(h => (h.name equalsIgnoreCase "TRANSFER-ENCODING") && h.value.equalsIgnoreCase("CHUNKED"))))
-//          resp.addHeader(http.HttpHeaders.Names.TRANSFER_ENCODING, http.HttpHeaders.Values.CHUNKED)
-//        ctx.getChannel.write(resp) map (_ => Some(msg))
-//      case (Some(toWrite), chunk) =>
-//        val msg = new http.DefaultHttpChunk(ChannelBuffers.wrappedBuffer(chunk))
-//        ctx.getChannel.write(toWrite) map (_ => Some(msg))
-//    }
-//
-//    responder.body.run(chf) flatMap {
-//      case None =>
-//        if (!responder.headers.exists(_.name equalsIgnoreCase "CONTENT-LENGTH"))
-//          resp.addHeader("Content-Length", resp.getContent.readableBytes())
-//        resp.setContent(content)
-//        ctx.getChannel.write(resp)
-//      case Some(chunk) =>
-//        val trailer = new DefaultHttpChunkTrailer()
-//        val ch = ctx.getChannel
-//        ch.write(chunk) flatMap (_ write trailer)
-//    } onComplete {
-//      case Success(ch) =>
-//        closeChannel(ch)
-//      case Failure(t) =>
-//        t.printStackTrace()
-//        closeChannel(ctx.getChannel)
-//    }
-
   }
 
   import HeaderNames._
