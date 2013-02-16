@@ -10,3 +10,5 @@ libraryDependencies ++= Seq(
   JettyServlet,
   ServletApi
 )
+
+fork in run := true
