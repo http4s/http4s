@@ -10,9 +10,9 @@ class AttributesMapSpec extends mutable.Specification {
   object notPresentKey extends Key[String]("not-present-key")
   object otherKey extends Key[Int]("other-key")
 
-  val taggedAttr = tag[ThisServer.type](attrKey)
-  val taggedNotPresent = tag[ThisServer.type](notPresentKey)
-  val taggedOther = tag[ThisServer.type](otherKey)
+  val taggedAttr = attrKey in ThisServer
+  val taggedNotPresent = notPresentKey in ThisServer
+  val taggedOther = otherKey in ThisServer
 
   isolated
 
