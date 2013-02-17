@@ -40,8 +40,8 @@ package object netty {
     case JHttpMethod.TRACE => Trace
   }
 
-  implicit def respStatus2nettyStatus(stat: StatusLine) = new HttpResponseStatus(stat.code, stat.reason.blankOption.getOrElse(""))
-  implicit def respStatus2nettyStatus(stat: HttpResponseStatus) = StatusLine(stat.getCode, stat.getReasonPhrase)
+  implicit def respStatus2nettyStatus(stat: Status) = new HttpResponseStatus(stat.code, stat.reason.blankOption.getOrElse(""))
+  implicit def respStatus2nettyStatus(stat: HttpResponseStatus) = Status(stat.getCode, stat.getReasonPhrase)
   implicit def httpVersion2nettyVersion(ver: HttpVersion) = ver match {
     case HttpVersion(1, 1) => org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_1
     case HttpVersion(1, 0) => org.jboss.netty.handler.codec.http.HttpVersion.HTTP_1_0

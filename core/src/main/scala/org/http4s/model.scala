@@ -57,7 +57,7 @@ case class RequestPrelude(
 
   lazy val remoteUser: Option[String] = None
 }
-case class ResponsePrelude(status: StatusLine, headers: Headers = Headers.empty) extends HttpPrelude
+case class ResponsePrelude(status: Status, headers: Headers = Headers.empty) extends HttpPrelude
 case class HttpTrailer(headers: Headers) extends HasHeaders with HttpChunk {
   final val bytes = Array.empty[Byte]
 }

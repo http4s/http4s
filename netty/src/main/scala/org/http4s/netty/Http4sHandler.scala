@@ -82,7 +82,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
 //        }
       } else {
         import org.http4s.HttpVersion
-        val res = new http.DefaultHttpResponse(HttpVersion.`Http/1.1`, StatusLine.NotFound)
+        val res = new http.DefaultHttpResponse(HttpVersion.`Http/1.1`, Status.NotFound)
         res.setContent(ChannelBuffers.copiedBuffer("Not Found", Codec.UTF8.charSet))
         ctx.getChannel.write(res).addListener(ChannelFutureListener.CLOSE)
       }

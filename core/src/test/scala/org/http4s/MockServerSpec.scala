@@ -40,37 +40,37 @@ class MockServerSpec extends Specification with NoTimeConversions {
     "runs too large of a sum" in {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/sum")
       val body = Enumerator("12345678\n901234567").map(_.getBytes)
-      response(req, body).statusLine should_==(StatusLine.RequestEntityTooLarge)
+      response(req, body).statusLine should_==(Status.RequestEntityTooLarge)
     }
 
     "fall through to not found" in {
       val req = RequestPrelude(pathInfo = "/bielefield")
-      response(req).statusLine should_== StatusLine.NotFound
+      response(req).statusLine should_== Status.NotFound
     }
 
     "handle exceptions" in {
       val req = RequestPrelude(pathInfo = "/fail")
-      response(req).statusLine should_== StatusLine.InternalServerError
+      response(req).statusLine should_== Status.InternalServerError
     }
 
     "Do a Go" in {
       val req = RequestPrelude(pathInfo = "/challenge"); val body = Enumerator("Go and do something".getBytes)
       val returned = response(req, body)
-      returned.statusLine should_== StatusLine.Ok
+      returned.statusLine should_== Status.Ok
       new String(returned.body) should_== "Go and do something"
     }
 
     "Do a NoGo" in {
       val req = RequestPrelude(pathInfo = "/challenge"); val body = Enumerator("NoGo and do something".getBytes)
       val returned = response(req, body)
-      returned.statusLine should_== StatusLine.BadRequest
+      returned.statusLine should_== Status.BadRequest
       new String(returned.body) should_== "Booo!"
     }
 
     "Do an Empty Body" in {
       val req = RequestPrelude(pathInfo = "/challenge")
       val returned = response(req)
-      returned.statusLine should_== StatusLine.BadRequest
+      returned.statusLine should_== Status.BadRequest
       new String(returned.body) should_== "No data!"
     }
   }

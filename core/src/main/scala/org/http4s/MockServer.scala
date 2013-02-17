@@ -24,18 +24,18 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
     }
   }
 
-  def onNotFound: MockServer.Response = Response(statusLine = StatusLine.NotFound)
+  def onNotFound: MockServer.Response = Response(statusLine = Status.NotFound)
 
   def onError: PartialFunction[Throwable, Response] = {
     case e: Exception =>
       e.printStackTrace()
-      Response(statusLine = StatusLine.InternalServerError)
+      Response(statusLine = Status.InternalServerError)
   }
 }
 
 object MockServer {
   case class Response(
-    statusLine: StatusLine = StatusLine.Ok,
+    statusLine: Status = Status.Ok,
     headers: Headers = Headers.Empty,
     body: Array[Byte] = Array.empty
   )

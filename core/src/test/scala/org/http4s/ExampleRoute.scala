@@ -6,7 +6,7 @@ import play.api.libs.iteratee._
 import org.http4s.Method.Post
 
 object ExampleRoute {
-  import StatusLine._
+  import Status._
   import Writable._
   import BodyParser._
 

@@ -30,7 +30,7 @@ object BodyParser {
   def xml(request: RequestPrelude,
           limit: Int = DefaultMaxSize,
           parser: SAXParser = XML.parser,
-          onSaxException: SAXException => Responder = { saxEx => saxEx.printStackTrace(); StatusLine.BadRequest() })
+          onSaxException: SAXException => Responder = { saxEx => saxEx.printStackTrace(); Status.BadRequest() })
          (f: Elem => Responder): Iteratee[HttpChunk, Responder] =
     consumeUpTo(RawConsumer, limit) { raw =>
       val in = new ByteArrayInputStream(raw)
@@ -44,7 +44,7 @@ object BodyParser {
   def consumeUpTo[A](consumer: Iteratee[Raw, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
     Enumeratee.map[HttpChunk](_.bytes) &>> (for {
       raw <- Traversable.takeUpTo[Raw](limit) &>> consumer
-      tooLargeOrRaw <- Iteratee.eofOrElse(StatusLine.RequestEntityTooLarge())(raw)
+      tooLargeOrRaw <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(raw)
     } yield (tooLargeOrRaw.right.map(f).merge))
 
   // File operations

@@ -23,7 +23,7 @@ object StaticFileHandler {
     try {
       val raf = new RandomAccessFile(file, "r")
       val length = raf.length()
-      val resp = new DefaultHttpResponse(HttpVersion.`Http/1.1`, StatusLine.Ok)
+      val resp = new DefaultHttpResponse(HttpVersion.`Http/1.1`, Status.Ok)
       setDateHeader(resp)
       setCacheHeaders(resp, file, contentType)
       val ch = ctx.getChannel
@@ -87,7 +87,7 @@ object StaticFileHandler {
   }
 
   def sendNotModified(ctx: ChannelHandlerContext) {
-    val response = new DefaultHttpResponse(HttpVersion.`Http/1.1`, StatusLine.NotModified)
+    val response = new DefaultHttpResponse(HttpVersion.`Http/1.1`, Status.NotModified)
     setDateHeader(response)
 
     // Close the connection as soon as the error message is sent.
@@ -112,15 +112,15 @@ class StaticFileHandler(publicDirectory: String) extends SimpleChannelUpstreamHa
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage match {
       case request: HttpRequest if request.getMethod != HttpMethod.GET =>
-        StaticFileHandler.sendError(ctx, StatusLine.MethodNotAllowed)
+        StaticFileHandler.sendError(ctx, Status.MethodNotAllowed)
       case request: HttpRequest => {
         val path = sanitizeUri(request.getUri)
         if (path == null) {
-          StaticFileHandler.sendError(ctx, StatusLine.Forbidden)
+          StaticFileHandler.sendError(ctx, Status.Forbidden)
         } else {
           val file = new File(path)
-          if (file.isHidden || !file.exists()) StaticFileHandler.sendError(ctx, StatusLine.NotFound)
-          else if (!file.isFile) StaticFileHandler.sendError(ctx, StatusLine.Forbidden)
+          if (file.isHidden || !file.exists()) StaticFileHandler.sendError(ctx, Status.NotFound)
+          else if (!file.isFile) StaticFileHandler.sendError(ctx, Status.Forbidden)
           else {
             if (isModified(request, file)) {
               StaticFileHandler.sendNotModified(ctx)
@@ -136,10 +136,10 @@ class StaticFileHandler(publicDirectory: String) extends SimpleChannelUpstreamHa
   @throws(classOf[Exception])
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
     e.getCause match {
-      case ex: TooLongFrameException => StaticFileHandler.sendError(ctx, StatusLine.BadRequest)
+      case ex: TooLongFrameException => StaticFileHandler.sendError(ctx, Status.BadRequest)
       case ex =>
         ex.printStackTrace()
-        if (e.getChannel.isConnected) StaticFileHandler.sendError(ctx, StatusLine.InternalServerError)
+        if (e.getChannel.isConnected) StaticFileHandler.sendError(ctx, Status.InternalServerError)
     }
   }
 

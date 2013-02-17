@@ -3,7 +3,7 @@ package org.http4s
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 import play.api.libs.iteratee.Enumerator
-import StatusLine._
+import Status._
 
 import scala.concurrent.duration._
 
@@ -67,7 +67,7 @@ class BodyParserSpec extends Specification with NoTimeConversions {
       })
 
       readTextFile(tmpFile) must_== new String(binData)
-      response.statusLine must_== StatusLine.Ok
+      response.statusLine must_== Status.Ok
       response.body must_== "Hello".getBytes
     }
 
@@ -78,7 +78,7 @@ class BodyParserSpec extends Specification with NoTimeConversions {
           BodyParser.binFile(tmpFile)(Ok("Hello"))
       })
 
-      response.statusLine must_== StatusLine.Ok
+      response.statusLine must_== Status.Ok
       response.body must_== "Hello".getBytes
       readFile(tmpFile) must_== binData
     }

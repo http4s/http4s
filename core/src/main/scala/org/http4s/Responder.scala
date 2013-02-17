@@ -28,8 +28,8 @@ object Responder {
   implicit def responder2Handler(responder: Responder): Iteratee[HttpChunk, Responder] = Done(responder)
 }
 
-case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
-  def compare(that: StatusLine) = code.compareTo(that.code)
+case class Status(code: Int, reason: String) extends Ordered[Status] {
+  def compare(that: Status) = code.compareTo(that.code)
 
   def line = {
     val buf = new StringBuilder(reason.length + 5)
@@ -40,12 +40,12 @@ case class StatusLine(code: Int, reason: String) extends Ordered[StatusLine] {
   }
 }
 
-object StatusLine {
-  class EmptyBodyStatusLine(code: Int, reason: String) extends StatusLine(code, reason) {
+object Status {
+  class EmptyBodyStatus(code: Int, reason: String) extends Status(code, reason) {
     def apply(): Responder = Responder(ResponsePrelude(this, Headers.Empty), Responder.EmptyBody)
   }
 
-  class StatusLineWithBody(code: Int, reason: String) extends EmptyBodyStatusLine(code, reason) {
+  class StatusWithBody(code: Int, reason: String) extends EmptyBodyStatus(code, reason) {
     def apply[A](body: A)(implicit w: Writable[A]): Responder = feedChunk(Enumerator(w.toChunk(body)))
 
     def feedChunk(body: Enumerator[HttpChunk]): Responder =
@@ -59,7 +59,7 @@ object StatusLine {
       Responder(ResponsePrelude(this, Headers.Empty), Enumeratee.passAlong compose enumeratee)
   }
 
-  class RedirectStatusLine(code: Int, reason: String) extends StatusLine(code, reason) {
+  class RedirectStatus(code: Int, reason: String) extends Status(code, reason) {
     def apply(uri: String): Responder = Responder(ResponsePrelude(
       status = this, headers = Headers(HttpHeaders.Location(uri))
     ))
@@ -68,79 +68,79 @@ object StatusLine {
   /**
    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
    */
-  val Continue = new EmptyBodyStatusLine(100, "Continue")
-  val SwitchingProtocols = new EmptyBodyStatusLine(101, "SwitchingProtocols")
-  val Processing = new EmptyBodyStatusLine(102, "Processing")
-  val Ok = new StatusLineWithBody(200, "OK")
-  val Created = new StatusLineWithBody(201, "Created")
-  val Accepted = new StatusLineWithBody(202, "Accepted")
-  val NonAuthoritativeInformation = new StatusLineWithBody(203, "Non-Authoritative Information")
-  val NoContent = new EmptyBodyStatusLine(204, "No Content")
-  val ResetContent = new EmptyBodyStatusLine(205, "Reset Content")
-  val PartialContent = new StatusLineWithBody(206, "Partial Content")
-  val MultiStatus = new StatusLineWithBody(207, "Multi-Status")
-  val AlreadyReported = new StatusLineWithBody(208, "Already Reported")
-  val IMUsed = new StatusLineWithBody(226, "IM Used")
-  val MultipleChoices = new StatusLineWithBody(300, "Multiple Choices")
-  val MovedPermanently = new RedirectStatusLine(301, "Moved Permanently")
-  val Found = new RedirectStatusLine(302, "Found")
-  val SeeOther = new RedirectStatusLine(303, "See Other")
-  val NotModified = new EmptyBodyStatusLine(304, "Not Modified")
-  val UseProxy = new RedirectStatusLine(305, "Use Proxy")
-  val TemporaryRedirect = new RedirectStatusLine(307, "Temporary Redirect")
-  val BadRequest = new StatusLineWithBody(400, "Bad Request")
-  val Unauthorized = new StatusLineWithBody(401, "Unauthorized")
-  val PaymentRequired = new StatusLineWithBody(402, "Payment Required")
-  val Forbidden = new StatusLineWithBody(403, "Forbidden")
-  val NotFound = new StatusLineWithBody(404, "Not Found")
-  val MethodNotAllowed = new StatusLineWithBody(405, "Method Not Allowed")
-  val NotAcceptable = new StatusLineWithBody(406, "Not Acceptable")
-  val ProxyAuthenticationRequired = new StatusLineWithBody(407, "Proxy Authentication Required")
-  val RequestTimeOut = new StatusLineWithBody(408, "Request Time-out")
-  val Conflict = new StatusLineWithBody(409, "Conflict")
-  val Gone = new StatusLineWithBody(410, "Gone")
-  val LengthRequired = new StatusLineWithBody(411, "Length Required")
-  val PreconditionFailed = new StatusLineWithBody(412, "Precondition Failed")
-  val RequestEntityTooLarge = new StatusLineWithBody(413, "Request Entity Too Large")
-  val RequestUriTooLarge = new StatusLineWithBody(414, "Request-URI Too Large")
-  val UnsupportedMediaType = new StatusLineWithBody(415, "Unsupported Media Type")
-  val RequestedRangeNotSatisfiable = new StatusLineWithBody(416, "Requested Range Not Satisfiable")
-  val ExpectationFailed = new StatusLineWithBody(417, "ExpectationFailed")
-  val ImATeapot = new StatusLineWithBody(418, "I'm a teapot")
-  val UnprocessableEntity = new StatusLineWithBody(422, "Unprocessable Entity")
-  val Locked = new StatusLineWithBody(423, "Locked")
-  val FailedDependency = new StatusLineWithBody(424, "Failed Dependency")
-  val UnorderedCollection = new StatusLineWithBody(425, "Unordered Collection")
-  val UpgradeRequired = new StatusLineWithBody(426, "Upgrade Required")
-  val PreconditionRequired = new StatusLineWithBody(428, "Precondition Required")
-  val TooManyRequests = new StatusLineWithBody(429, "Too Many Requests")
-  val RequestHeaderFieldsTooLarge = new StatusLineWithBody(431, "Request Header Fields Too Large")
-  val InternalServerError = new StatusLineWithBody(500, "Internal Server Error")
-  val NotImplemented = new StatusLineWithBody(501, "Not Implemented")
-  val BadGateway = new StatusLineWithBody(502, "Bad Gateway")
-  val ServiceUnavailable = new StatusLineWithBody(503, "Service Unavailable")
-  val GatewayTimeOut = new StatusLineWithBody(504, "Gateway Time-out")
-  val HttpVersionNotSupported = new StatusLineWithBody(505, "HTTP Version not supported")
-  val VariantAlsoNegotiates = new StatusLineWithBody(506, "Variant Also Negotiates")
-  val InsufficientStorage = new StatusLineWithBody(507, "Insufficient Storage")
-  val LoopDetected = new StatusLineWithBody(508, "Loop Detected")
-  val NotExtended = new StatusLineWithBody(510, "Not Extended")
-  val NetworkAuthenticationRequired = new StatusLineWithBody(511, "Network Authentication Required")
+  val Continue = new EmptyBodyStatus(100, "Continue")
+  val SwitchingProtocols = new EmptyBodyStatus(101, "SwitchingProtocols")
+  val Processing = new EmptyBodyStatus(102, "Processing")
+  val Ok = new StatusWithBody(200, "OK")
+  val Created = new StatusWithBody(201, "Created")
+  val Accepted = new StatusWithBody(202, "Accepted")
+  val NonAuthoritativeInformation = new StatusWithBody(203, "Non-Authoritative Information")
+  val NoContent = new EmptyBodyStatus(204, "No Content")
+  val ResetContent = new EmptyBodyStatus(205, "Reset Content")
+  val PartialContent = new StatusWithBody(206, "Partial Content")
+  val MultiStatus = new StatusWithBody(207, "Multi-Status")
+  val AlreadyReported = new StatusWithBody(208, "Already Reported")
+  val IMUsed = new StatusWithBody(226, "IM Used")
+  val MultipleChoices = new StatusWithBody(300, "Multiple Choices")
+  val MovedPermanently = new RedirectStatus(301, "Moved Permanently")
+  val Found = new RedirectStatus(302, "Found")
+  val SeeOther = new RedirectStatus(303, "See Other")
+  val NotModified = new EmptyBodyStatus(304, "Not Modified")
+  val UseProxy = new RedirectStatus(305, "Use Proxy")
+  val TemporaryRedirect = new RedirectStatus(307, "Temporary Redirect")
+  val BadRequest = new StatusWithBody(400, "Bad Request")
+  val Unauthorized = new StatusWithBody(401, "Unauthorized")
+  val PaymentRequired = new StatusWithBody(402, "Payment Required")
+  val Forbidden = new StatusWithBody(403, "Forbidden")
+  val NotFound = new StatusWithBody(404, "Not Found")
+  val MethodNotAllowed = new StatusWithBody(405, "Method Not Allowed")
+  val NotAcceptable = new StatusWithBody(406, "Not Acceptable")
+  val ProxyAuthenticationRequired = new StatusWithBody(407, "Proxy Authentication Required")
+  val RequestTimeOut = new StatusWithBody(408, "Request Time-out")
+  val Conflict = new StatusWithBody(409, "Conflict")
+  val Gone = new StatusWithBody(410, "Gone")
+  val LengthRequired = new StatusWithBody(411, "Length Required")
+  val PreconditionFailed = new StatusWithBody(412, "Precondition Failed")
+  val RequestEntityTooLarge = new StatusWithBody(413, "Request Entity Too Large")
+  val RequestUriTooLarge = new StatusWithBody(414, "Request-URI Too Large")
+  val UnsupportedMediaType = new StatusWithBody(415, "Unsupported Media Type")
+  val RequestedRangeNotSatisfiable = new StatusWithBody(416, "Requested Range Not Satisfiable")
+  val ExpectationFailed = new StatusWithBody(417, "ExpectationFailed")
+  val ImATeapot = new StatusWithBody(418, "I'm a teapot")
+  val UnprocessableEntity = new StatusWithBody(422, "Unprocessable Entity")
+  val Locked = new StatusWithBody(423, "Locked")
+  val FailedDependency = new StatusWithBody(424, "Failed Dependency")
+  val UnorderedCollection = new StatusWithBody(425, "Unordered Collection")
+  val UpgradeRequired = new StatusWithBody(426, "Upgrade Required")
+  val PreconditionRequired = new StatusWithBody(428, "Precondition Required")
+  val TooManyRequests = new StatusWithBody(429, "Too Many Requests")
+  val RequestHeaderFieldsTooLarge = new StatusWithBody(431, "Request Header Fields Too Large")
+  val InternalServerError = new StatusWithBody(500, "Internal Server Error")
+  val NotImplemented = new StatusWithBody(501, "Not Implemented")
+  val BadGateway = new StatusWithBody(502, "Bad Gateway")
+  val ServiceUnavailable = new StatusWithBody(503, "Service Unavailable")
+  val GatewayTimeOut = new StatusWithBody(504, "Gateway Time-out")
+  val HttpVersionNotSupported = new StatusWithBody(505, "HTTP Version not supported")
+  val VariantAlsoNegotiates = new StatusWithBody(506, "Variant Also Negotiates")
+  val InsufficientStorage = new StatusWithBody(507, "Insufficient Storage")
+  val LoopDetected = new StatusWithBody(508, "Loop Detected")
+  val NotExtended = new StatusWithBody(510, "Not Extended")
+  val NetworkAuthenticationRequired = new StatusWithBody(511, "Network Authentication Required")
 
   private[this] val ReasonMap = Map(
     (for {
       line <- getClass.getMethods
-      if line.getReturnType.isAssignableFrom(classOf[StatusLine]) && line.getParameterTypes.isEmpty
-      status = line.invoke(this).asInstanceOf[StatusLine]
+      if line.getReturnType.isAssignableFrom(classOf[Status]) && line.getParameterTypes.isEmpty
+      status = line.invoke(this).asInstanceOf[Status]
     } yield status.code -> status.reason):_*
   )
 
-  def apply(code: Int): StatusLine =
-    StatusLine(code, ReasonMap.getOrElse(code, ""))
+  def apply(code: Int): Status =
+    Status(code, ReasonMap.getOrElse(code, ""))
 }
 
 object ResponderGenerators {
-  import StatusLine._
+  import Status._
 
   def genRouteErrorResponse(t: Throwable): Responder = {
     InternalServerError(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
