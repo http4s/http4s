@@ -31,21 +31,41 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
     def onWritePossible() = promise.success(Unit)
   }
 
+  val buff = new Array[Byte](chunkSize)
+  var buffSize = 0
+
   def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = {
     in match {
       case Input.Empty => this
-      case Input.EOF => Done(Unit)
+      case Input.EOF =>
+        if (buffSize > 0) {
+          os.write(buff,0,buffSize)
+          buffSize = 0
+        }
+        Done(Unit)
+
       case Input.El(chunk) => chunk match {
-        case HttpEntity(bytes) => os.write(bytes)
+        case HttpEntity(bytes) =>
+          if (bytes.length + buffSize >= chunkSize) {
+            val tmp = new Array[Byte](bytes.length + buffSize)
+            buff.copyToArray(tmp)
+            bytes.copyToArray(tmp,buffSize)
+            os.write(tmp)
+            buffSize = 0
+          } else {
+            bytes.copyToArray(buff, buffSize)
+            buffSize += bytes.length
+          }
+
         case _ => sys.error("Griz output Iteratee doesn't support your data type!")
       }
-        // Need to sub pattern match?
 
-        this
+      this
     }
   }
 
   def fold[B](folder: (Step[HttpChunk, Unit]) => Future[B]): Future[B] = {
-    writeWatcher.registerAndListen().flatMap{ _ => folder(Step.Cont(push))}
+    //writeWatcher.registerAndListen().flatMap{ _ => folder(Step.Cont(push))}
+    folder(Step.Cont(push))
   }
 }
