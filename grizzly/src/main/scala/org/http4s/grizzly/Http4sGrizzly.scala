@@ -7,6 +7,7 @@ import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee.Done
+import org.http4s.Status.NotFound
 
 /**
  * @author Bryce Anderson
@@ -18,7 +19,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     resp.suspend()  // Suspend the response until we close it
 
     val request = toRequest(req)
-    val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
+    val parser = route.lift(request).getOrElse(Done(NotFound(request)))
     val handler = parser.flatMap { responder =>
       resp.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)

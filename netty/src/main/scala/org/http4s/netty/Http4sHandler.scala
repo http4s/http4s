@@ -18,6 +18,7 @@ import java.util.concurrent.LinkedBlockingDeque
 import org.http4s.Responder
 import scala.util.{ Failure, Success }
 import org.http4s.RequestPrelude
+import org.http4s.Status.NotFound
 
 
 object Routes {
@@ -69,7 +70,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
 
       val request = toRequest(ctx, req, rem.getAddress)
       if (route.isDefinedAt(request)) {
-        val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
+        val parser = route.lift(request).getOrElse(Done(NotFound(request)))
         val handler = parser flatMap (renderResponse(ctx, req, _))
         Enumerator(req.getContent.array()).map[org.http4s.HttpChunk](org.http4s.HttpEntity(_)).run[Unit](handler)
 //        handler.feed(Input.El(HttpEntity(req.getContent.array()))) flatMap { i => i.feed(Input.EOF)}

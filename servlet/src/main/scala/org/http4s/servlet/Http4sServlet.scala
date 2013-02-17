@@ -7,6 +7,7 @@ import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext,Future}
 import javax.servlet.{ServletConfig, AsyncContext}
+import org.http4s.Status.NotFound
 
 class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
   private[this] var serverSoftware: ServerSoftware = _
@@ -30,7 +31,7 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     val request = toRequest(servletRequest)
-    val parser = route.lift(request).getOrElse(Done(ResponderGenerators.genRouteNotFound(request)))
+    val parser = route.lift(request).getOrElse(Done(NotFound(request)))
     val handler = parser.flatMap { responder =>
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)
