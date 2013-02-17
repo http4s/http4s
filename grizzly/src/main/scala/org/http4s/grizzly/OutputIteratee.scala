@@ -24,16 +24,16 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
       }
       override def onWritePossible() = promise.success(os.write(bytes))
     }
-    // Synchronized so that our osFuture doesn't get ruined by crazy enumerators that may call
-    // push from different threads or something crazy like that.
-    synchronized(osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter,bytes.length); promise.future })
+
+    osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter,bytes.length); promise.future }
   }
 
   // Create a buffer for storing data until its larger than the chunkSize
   private[this] val buff = new Array[Byte](chunkSize)
   private[this] var buffSize = 0
 
-  private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = {
+  // synchronized so that enumerators that work in different threads cant totally mess it up.
+  private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = synchronized {
     in match {
       case Input.Empty => this
       case Input.EOF =>
