@@ -12,45 +12,45 @@ import org.glassfish.grizzly.http.server.io.NIOOutputStream
  */
 class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit] {
 
-  // Keep a persistent listener. No need to make more objects than we have too
-   private[this] object writeWatcher extends WriteHandler {
-    var promise: Promise[Unit] = _
+  private[this] var osFuture: Future[Unit] = Future.successful()
 
-    // Makes a new promise and registers the callback to complete it
-    def registerAndListen() : Future[Unit] = {
-      promise = Promise()
-      os.notifyCanWrite(this,chunkSize)
-      promise.future
+  private[this] def writeBytes(bytes: Raw): Unit = {
+    val promise: Promise[Unit] = Promise()
+
+    val asyncWriter = new  WriteHandler {
+      override def onError(t: Throwable) {
+        promise.failure(t)
+        sys.error(s"Error on write listener: ${t.getStackTraceString}")
+      }
+      override def onWritePossible() = promise.success(os.write(bytes))
     }
-
-    def onError(t: Throwable) {
-      promise.failure(t)
-      sys.error(s"Error on write listener: ${t.getStackTraceString}")
-    }
-
-    def onWritePossible() = promise.success(Unit)
+    // Synchronized so that our osFuture doesn't get ruined by crazy enumerators that may call
+    // push from different threads or something crazy like that.
+    synchronized(osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter,bytes.length); promise.future })
   }
 
-  val buff = new Array[Byte](chunkSize)
-  var buffSize = 0
+  // Create a buffer for storing data until its larger than the chunkSize
+  private[this] val buff = new Array[Byte](chunkSize)
+  private[this] var buffSize = 0
 
-  def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = {
+  private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = {
     in match {
       case Input.Empty => this
       case Input.EOF =>
         if (buffSize > 0) {
-          os.write(buff,0,buffSize)
+          writeBytes(buff.take(buffSize))
           buffSize = 0
         }
-        Done(Unit)
+        Iteratee.flatten(osFuture.map(Done(_)))
 
       case Input.El(chunk) => chunk match {
         case HttpEntity(bytes) =>
+          // Do the buffering
           if (bytes.length + buffSize >= chunkSize) {
             val tmp = new Array[Byte](bytes.length + buffSize)
-            buff.copyToArray(tmp)
+            buff.take(buffSize).copyToArray(tmp)
             bytes.copyToArray(tmp,buffSize)
-            os.write(tmp)
+            writeBytes(tmp)
             buffSize = 0
           } else {
             bytes.copyToArray(buff, buffSize)
@@ -64,8 +64,5 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
     }
   }
 
-  def fold[B](folder: (Step[HttpChunk, Unit]) => Future[B]): Future[B] = {
-    //writeWatcher.registerAndListen().flatMap{ _ => folder(Step.Cont(push))}
-    folder(Step.Cont(push))
-  }
+  def fold[B](folder: (Step[HttpChunk, Unit]) => Future[B]) = folder(Step.Cont(push))
 }
