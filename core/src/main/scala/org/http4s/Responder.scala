@@ -34,9 +34,8 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
 
 object Status {
   trait NoEntityResponseGenerator { self: Status =>
-    def apply(): Responder = apply(Headers.Empty)
-
-    def apply(headers: Headers): Responder = Responder(ResponsePrelude(this, headers))
+    private[this] val StatusResponder = Responder(ResponsePrelude(this))
+    def apply(): Responder = StatusResponder
   }
 
   trait EntityResponseGenerator extends NoEntityResponseGenerator { self: Status =>
