@@ -2,27 +2,34 @@ package org.http4s
 
 import scala.language.implicitConversions
 
-import scala.io.Codec
-import play.api.libs.iteratee.{Enumeratee, Enumerator}
-
 trait Writable[-A] {
-  def toChunk(a: A): HttpChunk
+  def contentType: ContentType
+  def asRaw(a: A): Raw
 }
 
 object Writable {
-  def apply[A](f: A => Raw) = new Writable[A] { def toChunk(a: A) = HttpEntity(f(a)) }
+  implicit def stringWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+    new Writable[String] {
+      def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
+      def asRaw(s: String): Raw = s.getBytes(charset.nioCharset)
+    }
 
-  implicit def stringWritable(implicit codec: Codec) =
-    Writable { s: String => s.getBytes(codec.charSet) }
+  implicit def intWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+    new Writable[Int] {
+      def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
+      def asRaw(i: Int): Raw = i.toString.getBytes(charset.nioCharset)
+    }
 
-  implicit def intWritable(implicit codec: Codec) =
-    Writable { i: Int => i.toString.getBytes(codec.charSet) }
+  implicit def rawWritable =
+    new Writable[Raw] {
+      def contentType: ContentType = ContentType.`application/octet-stream`
+      def asRaw(raw: Raw) = raw
+    }
 
-  implicit def chunkWritable = Writable { i: Raw => i }
-
-  // It seems wasteful to wrap and unwrap sequences in HttpEntities
-  implicit def seqWritable[A](implicit writable:Writable[A]) = Writable { i: Seq[A] =>
-    i.map(writable.toChunk(_).bytes).flatten.toArray
-  }
+  implicit def traversableWritable[A](implicit writable:Writable[A]) =
+    new Writable[TraversableOnce[A]] {
+      def contentType: ContentType = writable.contentType
+      def asRaw(as: TraversableOnce[A]): Raw = as.foldLeft(Array.empty[Byte]) { (acc, a) => acc ++ writable.asRaw(a) }
+    }
 }
 

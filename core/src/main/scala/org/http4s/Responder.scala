@@ -40,14 +40,15 @@ object Status {
   }
 
   trait EntityResponseGenerator extends NoEntityResponseGenerator { self: Status =>
-    def apply[A](body: A)(implicit w: Writable[A]): Responder = feedChunk(Enumerator(w.toChunk(body)))
+    def apply[A](body: A)(implicit w: Writable[A]): Responder =
+      feedChunk(Enumerator[HttpChunk](HttpEntity(w.asRaw(body))))
 
     def feedChunk(body: Enumerator[HttpChunk]): Responder =
       Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body))
 
     // Here is our ugly duckling
     def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
-      feedChunk(body.map(w.toChunk(_)))
+      feedChunk(body.map(a => HttpEntity(w.asRaw(a))))
 
     def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
       Responder(ResponsePrelude(this, Headers.Empty), Enumeratee.passAlong compose enumeratee)
