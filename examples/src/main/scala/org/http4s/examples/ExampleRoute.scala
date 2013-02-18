@@ -47,7 +47,7 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/bigstring2" =>
       Done{
-        Ok.feedChunk(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
+        Ok.feedChunks(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
       }
 
     case req if req.pathInfo == "/bigstring3" =>

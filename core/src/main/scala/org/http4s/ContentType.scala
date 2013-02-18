@@ -1,6 +1,8 @@
 package org.http4s
 
 import HttpCharsets._
+import java.nio.charset.Charset
+
 //case class ContentType(mediaType: MediaType, params: List[(String, String)] = Nil)
 //
 //case class MediaType(mainType: String, subtype: String, params: List[(String, String)])
