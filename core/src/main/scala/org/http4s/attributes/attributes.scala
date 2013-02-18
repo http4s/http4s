@@ -2,9 +2,15 @@ package org.http4s
 package attributes
 
 import reflect.ClassTag
-import concurrent.stm._
+import scala.concurrent.stm._
 import shapeless.TypeOperators._
-import collection.GenTraversable
+import collection._
+import collection.generic.CanBuildFrom
+import collection.immutable.Map
+import parallel.immutable.ParMap
+import scala.Iterator
+import scala.TraversableOnce
+import scala.Iterable
 
 
 trait AttributeKey[@specialized T] {
@@ -15,6 +21,126 @@ trait AttributeKey[@specialized T] {
 }
 
 abstract class Key[@specialized T](val name: String, val description: Option[String] = None)(implicit val classTag: ClassTag[T]) extends AttributeKey[T]
+
+object Attributes {
+  /** An empty $Coll */
+  def empty = new Attributes(immutable.Map.empty)
+
+  /** A collection of type Attributes that contains given key/value bindings.
+   *  @param elems   the key/value pairs that make up the $coll
+   *  @return        a new Attributes consisting key/value pairs given by `elems`.
+   */
+  def apply(elems: (AttributeKey[_], Any)*): Attributes = (newBuilder ++= elems).result
+
+  /** The default builder for Attributes objects.
+   */
+  def newBuilder: mutable.Builder[(AttributeKey[_], Any), Attributes] = new AttributesBuilder(mutable.Map.empty)
+
+  class AttributesBuilder(empty: mutable.Map[AttributeKey[_], Any]) extends mutable.Builder[(AttributeKey[_], Any), Attributes] {
+    private[this] val coll = empty
+    def +=(elem: (AttributeKey[_], Any)): this.type = {
+      coll += elem
+      this
+    }
+
+    def clear() { coll.clear() }
+
+    def result(): Attributes = new Attributes(coll.toMap)
+  }
+
+  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[(AttributeKey[_], Any)], (AttributeKey[_], Any), Attributes] =
+    new CanBuildFrom[TraversableOnce[(AttributeKey[_], Any)], (AttributeKey[_], Any), Attributes] {
+      def apply(from: TraversableOnce[(AttributeKey[_], Any)]): mutable.Builder[(AttributeKey[_], Any), Attributes] =
+        new AttributesBuilder(mutable.Map(from.toSeq:_*))
+
+      def apply(): mutable.Builder[(AttributeKey[_], Any), Attributes] = new AttributesBuilder(mutable.Map.empty)
+    }
+}
+class Attributes(store: Map[AttributeKey[_], Any] = Map.empty)
+  extends Iterable[(AttributeKey[_], Any)] with IterableLike[(AttributeKey[_], Any), Attributes] {
+
+  protected[this] override def parCombiner = ParMap.newCombiner[AttributeKey[_], Any]
+
+  def iterator: Iterator[(AttributeKey[_], Any)] = store.iterator
+
+  def toMap: Map[AttributeKey[_], Any] = store
+
+  override protected[this] def newBuilder: mutable.Builder[(AttributeKey[_], Any), Attributes] = Attributes.newBuilder
+  def empty: Attributes = Attributes.empty
+  def get[T](key: AttributeKey[T]): Option[T] = (store get key) map (_.asInstanceOf[T])
+  def apply[T](key: AttributeKey[T]): T = get(key) getOrElse default(key)
+  def contains[T](key: AttributeKey[T]): Boolean = store contains key
+  def getOrElse[T](key: AttributeKey[T], default: => T): T = get(key) getOrElse default
+  override def seq: Attributes = this
+  def +[T](kv: (AttributeKey[T], T)): Attributes = new Attributes(store + kv)
+  def -[T](key: AttributeKey[T]): Attributes = new Attributes(store - key)
+  def default[T](key: AttributeKey[T]): T = throw new NoSuchElementException("Can't find " + key)
+
+  /** A new immutable map containing updating this map with a given key/value mapping.
+   *  @param    key the key
+   *  @param    value the value
+   *  @return   A new map with the new key/value mapping
+   */
+  def updated[T](key: AttributeKey[T], value: T): Attributes = this + ((key, value))
+
+  def keySet: Set[AttributeKey[_]] = store.keySet
+
+  /** Collects all keys of this map in an iterable collection.
+   *
+   *  @return the keys of this map as an iterable.
+   */
+  def keys: Iterable[AttributeKey[_]] = store.keys
+
+  /** Collects all values of this map in an iterable collection.
+   *
+   *  @return the values of this map as an iterable.
+   */
+  def values: Iterable[Any] = store.values
+
+  /** Creates an iterator for all keys.
+   *
+   *  @return an iterator over all keys.
+   */
+  def keysIterator: Iterator[AttributeKey[_]] = store.keysIterator
+
+  /** Creates an iterator for all values in this map.
+   *
+   *  @return an iterator over all values that are associated with some key in this map.
+   */
+  def valuesIterator: Iterator[Any] = store.valuesIterator
+
+  /** Filters this map by retaining only keys satisfying a predicate.
+   *  @param  p   the predicate used to test keys
+   *  @return an immutable map consisting only of those key value pairs of this map where the key satisfies
+   *          the predicate `p`. The resulting map wraps the original map without copying any elements.
+   */
+  def filterKeys(p: AttributeKey[_] => Boolean): Attributes = new Attributes(store.filterKeys(p))
+
+  /** Transforms this map by applying a function to every retrieved value.
+   *  @param  f   the function used to transform values of this map.
+   *  @return a map view which maps every key of this map
+   *          to `f(this(key))`. The resulting map wraps the original map without copying any elements.
+   */
+  def mapValues[C](f: Any => C): Attributes = new Attributes(store.mapValues(f))
+
+  /** Adds a number of elements provided by a traversable object
+   *  and returns a new collection with the added elements.
+   *
+   *  @param xs      the traversable object consisting of key-value pairs.
+   *  @return        a new immutable map with the bindings of this map and those from `xs`.
+   */
+  def ++[T](xs: GenTraversableOnce[(AttributeKey[_], Any)]): Attributes =
+    new Attributes((store /: xs.seq) (_ + _))
+
+  /* Overridden for efficiency. */
+  override def toSeq: Seq[(AttributeKey[_], Any)] = toBuffer[(AttributeKey[_], Any)]
+  override def toBuffer[C >: (AttributeKey[_], Any)]: mutable.Buffer[C] = {
+    val result = new mutable.ArrayBuffer[C](size)
+    copyToBuffer(result)
+    result
+  }
+
+}
 
 class ScopedAttributes[S <: Scope](val scope: S, underlying: TMap[AttributeKey[_] @@ S, Any]) {
 

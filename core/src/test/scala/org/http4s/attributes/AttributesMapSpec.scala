@@ -3,7 +3,6 @@ package attributes
 
 import org.specs2.mutable
 import concurrent.stm._
-import shapeless.TypeOperators._
 
 class AttributesMapSpec extends mutable.Specification {
   object attrKey extends Key[String]("attr-key")
@@ -16,8 +15,10 @@ class AttributesMapSpec extends mutable.Specification {
 
   isolated
 
-  val attrs = new ScopedAttributes[ThisServer.type](ThisServer, TMap.empty)
-  attrs += ((taggedAttr,"The attribute value"))
+  val attrss = new Attributes()
+
+  val attrs = new ScopedAttributes[ThisServer.type](ThisServer, TMap((taggedAttr, "The attribute value")))
+
   "An AttributesMap" should {
     "get a stored a key" in {
       attrs.get(taggedAttr) must beSome("The attribute value")
