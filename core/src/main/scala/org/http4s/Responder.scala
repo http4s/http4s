@@ -3,6 +3,7 @@ package org.http4s
 
 import play.api.libs.iteratee._
 import java.net.{URL, URI}
+import reflect.ClassTag
 
 case class Responder(
   prelude: ResponsePrelude,
@@ -40,23 +41,26 @@ object Status {
 
   trait EntityResponseGenerator extends NoEntityResponseGenerator { self: Status =>
     def apply[A](body: A)(implicit w: Writable[A]): Responder =
-      feedChunk(Enumerator[HttpChunk](HttpEntity(w.asRaw(body))))
+      feedChunks(Enumerator[HttpChunk](HttpEntity(w.asRaw(body))), Some(w.contentType))
 
-    def feedChunk(body: Enumerator[HttpChunk]): Responder =
-      Responder(ResponsePrelude(this, Headers.Empty), Responder.replace(body))
-
-    // Here is our ugly duckling
+    /**
+     * Profiling has shown this to be relatively slow.  Use with care.
+     */
     def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
-      feedChunk(body.map(a => HttpEntity(w.asRaw(a))))
+      feedChunks(body.map(a => HttpEntity(w.asRaw(a))), Some(w.contentType))
+
+    def feedChunks(body: Enumerator[HttpChunk], contentType: Option[ContentType] = None): Responder = {
+      var headers = Headers.Empty
+      contentType.foreach { ct => headers :+= HttpHeaders.`Content-Type`(ct) }
+      Responder(ResponsePrelude(self, headers), Responder.replace(body))
+    }
 
     def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
-      Responder(ResponsePrelude(this, Headers.Empty), Enumeratee.passAlong compose enumeratee)
+      Responder(ResponsePrelude(self, Headers.Empty), Enumeratee.passAlong compose enumeratee)
   }
 
   trait RedirectResponseGenerator { self: Status =>
-    def apply(uri: String): Responder = Responder(ResponsePrelude(
-      status = this, headers = Headers(HttpHeaders.Location(uri))
-    ))
+    def apply(uri: String): Responder = Responder(ResponsePrelude(self, Headers(HttpHeaders.Location(uri))))
 
     def apply(uri: URI): Responder = apply(uri.toString)
 
