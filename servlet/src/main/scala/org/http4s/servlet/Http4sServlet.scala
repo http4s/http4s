@@ -58,8 +58,6 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       protocol = ServerProtocol(req.getProtocol),
       headers = toHeaders(req),
       urlScheme = UrlScheme(req.getScheme),
-      serverName = req.getServerName,
-      serverPort = req.getServerPort,
       serverSoftware = serverSoftware,
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )

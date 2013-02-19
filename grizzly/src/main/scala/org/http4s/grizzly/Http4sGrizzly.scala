@@ -43,8 +43,6 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       protocol = ServerProtocol(req.getProtocol.getProtocolString),
       headers = toHeaders(req),
       urlScheme = UrlScheme(req.getScheme),
-      serverName = req.getServerName,
-      serverPort = req.getServerPort,
       serverSoftware = ServerSoftware(req.getServerName),
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )

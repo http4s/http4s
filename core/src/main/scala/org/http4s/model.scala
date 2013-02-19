@@ -4,6 +4,7 @@ import java.io.File
 import java.net.{URI, InetAddress}
 import java.util.UUID
 import java.nio.charset.Charset
+import org.http4s.HttpHeaders.Host
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
@@ -35,8 +36,6 @@ case class RequestPrelude(
   protocol: ServerProtocol = HttpVersion.`Http/1.1`,
   headers: Headers = Headers.Empty,
   urlScheme: UrlScheme = UrlScheme.Http,
-  serverName: String = InetAddress.getLocalHost.getHostName,
-  serverPort: Int = 80,
   serverSoftware: ServerSoftware = ServerSoftware.Unknown,
   remote: InetAddress = InetAddress.getLocalHost,
   http4sVersion: Http4sVersion = Http4sVersion,
@@ -51,6 +50,9 @@ case class RequestPrelude(
   lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
   lazy val authType: Option[AuthType] = ???
+
+  lazy val serverName: String = headers.get("Host").map(_.asInstanceOf[Host]).map(_.host).getOrElse(InetAddress.getLocalHost.getHostAddress)
+  lazy val serverPort: Int = headers.get("Host").map(_.asInstanceOf[Host]).flatMap(_.port).getOrElse(80)
 
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName
