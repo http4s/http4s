@@ -190,12 +190,10 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
 
     RequestPrelude(
       requestMethod = Method(req.getMethod.getName),
-      scriptName = "",
+      uri = uri,
       pathInfo = uri.getRawPath,
-      queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
-      urlScheme = UrlScheme(scheme),
       serverSoftware = serverSoftware,
       remote = remote // TODO using remoteName would trigger a lookup
     )

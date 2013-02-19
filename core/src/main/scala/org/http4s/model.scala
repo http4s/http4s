@@ -29,13 +29,11 @@ case class FileChunk(bytes: Raw, contentType: String, name: String) extends Mult
 
 case class RequestPrelude(
   requestMethod: Method = Method.Get,
-  scriptName: String = "",
-  pathInfo: String = "",
-  queryString: String = "",
+  uri: URI = new URI("http://localhost/"),
+  pathInfo: String = "", // must be suffix of uri.getPath
   pathTranslated: Option[File] = None,
   protocol: ServerProtocol = HttpVersion.`Http/1.1`,
   headers: Headers = Headers.Empty,
-  urlScheme: UrlScheme = UrlScheme.Http,
   serverSoftware: ServerSoftware = ServerSoftware.Unknown,
   remote: InetAddress = InetAddress.getLocalHost,
   http4sVersion: Http4sVersion = Http4sVersion,
@@ -47,12 +45,13 @@ case class RequestPrelude(
 
   lazy val charset: Charset = contentType.map(_.charset.nioCharset) getOrElse Charset.defaultCharset()
 
-  lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
-
   lazy val authType: Option[AuthType] = ???
 
-  lazy val serverName: String = headers.get("Host").map(_.asInstanceOf[Host]).map(_.host).getOrElse(InetAddress.getLocalHost.getHostAddress)
-  lazy val serverPort: Int = headers.get("Host").map(_.asInstanceOf[Host]).flatMap(_.port).getOrElse(80)
+  lazy val urlScheme: UrlScheme = UrlScheme.apply(uri.getScheme)
+  lazy val serverName: String = uri.getHost
+  lazy val serverPort: Int = if (uri.getPort >= 0) uri.getPort else 80
+  lazy val scriptName = uri.getPath.substring(0, uri.getPath.length - pathInfo.length)
+  lazy val queryString = Option(uri.getQuery).getOrElse("")
 
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName
