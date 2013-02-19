@@ -1,9 +1,10 @@
 package org
 
+import http4s.attributes.AppScope
 import http4s.ext.Http4sString
 import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import scala.language.implicitConversions
-import scala.concurrent.Future
+import concurrent.{ExecutionContext, Future}
 import java.net.{InetAddress, URI}
 import java.io.File
 import java.util.UUID
@@ -23,7 +24,8 @@ package object http4s {
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
 
   trait RouteHandler {
-    def route: Route
+    implicit val appScope = AppScope()
+    def apply(implicit executionContext: ExecutionContext, serverContext: attributes.ServerContext): Route
   }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
