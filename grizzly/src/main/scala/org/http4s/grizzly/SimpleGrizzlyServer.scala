@@ -21,6 +21,7 @@ class SimpleGrizzlyServer(port: Int=8080,
                           serverName:String="simple-grizzly-server",
                           corePoolSize:Int = 10,
                           maxPoolSize:Int = 20,
+                          maxReqHeaders: Int = -1,
                            maxHeaderSize: Int = -1)(routes:Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global)
 {
   val http4sServlet = new Http4sGrizzly(routes reduce (_ orElse _))(executionContext)
@@ -28,6 +29,7 @@ class SimpleGrizzlyServer(port: Int=8080,
   val networkListener = new NetworkListener(serverName, address, port)
   // For preventing DoS attacks
   if (maxHeaderSize > 0) networkListener.setMaxHttpHeaderSize(maxHeaderSize)
+  if (maxReqHeaders > 0) networkListener.setMaxRequestHeaders(maxReqHeaders)
 
   val threadPoolConfig = ThreadPoolConfig
     .defaultConfig()
