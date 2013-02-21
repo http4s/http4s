@@ -3,7 +3,7 @@ package servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import play.api.libs.iteratee.{Done, Iteratee, Enumerator}
-import java.net.{URI, InetAddress}
+import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext,Future}
 import javax.servlet.{ServletConfig, AsyncContext}
@@ -52,10 +52,14 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     import AsyncContext._
     RequestPrelude(
       requestMethod = Method(req.getMethod),
-      uri = URI.create(req.getRequestURL.append("?").append(Option(req.getQueryString).getOrElse("")).toString),
+      scriptName = stringAttribute(req, ASYNC_CONTEXT_PATH) + stringAttribute(req, ASYNC_SERVLET_PATH),
       pathInfo = Option(stringAttribute(req, ASYNC_PATH_INFO)).getOrElse(""),
+      queryString = Option(stringAttribute(req, ASYNC_QUERY_STRING)).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol),
       headers = toHeaders(req),
+      urlScheme = UrlScheme(req.getScheme),
+      serverName = req.getServerName,
+      serverPort = req.getServerPort,
       serverSoftware = serverSoftware,
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )

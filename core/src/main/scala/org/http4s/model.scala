@@ -4,7 +4,6 @@ import java.io.File
 import java.net.{URI, InetAddress}
 import java.util.UUID
 import java.nio.charset.Charset
-import org.http4s.HttpHeaders.Host
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
@@ -29,11 +28,15 @@ case class FileChunk(bytes: Raw, contentType: String, name: String) extends Mult
 
 case class RequestPrelude(
   requestMethod: Method = Method.Get,
-  uri: URI = new URI("http://localhost/"),
-  pathInfo: String = "", // must be suffix of uri.getPath
+  scriptName: String = "",
+  pathInfo: String = "",
+  queryString: String = "",
   pathTranslated: Option[File] = None,
   protocol: ServerProtocol = HttpVersion.`Http/1.1`,
   headers: Headers = Headers.Empty,
+  urlScheme: UrlScheme = UrlScheme.Http,
+  serverName: String = InetAddress.getLocalHost.getHostName,
+  serverPort: Int = 80,
   serverSoftware: ServerSoftware = ServerSoftware.Unknown,
   remote: InetAddress = InetAddress.getLocalHost,
   http4sVersion: Http4sVersion = Http4sVersion,
@@ -45,13 +48,9 @@ case class RequestPrelude(
 
   lazy val charset: Charset = contentType.map(_.charset.nioCharset) getOrElse Charset.defaultCharset()
 
-  lazy val authType: Option[AuthType] = ???
+  lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
-  lazy val urlScheme: UrlScheme = UrlScheme.apply(uri.getScheme)
-  lazy val serverName: String = uri.getHost
-  lazy val serverPort: Int = if (uri.getPort >= 0) uri.getPort else 80
-  lazy val scriptName = uri.getPath.substring(0, uri.getPath.length - pathInfo.length)
-  lazy val queryString = Option(uri.getQuery).getOrElse("")
+  lazy val authType: Option[AuthType] = ???
 
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName

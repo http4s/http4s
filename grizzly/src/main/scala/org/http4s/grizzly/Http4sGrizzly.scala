@@ -3,7 +3,7 @@ package grizzly
 
 import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq,HttpHandler}
 
-import java.net.{URI, InetAddress}
+import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee.Done
@@ -32,16 +32,23 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       .onComplete(_ => resp.resume())
   }
 
-  protected def toRequest(req: GrizReq): RequestPrelude =
+  protected def toRequest(req: GrizReq): RequestPrelude = {
+    val input = req.getNIOInputStream
     RequestPrelude(
       requestMethod = Method(req.getMethod.toString),
-      uri = URI.create(req.getRequestURL.append("?").append(Option(req.getQueryString).getOrElse("")).toString),
+
+      scriptName = req.getContextPath, // + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
+      queryString = Option(req.getQueryString).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol.getProtocolString),
       headers = toHeaders(req),
+      urlScheme = UrlScheme(req.getScheme),
+      serverName = req.getServerName,
+      serverPort = req.getServerPort,
       serverSoftware = ServerSoftware(req.getServerName),
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )
+  }
 
   protected def toHeaders(req: GrizReq): Headers = {
     val headers = for {
