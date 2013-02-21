@@ -15,13 +15,13 @@ object ExampleRoute {
       Ok("pong")
 
     case Post(req) if req.pathInfo == "/echo" =>
-      Ok.transform(Enumeratee.passAlong)
+      Ok(Enumeratee.passAlong[HttpChunk])
 
     case req if req.pathInfo == "/echo" =>
-      Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))})
+      Ok(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk})
 
     case req if req.pathInfo == "/echo2" =>
-      Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))})
+      Ok(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk})
 
     case Post(req) if req.pathInfo == "/sum" =>
       text(req, 16) { s =>
@@ -30,7 +30,7 @@ object ExampleRoute {
       }
 
     case req if req.pathInfo == "/stream" =>
-      Ok.feed(Concurrent.unicast[Raw]({
+      Ok(Concurrent.unicast[Raw]({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
@@ -63,7 +63,7 @@ object ExampleRoute {
     case req if req.pathInfo == "/challenge" =>
       Iteratee.head[HttpChunk].map {
         case Some(bits) if (new String(bits.bytes)).startsWith("Go") =>
-          Ok.transform(Enumeratee.heading(Enumerator(bits)))
+          Ok(Enumeratee.heading(Enumerator(bits)))
         case Some(bits) if (new String(bits.bytes)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>

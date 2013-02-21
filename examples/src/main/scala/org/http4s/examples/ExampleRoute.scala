@@ -1,7 +1,7 @@
 package org.http4s
 
 import scala.language.reflectiveCalls
-import scala.concurrent.ExecutionContext
+import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
 
@@ -16,13 +16,13 @@ object ExampleRoute {
       Done(Ok("pong"))
 
     case Post(req) if req.pathInfo == "/echo" =>
-      Done(Ok.transform(Enumeratee.passAlong))
+      Done(Ok(Enumeratee.passAlong: Enumeratee[HttpChunk, HttpChunk]))
 
     case req if req.pathInfo == "/echo" =>
-      Done(Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}))
+      Done(Ok(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}: Enumeratee[HttpChunk, HttpChunk]))
 
     case req if req.pathInfo == "/echo2" =>
-      Done(Ok.transform(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}))
+      Done(Ok(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}: Enumeratee[HttpChunk, HttpChunk]))
 
     case Post(req) if req.pathInfo == "/sum" =>
       stringHandler(req, 16) { s =>
@@ -31,7 +31,7 @@ object ExampleRoute {
       }
 
     case req if req.pathInfo == "/stream" =>
-      Done(Ok.feed(Concurrent.unicast[Raw]({
+      Done(Ok(Concurrent.unicast[Raw]({
         channel =>
           for (i <- 1 to 10) {
             channel.push("%d\n".format(i).getBytes)
@@ -45,37 +45,26 @@ object ExampleRoute {
         Ok((0 until 1000) map { i => s"This is string number $i" })
       }
 
-    case req if req.pathInfo == "/bigstring2" =>
+    case req if req.pathInfo == "/future" =>
       Done{
-        Ok.feedChunks(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
+        Ok(Future("Hello from the future!"))
       }
+
+//    case req if req.pathInfo == "/bigstring2" =>
+//      Done{
+//        Ok.feedChunks(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
+//      }
 
     case req if req.pathInfo == "/bigstring3" =>
       Done{
         Ok(flatBigString)
       }
 
-    /*
-    // Reads the whole body before responding
-    case req if req.pathInfo == "/determine_echo1" =>
-      req.body.run( Iteratee.getChunks).map { bytes =>
-        Responder( body = Enumerator(bytes.map(HttpEntity(_)):_*))
-      }
-
-    // Demonstrate how simple it is to read some and then continue
-    case req if req.pathInfo == "/determine_echo2" =>
-      val bit: Future[Option[Raw]] = req.body.run(Iteratee.head)
-      bit.map {
-        case Some(bit) => Responder( body = Enumerator(bit) >>> req.body )
-        case None => Responder( body = Enumerator.eof )
-      }
-    */
-
       // Ross wins the challenge
     case req if req.pathInfo == "/challenge" =>
       Iteratee.head[HttpChunk].map {
         case Some(bits) if (new String(bits.bytes)).startsWith("Go") =>
-          Ok.transform(Enumeratee.heading(Enumerator(bits)))
+          Ok(Enumeratee.heading(Enumerator(bits)): Enumeratee[HttpChunk, HttpChunk])
         case Some(bits) if (new String(bits.bytes)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>

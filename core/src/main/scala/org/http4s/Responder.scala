@@ -11,12 +11,7 @@ case class Responder(
 )
 
 object Responder {
-  def replace[F, T](enumerator: Enumerator[T]): Enumeratee[F, T] = new Enumeratee[F, T] {
-    def applyOn[A](inner: Iteratee[T, A]): Iteratee[F, Iteratee[T, A]] =
-      Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
-  }
-
-  val EmptyBody: Enumeratee[HttpChunk, HttpChunk] = replace(Enumerator.eof)
+  val EmptyBody: Enumeratee[HttpChunk, HttpChunk] = Enumeratee.heading(Enumerator.eof)
 
   implicit def responder2Handler(responder: Responder): Iteratee[HttpChunk, Responder] = Done(responder)
 }
@@ -40,23 +35,26 @@ object Status {
   }
 
   trait EntityResponderGenerator extends NoEntityResponderGenerator { self: Status =>
-    def apply[A](body: A)(implicit w: Writable[A]): Responder =
-      feedChunks(Enumerator[HttpChunk](HttpEntity(w.asRaw(body))), Some(w.contentType))
+    def apply[A](body: A)(implicit w: Writable[A]): Responder = {
+      var headers = Headers.Empty
+      headers :+= HttpHeaders.`Content-Type`(w.contentType)
+      Responder(ResponsePrelude(self, headers), w.toBody(body))
+    }
 
     /**
      * Profiling has shown this to be relatively slow.  Use with care.
      */
-    def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
-      feedChunks(body.map(a => HttpEntity(w.asRaw(a))), Some(w.contentType))
-
-    def feedChunks(body: Enumerator[HttpChunk], contentType: Option[ContentType] = None): Responder = {
-      var headers = Headers.Empty
-      contentType.foreach { ct => headers :+= HttpHeaders.`Content-Type`(ct) }
-      Responder(ResponsePrelude(self, headers), Responder.replace(body))
-    }
-
-    def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
-      Responder(ResponsePrelude(self, Headers.Empty), Enumeratee.passAlong compose enumeratee)
+//    def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
+//      feedChunks(body.map(a => HttpEntity(w.asRaw(a))), Some(w.contentType))
+//
+//    def feedChunks(body: Enumerator[HttpChunk], contentType: Option[ContentType] = None): Responder = {
+//      var headers = Headers.Empty
+//      contentType.foreach { ct => headers :+= HttpHeaders.`Content-Type`(ct) }
+//      Responder(ResponsePrelude(self, headers), Responder.replace(body))
+//    }
+//
+//    def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
+//      Responder(ResponsePrelude(self, Headers.Empty), Enumeratee.passAlong compose enumeratee)
   }
 
   trait RedirectResponderGenerator { self: Status =>
