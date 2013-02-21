@@ -53,6 +53,13 @@ class MockServerSpec extends Specification with NoTimeConversions {
       response(req).statusLine should_== Status.InternalServerError
     }
 
+    "Handle futures" in {
+      val req = RequestPrelude(pathInfo = "/future")
+      val returned = response(req)
+      returned.statusLine should_== Status.Ok
+      new String(returned.body) should_== "Hello from the future!"
+    }
+
     "Do a Go" in {
       val req = RequestPrelude(pathInfo = "/challenge"); val body = Enumerator("Go and do something".getBytes)
       val returned = response(req, body)

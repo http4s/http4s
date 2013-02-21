@@ -50,10 +50,10 @@ object ExampleRoute {
         Ok(Future("Hello from the future!"))
       }
 
-//    case req if req.pathInfo == "/bigstring2" =>
-//      Done{
-//        Ok.feedChunks(Enumerator((0 until 1000) map { i => HttpEntity(s"This is string number $i".getBytes) }: _*))
-//      }
+    case req if req.pathInfo == "/bigstring2" =>
+      Done{
+        Ok(Enumerator((0 until 1000) map { i => s"This is string number $i".getBytes }: _*))
+      }
 
     case req if req.pathInfo == "/bigstring3" =>
       Done{

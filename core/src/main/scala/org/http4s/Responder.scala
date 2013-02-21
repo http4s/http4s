@@ -40,21 +40,6 @@ object Status {
       headers :+= HttpHeaders.`Content-Type`(w.contentType)
       Responder(ResponsePrelude(self, headers), w.toBody(body))
     }
-
-    /**
-     * Profiling has shown this to be relatively slow.  Use with care.
-     */
-//    def feed[A](body: Enumerator[A] = Enumerator.eof)(implicit w: Writable[A]): Responder =
-//      feedChunks(body.map(a => HttpEntity(w.asRaw(a))), Some(w.contentType))
-//
-//    def feedChunks(body: Enumerator[HttpChunk], contentType: Option[ContentType] = None): Responder = {
-//      var headers = Headers.Empty
-//      contentType.foreach { ct => headers :+= HttpHeaders.`Content-Type`(ct) }
-//      Responder(ResponsePrelude(self, headers), Responder.replace(body))
-//    }
-//
-//    def transform(enumeratee: Enumeratee[HttpChunk, HttpChunk]) =
-//      Responder(ResponsePrelude(self, Headers.Empty), Enumeratee.passAlong compose enumeratee)
   }
 
   trait RedirectResponderGenerator { self: Status =>

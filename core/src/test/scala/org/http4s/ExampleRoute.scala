@@ -1,7 +1,7 @@
 package org.http4s
 
 import scala.language.reflectiveCalls
-import scala.concurrent.ExecutionContext
+import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
 
@@ -43,21 +43,10 @@ object ExampleRoute {
       val builder = new StringBuilder(20*1028)
       Ok((0 until 1000) map { i => s"This is string number $i" })
 
-    /*
-    // Reads the whole body before responding
-    case req if req.pathInfo == "/determine_echo1" =>
-      req.body.run( Iteratee.getChunks).map { bytes =>
-        Responder( body = Enumerator(bytes.map(HttpEntity(_)):_*))
+    case req if req.pathInfo == "/future" =>
+      Done{
+        Ok(Future("Hello from the future!"))
       }
-
-    // Demonstrate how simple it is to read some and then continue
-    case req if req.pathInfo == "/determine_echo2" =>
-      val bit: Future[Option[Raw]] = req.body.run(Iteratee.head)
-      bit.map {
-        case Some(bit) => Responder( body = Enumerator(bit) >>> req.body )
-        case None => Responder( body = Enumerator.eof )
-      }
-    */
 
       // Ross wins the challenge
     case req if req.pathInfo == "/challenge" =>
