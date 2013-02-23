@@ -7,12 +7,15 @@ import akka.util.ByteString
 
 trait Writable[-A] {
   def contentType: ContentType
-  def toBody(a: A): Enumeratee[HttpChunk, HttpChunk]
+  def toBody(a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int])
 }
 
 trait SimpleWritable[-A] extends Writable[A] {
   def asByteString(data: A): ByteString
-  override def toBody(a: A): Enumeratee[HttpChunk, HttpChunk] = Writable.sendByteString(HttpEntity(asByteString(a)))
+  override def toBody(a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int]) = {
+    val bs = asByteString(a)
+    (Writable.sendByteString(HttpEntity(bs)), Some(bs.length))
+  }
 }
 
 object Writable {
@@ -50,34 +53,29 @@ object Writable {
       def asByteString(ByteString: ByteString) = ByteString
     }
 
-//  implicit def chunkWritable =      // Perhaps if we are this far, it should be handled manually anyway.
-//    new SimpleWritable[HttpChunk] {
-//      def contentType: ContentType = ContentType.`application/octet-stream`
-//      def asByteString(chunk: HttpChunk) = chunk.bytes
-//    }
-
-  // More complex types can be implements in terms of simple types
-  implicit def enumerateeWritable =
-  new Writable[Enumeratee[HttpChunk, HttpChunk]] {
-    def contentType = ContentType.`application/octet-stream`
-    override def toBody(a: Enumeratee[HttpChunk, HttpChunk])= a
-  }
-
-  implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
-  new Writable[Enumerator[A]] {
-    def contentType = writable.contentType
-    override def toBody(a: Enumerator[A]) = sendEnumerator(a.map[HttpChunk]{ i => HttpEntity(writable.asByteString(i)) })
-  }
-
-  implicit def futureWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
-  new Writable[Future[A]] {
-    def contentType = writable.contentType
-    override def toBody(f: Future[A]) = sendFuture(f.map{ d => HttpEntity(writable.asByteString(d))})
-  }
-
   implicit def traversableWritable[A](implicit writable: SimpleWritable[A]) =
     new SimpleWritable[TraversableOnce[A]] {
       def contentType: ContentType = writable.contentType
       def asByteString(as: TraversableOnce[A]): ByteString = as.foldLeft(ByteString.empty) { (acc, a) => acc ++ writable.asByteString(a) }
     }
+
+  // More complex types can be implements in terms of simple types
+  implicit def enumerateeWritable =
+  new Writable[Enumeratee[HttpChunk, HttpChunk]] {
+    def contentType = ContentType.`application/octet-stream`
+    override def toBody(a: Enumeratee[HttpChunk, HttpChunk])= (a, None)
+  }
+
+  implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
+  new Writable[Enumerator[A]] {
+    def contentType = writable.contentType
+    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => HttpEntity(writable.asByteString(i)) }), None)
+  }
+
+  implicit def futureWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
+  new Writable[Future[A]] {
+    def contentType = writable.contentType
+    override def toBody(f: Future[A]) = (sendFuture(f.map{ d => HttpEntity(writable.asByteString(d))}), None)
+  }
+
 }

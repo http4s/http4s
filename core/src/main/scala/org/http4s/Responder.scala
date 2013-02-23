@@ -37,8 +37,10 @@ object Status {
   trait EntityResponderGenerator extends NoEntityResponderGenerator { self: Status =>
     def apply[A](body: A)(implicit w: Writable[A]): Responder = {
       var headers = Headers.Empty
+      val (parsedBody, length) = w.toBody(body)
       headers :+= HttpHeaders.`Content-Type`(w.contentType)
-      Responder(ResponsePrelude(self, headers), w.toBody(body))
+      length.foreach{ length => headers :+= HttpHeaders.`Content-Length`(length) }
+      Responder(ResponsePrelude(self, headers), parsedBody)
     }
   }
 

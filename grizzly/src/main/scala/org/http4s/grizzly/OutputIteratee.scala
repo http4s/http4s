@@ -22,10 +22,10 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
         promise.failure(t)
         sys.error(s"Error on write listener: ${t.getStackTraceString}")
       }
-      override def onWritePossible() = promise.success(os.write(bytes))
+      override def onWritePossible() = promise.success{os.write(bytes); os.flush() }
     }
 
-    osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter,bytes.length); promise.future }
+    osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter, bytes.length); promise.future }
   }
 
   // Create a buffer for storing data until its larger than the chunkSize
