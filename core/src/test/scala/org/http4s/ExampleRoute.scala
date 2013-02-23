@@ -4,6 +4,7 @@ import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
+import akka.util.ByteString
 
 object ExampleRoute {
   import Status._
@@ -33,7 +34,7 @@ object ExampleRoute {
       Ok(Concurrent.unicast[Raw]({
         channel =>
           for (i <- 1 to 10) {
-            channel.push("%d\n".format(i).getBytes)
+            channel.push(ByteString("%d\n".format(i), req.charset.name))
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
@@ -51,9 +52,9 @@ object ExampleRoute {
       // Ross wins the challenge
     case req if req.pathInfo == "/challenge" =>
       Iteratee.head[HttpChunk].map {
-        case Some(bits) if (new String(bits.bytes)).startsWith("Go") =>
+        case Some(bits) if (bits.bytes.decodeString(req.charset.name)).startsWith("Go") =>
           Ok(Enumeratee.heading(Enumerator(bits)))
-        case Some(bits) if (new String(bits.bytes)).startsWith("NoGo") =>
+        case Some(bits) if (bits.bytes.decodeString(req.charset.name)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("No data!")

@@ -14,7 +14,7 @@ object BodyParser {
   private val RawConsumer: Iteratee[Raw, Raw] = Iteratee.consume[Raw]()
 
   def text(request: RequestPrelude, limit: Int = DefaultMaxSize)(f: String => Responder): Iteratee[HttpChunk, Responder] =
-    consumeUpTo(RawConsumer, limit) { raw => f(new String(raw, request.charset)) }
+    consumeUpTo(RawConsumer, limit) { raw => f(raw.decodeString(request.charset.name)) }
 
   /**
    * Handles a request body as XML.
@@ -33,7 +33,7 @@ object BodyParser {
           onSaxException: SAXException => Responder = { saxEx => saxEx.printStackTrace(); Status.BadRequest() })
          (f: Elem => Responder): Iteratee[HttpChunk, Responder] =
     consumeUpTo(RawConsumer, limit) { raw =>
-      val in = new ByteArrayInputStream(raw)
+      val in = raw.iterator.asInputStream
       val source = new InputSource(in)
       source.setEncoding(request.charset.name)
       Try(XML.loadXML(source, parser)).map(f).recover {
@@ -48,13 +48,13 @@ object BodyParser {
     } yield (tooLargeOrRaw.right.map(f).merge))
 
   // File operations
-  def binFile(in: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
-    val is = new java.io.FileOutputStream(in)
-    Iteratee.foreach[HttpChunk]{d=>is.write(d.bytes)}.map{_ => is.close(); f }
+  def binFile(file: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
+    val out = new java.io.FileOutputStream(file)
+    Iteratee.foreach[HttpChunk]{ d => out.write(d.bytes.toArray) }.map{_ => out.close(); f }
   }
 
   def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
-    Iteratee.foreach[HttpChunk]{ d => is.print(new String(d.bytes, req.charset))}.map{ _ => is.close(); f }
+    Iteratee.foreach[HttpChunk]{ d => is.print(d.bytes.decodeString(req.charset.name)) }.map{ _ => is.close(); f }
   }
 }

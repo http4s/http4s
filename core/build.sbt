@@ -7,6 +7,7 @@ description := "Core http4s framework"
 libraryDependencies <+= scalaVersion(ScalaReflect)
 
 libraryDependencies ++= Seq(
+  AkkaActor,
   Junit % "test",
   Rl,
   Slf4j,

@@ -4,6 +4,7 @@ import java.io.File
 import java.net.{URI, InetAddress}
 import java.util.UUID
 import java.nio.charset.Charset
+import akka.util.ByteString
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
@@ -59,5 +60,5 @@ case class RequestPrelude(
 }
 case class ResponsePrelude(status: Status, headers: Headers = Headers.empty) extends HttpPrelude
 case class HttpTrailer(headers: Headers) extends HasHeaders with HttpChunk {
-  final val bytes = Array.empty[Byte]
+  final val bytes = ByteString.empty
 }

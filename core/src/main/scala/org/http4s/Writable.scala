@@ -3,6 +3,7 @@ package org.http4s
 import scala.language.implicitConversions
 import play.api.libs.iteratee._
 import concurrent.{ExecutionContext, Future}
+import akka.util.ByteString
 
 trait Writable[-A] {
   def contentType: ContentType
@@ -34,13 +35,13 @@ object Writable {
   implicit def stringWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asRaw(s: String) = s.getBytes(charset.nioCharset)
+      def asRaw(s: String) = ByteString(s, charset.nioCharset.name)
     }
 
   implicit def intWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asRaw(i: Int): Raw = i.toString.getBytes(charset.nioCharset)
+      def asRaw(i: Int): Raw = ByteString(i.toString, charset.nioCharset.name)
     }
 
   implicit def rawWritable =
@@ -77,6 +78,6 @@ object Writable {
   implicit def traversableWritable[A](implicit writable: SimpleWritable[A]) =
     new SimpleWritable[TraversableOnce[A]] {
       def contentType: ContentType = writable.contentType
-      def asRaw(as: TraversableOnce[A]): Raw = as.foldLeft(Array.empty[Byte]) { (acc, a) => acc ++ writable.asRaw(a) }
+      def asRaw(as: TraversableOnce[A]): Raw = as.foldLeft(ByteString.empty) { (acc, a) => acc ++ writable.asRaw(a) }
     }
 }

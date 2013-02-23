@@ -4,10 +4,12 @@ import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
+import akka.util.ByteString
 
 object ExampleRoute {
   import Status._
   import Writable._
+  import BodyParser._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
@@ -25,7 +27,7 @@ object ExampleRoute {
       Done(Ok(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}: Enumeratee[HttpChunk, HttpChunk]))
 
     case Post(req) if req.pathInfo == "/sum" =>
-      stringHandler(req, 16) { s =>
+      text(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
@@ -34,7 +36,7 @@ object ExampleRoute {
       Done(Ok(Concurrent.unicast[Raw]({
         channel =>
           for (i <- 1 to 10) {
-            channel.push("%d\n".format(i).getBytes)
+            channel.push(ByteString("%d\n".format(i), req.charset.name))
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
@@ -52,7 +54,7 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/bigstring2" =>
       Done{
-        Ok(Enumerator((0 until 1000) map { i => s"This is string number $i".getBytes }: _*))
+        Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.name) }: _*))
       }
 
     case req if req.pathInfo == "/bigstring3" =>
@@ -63,9 +65,9 @@ object ExampleRoute {
       // Ross wins the challenge
     case req if req.pathInfo == "/challenge" =>
       Iteratee.head[HttpChunk].map {
-        case Some(bits) if (new String(bits.bytes)).startsWith("Go") =>
-          Ok(Enumeratee.heading(Enumerator(bits)): Enumeratee[HttpChunk, HttpChunk])
-        case Some(bits) if (new String(bits.bytes)).startsWith("NoGo") =>
+        case Some(bits) if (bits.bytes.decodeString(req.charset.name)).startsWith("Go") =>
+          Ok(Enumeratee.heading(Enumerator(bits)))
+        case Some(bits) if (bits.bytes.decodeString(req.charset.name)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("No data!")
@@ -73,20 +75,5 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
- }
-
-  def stringHandler(req: RequestPrelude, maxSize: Int = Integer.MAX_VALUE)(f: String => Responder): Iteratee[HttpChunk, Responder] = {
-    val it = (Traversable.takeUpTo[Raw](maxSize)
-                transform bytesAsString(req)
-                flatMap eofOrRequestTooLarge(f)
-                map (_.merge))
-    Enumeratee.map[HttpChunk](_.bytes) &>> it
   }
-
-  private[this] def bytesAsString(req: RequestPrelude) =
-    Iteratee.consume[Raw]().asInstanceOf[Iteratee[Raw, Raw]].map(new String(_, req.charset))
-
-  private[this] def eofOrRequestTooLarge[B](f: String => Responder)(s: String) =
-    Iteratee.eofOrElse[B](Responder(ResponsePrelude(status = Status.RequestEntityTooLarge)))(s).map(_.right.map(f))
-
 }

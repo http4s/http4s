@@ -1,3 +1,4 @@
+/*
 package org.http4s
 package netty
 
@@ -13,3 +14,4 @@ object Example extends App with Logging {
   SimpleNettyServer()(ExampleRoute())
 
 }
+*/

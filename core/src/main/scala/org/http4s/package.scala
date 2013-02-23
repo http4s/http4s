@@ -8,6 +8,7 @@ import java.net.{InetAddress, URI}
 import java.io.File
 import java.util.UUID
 import java.nio.charset.Charset
+import akka.util.ByteString
 
 //import spray.http.HttpHeaders.RawHeader
 
@@ -16,7 +17,7 @@ package object http4s {
 
   type ResponderBody = Enumeratee[HttpChunk, HttpChunk]
 
-  type Raw = Array[Byte]
+  type Raw = ByteString
 
   type Middleware = (Route => Route)
 

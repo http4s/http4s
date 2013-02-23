@@ -8,6 +8,7 @@ import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext,Future}
 import javax.servlet.{ServletConfig, AsyncContext}
 import org.http4s.Status.NotFound
+import akka.util.ByteString
 
 class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
   private[this] var serverSoftware: ServerSoftware = _
@@ -38,12 +39,12 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
         servletResponse.addHeader(header.name, header.value)
       responder.body.transform(Iteratee.foreach { chunk =>
         val out = servletResponse.getOutputStream
-        out.write(chunk.bytes)
+        out.write(chunk.bytes.toArray)
         out.flush()
       })
     }
     Enumerator.fromStream(servletRequest.getInputStream, chunkSize)
-      .map[HttpChunk](HttpEntity(_))
+      .map[HttpChunk] { bytes => HttpEntity(ByteString(bytes)) }
       .run(handler)
       .onComplete(_ => ctx.complete())
   }
