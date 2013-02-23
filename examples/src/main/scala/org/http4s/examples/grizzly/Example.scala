@@ -1,4 +1,3 @@
-/*
 package org.http4s
 package grizzly
 
@@ -12,4 +11,3 @@ object Example extends App {
   SimpleGrizzlyServer(serverRoot = "/http4s/*")(ExampleRoute())
 
 }
-*/*/

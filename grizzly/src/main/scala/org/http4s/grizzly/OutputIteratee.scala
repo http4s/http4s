@@ -14,7 +14,7 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
 
   private[this] var osFuture: Future[Unit] = Future.successful()
 
-  private[this] def writeBytes(bytes: Raw): Unit = {
+  private[this] def writeBytes(bytes: Array[Byte]): Unit = {
     val promise: Promise[Unit] = Promise()
 
     val asyncWriter = new  WriteHandler {

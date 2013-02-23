@@ -19,7 +19,8 @@ import org.http4s.Responder
 import scala.util.{ Failure, Success }
 import org.http4s.RequestPrelude
 import org.http4s.Status.NotFound
-
+import akka.util.ByteString
+import java.nio.ByteBuffer
 
 object Routes {
    def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Routes(route)
@@ -72,7 +73,9 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
       if (route.isDefinedAt(request)) {
         val parser = route.lift(request).getOrElse(Done(NotFound(request)))
         val handler = parser flatMap (renderResponse(ctx, req, _))
-        Enumerator(req.getContent.array()).map[org.http4s.HttpChunk](org.http4s.HttpEntity(_)).run[Unit](handler)
+        Enumerator(req.getContent.toByteBuffers: _*).map[org.http4s.HttpChunk] { bb: ByteBuffer =>
+          org.http4s.HttpEntity(ByteString(bb))
+        }.run[Unit](handler)
 //        handler.feed(Input.El(HttpEntity(req.getContent.array()))) flatMap { i => i.feed(Input.EOF)}
 //        responder onSuccess {
 //          case r =>
@@ -118,7 +121,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
     }
 
     val channelBuffer = ChannelBuffers.dynamicBuffer(8912)
-    val writer: (ChannelBuffer, org.http4s.HttpChunk) => Unit = (c, x) => c.writeBytes(x.bytes)
+    val writer: (ChannelBuffer, org.http4s.HttpChunk) => Unit = (c, x) => c.writeBytes(x.bytes.asByteBuffer)
     val stringIteratee = Iteratee.fold(channelBuffer)((c, e: org.http4s.HttpChunk) => { writer(c, e); c })
 
     val p = (responder.body ><> Enumeratee.grouped(stringIteratee) &>> Cont {

@@ -5,6 +5,7 @@ import concurrent.{ExecutionContext, Promise, Future}
 import org.glassfish.grizzly.http.server.io.NIOInputStream
 import org.glassfish.grizzly.ReadHandler
 import org.http4s._
+import akka.util.ByteString
 
 /**
  * @author Bryce Anderson
@@ -25,18 +26,18 @@ class BodyEnumerator(is: NIOInputStream, chunkSize:Int = 32 * 1024)(implicit ctx
           }
 
           def onAllDataRead() {
-            val bytes = new Raw(is.readyData())
+            val bytes = new Array[Byte](is.readyData())
             val readBytes = is.read(bytes,0,bytes.length)
-            val newItter = f(Input.El(HttpEntity(bytes.take(readBytes))))
+            val newItter = f(Input.El(HttpEntity(ByteString.fromArray(bytes, 0, readBytes))))
 
             promise.completeWith(Enumerator.eof |>> newItter)
             is.close()
           }
 
           def onDataAvailable() {
-            val bytes = new Raw(is.readyData())
+            val bytes = new Array[Byte](is.readyData())
             val readBytes = is.read(bytes,0,bytes.length)
-            val newItter = f(Input.El(HttpEntity(bytes.take(readBytes))))
+            val newItter = f(Input.El(HttpEntity(ByteString.fromArray(bytes, 0, readBytes))))
 
             newItter.pureFold{
                 case Step.Cont(f) =>

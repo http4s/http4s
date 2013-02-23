@@ -47,5 +47,5 @@ object build extends Build {
     "examples",
     file("examples"),
     settings = http4sSettings ++ Revolver.settings ++ Seq(mainClass in Revolver.reStart := Some("org.http4s.grizzly.Example")) //Temporary
-  ) dependsOn(/*grizzly, netty, */servlet)
+  ) dependsOn(grizzly, netty, servlet)
 }
