@@ -4,21 +4,22 @@ import scala.language.reflectiveCalls
 
 import concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee.{Enumeratee, Enumerator, Iteratee}
+import akka.util.ByteString
 
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
 
-  def apply(req: RequestPrelude, enum: Enumerator[Raw]): Future[Response] = {
+  def apply(req: RequestPrelude, enum: Enumerator[ByteString]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) { parser =>
         val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>
-          val responseBodyIt: Iteratee[Raw,Raw] = Iteratee.consume()
+          val responseBodyIt: Iteratee[ByteString, ByteString] = Iteratee.consume()
           // I'm not sure why we are compelled to make this complicated looking...
-          responder.body ><> Enumeratee.map[HttpChunk](_.bytes) &>> responseBodyIt map { bytes: Raw =>
+          responder.body ><> Enumeratee.map[HttpChunk](_.bytes) &>> responseBodyIt map { bytes: ByteString =>
             Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray)
           }
         }
-        (enum &> Enumeratee.map[Raw]((i => HttpEntity(i)): Raw=>HttpChunk)).run(it)
+        (enum &> Enumeratee.map[ByteString]((i => HttpEntity(i)): ByteString => HttpChunk)).run(it)
       }
     } catch {
       case t: Throwable => Future.successful(onError(t))

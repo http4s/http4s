@@ -17,8 +17,6 @@ package object http4s {
 
   type ResponderBody = Enumeratee[HttpChunk, HttpChunk]
 
-  type Raw = ByteString
-
   type Middleware = (Route => Route)
 
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)

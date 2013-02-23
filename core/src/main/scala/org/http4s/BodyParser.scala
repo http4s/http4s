@@ -7,14 +7,15 @@ import xml.{Elem, XML, NodeSeq}
 import org.xml.sax.{SAXException, InputSource}
 import javax.xml.parsers.SAXParser
 import scala.util.{Success, Try}
+import akka.util.ByteString
 
 object BodyParser {
   // TODO make configurable
   val DefaultMaxSize = 2 * 1024 * 1024
-  private val RawConsumer: Iteratee[Raw, Raw] = Iteratee.consume[Raw]()
+  private val ByteStringConsumer: Iteratee[ByteString, ByteString] = Iteratee.consume[ByteString]()
 
   def text(request: RequestPrelude, limit: Int = DefaultMaxSize)(f: String => Responder): Iteratee[HttpChunk, Responder] =
-    consumeUpTo(RawConsumer, limit) { raw => f(raw.decodeString(request.charset.name)) }
+    consumeUpTo(ByteStringConsumer, limit) { bs => f(bs.decodeString(request.charset.name)) }
 
   /**
    * Handles a request body as XML.
@@ -32,8 +33,8 @@ object BodyParser {
           parser: SAXParser = XML.parser,
           onSaxException: SAXException => Responder = { saxEx => saxEx.printStackTrace(); Status.BadRequest() })
          (f: Elem => Responder): Iteratee[HttpChunk, Responder] =
-    consumeUpTo(RawConsumer, limit) { raw =>
-      val in = raw.iterator.asInputStream
+    consumeUpTo(ByteStringConsumer, limit) { bytes =>
+      val in = bytes.iterator.asInputStream
       val source = new InputSource(in)
       source.setEncoding(request.charset.name)
       Try(XML.loadXML(source, parser)).map(f).recover {
@@ -41,11 +42,11 @@ object BodyParser {
       }.get
     }
 
-  def consumeUpTo[A](consumer: Iteratee[Raw, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
+  def consumeUpTo[A](consumer: Iteratee[ByteString, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
     Enumeratee.map[HttpChunk](_.bytes) &>> (for {
-      raw <- Traversable.takeUpTo[Raw](limit) &>> consumer
-      tooLargeOrRaw <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(raw)
-    } yield (tooLargeOrRaw.right.map(f).merge))
+      bytes <- Traversable.takeUpTo[ByteString](limit) &>> consumer
+      tooLargeOrBytes <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(bytes)
+    } yield (tooLargeOrBytes.right.map(f).merge))
 
   // File operations
   def binFile(file: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {

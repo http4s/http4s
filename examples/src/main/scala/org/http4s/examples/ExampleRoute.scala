@@ -33,7 +33,7 @@ object ExampleRoute {
       }
 
     case req if req.pathInfo == "/stream" =>
-      Done(Ok(Concurrent.unicast[Raw]({
+      Done(Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
             channel.push(ByteString("%d\n".format(i), req.charset.name))

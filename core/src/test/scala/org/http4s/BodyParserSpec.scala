@@ -58,7 +58,7 @@ class BodyParserSpec extends Specification with NoTimeConversions {
       Await.result(server(req, Enumerator(ByteString(binData))), 2 seconds)
     }
 
-    "Write a text file from raw" in {
+    "Write a text file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(RequestPrelude(), {
         case req =>
@@ -72,7 +72,7 @@ class BodyParserSpec extends Specification with NoTimeConversions {
       response.body must_== "Hello".getBytes
     }
 
-    "Write a binary file from raw" in {
+    "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(RequestPrelude(), {
         case req =>

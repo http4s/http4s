@@ -14,18 +14,18 @@ sealed trait HasHeaders {
 sealed trait HttpPrelude extends HasHeaders
 
 sealed trait HttpChunk {
-  def bytes: Raw
+  def bytes: ByteString
 }
 
 sealed trait HttpBodyChunk extends HttpChunk
-case class HttpEntity(bytes: Raw) extends HttpBodyChunk
+case class HttpEntity(bytes: ByteString) extends HttpBodyChunk
 
 sealed trait MultipartEntity extends HttpBodyChunk {
   def name: String
   def contentType: String
 }
-case class MultipartChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
-case class FileChunk(bytes: Raw, contentType: String, name: String) extends MultipartEntity
+case class MultipartChunk(bytes: ByteString, contentType: String, name: String) extends MultipartEntity
+case class FileChunk(bytes: ByteString, contentType: String, name: String) extends MultipartEntity
 
 case class RequestPrelude(
   requestMethod: Method = Method.Get,

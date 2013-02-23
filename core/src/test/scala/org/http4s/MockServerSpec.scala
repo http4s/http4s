@@ -21,7 +21,7 @@ class MockServerSpec extends Specification with NoTimeConversions {
 
   val server = new MockServer(ExampleRoute())
 
-  def response(req: RequestPrelude, body: Enumerator[Raw] = Enumerator.eof): MockServer.Response = {
+  def response(req: RequestPrelude, body: Enumerator[ByteString] = Enumerator.eof): MockServer.Response = {
     Await.result(server(req, body), 5 seconds)
   }
 
