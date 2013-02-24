@@ -6,7 +6,7 @@ import org.http4s._
 import com.typesafe.scalalogging.slf4j.Logging
 import concurrent.Future
 
-object Example extends App with Logging {
+object NettyExample extends App with Logging {
 
   import concurrent.ExecutionContext.Implicits.global
 

@@ -8,7 +8,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 /**
  * @author ross
  */
-object Example extends App {
+object ServletExample extends App {
 
   import concurrent.ExecutionContext.Implicits.global
 
