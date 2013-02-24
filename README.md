@@ -4,8 +4,7 @@
 
 ```sh
 $ cd http4s
-$ sbt '; project examples; run'
-> run
+$ sbt ';project examples ;run'
 ```
 
 ## Contact ##
