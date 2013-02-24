@@ -30,6 +30,14 @@ object ExampleRoute {
         Ok(sum)
       }
 
+    // This makes me ill.
+    case req if req.pathInfo == "/trailer" => text(req) { s => Ok() } flatMap { case _ =>
+      Iteratee.fold[HttpChunk, Responder](BadRequest("no trailer")) {
+        case (responder, trailer: HttpTrailer) => Ok(trailer.headers.length)
+        case (responder, _) => responder
+      }
+    }
+
     case req if req.pathInfo == "/stream" =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>

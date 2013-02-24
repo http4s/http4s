@@ -43,10 +43,12 @@ object BodyParser {
     }
 
   def consumeUpTo[A](consumer: Iteratee[ByteString, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
-    Enumeratee.map[HttpChunk](_.bytes) &>> (for {
-      bytes <- Traversable.takeUpTo[ByteString](limit) &>> consumer
-      tooLargeOrBytes <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(bytes)
-    } yield (tooLargeOrBytes.right.map(f).merge))
+    Enumeratee.takeWhile[HttpChunk](_.isInstanceOf[HttpEntity]) ><>
+      Enumeratee.map[HttpChunk](_.bytes) &>>
+      (for {
+        bytes <- Traversable.takeUpTo[ByteString](limit) &>> consumer
+        tooLargeOrBytes <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(bytes)
+      } yield (tooLargeOrBytes.right.map(f).merge))
 
   // File operations
   def binFile(file: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {

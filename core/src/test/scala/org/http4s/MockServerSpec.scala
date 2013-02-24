@@ -15,6 +15,7 @@ import scala.io.Codec
 import Writable._
 import java.nio.charset.Charset
 import akka.util.ByteString
+import org.http4s.HttpHeaders.RawHeader
 
 class MockServerSpec extends Specification with NoTimeConversions {
   import scala.concurrent.ExecutionContext.Implicits.global
@@ -42,6 +43,15 @@ class MockServerSpec extends Specification with NoTimeConversions {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/sum")
       val body = Enumerator("12345678\n901234567").map[HttpChunk](s => HttpEntity(ByteString(s, req.charset.name)))
       response(req, body).statusLine should_==(Status.RequestEntityTooLarge)
+    }
+
+    "not consume the trailer when parsing the body" in {
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/trailer")
+      val body = Enumerator[HttpChunk](
+        HttpEntity(ByteString("1234567890123456")),
+        HttpTrailer(Headers(RawHeader("Hi", "I'm a trailer")))
+      )
+      response(req, body).statusLine should_==(Status.Ok)
     }
 
     "fall through to not found" in {
