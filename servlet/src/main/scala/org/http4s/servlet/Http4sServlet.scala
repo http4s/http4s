@@ -10,7 +10,9 @@ import javax.servlet.{ServletConfig, AsyncContext}
 import org.http4s.Status.NotFound
 import akka.util.ByteString
 
-class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
+import Http4sServlet._
+
+class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
   private[this] var serverSoftware: ServerSoftware = _
 
   override def init(config: ServletConfig) {
@@ -75,4 +77,8 @@ class Http4sServlet(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     } yield HttpHeaders.RawHeader(name, value)
     Headers(headers.toSeq : _*)
   }
+}
+
+object Http4sServlet {
+  private[servlet] val DefaultChunkSize = Http4sConfig.getInt("org.http4s.servlet.default-chunk-size")
 }
