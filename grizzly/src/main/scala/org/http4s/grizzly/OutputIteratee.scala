@@ -10,7 +10,7 @@ import org.glassfish.grizzly.http.server.io.NIOOutputStream
  * @author Bryce Anderson
  * Created on 2/11/13 at 8:44 AM
  */
-class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit] {
+class OutputIteratee(os: NIOOutputStream)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit] {
 
   private[this] var osFuture: Future[Unit] = Future.successful()
 
@@ -28,39 +28,20 @@ class OutputIteratee(os: NIOOutputStream, chunkSize: Int)(implicit executionCont
     osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter, bytes.length); promise.future }
   }
 
-  // Create a buffer for storing data until its larger than the chunkSize
-  private[this] val buff = new Array[Byte](chunkSize)
-  private[this] var buffSize = 0
-
   // synchronized so that enumerators that work in different threads cant totally mess it up.
   private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = synchronized {
     in match {
-      case Input.Empty => this
-      case Input.EOF =>
-        if (buffSize > 0) {
-          writeBytes(buff.take(buffSize))
-          buffSize = 0
+      case Input.El(chunk) => {
+        chunk match {
+          case HttpEntity(bytes) =>
+            writeBytes(bytes.toArray)
+
+          case _ => sys.error("Griz output Iteratee doesn't support your data type!")
         }
-        Iteratee.flatten(osFuture.map(Done(_)))
-
-      case Input.El(chunk) => chunk match {
-        case HttpEntity(bytes) =>
-          // Do the buffering
-          if (bytes.length + buffSize >= chunkSize) {
-            val tmp = new Array[Byte](bytes.length + buffSize)
-            buff.take(buffSize).copyToArray(tmp)
-            bytes.copyToArray(tmp,buffSize)
-            writeBytes(tmp)
-            buffSize = 0
-          } else {
-            bytes.copyToArray(buff, buffSize)
-            buffSize += bytes.length
-          }
-
-        case _ => sys.error("Griz output Iteratee doesn't support your data type!")
+        this
       }
-
-      this
+      case Input.EOF => Iteratee.flatten(osFuture.map(Done(_)))
+      case Input.Empty => this
     }
   }
 

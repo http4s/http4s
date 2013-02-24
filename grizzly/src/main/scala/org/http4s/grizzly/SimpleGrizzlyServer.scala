@@ -11,8 +11,8 @@ import concurrent.ExecutionContext
  */
 
 object SimpleGrizzlyServer {
-  def apply(port: Int = 8080, serverRoot:String = "/*", chunkSize: Int = 32 * 1024)(route: Route)(implicit executionContext: ExecutionContext = concurrent.ExecutionContext.fromExecutorService(java.util.concurrent.Executors.newCachedThreadPool())) =
-  new SimpleGrizzlyServer(port = port, serverRoot = serverRoot, chunkSize = chunkSize)(Seq(route))
+  def apply(port: Int = 8080, address: String ="0.0.0.0", serverRoot:String = "/*", chunkSize: Int = 32 * 1024)(route: Route)(implicit executionContext: ExecutionContext = concurrent.ExecutionContext.fromExecutorService(java.util.concurrent.Executors.newCachedThreadPool())) =
+  new SimpleGrizzlyServer(port = port, address = address, serverRoot = serverRoot, chunkSize = chunkSize)(Seq(route))
 }
 
 class SimpleGrizzlyServer(port: Int=8080,
