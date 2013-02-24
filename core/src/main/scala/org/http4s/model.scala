@@ -17,15 +17,7 @@ sealed trait HttpChunk {
   def bytes: ByteString
 }
 
-sealed trait HttpBodyChunk extends HttpChunk
-case class HttpEntity(bytes: ByteString) extends HttpBodyChunk
-
-sealed trait MultipartEntity extends HttpBodyChunk {
-  def name: String
-  def contentType: String
-}
-case class MultipartChunk(bytes: ByteString, contentType: String, name: String) extends MultipartEntity
-case class FileChunk(bytes: ByteString, contentType: String, name: String) extends MultipartEntity
+case class HttpEntity(bytes: ByteString) extends HttpChunk
 
 case class RequestPrelude(
   requestMethod: Method = Method.Get,
