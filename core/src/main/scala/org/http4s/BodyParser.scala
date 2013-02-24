@@ -10,11 +10,11 @@ import scala.util.{Success, Try}
 import akka.util.ByteString
 
 object BodyParser {
-  // TODO make configurable
-  val DefaultMaxSize = 2 * 1024 * 1024
+  val DefaultMaxEntitySize = Http4sConfig.getInt("org.http4s.default-max-entity-size")
+
   private val ByteStringConsumer: Iteratee[ByteString, ByteString] = Iteratee.consume[ByteString]()
 
-  def text(request: RequestPrelude, limit: Int = DefaultMaxSize)(f: String => Responder): Iteratee[HttpChunk, Responder] =
+  def text[A](request: RequestPrelude, limit: Int = DefaultMaxEntitySize)(f: String => Responder): Iteratee[HttpChunk, Responder] =
     consumeUpTo(ByteStringConsumer, limit) { bs => f(bs.decodeString(request.charset.name)) }
 
   /**
@@ -29,7 +29,7 @@ object BodyParser {
    * @return a request handler
    */
   def xml(request: RequestPrelude,
-          limit: Int = DefaultMaxSize,
+          limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
           onSaxException: SAXException => Responder = { saxEx => saxEx.printStackTrace(); Status.BadRequest() })
          (f: Elem => Responder): Iteratee[HttpChunk, Responder] =
@@ -43,10 +43,12 @@ object BodyParser {
     }
 
   def consumeUpTo[A](consumer: Iteratee[ByteString, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
-    Enumeratee.map[HttpChunk](_.bytes) &>> (for {
-      bytes <- Traversable.takeUpTo[ByteString](limit) &>> consumer
-      tooLargeOrBytes <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(bytes)
-    } yield (tooLargeOrBytes.right.map(f).merge))
+    Enumeratee.takeWhile[HttpChunk](_.isInstanceOf[HttpEntity]) ><>
+      Enumeratee.map[HttpChunk](_.bytes) &>>
+      (for {
+        bytes <- Traversable.takeUpTo[ByteString](limit) &>> consumer
+        tooLargeOrBytes <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(bytes)
+      } yield (tooLargeOrBytes.right.map(f).merge))
 
   // File operations
   def binFile(file: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {

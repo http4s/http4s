@@ -9,7 +9,7 @@ import akka.util.ByteString
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
 
-  def apply(req: RequestPrelude, enum: Enumerator[ByteString]): Future[Response] = {
+  def apply(req: RequestPrelude, enum: Enumerator[HttpChunk]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) { parser =>
         val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>
@@ -19,7 +19,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
             Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray)
           }
         }
-        (enum &> Enumeratee.map[ByteString]((i => HttpEntity(i)): ByteString => HttpChunk)).run(it)
+        enum.run(it)
       }
     } catch {
       case t: Throwable => Future.successful(onError(t))

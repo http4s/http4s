@@ -9,6 +9,7 @@ import java.io.File
 import java.util.UUID
 import java.nio.charset.Charset
 import akka.util.ByteString
+import com.typesafe.config.{ConfigFactory, Config}
 
 //import spray.http.HttpHeaders.RawHeader
 
@@ -24,6 +25,8 @@ package object http4s {
   trait RouteHandler {
     def route: Route
   }
+
+  protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
 //  /**
 //   * Warms up the spray.http module by triggering the loading of most classes in this package,

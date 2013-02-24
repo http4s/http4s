@@ -4,11 +4,9 @@
 
 ```sh
 $ cd http4s
-$ ./sbt
-> run
+$ sbt ';project examples ;run'
 ```
 
 ## Contact ##
 
-- Ross A. Baker
-- <a href="baker@alumni.indiana.edu">baker@alumni.indiana.edu</a>
+- #http4s on Freenode
