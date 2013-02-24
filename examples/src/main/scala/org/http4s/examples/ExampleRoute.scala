@@ -21,10 +21,16 @@ object ExampleRoute {
       Done(Ok(Enumeratee.passAlong: Enumeratee[HttpChunk, HttpChunk]))
 
     case req if req.pathInfo == "/echo" =>
-      Done(Ok(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}: Enumeratee[HttpChunk, HttpChunk]))
+      Done(Ok(Enumeratee.map[HttpChunk] {
+        case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk
+        case chunk => chunk
+      }))
 
     case req if req.pathInfo == "/echo2" =>
-      Done(Ok(Enumeratee.map[HttpChunk]{case HttpEntity(e) => HttpEntity(e.slice(6, e.length))}: Enumeratee[HttpChunk, HttpChunk]))
+      Done(Ok(Enumeratee.map[HttpChunk] {
+        case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk
+        case chunk => chunk
+      }))
 
     case Post(req) if req.pathInfo == "/sum" =>
       text(req, 16) { s =>
