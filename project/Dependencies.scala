@@ -37,4 +37,6 @@ object Dependencies {
   val ScalaStm = "org.scala-stm" %% "scala-stm" % "0.7"
 
   val ScalazCore = "org.scalaz" %% "scalaz-core" % "7.0.0-M7"
+
+  val TypesafeConfig = "com.typesafe" % "config" % "1.0.0"
 }

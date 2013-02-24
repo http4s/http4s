@@ -17,7 +17,8 @@ libraryDependencies ++= Seq(
   Shapeless,
   Specs2 % "test",
   ParboiledScala,
-  PlayIteratees
+  PlayIteratees,
+  TypesafeConfig
 )
 
 seq(buildInfoSettings:_*)
