@@ -62,6 +62,9 @@ object ExampleRoute {
         Ok(flatBigString)
       }
 
+    case req if req.pathInfo == "/contentChange" =>
+      Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
+
       // Ross wins the challenge
     case req if req.pathInfo == "/challenge" =>
       Iteratee.head[HttpChunk].map {
