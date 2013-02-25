@@ -14,6 +14,7 @@ sealed trait HasHeaders {
 
 sealed trait HttpPrelude extends HasHeaders
 
+// IPC: Do we still need HttpChunk?
 sealed trait HttpChunk {
   def bytes: ByteString
 }
@@ -170,10 +171,9 @@ final class RequestPrelude private(
   }
 
   override def toString: String = {
-    s"RequestPrelude(uuid: ${uuid}, method: $requestMethod, pathInfo: $pathInfo, queryString: $queryString, " +
+    s"RequestPrelude(uuid: $uuid, method: $requestMethod, pathInfo: $pathInfo, queryString: $queryString, " +
     s"pathTranslated: $pathTranslated, protocol: $protocol, urlScheme: $urlScheme, serverName: $serverName, " +
-    s"serverPort: $serverPort, serverSoftware: $serverSoftware, remote: $remote, headers: $headers)"
-//    s"serverPort: $serverPort, serverSoftware: $serverSoftware, remote: $remote, headers: $headers, attributes: $attributes"
+    s"serverPort: $serverPort, serverSoftware: $serverSoftware, remote: $remote, headers: $headers, attributes: ${attributes.toMap}"
   }
 
   override def clone(): AnyRef = copy()

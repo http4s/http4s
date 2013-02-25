@@ -38,9 +38,9 @@ package object http4s {
   implicit object GlobalState extends attributes.ServerContext
 
   implicit def attribute2scoped[T](attributeKey: AttributeKey[T]) = new attributes.ScopableAttributeKey(attributeKey)
-  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
   implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
   implicit def app2scope(routes: RouteHandler) = routes.appScope
+  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
 
   /*
   type RequestRewriter = PartialFunction[Request, Request]
