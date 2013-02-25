@@ -29,27 +29,27 @@ class MockServerSpec extends Specification with NoTimeConversions {
   "A mock server" should {
     "handle matching routes" in {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/echo")
-      val body = Enumerator("one", "two", "three").map[HttpChunk](s => HttpEntity(ByteString(s, req.charset.name)))
+      val body = Enumerator("one", "two", "three").map[HttpChunk](s => BodyChunk(ByteString(s, req.charset.name)))
       new String(response(req, body).body) should_==("onetwothree")
     }
 
     "runs a sum" in {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/sum")
-      val body = Enumerator("1\n", "2\n3", "\n4").map[HttpChunk](s => HttpEntity(ByteString(s, req.charset.name)))
+      val body = Enumerator("1\n", "2\n3", "\n4").map[HttpChunk](s => BodyChunk(ByteString(s, req.charset.name)))
       new String(response(req, body).body) should_==("10")
     }
 
     "runs too large of a sum" in {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/sum")
-      val body = Enumerator("12345678\n901234567").map[HttpChunk](s => HttpEntity(ByteString(s, req.charset.name)))
+      val body = Enumerator("12345678\n901234567").map[HttpChunk](s => BodyChunk(ByteString(s, req.charset.name)))
       response(req, body).statusLine should_==(Status.RequestEntityTooLarge)
     }
 
     "not consume the trailer when parsing the body" in {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/trailer")
       val body = Enumerator[HttpChunk](
-        HttpEntity(ByteString("1234567890123456")),
-        HttpTrailer(Headers(RawHeader("Hi", "I'm a trailer")))
+        BodyChunk(ByteString("1234567890123456")),
+        TrailerChunk(Headers(RawHeader("Hi", "I'm a trailer")))
       )
       response(req, body).statusLine should_==(Status.Ok)
     }
@@ -73,7 +73,7 @@ class MockServerSpec extends Specification with NoTimeConversions {
 
     "Do a Go" in {
       val req = RequestPrelude(pathInfo = "/challenge")
-      val body = Enumerator[HttpChunk](HttpEntity(ByteString("Go and do something", req.charset.name)))
+      val body = Enumerator[HttpChunk](BodyChunk(ByteString("Go and do something", req.charset.name)))
       val returned = response(req, body)
       returned.statusLine should_== Status.Ok
       new String(returned.body) should_== "Go and do something"
@@ -81,7 +81,7 @@ class MockServerSpec extends Specification with NoTimeConversions {
 
     "Do a NoGo" in {
       val req = RequestPrelude(pathInfo = "/challenge")
-      val body = Enumerator[HttpChunk](HttpEntity(ByteString("NoGo and do something", req.charset.name)))
+      val body = Enumerator[HttpChunk](BodyChunk(ByteString("NoGo and do something", req.charset.name)))
       val returned = response(req, body)
       returned.statusLine should_== Status.BadRequest
       new String(returned.body) should_== "Booo!"

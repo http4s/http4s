@@ -20,13 +20,13 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/echo" =>
       Ok(Enumeratee.map[HttpChunk] {
-        case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk
+        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       })
 
     case req if req.pathInfo == "/echo2" =>
       Ok(Enumeratee.map[HttpChunk]{
-        case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk
+        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       })
 
@@ -39,7 +39,7 @@ object ExampleRoute {
     // This makes me ill.
     case req if req.pathInfo == "/trailer" => text(req) { s => Ok() } flatMap { case _ =>
       Iteratee.fold[HttpChunk, Responder](BadRequest("no trailer")) {
-        case (responder, trailer: HttpTrailer) => Ok(trailer.headers.length)
+        case (responder, trailer: TrailerChunk) => Ok(trailer.headers.length)
         case (responder, _) => responder
       }
     }

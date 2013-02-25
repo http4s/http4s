@@ -17,7 +17,7 @@ sealed trait HttpChunk {
   def bytes: ByteString
 }
 
-case class HttpEntity(bytes: ByteString) extends HttpChunk
+case class BodyChunk(bytes: ByteString) extends HttpChunk
 
 case class RequestPrelude(
   requestMethod: Method = Method.Get,
@@ -51,6 +51,7 @@ case class RequestPrelude(
   lazy val remoteUser: Option[String] = None
 }
 case class ResponsePrelude(status: Status, headers: Headers = Headers.empty) extends HttpPrelude
-case class HttpTrailer(headers: Headers) extends HasHeaders with HttpChunk {
+
+case class TrailerChunk(headers: Headers) extends HasHeaders with HttpChunk {
   final val bytes = ByteString.empty
 }

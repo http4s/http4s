@@ -14,7 +14,7 @@ trait SimpleWritable[-A] extends Writable[A] {
   def asByteString(data: A): ByteString
   override def toBody(a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int]) = {
     val bs = asByteString(a)
-    (Writable.sendByteString(HttpEntity(bs)), Some(bs.length))
+    (Writable.sendByteString(BodyChunk(bs)), Some(bs.length))
   }
 }
 
@@ -69,13 +69,13 @@ object Writable {
   implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
   new Writable[Enumerator[A]] {
     def contentType = writable.contentType
-    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => HttpEntity(writable.asByteString(i)) }), None)
+    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => BodyChunk(writable.asByteString(i)) }), None)
   }
 
   implicit def futureWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
   new Writable[Future[A]] {
     def contentType = writable.contentType
-    override def toBody(f: Future[A]) = (sendFuture(f.map{ d => HttpEntity(writable.asByteString(d))}), None)
+    override def toBody(f: Future[A]) = (sendFuture(f.map{ d => BodyChunk(writable.asByteString(d))}), None)
   }
 
 }

@@ -43,7 +43,7 @@ object BodyParser {
     }
 
   def consumeUpTo[A](consumer: Iteratee[ByteString, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
-    Enumeratee.takeWhile[HttpChunk](_.isInstanceOf[HttpEntity]) ><>
+    Enumeratee.takeWhile[HttpChunk](_.isInstanceOf[BodyChunk]) ><>
       Enumeratee.map[HttpChunk](_.bytes) &>>
       (for {
         bytes <- Traversable.takeUpTo[ByteString](limit) &>> consumer

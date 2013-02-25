@@ -74,9 +74,9 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
         val parser = route.lift(request).getOrElse(Done(NotFound(request)))
         val handler = parser flatMap (renderResponse(ctx, req, _))
         Enumerator(req.getContent.toByteBuffers: _*).map[org.http4s.HttpChunk] { bb: ByteBuffer =>
-          org.http4s.HttpEntity(ByteString(bb))
+          org.http4s.BodyChunk(ByteString(bb))
         }.run[Unit](handler)
-//        handler.feed(Input.El(HttpEntity(req.getContent.array()))) flatMap { i => i.feed(Input.EOF)}
+//        handler.feed(Input.El(BodyChunk(req.getContent.array()))) flatMap { i => i.feed(Input.EOF)}
 //        responder onSuccess {
 //          case r =>
 //            renderResponse(ctx, req, r)

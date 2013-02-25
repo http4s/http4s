@@ -22,13 +22,13 @@ object ExampleRoute {
 
     case req if req.pathInfo == "/echo" =>
       Done(Ok(Enumeratee.map[HttpChunk] {
-        case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk
+        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       }))
 
     case req if req.pathInfo == "/echo2" =>
       Done(Ok(Enumeratee.map[HttpChunk] {
-        case HttpEntity(e) => HttpEntity(e.slice(6, e.length)): HttpChunk
+        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       }))
 

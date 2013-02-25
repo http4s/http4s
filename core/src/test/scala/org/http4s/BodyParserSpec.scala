@@ -25,13 +25,13 @@ class BodyParserSpec extends Specification with NoTimeConversions {
     })
 
     "parse the XML" in {
-      val resp = Await.result(server(RequestPrelude(), Enumerator("<html><h1>h1</h1></html>").map(s => HttpEntity(ByteString.apply(s)))), 2 seconds)
+      val resp = Await.result(server(RequestPrelude(), Enumerator("<html><h1>h1</h1></html>").map(s => BodyChunk(ByteString.apply(s)))), 2 seconds)
       resp.statusLine.code must_==(200)
       resp.body must_==("html".getBytes)
     }
 
     "handle a parse failure" in {
-      val resp = Await.result(server(RequestPrelude(), Enumerator("This is not XML.").map(s => HttpEntity(ByteString.apply(s)))), 2 seconds)
+      val resp = Await.result(server(RequestPrelude(), Enumerator("This is not XML.").map(s => BodyChunk(ByteString.apply(s)))), 2 seconds)
       resp.statusLine.code must_==(400)
     }
   }
@@ -55,7 +55,7 @@ class BodyParserSpec extends Specification with NoTimeConversions {
 
     def mocServe(req: RequestPrelude, route: Route) = {
       val server = new MockServer(route)
-      Await.result(server(req, Enumerator(HttpEntity(ByteString(binData)))), 2 seconds)
+      Await.result(server(req, Enumerator(BodyChunk(ByteString(binData)))), 2 seconds)
     }
 
     "Write a text file from a byte string" in {

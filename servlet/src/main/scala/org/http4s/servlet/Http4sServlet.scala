@@ -46,7 +46,7 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)(implicit ex
       })
     }
     Enumerator.fromStream(servletRequest.getInputStream, chunkSize)
-      .map[HttpChunk] { bytes => HttpEntity(ByteString(bytes)) }
+      .map[HttpChunk] { bytes => BodyChunk(ByteString(bytes)) }
       .run(handler)
       .onComplete(_ => ctx.complete())
   }

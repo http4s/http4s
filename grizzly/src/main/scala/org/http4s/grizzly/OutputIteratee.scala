@@ -33,7 +33,7 @@ class OutputIteratee(os: NIOOutputStream)(implicit executionContext: ExecutionCo
     in match {
       case Input.El(chunk) => {
         chunk match {
-          case HttpEntity(bytes) =>
+          case BodyChunk(bytes) =>
             writeBytes(bytes.toArray)
 
           case _ => sys.error("Griz output Iteratee doesn't support your data type!")
