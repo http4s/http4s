@@ -40,17 +40,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
       if (route.isDefinedAt(request)) {
         val parser = route.lift(request).getOrElse(Done(NotFound(request)))
         val handler = parser flatMap (renderResponse(ctx, req, _))
-        Enumerator(req.getContent.toByteBuffers: _*).map[org.http4s.HttpChunk] { bb: ByteBuffer =>
-          org.http4s.BodyChunk(ByteString(bb))
-        }.run[Unit](handler)
-//        handler.feed(Input.El(BodyChunk(req.getContent.array()))) flatMap { i => i.feed(Input.EOF)}
-//        responder onSuccess {
-//          case r =>
-//            renderResponse(ctx, req, r)
-//        }
-//        responder onFailure {
-//          case t => t.printStackTrace()
-//        }
+        Enumerator[org.http4s.HttpChunk](BodyChunk(ByteString(req.getContent.toByteBuffer))).run[Unit](handler)
       } else {
         import org.http4s.HttpVersion
         val res = new http.DefaultHttpResponse(HttpVersion.`Http/1.1`, Status.NotFound)
