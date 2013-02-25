@@ -94,6 +94,7 @@ final class RequestPrelude private(
         serverSoftware,
         remote,
         RequestScope(UUID.randomUUID()))
+  private[this] implicit val _scope = scope
 
   def uuid = scope.uuid
   lazy val contentLength: Option[Long] = headers.get("Content-Length").map(_.value.toLong)
@@ -111,7 +112,7 @@ final class RequestPrelude private(
 
   lazy val remoteUser: Option[String] = None
 
-  val attributes = new AttributesView(scope, GlobalState.forScope(scope))
+  val attributes = new AttributesView(GlobalState.forScope(scope))
 
   /* Attributes proxy */
   def updated[T](key: AttributeKey[T], value: T) = {

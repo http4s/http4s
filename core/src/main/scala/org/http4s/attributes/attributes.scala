@@ -5,12 +5,15 @@ import reflect.ClassTag
 import scala.concurrent.stm._
 import shapeless.TypeOperators._
 import collection._
-import generic.{Shrinkable, Growable, CanBuildFrom}
+import collection.generic.{Shrinkable, Growable, CanBuildFrom}
 import collection.immutable.Map
-import parallel.immutable.ParMap
+import collection.parallel.immutable.ParMap
 import JavaConverters._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
+import attributes.RequestScope
+import attributes.ScopedKey
+import attributes.AppScope
 
 
 trait AttributeKey[@specialized T] {
@@ -152,10 +155,56 @@ class Attributes(store: Map[AttributeKey[_], Any] = Map.empty)
   }
 }
 
-class AttributesView[S <: Scope](scope: S, underlying: ScopedAttributes[S]) {
-  
-  private[this] implicit def k2sk[T](k: AttributeKey[T]) = (k in scope).key
-  def contains[T](key: AttributeKey[T]) = underlying contains key  
+object AttributesView {
+  /** An empty $Coll */
+  def empty = new Attributes(immutable.Map.empty)
+
+  /** A collection of type Attributes that contains given key/value bindings.
+  *  @param elems   the key/value pairs that make up the $coll
+  *  @return        a new Attributes consisting key/value pairs given by `elems`.
+  */
+  def apply[S <: Scope](elems: (AttributeKey[_], Any)*)(implicit scope: S): AttributesView[S] = (newBuilder ++= elems).result
+
+  /** The default builder for Attributes objects.
+  */
+  def newBuilder[S <: Scope](implicit scope: S): mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] = new AttributesViewBuilder[S](mutable.Map.empty)
+
+  class AttributesViewBuilder[S <: Scope](empty: mutable.Map[AttributeKey[_] @@ S, Any])(implicit scope: S) extends mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] {
+   private[this] val coll = empty
+   def +=(elem: (AttributeKey[_], Any)): this.type = {
+     coll += k2sk(elem._1) -> elem._2
+     this
+   }
+
+   def clear() { coll.clear() }
+
+   def result(): AttributesView[S] =
+     new AttributesView[S](new ScopedAttributes[S](scope, TMap(coll.toSeq:_*)))(scope)
+  }
+
+
+  private implicit def k2sk[T, S <: Scope](k: AttributeKey[T])(implicit scope: S) = (k in scope).key
+
+  implicit def canBuildFrom[S <: Scope](implicit scope: S): CanBuildFrom[TraversableOnce[(AttributeKey[_], Any)], (AttributeKey[_], Any), AttributesView[S]] =
+   new CanBuildFrom[TraversableOnce[(AttributeKey[_], Any)], (AttributeKey[_], Any), AttributesView[S]] {
+     def apply(from: TraversableOnce[(AttributeKey[_], Any)]): mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] = {
+       val f = from.toSeq
+       val m: Seq[(AttributeKey[_] @@ S, Any)] = f.map(kv => k2sk(kv._1).asInstanceOf[AttributeKey[_] @@ S] -> kv._2)
+       new AttributesViewBuilder[S](mutable.Map.empty[AttributeKey[_] @@ S, Any] ++= m)
+     }
+
+     def apply(): mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] = new AttributesViewBuilder[S](mutable.Map.empty)
+   }
+}
+
+class AttributesView[S <: Scope](underlying: ScopedAttributes[S])(implicit scope: S) extends Iterable[(AttributeKey[_], Any)] with IterableLike[(AttributeKey[_], Any), AttributesView[S]] {
+
+  import AttributesView.k2sk
+
+  def iterator: Iterator[(AttributeKey[_], Any)] = underlying.toMap.iterator
+
+  override protected[this] def newBuilder: mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] = AttributesView.newBuilder[S]
+  def contains[T](key: AttributeKey[T]) = underlying contains key
     
   def getOrElse[T](key: AttributeKey[T], default: => T) = underlying.getOrElse(key, default)
   
@@ -179,10 +228,6 @@ class AttributesView[S <: Scope](scope: S, underlying: ScopedAttributes[S]) {
 
   def remove[T](key: AttributeKey[T]) = { underlying.remove(key) }
 
-  def size = underlying.size
-
-  def isEmpty = underlying.isEmpty
-
   def +=[T](kv: (AttributeKey[T], T)): this.type = {
     underlying += k2sk(kv._1) -> kv._2
     this
@@ -201,22 +246,51 @@ class AttributesView[S <: Scope](scope: S, underlying: ScopedAttributes[S]) {
 
   def -=[T](key: AttributeKey[T]): this.type = { underlying -= key; this }
   def -=[T](key1: AttributeKey[T], key2: AttributeKey[T], keys: AttributeKey[T]*): this.type = {
-    underlying -= key1 -= key2 --= keys.map(k2sk); this }
+    underlying -= key1 -= key2 --= keys.map(k2sk(_)); this }
 
-  def --=[T](key: TraversableOnce[AttributeKey[T]]): this.type = { underlying --= key.map(k2sk); this }
+  def --=[T](key: TraversableOnce[AttributeKey[T]]): this.type = { underlying --= key.map(k2sk(_)); this }
 
-  def foreach[U](iterator: ((AttributeKey[_], Any)) => U) { underlying.foreach(iterator) }
 
-  def map[B](endo: ((AttributeKey[_], Any)) => B) = underlying.map(endo)
-  def flatMap[B](endo: ((AttributeKey[_], Any)) => GenTraversable[B]) = underlying.flatMap(endo)
+  def toMap: Map[AttributeKey[_], Any] = underlying.toMap
 
-  def collect[B](collector: PartialFunction[(AttributeKey[_], Any), B]) = underlying.collect(collector)
-  def collectFirst[B](collector: PartialFunction[(AttributeKey[_], Any), B]): Option[B] =
-    underlying.collectFirst(collector)
+  /** Collects all keys of this map in an iterable collection.
+   *
+   *  @return the keys of this map as an iterable.
+   */
+  def keys: Iterable[AttributeKey[_]] = underlying.keys
 
-  def clear() { underlying.clear() }
+  /** Collects all values of this map in an iterable collection.
+   *
+   *  @return the values of this map as an iterable.
+   */
+  def values: Iterable[Any] = underlying.values
 
-  def toMap: Map[AttributeKey[_], Any] = underlying.asInstanceOf[Map[AttributeKey[_], Any]]
+  /** Creates an iterator for all keys.
+   *
+   *  @return an iterator over all keys.
+   */
+  def keysIterator: Iterator[AttributeKey[_]] = underlying.keysIterator
+
+  /** Creates an iterator for all values in this map.
+   *
+   *  @return an iterator over all values that are associated with some key in this map.
+   */
+  def valuesIterator: Iterator[Any] = underlying.valuesIterator
+
+  /** Filters this map by retaining only keys satisfying a predicate.
+   *  @param  p   the predicate used to test keys
+   *  @return an immutable map consisting only of those key value pairs of this map where the key satisfies
+   *          the predicate `p`. The resulting map wraps the original map without copying any elements.
+   */
+  def filterKeys(p: AttributeKey[_] => Boolean): AttributesView[S] = new AttributesView[S](underlying.filterKeys(p))
+
+  /** Transforms this map by applying a function to every retrieved value.
+   *  @param  f   the function used to transform values of this map.
+   *  @return a map view which maps every key of this map
+   *          to `f(this(key))`. The resulting map wraps the original map without copying any elements.
+   */
+  def mapValues[C](f: Any => C): AttributesView[S] = new AttributesView[S](underlying.mapValues(f))
+
 }
 
 class ScopedAttributes[S <: Scope](val scope: S, underlying: TMap[AttributeKey[_] @@ S, Any] = TMap.empty[AttributeKey[_] @@ S, Any]) {
@@ -290,6 +364,47 @@ class ScopedAttributes[S <: Scope](val scope: S, underlying: TMap[AttributeKey[_
 
   def toMap: Map[AttributeKey[_], Any] = underlying.snapshot.asInstanceOf[Map[AttributeKey[_], Any]]
 
+  /** Collects all keys of this map in an iterable collection.
+   *
+   *  @return the keys of this map as an iterable.
+   */
+  def keys: Iterable[AttributeKey[_]] = underlying.single.keys
+
+  /** Collects all values of this map in an iterable collection.
+   *
+   *  @return the values of this map as an iterable.
+   */
+  def values: Iterable[Any] = underlying.single.values
+
+  /** Creates an iterator for all keys.
+   *
+   *  @return an iterator over all keys.
+   */
+  def keysIterator: Iterator[AttributeKey[_]] = underlying.single.keysIterator
+
+  /** Creates an iterator for all values in this map.
+   *
+   *  @return an iterator over all values that are associated with some key in this map.
+   */
+  def valuesIterator: Iterator[Any] = underlying.single.valuesIterator
+
+  /** Filters this map by retaining only keys satisfying a predicate.
+   *  @param  p   the predicate used to test keys
+   *  @return an immutable map consisting only of those key value pairs of this map where the key satisfies
+   *          the predicate `p`. The resulting map wraps the original map without copying any elements.
+   */
+  def filterKeys(p: AttributeKey[_] => Boolean): ScopedAttributes[S] =
+    new ScopedAttributes(scope, TMap(underlying.single.filterKeys(p).toSeq:_*))
+
+  /** Transforms this map by applying a function to every retrieved value.
+   *  @param  f   the function used to transform values of this map.
+   *  @return a map view which maps every key of this map
+   *          to `f(this(key))`. The resulting map wraps the original map without copying any elements.
+   */
+  def mapValues[C](f: Any => C): ScopedAttributes[S] = {
+    new ScopedAttributes(scope, TMap(underlying.single.mapValues(f).toSeq:_*))
+  }
+
 }
 
 class ServerContext {
@@ -298,70 +413,21 @@ class ServerContext {
   private[this] val applicationState = new ConcurrentHashMap[UUID, ScopedAttributes[AppScope]]().asScala
   private[this] val requestState = new ConcurrentHashMap[UUID, ScopedAttributes[RequestScope]]().asScala
 
-  def update[T, S <: Scope](key: ScopedKey[T, S], value: T): T = {
-    forScope(key.scope).update(key.key, value)
-//    key match {
-//      case ScopedKey(k, ThisServer) => serverState.update(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type], value)
-//      case ScopedKey(k, s @ AppScope(uuid)) =>
-//        if (!applicationState.contains(uuid))
-//          applicationState(uuid) = new ScopedAttributes[AppScope](s)
-//        applicationState(uuid).update(k.asInstanceOf[AttributeKey[T] @@ AppScope], value)
-//      case ScopedKey(k, s @ RequestScope(uuid)) =>
-//        if (!requestState.contains(uuid))
-//          requestState(uuid) = new ScopedAttributes[RequestScope](s)
-//        requestState(uuid).update(k.asInstanceOf[AttributeKey[T] @@ RequestScope], value)
-//    }
-  }
+  def update[T, S <: Scope](key: ScopedKey[T, S], value: T): T = forScope(key.scope).update(key.key, value)
   def updated[T, S <: Scope](key: ScopedKey[T, S], value: T) = {
     forScope(key.scope).updated(key.key, value)
-//    key match {
-//      case ScopedKey(k, ThisServer) => serverState.updated(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type], value)
-//      case ScopedKey(k, s @ AppScope(uuid)) =>
-//        if (!applicationState.contains(uuid))
-//          applicationState(uuid) = new ScopedAttributes[AppScope](s)
-//        applicationState(uuid).updated(k.asInstanceOf[AttributeKey[T] @@ AppScope], value)
-//      case ScopedKey(k, s @ RequestScope(uuid)) =>
-//        if (!requestState.contains(uuid))
-//          requestState(uuid) = new ScopedAttributes[RequestScope](s)
-//        requestState(uuid).updated(k.asInstanceOf[AttributeKey[T] @@ RequestScope], value)
-//    }
     this
   }
   def apply[T, S <: Scope](key: ScopedKey[T, S]): T = get(key) getOrElse (throw new KeyNotFoundException(key.key.name, key.scope))
-  def get[T, S <: Scope](key: ScopedKey[T, S]): Option[T] = {
-    forScope(key.scope).get(key.key)
-//    key match {
-//      case ScopedKey(k, ThisServer) => serverState.get(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type])
-//      case ScopedKey(k, AppScope(uuid)) => applicationState.get(uuid).flatMap(_ get k.asInstanceOf[AttributeKey[T] @@ AppScope])
-//      case ScopedKey(k, RequestScope(uuid)) => requestState.get(uuid).flatMap(_ get k.asInstanceOf[AttributeKey[T] @@ RequestScope])
-//    }
-  }
+  def get[T, S <: Scope](key: ScopedKey[T, S]): Option[T] = forScope(key.scope).get(key.key)
 
   def -=[T, S <: Scope](elem: ScopedKey[T, S]): ServerContext = {
     forScope(elem.scope) -= elem.key
-//    elem match {
-//      case ScopedKey(k, ThisServer) =>
-//        serverState -= k.asInstanceOf[AttributeKey[T] @@ ThisServer.type]
-//      case ScopedKey(k, AppScope(uuid)) =>
-//        if (applicationState contains uuid) applicationState(uuid) -= k.asInstanceOf[AttributeKey[T] @@ AppScope]
-//      case ScopedKey(k, RequestScope(uuid)) =>
-//        if (requestState contains uuid) requestState(uuid) -= k.asInstanceOf[AttributeKey[T] @@ RequestScope]
-//    }
     this
   }
 
   def +=[T, S <:Scope](elem: (ScopedKey[T, S], T)): ServerContext = {
     forScope(elem._1.scope)(elem._1.key) = elem._2
-//    elem match {
-//      case (ScopedKey(k, ThisServer), v) =>
-//        serverState(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type]) = v
-//      case (ScopedKey(k, s @ AppScope(uuid)), v) =>
-//        if (!applicationState.contains(uuid)) applicationState(uuid) = new ScopedAttributes[AppScope](s)
-//        applicationState(uuid)(k.asInstanceOf[AttributeKey[T] @@ AppScope]) = v
-//      case (ScopedKey(k, s @ RequestScope(uuid)), v) =>
-//        if (!requestState.contains(uuid)) requestState(uuid) = new ScopedAttributes[RequestScope](s)
-//        requestState(uuid)(k.asInstanceOf[AttributeKey[T] @@ RequestScope]) = v
-//    }
     this
   }
 
