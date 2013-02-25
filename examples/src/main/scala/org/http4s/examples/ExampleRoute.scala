@@ -74,9 +74,9 @@ object ExampleRoute {
       // Ross wins the challenge
     case req if req.pathInfo == "/challenge" =>
       Iteratee.head[HttpChunk].map {
-        case Some(bits) if (bits.bytes.decodeString(req.charset.name)).startsWith("Go") =>
-          Ok(Enumeratee.heading(Enumerator(bits)))
-        case Some(bits) if (bits.bytes.decodeString(req.charset.name)).startsWith("NoGo") =>
+        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
+          Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
+        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("No data!")

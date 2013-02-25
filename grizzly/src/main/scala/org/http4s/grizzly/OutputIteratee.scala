@@ -5,12 +5,15 @@ import org.http4s._
 import org.glassfish.grizzly.WriteHandler
 import concurrent.{ExecutionContext, Future, Promise}
 import org.glassfish.grizzly.http.server.io.NIOOutputStream
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author Bryce Anderson
  * Created on 2/11/13 at 8:44 AM
  */
-class OutputIteratee(os: NIOOutputStream)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit] {
+class OutputIteratee(os: NIOOutputStream)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit]
+  with Logging
+{
 
   private[this] var osFuture: Future[Unit] = Future.successful()
 
@@ -31,15 +34,14 @@ class OutputIteratee(os: NIOOutputStream)(implicit executionContext: ExecutionCo
   // synchronized so that enumerators that work in different threads cant totally mess it up.
   private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = synchronized {
     in match {
-      case Input.El(chunk) => {
-        chunk match {
-          case BodyChunk(bytes) =>
-            writeBytes(bytes.toArray)
-
-          case _ => sys.error("Griz output Iteratee doesn't support your data type!")
-        }
+      case Input.El(chunk: BodyChunk) =>
+        writeBytes(chunk.toArray)
         this
-      }
+
+      case Input.El(chunk: TrailerChunk) =>
+        logger.warn("Grizzly backend does not support trailers. Silently dropped.")
+        Done(Input.Empty) // TODO return it as unconsumed?  This applies to all backends.
+
       case Input.EOF => Iteratee.flatten(osFuture.map(Done(_)))
       case Input.Empty => this
     }

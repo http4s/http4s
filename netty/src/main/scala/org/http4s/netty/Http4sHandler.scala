@@ -121,8 +121,15 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
     }
 
     val channelBuffer = ChannelBuffers.dynamicBuffer(8912)
-    val writer: (ChannelBuffer, org.http4s.HttpChunk) => Unit = (c, x) => c.writeBytes(x.bytes.asByteBuffer)
-    val stringIteratee = Iteratee.fold(channelBuffer)((c, e: org.http4s.HttpChunk) => { writer(c, e); c })
+    val writer: (ChannelBuffer, BodyChunk) => Unit = (c, x) => c.writeBytes(x.asByteBuffer)
+    val stringIteratee = Iteratee.fold[org.http4s.HttpChunk, ChannelBuffer](channelBuffer) {
+      case (c, e: BodyChunk) =>
+        writer(c, e)
+        c
+      case (c, e: TrailerChunk) =>
+        logger.warn("Not a chunked response. Trailer ignored.")
+        c
+    }
 
     val p = (responder.body ><> Enumeratee.grouped(stringIteratee) &>> Cont {
       case Input.El(buffer) =>

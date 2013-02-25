@@ -11,8 +11,11 @@ import org.http4s.Status.NotFound
 import akka.util.ByteString
 
 import Http4sServlet._
+import scala.util.logging.Logged
+import com.typesafe.scalalogging.slf4j.Logging
 
-class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet {
+class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
+                   (implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet with Logging {
   private[this] var serverSoftware: ServerSoftware = _
 
   override def init(config: ServletConfig) {
@@ -39,10 +42,13 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)(implicit ex
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)
         servletResponse.addHeader(header.name, header.value)
-      responder.body.transform(Iteratee.foreach { chunk =>
-        val out = servletResponse.getOutputStream
-        out.write(chunk.bytes.toArray)
-        out.flush()
+      responder.body.transform(Iteratee.foreach {
+        case BodyChunk(chunk) =>
+          val out = servletResponse.getOutputStream
+          out.write(chunk.toArray)
+          out.flush()
+        case t: TrailerChunk =>
+          log("The servlet adapter does not implement trailers. Silently ignoring.")
       })
     }
     Enumerator.fromStream(servletRequest.getInputStream, chunkSize)
