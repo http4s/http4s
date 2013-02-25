@@ -152,9 +152,84 @@ class Attributes(store: Map[AttributeKey[_], Any] = Map.empty)
   }
 }
 
+class AttributesView[S <: Scope](scope: S, underlying: ScopedAttributes[S]) {
+  
+  private[this] implicit def k2sk[T](k: AttributeKey[T]) = (k in scope).key
+  def contains[T](key: AttributeKey[T]) = underlying contains key  
+    
+  def getOrElse[T](key: AttributeKey[T], default: => T) = underlying.getOrElse(key, default)
+  
+  def getOrElseUpdate[T](key: AttributeKey[T], default: => T) = underlying.getOrElseUpdate(key, default)
+
+  def get[T](key: AttributeKey[T]): Option[T] = underlying.get(key)
+
+  def apply[T](key: AttributeKey[T]): T = get(key) getOrElse (throw new KeyNotFoundException(key.name, scope))
+
+  def update[T](key:AttributeKey[T], value: T): T = {
+    underlying.update(key, value)
+    value
+  }
+
+  def put[T](key: AttributeKey[T], value: T) = update[T](key, value)
+
+  def updated[T](key: AttributeKey[T], value: T) = {
+    underlying.updated(key, value)
+    this
+  }
+
+  def remove[T](key: AttributeKey[T]) = { underlying.remove(key) }
+
+  def size = underlying.size
+
+  def isEmpty = underlying.isEmpty
+
+  def +=[T](kv: (AttributeKey[T], T)): this.type = {
+    underlying += k2sk(kv._1) -> kv._2
+    this
+  }
+
+  def +=[T](kv1: (AttributeKey[T], T), kv2: (AttributeKey[T]@@S, T), kvs: (AttributeKey[T]@@S, T)*): this.type = {
+    underlying += k2sk(kv1._1) -> kv1._2 += k2sk(kv2._1) -> kv2._2 ++= kvs.map(kk => k2sk(kk._1) -> kk._2)
+    this
+  }
+
+
+  def ++=[T](kv: TraversableOnce[(AttributeKey[T], T)]): this.type = {
+    underlying ++= kv.map(kk => k2sk(kk._1) -> kk._2)
+    this
+  }
+
+  def -=[T](key: AttributeKey[T]): this.type = { underlying -= key; this }
+  def -=[T](key1: AttributeKey[T], key2: AttributeKey[T], keys: AttributeKey[T]*): this.type = {
+    underlying -= key1 -= key2 --= keys.map(k2sk); this }
+
+  def --=[T](key: TraversableOnce[AttributeKey[T]]): this.type = { underlying --= key.map(k2sk); this }
+
+  def foreach[U](iterator: ((AttributeKey[_], Any)) => U) { underlying.foreach(iterator) }
+
+  def map[B](endo: ((AttributeKey[_], Any)) => B) = underlying.map(endo)
+  def flatMap[B](endo: ((AttributeKey[_], Any)) => GenTraversable[B]) = underlying.flatMap(endo)
+
+  def collect[B](collector: PartialFunction[(AttributeKey[_], Any), B]) = underlying.collect(collector)
+  def collectFirst[B](collector: PartialFunction[(AttributeKey[_], Any), B]): Option[B] =
+    underlying.collectFirst(collector)
+
+  def clear() { underlying.clear() }
+
+  def toMap: Map[AttributeKey[_], Any] = underlying.asInstanceOf[Map[AttributeKey[_], Any]]
+}
+
 class ScopedAttributes[S <: Scope](val scope: S, underlying: TMap[AttributeKey[_] @@ S, Any] = TMap.empty[AttributeKey[_] @@ S, Any]) {
 
   def contains[T](key: AttributeKey[T] @@ S) = atomic { implicit txn => underlying.contains(key) }
+  
+  def getOrElse[T](key: AttributeKey[T] @@ S, default: => T) = atomic { implicit txn =>
+    underlying.getOrElse(key, default)
+  }
+  
+  def getOrElseUpdate[T](key: AttributeKey[T] @@ S, default: => T) = atomic { implicit txn =>
+    underlying.getOrElseUpdate(key, default)
+  }
 
   def get[T](key: AttributeKey[T] @@ S): Option[T] = atomic { implicit txn =>
     underlying.get(key) map (_.asInstanceOf[T])
@@ -223,61 +298,70 @@ class ServerContext {
   private[this] val applicationState = new ConcurrentHashMap[UUID, ScopedAttributes[AppScope]]().asScala
   private[this] val requestState = new ConcurrentHashMap[UUID, ScopedAttributes[RequestScope]]().asScala
 
-  def update[T, S <: Scope](key: ScopedKey[T, S], value: T): T = key match {
-    case ScopedKey(k, ThisServer) => serverState.update(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type], value)
-    case ScopedKey(k, s @ AppScope(uuid)) =>
-      if (!applicationState.contains(uuid))
-        applicationState(uuid) = new ScopedAttributes[AppScope](s)
-      applicationState(uuid).update(k.asInstanceOf[AttributeKey[T] @@ AppScope], value)
-    case ScopedKey(k, s @ RequestScope(uuid)) =>
-      if (!requestState.contains(uuid))
-        requestState(uuid) = new ScopedAttributes[RequestScope](s)
-      requestState(uuid).update(k.asInstanceOf[AttributeKey[T] @@ RequestScope], value)
+  def update[T, S <: Scope](key: ScopedKey[T, S], value: T): T = {
+    forScope(key.scope).update(key.key, value)
+//    key match {
+//      case ScopedKey(k, ThisServer) => serverState.update(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type], value)
+//      case ScopedKey(k, s @ AppScope(uuid)) =>
+//        if (!applicationState.contains(uuid))
+//          applicationState(uuid) = new ScopedAttributes[AppScope](s)
+//        applicationState(uuid).update(k.asInstanceOf[AttributeKey[T] @@ AppScope], value)
+//      case ScopedKey(k, s @ RequestScope(uuid)) =>
+//        if (!requestState.contains(uuid))
+//          requestState(uuid) = new ScopedAttributes[RequestScope](s)
+//        requestState(uuid).update(k.asInstanceOf[AttributeKey[T] @@ RequestScope], value)
+//    }
   }
   def updated[T, S <: Scope](key: ScopedKey[T, S], value: T) = {
-    key match {
-      case ScopedKey(k, ThisServer) => serverState.updated(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type], value)
-      case ScopedKey(k, s @ AppScope(uuid)) =>
-        if (!applicationState.contains(uuid))
-          applicationState(uuid) = new ScopedAttributes[AppScope](s)
-        applicationState(uuid).updated(k.asInstanceOf[AttributeKey[T] @@ AppScope], value)
-      case ScopedKey(k, s @ RequestScope(uuid)) =>
-        if (!requestState.contains(uuid))
-          requestState(uuid) = new ScopedAttributes[RequestScope](s)
-        requestState(uuid).updated(k.asInstanceOf[AttributeKey[T] @@ RequestScope], value)
-    }
+    forScope(key.scope).updated(key.key, value)
+//    key match {
+//      case ScopedKey(k, ThisServer) => serverState.updated(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type], value)
+//      case ScopedKey(k, s @ AppScope(uuid)) =>
+//        if (!applicationState.contains(uuid))
+//          applicationState(uuid) = new ScopedAttributes[AppScope](s)
+//        applicationState(uuid).updated(k.asInstanceOf[AttributeKey[T] @@ AppScope], value)
+//      case ScopedKey(k, s @ RequestScope(uuid)) =>
+//        if (!requestState.contains(uuid))
+//          requestState(uuid) = new ScopedAttributes[RequestScope](s)
+//        requestState(uuid).updated(k.asInstanceOf[AttributeKey[T] @@ RequestScope], value)
+//    }
     this
   }
   def apply[T, S <: Scope](key: ScopedKey[T, S]): T = get(key) getOrElse (throw new KeyNotFoundException(key.key.name, key.scope))
-  def get[T, S <: Scope](key: ScopedKey[T, S]): Option[T] = key match {
-    case ScopedKey(k, ThisServer) => serverState.get(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type])
-    case ScopedKey(k, AppScope(uuid)) => applicationState.get(uuid).flatMap(_ get k.asInstanceOf[AttributeKey[T] @@ AppScope])
-    case ScopedKey(k, RequestScope(uuid)) => requestState.get(uuid).flatMap(_ get k.asInstanceOf[AttributeKey[T] @@ RequestScope])
+  def get[T, S <: Scope](key: ScopedKey[T, S]): Option[T] = {
+    forScope(key.scope).get(key.key)
+//    key match {
+//      case ScopedKey(k, ThisServer) => serverState.get(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type])
+//      case ScopedKey(k, AppScope(uuid)) => applicationState.get(uuid).flatMap(_ get k.asInstanceOf[AttributeKey[T] @@ AppScope])
+//      case ScopedKey(k, RequestScope(uuid)) => requestState.get(uuid).flatMap(_ get k.asInstanceOf[AttributeKey[T] @@ RequestScope])
+//    }
   }
 
   def -=[T, S <: Scope](elem: ScopedKey[T, S]): ServerContext = {
-    elem match {
-      case ScopedKey(k, ThisServer) =>
-        serverState -= k.asInstanceOf[AttributeKey[T] @@ ThisServer.type]
-      case ScopedKey(k, AppScope(uuid)) =>
-        if (applicationState contains uuid) applicationState(uuid) -= k.asInstanceOf[AttributeKey[T] @@ AppScope]
-      case ScopedKey(k, RequestScope(uuid)) =>
-        if (requestState contains uuid) requestState(uuid) -= k.asInstanceOf[AttributeKey[T] @@ RequestScope]
-    }
+    forScope(elem.scope) -= elem.key
+//    elem match {
+//      case ScopedKey(k, ThisServer) =>
+//        serverState -= k.asInstanceOf[AttributeKey[T] @@ ThisServer.type]
+//      case ScopedKey(k, AppScope(uuid)) =>
+//        if (applicationState contains uuid) applicationState(uuid) -= k.asInstanceOf[AttributeKey[T] @@ AppScope]
+//      case ScopedKey(k, RequestScope(uuid)) =>
+//        if (requestState contains uuid) requestState(uuid) -= k.asInstanceOf[AttributeKey[T] @@ RequestScope]
+//    }
     this
   }
 
   def +=[T, S <:Scope](elem: (ScopedKey[T, S], T)): ServerContext = {
-    elem match {
-      case (ScopedKey(k, ThisServer), v) =>
-        serverState(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type]) = v
-      case (ScopedKey(k, s @ AppScope(uuid)), v) =>
-        if (!applicationState.contains(uuid)) applicationState(uuid) = new ScopedAttributes[AppScope](s)
-        applicationState(uuid)(k.asInstanceOf[AttributeKey[T] @@ AppScope]) = v
-      case (ScopedKey(k, s @ RequestScope(uuid)), v) =>
-        if (!requestState.contains(uuid)) requestState(uuid) = new ScopedAttributes[RequestScope](s)
-        requestState(uuid)(k.asInstanceOf[AttributeKey[T] @@ RequestScope]) = v
-    }
+    forScope(elem._1.scope)(elem._1.key) = elem._2
+//    elem match {
+//      case (ScopedKey(k, ThisServer), v) =>
+//        serverState(k.asInstanceOf[AttributeKey[T] @@ ThisServer.type]) = v
+//      case (ScopedKey(k, s @ AppScope(uuid)), v) =>
+//        if (!applicationState.contains(uuid)) applicationState(uuid) = new ScopedAttributes[AppScope](s)
+//        applicationState(uuid)(k.asInstanceOf[AttributeKey[T] @@ AppScope]) = v
+//      case (ScopedKey(k, s @ RequestScope(uuid)), v) =>
+//        if (!requestState.contains(uuid)) requestState(uuid) = new ScopedAttributes[RequestScope](s)
+//        requestState(uuid)(k.asInstanceOf[AttributeKey[T] @@ RequestScope]) = v
+//    }
     this
   }
 
@@ -300,3 +384,5 @@ class ServerContext {
       requestState(uuid).asInstanceOf[ScopedAttributes[S]]
   }
 }
+
+

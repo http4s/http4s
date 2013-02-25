@@ -29,7 +29,6 @@ class AttributesMapSpec extends mutable.Specification {
     }
 
     "throw key not found when a key is not found" in {
-
       attrs(taggedNotPresent.key) must throwA[KeyNotFoundException]
     }
 

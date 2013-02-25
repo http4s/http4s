@@ -8,8 +8,5 @@ package object attributes {
   }
 
 
-  implicit def attribute2scoped[T](attributeKey: AttributeKey[T]) = new ScopableAttributeKey(attributeKey)
-  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
-  implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
-  implicit def app2scope(routes: RouteHandler) = routes.appScope
+
 }

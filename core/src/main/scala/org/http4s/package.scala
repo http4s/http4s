@@ -1,7 +1,11 @@
 package org
 
+import http4s.attributes._
 import http4s.attributes.AppScope
+import http4s.attributes.RequestScope
 import http4s.ext.Http4sString
+import http4s.HttpHeaders.RawHeader
+import http4s.parser.HttpParser
 import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
 import scala.language.implicitConversions
 import concurrent.{ExecutionContext, Future}
@@ -25,38 +29,18 @@ package object http4s {
 
   trait RouteHandler {
     implicit val appScope = AppScope()
-    def apply(implicit executionContext: ExecutionContext, serverContext: attributes.ServerContext): Route
+    val attributes = new AttributesView(appScope, GlobalState.forScope(appScope))
+    def apply(implicit executionContext: ExecutionContext): Route
   }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
-//  /**
-//   * Warms up the spray.http module by triggering the loading of most classes in this package,
-//   * so as to increase the speed of the first usage.
-//   */
-//  def warmUp() {
-//    HttpRequest(
-//      headers = List(
-//        RawHeader("Accept", "*/*,text/plain,custom/custom"),
-//        RawHeader("Accept-Charset", "*,UTF-8"),
-//        RawHeader("Accept-Encoding", "gzip,custom"),
-//        RawHeader("Accept-Language", "*,nl-be,custom"),
-//        RawHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
-//        RawHeader("Cache-Control", "no-cache"),
-//        RawHeader("Connection", "close"),
-//        RawHeader("Content-Disposition", "form-data"),
-//        RawHeader("Content-Encoding", "deflate"),
-//        RawHeader("Content-Length", "42"),
-//        RawHeader("Content-Type", "application/json"),
-//        RawHeader("Cookie", "http4s=cool"),
-//        RawHeader("Host", "http4s.org"),
-//        RawHeader("X-Forwarded-For", "1.2.3.4"),
-//        RawHeader("Fancy-Custom-Header", "yeah")
-//      ),
-//      entity = "http4s thanks spray greatly!"
-//    ).parseAll
-//    HttpResponse(status = 200)
-//  }
+  implicit object GlobalState extends attributes.ServerContext
+
+  implicit def attribute2scoped[T](attributeKey: AttributeKey[T]) = new attributes.ScopableAttributeKey(attributeKey)
+  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
+  implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
+  implicit def app2scope(routes: RouteHandler) = routes.appScope
 
   /*
   type RequestRewriter = PartialFunction[Request, Request]

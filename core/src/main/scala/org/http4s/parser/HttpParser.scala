@@ -2,6 +2,8 @@ package org.http4s
 package parser
 
 import org.parboiled.scala._
+import org.http4s.HttpHeaders.RawHeader
+
 /**
  * Parser for all HTTP headers as defined by
  *  [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html]]
@@ -58,4 +60,30 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
 
   def parseContentType(contentType: String): Either[ParseErrorInfo, ContentType] =
     parse(ContentTypeHeaderValue, contentType).left.map(_.withFallbackSummary("Illegal Content-Type"))
+
+  /**
+   * Warms up the spray.http module by triggering the loading of most classes in this package,
+   * so as to increase the speed of the first usage.
+   */
+  def warmUp() {
+    HttpParser.parseHeaders(List(
+      RawHeader("Accept", "*/*,text/plain,custom/custom"),
+      RawHeader("Accept-Charset", "*,UTF-8"),
+      RawHeader("Accept-Encoding", "gzip,custom"),
+      RawHeader("Accept-Language", "*,nl-be,custom"),
+      RawHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
+      RawHeader("Cache-Control", "no-cache"),
+      RawHeader("Connection", "close"),
+      RawHeader("Content-Disposition", "form-data"),
+      RawHeader("Content-Encoding", "deflate"),
+      RawHeader("Content-Length", "42"),
+      RawHeader("Content-Type", "application/json"),
+      RawHeader("Cookie", "http4s=cool"),
+      RawHeader("Host", "http4s.org"),
+      RawHeader("X-Forwarded-For", "1.2.3.4"),
+      RawHeader("Fancy-Custom-Header", "yeah")
+    ))
+
+    QueryParser.parseQueryString("a=b&c=d")
+  }
 }

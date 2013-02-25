@@ -1,6 +1,6 @@
 package org.http4s
 
-import attributes.{AttributeKey, Attributes}
+import attributes.{AttributesView, RequestScope, AttributeKey, Attributes}
 import java.io.File
 import java.net.{URI, InetAddress}
 import java.util.UUID
@@ -33,8 +33,7 @@ object RequestPrelude {
     serverName: String = InetAddress.getLocalHost.getHostName,
     serverPort: Int = 80,
     serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-    remote: InetAddress = InetAddress.getLocalHost,
-    attributes: Attributes = Attributes.empty): RequestPrelude =
+    remote: InetAddress = InetAddress.getLocalHost): RequestPrelude =
     new RequestPrelude(
       requestMethod,
       scriptName,
@@ -47,12 +46,11 @@ object RequestPrelude {
       serverName,
       serverPort,
       serverSoftware,
-      remote,
-      attributes
+      remote
     )
 
-  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, Headers, UrlScheme, String, Int, ServerSoftware, InetAddress, Attributes)] =
-    Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote, request.attributes))
+  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, Headers, UrlScheme, String, Int, ServerSoftware, InetAddress)] =
+    Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
 }
 final class RequestPrelude private(
   val requestMethod: Method,
@@ -67,8 +65,7 @@ final class RequestPrelude private(
   val serverPort: Int,
   val serverSoftware: ServerSoftware,
   val remote: InetAddress,
-  val attributes: Attributes,
-  val uuid: UUID) extends HttpPrelude {
+  scope: RequestScope) extends HttpPrelude {
 
   def this(
       requestMethod: Method = Method.Get,
@@ -82,8 +79,7 @@ final class RequestPrelude private(
       serverName: String = InetAddress.getLocalHost.getHostName,
       serverPort: Int = 80,
       serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-      remote: InetAddress = InetAddress.getLocalHost,
-      attributes: Attributes = Attributes.empty) =
+      remote: InetAddress = InetAddress.getLocalHost) =
       this(
         requestMethod,
         scriptName,
@@ -97,9 +93,9 @@ final class RequestPrelude private(
         serverPort,
         serverSoftware,
         remote,
-        attributes,
-        UUID.randomUUID())
+        RequestScope(UUID.randomUUID()))
 
+  def uuid = scope.uuid
   lazy val contentLength: Option[Long] = headers.get("Content-Length").map(_.value.toLong)
 
   lazy val contentType: Option[ContentType] = headers.get("Content-Type").map(_.asInstanceOf[ContentType])
@@ -115,13 +111,25 @@ final class RequestPrelude private(
 
   lazy val remoteUser: Option[String] = None
 
+  val attributes = new AttributesView(scope, GlobalState.forScope(scope))
+
   /* Attributes proxy */
-  def updated[T](key: AttributeKey[T], value: T) = copy(attributes = attributes.updated(key, value))
+  def updated[T](key: AttributeKey[T], value: T) = {
+    attributes.updated(key, value)
+    this
+  }
   def apply[T](key: AttributeKey[T]): T = attributes(key)
   def get[T](key: AttributeKey[T]): Option[T] = attributes get key
   def getOrElse[T](key: AttributeKey[T], default: => T) = attributes.getOrElse(key, default)
-  def +[T](kv: (AttributeKey[T], T)) = copy(attributes = attributes + kv)
-  def -[T](key: AttributeKey[T]) = copy(attributes = attributes - key)
+  def +[T](kv: (AttributeKey[T], T)) = {
+    attributes += kv
+    this
+  }
+
+  def -[T](key: AttributeKey[T]) = {
+    attributes -= key
+    this
+  }
   def contains[T](key: AttributeKey[T]): Boolean = attributes contains key
   /* Attributes proxy end */
 
@@ -137,8 +145,7 @@ final class RequestPrelude private(
       serverName: String = serverName,
       serverPort: Int = serverPort,
       serverSoftware: ServerSoftware =serverSoftware,
-      remote: InetAddress = remote,
-      attributes: Attributes = attributes): RequestPrelude =
+      remote: InetAddress = remote): RequestPrelude =
       new RequestPrelude(
         requestMethod,
         scriptName,
@@ -152,11 +159,9 @@ final class RequestPrelude private(
         serverPort,
         serverSoftware,
         remote,
-        attributes,
-        uuid
-      )
+        scope)
 
-  override def hashCode(): Int = uuid.##
+  override def hashCode(): Int = scope.uuid.##
 
   override def equals(obj: Any): Boolean = obj match {
     case req: RequestPrelude => req.uuid == uuid
@@ -164,9 +169,10 @@ final class RequestPrelude private(
   }
 
   override def toString: String = {
-    s"RequestPrelude(uuid: $uuid, method: $requestMethod, pathInfo: $pathInfo, queryString: $queryString, " +
+    s"RequestPrelude(uuid: ${uuid}, method: $requestMethod, pathInfo: $pathInfo, queryString: $queryString, " +
     s"pathTranslated: $pathTranslated, protocol: $protocol, urlScheme: $urlScheme, serverName: $serverName, " +
-    s"serverPort: $serverPort, serverSoftware: $serverSoftware, remote: $remote, headers: $headers, attributes: $attributes"
+    s"serverPort: $serverPort, serverSoftware: $serverSoftware, remote: $remote, headers: $headers)"
+//    s"serverPort: $serverPort, serverSoftware: $serverSoftware, remote: $remote, headers: $headers, attributes: $attributes"
   }
 
   override def clone(): AnyRef = copy()

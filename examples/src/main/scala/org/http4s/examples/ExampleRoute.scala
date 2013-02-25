@@ -16,7 +16,7 @@ object ExampleRoute extends RouteHandler {
 
   object myVar extends Key[String]()
 
-  def apply(implicit executor: ExecutionContext = ExecutionContext.global, serverContext: ServerContext = new ServerContext): Route = {
+  def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>
       Done(Ok("pong"))
 
