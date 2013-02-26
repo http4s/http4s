@@ -2,14 +2,15 @@ package org.http4s
 package attributes
 
 import scala.language.implicitConversions
+import scala.Ordering
+import java.util.UUID
 
 object Scope {
-  implicit def req2scope(req: RequestPrelude) = ThisRequest(req)
-  implicit def routeHandler2Scope(handler: RouteHandler) = ThisApp(handler)
 
   implicit object ScopeOrdering extends Ordering[Scope] {
     def compare(x: Scope, y: Scope): Int = -(x.rank compare y.rank)
   }
+
 }
 
 sealed trait Scope extends Ordered[Scope] {
@@ -18,15 +19,13 @@ sealed trait Scope extends Ordered[Scope] {
   def compare(that: Scope) = -(rank compare that.rank)
 }
 
-sealed trait AppScope extends Scope
-object ThisServer extends AppScope {
+object ThisServer extends Scope {
   val rank = 0
 }
-case class ThisApp(route: RouteHandler) extends AppScope {
+case class AppScope(uuid: UUID = UUID.randomUUID()) extends Scope {
   val rank = 100
 }
 
-sealed trait RequestScope extends Scope
-case class ThisRequest(request: RequestPrelude) extends RequestScope {
+case class RequestScope(uuid: UUID) extends Scope {
   val rank = 1000
 }

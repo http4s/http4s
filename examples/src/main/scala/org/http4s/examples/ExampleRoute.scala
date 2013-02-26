@@ -1,17 +1,20 @@
 package org.http4s
 
+import attributes.{Key, ServerContext}
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import org.http4s.Method.Post
 import akka.util.ByteString
 
-object ExampleRoute {
+object ExampleRoute extends RouteHandler {
   import Status._
   import Writable._
   import BodyParser._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
+
+  object myVar extends Key[String]()
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case req if req.pathInfo == "/ping" =>

@@ -2,23 +2,20 @@ package org.http4s
 package attributes
 
 import org.specs2.mutable.Specification
-import concurrent.Future
+import concurrent.{ExecutionContext, Future}
 import play.api.libs.iteratee.{Input, Error, Enumerator}
+import java.util.UUID
 
 
 class ScopeSpec extends Specification {
 
-  val h = new RouteHandler {
-    def route: _root_.org.http4s.Route = {
-      case x => Error("not used", Input.Empty)
-    }
-  }
-  val req = RequestPrelude()
 
   "A list of scopes" should {
     "sort from high to low ranking" in {
-      val nw = List(ThisApp(h), ThisServer, ThisRequest(req)).sorted
-      nw must_== List(ThisRequest(req), ThisApp(h), ThisServer)
+      val appid = UUID.randomUUID()
+      val reqid = UUID.randomUUID()
+      val nw = List(AppScope(appid), ThisServer, RequestScope(reqid)).sorted
+      nw must_== List(RequestScope(reqid), AppScope(appid), ThisServer)
     }
   }
 }

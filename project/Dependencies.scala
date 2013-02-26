@@ -39,4 +39,6 @@ object Dependencies {
   val ScalazCore = "org.scalaz" %% "scalaz-core" % "7.0.0-M7"
 
   val TypesafeConfig = "com.typesafe" % "config" % "1.0.0"
+
+  val AtmosphereRuntime = "org.atmosphere" % "atmosphere-runtime" % "1.0.11"
 }

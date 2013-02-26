@@ -1,15 +1,15 @@
 package org.http4s
 
+import java.util.concurrent.atomic.AtomicReference
+
 
 private[http4s] trait ObjectRegistry[K, V] {
-  private[this] var registry = Map.empty[K, V]
-  private[this] val lock: AnyRef = new Object
+  private[this] val registry = new AtomicReference(Map.empty[K, V])
+
+  final def register(key: K, obj: V) =
+    registry.set(registry.get.updated(key, obj))
 
 
-  final def register(key: K, obj: V) = lock.synchronized {
-    registry = registry.updated(key, obj)
-  }
-
-  def getForKey(key: K): Option[V] = registry.get(key)
+  def getForKey(key: K): Option[V] = registry.get.get(key)
 }
 

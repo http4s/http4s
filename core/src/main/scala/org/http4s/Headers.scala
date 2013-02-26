@@ -20,10 +20,10 @@ class Headers private(headers: Seq[HttpHeader])
   def apply(name: String): HttpHeader = get(name).get
 
   def get(name: String): Option[HttpHeader] =
-    find(_ is name.toLowerCase) map (HttpParser.parseHeader) flatMap (_.right.toOption)
+    find(_ is name.toLowerCase) map (_.parsed)
 
   def getAll(name: String): Seq[HttpHeader] =
-    (filter(_ is name.toLowerCase) map HttpParser.parseHeader flatMap (_.right.toOption))
+    (filter(_ is name.toLowerCase) map (_.parsed))
 }
 
 object Headers {
@@ -62,6 +62,8 @@ abstract class HttpHeader {
   def is(nameInLowerCase: String): Boolean = lowercaseName == nameInLowerCase
   def isNot(nameInLowerCase: String): Boolean = lowercaseName != nameInLowerCase
   override def toString = name + ": " + value
+
+  lazy val parsed = this
 }
 
 object HttpHeader {
@@ -212,5 +214,6 @@ object HttpHeaders {
 
   case class RawHeader(name: String, value: String) extends HttpHeader {
     val lowercaseName = name.toLowerCase
+    override lazy val parsed: HttpHeader = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 }
