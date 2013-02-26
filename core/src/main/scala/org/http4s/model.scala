@@ -30,6 +30,7 @@ object RequestPrelude {
     pathTranslated: Option[File] = None,
     protocol: ServerProtocol = HttpVersion.`Http/1.1`,
     headers: Headers = Headers.empty,
+    cookies: RequestCookieJar = RequestCookieJar.empty,
     urlScheme: UrlScheme = UrlScheme.Http,
     serverName: String = InetAddress.getLocalHost.getHostName,
     serverPort: Int = 80,
@@ -61,6 +62,7 @@ final class RequestPrelude private(
   val pathTranslated: Option[File],
   val protocol: ServerProtocol,
   val headers: Headers,
+  val cookies: RequestCookieJar,
   val urlScheme: UrlScheme,
   val serverName: String,
   val serverPort: Int,
@@ -89,6 +91,7 @@ final class RequestPrelude private(
         pathTranslated,
         protocol,
         headers,
+        RequestCookieJar(headers.getAll("Cookie").collect({case c: HttpCookie => c}):_*), // TODO: Actually make work properly
         urlScheme,
         serverName,
         serverPort,
@@ -156,6 +159,7 @@ final class RequestPrelude private(
         pathTranslated,
         protocol,
         headers,
+        RequestCookieJar(Nil), // TODO: Implement reading the new headers here
         urlScheme,
         serverName,
         serverPort,
