@@ -33,7 +33,7 @@ object RequestCookieJar {
   
 }
 class RequestCookieJar(headers: Seq[HttpCookie]) extends Iterable[HttpCookie] with IterableLike[HttpCookie, RequestCookieJar] {
-  
+  override protected[this] def newBuilder: mutable.Builder[HttpCookie, RequestCookieJar] = RequestCookieJar.newBuilder
   def iterator: Iterator[HttpCookie] = headers.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
   
@@ -85,8 +85,8 @@ class RequestCookieJar(headers: Seq[HttpCookie]) extends Iterable[HttpCookie] wi
   def filterKeys(p: String => Boolean): RequestCookieJar = new RequestCookieJar(headers.filter(c => p(c.name)))
 
   /* Overridden for efficiency. */
-  override def toSeq: Seq[(String, Any)] = toBuffer[(String, Any)]
-  override def toBuffer[C >: (String, Any)]: mutable.Buffer[C] = {
+  override def toSeq: Seq[HttpCookie] = headers
+  override def toBuffer[C >: HttpCookie]: mutable.Buffer[C] = {
     val result = new mutable.ArrayBuffer[C](size)
     copyToBuffer(result)
     result

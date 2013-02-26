@@ -53,6 +53,9 @@ object RequestPrelude {
 
   def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, Headers, UrlScheme, String, Int, ServerSoftware, InetAddress)] =
     Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
+
+  private def cookiesFromHeaders(h: Headers) =
+      h.getAll("Cookie").collect({case c: HttpHeaders.Cookie => c.cookies}).flatten.distinct
 }
 final class RequestPrelude private(
   val requestMethod: Method,
@@ -91,7 +94,7 @@ final class RequestPrelude private(
         pathTranslated,
         protocol,
         headers,
-        RequestCookieJar(headers.getAll("Cookie").collect({case c: HttpCookie => c}):_*), // TODO: Actually make work properly
+        RequestCookieJar(RequestPrelude.cookiesFromHeaders(headers):_*),
         urlScheme,
         serverName,
         serverPort,
@@ -100,10 +103,12 @@ final class RequestPrelude private(
         RequestScope(UUID.randomUUID()))
   private[this] implicit val _scope = scope
 
-  def uuid = scope.uuid
-  lazy val contentLength: Option[Long] = headers.get("Content-Length").map(_.value.toLong)
 
-  lazy val contentType: Option[ContentType] = headers.get("Content-Type").map(_.asInstanceOf[ContentType])
+
+  def uuid = scope.uuid
+  lazy val contentLength: Option[Int] = headers.get("Content-Length").collectFirst({case c: HttpHeaders.`Content-Length` => c.length})
+
+  lazy val contentType: Option[ContentType] = headers.get("Content-Type").collectFirst({case c: HttpHeaders.`Content-Type` => c.contentType })
 
   lazy val charset: Charset = contentType.map(_.charset.nioCharset) getOrElse Charset.defaultCharset()
 
@@ -159,7 +164,7 @@ final class RequestPrelude private(
         pathTranslated,
         protocol,
         headers,
-        RequestCookieJar(Nil), // TODO: Implement reading the new headers here
+        if (headers != this.headers) RequestCookieJar(RequestPrelude.cookiesFromHeaders(headers):_*) else cookies,
         urlScheme,
         serverName,
         serverPort,

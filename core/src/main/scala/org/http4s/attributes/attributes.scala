@@ -11,9 +11,6 @@ import collection.parallel.immutable.ParMap
 import JavaConverters._
 import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
-import attributes.RequestScope
-import attributes.ScopedKey
-import attributes.AppScope
 
 
 trait AttributeKey[@specialized T] {
