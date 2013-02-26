@@ -31,6 +31,7 @@ package object http4s {
     implicit val appScope = AppScope()
     val attributes = new AttributesView(GlobalState.forScope(appScope))
     def apply(implicit executionContext: ExecutionContext): Route
+
   }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()

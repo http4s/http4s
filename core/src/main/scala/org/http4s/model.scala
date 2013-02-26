@@ -5,7 +5,7 @@ import java.io.File
 import java.net.{URI, InetAddress}
 import java.nio.charset.Charset
 import java.util.UUID
-import akka.util.{ByteIterator, ByteStringBuilder, ByteString}
+import akka.util.{CompactByteString, ByteIterator, ByteStringBuilder, ByteString}
 import collection.{mutable, IndexedSeqLike, IndexedSeqOptimized}
 import scala.collection.generic.CanBuildFrom
 import java.nio.ByteBuffer
@@ -58,6 +58,23 @@ case class BodyChunk(bytes: ByteString) extends HttpChunk
 
 object BodyChunk {
   type Builder = mutable.Builder[Byte, BodyChunk]
+
+  def apply(bytes: Array[Byte]): BodyChunk = BodyChunk(ByteString(bytes))
+
+  def apply(bytes: Byte*): BodyChunk = BodyChunk(ByteString(bytes: _*))
+
+  def apply[T](bytes: T*)(implicit num: Integral[T]): BodyChunk = BodyChunk(ByteString(bytes: _*)(num))
+
+  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes)
+
+  def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
+
+  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(ByteString(string, charset.name))
+
+  def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk =
+    BodyChunk(ByteString.fromArray(array, offset, length))
+
+  val Empty: BodyChunk = BodyChunk(ByteString.empty)
 
   private def newBuilder: Builder = (new ByteStringBuilder).mapResult(BodyChunk(_))
 

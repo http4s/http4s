@@ -37,7 +37,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
         def push() = {
           while(is.available() > 0 && (!canceled)) {
             val readBytes = is.read(bytes,0,chunkSize)
-            channel.push(BodyChunk(ByteString(bytes.take(readBytes))))
+            channel.push(BodyChunk.fromArray(bytes, 0, readBytes))
           }
         }
         is.notifyAvailable( new ReadHandler { self =>
