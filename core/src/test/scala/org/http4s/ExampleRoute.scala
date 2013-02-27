@@ -4,7 +4,6 @@ import attributes._
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
-import org.http4s.Method.Post
 import akka.util.ByteString
 
 object ExampleRoute extends RouteHandler {
@@ -15,39 +14,39 @@ object ExampleRoute extends RouteHandler {
   object myVar extends Key[String]
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
-    case req if req.pathInfo == "/ping" =>
+    case Get(Root / "ping") =>
       Ok("pong")
 
-    case Post(req) if req.pathInfo == "/echo" =>
+    case Post(Root / "echo") =>
       Ok(Enumeratee.passAlong[HttpChunk])
 
-    case req if req.pathInfo == "/echo" =>
+    case Get(Root / "echo")  =>
       Ok(Enumeratee.map[HttpChunk] {
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       })
 
-    case req if req.pathInfo == "/echo2" =>
+    case Get(Root / "echo2") =>
       Ok(Enumeratee.map[HttpChunk]{
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       })
 
-    case Post(req) if req.pathInfo == "/sum" =>
+    case req @ Post(Root / "sum")  =>
       text(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
     // This makes me ill.
-    case req if req.pathInfo == "/trailer" => text(req) { s => Ok() } flatMap { case _ =>
+    case req @ Post(Root / "trailer") => text(req) { s => Ok() } flatMap { case _ =>
       Iteratee.fold[HttpChunk, Responder](BadRequest("no trailer")) {
         case (responder, trailer: TrailerChunk) => Ok(trailer.headers.length)
         case (responder, _) => responder
       }
     }
 
-    case req if req.pathInfo == "/stream" =>
+    case req @ Get(Root / "stream") =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
@@ -57,17 +56,17 @@ object ExampleRoute extends RouteHandler {
           channel.eofAndEnd()
       }))
 
-    case req if req.pathInfo == "/bigstring" =>
+    case Get(Root / "bigstring") =>
       val builder = new StringBuilder(20*1028)
       Ok((0 until 1000) map { i => s"This is string number $i" })
 
-    case req if req.pathInfo == "/future" =>
+    case Get(Root / "future") =>
       Done{
         Ok(Future("Hello from the future!"))
       }
 
       // Ross wins the challenge
-    case req if req.pathInfo == "/challenge" =>
+    case req @ Get(Root / "challenge") =>
       Iteratee.head[HttpChunk].map {
         case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
           Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
