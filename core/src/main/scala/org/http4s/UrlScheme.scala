@@ -1,12 +1,13 @@
 package org.http4s
 
-sealed trait UrlScheme
+trait UrlScheme // IPC: added a non-sealed base trait because there are other schemes out there
+sealed trait HttpUrlScheme extends UrlScheme
 
-object UrlScheme {
-  case object Http extends UrlScheme
-  case object Https extends UrlScheme
+object HttpUrlScheme {
+  case object Http extends HttpUrlScheme
+  case object Https extends HttpUrlScheme
 
-  def apply(name: String) = name match {
+  def apply(name: String): HttpUrlScheme = name match {
     case "http" => Http
     case "https" => Https
   }

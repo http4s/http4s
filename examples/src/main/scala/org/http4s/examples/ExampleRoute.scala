@@ -4,7 +4,6 @@ import attributes.{Key, ServerContext}
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
-import org.http4s.Method.Post
 import akka.util.ByteString
 
 object ExampleRoute extends RouteHandler {
@@ -17,32 +16,31 @@ object ExampleRoute extends RouteHandler {
   object myVar extends Key[String]()
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
-    case req if req.pathInfo == "/ping" =>
+    case Get(Root / "ping") =>
       Done(Ok("pong"))
 
-    case Post(req) if req.pathInfo == "/echo" =>
+    case Post(Root / "echo")  =>
       Done(Ok(Enumeratee.passAlong: Enumeratee[HttpChunk, HttpChunk]))
 
-    case req if req.pathInfo == "/echo" =>
+    case Get(Root / "echo") =>
       Done(Ok(Enumeratee.map[HttpChunk] {
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       }))
 
-    case req if req.pathInfo == "/echo2" =>
+    case Get(Root / "echo2") =>
       Done(Ok(Enumeratee.map[HttpChunk] {
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       }))
 
-    case Post(req) if req.pathInfo == "/sum" =>
+    case req @ Post(Root / "sum") =>
       text(req, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
-    case req if req.pathInfo == "/stream" =>
-      // Things like this need cleaning up badly.
+    case req @ Get(Root / "stream") =>
       val resp = Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
@@ -55,31 +53,31 @@ object ExampleRoute extends RouteHandler {
         HttpHeaders.`Transfer-Encoding`(HttpEncodings.chunked)
       )))
 
-    case req if req.pathInfo == "/bigstring" =>
+    case Get(Root / "bigstring") =>
       Done{
         Ok((0 until 1000) map { i => s"This is string number $i" })
       }
 
-    case req if req.pathInfo == "/future" =>
+    case Get(Root / "future") =>
       Done{
         Ok(Future("Hello from the future!"))
       }
 
-    case req if req.pathInfo == "/bigstring2" =>
+    case req @ Get(Root / "bigstring2") =>
       Done{
         Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.name) }: _*))
       }
 
-    case req if req.pathInfo == "/bigstring3" =>
+    case req @ Get(Root / "bigstring3") =>
       Done{
         Ok(flatBigString)
       }
 
-    case req if req.pathInfo == "/contentChange" =>
+    case Get(Root / "contentChange") =>
       Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
 
       // Ross wins the challenge
-    case req if req.pathInfo == "/challenge" =>
+    case req @ Get(Root / "challenge") =>
       Iteratee.head[HttpChunk].map {
         case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
           Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
@@ -89,7 +87,7 @@ object ExampleRoute extends RouteHandler {
           BadRequest("No data!")
       }
 
-    case req if req.pathInfo == "/fail" =>
+    case req @ Get(Root / "fail") =>
       sys.error("FAIL")
   }
 }
