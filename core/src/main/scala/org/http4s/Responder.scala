@@ -4,16 +4,56 @@ package org.http4s
 import play.api.libs.iteratee._
 import java.net.{URL, URI}
 import reflect.ClassTag
+import util.DateTime
+
 
 case class Responder(
   prelude: ResponsePrelude,
   body: ResponderBody = Responder.EmptyBody
-)
+) {
+  def contentType: Option[ContentType] =  Responder.getContentType(this)
+  def contentType(contentType: ContentType) = Responder.setContentType(this, contentType)
+  def addCookie(cookie: HttpCookie) = Responder.addCookie(this, cookie)
+  def removeCookie(cookie: HttpCookie) = Responder.removeCookie(this, cookie)
+  def status = Responder.getStatus(this)
+  def status[T <% Status](status: T) = Responder.setStatus(this, status)
+}
 
 object Responder {
   val EmptyBody: Enumeratee[HttpChunk, HttpChunk] = Enumeratee.heading(Enumerator.eof)
 
   implicit def responder2Handler(responder: Responder): Iteratee[HttpChunk, Responder] = Done(responder)
+
+  import shapeless._
+  import Lens._
+  import Nat._
+
+  implicit val responsePreludeIso = Iso.hlist(ResponsePrelude.apply _, ResponsePrelude.unapply _)
+  implicit val statusIso = Iso.hlist(Status.apply(_: Int, _: String), Status.unapply _)
+  implicit val responderIso = Iso.hlist(Responder.apply _, Responder.unapply _)
+
+  val headersLens = Lens[Responder] >> _0 >> _1
+  val statusLens = Lens[Responder] >> _0 >> _0
+
+  def addCookie(responder: Responder, cookie: HttpCookie) = {
+    headersLens.modify(responder)(_ :+ HttpHeaders.`Set-Cookie`(cookie))
+  }
+
+  def removeCookie(responder: Responder, cookie: HttpCookie) = {
+    headersLens.modify(responder)(_ :+ HttpHeaders.`Set-Cookie`(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
+  }
+
+  def setContentType(responder: Responder, contentType: ContentType) = {
+    headersLens.modify(responder)(_ :+ HttpHeaders.`Content-Type`(contentType))
+  }
+
+  def getContentType(responder: Responder): Option[ContentType] =
+    (headersLens.get(responder).get("Content-Type").map(_.parsed) collect {
+      case HttpHeaders.`Content-Type`(contentType) => contentType
+    })
+
+  def getStatus(responder: Responder) = statusLens.get(responder)
+  def setStatus(responder: Responder, status: Status) = statusLens.set(responder)(status)
 }
 
 case class Status(code: Int, reason: String) extends Ordered[Status] {
@@ -155,4 +195,7 @@ object Status {
 
   def apply(code: Int): Status =
     Status(code, ReasonMap.getOrElse(code, ""))
+
+  implicit def int2statusCode(i: Int): Status = apply(i)
+  implicit def tuple2statusCode(tup: (Int, String)) = apply(tup._1, tup._2)
 }
