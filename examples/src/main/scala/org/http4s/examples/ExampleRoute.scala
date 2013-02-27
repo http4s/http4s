@@ -42,14 +42,18 @@ object ExampleRoute extends RouteHandler {
       }
 
     case req if req.pathInfo == "/stream" =>
-      Done(Ok(Concurrent.unicast[ByteString]({
+      // Things like this need cleaning up badly.
+      val resp = Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
             channel.push(ByteString("%d\n".format(i), req.charset.name))
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
-      })))
+      }))
+      resp.copy( prelude = resp.prelude.copy( headers = Headers(
+        HttpHeaders.`Transfer-Encoding`(HttpEncodings.chunked)
+      )))
 
     case req if req.pathInfo == "/bigstring" =>
       Done{

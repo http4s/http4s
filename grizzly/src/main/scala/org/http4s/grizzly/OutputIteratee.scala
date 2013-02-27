@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @author Bryce Anderson
  * Created on 2/11/13 at 8:44 AM
  */
-class OutputIteratee(os: NIOOutputStream)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit]
+class OutputIteratee(os: NIOOutputStream, isChunked: Boolean)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit]
   with Logging
 {
 
@@ -25,7 +25,7 @@ class OutputIteratee(os: NIOOutputStream)(implicit executionContext: ExecutionCo
         promise.failure(t)
         sys.error(s"Error on write listener: ${t.getStackTraceString}")
       }
-      override def onWritePossible() = promise.success{os.write(bytes); os.flush() }
+      override def onWritePossible() = promise.success{os.write(bytes); if(isChunked) os.flush() }
     }
 
     osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter, bytes.length); promise.future }

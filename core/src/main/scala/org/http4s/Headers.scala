@@ -198,6 +198,12 @@ object HttpHeaders {
     def value = cookie.value
   }
 
+  case class `Transfer-Encoding`(coding: HttpEncoding) extends HttpHeader {
+    def name = "Transfer-Encoding"
+    def lowercaseName = "transfer-encoding"
+    def value = coding.value
+  }
+
   object `WWW-Authenticate` { def apply(first: HttpChallenge, more: HttpChallenge*): `WWW-Authenticate` = apply(first +: more) }
   case class `WWW-Authenticate`(challenges: Seq[HttpChallenge]) extends HttpHeader {
     def name = "WWW-Authenticate"

@@ -42,11 +42,12 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)
         servletResponse.addHeader(header.name, header.value)
+      val isChunked = responder.prelude.headers.get("Transfer-Encoding").map(_.value == "chunked").getOrElse(false)
       responder.body.transform(Iteratee.foreach {
         case BodyChunk(chunk) =>
           val out = servletResponse.getOutputStream
           out.write(chunk.toArray)
-          out.flush()
+          if(isChunked) out.flush()
         case t: TrailerChunk =>
           log("The servlet adapter does not implement trailers. Silently ignoring.")
       })
