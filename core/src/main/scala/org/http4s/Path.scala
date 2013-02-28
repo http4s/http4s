@@ -1,3 +1,9 @@
+/*
+ * Derived from Twitter Finagle.
+ *
+ * Original source:
+ * https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/main/scala/com/twitter/finagle/http/path/Path.scala
+ */
 package org.http4s
 
 import scala.util.control.Exception.catching
