@@ -50,7 +50,7 @@ object ExampleRoute extends RouteHandler {
       Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
-            channel.push(ByteString("%d\n".format(i), req.charset.name))
+            channel.push(ByteString("%d\n".format(i), req.charset.value))
             Thread.sleep(1000)
           }
           channel.eofAndEnd()

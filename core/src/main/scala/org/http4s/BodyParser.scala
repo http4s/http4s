@@ -36,7 +36,7 @@ object BodyParser {
     consumeUpTo(BodyChunkConsumer, limit) { bytes =>
       val in = bytes.iterator.asInputStream
       val source = new InputSource(in)
-      source.setEncoding(request.charset.name)
+      source.setEncoding(request.charset.value)
       Try(XML.loadXML(source, parser)).map(f).recover {
         case e: SAXException => onSaxException(e)
       }.get

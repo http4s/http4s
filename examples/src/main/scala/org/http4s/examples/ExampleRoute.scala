@@ -44,7 +44,7 @@ object ExampleRoute extends RouteHandler {
       Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
-            channel.push(ByteString("%d\n".format(i), req.charset.name))
+            channel.push(ByteString("%d\n".format(i), req.charset.value))
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
@@ -62,7 +62,7 @@ object ExampleRoute extends RouteHandler {
 
     case req @ Get(Root / "bigstring2") =>
       Done{
-        Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.name) }: _*))
+        Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.value) }: _*))
       }
 
     case req @ Get(Root / "bigstring3") =>

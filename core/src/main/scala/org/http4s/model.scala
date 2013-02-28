@@ -1,12 +1,11 @@
 package org.http4s
 
-import attributes.{AttributesView, RequestScope, AttributeKey, Attributes}
+import attributes.{AttributesView, RequestScope, AttributeKey}
 import java.io.File
 import java.net.{URI, InetAddress}
-import java.nio.charset.Charset
 import java.util.UUID
-import akka.util.{CompactByteString, ByteIterator, ByteStringBuilder, ByteString}
-import collection.{mutable, IndexedSeqLike, IndexedSeqOptimized}
+import akka.util.{ByteIterator, ByteStringBuilder, ByteString}
+import collection.{mutable, IndexedSeqOptimized}
 import scala.collection.generic.CanBuildFrom
 import java.nio.ByteBuffer
 import io.Codec
@@ -48,12 +47,12 @@ case class BodyChunk(bytes: ByteString) extends HttpChunk
   /**
    * Decodes this ByteString as a UTF-8 encoded String.
    */
-  final def utf8String: String = decodeString(Codec.UTF8.charSet)
+  final def utf8String: String = decodeString(HttpCharsets.`UTF-8`)
 
   /**
    * Decodes this ByteString using a charset to produce a String.
    */
-  def decodeString(charset: Charset): String = bytes.decodeString(charset.name)
+  def decodeString(charset: HttpCharset): String = bytes.decodeString(charset.value)
 }
 
 object BodyChunk {
@@ -67,9 +66,9 @@ object BodyChunk {
 
   def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes)
 
-  def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
+  def apply(string: String): BodyChunk = apply(string, HttpCharsets.`UTF-8`)
 
-  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(ByteString(string, charset.name))
+  def apply(string: String, charset: HttpCharset): BodyChunk = BodyChunk(ByteString(string, charset.value))
 
   def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk =
     BodyChunk(ByteString.fromArray(array, offset, length))
@@ -178,7 +177,7 @@ final class RequestPrelude private(
 
   lazy val contentType: Option[ContentType] = headers.get("Content-Type").collectFirst({case c: HttpHeaders.`Content-Type` => c.contentType })
 
-  lazy val charset: Charset = contentType.map(_.charset.nioCharset) getOrElse Charset.defaultCharset()
+  lazy val charset: HttpCharset = contentType.map(_.charset) getOrElse HttpCharsets.`ISO-8859-1`
 
   lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
