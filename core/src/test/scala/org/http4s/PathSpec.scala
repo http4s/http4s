@@ -123,43 +123,43 @@ class PathSpec extends Specification {
 
     "Integer extractor" in {
       (FPath("/user/123") match {
-        case Root / "user" / Int(userId) => userId == 123
-        case _                           => false
+        case Root / "user" / IntParam(userId) => userId == 123
+        case _                                => false
       }) must beTrue
     }
 
     "Integer extractor, invalid int" in {
       (FPath("/user/invalid") match {
-        case Root / "user" / Int(userId) => true
-        case _                           => false
+        case Root / "user" / IntParam(userId) => true
+        case _                                => false
       }) must beFalse
     }
 
     "Integer extractor, number format error" in {
       (FPath("/user/2147483648") match {
-        case Root / "user" / Int(userId) => true
-        case _                           => false
+        case Root / "user" / IntParam(userId) => true
+        case _                                => false
       }) must beFalse
     }
 
-    "Long extractor" in {
+    "LongParam extractor" in {
       (FPath("/user/123") match {
-        case Root / "user" / Long(userId) => userId == 123
-        case _                            => false
+        case Root / "user" / LongParam(userId) => userId == 123
+        case _                                 => false
       }) must beTrue
     }
 
-    "Long extractor, invalid int" in {
+    "LongParam extractor, invalid int" in {
       (FPath("/user/invalid") match {
-        case Root / "user" / Long(userId) => true
-        case _                            => false
+        case Root / "user" / LongParam(userId) => true
+        case _                                 => false
       }) must beFalse
     }
 
-    "Long extractor, number format error" in {
+    "LongParam extractor, number format error" in {
       (FPath("/user/9223372036854775808") match {
-        case Root / "user" / Long(userId) => true
-        case _                            => false
+        case Root / "user" / LongParam(userId) => true
+        case _                                 => false
       }) must beFalse
     }
   }

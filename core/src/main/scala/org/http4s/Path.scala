@@ -136,8 +136,8 @@ object /: {
 }
 
 
-// Base class for Integer and Long extractors.
-protected class Numeric[A <: AnyVal](cast: String => A) {
+// Base class for Integer and LongParam extractors.
+protected class NumericParam[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] = {
     if (!str.isEmpty && str.forall(Character.isDigit _))
       try {
@@ -154,16 +154,16 @@ protected class Numeric[A <: AnyVal](cast: String => A) {
 /**
  * Integer extractor:
  *   Path("/user/123") match {
- *      case Root / "user" / Int(userId) => ...
+ *      case Root / "user" / IntParam(userId) => ...
  */
-object Int extends Numeric(_.toInt)
+object IntParam extends NumericParam(_.toInt)
 
 /**
- * Long extractor:
+ * LongParam extractor:
  *   Path("/user/123") match {
- *      case Root / "user" / Long(userId) => ...
+ *      case Root / "user" / LongParam(userId) => ...
  */
-object Long extends Numeric(_.toLong)
+object LongParam extends NumericParam(_.toLong)
 
 
 
@@ -192,7 +192,7 @@ abstract class ParamMatcher(name: String) {
 
 
 /**
- * Int param extractor:
+ * IntParam param extractor:
  *   object Page extends IntParamMatcher("page")
  *   (Path(request.path) :? request.params) match {
  *     case Root / "blog" :? Page(page) => ...
@@ -210,7 +210,7 @@ abstract class IntParamMatcher(name: String) {
 
 
 /**
- * Long param extractor:
+ * LongParam param extractor:
  *   object UserId extends LongParamMatcher("user_id")
  *   (Path(request.path) :? request.params) match {
  *     case Root / "user" :? UserId(userId) => ...
