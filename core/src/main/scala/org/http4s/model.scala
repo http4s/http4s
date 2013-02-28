@@ -118,7 +118,7 @@ object RequestPrelude {
       remote
     )
 
-  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, Headers, UrlScheme, String, Int, ServerSoftware, InetAddress)] =
+  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, Headers, UrlScheme, String, Int, ServerSoftware, HttpIp)] =
     Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
 
   private def cookiesFromHeaders(h: Headers) =
@@ -137,7 +137,7 @@ final class RequestPrelude private(
   val serverName: String,
   val serverPort: Int,
   val serverSoftware: ServerSoftware,
-  val remote: InetAddress,
+  val remote: HttpIp,
   scope: RequestScope) extends HttpPrelude {
 
   def this(
@@ -152,7 +152,7 @@ final class RequestPrelude private(
       serverName: String = InetAddress.getLocalHost.getHostName,
       serverPort: Int = 80,
       serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-      remote: InetAddress = InetAddress.getLocalHost) =
+      remote: HttpIp = HttpIp.localhost) =
       this(
         requestMethod,
         scriptName,
@@ -183,8 +183,8 @@ final class RequestPrelude private(
 
   lazy val authType: Option[AuthType] = None
 
-  lazy val remoteAddr = remote.getHostAddress
-  lazy val remoteHost = remote.getHostName
+  lazy val remoteAddr = remote.hostAddress
+  lazy val remoteHost = remote.hostName
 
   lazy val remoteUser: Option[String] = None
 
@@ -222,7 +222,7 @@ final class RequestPrelude private(
       serverName: String = serverName,
       serverPort: Int = serverPort,
       serverSoftware: ServerSoftware =serverSoftware,
-      remote: InetAddress = remote): RequestPrelude =
+      remote: HttpIp = remote): RequestPrelude =
       new RequestPrelude(
         requestMethod,
         scriptName,
