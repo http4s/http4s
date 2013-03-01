@@ -8,7 +8,6 @@ package org.http4s
 
 import org.specs2.mutable.Specification
 import org.http4s.{ Path => FPath }
-import play.api.libs.iteratee.Enumerator
 
 class PathSpec extends Specification {
   "Path" should {
@@ -161,6 +160,15 @@ class PathSpec extends Specification {
         case Root / "user" / LongParam(userId) => true
         case _                                 => false
       }) must beFalse
+    }
+  }
+
+  "Method extractors" should {
+    "match relative to path info" in {
+      (RequestPrelude(requestMethod = Get, scriptName = "/script-name", pathInfo = "/path-info") match {
+        case Get(Root / "path-info") => true
+        case _ => false
+      }) must beTrue
     }
   }
 }
