@@ -78,16 +78,6 @@ object ~ {
     }
   }
 }
-//
-///** HttpMethod extractor */
-//object -> {
-//  /**
-//   * HttpMethod extractor:
-//   *   (request.method, Path(request.path)) match {
-//   *     case Methd.Get -> Root / "test.json" => ...
-//   */
-//  def unapply(x: (Method, Path)) = Some(x)
-//}
 
 
 case class /(parent: Path, child: String) extends Path {
@@ -114,25 +104,6 @@ case object Root extends Path {
   def lastOption: Option[String] = None
   override def toString = ""
   def startsWith(other: Path) = other == Root
-  def unapply(request: RequestPrelude): Option[Path] = Path(request.scriptName+request.pathInfo).toList match {
-    case Nil => Some(Path(Nil))
-    case head :: tail => Some(Path(tail))
-  }
-}
-
-
-/**
- * Path separator extractor:
- *   Path("/1/2/3/test.json") match {
- *     case Root / "1" / "2" / "3" / "test.json" => ...
- */
-object /: {
-  def unapply(path: Path): Option[(String, Path)] = {
-    path.toList match {
-      case Nil => None
-      case head :: tail => Some((head, Path(tail)))
-    }
-  }
 }
 
 
