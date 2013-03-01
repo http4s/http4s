@@ -8,6 +8,7 @@ import org.xml.sax.{SAXException, InputSource}
 import javax.xml.parsers.SAXParser
 import scala.util.{Success, Try}
 import akka.util.ByteString
+import play.api.libs.iteratee.Enumeratee.CheckDone
 
 object BodyParser {
   val DefaultMaxEntitySize = Http4sConfig.getInt("org.http4s.default-max-entity-size")
@@ -43,25 +44,35 @@ object BodyParser {
     }
 
   def consumeUpTo[A](consumer: Iteratee[BodyChunk, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
-    whileBody &>>
+    whileBodyChunk &>>
       (for {
         bytes <- Traversable.takeUpTo[BodyChunk](limit) &>> consumer
         tooLargeOrBytes <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(bytes)
       } yield (tooLargeOrBytes.right.map(f).merge))
 
-  // TODO This can probably be optimized by directly implementing Enumeratee.  This may be worth doing,
-  // because this is going to be a very common case.
-  def whileBody = Enumeratee.takeWhile[HttpChunk](_.isInstanceOf[BodyChunk]) ><>
-    Enumeratee.map[HttpChunk](_.asInstanceOf[BodyChunk])
+  val whileBodyChunk: Enumeratee[HttpChunk, BodyChunk] = new CheckDone[HttpChunk, BodyChunk] {
+    def step[A](k: K[BodyChunk, A]): K[HttpChunk, Iteratee[BodyChunk, A]] = {
+      case in @ Input.El(e: BodyChunk) =>
+        new CheckDone[HttpChunk, BodyChunk] {
+          def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
+        } &> k(in.asInstanceOf[Input[BodyChunk]])
+      case in @ Input.El(e) =>
+        Done(Cont(k), in)
+      case in @ Input.Empty =>
+        new CheckDone[HttpChunk, BodyChunk] { def continue[A](k: K[BodyChunk, A]) = Cont(step(k)) } &> k(in)
+      case Input.EOF => Done(Cont(k), Input.EOF)
+    }
+    def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
+  }
 
   // File operations
   def binFile(file: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
     val out = new java.io.FileOutputStream(file)
-    whileBody &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }.map{ _ => out.close(); f }
+    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }.map{ _ => out.close(); f }
   }
 
   def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
-    whileBody &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }.map{ _ => is.close(); f }
+    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }.map{ _ => is.close(); f }
   }
 }

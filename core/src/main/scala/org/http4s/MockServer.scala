@@ -15,7 +15,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
         val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>
           val responseBodyIt: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume()
           // I'm not sure why we are compelled to make this complicated looking...
-          responder.body ><> BodyParser.whileBody &>> responseBodyIt map { bytes: BodyChunk =>
+          responder.body ><> BodyParser.whileBodyChunk &>> responseBodyIt map { bytes: BodyChunk =>
             Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray)
           }
         }
