@@ -21,7 +21,7 @@ class BodyParserSpec extends Specification with NoTimeConversions {
 
   "xml" should {
     val server = new MockServer({
-      case req => xml(req) { elem => Ok(elem.label) }
+      case req => xml(req.charset) { elem => Ok(elem.label) }
     })
 
     "parse the XML" in {

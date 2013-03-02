@@ -33,18 +33,19 @@ object ExampleRoute extends RouteHandler {
       })
 
     case req @ Post(Root / "sum")  =>
-      text(req, 16) { s =>
+      text(req.charset, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
-    // This makes me ill.
-    case req @ Post(Root / "trailer") => text(req) { s => Ok() } flatMap { case _ =>
-      Iteratee.fold[HttpChunk, Responder](BadRequest("no trailer")) {
-        case (responder, trailer: TrailerChunk) => Ok(trailer.headers.length)
-        case (responder, _) => responder
-      }
-    }
+    case req @ Post(Root / "trailer") =>
+      trailer(t => Ok(t.headers.length))
+
+    case req @ Post(Root / "body-and-trailer") =>
+      for {
+        body <- text(req.charset)
+        trailer <- trailer
+      } yield Ok(s"$body\n${trailer.headers("Hi").value}")
 
     case req @ Get(Root / "stream") =>
       Ok(Concurrent.unicast[ByteString]({
@@ -77,7 +78,7 @@ object ExampleRoute extends RouteHandler {
       }
 
     case req if req.pathInfo == "/root-element-name" =>
-      xml(req) { elem =>
+      xml(req.charset) { elem =>
         Ok(elem.label)
       }
 

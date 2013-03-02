@@ -7,48 +7,70 @@ import xml.{Elem, XML, NodeSeq}
 import org.xml.sax.{SAXException, InputSource}
 import javax.xml.parsers.SAXParser
 import scala.util.{Success, Try}
-import akka.util.ByteString
 import play.api.libs.iteratee.Enumeratee.CheckDone
+
+case class BodyParser[A](it: Iteratee[HttpChunk, Either[Responder, A]]) {
+  def apply(f: A => Responder): Iteratee[HttpChunk, Responder] = it.map(_.right.map(f).merge)
+  def map[B](f: A => B): BodyParser[B] = BodyParser(it.map[Either[Responder, B]](_.right.map(f)))
+  def flatMap[B](f: A => BodyParser[B]): BodyParser[B] =
+    BodyParser(it.flatMap[Either[Responder, B]](_.fold(
+      { responder: Responder => Done(Left(responder)) },
+      { a: A => f(a).it }
+    )))
+  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Responder, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight))
+}
 
 object BodyParser {
   val DefaultMaxEntitySize = Http4sConfig.getInt("org.http4s.default-max-entity-size")
 
   private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
 
-  def text[A](request: RequestPrelude, limit: Int = DefaultMaxEntitySize)(f: String => Responder): Iteratee[HttpChunk, Responder] =
-    consumeUpTo(BodyChunkConsumer, limit) { bs => f(bs.decodeString(request.charset)) }
+  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Responder]): Iteratee[HttpChunk, Responder] =
+    bodyParser(identity)
+
+  def text[A](charset: HttpCharset, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
+    consumeUpTo(BodyChunkConsumer, limit).map(_.decodeString(charset))
 
   /**
    * Handles a request body as XML.
    *
    * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
    *
-   * @param request the request prelude
+   * @param charset the charset of the input
    * @param limit the maximum size before an EntityTooLarge error is returned
    * @param parser the SAX parser to use to parse the XML
-   * @param f a function of the XML body to the responder
    * @return a request handler
    */
-  def xml(request: RequestPrelude,
+  def xml(charset: HttpCharset,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
           onSaxException: SAXException => Responder = { saxEx => saxEx.printStackTrace(); Status.BadRequest() })
-         (f: Elem => Responder): Iteratee[HttpChunk, Responder] =
-    consumeUpTo(BodyChunkConsumer, limit) { bytes =>
+  : BodyParser[Elem] =
+    consumeUpTo(BodyChunkConsumer, limit).map { bytes =>
       val in = bytes.iterator.asInputStream
       val source = new InputSource(in)
-      source.setEncoding(request.charset.value)
-      Try(XML.loadXML(source, parser)).map(f).recover {
-        case e: SAXException => onSaxException(e)
+      source.setEncoding(charset.value)
+      Try(XML.loadXML(source, parser)).map(Right(_)).recover {
+        case e: SAXException => Left(onSaxException(e))
       }.get
-    }
+    }.joinRight
 
-  def consumeUpTo[A](consumer: Iteratee[BodyChunk, A], limit: Int)(f: A => Responder): Iteratee[HttpChunk, Responder] =
-    whileBodyChunk &>>
-      (for {
-        bytes <- Traversable.takeUpTo[BodyChunk](limit) &>> consumer
-        tooLargeOrBytes <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(bytes)
-      } yield (tooLargeOrBytes.right.map(f).merge))
+  def ignoreBody: BodyParser[Unit] = BodyParser(whileBodyChunk &>> Iteratee.ignore[BodyChunk].map(Right(_)))
+
+  def trailer: BodyParser[TrailerChunk] = BodyParser(
+    Enumeratee.dropWhile[HttpChunk](_.isInstanceOf[BodyChunk]) &>>
+      (Iteratee.head[HttpChunk].map {
+        case Some(trailer: TrailerChunk) => trailer
+        case _ => TrailerChunk()
+      }.map(Right(_))))
+
+  def consumeUpTo[A](consumer: Iteratee[BodyChunk, A], limit: Int = DefaultMaxEntitySize): BodyParser[A] = {
+    val it = for {
+      a <- Traversable.takeUpTo[BodyChunk](limit) &>> consumer
+      tooLargeOrA <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(a)
+    } yield tooLargeOrA
+    BodyParser(whileBodyChunk &>> it)
+  }
 
   val whileBodyChunk: Enumeratee[HttpChunk, BodyChunk] = new CheckDone[HttpChunk, BodyChunk] {
     def step[A](k: K[BodyChunk, A]): K[HttpChunk, Iteratee[BodyChunk, A]] = {

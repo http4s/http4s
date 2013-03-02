@@ -46,12 +46,12 @@ class MockServerSpec extends Specification with NoTimeConversions {
     }
 
     "not consume the trailer when parsing the body" in {
-      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/trailer")
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/body-and-trailer")
       val body = Enumerator[HttpChunk](
         BodyChunk("1234567890123456"),
         TrailerChunk(Headers(RawHeader("Hi", "I'm a trailer")))
       )
-      response(req, body).statusLine should_==(Status.Ok)
+      new String(response(req, body).body) should_==("1234567890123456\nI'm a trailer")
     }
 
     "fall through to not found" in {

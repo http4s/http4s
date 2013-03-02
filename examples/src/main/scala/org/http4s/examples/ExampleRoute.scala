@@ -35,7 +35,7 @@ object ExampleRoute extends RouteHandler {
       }))
 
     case req @ Post(Root / "sum") =>
-      text(req, 16) { s =>
+      text(req.charset, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
