@@ -26,6 +26,8 @@ case class BodyChunk(bytes: ByteString) extends HttpChunk
 {
   override def apply(idx: Int): Byte = bytes(idx)
 
+  override def toArray[B >: Byte](implicit evidence$1: scala.reflect.ClassTag[B]): Array[B] = bytes.toArray
+
   def length: Int = bytes.length
 
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
