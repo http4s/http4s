@@ -2,9 +2,9 @@ package org.http4s
 
 import scala.language.reflectiveCalls
 
-import concurrent.{ExecutionContext, Future}
-import play.api.libs.iteratee.{Enumeratee, Enumerator, Iteratee}
-import akka.util.ByteString
+import concurrent.{Await, ExecutionContext, Future}
+import concurrent.duration._
+import play.api.libs.iteratee.{Enumerator, Iteratee}
 
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
@@ -14,7 +14,6 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
       route.lift(req).fold(Future.successful(onNotFound)) { parser =>
         val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>
           val responseBodyIt: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume()
-          // I'm not sure why we are compelled to make this complicated looking...
           responder.body ><> BodyParser.whileBodyChunk &>> responseBodyIt map { bytes: BodyChunk =>
             Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray)
           }
@@ -24,6 +23,12 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
     } catch {
       case t: Throwable => Future.successful(onError(t))
     }
+  }
+
+  def response(req: RequestPrelude,
+               body: Enumerator[HttpChunk] = Enumerator.eof,
+               wait: Duration = 5.seconds): MockServer.Response = {
+    Await.result(apply(req, body), 5.seconds)
   }
 
   def onNotFound: MockServer.Response = Response(statusLine = Status.NotFound)
