@@ -41,9 +41,11 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
 }
 
 object MockServer {
+  private[MockServer] val emptyBody = Array.empty[Byte]   // Makes direct Response comparison possible
+
   case class Response(
     statusLine: Status = Status.Ok,
     headers: Headers = Headers.Empty,
-    body: Array[Byte] = Array.empty
+    body: Array[Byte] = emptyBody
   )
 }
