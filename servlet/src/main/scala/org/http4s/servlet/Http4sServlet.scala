@@ -23,20 +23,20 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
   }
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
+    val request = toRequest(servletRequest)
     val ctx = servletRequest.startAsync()
     executor.execute {
       new Runnable {
         def run() {
-          handle(ctx)
+          handle(request, ctx)
         }
       }
     }
   }
 
-  protected def handle(ctx: AsyncContext) {
+  protected def handle(request: RequestPrelude, ctx: AsyncContext) {
     val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    val request = toRequest(servletRequest)
     val parser = route.lift(request).getOrElse(Done(NotFound(request)))
     val handler = parser.flatMap { responder =>
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
@@ -62,9 +62,9 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
     import AsyncContext._
     RequestPrelude(
       requestMethod = Method(req.getMethod),
-      scriptName = stringAttribute(req, ASYNC_CONTEXT_PATH) + stringAttribute(req, ASYNC_SERVLET_PATH),
-      pathInfo = Option(stringAttribute(req, ASYNC_PATH_INFO)).getOrElse(""),
-      queryString = Option(stringAttribute(req, ASYNC_QUERY_STRING)).getOrElse(""),
+      scriptName = req.getContextPath + req.getServletPath,
+      pathInfo = Option(req.getPathInfo).getOrElse(""),
+      queryString = Option(req.getQueryString).getOrElse(""),
       protocol = ServerProtocol(req.getProtocol),
       headers = toHeaders(req),
       urlScheme = HttpUrlScheme(req.getScheme),
@@ -74,8 +74,6 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )
   }
-
-  private def stringAttribute(req: HttpServletRequest, key: String): String = req.getAttribute(key).asInstanceOf[String]
 
   protected def toHeaders(req: HttpServletRequest): Headers = {
     val headers = for {
