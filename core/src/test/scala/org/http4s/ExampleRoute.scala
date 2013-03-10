@@ -82,6 +82,16 @@ object ExampleRoute extends RouteHandler {
         Ok(elem.label)
       }
 
+    case Get(Root / "html") =>
+      Ok(
+        <html><body>
+          <div id="main">
+            <h2>Hello world!</h2><br/>
+            <h1>This is H1</h1>
+          </div>
+        </body></html>
+      )
+
     case req if req.pathInfo == "/fail" =>
       sys.error("FAIL")
   }

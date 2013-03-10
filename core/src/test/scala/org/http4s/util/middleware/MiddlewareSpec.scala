@@ -5,10 +5,6 @@ import org.specs2.time.NoTimeConversions
 
 import org.http4s._
 import play.api.libs.iteratee.Enumerator
-import concurrent.duration._
-
-class PathSpec extends Specification
-
 /**
  * @author Bryce Anderson
  * Created on 3/9/13 at 11:10 AM

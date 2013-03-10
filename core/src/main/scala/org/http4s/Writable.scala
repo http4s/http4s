@@ -14,15 +14,16 @@ trait SimpleWritable[-A] extends Writable[A] {
   def asByteString(data: A): ByteString
   override def toBody(a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int]) = {
     val bs = asByteString(a)
-    (Writable.sendByteString(BodyChunk(bs)), Some(bs.length))
+    (Writable.sendByteString(bs), Some(bs.length))
   }
 }
 
 object Writable {
-  private[http4s] def sendByteString[T](data: T): Enumeratee[T, T] = new Enumeratee[T, T] {
-    def applyOn[A](inner: Iteratee[T, A]): Iteratee[T, Iteratee[T, A]] =
-      Done(Iteratee.flatten(inner.feed(Input.El(data))), Input.Empty)
-  }
+  private[http4s] def sendByteString(data: ByteString): Enumeratee[HttpChunk, HttpChunk] =
+    new Enumeratee[HttpChunk, HttpChunk] {
+      def applyOn[A](inner: Iteratee[HttpChunk, A]): Iteratee[HttpChunk, Iteratee[HttpChunk, A]] =
+        Done(Iteratee.flatten(inner.feed(Input.El(BodyChunk(data)))), Input.Empty)
+    }
 
   private[http4s] def sendFuture[T](f: Future[T])(implicit ec: ExecutionContext): Enumeratee[T, T] =
     new Enumeratee[T, T] {
@@ -41,6 +42,12 @@ object Writable {
       def asByteString(s: String) = ByteString(s, charset.nioCharset.name)
     }
 
+  implicit def htmlWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+    new SimpleWritable[xml.Elem] {
+      def contentType: ContentType = ContentType(MediaTypes.`text/html`).withCharset(charset)
+      def asByteString(s: xml.Elem) = ByteString(s.buildString(false), charset.nioCharset.name)
+    }
+
   implicit def intWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
@@ -53,13 +60,16 @@ object Writable {
       def asByteString(ByteString: ByteString) = ByteString
     }
 
+  // More complex types can be implements in terms of simple types
   implicit def traversableWritable[A](implicit writable: SimpleWritable[A]) =
-    new SimpleWritable[TraversableOnce[A]] {
+    new Writable[TraversableOnce[A]] {
       def contentType: ContentType = writable.contentType
-      def asByteString(as: TraversableOnce[A]): ByteString = as.foldLeft(ByteString.empty) { (acc, a) => acc ++ writable.asByteString(a) }
+      override def toBody(as: TraversableOnce[A]) = {
+        val bs = as.foldLeft(ByteString.empty) { (acc, a) => acc ++ writable.asByteString(a) }
+        (sendByteString(bs), Some(bs.length))
+      }
     }
 
-  // More complex types can be implements in terms of simple types
   implicit def enumerateeWritable =
   new Writable[Enumeratee[HttpChunk, HttpChunk]] {
     def contentType = ContentType.`application/octet-stream`

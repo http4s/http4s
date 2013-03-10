@@ -40,6 +40,16 @@ object ExampleRoute extends RouteHandler {
         Ok(sum)
       }
 
+    case Get(Root / "html") =>
+      Ok(
+        <html><body>
+          <div id="main">
+            <h2>Hello world!</h2><br/>
+            <h1>This is H1</h1>
+          </div>
+        </body></html>
+      )
+
     case req @ Get(Root / "stream") =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
