@@ -34,11 +34,11 @@ class MiddlewareSpec extends Specification with NoTimeConversions {
   }
 
   "TranslatePath" should {
-    val server = new MockServer(TranslatePath(ExampleRoute()){ str =>
+    val server = new MockServer(TranslatePath{ str =>
       if (str.startsWith("rootPath/"))
         str.substring("rootPath/".length)
       else str
-    })
+    }(ExampleRoute()))
 
     "Translate path" in {
       new String(server.response(echoReq, echoBody).body) should_==("onetwothree")

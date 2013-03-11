@@ -18,10 +18,10 @@ object URITranslation {
         str.substring(prefix.length)
       else str
     }
-    TranslatePath(in)(trans)
+    TranslatePath(trans)(in)
   }
 
-  def TranslatePath(in: Route)(trans: String => String): Route = new Route {
+  def TranslatePath(trans: String => String)(in: Route): Route = new Route {
     def apply(req: RequestPrelude): Iteratee[HttpChunk, Responder] =
         in(req.copy(pathInfo = trans(req.pathInfo)))
 
