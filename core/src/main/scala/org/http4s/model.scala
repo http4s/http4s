@@ -66,7 +66,7 @@ object BodyChunk {
 
   def apply[T](bytes: T*)(implicit num: Integral[T]): BodyChunk = BodyChunk(ByteString(bytes: _*)(num))
 
-  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes)
+  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes.array())
 
   def apply(string: String): BodyChunk = apply(string, HttpCharsets.`UTF-8`)
 
