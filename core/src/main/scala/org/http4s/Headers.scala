@@ -5,11 +5,11 @@ import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 import util.DateTime
 
-class Headers private(headers: Seq[HttpHeader])
+class HttpHeaders private(headers: Seq[HttpHeader])
   extends immutable.Seq[HttpHeader]
-  with collection.SeqLike[HttpHeader, Headers]
+  with collection.SeqLike[HttpHeader, HttpHeaders]
 {
-  override protected[this] def newBuilder: mutable.Builder[HttpHeader, Headers] = Headers.newBuilder
+  override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
 
   def length: Int = headers.length
 
@@ -25,25 +25,6 @@ class Headers private(headers: Seq[HttpHeader])
   def getAll(name: String): Seq[HttpHeader] =
     (filter(_ is name.toLowerCase) map (_.parsed))
 }
-
-object Headers {
-  val Empty = apply()
-  def empty = Empty
-
-  def apply(headers: HttpHeader*): Headers = new Headers(headers)
-
-  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, Headers] =
-    new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, Headers] {
-      def apply(from: TraversableOnce[HttpHeader]): mutable.Builder[HttpHeader, Headers] = newBuilder
-      def apply(): mutable.Builder[HttpHeader, Headers] = newBuilder
-    }
-
-  private def newBuilder: mutable.Builder[HttpHeader, Headers] =
-    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (new Headers(_))
-
-
-}
-
 // OCD: Alphabetize please
 object HeaderNames {
    val AcceptLanguage = "Accept-Language"
@@ -52,8 +33,6 @@ object HeaderNames {
    val XForwardedFor = "X-Forwarded-For"
    val XForwardedProto = "X-Forwarded-Proto"
 }
-
-import java.lang.String
 
 abstract class HttpHeader {
   def name: String
@@ -222,4 +201,20 @@ object HttpHeaders {
     val lowercaseName = name.toLowerCase
     override lazy val parsed: HttpHeader = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
+
+  val Empty = apply()
+  def empty = Empty
+
+  def apply(headers: HttpHeader*): HttpHeaders = new HttpHeaders(headers)
+
+  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, HttpHeaders] =
+    new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] {
+      def apply(from: TraversableOnce[HttpHeader]): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
+      def apply(): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
+    }
+
+  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] =
+    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (new HttpHeaders(_))
+
+
 }

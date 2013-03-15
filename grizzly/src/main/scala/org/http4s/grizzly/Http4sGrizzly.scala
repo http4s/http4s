@@ -71,11 +71,11 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     )
   }
 
-  protected def toHeaders(req: GrizReq): Headers = {
+  protected def toHeaders(req: GrizReq): HttpHeaders = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
     } yield HttpHeaders.RawHeader(name, value)
-    Headers(headers.toSeq : _*)
+    HttpHeaders(headers.toSeq : _*)
   }
 }

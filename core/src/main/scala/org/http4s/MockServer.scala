@@ -45,7 +45,7 @@ object MockServer {
 
   case class Response(
     statusLine: Status = Status.Ok,
-    headers: Headers = Headers.Empty,
+    headers: HttpHeaders = HttpHeaders.Empty,
     body: Array[Byte] = emptyBody
   )
 }

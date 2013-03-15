@@ -84,7 +84,7 @@ object Status {
       apply(body, w.contentType)(w)
 
     def apply[A](body: A, contentType: ContentType)(implicit w: Writable[A]) = {
-      var headers = Headers.Empty
+      var headers = HttpHeaders.Empty
       val (parsedBody, length) = w.toBody(body)
       headers :+= HttpHeaders.`Content-Type`(contentType)
       length.foreach{ length => headers :+= HttpHeaders.`Content-Length`(length) }
@@ -93,7 +93,7 @@ object Status {
   }
 
   trait RedirectResponderGenerator { self: Status =>
-    def apply(uri: String): Responder = Responder(ResponsePrelude(self, Headers(HttpHeaders.Location(uri))))
+    def apply(uri: String): Responder = Responder(ResponsePrelude(self, HttpHeaders(HttpHeaders.Location(uri))))
 
     def apply(uri: URI): Responder = apply(uri.toString)
 
@@ -106,7 +106,7 @@ object Status {
   object Continue extends Status(100, "Continue") with NoEntityResponderGenerator
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
-    def apply(protocols: String, headers: Headers = Headers.Empty): Responder =
+    def apply(protocols: String, headers: HttpHeaders = HttpHeaders.Empty): Responder =
       Responder(ResponsePrelude(this, HttpHeaders.RawHeader("Upgrade", protocols) +: headers), Responder.EmptyBody)
   }
   object Processing extends Status(102, "Processing") with NoEntityResponderGenerator
@@ -119,7 +119,7 @@ object Status {
   object ResetContent extends Status(205, "Reset Content") with NoEntityResponderGenerator
   object PartialContent extends Status(206, "Partial Content") with EntityResponderGenerator {
     // TODO type this header
-    def apply(range: String, body: ResponderBody, headers: Headers = Headers.Empty): Responder =
+    def apply(range: String, body: ResponderBody, headers: HttpHeaders = HttpHeaders.Empty): Responder =
       Responder(ResponsePrelude(this, HttpHeaders.RawHeader("Range", range) +: headers), body)
   }
   object MultiStatus extends Status(207, "Multi-Status") with EntityResponderGenerator
@@ -137,7 +137,7 @@ object Status {
   object BadRequest extends Status(400, "Bad Request") with EntityResponderGenerator
   object Unauthorized extends Status(401, "Unauthorized") with EntityResponderGenerator {
     // TODO type this header
-    def apply(wwwAuthenticate: String, body: ResponderBody, headers: Headers = Headers.Empty): Responder =
+    def apply(wwwAuthenticate: String, body: ResponderBody, headers: HttpHeaders = HttpHeaders.Empty): Responder =
       Responder(ResponsePrelude(this, HttpHeaders.RawHeader("WWW-Authenticate", wwwAuthenticate) +: headers), body)
   }
   object PaymentRequired extends Status(402, "Payment Required") with EntityResponderGenerator
@@ -146,13 +146,13 @@ object Status {
     def apply(request: RequestPrelude): Responder = apply(s"${request.pathInfo} not found")
   }
   object MethodNotAllowed extends Status(405, "Method Not Allowed") {
-    def apply(allowed: TraversableOnce[Method], body: ResponderBody, headers: Headers = Headers.Empty): Responder =
+    def apply(allowed: TraversableOnce[Method], body: ResponderBody, headers: HttpHeaders = HttpHeaders.Empty): Responder =
       Responder(ResponsePrelude(this, HttpHeaders.RawHeader("Allowed", allowed.mkString(", ")) +: headers), body)
   }
   object NotAcceptable extends Status(406, "Not Acceptable") with EntityResponderGenerator
   object ProxyAuthenticationRequired extends Status(407, "Proxy Authentication Required") {
     // TODO type this header
-    def apply(proxyAuthenticate: String, body: ResponderBody, headers: Headers = Headers.Empty): Responder =
+    def apply(proxyAuthenticate: String, body: ResponderBody, headers: HttpHeaders = HttpHeaders.Empty): Responder =
       Responder(ResponsePrelude(this, HttpHeaders.RawHeader("Proxy-Authenticate", proxyAuthenticate) +: headers), body)
   }
   object RequestTimeOut extends Status(408, "Request Time-out") with EntityResponderGenerator

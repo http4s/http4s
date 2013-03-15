@@ -12,7 +12,7 @@ import io.Codec
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
-  def headers: Headers
+  def headers: HttpHeaders
 }
 
 sealed trait HttpPrelude extends HasHeaders
@@ -86,7 +86,7 @@ object BodyChunk {
     }
 }
 
-case class TrailerChunk(headers: Headers = Headers.empty) extends HttpChunk {
+case class TrailerChunk(headers: HttpHeaders = HttpHeaders.empty) extends HttpChunk {
   final def bytes: ByteString = ByteString.empty
 }
 
@@ -98,7 +98,7 @@ object RequestPrelude {
     queryString: String = "",
     pathTranslated: Option[File] = None,
     protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-    headers: Headers = Headers.empty,
+    headers: HttpHeaders = HttpHeaders.empty,
     cookies: RequestCookieJar = RequestCookieJar.empty,
     urlScheme: UrlScheme = HttpUrlScheme.Http,
     serverName: String = InetAddress.getLocalHost.getHostName,
@@ -120,10 +120,10 @@ object RequestPrelude {
       remote
     )
 
-  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, Headers, UrlScheme, String, Int, ServerSoftware, HttpIp)] =
+  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, HttpHeaders, UrlScheme, String, Int, ServerSoftware, HttpIp)] =
     Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
 
-  private def cookiesFromHeaders(h: Headers) =
+  private def cookiesFromHeaders(h: HttpHeaders) =
       h.getAll("Cookie").collect({case c: HttpHeaders.Cookie => c.cookies}).flatten.distinct
 }
 final class RequestPrelude private(
@@ -133,7 +133,7 @@ final class RequestPrelude private(
   val queryString: String,
   val pathTranslated: Option[File],
   val protocol: ServerProtocol,
-  val headers: Headers,
+  val headers: HttpHeaders,
   val cookies: RequestCookieJar,
   val urlScheme: UrlScheme,
   val serverName: String,
@@ -149,7 +149,7 @@ final class RequestPrelude private(
       queryString: String = "",
       pathTranslated: Option[File] = None,
       protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-      headers: Headers = Headers.empty,
+      headers: HttpHeaders = HttpHeaders.empty,
       urlScheme: UrlScheme = HttpUrlScheme.Http,
       serverName: String = InetAddress.getLocalHost.getHostName,
       serverPort: Int = 80,
@@ -219,7 +219,7 @@ final class RequestPrelude private(
       queryString: String = queryString,
       pathTranslated: Option[File] = pathTranslated,
       protocol: ServerProtocol = protocol,
-      headers: Headers = headers,
+      headers: HttpHeaders = headers,
       urlScheme: UrlScheme = urlScheme,
       serverName: String = serverName,
       serverPort: Int = serverPort,
@@ -256,4 +256,4 @@ final class RequestPrelude private(
 
   override def clone(): AnyRef = copy()
 }
-case class ResponsePrelude(status: Status, headers: Headers = Headers.empty) extends HttpPrelude
+case class ResponsePrelude(status: Status, headers: HttpHeaders = HttpHeaders.empty) extends HttpPrelude

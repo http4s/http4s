@@ -22,12 +22,13 @@ import org.http4s.Status.NotFound
 import akka.util.ByteString
 import java.nio.ByteBuffer
 
-object Routes {
-   def apply(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) = new Routes(route)
+object Http4sNetty {
+  def apply(toMount: Route, contextPath: String= "/")(implicit executor: ExecutionContext = ExecutionContext.global) =
+    new Http4sNetty(contextPath) {
+      val route: Route = toMount
+    }
 }
-class Routes(val route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) extends Http4sNetty
-
-abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
+abstract class Http4sNetty(val contextPath: String)(implicit executor: ExecutionContext = ExecutionContext.global) extends ScalaUpstreamHandler {
 
   def route: Route
 
@@ -91,7 +92,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
       case Input.El(buffer) =>
         resp.setHeader(HttpHeaders.Names.CONTENT_LENGTH, channelBuffer.readableBytes)
         resp.setContent(buffer)
-        val f = ctx.getChannel.write(resp)
+        val f: Future[Channel] = ctx.getChannel.write(resp)
         f onComplete {
           case _ => closeChannel(ctx.getChannel)
         }
@@ -117,11 +118,11 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
 //      }
 //    }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
-
+    println("pth info: " + uri.getPath.substring(contextPath.length))
     RequestPrelude(
       requestMethod = Method(req.getMethod.getName),
-      scriptName = "",
-      pathInfo = uri.getRawPath,
+      scriptName = contextPath,
+      pathInfo = uri.getRawPath.substring(contextPath.length),
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.getProtocolName),
       headers = hdrs,
@@ -133,7 +134,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext = ExecutionContex
     )
   }
 
-  protected def toHeaders(req: HttpRequest) = Headers(
+  protected def toHeaders(req: HttpRequest) = org.http4s.HttpHeaders(
     (for {
       name  <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala

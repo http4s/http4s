@@ -22,7 +22,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
       pipe.addLast("decoder", new HttpRequestDecoder)
       pipe.addLast("encoder", new HttpResponseEncoder)
       pipe.addLast("chunkedWriter", new ChunkedWriteHandler)
-      pipe.addLast("route", Routes(routes reduce (_ orElse _)))
+      pipe.addLast("route", Http4sNetty(routes reduce (_ orElse _), "/http4s"))
       pipe.addLast("staticFiles", new StaticFileHandler(staticFiles))
       pipe
     }
