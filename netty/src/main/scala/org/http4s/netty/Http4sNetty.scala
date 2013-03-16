@@ -41,7 +41,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
       if (route.isDefinedAt(request)) {
         val parser = route.lift(request).getOrElse(Done(NotFound(request)))
         val handler = parser flatMap (renderResponse(ctx, req, _))
-        Enumerator[org.http4s.HttpChunk](BodyChunk(req.getContent.array())).run[Unit](handler)
+        Enumerator[org.http4s.HttpChunk](BodyChunk(req.getContent.toByteBuffer)).run[Unit](handler)
       } else {
         import org.http4s.HttpVersion
         val res = new http.DefaultHttpResponse(HttpVersion.`Http/1.1`, Status.NotFound)
@@ -102,7 +102,6 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     })
   }
 
-  import HeaderNames._
   val serverSoftware = ServerSoftware("HTTP4S / Netty")
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {

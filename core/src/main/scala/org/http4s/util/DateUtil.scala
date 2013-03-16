@@ -4,7 +4,9 @@ import java.util.{TimeZone, Date}
 import java.text.SimpleDateFormat
 
 object DateUtil {
+
   @volatile private[this] var _currentTimeMillis: Option[Long] = None
+
   def currentTimeMillis = _currentTimeMillis getOrElse System.currentTimeMillis
   def currentTimeMillis_=(ct: Long) = _currentTimeMillis = Some(ct)
   def freezeTime() = _currentTimeMillis = Some(System.currentTimeMillis())

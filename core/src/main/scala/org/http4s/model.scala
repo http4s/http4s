@@ -66,7 +66,7 @@ object BodyChunk {
 
   def apply[T](bytes: T*)(implicit num: Integral[T]): BodyChunk = BodyChunk(ByteString(bytes: _*)(num))
 
-  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes.array())
+  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(ByteString(bytes))
 
   def apply(string: String): BodyChunk = apply(string, HttpCharsets.`UTF-8`)
 
@@ -123,8 +123,7 @@ object RequestPrelude {
   def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, HttpHeaders, UrlScheme, String, Int, ServerSoftware, HttpIp)] =
     Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
 
-  private def cookiesFromHeaders(h: HttpHeaders) =
-      h.getAll("Cookie").collect({case c: HttpHeaders.Cookie => c.cookies}).flatten.distinct
+  private def cookiesFromHeaders(h: HttpHeaders) = h.getAll(HttpHeaders.Keys.Cookie).flatMap(_.cookies).distinct
 }
 final class RequestPrelude private(
   val requestMethod: Method,
@@ -172,16 +171,15 @@ final class RequestPrelude private(
         RequestScope(UUID.randomUUID()))
   private[this] implicit val _scope = scope
 
-
-
   def uuid = scope.uuid
-  lazy val contentLength: Option[Int] = headers.get("Content-Length").collectFirst({case c: HttpHeaders.`Content-Length` => c.length})
+  import HttpHeaders.{Keys => HeaderKeys}
+  def contentLength: Option[Int] = headers.get(HeaderKeys.ContentLength).map(_.length)
 
-  lazy val contentType: Option[ContentType] = headers.get("Content-Type").collectFirst({case c: HttpHeaders.`Content-Type` => c.contentType })
+  def contentType: Option[ContentType] = headers.get(HeaderKeys.ContentType).map(_.contentType)
 
-  lazy val charset: HttpCharset = contentType.map(_.charset) getOrElse HttpCharsets.`ISO-8859-1`
+  def charset: HttpCharset = contentType.map(_.charset) getOrElse HttpCharsets.`ISO-8859-1`
 
-  lazy val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
+  val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
   lazy val authType: Option[AuthType] = None
 

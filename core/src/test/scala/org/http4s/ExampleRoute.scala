@@ -45,7 +45,7 @@ object ExampleRoute extends RouteHandler {
       for {
         body <- text(req.charset)
         trailer <- trailer
-      } yield Ok(s"$body\n${trailer.headers("Hi").value}")
+      } yield Ok(s"$body\n${trailer.headers(HttpHeaders.Keys("Hi")).value}")
 
     case req @ Get(Root / "stream") =>
       Ok(Concurrent.unicast[ByteString]({

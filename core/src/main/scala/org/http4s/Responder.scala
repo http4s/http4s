@@ -53,9 +53,7 @@ object Responder {
   }
 
   def getContentType(responder: Responder): Option[ContentType] =
-    (headersLens.get(responder).get("Content-Type").map(_.parsed) collect {
-      case HttpHeaders.`Content-Type`(contentType) => contentType
-    })
+    headersLens.get(responder).get(HttpHeaders.Keys.ContentType).map(_.contentType)
 
   def getStatus(responder: Responder) = statusLens.get(responder)
   def setStatus(responder: Responder, status: Status) = statusLens.set(responder)(status)
