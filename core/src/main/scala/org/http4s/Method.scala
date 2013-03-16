@@ -20,7 +20,10 @@ sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempo
     Method.register(this)
 
   def unapply(request: RequestPrelude): Option[Path] =
-    if (request.requestMethod.name.toUpperCase == name.toUpperCase) Some(Path(request.pathInfo)) else None
+    if (request.requestMethod.name.toUpperCase == name.toUpperCase) Some(Path(request.pathInfo) ) else None
+
+//  def :/(path: String): Path = new :/(this, Path(path))
+//  def /(path: String): Path = new /(this, Path(path))
 }
 
 /**
@@ -54,6 +57,9 @@ object Method {
   object Delete  extends StandardMethod("DELETE",  isSafe = false, isIdempotent = true)
   object Trace   extends StandardMethod("TRACE",   isSafe = false, isIdempotent = true)
   object Connect extends StandardMethod("CONNECT", isSafe = true,  isIdempotent = false)
+  object Any     extends StandardMethod("_", isSafe = false, isIdempotent = false) {
+    override def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
+  }
 
   // PATCH is not part of the RFC, but common enough we'll support it.
   object Patch   extends ExtensionMethod("PATCH",  isSafe = false, isIdempotent = false, register = true)

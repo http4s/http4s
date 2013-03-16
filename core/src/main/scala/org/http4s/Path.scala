@@ -41,6 +41,8 @@ object Path {
 
   def unapplySeq(path: Path): Option[List[String]] = Some(path.toList)
 
+  def unapplySeq(request: RequestPrelude): Option[List[String]] = Some(Path(request.pathInfo).toList)
+
 }
 
 
@@ -79,7 +81,6 @@ object ~ {
   }
 }
 
-
 case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
   def lastOption: Option[String] = Some(child)
@@ -91,6 +92,17 @@ case class /(parent: Path, child: String) extends Path {
   }
 }
 
+object -> {
+  /**
+   * HttpMethod extractor:
+   *   (request.method, Path(request.path)) match {
+   *     case Method.Get -> Root / "test.json" => ...
+   */
+  def unapply(req: RequestPrelude): Option[(Method, Path)] = {
+
+    Some((req.requestMethod, Path(req.pathInfo)))
+  }
+}
 
 /**
  * Root extractor:

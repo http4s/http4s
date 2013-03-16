@@ -84,13 +84,45 @@ class PathSpec extends Specification {
       }) must beTrue
     }
 
-    "-> extractor" in {
+    "Method extractor" in {
       val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
       (req match {
         case Method.Get(Root / "test.json") => true
         case _                              => false
       }) must beTrue
     }
+
+    "-> extractor /test.json" in {
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
+      (req match {
+        case Get -> Root / "test.json" => true
+        case _                         => false
+      }) must beTrue
+    }
+
+    "-> extractor /foo/test.json" in {
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/foo/test.json")
+      (req match {
+        case Get -> Root / "foo" / "test.json" => true
+        case _                         => false
+      }) must beTrue
+    }
+//
+//    ":/ extractor /foo/test.json " in {
+//      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/foo/test.json")
+//      (req match {
+//        case Get :/ (Root / "foo" / "test.json") => true
+//        case _                          => false
+//      }) must beTrue
+//    }
+//
+//    ":/ extractor /test.json" in {
+//      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
+//      (req match {
+//        case Get :/ "test.json" => true
+//        case _                          => false
+//      }) must beTrue
+//    }
 
     "Root extractor" in {
       (FPath("/") match {
