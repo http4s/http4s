@@ -8,7 +8,7 @@ private[parser] trait ContentEncodingHeader {
   this: Parser with ProtocolParameterRules =>
 
   def CONTENT_ENCODING = rule (
-    ContentEncoding ~ EOI ~~> HttpHeaders.`Content-Encoding`
+    ContentEncoding ~ EOI ~~> (HttpHeaders.ContentEncoding(_))
   )
 
   def ContentEncoding = rule {

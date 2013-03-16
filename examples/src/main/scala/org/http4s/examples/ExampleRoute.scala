@@ -16,31 +16,31 @@ object ExampleRoute extends RouteHandler {
   object myVar extends Key[String]()
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
-    case Get(Root / "ping") =>
+    case Get -> Root / "ping" =>
       Done(Ok("pong"))
 
-    case Post(Root / "echo")  =>
+    case Post -> Root / "echo"  =>
       Done(Ok(Enumeratee.passAlong: Enumeratee[HttpChunk, HttpChunk]))
 
-    case Get(Root / "echo") =>
+    case Get -> Root / "echo" =>
       Done(Ok(Enumeratee.map[HttpChunk] {
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       }))
 
-    case Get(Root / "echo2") =>
+    case Get -> Root / "echo2" =>
       Done(Ok(Enumeratee.map[HttpChunk] {
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
         case chunk => chunk
       }))
 
-    case req @ Post(Root / "sum") =>
+    case req @ Post -> Root / "sum" =>
       text(req.charset, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
-    case Get(Root / "html") =>
+    case Get -> Root / "html" =>
       Ok(
         <html><body>
           <div id="main">
@@ -50,7 +50,7 @@ object ExampleRoute extends RouteHandler {
         </body></html>
       )
 
-    case req @ Get(Root / "stream") =>
+    case req @ Get -> Root / "stream" =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
@@ -58,33 +58,33 @@ object ExampleRoute extends RouteHandler {
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
-      })).addHeader(HttpHeaders.`Transfer-Encoding`(HttpEncodings.chunked))
+      })).addHeader(HttpHeaders.TransferEncoding(HttpEncodings.chunked))
 
-    case Get(Root / "bigstring") =>
+    case Get -> Root / "bigstring" =>
       Done{
         Ok((0 until 1000) map { i => s"This is string number $i" })
       }
 
-    case Get(Root / "future") =>
+    case Get -> Root / "future" =>
       Done{
         Ok(Future("Hello from the future!"))
       }
 
-    case req @ Get(Root / "bigstring2") =>
+    case req @ Get -> Root / "bigstring2" =>
       Done{
         Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.value) }: _*))
       }
 
-    case req @ Get(Root / "bigstring3") =>
+    case req @ Get -> Root / "bigstring3" =>
       Done{
         Ok(flatBigString)
       }
 
-    case Get(Root / "contentChange") =>
+    case Get -> Root / "contentChange" =>
       Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
 
       // Ross wins the challenge
-    case req @ Get(Root / "challenge") =>
+    case req @ Get -> Root / "challenge" =>
       Iteratee.head[HttpChunk].map {
         case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
           Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
@@ -94,7 +94,7 @@ object ExampleRoute extends RouteHandler {
           BadRequest("No data!")
       }
 
-    case req @ Get(Root / "fail") =>
+    case req @ Get -> Root / "fail" =>
       sys.error("FAIL")
   }
 }

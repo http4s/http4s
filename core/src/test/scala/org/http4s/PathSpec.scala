@@ -124,6 +124,22 @@ class PathSpec extends Specification {
 //      }) must beTrue
 //    }
 
+    "request path info extractor" in {
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
+      (req match {
+        case Root :/ "test.json" => true
+        case _ => false
+      }) must beTrue
+    }
+
+   "request path info extractor for /" in {
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/")
+      (req match {
+        case _ -> Root => true
+        case _ => false
+      }) must beTrue
+    }
+
     "Root extractor" in {
       (FPath("/") match {
         case Root => true

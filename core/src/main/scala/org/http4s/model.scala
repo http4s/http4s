@@ -122,7 +122,7 @@ object RequestPrelude {
   def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, HttpHeaders, UrlScheme, String, Int, ServerSoftware, HttpIp)] =
     Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
 
-  private def cookiesFromHeaders(h: HttpHeaders) = h.getAll(HttpHeaders.Keys.Cookie).flatMap(_.cookies).distinct
+  private def cookiesFromHeaders(h: HttpHeaders) = h.getAll(HttpHeaders.Cookie).flatMap(_.cookies).distinct
 }
 final class RequestPrelude private(
   val requestMethod: Method,
@@ -171,10 +171,9 @@ final class RequestPrelude private(
   private[this] implicit val _scope = scope
 
   def uuid = scope.uuid
-  import HttpHeaders.{Keys => HeaderKeys}
-  def contentLength: Option[Int] = headers.get(HeaderKeys.ContentLength).map(_.length)
+  def contentLength: Option[Int] = headers.get(HttpHeaders.ContentLength).map(_.length)
 
-  def contentType: Option[ContentType] = headers.get(HeaderKeys.ContentType).map(_.contentType)
+  def contentType: Option[ContentType] = headers.get(HttpHeaders.ContentType).map(_.contentType)
 
   def charset: HttpCharset = contentType.map(_.charset) getOrElse HttpCharsets.`ISO-8859-1`
 

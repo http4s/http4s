@@ -37,11 +37,11 @@ object Responder {
   val statusLens = Lens[Responder] >> _0 >> _0
 
   def addCookie(responder: Responder, cookie: HttpCookie) = {
-    addHeader(responder, HttpHeaders.`Set-Cookie`(cookie))
+    addHeader(responder, HttpHeaders.SetCookie(cookie))
   }
 
   def removeCookie(responder: Responder, cookie: HttpCookie) = {
-    addHeader(responder, HttpHeaders.`Set-Cookie`(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
+    addHeader(responder, HttpHeaders.SetCookie(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
   }
 
   def addHeader(responder: Responder, header: HttpHeader) = {
@@ -49,11 +49,11 @@ object Responder {
   }
 
   def setContentType(responder: Responder, contentType: ContentType) = {
-    headersLens.modify(responder)(_ :+ HttpHeaders.`Content-Type`(contentType))
+    headersLens.modify(responder)(_ :+ HttpHeaders.ContentType(contentType))
   }
 
   def getContentType(responder: Responder): Option[ContentType] =
-    headersLens.get(responder).get(HttpHeaders.Keys.ContentType).map(_.contentType)
+    headersLens.get(responder).get(HttpHeaders.ContentType).map(_.contentType)
 
   def getStatus(responder: Responder) = statusLens.get(responder)
   def setStatus(responder: Responder, status: Status) = statusLens.set(responder)(status)
@@ -84,8 +84,8 @@ object Status {
     def apply[A](body: A, contentType: ContentType)(implicit w: Writable[A]) = {
       var headers = HttpHeaders.Empty
       val (parsedBody, length) = w.toBody(body)
-      headers :+= HttpHeaders.`Content-Type`(contentType)
-      length.foreach{ length => headers :+= HttpHeaders.`Content-Length`(length) }
+      headers :+= HttpHeaders.ContentType(contentType)
+      length.foreach{ length => headers :+= HttpHeaders.ContentLength(length) }
       Responder(ResponsePrelude(self, headers), parsedBody)
     }
   }

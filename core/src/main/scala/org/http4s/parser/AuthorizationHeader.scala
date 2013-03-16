@@ -9,7 +9,7 @@ private[parser] trait AuthorizationHeader {
   this: Parser with ProtocolParameterRules with AdditionalRules =>
 
   def AUTHORIZATION = rule {
-    CredentialDef ~ EOI ~~> HttpHeaders.`Authorization`
+    CredentialDef ~ EOI ~~> (HttpHeaders.Authorization(_))
   }
 
   def CredentialDef = rule {

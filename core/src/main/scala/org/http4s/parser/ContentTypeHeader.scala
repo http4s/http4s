@@ -8,7 +8,7 @@ private[parser] trait ContentTypeHeader {
   this: Parser with ProtocolParameterRules with CommonActions =>
 
   def CONTENT_TYPE = rule {
-    ContentTypeHeaderValue ~~> `Content-Type`
+    ContentTypeHeaderValue ~~> (ContentType(_))
   }
 
   lazy val ContentTypeHeaderValue = rule {
@@ -18,7 +18,7 @@ private[parser] trait ContentTypeHeader {
   private def createContentType(mainType: String, subType: String, params: Map[String, String]) = {
     val mimeType = getMediaType(mainType, subType, params.get("boundary"))
     val charset = params.get("charset").map(getCharset)
-    ContentType(mimeType, charset)
+    org.http4s.ContentType(mimeType, charset)
   }
 
 }

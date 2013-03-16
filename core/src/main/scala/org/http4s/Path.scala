@@ -16,6 +16,7 @@ abstract class Path {
   def parent: Path
   def lastOption: Option[String]
   def startsWith(other: Path): Boolean
+
 }
 
 
@@ -42,6 +43,8 @@ object Path {
   def unapplySeq(path: Path): Option[List[String]] = Some(path.toList)
 
   def unapplySeq(request: RequestPrelude): Option[List[String]] = Some(Path(request.pathInfo).toList)
+
+  def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
 
 }
 
@@ -81,6 +84,19 @@ object ~ {
   }
 }
 
+object :/ {
+  def unapply(req: RequestPrelude): Option[(Path, String)] = {
+    val p = Path(req.pathInfo)
+    Some(p.parent, p.lastOption.getOrElse(""))
+  }
+}
+
+//object * {
+//  def unapply(req: RequestPrelude): Option[(Method, Path)] = {
+//    Some((req.requestMethod, Path(req.pathInfo)))
+//  }
+//}
+
 case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
   def lastOption: Option[String] = Some(child)
@@ -99,7 +115,6 @@ object -> {
    *     case Method.Get -> Root / "test.json" => ...
    */
   def unapply(req: RequestPrelude): Option[(Method, Path)] = {
-
     Some((req.requestMethod, Path(req.pathInfo)))
   }
 }
