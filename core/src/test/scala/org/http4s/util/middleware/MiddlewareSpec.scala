@@ -13,13 +13,13 @@ class MiddlewareSpec extends Specification with NoTimeConversions {
   import util.middleware.URITranslation._
 
   val echoBody = Enumerator("one", "two", "three").map[HttpChunk](s => BodyChunk(s))
-  val echoReq = RequestPrelude(requestMethod = Method.Post, pathInfo = "rootPath/echo")
+  val echoReq = RequestPrelude(requestMethod = Method.Post, pathInfo = "/rootPath/echo")
 
   val pingBody = Enumerator.eof[HttpChunk]
-  val pingReq = RequestPrelude(requestMethod = Method.Get, pathInfo = "rootPath/ping")
+  val pingReq = RequestPrelude(requestMethod = Method.Get, pathInfo = "/rootPath/ping")
 
   "TranslateRoot" should {
-    val server = new MockServer(TranslateRoot("rootPath")(ExampleRoute()))
+    val server = new MockServer(TranslateRoot("/rootPath")(ExampleRoute()))
 
     "Translate address" in {
       new String(server.response(echoReq, echoBody).body) should_==("onetwothree")
@@ -27,7 +27,7 @@ class MiddlewareSpec extends Specification with NoTimeConversions {
     }
 
     "Be undefined at non-matching address" in {
-      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "foo/echo")
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/foo/echo")
       server.response(req, echoBody) should_== server.onNotFound
     }
 
@@ -35,8 +35,8 @@ class MiddlewareSpec extends Specification with NoTimeConversions {
 
   "TranslatePath" should {
     val server = new MockServer(TranslatePath{ str =>
-      if (str.startsWith("rootPath/"))
-        str.substring("rootPath/".length)
+      if (str.startsWith("/rootPath"))
+        str.substring("/rootPath".length)
       else str
     }(ExampleRoute()))
 
@@ -46,7 +46,7 @@ class MiddlewareSpec extends Specification with NoTimeConversions {
     }
 
     "Be undefined at non-matching address" in {
-      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "foo/echo")
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/foo/echo")
       server.response(req, echoBody) should_== server.onNotFound
     }
   }

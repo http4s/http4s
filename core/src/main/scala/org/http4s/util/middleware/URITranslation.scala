@@ -12,11 +12,9 @@ import play.api.libs.iteratee.Iteratee
 object URITranslation {
 
   def TranslateRoot(prefix: String)(in: Route): Route = {
-    val newPrefix = prefix + "/"
+    val newPrefix = if (!prefix.startsWith("/")) "/" + prefix else prefix
     val trans: String => String = { str =>
-      if(str.startsWith(newPrefix))
-        str.substring(prefix.length)
-      else str
+      if(str.startsWith(newPrefix)) str.substring(prefix.length) else str
     }
     TranslatePath(trans)(in)
   }

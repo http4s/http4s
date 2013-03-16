@@ -18,8 +18,7 @@ sealed trait HasHeaders {
 sealed trait HttpPrelude extends HasHeaders
 
 // IPC: Do we still need HttpChunk?
-sealed trait HttpChunk {
-}
+sealed trait HttpChunk
 
 case class BodyChunk(bytes: ByteString) extends HttpChunk
   with IndexedSeq[Byte] with IndexedSeqOptimized[Byte, BodyChunk]
