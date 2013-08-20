@@ -13,7 +13,9 @@ object ExampleRoute extends RouteHandler {
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
-  object myVar extends Key[String]()
+  object myVar extends Key[String]
+
+  GlobalState(myVar) = "cats"
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case Get -> Root / "ping" =>
@@ -39,6 +41,10 @@ object ExampleRoute extends RouteHandler {
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
+
+    case req @ Get -> Root / "attributes" =>
+      req + (myVar, "5")
+      Ok("Hello" + req.get(myVar) + ", and " + GlobalState(myVar))
 
     case Get -> Root / "html" =>
       Ok(

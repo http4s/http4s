@@ -15,8 +15,10 @@ import java.util.UUID
 import java.nio.charset.Charset
 import akka.util.ByteString
 import com.typesafe.config.{ConfigFactory, Config}
+import org.http4s.attributes.RequestScope
+import org.http4s.attributes.ScopedKey
+import org.http4s.attributes.AppScope
 
-//import spray.http.HttpHeaders.RawHeader
 
 package object http4s {
   type Route = PartialFunction[RequestPrelude, Iteratee[HttpChunk, Responder]]
@@ -36,7 +38,14 @@ package object http4s {
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
-  implicit object GlobalState extends attributes.ServerContext
+  implicit object GlobalState extends attributes.ServerContext {
+    import attributes.ScopableAttributeKey
+
+    private def scopedKey[T](key: Key[T]) = new ScopableAttributeKey[T](key) in ThisServer
+
+    def apply[T](key: Key[T]): T = super.apply(scopedKey(key))
+    def update[T](key: Key[T], value: T): T = super.update(scopedKey(key), value)
+  }
 
   implicit def attribute2scoped[T](attributeKey: AttributeKey[T]) = new attributes.ScopableAttributeKey(attributeKey)
   implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)

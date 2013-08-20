@@ -18,16 +18,17 @@ sealed trait Scope extends Ordered[Scope] { self =>
 
   def compare(that: Scope) = -(rank compare that.rank)
 
-  private val viewCount = new java.util.concurrent.atomic.AtomicInteger(0)
+  private val lock = new AnyRef()
+  private var viewCount = 0
 
-  private[attributes] def removeView() =  {
-    val refCount = viewCount.decrementAndGet()
-    if(refCount == 0)  GlobalState.clear(self)
-    else if (refCount < 0)  sys.error(s"Invalid reference count: $refCount")
+  private[attributes] def removeView() = lock.synchronized {
+    viewCount -= 1
+    if(viewCount == 0) GlobalState.clear(self)
+    else if (viewCount < 0)  sys.error(s"Invalid reference count: $viewCount")
   }
 
-  private[http4s] def newAttributesView() = {
-    viewCount.incrementAndGet()
+  private[http4s] def newAttributesView() = lock.synchronized {
+    viewCount += 1
     new AttributesView(GlobalState.forScope(self))(self)
   }
 }
