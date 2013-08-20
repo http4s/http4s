@@ -186,7 +186,7 @@ final class RequestPrelude private(
 
   lazy val remoteUser: Option[String] = None
 
-  val attributes = new AttributesView(GlobalState.forScope(scope))
+  lazy val attributes = scope.newAttributesView()
 
   /* Attributes proxy */
   def updated[T](key: AttributeKey[T], value: T) = {

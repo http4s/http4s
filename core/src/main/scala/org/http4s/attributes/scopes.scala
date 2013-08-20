@@ -13,10 +13,23 @@ object Scope {
 
 }
 
-sealed trait Scope extends Ordered[Scope] {
+sealed trait Scope extends Ordered[Scope] { self =>
   def rank: Int
 
   def compare(that: Scope) = -(rank compare that.rank)
+
+  private val viewCount = new java.util.concurrent.atomic.AtomicInteger(0)
+
+  private[attributes] def removeView() =  {
+    val refCount = viewCount.decrementAndGet()
+    if(refCount == 0)  GlobalState.clear(self)
+    else if (refCount < 0)  sys.error(s"Invalid reference count: $refCount")
+  }
+
+  private[http4s] def newAttributesView() = {
+    viewCount.incrementAndGet()
+    new AttributesView(GlobalState.forScope(self))(self)
+  }
 }
 
 object ThisServer extends Scope {

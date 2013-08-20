@@ -1,15 +1,14 @@
 package org.http4s
 package grizzly
 
-import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq,HttpHandler}
+import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq, HttpHandler}
 
 import java.net.InetAddress
 import scala.collection.JavaConverters._
-import concurrent.{Future, ExecutionContext}
+import concurrent.{ExecutionContext}
 import play.api.libs.iteratee.{Concurrent, Done}
 import org.http4s.Status.NotFound
 import org.glassfish.grizzly.ReadHandler
-import akka.util.ByteString
 
 /**
  * @author Bryce Anderson
@@ -51,7 +50,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       },
       {canceled = true}
     ).run(handler)
-    .onComplete( _ => resp.resume())
+    .onComplete{ _ => resp.resume() }
   }
 
   protected def toRequest(req: GrizReq): RequestPrelude = {

@@ -29,7 +29,7 @@ package object http4s {
 
   trait RouteHandler {
     implicit val appScope = AppScope()
-    val attributes = new AttributesView(GlobalState.forScope(appScope))
+    val attributes = appScope.newAttributesView()
     def apply(implicit executionContext: ExecutionContext): Route
 
   }

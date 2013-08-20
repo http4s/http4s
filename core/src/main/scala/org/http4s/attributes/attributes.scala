@@ -194,9 +194,11 @@ object AttributesView {
    }
 }
 
-class AttributesView[S <: Scope](underlying: ScopedAttributes[S])(implicit scope: S) extends Iterable[(AttributeKey[_], Any)] with IterableLike[(AttributeKey[_], Any), AttributesView[S]] {
+class AttributesView[S <: Scope] private[attributes](underlying: ScopedAttributes[S])(implicit scope: S) extends Iterable[(AttributeKey[_], Any)] with IterableLike[(AttributeKey[_], Any), AttributesView[S]] {
 
   import AttributesView.k2sk
+
+  override def finalize() { scope.removeView(); super.finalize() }
 
   def iterator: Iterator[(AttributeKey[_], Any)] = underlying.toMap.iterator
 
@@ -438,13 +440,20 @@ class ServerContext {
 
   def forScope[S <: Scope](scope: S): ScopedAttributes[S] = scope match {
     case ThisServer => serverState.asInstanceOf[ScopedAttributes[S]]
+
     case s @ AppScope(uuid) =>
-      if (!applicationState.contains(uuid)) applicationState(uuid) = new ScopedAttributes[AppScope](s)
-      applicationState(uuid).asInstanceOf[ScopedAttributes[S]]
+      applicationState.get(uuid).getOrElse{
+        val a = new ScopedAttributes[AppScope](s)
+        applicationState(uuid) = a
+        a
+      }.asInstanceOf[ScopedAttributes[S]]
+
     case s @ RequestScope(uuid) =>
-      if (!requestState.contains(uuid))
-        requestState(uuid) = new ScopedAttributes[RequestScope](s)
-      requestState(uuid).asInstanceOf[ScopedAttributes[S]]
+      requestState.get(uuid).getOrElse {
+        val a = new ScopedAttributes[RequestScope](s)
+        requestState(uuid) = a
+        a
+      }.asInstanceOf[ScopedAttributes[S]]
   }
 }
 

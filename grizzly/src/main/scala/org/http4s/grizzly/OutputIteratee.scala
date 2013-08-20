@@ -17,25 +17,26 @@ class OutputIteratee(os: NIOOutputStream, isChunked: Boolean)(implicit execution
 
   private[this] var osFuture: Future[Unit] = Future.successful()
 
-  private[this] def writeBytes(bytes: Array[Byte]): Unit = {
-    val promise: Promise[Unit] = Promise()
-
-    val asyncWriter = new  WriteHandler {
-      override def onError(t: Throwable) {
-        promise.failure(t)
-        sys.error(s"Error on write listener: ${t.getStackTraceString}")
-      }
-      override def onWritePossible() = promise.success{os.write(bytes); if(isChunked) os.flush() }
-    }
-
-    osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter, bytes.length); promise.future }
-  }
+//  private[this] def writeBytes(bytes: Array[Byte]): Unit = {
+//    val promise: Promise[Unit] = Promise()
+//
+//    val asyncWriter = new  WriteHandler {
+//      override def onError(t: Throwable) {
+//        promise.failure(t)
+//        sys.error(s"Error on write listener: ${t.getStackTraceString}")
+//      }
+//      override def onWritePossible() = promise.success{os.write(bytes); if(isChunked) os.flush() }
+//    }
+//
+//    osFuture = osFuture.flatMap{ _ => os.notifyCanWrite(asyncWriter, bytes.length); promise.future }
+//  }
 
   // synchronized so that enumerators that work in different threads cant totally mess it up.
-  private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] = synchronized {
+  private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] =  {
     in match {
       case Input.El(chunk: BodyChunk) =>
-        writeBytes(chunk.toArray)
+        //writeBytes(chunk.toArray)
+        os.write(chunk.toArray)
         this
 
       case Input.El(chunk: TrailerChunk) =>
