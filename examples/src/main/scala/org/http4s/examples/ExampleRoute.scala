@@ -1,6 +1,6 @@
 package org.http4s
 
-import attributes.{Key, ServerContext}
+import org.http4s.attributes.{RequestScope, Key, ThisServer}
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
@@ -10,12 +10,15 @@ object ExampleRoute extends RouteHandler {
   import Status._
   import Writable._
   import BodyParser._
+  import org.http4s.attributes.AppScope
+
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
-  object myVar extends Key[String]
+  object myVar extends Key[Int]
 
-  GlobalState(myVar) = "cats"
+    myVar in ThisServer := 0
+
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case Get -> Root / "ping" =>
@@ -43,8 +46,9 @@ object ExampleRoute extends RouteHandler {
       }
 
     case req @ Get -> Root / "attributes" =>
-      req + (myVar, "5")
-      Ok("Hello" + req.get(myVar) + ", and " + GlobalState(myVar))
+      req(myVar) = 55
+      myVar in ThisServer := (myVar in ThisServer value) + 1
+      Ok("Hello" + req(myVar) + ", and " + GlobalState(myVar in ThisServer) + ". end.\n")
 
     case Get -> Root / "html" =>
       Ok(

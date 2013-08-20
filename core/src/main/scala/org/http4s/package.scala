@@ -1,22 +1,12 @@
 package org
 
 import http4s.attributes._
-import http4s.attributes.AppScope
-import http4s.attributes.RequestScope
 import http4s.ext.Http4sString
-import http4s.HttpHeaders.RawHeader
-import http4s.parser.HttpParser
-import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
+import play.api.libs.iteratee.{Enumeratee, Iteratee}
 import scala.language.implicitConversions
-import concurrent.{ExecutionContext, Future}
-import java.net.{InetAddress, URI}
-import java.io.File
-import java.util.UUID
-import java.nio.charset.Charset
-import akka.util.ByteString
+import concurrent.ExecutionContext
 import com.typesafe.config.{ConfigFactory, Config}
 import org.http4s.attributes.RequestScope
-import org.http4s.attributes.ScopedKey
 import org.http4s.attributes.AppScope
 
 
@@ -31,7 +21,7 @@ package object http4s {
 
   trait RouteHandler {
     implicit val appScope = AppScope()
-    val attributes = appScope.newAttributesView()
+    val attributes = new AttributesView(GlobalState.forScope(appScope))
     def apply(implicit executionContext: ExecutionContext): Route
 
   }
@@ -39,15 +29,10 @@ package object http4s {
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
   implicit object GlobalState extends attributes.ServerContext {
-    import attributes.ScopableAttributeKey
-
-    private def scopedKey[T](key: Key[T]) = new ScopableAttributeKey[T](key) in ThisServer
-
-    def apply[T](key: Key[T]): T = super.apply(scopedKey(key))
-    def update[T](key: Key[T], value: T): T = super.update(scopedKey(key), value)
+    def apply[T](key: Key[T]): T = apply(key in ThisServer)
+    def update[T](key: Key[T], value: T): T = update(key in ThisServer, value)
   }
 
-  implicit def attribute2scoped[T](attributeKey: AttributeKey[T]) = new attributes.ScopableAttributeKey(attributeKey)
   implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
   implicit def app2scope(routes: RouteHandler) = routes.appScope
   implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope

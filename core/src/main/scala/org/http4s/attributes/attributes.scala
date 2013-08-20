@@ -3,7 +3,6 @@ package attributes
 
 import reflect.ClassTag
 import scala.concurrent.stm._
-import shapeless.TypeOperators._
 import collection._
 import collection.generic.{Shrinkable, Growable, CanBuildFrom}
 import collection.immutable.Map
@@ -13,10 +12,11 @@ import java.util.concurrent.ConcurrentHashMap
 import java.util.UUID
 
 
-trait AttributeKey[@specialized T] {
+trait AttributeKey[@specialized T] { self =>
   def classTag: ClassTag[T]
   def name: String
   def description: Option[String]
+  def in[S <: Scope](scope: S) = ScopedKey(self, scope)
 }
 
 abstract class Key[@specialized T](val description: Option[String])(implicit val classTag: ClassTag[T]) extends AttributeKey[T] {
@@ -25,7 +25,11 @@ abstract class Key[@specialized T](val description: Option[String])(implicit val
   val name: String = getClass.getSimpleName.replaceAll("\\$$", "")
 }
 
-case class ScopedKey[T, S <: Scope](key: AttributeKey[T] @@ S, scope: S)
+case class ScopedKey[T, S <: Scope](key: AttributeKey[T], scope: S) {
+  private lazy val attributes = GlobalState.forScope(scope)
+  def value: T = attributes.apply(key)
+  def := (value: T) = attributes.update(key, value)
+}
 
 object Attributes {
   /** An empty $Coll */
@@ -166,7 +170,7 @@ object AttributesView {
   */
   def newBuilder[S <: Scope](implicit scope: S): mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] = new AttributesViewBuilder[S](mutable.Map.empty)
 
-  class AttributesViewBuilder[S <: Scope](empty: mutable.Map[AttributeKey[_] @@ S, Any])(implicit scope: S) extends mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] {
+  class AttributesViewBuilder[S <: Scope](empty: mutable.Map[AttributeKey[_], Any])(implicit scope: S) extends mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] {
    private[this] val coll = empty
    def +=(elem: (AttributeKey[_], Any)): this.type = {
      coll += k2sk(elem._1) -> elem._2
@@ -186,19 +190,17 @@ object AttributesView {
    new CanBuildFrom[TraversableOnce[(AttributeKey[_], Any)], (AttributeKey[_], Any), AttributesView[S]] {
      def apply(from: TraversableOnce[(AttributeKey[_], Any)]): mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] = {
        val f = from.toSeq
-       val m: Seq[(AttributeKey[_] @@ S, Any)] = f.map(kv => k2sk(kv._1).asInstanceOf[AttributeKey[_] @@ S] -> kv._2)
-       new AttributesViewBuilder[S](mutable.Map.empty[AttributeKey[_] @@ S, Any] ++= m)
+       val m: Seq[(AttributeKey[_], Any)] = f.map(kv => k2sk(kv._1).asInstanceOf[AttributeKey[_]] -> kv._2)
+       new AttributesViewBuilder[S](mutable.Map.empty[AttributeKey[_], Any] ++= m)
      }
 
      def apply(): mutable.Builder[(AttributeKey[_], Any), AttributesView[S]] = new AttributesViewBuilder[S](mutable.Map.empty)
    }
 }
 
-class AttributesView[S <: Scope] private[attributes](underlying: ScopedAttributes[S])(implicit scope: S) extends Iterable[(AttributeKey[_], Any)] with IterableLike[(AttributeKey[_], Any), AttributesView[S]] {
+class AttributesView[S <: Scope](underlying: ScopedAttributes[S])(implicit scope: S) extends Iterable[(AttributeKey[_], Any)] with IterableLike[(AttributeKey[_], Any), AttributesView[S]] {
 
   import AttributesView.k2sk
-
-  override def finalize() { scope.removeView(); super.finalize() }
 
   def iterator: Iterator[(AttributeKey[_], Any)] = underlying.toMap.iterator
 
@@ -232,7 +234,7 @@ class AttributesView[S <: Scope] private[attributes](underlying: ScopedAttribute
     this
   }
 
-  def +=[T](kv1: (AttributeKey[T], T), kv2: (AttributeKey[T]@@S, T), kvs: (AttributeKey[T]@@S, T)*): this.type = {
+  def +=[T](kv1: (AttributeKey[T], T), kv2: (AttributeKey[T], T), kvs: (AttributeKey[T], T)*): this.type = {
     underlying += k2sk(kv1._1) -> kv1._2 += k2sk(kv2._1) -> kv2._2 ++= kvs.map(kk => k2sk(kk._1) -> kk._2)
     this
   }
@@ -292,71 +294,71 @@ class AttributesView[S <: Scope] private[attributes](underlying: ScopedAttribute
 
 }
 
-class ScopedAttributes[S <: Scope](val scope: S, underlying: TMap[AttributeKey[_] @@ S, Any] = TMap.empty[AttributeKey[_] @@ S, Any]) {
+class ScopedAttributes[S <: Scope](val scope: S, underlying: TMap[AttributeKey[_], Any] = TMap.empty[AttributeKey[_], Any]) {
 
-  def contains[T](key: AttributeKey[T] @@ S) = atomic { implicit txn => underlying.contains(key) }
+  def contains[T](key: AttributeKey[T]) = atomic { implicit txn => underlying.contains(key) }
   
-  def getOrElse[T](key: AttributeKey[T] @@ S, default: => T) = atomic { implicit txn =>
+  def getOrElse[T](key: AttributeKey[T], default: => T) = atomic { implicit txn =>
     underlying.getOrElse(key, default)
   }
   
-  def getOrElseUpdate[T](key: AttributeKey[T] @@ S, default: => T) = atomic { implicit txn =>
+  def getOrElseUpdate[T](key: AttributeKey[T], default: => T) = atomic { implicit txn =>
     underlying.getOrElseUpdate(key, default)
   }
 
-  def get[T](key: AttributeKey[T] @@ S): Option[T] = atomic { implicit txn =>
+  def get[T](key: AttributeKey[T]): Option[T] = atomic { implicit txn =>
     underlying.get(key) map (_.asInstanceOf[T])
   }
 
-  def apply[T](key: AttributeKey[T] @@ S): T = get(key) getOrElse (throw new KeyNotFoundException(key.name, scope))
+  def apply[T](key: AttributeKey[T]): T = get(key) getOrElse (throw new KeyNotFoundException(key.name, scope))
 
-  def update[T](key:AttributeKey[T] @@ S, value: T): T = atomic { implicit txn =>
+  def update[T](key:AttributeKey[T], value: T): T = atomic { implicit txn =>
     underlying.update(key, value)
     value
   }
 
-  def put[T](key: AttributeKey[T] @@ S, value: T) = update[T](key, value)
+  def put[T](key: AttributeKey[T], value: T) = update[T](key, value)
 
-  def updated[T](key: AttributeKey[T] @@ S, value: T): this.type = atomic { implicit txn =>
+  def updated[T](key: AttributeKey[T], value: T): this.type = atomic { implicit txn =>
     underlying.updated(key, value)
     this
   }
 
-  def remove[T](key: AttributeKey[T] @@ S) = atomic { implicit txn => underlying.remove(key).map(_.asInstanceOf[T]) }
+  def remove[T](key: AttributeKey[T]) = atomic { implicit txn => underlying.remove(key).map(_.asInstanceOf[T]) }
 
   def size = atomic { implicit txn => underlying.size }
 
   def isEmpty = atomic { implicit txn => underlying.isEmpty }
 
-  def +=[T](kv: (AttributeKey[T] @@ S, T)): this.type = atomic { implicit txn =>
+  def +=[T](kv: (AttributeKey[T], T)): this.type = atomic { implicit txn =>
     underlying += kv
     this
   }
 
-  def +=[T](kv1: (AttributeKey[T] @@ S, T), kv2: (AttributeKey[T]@@S, T), kvs: (AttributeKey[T]@@S, T)*): this.type = atomic { implicit txn =>
+  def +=[T](kv1: (AttributeKey[T], T), kv2: (AttributeKey[T], T), kvs: (AttributeKey[T], T)*): this.type = atomic { implicit txn =>
     underlying += kv1 += kv2 ++= kvs
     this
   }
 
 
-  def ++=[T](kv: TraversableOnce[(AttributeKey[T] @@ S, T)]): this.type = atomic { implicit txn =>
+  def ++=[T](kv: TraversableOnce[(AttributeKey[T], T)]): this.type = atomic { implicit txn =>
     underlying ++= kv
     this
   }
 
-  def -=[T](key: AttributeKey[T] @@ S): this.type = atomic { implicit txn => underlying -= key; this }
-  def -=[T](key1: AttributeKey[T] @@ S, key2: AttributeKey[T] @@ S, keys: AttributeKey[T] @@ S*): this.type =
+  def -=[T](key: AttributeKey[T]): this.type = atomic { implicit txn => underlying -= key; this }
+  def -=[T](key1: AttributeKey[T], key2: AttributeKey[T], keys: AttributeKey[T]*): this.type =
     atomic { implicit txn => underlying -= key1 -= key2 --= keys; this }
 
-  def --=[T](key: TraversableOnce[AttributeKey[T] @@ S]): this.type = atomic { implicit txn => underlying --= key; this }
+  def --=[T](key: TraversableOnce[AttributeKey[T]]): this.type = atomic { implicit txn => underlying --= key; this }
 
-  def foreach[U](iterator: ((AttributeKey[_] @@ S, Any)) => U) { underlying.single.foreach(iterator) }
+  def foreach[U](iterator: ((AttributeKey[_], Any)) => U) { underlying.single.foreach(iterator) }
 
-  def map[B](endo: ((AttributeKey[_] @@ S, Any)) => B) = underlying.single.map(endo)
-  def flatMap[B](endo: ((AttributeKey[_] @@ S, Any)) => GenTraversable[B]) = underlying.single.flatMap(endo)
+  def map[B](endo: ((AttributeKey[_], Any)) => B) = underlying.single.map(endo)
+  def flatMap[B](endo: ((AttributeKey[_], Any)) => GenTraversable[B]) = underlying.single.flatMap(endo)
 
-  def collect[B](collector: PartialFunction[(AttributeKey[_] @@ S, Any), B]) = underlying.single.collect(collector)
-  def collectFirst[B](collector: PartialFunction[(AttributeKey[_] @@ S, Any), B]): Option[B] =
+  def collect[B](collector: PartialFunction[(AttributeKey[_], Any), B]) = underlying.single.collect(collector)
+  def collectFirst[B](collector: PartialFunction[(AttributeKey[_], Any), B]): Option[B] =
     underlying.single.collectFirst(collector)
 
   def clear() { atomic { implicit txn => underlying.clear() } }
@@ -434,7 +436,7 @@ class ServerContext {
     scope match {
       case ThisServer => serverState.clear()
       case AppScope(uuid) => if (applicationState contains uuid) applicationState -= uuid
-      case RequestScope(uuid) => if (requestState contains uuid) requestState -= uuid
+      case r: RequestScope => if (requestState contains r.uuid) requestState -= r.uuid
     }
   }
 
@@ -442,16 +444,16 @@ class ServerContext {
     case ThisServer => serverState.asInstanceOf[ScopedAttributes[S]]
 
     case s @ AppScope(uuid) =>
-      applicationState.get(uuid).getOrElse{
+      applicationState.get(uuid).getOrElse {
         val a = new ScopedAttributes[AppScope](s)
         applicationState(uuid) = a
         a
       }.asInstanceOf[ScopedAttributes[S]]
 
-    case s @ RequestScope(uuid) =>
-      requestState.get(uuid).getOrElse {
-        val a = new ScopedAttributes[RequestScope](s)
-        requestState(uuid) = a
+    case r: RequestScope =>
+      requestState.get(r.uuid).getOrElse {
+        val a = new ScopedAttributes[RequestScope](r)
+        requestState(r.uuid) = a
         a
       }.asInstanceOf[ScopedAttributes[S]]
   }

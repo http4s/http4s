@@ -186,13 +186,20 @@ final class RequestPrelude private(
 
   lazy val remoteUser: Option[String] = None
 
-  lazy val attributes = scope.newAttributesView()
+  lazy val attributes = new AttributesView(GlobalState.forScope(scope))
 
   /* Attributes proxy */
+  private[http4s] def clear() { GlobalState.clear(scope) }
+
   def updated[T](key: AttributeKey[T], value: T) = {
     attributes.updated(key, value)
     this
   }
+
+  def update[T](key: AttributeKey[T], value: T) = {
+    attributes.update(key, value)
+  }
+
   def apply[T](key: AttributeKey[T]): T = attributes(key)
   def get[T](key: AttributeKey[T]): Option[T] = attributes get key
   def getOrElse[T](key: AttributeKey[T], default: => T) = attributes.getOrElse(key, default)
