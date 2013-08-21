@@ -17,7 +17,7 @@ object Scope {
 sealed trait Scope extends Ordered[Scope] with ScopedAttributes { self =>
   def rank: Int
 
-  lazy val underlying = new TrieMap[AttributeKey[_], Any]
+  lazy val underlying = new TrieMap[Key[_], Any]
 
   def compare(that: Scope) = -(rank compare that.rank)
 
@@ -36,4 +36,8 @@ class AppScope extends Scope {
 
 class RequestScope extends Scope {
   def rank = 1000
+}
+
+class ValueScope extends Scope {
+  def rank = 10000
 }

@@ -1,6 +1,6 @@
 package org.http4s
 
-import attributes.{RequestScope, AttributeKey}
+import attributes.{RequestScope, Key}
 import java.io.File
 import java.net.{URI, InetAddress}
 import java.util.UUID
@@ -121,54 +121,81 @@ object RequestPrelude {
 //
 //  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, HttpHeaders, UrlScheme, String, Int, ServerSoftware, HttpIp)] =
 //    Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
-  private[http4s] def newRequest(requestMethod: Method = Method.Get,
-            scriptName: String = "",
-            pathInfo: String = "",
-            queryString: String = "",
-            pathTranslated: Option[File] = None,
-            protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-            headers: HttpHeaders = HttpHeaders.empty,
-            urlScheme: UrlScheme = HttpUrlScheme.Http,
-            serverName: String = InetAddress.getLocalHost.getHostName,
-            serverPort: Int = 80,
-            serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-            remote: HttpIp = HttpIp.localhost) =
-      new RequestPrelude(
-            requestMethod,
-            scriptName,
-            pathInfo,
-            queryString,
-            pathTranslated,
-            protocol: ServerProtocol,
-            headers: HttpHeaders,
-            urlScheme: UrlScheme,
-            serverName: String,
-            serverPort: Int,
-            serverSoftware,
-            remote: HttpIp,
-            new RequestScope(),
-            UUID.randomUUID()
-          )
+def apply(requestMethod: Method = Method.Get,
+         scriptName: String = "",
+         pathInfo: String = "",
+         queryString: String = "",
+         pathTranslated: Option[File] = None,
+         protocol: ServerProtocol = HttpVersion.`Http/1.1`,
+         headers: HttpHeaders = HttpHeaders.empty,
+         urlScheme: UrlScheme = HttpUrlScheme.Http,
+         serverName: String = InetAddress.getLocalHost.getHostName,
+         serverPort: Int = 80,
+         serverSoftware: ServerSoftware = ServerSoftware.Unknown,
+         remote: HttpIp = HttpIp.localhost) =
+    new RequestPrelude(
+      requestMethod,
+      scriptName,
+      pathInfo,
+      queryString,
+      pathTranslated,
+      protocol: ServerProtocol,
+      headers: HttpHeaders,
+      urlScheme: UrlScheme,
+      serverName: String,
+      serverPort: Int,
+      serverSoftware,
+      remote: HttpIp,
+      new RequestScope(),
+      UUID.randomUUID())
 
   implicit def reqToScope(req: RequestPrelude) = req.scope
 
   private def cookiesFromHeaders(h: HttpHeaders) = h.getAll(HttpHeaders.Cookie).flatMap(_.cookies).distinct
 }
-case class RequestPrelude private (
-      requestMethod: Method = Method.Get,
-      scriptName: String = "",
-      pathInfo: String = "",
-      queryString: String = "",
-      pathTranslated: Option[File] = None,
-      protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-      headers: HttpHeaders = HttpHeaders.empty,
-      urlScheme: UrlScheme = HttpUrlScheme.Http,
-      serverName: String = InetAddress.getLocalHost.getHostName,
-      serverPort: Int = 80,
-      serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-      remote: HttpIp = HttpIp.localhost,
+case class RequestPrelude private(
+      requestMethod: Method,
+      scriptName: String,
+      pathInfo: String,
+      queryString: String,
+      pathTranslated: Option[File],
+      protocol: ServerProtocol,
+      headers: HttpHeaders,
+      urlScheme: UrlScheme,
+      serverName: String,
+      serverPort: Int,
+      serverSoftware: ServerSoftware,
+      remote: HttpIp,
       scope: RequestScope,
-      uuid: UUID = UUID.randomUUID()) {
+      uuid: UUID) {
+
+  def this(requestMethod: Method = Method.Get,
+    scriptName: String = "",
+    pathInfo: String = "",
+    queryString: String = "",
+    pathTranslated: Option[File] = None,
+    protocol: ServerProtocol = HttpVersion.`Http/1.1`,
+    headers: HttpHeaders = HttpHeaders.empty,
+    urlScheme: UrlScheme = HttpUrlScheme.Http,
+    serverName: String = InetAddress.getLocalHost.getHostName,
+    serverPort: Int = 80,
+    serverSoftware: ServerSoftware = ServerSoftware.Unknown,
+    remote: HttpIp = HttpIp.localhost) =
+    this(
+      requestMethod,
+      scriptName,
+      pathInfo,
+      queryString,
+      pathTranslated,
+      protocol: ServerProtocol,
+      headers: HttpHeaders,
+      urlScheme: UrlScheme,
+      serverName: String,
+      serverPort: Int,
+      serverSoftware,
+      remote: HttpIp,
+      new RequestScope(),
+      UUID.randomUUID())
 
   def contentLength: Option[Int] = headers.get(HttpHeaders.ContentLength).map(_.length)
 
@@ -187,26 +214,21 @@ case class RequestPrelude private (
 
   /* Attributes proxy */
 
-  def updated[T](key: AttributeKey[T], value: T) = {
-    key.in(scope).:=(value)
+  def updated[T](key: Key[T], value: T) = { scope.updated(key, value); this }
+
+  def update[T](key: Key[T], value: T) = scope.update(key, value)
+
+  def apply[T](key: Key[T]): T = scope(key)
+  def get[T](key: Key[T]): Option[T] = scope.get(key)
+  def getOrElse[T](key: Key[T], default: => T) = get(key).getOrElse(default)
+  def +[T](kv: (Key[T], T)) = {
+    scope(kv._1) = kv._2
     this
   }
 
-  def update[T](key: AttributeKey[T], value: T) = {
-    key.in(scope).:=(value)
-  }
+  def -[T](key: Key[T]) = { scope.remove(key); this }
 
-  def apply[T](key: AttributeKey[T]): T = scope(key)
-  def get[T](key: AttributeKey[T]): Option[T] = scope.get(key)
-  def getOrElse[T](key: AttributeKey[T], default: => T) = get(key).getOrElse(default)
-  def +[T](kv: (AttributeKey[T], T)) = {
-    kv._1 in scope := kv._2
-    this
-  }
-
-  def -[T](key: AttributeKey[T]) = { key.in(scope).remove; this }
-
-  def contains[T](key: AttributeKey[T]): Boolean = scope.contains(key)
+  def contains[T](key: Key[T]): Boolean = scope.contains(key)
   /* Attributes proxy end */
 
  override def hashCode(): Int = uuid.##

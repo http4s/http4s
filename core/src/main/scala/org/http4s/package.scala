@@ -26,11 +26,9 @@ package object http4s {
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
-  implicit val GlobalScope = attributes.GlobalScope
-
 //  implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
 //  implicit def app2scope(routes: RouteHandler) = routes.appScope
-  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
+//  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
   implicit def string2headerkey(name: String): HttpHeaderKey[HttpHeader] = HttpHeaders.Key(name)
 
   val Get = Method.Get

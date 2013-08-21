@@ -9,19 +9,23 @@ class AttributesMapSpec extends mutable.Specification {
   object notPresentKey extends Key[String]
   object otherKey extends Key[Int]
 
-  val taggedAttr = attrKey in ThisServer
-  val taggedNotPresent = notPresentKey in ThisServer
-  val taggedOther = otherKey in ThisServer
+  val taggedAttr = attrKey in GlobalScope
+  val taggedNotPresent = notPresentKey in GlobalScope
+  val taggedOther = otherKey in GlobalScope
 
   isolated
 
-  val attrss = new Attributes()
+  val attrs = new ValueScope
 
-  val attrs = new ScopedAttributes[ThisServer.type](ThisServer, TMap((taggedAttr.key, "The attribute value")))
+  val str = "The attribute value"
+
+  taggedAttr.key in attrs := str
+
+  val _ = ScopedAttributes(GlobalScope, Map((taggedAttr.key, str), (otherKey, 4)))
 
   "An AttributesMap" should {
     "get a stored a key" in {
-      attrs.get(taggedAttr.key) must beSome("The attribute value")
+      attrs.get(taggedAttr.key) must beSome(str)
     }
 
     "get a stored key with apply" in {

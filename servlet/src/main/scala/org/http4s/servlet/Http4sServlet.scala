@@ -61,8 +61,7 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
   }
 
   protected def toRequest(req: HttpServletRequest): RequestPrelude = {
-    import AsyncContext._
-    RequestPrelude.newRequest(
+    RequestPrelude(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
