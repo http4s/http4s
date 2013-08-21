@@ -117,7 +117,6 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
 //      }
 //    }
     val servAddr = ctx.getChannel.getRemoteAddress.asInstanceOf[InetSocketAddress]
-    println("pth info: " + uri.getPath.substring(contextPath.length))
     RequestPrelude(
       requestMethod = Method(req.getMethod.getName),
       scriptName = contextPath,
