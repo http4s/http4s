@@ -132,8 +132,7 @@ object RequestPrelude {
             serverName: String = InetAddress.getLocalHost.getHostName,
             serverPort: Int = 80,
             serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-            remote: HttpIp = HttpIp.localhost,
-            uuid: UUID = UUID.randomUUID()) =
+            remote: HttpIp = HttpIp.localhost) =
       new RequestPrelude(
             requestMethod,
             scriptName,
@@ -148,7 +147,7 @@ object RequestPrelude {
             serverSoftware,
             remote: HttpIp,
             new RequestScope(),
-            uuid: UUID
+            UUID.randomUUID()
           )
 
   implicit def reqToScope(req: RequestPrelude) = req.scope
@@ -168,7 +167,7 @@ case class RequestPrelude private (
       serverPort: Int = 80,
       serverSoftware: ServerSoftware = ServerSoftware.Unknown,
       remote: HttpIp = HttpIp.localhost,
-      private[http4s] val scope: RequestScope,
+      scope: RequestScope,
       uuid: UUID = UUID.randomUUID()) {
 
   def contentLength: Option[Int] = headers.get(HttpHeaders.ContentLength).map(_.length)
@@ -186,12 +185,10 @@ case class RequestPrelude private (
 
   lazy val remoteUser: Option[String] = None
 
-  //lazy val attributes = new AttributesView(GlobalState.forScope(scope))
-
   /* Attributes proxy */
 
   def updated[T](key: AttributeKey[T], value: T) = {
-    key.in(scope) := value
+    key.in(scope).:=(value)
     this
   }
 
@@ -207,44 +204,10 @@ case class RequestPrelude private (
     this
   }
 
-  def -[T](key: AttributeKey[T]) = {
-    key in scope remove
-
-    this
-  }
+  def -[T](key: AttributeKey[T]) = { key.in(scope).remove; this }
 
   def contains[T](key: AttributeKey[T]): Boolean = scope.contains(key)
   /* Attributes proxy end */
-
-//  def copy(
-//      requestMethod: Method = requestMethod,
-//      scriptName: String = scriptName,
-//      pathInfo: String = pathInfo,
-//      queryString: String = queryString,
-//      pathTranslated: Option[File] = pathTranslated,
-//      protocol: ServerProtocol = protocol,
-//      headers: HttpHeaders = headers,
-//      urlScheme: UrlScheme = urlScheme,
-//      serverName: String = serverName,
-//      serverPort: Int = serverPort,
-//      serverSoftware: ServerSoftware =serverSoftware,
-//      remote: HttpIp = remote): RequestPrelude =
-//      new RequestPrelude(
-//        requestMethod,
-//        scriptName,
-//        pathInfo,
-//        queryString,
-//        pathTranslated,
-//        protocol,
-//        headers,
-//        if (headers != this.headers) RequestCookieJar(RequestPrelude.cookiesFromHeaders(headers):_*) else cookies,
-//        urlScheme,
-//        serverName,
-//        serverPort,
-//        serverSoftware,
-//        remote,
-//        uuid,
-//        scope)
 
  override def hashCode(): Int = uuid.##
 

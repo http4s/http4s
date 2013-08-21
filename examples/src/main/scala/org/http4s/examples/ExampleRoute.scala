@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.attributes.{RequestScope, Key}
+import org.http4s.attributes.{Key}
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
