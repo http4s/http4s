@@ -57,12 +57,12 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
     Enumerator.fromStream(servletRequest.getInputStream, chunkSize)
       .map[HttpChunk](BodyChunk(_))
       .run(handler)
-      .onComplete{_ => ctx.complete(); request.clear() }
+      .onComplete(_ => ctx.complete() )
   }
 
   protected def toRequest(req: HttpServletRequest): RequestPrelude = {
     import AsyncContext._
-    RequestPrelude(
+    RequestPrelude.newRequest(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),

@@ -4,6 +4,7 @@ package attributes
 import scala.language.implicitConversions
 import scala.Ordering
 import java.util.UUID
+import scala.collection.concurrent.TrieMap
 
 object Scope {
 
@@ -13,19 +14,26 @@ object Scope {
 
 }
 
-sealed trait Scope extends Ordered[Scope] { self =>
+sealed trait Scope extends Ordered[Scope] with ScopedAttributes { self =>
   def rank: Int
 
+  lazy val underlying = new TrieMap[AttributeKey[_], Any]
+
   def compare(that: Scope) = -(rank compare that.rank)
+
+  def scope = self
 }
 
-object ThisServer extends Scope {
-  def rank = 0
+object GlobalScope extends ServerScope { override def rank: Int = 1 }
+
+trait ServerScope extends Scope { self =>
+  def rank = 10
 }
-case class AppScope(uuid: UUID = UUID.randomUUID()) extends Scope {
+
+class AppScope extends Scope {
   def rank = 100
 }
 
-case class RequestScope(uuid: UUID) extends Scope {
+class RequestScope extends Scope {
   def rank = 1000
 }
