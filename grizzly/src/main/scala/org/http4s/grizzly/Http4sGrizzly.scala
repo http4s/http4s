@@ -7,8 +7,9 @@ import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext}
 import play.api.libs.iteratee.{Concurrent, Done}
-import org.http4s.Status.NotFound
+import org.http4s.Status.{InternalServerError, NotFound}
 import org.glassfish.grizzly.ReadHandler
+import scala.util.Try
 
 /**
  * @author Bryce Anderson
@@ -19,7 +20,10 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
   override def service(req: GrizReq, resp: Response) {
     resp.suspend()  // Suspend the response until we close it
     val request = toRequest(req)
-    val parser = route.lift(request).getOrElse(Done(NotFound(request)))
+    val parser = try {
+      route.lift(request).getOrElse(Done(NotFound(request)))
+    } catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
+
     val handler = parser.flatMap { responder =>
       resp.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)

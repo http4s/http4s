@@ -7,7 +7,7 @@ import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext,Future}
 import javax.servlet.{ServletConfig, AsyncContext}
-import org.http4s.Status.NotFound
+import org.http4s.Status.{InternalServerError, NotFound}
 import akka.util.ByteString
 
 import Http4sServlet._
@@ -37,7 +37,9 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
   protected def handle(request: RequestPrelude, ctx: AsyncContext) {
     val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    val parser = route.lift(request).getOrElse(Done(NotFound(request)))
+    val parser = try {
+      route.lift(request).getOrElse(Done(NotFound(request)))
+    } catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
     val handler = parser.flatMap { responder =>
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)

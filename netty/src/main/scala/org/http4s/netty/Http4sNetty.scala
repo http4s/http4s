@@ -15,10 +15,9 @@ import org.jboss.netty.handler.codec.http
 import http._
 import scala.language.{ implicitConversions, reflectiveCalls }
 import java.util.concurrent.LinkedBlockingDeque
-import org.http4s.Responder
+import org.http4s.{HttpChunk, Responder, RequestPrelude}
 import scala.util.{ Failure, Success }
-import org.http4s.RequestPrelude
-import org.http4s.Status.NotFound
+import org.http4s.Status.{InternalServerError, NotFound}
 import akka.util.ByteString
 import java.nio.ByteBuffer
 
@@ -39,7 +38,9 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
 
       val request = toRequest(ctx, req, rem.getAddress)
       if (route.isDefinedAt(request)) {
-        val parser = route.lift(request).getOrElse(Done(NotFound(request)))
+        val parser = try {
+          route.lift(request).getOrElse(Done(NotFound(request)))
+        } catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
         val handler = parser flatMap (renderResponse(ctx, req, _))
         Enumerator[org.http4s.HttpChunk](BodyChunk(req.getContent.toByteBuffer)).run[Unit](handler)
       } else {
