@@ -28,10 +28,9 @@ class QueryParserSpec extends Specification {
       parseQueryString("a=b=c") === Left {
         ParseErrorInfo(
           "Illegal query string",
-          """|Invalid input '=', expected '&' or EOI (line 1, pos 4):
-           |a=b=c
-           |   ^
-           |""".stripMargin
+          "Invalid input '=', expected '&' or EOI (line 1, pos 4):\n" +
+          "a=b=c\n" +
+          "   ^\n"
         )
       }
     }
