@@ -44,7 +44,7 @@ object BodyParser {
   def xml(charset: HttpCharset,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
-          onSaxException: SAXException => Responder = { saxEx => saxEx.printStackTrace(); Status.BadRequest() })
+          onSaxException: SAXException => Responder = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
   : BodyParser[Elem] =
     consumeUpTo(BodyChunkConsumer, limit).map { bytes =>
       val in = bytes.iterator.asInputStream

@@ -17,11 +17,11 @@ package object netty {
     cf.addListener(new ChannelFutureListener {
       def operationComplete(future: ChannelFuture) {
         if (future.isSuccess) {
-          prom.complete(Success(future.getChannel))
+          prom.success(future.getChannel)
         } else if (future.isCancelled) {
-          prom.complete(Failure(new Cancelled(future.getChannel)))
+          prom.failure(new Cancelled(future.getChannel))
         } else {
-          prom.complete(Failure(new ChannelError(future.getChannel, future.getCause)))
+          prom.failure(new ChannelError(future.getChannel, future.getCause))
         }
       }
     })

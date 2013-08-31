@@ -37,7 +37,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
   bootstrap.setOption("child.tcpNoDelay", true)
   bootstrap.setOption("child.keepAlive", true)
 
-  bootstrap setPipelineFactory channelFactory
+  bootstrap.setPipelineFactory(channelFactory)
   bootstrap.bind(new InetSocketAddress(port))
 
   val latch = new CountDownLatch(1)
