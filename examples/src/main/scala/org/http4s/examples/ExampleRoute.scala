@@ -59,11 +59,16 @@ object ExampleRoute extends RouteHandler {
     case req @ Get -> Root / "stream" =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
-          for (i <- 1 to 10) {
-            channel.push(ByteString("%d\n".format(i), req.charset.value))
-            Thread.sleep(1000)
-          }
-          channel.eofAndEnd()
+          new Thread {
+            override def run() {
+              for (i <- 1 to 10) {
+                channel.push(ByteString("%d\n".format(i), req.charset.value))
+                Thread.sleep(1000)
+              }
+              channel.eofAndEnd()
+            }
+          }.start()
+
       }))
 
     case Get -> Root / "bigstring" =>

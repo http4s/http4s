@@ -79,7 +79,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
       readingChunks = true
       enum = new ChunkEnum
       enum
-    } else {  Enumerator.enumInput(Input.El(buffToBodyChunk(req.getContent))) }
+    } else Enumerator.enumInput(Input.El(buffToBodyChunk(req.getContent)))
   }
 
   private def startHttpRequest(ctx: ChannelHandlerContext, req: HttpRequest, rem: InetAddress) {
@@ -92,8 +92,12 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
 
     val handler = parser.flatMap(renderResponse(ctx.getChannel, keepAlive, req, _))
 
-    val cf = getEnumerator(req).run[Channel](handler)
-    if(!keepAlive) cf.onComplete ( _ => ctx.getChannel.close() )
+    executor.execute(new Runnable {
+      def run() {
+        val cf = getEnumerator(req).run[Channel](handler)
+        if(!keepAlive) cf.onComplete ( _ => ctx.getChannel.close() )
+      }
+    })
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
@@ -134,15 +138,16 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
       val buff = ChannelBuffers.dynamicBuffer(1028)
 
       // Folder method that just piles bytes into the buffer.
-      def folder(in: Input[HttpChunk]): Iteratee[HttpChunk, Channel] = in match {
-        case Input.El(c: BodyChunk) => buff.writeBytes(c.toArray); Cont(folder)
-        case Input.El(e)  => sys.error("Not supported chunk type")
-        case Input.Empty => Cont(folder)
-        case Input.EOF =>
-          resp.setHeader(Names.CONTENT_LENGTH, buff.readableBytes())
-          resp.setContent(buff)
-          if (ch.isConnected) Iteratee.flatten[HttpChunk, Channel](ch.write(resp).map(c => Done(c)))
-          else {  Done(ch) }
+      def folder(in: Input[HttpChunk]): Iteratee[HttpChunk, Channel] = {
+        if (ch.isOpen()) in match {
+          case Input.El(c: BodyChunk) => buff.writeBytes(c.toArray); Cont(folder)
+          case Input.El(e)  => sys.error("Not supported chunk type")
+          case Input.Empty => Cont(folder)
+          case Input.EOF =>
+            resp.setHeader(Names.CONTENT_LENGTH, buff.readableBytes())
+            resp.setContent(buff)
+            Iteratee.flatten[HttpChunk, Channel](ch.write(resp).map(ch => Done(ch)))
+        } else Done(ch)
       }
 
       responder.body &>> Cont(folder)
@@ -154,25 +159,22 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     c.write(buff)
   }
 
-  private def chunkedFolder(ch: Channel)(i: Input[HttpChunk]): Iteratee[HttpChunk, Channel] = i match {
-    case Input.El(c: BodyChunk) =>
-      //println("Folding.")
-      if(ch.isConnected) {
-        writeChunk(c.toArray, ch)
+  private def chunkedFolder(ch: Channel)(i: Input[HttpChunk]): Iteratee[HttpChunk, Channel] = {
+    if (ch.isOpen) i match {
+      case Input.El(c: BodyChunk) =>
+          writeChunk(c.toArray, ch)
+          Cont(chunkedFolder(ch))
+
+      case Input.El(c: TrailerChunk) =>
+        logger.warn("Not a chunked response. Trailer ignored.")
         Cont(chunkedFolder(ch))
-      } else Done(ch)
 
-    case Input.El(c: TrailerChunk) =>
-      logger.warn("Not a chunked response. Trailer ignored.")
-      Cont(chunkedFolder(ch))
+      case Input.Empty => Cont(chunkedFolder(ch))
 
-    case Input.Empty => Cont(chunkedFolder(ch))
-
-    case Input.EOF =>
-      if(ch.isConnected) {
-        writeChunk(new Array[Byte](0), ch)   // EOF for chunked content
-      }
-      Done(ch)
+      case Input.EOF =>
+        val f = writeChunk(new Array[Byte](0), ch)   // EOF for chunked content
+        Iteratee.flatten(f.map(ch => Done(ch)))
+    } else Done(ch)
   }
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {
