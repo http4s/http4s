@@ -12,7 +12,7 @@ package object netty {
   class Cancelled(val channel: Channel) extends Throwable
   class ChannelError(val channel: Channel, val reason: Throwable) extends Throwable
 
-  private[netty] implicit def channelFuture2Future(cf: ChannelFuture)(implicit executionContext: ExecutionContext): Future[Channel] = {
+  private[netty] implicit def channelFuture2Future(cf: ChannelFuture): Future[Channel] = {
     val prom = Promise[Channel]()
     cf.addListener(new ChannelFutureListener {
       def operationComplete(future: ChannelFuture) {

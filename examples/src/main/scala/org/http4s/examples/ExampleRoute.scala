@@ -64,7 +64,7 @@ object ExampleRoute extends RouteHandler {
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
-      })).addHeader(HttpHeaders.TransferEncoding(HttpEncodings.chunked))
+      }))
 
     case Get -> Root / "bigstring" =>
       Done{
