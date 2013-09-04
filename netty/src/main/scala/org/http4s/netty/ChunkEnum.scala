@@ -3,7 +3,6 @@ package org.http4s.netty
 import play.api.libs.iteratee._
 import org.http4s.HttpChunk
 import scala.concurrent.{ExecutionContext, Promise, Future}
-import scala.Error
 import scala.util.{Failure, Success}
 
 /**
@@ -32,7 +31,7 @@ class ChunkEnum(implicit ec: ExecutionContext) extends Enumerator[HttpChunk] {
 
   def close() {
     i.onComplete{
-      case Success(it) => p.completeWith(it.feed(Input.EOF))
+      case Success(it) => // p.completeWith(it.feed(Input.EOF))
       case Failure(t) => sys.error("Failed to finish the set.")
     }
   }

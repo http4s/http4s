@@ -85,9 +85,7 @@ object Status {
       var headers = HttpHeaders.Empty
       val (parsedBody, length) = w.toBody(body)
       headers :+= HttpHeaders.ContentType(contentType)
-      length.fold {
-        headers :+= HttpHeaders.TransferEncoding(HttpEncodings.chunked) // Set Chunked if no length present
-      }{ length => headers :+= HttpHeaders.ContentLength(length) }
+      length.foreach{ length => headers :+= HttpHeaders.ContentLength(length) }
       Responder(ResponsePrelude(self, headers), parsedBody)
     }
   }

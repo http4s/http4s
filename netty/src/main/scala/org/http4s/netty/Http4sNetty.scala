@@ -25,6 +25,7 @@ import org.http4s.HttpEncodings._
 import org.http4s.TrailerChunk
 import org.jboss.netty.handler.codec.http.HttpHeaders.{Names, Values, isKeepAlive}
 import com.typesafe.scalalogging.slf4j.Logging
+import scala.util.Success
 
 
 object Http4sNetty {
@@ -49,7 +50,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
   override def messageReceived(ctx: ChannelHandlerContext, e: MessageEvent) {
     e.getMessage() match {
       case req :HttpRequest if !readingChunks =>
-        val req = e.getMessage().asInstanceOf[HttpRequest]
+
         val rem = e.getRemoteAddress.asInstanceOf[InetSocketAddress]
         startHttpRequest(ctx, req, rem.getAddress)
 
@@ -88,20 +89,16 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
     catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
 
-    val keepAlive = isKeepAlive(req)
-
-    val handler = parser.flatMap(renderResponse(ctx.getChannel, keepAlive, req, _))
-
-    executor.execute(new Runnable {
-      def run() {
-        val cf = getEnumerator(req).run[Channel](handler)
-        if(!keepAlive) cf.onComplete ( _ => ctx.getChannel.close() )
-      }
-    })
+    val handler = parser.flatMap(renderResponse(ctx.getChannel, req, _))
+//    executor.execute(new Runnable {
+//      def run() {
+        val _ = getEnumerator(req).run[Unit](handler)
+//      }
+//    })
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, e: ExceptionEvent) {
-    println("Caught exception!!! ----------------------------------------------------------")
+    println("Caught exception!!! ----------------------------------------------------------\n" + e.getCause.getStackTraceString)
     try {
       Option(e.getCause) foreach (t => logger.error(t.getMessage, t))
       val resp = new DefaultHttpResponse(HttpVersion.HTTP_1_1, HttpResponseStatus.INTERNAL_SERVER_ERROR)
@@ -114,7 +111,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     }
   }
 
-  protected def renderResponse(ch: Channel, keepAlive: Boolean, req: HttpRequest, responder: Responder): Iteratee[HttpChunk, Channel] = {
+  protected def renderResponse(ch: Channel, req: HttpRequest, responder: Responder): Iteratee[HttpChunk, Unit] = {
 
     val stat = new HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
     val resp = new http.DefaultHttpResponse(req.getProtocolVersion, stat)
@@ -123,22 +120,69 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
       resp.addHeader(header.name, header.value)
     }
 
-    val isChunked = responder.prelude.headers.get(HttpHeaders.TransferEncoding)
-                        .map(_.coding.matches(chunked)).getOrElse(false)
+    val length = responder.prelude.headers.get(HttpHeaders.ContentLength).map(_.length)
+    val isHttp10 = req.getProtocolVersion == HttpVersion.HTTP_1_0
 
     // - http://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01.html#Connection
-    if (keepAlive) resp.setHeader(Names.CONNECTION, Values.KEEP_ALIVE)
+//    val closeOnFinish = if (isHttp10 && length.isEmpty && isKeepAlive(req)) {
+//      resp.setHeader(Names.CONNECTION, Values.CLOSE)
+//      true
+//    } else if(isHttp10 && isKeepAlive(req)) {
+//      resp.setHeader(Names.CONNECTION, Values.KEEP_ALIVE)
+//      false
+//    } else if(isHttp10)  true
+//      // Http 1.1+
+//    else if (Values.CLOSE.equalsIgnoreCase(req.getHeader(Names.CONNECTION))){
+//      resp.setHeader(Names.CONNECTION, Values.CLOSE)
+//      true
+//    } else false
+    val closeOnFinish = if (isHttp10) {
+      if (length.isEmpty && isKeepAlive(req)) {
+        resp.setHeader(Names.CONNECTION, Values.CLOSE)
+        true
+      } else if(isKeepAlive(req)) {
+        resp.setHeader(Names.CONNECTION, Values.KEEP_ALIVE)
+        false
+      } else true
+    } else if (Values.CLOSE.equalsIgnoreCase(req.getHeader(Names.CONNECTION))){  // Http 1.1+
+      resp.setHeader(Names.CONNECTION, Values.CLOSE)
+      true
+    } else false
 
-    if (isChunked && ch.isConnected) {
-      resp.setChunked(true)
-      ch.write(resp)
-      responder.body &>> Cont(chunkedFolder(ch))
-    } else if (ch.isConnected) {
 
-      val buff = ChannelBuffers.dynamicBuffer(1028)
+    if (length.isEmpty) { // Start a chunked response, or just stream if its http1.0
+      def chunkedFolder(ch: Channel, lastOp: ChannelFuture)(i: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = i match {
+        case Input.El(c: BodyChunk) =>
+          val buff = ChannelBuffers.wrappedBuffer(c.toArray)
+          val f = ch.write(if(isHttp10) buff else new http.DefaultHttpChunk(buff))
+          Cont(chunkedFolder(ch, f))
+
+        case Input.El(c: TrailerChunk) =>
+          logger.warn("Not a chunked response. Trailer ignored.")
+          Cont(chunkedFolder(ch, lastOp))
+
+        case Input.Empty => Cont(chunkedFolder(ch, lastOp))
+
+        case Input.EOF =>
+          if(!isHttp10) {
+            val f = ch.write(new DefaultHttpChunkTrailer)
+            if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
+            Iteratee.flatten(f.map(ch => Done(())))
+          } else {
+            if (closeOnFinish) lastOp.addListener(ChannelFutureListener.CLOSE)
+            Iteratee.flatten(lastOp.map(_ => Done(())))
+          }
+      }
+
+      resp.setChunked(!isHttp10)    // Sets the chunked header
+      val f = ch.write(resp)
+      responder.body &>> Cont(chunkedFolder(ch, f))
+
+    } else {
+      val buff = ChannelBuffers.dynamicBuffer(length.getOrElse(8*1028))
 
       // Folder method that just piles bytes into the buffer.
-      def folder(in: Input[HttpChunk]): Iteratee[HttpChunk, Channel] = {
+      def folder(in: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = {
         if (ch.isOpen()) in match {
           case Input.El(c: BodyChunk) => buff.writeBytes(c.toArray); Cont(folder)
           case Input.El(e)  => sys.error("Not supported chunk type")
@@ -146,35 +190,15 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
           case Input.EOF =>
             resp.setHeader(Names.CONTENT_LENGTH, buff.readableBytes())
             resp.setContent(buff)
-            Iteratee.flatten[HttpChunk, Channel](ch.write(resp).map(ch => Done(ch)))
-        } else Done(ch)
+            val f = ch.write(resp)
+            if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
+            Iteratee.flatten[HttpChunk, Unit](f.map(_ => Done(())))
+
+        } else Done(())
       }
 
       responder.body &>> Cont(folder)
-    } else Done(ch)
-  }
-
-  private def writeChunk(data: Array[Byte], c: Channel) = {
-    val buff = new DefaultHttpChunk(ChannelBuffers.wrappedBuffer(data))
-    c.write(buff)
-  }
-
-  private def chunkedFolder(ch: Channel)(i: Input[HttpChunk]): Iteratee[HttpChunk, Channel] = {
-    if (ch.isOpen) i match {
-      case Input.El(c: BodyChunk) =>
-          writeChunk(c.toArray, ch)
-          Cont(chunkedFolder(ch))
-
-      case Input.El(c: TrailerChunk) =>
-        logger.warn("Not a chunked response. Trailer ignored.")
-        Cont(chunkedFolder(ch))
-
-      case Input.Empty => Cont(chunkedFolder(ch))
-
-      case Input.EOF =>
-        val f = writeChunk(new Array[Byte](0), ch)   // EOF for chunked content
-        Iteratee.flatten(f.map(ch => Done(ch)))
-    } else Done(ch)
+    }
   }
 
   protected def toRequest(ctx: ChannelHandlerContext, req: HttpRequest, remote: InetAddress)  = {

@@ -29,8 +29,8 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
     }
   }
 
-  private val bossThreadPool = Executors.newFixedThreadPool(10)// Executors.newCachedThreadPool()
-  private val workerThreadPool = Executors.newFixedThreadPool(10)// Executors.newCachedThreadPool()
+  private val bossThreadPool = Executors.newCachedThreadPool()
+  private val workerThreadPool = Executors.newCachedThreadPool()
 
   private val bootstrap = new ServerBootstrap(new NioServerSocketChannelFactory(bossThreadPool, workerThreadPool))
   bootstrap.setOption("soLinger", 0)
@@ -41,15 +41,15 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
   bootstrap.setPipelineFactory(channelFactory)
   bootstrap.bind(new InetSocketAddress(port))
 
-//  val latch = new CountDownLatch(1)
-//
-//  sys addShutdownHook {
-//    bootstrap.releaseExternalResources()
-//    workerThreadPool.shutdown()
-//    bossThreadPool.shutdown()
-//    latch.countDown()
-//  }
-//
-//
-//  latch.await()
+  val latch = new CountDownLatch(1)
+
+  sys addShutdownHook {
+    bootstrap.releaseExternalResources()
+    workerThreadPool.shutdown()
+    bossThreadPool.shutdown()
+    latch.countDown()
+  }
+
+
+  latch.await()
 }
