@@ -21,11 +21,9 @@ import http.{HttpChunk => NettyChunk}
 
 import org.http4s.{HttpHeaders, HttpChunk, Responder, RequestPrelude}
 import org.http4s.Status.{InternalServerError, NotFound}
-import org.http4s.HttpEncodings._
 import org.http4s.TrailerChunk
 import org.jboss.netty.handler.codec.http.HttpHeaders.{Names, Values, isKeepAlive}
 import com.typesafe.scalalogging.slf4j.Logging
-import scala.util.Success
 
 
 object Http4sNetty {
@@ -123,19 +121,6 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     val length = responder.prelude.headers.get(HttpHeaders.ContentLength).map(_.length)
     val isHttp10 = req.getProtocolVersion == HttpVersion.HTTP_1_0
 
-    // - http://www.w3.org/Protocols/HTTP/1.1/draft-ietf-http-v11-spec-01.html#Connection
-//    val closeOnFinish = if (isHttp10 && length.isEmpty && isKeepAlive(req)) {
-//      resp.setHeader(Names.CONNECTION, Values.CLOSE)
-//      true
-//    } else if(isHttp10 && isKeepAlive(req)) {
-//      resp.setHeader(Names.CONNECTION, Values.KEEP_ALIVE)
-//      false
-//    } else if(isHttp10)  true
-//      // Http 1.1+
-//    else if (Values.CLOSE.equalsIgnoreCase(req.getHeader(Names.CONNECTION))){
-//      resp.setHeader(Names.CONNECTION, Values.CLOSE)
-//      true
-//    } else false
     val closeOnFinish = if (isHttp10) {
       if (length.isEmpty && isKeepAlive(req)) {
         resp.setHeader(Names.CONNECTION, Values.CLOSE)
