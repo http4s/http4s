@@ -10,6 +10,6 @@ object NettyExample extends App with Logging {
 
   import concurrent.ExecutionContext.Implicits.global
 
-  SimpleNettyServer()(ExampleRoute())
+  SimpleNettyServer("/http4s")(ExampleRoute())
 
 }

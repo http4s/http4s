@@ -12,10 +12,11 @@ import java.net.InetSocketAddress
 import concurrent.ExecutionContext
 
 object SimpleNettyServer {
-  def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
-    new SimpleNettyServer(port, staticFiles, Seq(route))
+  def apply(contextRoot: String, port: Int = 8080, staticFiles: String = "src/main/webapp")(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
+    new SimpleNettyServer(contextRoot, port, staticFiles, Seq(route))
 }
-class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
+
+class SimpleNettyServer private(contextRoot: String, port: Int, staticFiles: String, routes: Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
 
   private val channelFactory = new ChannelPipelineFactory {
     def getPipeline: ChannelPipeline = {
@@ -23,7 +24,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
       pipe.addLast("decoder", new HttpRequestDecoder)
       pipe.addLast("encoder", new HttpResponseEncoder)
       pipe.addLast("chunkedWriter", new ChunkedWriteHandler)
-      pipe.addLast("route", Http4sNetty(routes reduce (_ orElse _), "/http4s"))
+      pipe.addLast("route", Http4sNetty(routes reduce (_ orElse _), contextRoot))
       pipe.addLast("staticFiles", new StaticFileHandler(staticFiles))
       pipe
     }
