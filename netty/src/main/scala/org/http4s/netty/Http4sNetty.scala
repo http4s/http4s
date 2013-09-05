@@ -15,7 +15,6 @@ import java.net.{InetSocketAddress, URI, InetAddress}
 import collection.JavaConverters._
 
 import org.jboss.netty.handler.ssl.SslHandler
-import org.jboss.netty.handler.codec.http
 
 import org.jboss.netty.handler.codec.{ http => n}
 
@@ -146,7 +145,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     def chunkedFolder(ch: Channel, lastOp: ChannelFuture)(i: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = i match {
       case Input.El(c: BodyChunk) =>
         val buff = ChannelBuffers.wrappedBuffer(c.toArray)
-        val f = ch.write(if(isHttp10) buff else new http.DefaultHttpChunk(buff))
+        val f = ch.write(if(isHttp10) buff else new n.DefaultHttpChunk(buff))
         Cont(chunkedFolder(ch, f))
 
       case Input.Empty => Cont(chunkedFolder(ch, lastOp))
@@ -187,7 +186,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
   protected def renderResponse(ch: Channel, req: n.HttpRequest, responder: Responder): Iteratee[HttpChunk, Unit] = {
 
     val stat = new n.HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
-    val resp = new http.DefaultHttpResponse(req.getProtocolVersion, stat)
+    val resp = new n.DefaultHttpResponse(req.getProtocolVersion, stat)
 
     for (header <- responder.prelude.headers)
       resp.addHeader(header.name, header.value)
