@@ -1,5 +1,5 @@
 package org.http4s
-package netty
+package netty3
 package handlers
 
 import org.jboss.netty.handler.codec.http._

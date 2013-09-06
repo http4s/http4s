@@ -1,5 +1,5 @@
 package org.http4s
-package netty
+package netty3
 
 import handlers.StaticFileHandler
 import org.jboss.netty.channel.{Channels, ChannelPipeline, ChannelPipelineFactory}

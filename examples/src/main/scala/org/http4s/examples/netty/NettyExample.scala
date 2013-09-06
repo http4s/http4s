@@ -1,5 +1,5 @@
 package org.http4s
-package netty
+package netty3
 
 import play.api.libs.iteratee.{Enumeratee, Concurrent, Done}
 import org.http4s._

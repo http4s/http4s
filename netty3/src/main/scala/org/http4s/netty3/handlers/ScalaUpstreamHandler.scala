@@ -1,4 +1,4 @@
-package org.http4s.netty.handlers
+package org.http4s.netty3.handlers
 
 import org.jboss.netty.channel._
 import java.net.SocketAddress

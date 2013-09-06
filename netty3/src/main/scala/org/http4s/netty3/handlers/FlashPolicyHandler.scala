@@ -1,5 +1,5 @@
 package org.http4s
-package netty
+package netty3
 package handlers
 
 import org.jboss.netty.handler.codec.frame.FrameDecoder
@@ -21,10 +21,10 @@ object FlashPolicy {
 }
 
 /**
- * A flash policy handler for netty. This needs to be included in the pipeline before anything else has touched
+ * A flash policy handler for netty3. This needs to be included in the pipeline before anything else has touched
  * the message.
  *
- * @see [[https://github.com/cgbystrom/netty-tools/blob/master/src/main/java/se/cgbystrom/netty/FlashPolicyHandler.java]]
+ * @see [[https://github.com/cgbystrom/netty3-tools/blob/master/src/main/java/se/cgbystrom/netty3/FlashPolicyHandler.java]]
  * @param policyResponse The response xml to send for a request
  */
 class FlashPolicyHandler(policyResponse: ChannelBuffer = FlashPolicy.AllowAll) extends FrameDecoder {

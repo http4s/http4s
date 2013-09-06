@@ -1,4 +1,4 @@
-package org.http4s.netty
+package org.http4s.netty3
 
 import play.api.libs.iteratee._
 import org.http4s.HttpChunk
