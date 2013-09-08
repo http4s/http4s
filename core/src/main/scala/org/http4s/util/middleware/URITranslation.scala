@@ -13,10 +13,20 @@ object URITranslation {
 
   def TranslateRoot(prefix: String)(in: Route): Route = {
     val newPrefix = if (!prefix.startsWith("/")) "/" + prefix else prefix
-    val trans: String => String = { str =>
-      if(str.startsWith(newPrefix)) str.substring(prefix.length) else str
+    new Route {
+      private def stripPath(req: RequestPrelude): Option[RequestPrelude] = {
+        if (req.pathInfo.startsWith(newPrefix)) Some(req.copy(pathInfo = req.pathInfo.substring(newPrefix.length)))
+        else None
+      }
+
+      def apply(req: RequestPrelude): Iteratee[HttpChunk, Responder] =
+        in(stripPath(req).getOrElse(throw new MatchError(s"Missing Context: '$newPrefix'")))
+
+      def isDefinedAt(x: RequestPrelude): Boolean = stripPath(x) match {
+        case Some(req) => in.isDefinedAt(req)
+        case None => false
+      }
     }
-    TranslatePath(trans)(in)
   }
 
   def TranslatePath(trans: String => String)(in: Route): Route = new Route {

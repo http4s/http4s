@@ -26,19 +26,19 @@ import io.netty.util.{ReferenceCountUtil, CharsetUtil}
 import io.netty.buffer.{Unpooled, ByteBuf}
 import org.http4s.HttpHeaders.RawHeader
 import io.netty.handler.ssl.SslHandler
-import io.netty.handler.codec.http.{DefaultHttpContent, DefaultFullHttpResponse}
+import io.netty.handler.codec.http.{HttpServerCodec, DefaultHttpContent, DefaultFullHttpResponse}
 import scala.collection.mutable.ListBuffer
 
 
 object Http4sNetty {
-  def apply(toMount: Route, contextPath: String= "/")(implicit executor: ExecutionContext = ExecutionContext.global) =
-    new Http4sNetty(contextPath) {
+  def apply(toMount: Route)(implicit executor: ExecutionContext = ExecutionContext.global) =
+    new Http4sNetty {
       val route: Route = toMount
     }
 }
 
 
-abstract class Http4sNetty(val contextPath: String)(implicit executor: ExecutionContext)
+abstract class Http4sNetty(implicit executor: ExecutionContext)
             extends ChannelInboundHandlerAdapter with Logging {
 
   def route: Route
@@ -76,10 +76,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
   private def doRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: http.HttpRequest =>
       assert(enum == null)
-      val uri = URI.create(req.getUri)
-      if (uri.getRawPath.startsWith(contextPath + "/") || uri.getRawPath == contextPath) {
-        startHttpRequest(ctx, req, ctx.channel().remoteAddress().asInstanceOf[InetSocketAddress].getAddress, uri)
-      } else forward(ctx, msg)
+      startHttpRequest(ctx, req, ctx.channel().remoteAddress().asInstanceOf[InetSocketAddress].getAddress)
 
     case c: http.LastHttpContent =>
       assert(enum != null)
@@ -112,10 +109,10 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     BodyChunk(arr)
   }
 
-  private def startHttpRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, rem: InetAddress, uri: URI) {
+  private def startHttpRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, rem: InetAddress) {
     if (enum != null) stateError(req)
     else enum = new ChunkEnum
-    val request = toRequest(ctx, req, rem, uri)
+    val request = toRequest(ctx, req, rem)
     val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
     catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
 
@@ -225,15 +222,15 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     }
   }
 
-  private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress, uri: URI)  = {
+  private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress)  = {
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
+    val uri = new URI(req.getUri)
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    //println("pth info: " + uri.getPath.substring(contextPath.length))
     RequestPrelude(
       requestMethod = Method(req.getMethod.name),
-      scriptName = contextPath,
-      pathInfo = uri.getRawPath.substring(contextPath.length),
+      //scriptName = contextPath,
+      pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.protocolName),
       headers = toHeaders(req.headers),
