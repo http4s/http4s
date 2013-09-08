@@ -23,7 +23,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelInboundHandlerAdapter, ChannelHandlerContext}
 import io.netty.util.{ReferenceCountUtil, CharsetUtil}
-import io.netty.buffer.ByteBuf
+import io.netty.buffer.{Unpooled, ByteBuf}
 import org.http4s.HttpHeaders.RawHeader
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http.{DefaultHttpContent, DefaultFullHttpResponse}
@@ -56,13 +56,30 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     }
   }
 
-  private def doRead(ctx: ChannelHandlerContext, msg: Object): Unit = msg match {
+  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+    logger.trace("Caught exception: %s", cause.getStackTraceString)
+    try {
+      if (ctx.channel.isOpen) {
+        val msg = (cause.getMessage + "\n" + cause.getStackTraceString).getBytes(CharsetUtil.UTF_8)
+        val buff = Unpooled.wrappedBuffer(msg)
+        val resp = new http.DefaultFullHttpResponse(http.HttpVersion.HTTP_1_0, http.HttpResponseStatus.INTERNAL_SERVER_ERROR, buff)
+
+        ctx.channel.writeAndFlush(resp).addListener(ChannelFutureListener.CLOSE)
+      }
+    } catch {
+      case t: Throwable =>
+        logger.error(t.getMessage, t)
+        allCatch(ctx.close())
+    }
+  }
+
+  private def doRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: http.HttpRequest =>
+      assert(enum == null)
       val uri = URI.create(req.getUri)
       if (uri.getRawPath.startsWith(contextPath + "/") || uri.getRawPath == contextPath) {
         startHttpRequest(ctx, req, ctx.channel().remoteAddress().asInstanceOf[InetSocketAddress].getAddress, uri)
-      }
-      else ctx.fireChannelRead(msg)   // Pass it upstream
+      } else forward(ctx, msg)
 
     case c: http.LastHttpContent =>
       assert(enum != null)
@@ -78,6 +95,13 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     case chunk: http.HttpContent =>
       assert(enum != null)
       enum.push(buffToBodyChunk(chunk.content))
+
+    case msg => forward(ctx, msg)// Done know what it is...
+  }
+
+  private def forward(ctx: ChannelHandlerContext, msg: AnyRef) {
+    ReferenceCountUtil.retain(msg)    // We will be releasing this ref, so need to inc to keep consistent
+    ctx.fireChannelRead(msg)
   }
 
   private def stateError(o: AnyRef): Nothing = sys.error("Received invalid combination of chunks and stand parts. " + o.getClass)
@@ -96,32 +120,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
 
     val handler = parser.flatMap(renderResponse(ctx, req, _))
-
-    val _ = enum.run[Unit](handler)
-  }
-
-  override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-//    println("Caught exception!!! ----------------------------------------------------------\n" +  // DEBUG
-//      (if(cause != null) cause.getStackTraceString else ""))
-    try {
-      if (ctx.channel.isOpen) {
-        val msg = (cause.getMessage + "\n" + cause.getStackTraceString).getBytes(CharsetUtil.UTF_8)
-        val buff = makeBuffer(ctx, msg)
-        val resp = new http.DefaultFullHttpResponse(http.HttpVersion.HTTP_1_0, http.HttpResponseStatus.INTERNAL_SERVER_ERROR, buff)
-
-        ctx.channel.writeAndFlush(resp).addListener(ChannelFutureListener.CLOSE)
-      }
-    } catch {
-      case t: Throwable =>
-        logger.error(t.getMessage, t)
-        allCatch(ctx.close())
-    }
-  }
-
-  private def makeBuffer(ctx: ChannelHandlerContext, array: Array[Byte]) = {
-    val buf = ctx.alloc().buffer(array.length)
-    buf.writeBytes(array)
-    buf
+    enum.run[Unit](handler)
   }
 
   protected def chunkedIteratee(ctx: ChannelHandlerContext, f: ChannelFuture, isHttp10: Boolean, closeOnFinish: Boolean) = {
@@ -144,7 +143,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
 
     def chunkedFolder(ctx: ChannelHandlerContext, lastOp: ChannelFuture)(i: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = i match {
       case Input.El(c: BodyChunk) =>
-        val buff = makeBuffer(ctx, c.toArray)
+        val buff = Unpooled.wrappedBuffer(c.toArray)
         val f = ctx.channel().writeAndFlush(new DefaultHttpContent(buff))
         Cont(chunkedFolder(ctx, f))
 
@@ -226,8 +225,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     }
   }
 
-  protected def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress, uri: URI)  = {
-    val hdrs = toHeaders(req.headers)
+  private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress, uri: URI)  = {
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
@@ -238,7 +236,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
       pathInfo = uri.getRawPath.substring(contextPath.length),
       queryString = uri.getRawQuery,
       protocol = ServerProtocol(req.getProtocolVersion.protocolName),
-      headers = hdrs,
+      headers = toHeaders(req.headers),
       urlScheme = HttpUrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
@@ -247,7 +245,7 @@ abstract class Http4sNetty(val contextPath: String)(implicit executor: Execution
     )
   }
 
-  protected def toHeaders(headers: http.HttpHeaders) = {
+  private def toHeaders(headers: http.HttpHeaders) = {
     import collection.JavaConversions._
     HttpHeaders( headers.entries.map(entry => RawHeader(entry.getKey, entry.getValue)):_*)
   }

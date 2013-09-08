@@ -16,7 +16,7 @@ object Dependencies {
 
   val Netty3 = "io.netty" % "netty" % "3.6.6.Final"
 
-  val Netty4 = "io.netty" % "netty-all" % "4.0.8.Final"
+  val Netty4 = "io.netty" % "netty-all" % "4.0.9.Final"
 
   val ParboiledScala = "org.parboiled" %%  "parboiled-scala" % "1.1.4"
 
