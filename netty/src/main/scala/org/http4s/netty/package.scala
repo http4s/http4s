@@ -7,12 +7,12 @@ import scala.language.implicitConversions
 import io.netty.handler.codec.http
 import Method._
 
-package object netty4 {
+package object netty {
 
   class Cancelled(val channel: Channel) extends Throwable
   class ChannelError(val channel: Channel, val reason: Throwable) extends Throwable
 
-  private[netty4] implicit def channelFuture2Future(cf: ChannelFuture): Future[Channel] = {
+  private[netty] implicit def channelFuture2Future(cf: ChannelFuture): Future[Channel] = {
     val prom = Promise[Channel]()
     cf.addListener(new ChannelFutureListener {
       def operationComplete(future: ChannelFuture) {

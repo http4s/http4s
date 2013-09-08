@@ -1,5 +1,5 @@
 package org.http4s
-package netty4
+package netty
 
 //import handlers.StaticFileHandler
 
@@ -41,6 +41,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
       .option(ChannelOption.SO_KEEPALIVE, new java.lang.Boolean(true))
 
       bootstrap.bind(new InetSocketAddress(port)).sync()
+        .channel().closeFuture().sync()
 
   } finally {
     bossThreadPool.shutdownGracefully()

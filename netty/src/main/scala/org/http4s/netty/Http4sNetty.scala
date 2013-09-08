@@ -1,5 +1,5 @@
 package org.http4s
-package netty4
+package netty
 
 import scala.language.implicitConversions
 

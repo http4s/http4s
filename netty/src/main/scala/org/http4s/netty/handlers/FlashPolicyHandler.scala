@@ -1,6 +1,6 @@
 //package org.http4s
-//package netty4
-//package handlers
+//netty netty
+//netty handlers
 //
 //import org.jboss.netty.handler.codec.frame.FrameDecoder
 //import org.jboss.netty.channel.{ChannelPipeline, ChannelFutureListener, Channel, ChannelHandlerContext}

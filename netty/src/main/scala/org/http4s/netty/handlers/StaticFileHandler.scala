@@ -1,5 +1,5 @@
 package org.http4s
-package netty4
+package netty
 package handlers
 
 import io.netty.handler.codec.http
