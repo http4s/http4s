@@ -28,6 +28,7 @@ import org.http4s.HttpHeaders.RawHeader
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http.{HttpServerCodec, DefaultHttpContent, DefaultFullHttpResponse}
 import scala.collection.mutable.ListBuffer
+import akka.util.ByteString
 
 
 object Http4sNetty {
