@@ -18,8 +18,6 @@ object Dependencies {
 
   val ParboiledScala = "org.parboiled" %%  "parboiled-scala" % "1.1.4"
 
-  val PlayIteratees = "play" %% "play-iteratees" % "2.1.0"
-
   val Rl = "org.scalatra.rl" %% "rl" % "0.4.2"
 
   val ScalaloggingSlf4j = "com.typesafe" %% "scalalogging-slf4j" % "1.0.1"
@@ -36,7 +34,7 @@ object Dependencies {
 
   val ScalaStm = "org.scala-stm" %% "scala-stm" % "0.7"
 
-  val ScalazCore = "org.scalaz" %% "scalaz-core" % "7.0.0-M7"
+  val ScalazStream = "org.scalaz.stream" %% "scalaz-stream" % "0.1-SNAPSHOT"
 
   val TypesafeConfig = "com.typesafe" % "config" % "1.0.0"
 

@@ -1,23 +1,22 @@
+/*
 package org.http4s
 
 import scala.language.reflectiveCalls
-import play.api.libs.iteratee._
 import java.io._
 import xml.{Elem, XML, NodeSeq}
 import org.xml.sax.{SAXException, InputSource}
 import javax.xml.parsers.SAXParser
 import scala.util.{Success, Try}
-import play.api.libs.iteratee.Enumeratee.CheckDone
 
-case class BodyParser[A](it: Iteratee[HttpChunk, Either[Responder, A]]) {
-  def apply(f: A => Responder): Iteratee[HttpChunk, Responder] = it.map(_.right.map(f).merge)
-  def map[B](f: A => B): BodyParser[B] = BodyParser(it.map[Either[Responder, B]](_.right.map(f)))
+case class BodyParser[A](it: Iteratee[HttpChunk, Either[Response, A]]) {
+  def apply(f: A => Response): Iteratee[HttpChunk, Response] = it.map(_.right.map(f).merge)
+  def map[B](f: A => B): BodyParser[B] = BodyParser(it.map[Either[Response, B]](_.right.map(f)))
   def flatMap[B](f: A => BodyParser[B]): BodyParser[B] =
-    BodyParser(it.flatMap[Either[Responder, B]](_.fold(
-      { responder: Responder => Done(Left(responder)) },
+    BodyParser(it.flatMap[Either[Response, B]](_.fold(
+      { responder: Response => Done(Left(responder)) },
       { a: A => f(a).it }
     )))
-  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Responder, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight))
+  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Response, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight))
 }
 
 object BodyParser {
@@ -25,7 +24,7 @@ object BodyParser {
 
   private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
 
-  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Responder]): Iteratee[HttpChunk, Responder] =
+  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[HttpChunk, Response] =
     bodyParser(identity)
 
   def text[A](charset: HttpCharset, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
@@ -44,7 +43,7 @@ object BodyParser {
   def xml(charset: HttpCharset,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
-          onSaxException: SAXException => Responder = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
+          onSaxException: SAXException => Response = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
   : BodyParser[Elem] =
     consumeUpTo(BodyChunkConsumer, limit).map { bytes =>
       val in = bytes.iterator.asInputStream
@@ -88,13 +87,14 @@ object BodyParser {
   }
 
   // File operations
-  def binFile(file: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
+  def binFile(file: java.io.File)(f: => Response): Iteratee[HttpChunk,Response] = {
     val out = new java.io.FileOutputStream(file)
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }.map{ _ => out.close(); f }
   }
 
-  def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder): Iteratee[HttpChunk,Responder] = {
+  def textFile(req: RequestPrelude, in: java.io.File)(f: => Response): Iteratee[HttpChunk,Response] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }.map{ _ => is.close(); f }
   }
 }
+*/

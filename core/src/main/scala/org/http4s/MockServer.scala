@@ -1,49 +1,39 @@
 package org.http4s
 
 import scala.language.reflectiveCalls
-
 import concurrent.{Await, ExecutionContext, Future}
 import concurrent.duration._
-import play.api.libs.iteratee.{Enumerator, Iteratee}
+import scala.language.higherKinds
+import scalaz.stream.Process
+import scalaz.Monad
+import scalaz.Catchable
+import scala.util.control.NonFatal
 
-class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
-  import MockServer.Response
+class MockServer[F[_]](service: HttpService[F]) {
+  import MockServer._
 
-  def apply(req: RequestPrelude, enum: Enumerator[HttpChunk]): Future[Response] = {
-    try {
-      route.lift(req).fold(Future.successful(onNotFound)) { parser =>
-        val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>
-          val responseBodyIt: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume()
-          responder.body ><> BodyParser.whileBodyChunk &>> responseBodyIt map { bytes: BodyChunk =>
-            Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray)
-          }
-        }
-        enum.run(it)
-      }
-    } catch {
-      case t: Throwable => Future.successful(onError(t))
-    }
-  }
-
-  def response(req: RequestPrelude,
-               body: Enumerator[HttpChunk] = Enumerator.eof,
-               wait: Duration = 5.seconds): MockServer.Response = {
-    Await.result(apply(req, body), 5.seconds)
-  }
-
-  def onNotFound: MockServer.Response = Response(statusLine = Status.NotFound)
-
-  def onError: PartialFunction[Throwable, Response] = {
-    case e: Exception =>
-      e.printStackTrace()
-      Response(statusLine = Status.InternalServerError)
+  def apply(request: Request[F])(implicit F: Monad[F], C: Catchable[F]): F[MockResponse] = {
+    val process = for {
+      request <- Process.emit(request)
+      response <- service(request)
+      body <- response.body.toMonoid
+    } yield MockResponse(
+      response.prelude.status,
+      response.prelude.headers,
+      body.bytes.toArray
+    )
+    process.handle {
+      case NonFatal(e) =>
+        e.printStackTrace()
+        Process.emit(MockResponse(Status.InternalServerError))
+    }.runLastOr(MockResponse(Status.NotFound))
   }
 }
 
 object MockServer {
   private[MockServer] val emptyBody = Array.empty[Byte]   // Makes direct Response comparison possible
 
-  case class Response(
+  case class MockResponse(
     statusLine: Status = Status.Ok,
     headers: HttpHeaders = HttpHeaders.Empty,
     body: Array[Byte] = emptyBody

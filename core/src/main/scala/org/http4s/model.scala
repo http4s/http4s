@@ -9,6 +9,7 @@ import collection.{mutable, IndexedSeqOptimized}
 import scala.collection.generic.CanBuildFrom
 import java.nio.ByteBuffer
 import io.Codec
+import scalaz.stream.Process
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
@@ -17,8 +18,9 @@ sealed trait HasHeaders {
 
 sealed trait HttpPrelude extends HasHeaders
 
-// IPC: Do we still need HttpChunk?
-sealed trait HttpChunk
+sealed trait HttpChunk {
+  def bytes: ByteString
+}
 
 case class BodyChunk(bytes: ByteString) extends HttpChunk
   with IndexedSeq[Byte] with IndexedSeqOptimized[Byte, BodyChunk]
@@ -252,4 +254,7 @@ final class RequestPrelude private(
 
   override def clone(): AnyRef = copy()
 }
-case class ResponsePrelude(status: Status, headers: HttpHeaders = HttpHeaders.empty) extends HttpPrelude
+
+case class Request[+F[_]](prelude: RequestPrelude = RequestPrelude(), body: HttpBody[F] = Process.halt)
+
+case class ResponsePrelude(status: Status = Status.Ok, headers: HttpHeaders = HttpHeaders.empty) extends HttpPrelude

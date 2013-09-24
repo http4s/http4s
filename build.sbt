@@ -24,7 +24,7 @@ scmInfo in ThisBuild := Some(
 )
 
 /* scala versions and options */
-scalaVersion in ThisBuild := "2.10.0"
+scalaVersion in ThisBuild := "2.10.2"
 
 offline in ThisBuild := false
 
@@ -39,6 +39,7 @@ javacOptions in ThisBuild ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")
 
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
+  Resolver.sonatypeRepo("snapshots"),
   "spray repo" at "http://repo.spray.io"
 )
 

@@ -15,7 +15,7 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http
 import http.HttpHeaders.{Names, Values, isKeepAlive}
 
-import org.http4s.{HttpHeaders, HttpChunk, Responder, RequestPrelude}
+import org.http4s.{HttpHeaders, HttpChunk, Response, RequestPrelude}
 import org.http4s.Status.{InternalServerError, NotFound}
 import org.http4s.TrailerChunk
 
@@ -114,7 +114,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     else enum = new ChunkEnum
     val request = toRequest(ctx, req, rem)
     val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
-    catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
+    catch { case t: Throwable => Done[HttpChunk, Response](InternalServerError(t)) }
 
     val handler = parser.flatMap(renderResponse(ctx, req, _))
     enum.run[Unit](handler)
@@ -185,7 +185,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     Cont(folder)
   }
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, responder: Responder): Iteratee[HttpChunk, Unit] = {
+  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, responder: Response): Iteratee[HttpChunk, Unit] = {
 
     val stat = new http.HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
 

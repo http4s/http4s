@@ -12,12 +12,11 @@ libraryDependencies ++= Seq(
   Rl,
   Slf4j,
   ScalaStm,
-  ScalazCore,
+  ScalazStream,
   ScalaloggingSlf4j,
   Shapeless,
   Specs2 % "test",
   ParboiledScala,
-  PlayIteratees,
   TypesafeConfig
 )
 

@@ -6,8 +6,7 @@ import http4s.attributes.RequestScope
 import http4s.ext.Http4sString
 import http4s.HttpHeaders.RawHeader
 import http4s.parser.HttpParser
-import play.api.libs.iteratee.{Enumeratee, Iteratee, Enumerator}
-import scala.language.implicitConversions
+import scala.language._
 import concurrent.{ExecutionContext, Future}
 import java.net.{InetAddress, URI}
 import java.io.File
@@ -18,22 +17,27 @@ import com.typesafe.config.{ConfigFactory, Config}
 import org.http4s.attributes.RequestScope
 import org.http4s.attributes.ScopedKey
 import org.http4s.attributes.AppScope
+import scalaz.stream.Process
+import scalaz.Monoid
+import scalaz.concurrent.Task
 
 
 package object http4s {
-  type Route = PartialFunction[RequestPrelude, Iteratee[HttpChunk, Responder]]
+  type HttpService[F[_]] = Request[F] => Process[F, Response[F]]
 
-  type ResponderBody = Enumeratee[HttpChunk, HttpChunk]
+  type HttpBody[+F[_]] = Process[F, HttpChunk]
 
-  type Middleware = (Route => Route)
-
+  implicit val HttpChunkMonoid: Monoid[HttpChunk] = Monoid.instance(
+    (a, b) => BodyChunk(a.bytes ++ b.bytes),
+    BodyChunk()
+  )
+  
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
 
-  trait RouteHandler {
+  trait RouteHandler[F[_]] {
     implicit val appScope = AppScope()
     val attributes = appScope.newAttributesView()
-    def apply(implicit executionContext: ExecutionContext): Route
-
+    def apply(): HttpService[F]
   }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
@@ -49,7 +53,7 @@ package object http4s {
 
   implicit def attribute2scoped[T](attributeKey: AttributeKey[T]) = new attributes.ScopableAttributeKey(attributeKey)
   implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
-  implicit def app2scope(routes: RouteHandler) = routes.appScope
+  implicit def app2scope[F[_]](routes: RouteHandler[F]) = routes.appScope
   implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
   implicit def string2headerkey(name: String): HttpHeaderKey[HttpHeader] = HttpHeaders.Key(name)
 

@@ -1,4 +1,5 @@
 /*
+/*
  * Derived from Twitter Finagle.
  *
  * Original source:
@@ -219,4 +220,4 @@ class PathSpec extends Specification {
       }) must beTrue
     }
   }
-}
+}*/

@@ -1,8 +1,8 @@
-package org.http4s.util
+package org.http4s
+package util
 package middleware
 
-import org.http4s.{Responder, HttpChunk, Route, RequestPrelude}
-import play.api.libs.iteratee.Iteratee
+import org.http4s.{Response, HttpChunk, HttpService, RequestPrelude}
 
 /**
  * @author Bryce Anderson
@@ -10,31 +10,19 @@ import play.api.libs.iteratee.Iteratee
  */
 
 object URITranslation {
-
-  def TranslateRoot(prefix: String)(in: Route): Route = {
+  def translateRoot[F[_]](prefix: String)(service: HttpService[F]): HttpService[F] = {
     val newPrefix = if (!prefix.startsWith("/")) "/" + prefix else prefix
-    new Route {
-      private def stripPath(req: RequestPrelude): Option[RequestPrelude] = {
-        if (req.pathInfo.startsWith(newPrefix)) Some(req.copy(pathInfo = req.pathInfo.substring(newPrefix.length)))
-        else None
-      }
 
-      def apply(req: RequestPrelude): Iteratee[HttpChunk, Responder] =
-        in(stripPath(req).getOrElse(throw new MatchError(s"Missing Context: '$newPrefix'")))
+    {
+      case req: Request[F] if req.prelude.pathInfo.startsWith(newPrefix) =>
+        service(req.copy(prelude = req.prelude.copy(pathInfo = req.prelude.pathInfo.substring(newPrefix.length))))
 
-      def isDefinedAt(x: RequestPrelude): Boolean = stripPath(x) match {
-        case Some(req) => in.isDefinedAt(req)
-        case None => false
-      }
+      case _ =>
+        throw new MatchError(s"Missing Context: '$newPrefix'")
     }
   }
 
-  def TranslatePath(trans: String => String)(in: Route): Route = new Route {
-    def apply(req: RequestPrelude): Iteratee[HttpChunk, Responder] =
-        in(req.copy(pathInfo = trans(req.pathInfo)))
-
-    def isDefinedAt(req: RequestPrelude): Boolean =
-      in.isDefinedAt(req.copy(pathInfo = trans(req.pathInfo)))
+  def translatePath[F[_]](trans: String => String)(service: HttpService[F]): HttpService[F] = { req: Request[F] =>
+    service(req.copy(prelude = req.prelude.copy(pathInfo = trans(req.prelude.pathInfo))))
   }
-
 }

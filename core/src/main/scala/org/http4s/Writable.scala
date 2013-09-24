@@ -1,13 +1,13 @@
+/*
 package org.http4s
 
 import scala.language.implicitConversions
-import play.api.libs.iteratee._
 import concurrent.{ExecutionContext, Future}
 import akka.util.ByteString
 
 trait Writable[-A] {
   def contentType: ContentType
-  def toBody(a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int])
+  def toBody[F](a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int])
 }
 
 trait SimpleWritable[-A] extends Writable[A] {
@@ -89,3 +89,4 @@ object Writable {
   }
 
 }
+*/
