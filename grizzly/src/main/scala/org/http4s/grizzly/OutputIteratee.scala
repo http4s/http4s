@@ -1,6 +1,6 @@
+/*
 package org.http4s.grizzly
 
-import play.api.libs.iteratee._
 import org.http4s._
 import concurrent.{ExecutionContext, Future}
 import org.glassfish.grizzly.http.server.io.NIOOutputStream
@@ -40,3 +40,4 @@ class OutputIteratee(os: NIOOutputStream, isChunked: Boolean)(implicit execution
 
   def fold[B](folder: (Step[HttpChunk, Unit]) => Future[B]) = folder(Step.Cont(push))
 }
+*/

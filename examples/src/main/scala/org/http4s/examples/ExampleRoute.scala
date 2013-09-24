@@ -3,39 +3,53 @@ package org.http4s
 import attributes.{Key, ServerContext}
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
-import play.api.libs.iteratee._
 import akka.util.ByteString
+import scalaz.concurrent.Task
+import scalaz.stream.Process._
+import org.http4s.{BodyChunk, /}
+import scala.Some
+import scalaz.stream.{processes, Process}
+import scalaz.\/
+import scalaz.syntax.either._
 
-object ExampleRoute extends RouteHandler {
-  import Status._
-  import Writable._
-  import BodyParser._
-
+object ExampleRoute extends RouteHandler[Task] {
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
   object myVar extends Key[String]
 
   GlobalState(myVar) = "cats"
 
-  def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
+  def takeBytes(n: Int): Process1[HttpChunk, Response[Nothing] \/ HttpChunk] = {
+    await1[HttpChunk] flatMap {
+      case chunk @ BodyChunk(bytes) =>
+        if (bytes.length > n)
+          halt
+        else
+          emit(chunk.right) then takeBytes(n - bytes.length)
+      case chunk =>
+        emit(chunk.right) then takeBytes(n)
+    }
+  }
+
+  def apply(): HttpService[Task] = {
     case Get -> Root / "ping" =>
-      Done(Ok("pong"))
+      emit(Response(body = Process.emit("pong").map(s => BodyChunk(s.getBytes))))
 
-    case Post -> Root / "echo"  =>
-      Done(Ok(Enumeratee.passAlong: Enumeratee[HttpChunk, HttpChunk]))
-
-    case Get -> Root / "echo" =>
-      Done(Ok(Enumeratee.map[HttpChunk] {
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
+    case req @ Get -> Root / ("echo" | "echo2") =>
+      emit(Response(body = req.body.map {
+        case BodyChunk(e) => BodyChunk(e.slice(6, e.length))
         case chunk => chunk
       }))
 
-    case Get -> Root / "echo2" =>
-      Done(Ok(Enumeratee.map[HttpChunk] {
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
-        case chunk => chunk
-      }))
+    case req @ Post -> Root / "sum"  =>
+      req.body |> takeBytes(16) |>
+        (processes.fromMonoid[HttpChunk].map { chunks =>
+          val s = new String(chunks.bytes.toArray, "utf-8")
+          Response(body = Process.emit(BodyChunk(s.split('\n').map(_.toInt).sum.toString.getBytes("utf-8"))))
+        }).liftR |>
+        processes.lift(_.fold(identity _, identity _))
 
+/*
     case req @ Post -> Root / "sum" =>
       text(req.charset, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
@@ -70,12 +84,13 @@ object ExampleRoute extends RouteHandler {
           }.start()
 
       }))
-
+*/
     case Get -> Root / "bigstring" =>
-      Done{
-        Ok((0 until 1000) map { i => s"This is string number $i" })
-      }
+      emit(Response(body =
+        range(0, 1000).map(i => BodyChunk(s"This is string number $i".getBytes("utf-8")))
+      ))
 
+      /*
     case Get -> Root / "future" =>
       Done{
         Ok(Future("Hello from the future!"))
@@ -107,5 +122,6 @@ object ExampleRoute extends RouteHandler {
 
     case req @ Get -> Root / "fail" =>
       sys.error("FAIL")
+*/
   }
 }

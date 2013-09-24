@@ -1,3 +1,4 @@
+/*
 package org.http4s
 package netty
 
@@ -6,7 +7,6 @@ import scala.language.implicitConversions
 import scala.concurrent.ExecutionContext
 import scala.util.control.Exception.allCatch
 
-import play.api.libs.iteratee._
 import java.net.{InetSocketAddress, URI, InetAddress}
 
 
@@ -247,3 +247,4 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     HttpHeaders( headers.entries.map(entry => RawHeader(entry.getKey, entry.getValue)):_*)
   }
 }
+*/

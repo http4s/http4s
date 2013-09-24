@@ -1,6 +1,6 @@
+/*
 package org.http4s.netty
 
-import play.api.libs.iteratee._
 import org.http4s.HttpChunk
 import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.util.{Failure, Success}
@@ -51,4 +51,4 @@ class ChunkEnum(implicit ec: ExecutionContext) extends Enumerator[HttpChunk] {
     p.failure(t)
     i = null
   }
-}
+}*/

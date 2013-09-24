@@ -1,3 +1,4 @@
+/*
 package org.http4s
 package netty
 
@@ -47,4 +48,4 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
     bossThreadPool.shutdownGracefully()
     workerThreadPool.shutdownGracefully()
   }
-}
+}*/
