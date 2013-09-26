@@ -1,68 +1,63 @@
-/*
 package org.http4s
 
 import scala.language.implicitConversions
 import concurrent.{ExecutionContext, Future}
 import akka.util.ByteString
+import scalaz.stream.Process
+import scalaz.concurrent.Task
+import scalaz.syntax.monad._
 
-trait Writable[-A] {
+trait Writable[+F[_], -A] {
   def contentType: ContentType
-  def toBody[F](a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int])
+  def toBody(a: A): (HttpBody[F], Option[Int])
 }
 
-trait SimpleWritable[-A] extends Writable[A] {
+trait SimpleWritable[+F[_], -A] extends Writable[F, A] {
   def asByteString(data: A): ByteString
-  override def toBody(a: A): (Enumeratee[HttpChunk, HttpChunk], Option[Int]) = {
+  override def toBody(a: A): (HttpBody[F], Option[Int]) = {
     val bs = asByteString(a)
     (Writable.sendByteString(bs), Some(bs.length))
   }
 }
 
 object Writable {
-  private[http4s] def sendByteString(data: ByteString): Enumeratee[HttpChunk, HttpChunk] =
-    new Enumeratee[HttpChunk, HttpChunk] {
-      def applyOn[A](inner: Iteratee[HttpChunk, A]): Iteratee[HttpChunk, Iteratee[HttpChunk, A]] =
-        Done(Iteratee.flatten(inner.feed(Input.El(BodyChunk(data)))), Input.Empty)
-    }
+  private[http4s] def sendByteString[F[_]](data: ByteString): HttpBody[F] = Process.emit(BodyChunk(data))
 
-  private[http4s] def sendFuture[T](f: Future[T])(implicit ec: ExecutionContext): Enumeratee[T, T] =
-    new Enumeratee[T, T] {
-      def applyOn[A](inner: Iteratee[T, A]): Iteratee[T, Iteratee[T, A]] =
-        Done(Iteratee.flatten(f.flatMap{ d => inner.feed(Input.El(d))}))
-    }
+  private[http4s] def sendFuture[A](f: Future[A])(implicit ec: ExecutionContext, w: Writable[Future, A]): HttpBody[Future] =
+    Process.emit(f.map(w.toBody(_)._1)).eval.flatMap(identity)
 
-  private[http4s] def sendEnumerator[F, T](enumerator: Enumerator[T]): Enumeratee[F, T] = new Enumeratee[F, T] {
-    def applyOn[A](inner: Iteratee[T, A]): Iteratee[F, Iteratee[T, A]] =
-      Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
-  }
+  // TODO This duplication is not why we're using Scalaz, but I'm tired.
+  private[http4s] def sendTask[A](t: Task[A])(implicit w: Writable[Task, A]): HttpBody[Task] =
+    Process.emit(t.map(w.toBody(_)._1)).eval.flatMap(identity)
+
   // Simple types defined
-  implicit def stringWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
-    new SimpleWritable[String] {
+  implicit def stringWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+    new SimpleWritable[F, String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asByteString(s: String) = ByteString(s, charset.nioCharset.name)
     }
 
-  implicit def htmlWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
-    new SimpleWritable[xml.Elem] {
+  implicit def htmlWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+    new SimpleWritable[F, xml.Elem] {
       def contentType: ContentType = ContentType(MediaTypes.`text/html`).withCharset(charset)
       def asByteString(s: xml.Elem) = ByteString(s.buildString(false), charset.nioCharset.name)
     }
 
-  implicit def intWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
-    new SimpleWritable[Int] {
+  implicit def intWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+    new SimpleWritable[F, Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asByteString(i: Int): ByteString = ByteString(i.toString, charset.nioCharset.name)
     }
 
-  implicit def ByteStringWritable =
-    new SimpleWritable[ByteString] {
+  implicit def ByteStringWritable[F[_]] =
+    new SimpleWritable[F, ByteString] {
       def contentType: ContentType = ContentType.`application/octet-stream`
       def asByteString(ByteString: ByteString) = ByteString
     }
 
   // More complex types can be implements in terms of simple types
-  implicit def traversableWritable[A](implicit writable: SimpleWritable[A]) =
-    new Writable[TraversableOnce[A]] {
+  implicit def traversableWritable[F[_], A](implicit writable: SimpleWritable[F, A]) =
+    new Writable[F, TraversableOnce[A]] {
       def contentType: ContentType = writable.contentType
       override def toBody(as: TraversableOnce[A]) = {
         val bs = as.foldLeft(ByteString.empty) { (acc, a) => acc ++ writable.asByteString(a) }
@@ -70,23 +65,16 @@ object Writable {
       }
     }
 
-  implicit def enumerateeWritable =
-  new Writable[Enumeratee[HttpChunk, HttpChunk]] {
-    def contentType = ContentType.`application/octet-stream`
-    override def toBody(a: Enumeratee[HttpChunk, HttpChunk])= (a, None)
-  }
+  implicit def futureWritable[A](implicit writable: Writable[Future, A], ec: ExecutionContext) =
+    new Writable[Future, Future[A]] {
+      def contentType = writable.contentType
+      override def toBody(f: Future[A]) = (sendFuture(f), None)
+    }
 
-  implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
-  new Writable[Enumerator[A]] {
-    def contentType = writable.contentType
-    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => BodyChunk(writable.asByteString(i)) }), None)
-  }
-
-  implicit def futureWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
-  new Writable[Future[A]] {
-    def contentType = writable.contentType
-    override def toBody(f: Future[A]) = (sendFuture(f.map{ d => BodyChunk(writable.asByteString(d))}), None)
-  }
+  implicit def taskWritable[A](implicit writable: Writable[Task, A]) =
+    new Writable[Task, Task[A]] {
+      def contentType = writable.contentType
+      override def toBody(f: Task[A]) = (sendTask(f), None)
+    }
 
 }
-*/
