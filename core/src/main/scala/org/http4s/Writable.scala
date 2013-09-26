@@ -24,9 +24,6 @@ trait SimpleWritable[+F[_], -A] extends Writable[F, A] {
 object Writable {
   private[http4s] def sendByteString[F[_]](data: ByteString): HttpBody[F] = Process.emit(BodyChunk(data))
 
-  private[http4s] def sendFunctor[F[_], A](fa: F[A])(implicit F: Functor[F], w: Writable[F, A]): HttpBody[F] =
-    Process.emit(fa.map(w.toBody(_)._1)).eval.join
-
   // Simple types defined
   implicit def stringWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
     new SimpleWritable[F, String] {
@@ -62,16 +59,10 @@ object Writable {
       }
     }
 
-  implicit def futureWritable[A](implicit writable: Writable[Future, A], ec: ExecutionContext) =
-    new Writable[Future, Future[A]] {
+  implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[F, A]) =
+    new Writable[F, F[A]] {
       def contentType = writable.contentType
-      override def toBody(f: Future[A]) = (sendFunctor(f), None)
+      private def send(fa: F[A]) = Process.emit(fa.map(writable.toBody(_)._1)).eval.join
+      override def toBody(fa: F[A]) = (send(fa), None)
     }
-
-  implicit def taskWritable[A](implicit writable: Writable[Task, A]) =
-    new Writable[Task, Task[A]] {
-      def contentType = writable.contentType
-      override def toBody(f: Task[A]) = (sendFunctor(f), None)
-    }
-
 }
