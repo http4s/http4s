@@ -24,11 +24,11 @@ object Writable {
   private[http4s] def sendByteString[F[_]](data: ByteString): HttpBody[F] = Process.emit(BodyChunk(data))
 
   private[http4s] def sendFuture[A](f: Future[A])(implicit ec: ExecutionContext, w: Writable[Future, A]): HttpBody[Future] =
-    Process.emit(f.map(w.toBody(_)._1)).eval.flatMap(identity)
+    Process.emit(f.map(w.toBody(_)._1)).eval.join
 
   // TODO This duplication is not why we're using Scalaz, but I'm tired.
   private[http4s] def sendTask[A](t: Task[A])(implicit w: Writable[Task, A]): HttpBody[Task] =
-    Process.emit(t.map(w.toBody(_)._1)).eval.flatMap(identity)
+    Process.emit(t.map(w.toBody(_)._1)).eval.join
 
   // Simple types defined
   implicit def stringWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
