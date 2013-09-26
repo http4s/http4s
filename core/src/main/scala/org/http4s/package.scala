@@ -18,7 +18,7 @@ import org.http4s.attributes.RequestScope
 import org.http4s.attributes.ScopedKey
 import org.http4s.attributes.AppScope
 import scalaz.stream.Process
-import scalaz.Monoid
+import scalaz.{Zip, Monad, Functor, Monoid}
 import scalaz.concurrent.Task
 
 
@@ -80,4 +80,22 @@ package object http4s {
     route: Route => route andThen { handler => handler.map(f) }
   }
   */
+
+  // https://gist.github.com/stew/3900735 -- replace with scalaz-contrib
+  implicit def futureFunctor(implicit executor: ExecutionContext) : Functor[Future] = new Functor[Future] {
+    override def map[A,B](fa: Future[A])(f: A=>B) = fa map f
+  }
+
+  // https://gist.github.com/stew/3900735 -- replace with scalaz-contrib
+  implicit def futureMonad(implicit executor: ExecutionContext) : Monad[Future] with Zip[Future] = new Monad[Future] with Zip[Future] {
+    override def bind[A,B](fa: Future[A])(f: A=>Future[B]) = fa flatMap f
+    override def point[A](a: => A) = Future(a)
+    override def zip[A, B](a: => Future[A], b: => Future[B]) =
+      for {
+        x <- a
+        y <- b
+      } yield (x, y)
+
+  }
 }
+

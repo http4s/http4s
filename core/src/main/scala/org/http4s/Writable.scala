@@ -6,6 +6,7 @@ import akka.util.ByteString
 import scalaz.stream.Process
 import scalaz.concurrent.Task
 import scalaz.syntax.monad._
+import scalaz.Functor
 
 trait Writable[+F[_], -A] {
   def contentType: ContentType
@@ -23,12 +24,8 @@ trait SimpleWritable[+F[_], -A] extends Writable[F, A] {
 object Writable {
   private[http4s] def sendByteString[F[_]](data: ByteString): HttpBody[F] = Process.emit(BodyChunk(data))
 
-  private[http4s] def sendFuture[A](f: Future[A])(implicit ec: ExecutionContext, w: Writable[Future, A]): HttpBody[Future] =
-    Process.emit(f.map(w.toBody(_)._1)).eval.join
-
-  // TODO This duplication is not why we're using Scalaz, but I'm tired.
-  private[http4s] def sendTask[A](t: Task[A])(implicit w: Writable[Task, A]): HttpBody[Task] =
-    Process.emit(t.map(w.toBody(_)._1)).eval.join
+  private[http4s] def sendFunctor[F[_], A](fa: F[A])(implicit F: Functor[F], w: Writable[F, A]): HttpBody[F] =
+    Process.emit(fa.map(w.toBody(_)._1)).eval.join
 
   // Simple types defined
   implicit def stringWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
@@ -68,13 +65,13 @@ object Writable {
   implicit def futureWritable[A](implicit writable: Writable[Future, A], ec: ExecutionContext) =
     new Writable[Future, Future[A]] {
       def contentType = writable.contentType
-      override def toBody(f: Future[A]) = (sendFuture(f), None)
+      override def toBody(f: Future[A]) = (sendFunctor(f), None)
     }
 
   implicit def taskWritable[A](implicit writable: Writable[Task, A]) =
     new Writable[Task, Task[A]] {
       def contentType = writable.contentType
-      override def toBody(f: Task[A]) = (sendTask(f), None)
+      override def toBody(f: Task[A]) = (sendFunctor(f), None)
     }
 
 }
