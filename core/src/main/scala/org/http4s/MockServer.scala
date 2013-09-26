@@ -14,7 +14,6 @@ class MockServer[F[_]](service: HttpService[F]) {
 
   def apply(request: Request[F])(implicit F: Monad[F], C: Catchable[F]): F[MockResponse] = {
     val process = for {
-      request <- Process.emit(request)
       response <- service(request)
       body <- response.body.toMonoid
     } yield MockResponse(
