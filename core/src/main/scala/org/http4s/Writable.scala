@@ -49,16 +49,6 @@ object Writable {
       def asByteString(ByteString: ByteString) = ByteString
     }
 
-  // More complex types can be implements in terms of simple types
-  implicit def traversableWritable[F[_], A](implicit writable: SimpleWritable[F, A]) =
-    new Writable[F, TraversableOnce[A]] {
-      def contentType: ContentType = writable.contentType
-      override def toBody(as: TraversableOnce[A]) = {
-        val bs = as.foldLeft(ByteString.empty) { (acc, a) => acc ++ writable.asByteString(a) }
-        (sendByteString(bs), Some(bs.length))
-      }
-    }
-
   implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[F, A]) =
     new Writable[F, F[A]] {
       def contentType = writable.contentType
