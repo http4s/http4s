@@ -7,7 +7,6 @@ import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext,Future}
 import javax.servlet.{ServletConfig, AsyncContext}
 import org.http4s.Status.{InternalServerError, NotFound}
-import akka.util.ByteString
 
 import Http4sServlet._
 import scala.util.logging.Logged
@@ -41,7 +40,7 @@ class Http4sServlet(service: HttpService[Task], chunkSize: Int = DefaultChunkSiz
       servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
       for (header <- response.prelude.headers)
         servletResponse.addHeader(header.name, header.value)
-      response.body.map(_.bytes.toArray)
+      response.body.map(_.toArray)
     }.to(chunkW(servletResponse.getOutputStream))
      .handle { case NonFatal(e) =>
       logger.error("Error handling request", e)

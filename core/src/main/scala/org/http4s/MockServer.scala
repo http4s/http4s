@@ -15,11 +15,11 @@ class MockServer[F[_]](service: HttpService[F]) {
   def apply(request: Request[F])(implicit F: Monad[F], C: Catchable[F]): F[MockResponse] = {
     val process = for {
       response <- service(request)
-      body <- response.body.toMonoid
+      body <- response.body.toSemigroup
     } yield MockResponse(
       response.prelude.status,
       response.prelude.headers,
-      body.bytes.toArray
+      body.toArray
     )
     process.handle {
       case NonFatal(e) =>

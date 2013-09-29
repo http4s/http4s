@@ -3,7 +3,6 @@ package org.http4s
 import attributes.{Key, ServerContext}
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
-import akka.util.ByteString
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import org.http4s.{BodyChunk, /}
@@ -21,11 +20,11 @@ object ExampleRoute extends RouteHandler[Task] {
 
   def takeBytes(n: Int): Process1[HttpChunk, Response[Nothing] \/ HttpChunk] = {
     await1[HttpChunk] flatMap {
-      case chunk @ BodyChunk(bytes) =>
-        if (bytes.length > n)
+      case chunk: BodyChunk =>
+        if (chunk.length > n)
           halt
         else
-          emit(chunk.right) then takeBytes(n - bytes.length)
+          emit(chunk.right) then takeBytes(n - chunk.length)
       case chunk =>
         emit(chunk.right) then takeBytes(n)
     }
@@ -37,15 +36,15 @@ object ExampleRoute extends RouteHandler[Task] {
 
     case req @ Get -> Root / ("echo" | "echo2") =>
       emit(Response(body = req.body.map {
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length))
+        case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
       }))
 
     case req @ Post -> Root / "sum"  =>
       req.body |> takeBytes(16) |>
-        (processes.fromMonoid[HttpChunk].map { chunks =>
-          val s = new String(chunks.bytes.toArray, "utf-8")
-          Response(body = Process.emit(BodyChunk(s.split('\n').map(_.toInt).sum.toString.getBytes("utf-8"))))
+        (processes.fromSemigroup[HttpChunk].map { chunks =>
+          val s = new String(chunks.toArray, "utf-8")
+          Response(body = Process.emit(BodyChunk(s.split('\n').map(_.toInt).sum.toString)))
         }).liftR |>
         processes.lift(_.fold(identity _, identity _))
 
@@ -87,7 +86,7 @@ object ExampleRoute extends RouteHandler[Task] {
 */
     case Get -> Root / "bigstring" =>
       emit(Response(body =
-        range(0, 1000).map(i => BodyChunk(s"This is string number $i".getBytes("utf-8")))
+        range(0, 1000).map(i => BodyChunk(s"This is string number $i"))
       ))
 
       /*

@@ -1,25 +1,17 @@
 package org
 
 import http4s.attributes._
-import http4s.attributes.AppScope
-import http4s.attributes.RequestScope
 import http4s.ext.Http4sString
-import http4s.HttpHeaders.RawHeader
-import http4s.parser.HttpParser
 import scala.language._
-import concurrent.{ExecutionContext, Future}
-import java.net.{InetAddress, URI}
-import java.io.File
-import java.util.UUID
-import java.nio.charset.Charset
-import akka.util.ByteString
+import scala.concurrent.{ExecutionContext, Future}
 import com.typesafe.config.{ConfigFactory, Config}
 import org.http4s.attributes.RequestScope
-import org.http4s.attributes.ScopedKey
 import org.http4s.attributes.AppScope
 import scalaz.stream.Process
-import scalaz.{Zip, Monad, Functor, Monoid}
-import scalaz.concurrent.Task
+import scalaz._
+import scala.concurrent
+import org.http4s.attributes.RequestScope
+import org.http4s.attributes.AppScope
 
 
 package object http4s {
@@ -27,10 +19,12 @@ package object http4s {
 
   type HttpBody[+F[_]] = Process[F, HttpChunk]
 
-  implicit val HttpChunkMonoid: Monoid[HttpChunk] = Monoid.instance(
-    (a, b) => BodyChunk(a.bytes ++ b.bytes),
-    BodyChunk()
-  )
+  implicit val HttpChunkSemigroup: Semigroup[HttpChunk] = Semigroup.instance {
+    case (a: BodyChunk, b: BodyChunk) => a ++ b
+    case (a: BodyChunk, _) => a
+    case (_, b: BodyChunk) => b
+    case (_, _) => BodyChunk.empty
+  }
   
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
 

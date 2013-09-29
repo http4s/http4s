@@ -1,15 +1,16 @@
 package org.http4s
 
-import attributes.{AttributesView, RequestScope, AttributeKey}
-import java.io.File
+import attributes.{RequestScope, AttributeKey}
+import java.io.{InputStream, File}
 import java.net.{URI, InetAddress}
 import java.util.UUID
-import akka.util.{ByteIterator, ByteStringBuilder, ByteString}
-import collection.{mutable, IndexedSeqOptimized}
+import scala.collection.{mutable, IndexedSeqOptimized}
 import scala.collection.generic.CanBuildFrom
-import java.nio.ByteBuffer
-import io.Codec
 import scalaz.stream.Process
+import scalaz.{RopeBuilder, Rope}
+import java.nio.charset.Charset
+import java.nio.ByteBuffer
+import scala.io.Codec
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
@@ -18,21 +19,27 @@ sealed trait HasHeaders {
 
 sealed trait HttpPrelude extends HasHeaders
 
-sealed trait HttpChunk {
-  def bytes: ByteString
+sealed trait HttpChunk extends IndexedSeq[Byte] {
+  // TODO optimize for array reads
+  def asInputStream: InputStream = new InputStream {
+    var pos = 0
+
+    def read(): Int = {
+      val result = if (pos < length) apply(pos) else -1
+      pos += 1
+      result
+    }
+  }
 }
 
-case class BodyChunk(bytes: ByteString) extends HttpChunk
-  with IndexedSeq[Byte] with IndexedSeqOptimized[Byte, BodyChunk]
+class BodyChunk private (private val self: Rope[Byte]) extends HttpChunk with IndexedSeqOptimized[Byte, BodyChunk]
 {
-  override def apply(idx: Int): Byte = bytes(idx)
+  override def apply(idx: Int): Byte = self.get(idx).getOrElse(throw new IndexOutOfBoundsException(idx.toString))
 
-  override def toArray[B >: Byte](implicit evidence$1: scala.reflect.ClassTag[B]): Array[B] = bytes.toArray
-
-  def length: Int = bytes.length
+  def length: Int = self.length
 
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
-
+/*
   override def iterator: ByteIterator = bytes.iterator
 
   /**
@@ -56,29 +63,31 @@ case class BodyChunk(bytes: ByteString) extends HttpChunk
    * Decodes this ByteString using a charset to produce a String.
    */
   def decodeString(charset: HttpCharset): String = bytes.decodeString(charset.value)
+*/
+
+  def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
 }
 
 object BodyChunk {
   type Builder = mutable.Builder[Byte, BodyChunk]
 
-  def apply(bytes: Array[Byte]): BodyChunk = BodyChunk(ByteString(bytes))
+  def apply(rope: Rope[Byte]): BodyChunk = new BodyChunk(rope)
 
-  def apply(bytes: Byte*): BodyChunk = BodyChunk(ByteString(bytes: _*))
+  def apply(bytes: Array[Byte]): BodyChunk = BodyChunk(Rope.fromArray(bytes))
 
-  def apply[T](bytes: T*)(implicit num: Integral[T]): BodyChunk = BodyChunk(ByteString(bytes: _*)(num))
+  def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes: _*)
 
-  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(ByteString(bytes))
+  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes.array)
 
-  def apply(string: String): BodyChunk = apply(string, HttpCharsets.`UTF-8`)
+  def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
 
-  def apply(string: String, charset: HttpCharset): BodyChunk = BodyChunk(ByteString(string, charset.value))
+  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(Rope.fromArray(string.getBytes(charset)))
 
-  def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk =
-    BodyChunk(ByteString.fromArray(array, offset, length))
+  def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk = BodyChunk(array.slice(offset, length))
 
-  val Empty: BodyChunk = BodyChunk(ByteString.empty)
+  val empty: BodyChunk = BodyChunk(Rope.empty[Byte])
 
-  private def newBuilder: Builder = (new ByteStringBuilder).mapResult(BodyChunk(_))
+  private def newBuilder: Builder = (new RopeBuilder[Byte]).mapResult(BodyChunk.apply _)
 
   implicit def canBuildFrom: CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] =
     new CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] {
@@ -88,7 +97,9 @@ object BodyChunk {
 }
 
 case class TrailerChunk(headers: HttpHeaders = HttpHeaders.empty) extends HttpChunk {
-  final def bytes: ByteString = ByteString.empty
+  override def apply(idx: Int): Byte = throw new IndexOutOfBoundsException(idx.toString)
+
+  def length: Int = 0
 }
 
 object RequestPrelude {

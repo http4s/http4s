@@ -3,7 +3,6 @@ package org.http4s
 import attributes._
 import scala.language._
 import concurrent.{Future, ExecutionContext}
-import akka.util.ByteString
 import scalaz.stream.Process
 import scalaz.stream.processes
 import scalaz.\/
@@ -22,11 +21,11 @@ object ExampleRoute extends RouteHandler[Task] {
 
   def takeBytes(n: Int): Process1[HttpChunk, Response[Nothing] \/ HttpChunk] = {
     await1[HttpChunk] flatMap {
-      case chunk @ BodyChunk(bytes) =>
-        if (bytes.length > n)
+      case chunk: BodyChunk =>
+        if (chunk.length > n)
           halt
         else
-          emit(chunk.right) then takeBytes(n - bytes.length)
+          emit(chunk.right) then takeBytes(n - chunk.length)
       case chunk =>
         emit(chunk.right) then takeBytes(n)
     }
@@ -41,15 +40,15 @@ object ExampleRoute extends RouteHandler[Task] {
 
     case req @ Get -> Root / ("echo" | "echo2") =>
       Response(body = req.body.map {
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length))
+        case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
       }).emit
 
     case req @ Post -> Root / "sum"  =>
       req.body |> takeBytes(16) |>
-        (processes.fromMonoid[HttpChunk].map { chunks =>
-          val s = new String(chunks.bytes.toArray, "utf-8")
-          Response(body = Process.emit(BodyChunk(s.split('\n').map(_.toInt).sum.toString.getBytes("utf-8"))))
+        (processes.fromSemigroup[HttpChunk].map { chunks =>
+          val s = new String(chunks.toArray, "utf-8")
+          Response(body = Process.emit(BodyChunk(s.split('\n').map(_.toInt).sum.toString)))
         }).liftR |>
         processes.lift(_.fold(identity _, identity _))
 
@@ -66,11 +65,11 @@ object ExampleRoute extends RouteHandler[Task] {
 
     case req @ Get -> Root / "stream" =>
       Response(body =
-        awakeEvery(1.second) zip range(0, 10) map { case (_, i) => BodyChunk(i.toString.getBytes("utf-8")) }
+        awakeEvery(1.second) zip range(0, 10) map { case (_, i) => BodyChunk(i.toString) }
       ).emit
 
     case Get -> Root / "bigstring" =>
-      Response(body = range(0, 1000).map(i => BodyChunk(s"This is string number $i".getBytes("utf-8")))).emit
+      Response(body = range(0, 1000).map(i => BodyChunk(s"This is string number $i"))).emit
 
     case Get(Root / "future") =>
       Ok(Task.delay("Hello from the future!")).emit
@@ -89,12 +88,12 @@ object ExampleRoute extends RouteHandler[Task] {
 
     case req @ Root :/ "root-element-name" =>
       req.body |> takeBytes(1024 * 1024) |>
-        (processes.fromMonoid[HttpChunk].map { chunks =>
-          val in = chunks.bytes.iterator.asInputStream
+        (processes.fromSemigroup[HttpChunk].map { chunks =>
+          val in = chunks.asInputStream
           val source = new InputSource(in)
           source.setEncoding(req.prelude.charset.value)
           val elem = XML.loadXML(source, XML.parser)
-          Response(body = emit(BodyChunk(elem.label.getBytes("utf-8"))))
+          Response(body = emit(BodyChunk(elem.label)))
         }).liftR |>
         processes.lift(_.fold(identity _, identity _))
 

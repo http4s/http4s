@@ -2,11 +2,12 @@ package org.http4s
 
 import scala.language.implicitConversions
 import concurrent.{ExecutionContext, Future}
-import akka.util.ByteString
 import scalaz.stream.Process
 import scalaz.concurrent.Task
 import scalaz.syntax.monad._
 import scalaz.Functor
+import java.nio.charset.Charset
+import scala.io.Codec
 
 trait Writable[+F[_], -A] {
   def contentType: ContentType
@@ -14,39 +15,31 @@ trait Writable[+F[_], -A] {
 }
 
 trait SimpleWritable[+F[_], -A] extends Writable[F, A] {
-  def asByteString(data: A): ByteString
+  def asChunk(data: A): BodyChunk
   override def toBody(a: A): (HttpBody[F], Option[Int]) = {
-    val bs = asByteString(a)
-    (Writable.sendByteString(bs), Some(bs.length))
+    val chunk = asChunk(a)
+    (Process.emit(chunk), Some(chunk.length))
   }
 }
 
 object Writable {
-  private[http4s] def sendByteString[F[_]](data: ByteString): HttpBody[F] = Process.emit(BodyChunk(data))
-
   // Simple types defined
   implicit def stringWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
     new SimpleWritable[F, String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asByteString(s: String) = ByteString(s, charset.nioCharset.name)
+      def asChunk(s: String) = BodyChunk(s, charset.nioCharset)
     }
 
   implicit def htmlWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
     new SimpleWritable[F, xml.Elem] {
       def contentType: ContentType = ContentType(MediaTypes.`text/html`).withCharset(charset)
-      def asByteString(s: xml.Elem) = ByteString(s.buildString(false), charset.nioCharset.name)
+      def asChunk(s: xml.Elem) = BodyChunk(s.buildString(false), charset.nioCharset)
     }
 
   implicit def intWritable[F[_]](implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
     new SimpleWritable[F, Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asByteString(i: Int): ByteString = ByteString(i.toString, charset.nioCharset.name)
-    }
-
-  implicit def ByteStringWritable[F[_]] =
-    new SimpleWritable[F, ByteString] {
-      def contentType: ContentType = ContentType.`application/octet-stream`
-      def asByteString(ByteString: ByteString) = ByteString
+      def asChunk(i: Int) = BodyChunk(i.toString, charset.nioCharset)
     }
 
   implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[F, A]) =

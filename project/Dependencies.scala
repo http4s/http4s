@@ -1,8 +1,6 @@
 import sbt._
 
 object Dependencies {
-  val AkkaActor = "com.typesafe.akka" %% "akka-actor" % "2.1.0"
-
   val GrizzlyHttpServer = "org.glassfish.grizzly" % "grizzly-http-server" % "2.2.19"
 
   private val jettyVersion = "8.1.8.v20121106"
