@@ -1,4 +1,3 @@
-/*
 package org.http4s
 
 import scala.language.reflectiveCalls
@@ -7,29 +6,33 @@ import xml.{Elem, XML, NodeSeq}
 import org.xml.sax.{SAXException, InputSource}
 import javax.xml.parsers.SAXParser
 import scala.util.{Success, Try}
+import scalaz.\/
+import scalaz.stream._
+import scalaz.syntax.either._
 
-case class BodyParser[A](it: Iteratee[HttpChunk, Either[Response, A]]) {
-  def apply(f: A => Response): Iteratee[HttpChunk, Response] = it.map(_.right.map(f).merge)
-  def map[B](f: A => B): BodyParser[B] = BodyParser(it.map[Either[Response, B]](_.right.map(f)))
-  def flatMap[B](f: A => BodyParser[B]): BodyParser[B] =
-    BodyParser(it.flatMap[Either[Response, B]](_.fold(
-      { responder: Response => Done(Left(responder)) },
-      { a: A => f(a).it }
-    )))
-  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Response, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight))
+class BodyParser[F[_], A] private (p: Process[F, Response[F] \/ A]) {
+  def apply(f: A => Response[F]): Process[F, Response[F]] = p.map(_.fold(identity, f))
+  def map[B](f: A => B): BodyParser[F, B] = new BodyParser(p.map(_.map(f)))
+//  def flatMap[B](f: A => BodyParser[B]): BodyParser[B] =
+//    BodyParser(it.flatMap[Either[Response, B]](_.fold(
+//      { responder: Response => Done(Left(responder)) },
+//      { a: A => f(a).it }
+//    )))
+//  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Response, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight))
 }
 
 object BodyParser {
   val DefaultMaxEntitySize = Http4sConfig.getInt("org.http4s.default-max-entity-size")
-
+/*
   private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
 
   implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[HttpChunk, Response] =
     bodyParser(identity)
+*/
 
-  def text[A](charset: HttpCharset, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
-    consumeUpTo(BodyChunkConsumer, limit).map(_.decodeString(charset))
-
+  def text[F[_], A](req: Request[F], limit: Int = DefaultMaxEntitySize): BodyParser[F, String] =
+    new BodyParser(req.body |> takeBytes(limit)).map(_.decodeString(req.prelude.charset))
+/*
   /**
    * Handles a request body as XML.
    *
@@ -62,15 +65,21 @@ object BodyParser {
         case Some(trailer: TrailerChunk) => trailer
         case _ => TrailerChunk()
       }.map(Right(_))))
+*/
 
-  def consumeUpTo[A](consumer: Iteratee[BodyChunk, A], limit: Int = DefaultMaxEntitySize): BodyParser[A] = {
-    val it = for {
-      a <- Traversable.takeUpTo[BodyChunk](limit) &>> consumer
-      tooLargeOrA <- Iteratee.eofOrElse(Status.RequestEntityTooLarge())(a)
-    } yield tooLargeOrA
-    BodyParser(whileBodyChunk &>> it)
+  private def takeBytes(n: Int): Process.Process1[HttpChunk, Response[Nothing] \/ HttpChunk] = {
+    Process.await1[HttpChunk] flatMap {
+      case chunk: BodyChunk =>
+        if (chunk.length > n)
+          Process.halt
+        else
+          Process.emit(chunk.right) then takeBytes(n - chunk.length)
+      case chunk =>
+        Process.emit(chunk.right) then takeBytes(n)
+    }
   }
 
+/*
   val whileBodyChunk: Enumeratee[HttpChunk, BodyChunk] = new CheckDone[HttpChunk, BodyChunk] {
     def step[A](k: K[BodyChunk, A]): K[HttpChunk, Iteratee[BodyChunk, A]] = {
       case in @ Input.El(e: BodyChunk) =>
@@ -96,5 +105,5 @@ object BodyParser {
     val is = new java.io.PrintStream(new FileOutputStream(in))
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }.map{ _ => is.close(); f }
   }
-}
 */
+}

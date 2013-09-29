@@ -10,25 +10,16 @@ import scala.Some
 import scalaz.stream.{processes, Process}
 import scalaz.\/
 import scalaz.syntax.either._
+import org.http4s.Status.Ok
 
 object ExampleRoute extends RouteHandler[Task] {
+  import BodyParser._
+
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
   object myVar extends Key[String]
 
   GlobalState(myVar) = "cats"
-
-  def takeBytes(n: Int): Process1[HttpChunk, Response[Nothing] \/ HttpChunk] = {
-    await1[HttpChunk] flatMap {
-      case chunk: BodyChunk =>
-        if (chunk.length > n)
-          halt
-        else
-          emit(chunk.right) then takeBytes(n - chunk.length)
-      case chunk =>
-        emit(chunk.right) then takeBytes(n)
-    }
-  }
 
   def apply(): HttpService[Task] = {
     case Get -> Root / "ping" =>
@@ -41,12 +32,10 @@ object ExampleRoute extends RouteHandler[Task] {
       }))
 
     case req @ Post -> Root / "sum"  =>
-      req.body |> takeBytes(16) |>
-        (processes.fromSemigroup[HttpChunk].map { chunks =>
-          val s = new String(chunks.toArray, "utf-8")
-          Response(body = Process.emit(BodyChunk(s.split('\n').map(_.toInt).sum.toString)))
-        }).liftR |>
-        processes.lift(_.fold(identity _, identity _))
+      text(req) { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Ok(sum)
+      }
 
 /*
     case req @ Post -> Root / "sum" =>

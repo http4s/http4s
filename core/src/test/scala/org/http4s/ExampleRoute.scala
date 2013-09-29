@@ -15,21 +15,11 @@ import org.http4s.Status.{Ok, BadRequest}
 import scala.xml.{SAXException, XML}
 import org.xml.sax.InputSource
 import scala.util.Try
+import org.http4s.BodyParser._
+import org.http4s.{BodyChunk, /}
 
 object ExampleRoute extends RouteHandler[Task] {
   object myVar extends Key[String]
-
-  def takeBytes(n: Int): Process1[HttpChunk, Response[Nothing] \/ HttpChunk] = {
-    await1[HttpChunk] flatMap {
-      case chunk: BodyChunk =>
-        if (chunk.length > n)
-          halt
-        else
-          emit(chunk.right) then takeBytes(n - chunk.length)
-      case chunk =>
-        emit(chunk.right) then takeBytes(n)
-    }
-  }
 
   def apply(): HttpService[Task] = {
     case Get -> Root / "ping" =>
@@ -45,12 +35,10 @@ object ExampleRoute extends RouteHandler[Task] {
       }).emit
 
     case req @ Post -> Root / "sum"  =>
-      req.body |> takeBytes(16) |>
-        (processes.fromSemigroup[HttpChunk].map { chunks =>
-          val s = new String(chunks.toArray, "utf-8")
-          Response(body = Process.emit(BodyChunk(s.split('\n').map(_.toInt).sum.toString)))
-        }).liftR |>
-        processes.lift(_.fold(identity _, identity _))
+      text(req) { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Ok(sum)
+      }
 
 /*
     case req @ Post -> Root / "trailer" =>
@@ -84,7 +72,6 @@ object ExampleRoute extends RouteHandler[Task] {
         case _ =>
           Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("no data"))))
       })
-    */
 
     case req @ Root :/ "root-element-name" =>
       req.body |> takeBytes(1024 * 1024) |>
@@ -96,6 +83,7 @@ object ExampleRoute extends RouteHandler[Task] {
           Response(body = emit(BodyChunk(elem.label)))
         }).liftR |>
         processes.lift(_.fold(identity _, identity _))
+    */
 
     case Get -> Root / "html" =>
       Ok(

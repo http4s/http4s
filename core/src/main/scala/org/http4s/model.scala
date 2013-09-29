@@ -30,6 +30,8 @@ sealed trait HttpChunk extends IndexedSeq[Byte] {
       result
     }
   }
+
+  def decodeString(charset: HttpCharset): String = new String(toArray, charset.value)
 }
 
 class BodyChunk private (private val self: Rope[Byte]) extends HttpChunk with IndexedSeqOptimized[Byte, BodyChunk]
@@ -58,11 +60,6 @@ class BodyChunk private (private val self: Rope[Byte]) extends HttpChunk with In
    * Decodes this ByteString as a UTF-8 encoded String.
    */
   final def utf8String: String = decodeString(HttpCharsets.`UTF-8`)
-
-  /**
-   * Decodes this ByteString using a charset to produce a String.
-   */
-  def decodeString(charset: HttpCharset): String = bytes.decodeString(charset.value)
 */
 
   def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
