@@ -1,13 +1,8 @@
 package org.http4s
 
-import scala.language.implicitConversions
-import concurrent.{ExecutionContext, Future}
 import scalaz.stream.Process
-import scalaz.concurrent.Task
 import scalaz.syntax.monad._
 import scalaz.Functor
-import java.nio.charset.Charset
-import scala.io.Codec
 
 trait Writable[+F[_], -A] {
   def contentType: ContentType

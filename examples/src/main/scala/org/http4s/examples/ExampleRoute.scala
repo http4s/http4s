@@ -1,15 +1,9 @@
 package org.http4s
 
-import attributes.{Key, ServerContext}
-import scala.language.reflectiveCalls
-import concurrent.{Future, ExecutionContext}
+import attributes.Key
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
-import org.http4s.{BodyChunk, /}
-import scala.Some
-import scalaz.stream.{processes, Process}
-import scalaz.\/
-import scalaz.syntax.either._
+import scalaz.stream.Process
 import org.http4s.Status.Ok
 
 object ExampleRoute extends RouteHandler[Task] {

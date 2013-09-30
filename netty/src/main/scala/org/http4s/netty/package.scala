@@ -1,11 +1,8 @@
 package org.http4s
 
 import io.netty.channel.{ChannelFutureListener, ChannelFuture, Channel}
-import concurrent.{ExecutionContext, Promise, Future}
-import scala.util.{Failure, Success}
-import scala.language.implicitConversions
+import concurrent.{Promise, Future}
 import io.netty.handler.codec.http
-import Method._
 
 package object netty {
 

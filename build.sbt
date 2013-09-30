@@ -32,7 +32,8 @@ scalacOptions in ThisBuild ++= Seq(
   "-feature",
   "-deprecation",
   "-unchecked",
-  "-language:implicitConversions"
+  "-language:implicitConversions",
+  "-language:higherKinds"
 )
 
 javacOptions in ThisBuild ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")

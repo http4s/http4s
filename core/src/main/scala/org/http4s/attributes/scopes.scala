@@ -1,7 +1,6 @@
 package org.http4s
 package attributes
 
-import scala.language.implicitConversions
 import scala.Ordering
 import java.util.UUID
 

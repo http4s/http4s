@@ -1,10 +1,6 @@
 /*
 package org.http4s
 
-import scala.language.implicitConversions
-import scala.language.reflectiveCalls
-
-
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 

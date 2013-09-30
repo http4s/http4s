@@ -1,9 +1,5 @@
 package org.http4s
 
-import scala.language.reflectiveCalls
-import concurrent.{Await, ExecutionContext, Future}
-import concurrent.duration._
-import scala.language.higherKinds
 import scalaz.stream.Process
 import scalaz.Monad
 import scalaz.Catchable

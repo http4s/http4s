@@ -1,6 +1,5 @@
 package org.http4s
 
-import scala.language.reflectiveCalls
 import java.io._
 import xml.{Elem, XML, NodeSeq}
 import org.xml.sax.{SAXException, InputSource}

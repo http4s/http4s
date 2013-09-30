@@ -2,14 +2,10 @@ package org
 
 import http4s.attributes._
 import http4s.ext.Http4sString
-import scala.language._
 import scala.concurrent.{ExecutionContext, Future}
 import com.typesafe.config.{ConfigFactory, Config}
-import org.http4s.attributes.RequestScope
-import org.http4s.attributes.AppScope
 import scalaz.stream.Process
 import scalaz._
-import scala.concurrent
 import org.http4s.attributes.RequestScope
 import org.http4s.attributes.AppScope
 

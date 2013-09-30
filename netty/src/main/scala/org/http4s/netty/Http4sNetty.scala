@@ -2,8 +2,6 @@
 package org.http4s
 package netty
 
-import scala.language.implicitConversions
-
 import scala.concurrent.ExecutionContext
 import scala.util.control.Exception.allCatch
 

@@ -1,22 +1,11 @@
 package org.http4s
 
 import attributes._
-import scala.language._
-import concurrent.{Future, ExecutionContext}
-import scalaz.stream.Process
-import scalaz.stream.processes
-import scalaz.\/
-import scalaz.syntax.either._
 import scalaz.stream.Process._
-import scala.Some
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
-import org.http4s.Status.{Ok, BadRequest}
-import scala.xml.{SAXException, XML}
-import org.xml.sax.InputSource
-import scala.util.Try
+import org.http4s.Status.Ok
 import org.http4s.BodyParser._
-import org.http4s.{BodyChunk, /}
 
 object ExampleRoute extends RouteHandler[Task] {
   object myVar extends Key[String]
