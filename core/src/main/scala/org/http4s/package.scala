@@ -8,6 +8,7 @@ import scalaz.stream.Process
 import scalaz._
 import org.http4s.attributes.RequestScope
 import org.http4s.attributes.AppScope
+import scalaz.effect.IO
 
 
 package object http4s {
@@ -91,6 +92,16 @@ package object http4s {
   implicit def futureCatchable(implicit executor: ExecutionContext): Catchable[Future] = new Catchable[Future] {
     def fail[A](err: Throwable): Future[A] = Future.failed(err)
     def attempt[A](f: Future[A]): Future[\/[Throwable, A]] = f.map(\/-.apply _).recover { case t => -\/.apply(t) }
+  }
+
+  // TODO this doesn't feel right...
+  implicit val IoCatchable: Catchable[IO] = new Catchable[IO] {
+    def attempt[A](f: IO[A]): IO[\/[Throwable, A]] = f.map {
+      case e: Throwable => -\/(e)
+      case x => \/-(x)
+    }
+
+    def fail[A](err: Throwable): IO[A] = IO.throwIO(err)
   }
 }
 

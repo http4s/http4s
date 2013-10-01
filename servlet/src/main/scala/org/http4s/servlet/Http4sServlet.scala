@@ -30,12 +30,10 @@ class Http4sServlet[F[_]](service: HttpService[F], chunkSize: Int = DefaultChunk
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     val request = toRequest(servletRequest)
-    val ctx = servletRequest.startAsync()
-    driver.runAsync(handle(ctx, request), ctx.complete())
+    driver.run(servletRequest, servletResponse, process(request, servletResponse))
   }
 
-  protected def handle(ctx: AsyncContext, request: Request[F])(): F[Unit] = {
-    val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
+  protected def process(request: Request[F], servletResponse: HttpServletResponse): Process[F, Unit] =
     service(request).flatMap { response =>
       servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
       for (header <- response.prelude.headers)
@@ -45,8 +43,7 @@ class Http4sServlet[F[_]](service: HttpService[F], chunkSize: Int = DefaultChunk
      .handle { case NonFatal(e) =>
       logger.error("Error handling request", e)
       Process.emit(servletResponse.sendError(500))
-    }.run
-  }
+    }
 
   protected def toRequest(req: HttpServletRequest): Request[F] = {
     val prelude = RequestPrelude(
