@@ -7,10 +7,11 @@ import scalaz.concurrent.Task
 import scalaz.stream.io._
 import scalaz.stream.Process._
 import javax.servlet.AsyncContext
-import scalaz.\/
+import scalaz.{Trampoline, \/}
 import scalaz.stream.{Bytes, Process}
 import java.io.{InputStream, OutputStream}
-import scalaz.effect.IO
+import scalaz.Free.Trampoline
+import scalaz.Free.Trampoline
 
 trait ServletDriver[F[_]] {
   def requestBody(request: HttpServletRequest, chunkSize: Int): HttpBody[F]
@@ -82,27 +83,27 @@ object ServletDriver {
   }
 
   // Don't get too attached.  This is a copy'n'pasted, ill-conceived rush job.
-  implicit val IoDriver = new ServletDriver[IO] {
-    def requestBody(request: HttpServletRequest, chunkSize: Int): HttpBody[IO] =
-      chunkR(request.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval
+  implicit val TrampolineDriver = new ServletDriver[Trampoline] {
+    def requestBody(request: HttpServletRequest, chunkSize: Int): HttpBody[Trampoline] =
+      chunkR(request.getInputStream).map(f => f(chunkSize).map(c => BodyChunk.apply(c): HttpChunk): Trampoline[HttpChunk]).eval
 
-    def responseBodySink(response: HttpServletResponse): Sink[IO, Array[Byte]] = chunkW(response.getOutputStream)
+    def responseBodySink(response: HttpServletResponse): Sink[Trampoline, Array[Byte]] = chunkW(response.getOutputStream)
 
-    def run(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse, process: Process[IO, Unit]) {
+    def run(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse, process: Process[Trampoline, Unit]) {
       process.run
     }
 
     // Hacking... copy parts of scalaz-stream, replace Task with Future
-    def chunkR(is: => InputStream): Channel[IO, Int, Array[Byte]] =
+    def chunkR(is: => InputStream): Channel[Trampoline, Int, Array[Byte]] =
       unsafeChunkR(is).map(f => (n: Int) => {
         val buf = new Array[Byte](n)
         f(buf).map(_.toArray)
       })
 
-    def unsafeChunkR(is: => InputStream): Channel[IO,Array[Byte],Bytes] = {
-      resource(IO(is))(
-        src => IO(src.close)) { src =>
-        IO { (buf: Array[Byte]) => IO {
+    def unsafeChunkR(is: => InputStream): Channel[Trampoline,Array[Byte],Bytes] = {
+      resource(Trampoline.delay(is))(
+        src => Trampoline.delay(src.close)) { src =>
+        Trampoline.done { (buf: Array[Byte]) => Trampoline.delay {
           val m = src.read(buf)
           if (m == -1) throw End
           else new Bytes(buf, m)
@@ -110,13 +111,13 @@ object ServletDriver {
       }
     }
 
-    def chunkW(os: => OutputStream): Process[IO, Array[Byte] => IO[Unit]] =
-      resource(IO(os))(os => IO(os.close))(
-        os => IO((bytes: Array[Byte]) => IO(os.write(bytes))))
+    def chunkW(os: => OutputStream): Process[Trampoline, Array[Byte] => Trampoline[Unit]] =
+      resource(Trampoline.delay(os))(os => Trampoline.delay(os.close))(
+        os => Trampoline.done((bytes: Array[Byte]) => Trampoline.delay(os.write(bytes))))
 
-    private def resource[R,O](acquire: IO[R])(release: R => IO[Unit])(step: R => IO[O]): Process[IO,O] = {
-      def go(step: IO[O], onExit: Process[IO,O]): Process[IO,O] =
-        await[IO,O,O](step) (
+    private def resource[R,O](acquire: Trampoline[R])(release: R => Trampoline[Unit])(step: R => Trampoline[O]): Process[Trampoline,O] = {
+      def go(step: Trampoline[O], onExit: Process[Trampoline,O]): Process[Trampoline,O] =
+        await[Trampoline,O,O](step) (
           o => emit(o) ++ go(step, onExit) // Emit the value and repeat
           , onExit                           // Release resource when exhausted
           , onExit)                          // or in event of error
@@ -126,7 +127,7 @@ object ServletDriver {
       }, halt, halt)
     }
 
-    def suspend[A](p: => Process[IO, A]): Process[IO, A] = await(IO())(_ => p)
+    def suspend[A](p: => Process[Trampoline, A]): Process[Trampoline, A] = await(Trampoline.done())(_ => p)
   }
 }
 

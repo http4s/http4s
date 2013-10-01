@@ -9,6 +9,8 @@ import scalaz._
 import org.http4s.attributes.RequestScope
 import org.http4s.attributes.AppScope
 import scalaz.effect.IO
+import scalaz.Free.Trampoline
+import scalaz.Trampoline
 
 
 package object http4s {
@@ -94,14 +96,12 @@ package object http4s {
     def attempt[A](f: Future[A]): Future[\/[Throwable, A]] = f.map(\/-.apply _).recover { case t => -\/.apply(t) }
   }
 
-  // TODO this doesn't feel right...
-  implicit val IoCatchable: Catchable[IO] = new Catchable[IO] {
-    def attempt[A](f: IO[A]): IO[\/[Throwable, A]] = f.map {
-      case e: Throwable => -\/(e)
-      case x => \/-(x)
-    }
+  // half-baked
+  implicit val TrampolineCatchable: Catchable[Trampoline] = new Catchable[Trampoline] {
+    def attempt[A](f: Trampoline[A]): Trampoline[\/[Throwable, A]] =
+      Trampoline.done(try { \/-(f.run) } catch { case t: Throwable => -\/(t) })
 
-    def fail[A](err: Throwable): IO[A] = IO.throwIO(err)
+    def fail[A](err: Throwable): Trampoline[A] = ???
   }
 }
 

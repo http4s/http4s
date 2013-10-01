@@ -7,6 +7,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import scala.concurrent.Future
 import scalaz.concurrent.Task
 import scalaz.effect.IO
+import scalaz.Free.Trampoline
 
 /**
  * @author ross
@@ -17,7 +18,7 @@ object ServletExample extends App {
 
   val taskServlet = new Http4sServlet(new ExampleRoute[Task].apply())
   val futureServlet = new Http4sServlet(new ExampleRoute[Future].apply())
-  val ioServlet = new Http4sServlet(new ExampleRoute[IO].apply())
+  val trampolineServlet = new Http4sServlet(new ExampleRoute[Trampoline].apply())
 
   val rawServlet = new HttpServlet {
     override def service(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -45,7 +46,7 @@ object ServletExample extends App {
   server.setHandler(context);
   context.addServlet(new ServletHolder(taskServlet), "/http4s/task/*")
   context.addServlet(new ServletHolder(futureServlet), "/http4s/future/*")
-  context.addServlet(new ServletHolder(ioServlet), "/http4s/io/*")
+  context.addServlet(new ServletHolder(trampolineServlet), "/http4s/trampoline/*")
   context.addServlet(new ServletHolder(rawServlet), "/raw/*")
   server.start()
   server.join()
