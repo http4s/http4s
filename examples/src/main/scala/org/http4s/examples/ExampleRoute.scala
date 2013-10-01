@@ -31,6 +31,10 @@ class ExampleRoute[F[_]] extends RouteHandler[F] {
         Ok(sum)
       }
 
+    case req =>
+      println("Got request that didn't match: " + req.prelude.pathInfo)
+      emit(Response(body = Process.emit(s"Didn't find match: ${req.prelude.pathInfo}").map(s => BodyChunk(s.getBytes))))
+
 /*
     case req @ Post -> Root / "sum" =>
       text(req.charset, 16) { s =>
