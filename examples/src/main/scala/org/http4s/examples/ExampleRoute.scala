@@ -6,7 +6,7 @@ import scalaz.stream.Process._
 import scalaz.stream.Process
 import org.http4s.Status.Ok
 
-object ExampleRoute extends RouteHandler[Task] {
+class ExampleRoute[F[_]] extends RouteHandler[F] {
   import BodyParser._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
@@ -15,7 +15,7 @@ object ExampleRoute extends RouteHandler[Task] {
 
   GlobalState(myVar) = "cats"
 
-  def apply(): HttpService[Task] = {
+  def apply(): HttpService[F] = {
     case Get -> Root / "ping" =>
       emit(Response(body = Process.emit("pong").map(s => BodyChunk(s.getBytes))))
 
@@ -66,11 +66,11 @@ object ExampleRoute extends RouteHandler[Task] {
           }.start()
 
       }))
-*/
     case Get -> Root / "bigstring" =>
       emit(Response(body =
         range(0, 1000).map(i => BodyChunk(s"This is string number $i"))
       ))
+*/
 
       /*
     case Get -> Root / "future" =>

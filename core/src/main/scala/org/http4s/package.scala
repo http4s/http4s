@@ -87,5 +87,10 @@ package object http4s {
       } yield (x, y)
 
   }
+
+  implicit def futureCatchable(implicit executor: ExecutionContext): Catchable[Future] = new Catchable[Future] {
+    def fail[A](err: Throwable): Future[A] = Future.failed(err)
+    def attempt[A](f: Future[A]): Future[\/[Throwable, A]] = f.map(\/-.apply _).recover { case t => -\/.apply(t) }
+  }
 }
 
