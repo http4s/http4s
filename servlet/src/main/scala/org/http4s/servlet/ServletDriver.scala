@@ -8,7 +8,7 @@ import scalaz.stream.io._
 import scalaz.stream.Process._
 import javax.servlet.AsyncContext
 import scalaz.{Trampoline, \/}
-import scalaz.stream.{Bytes, Process}
+import scalaz.stream.Process
 import java.io.{InputStream, OutputStream}
 import scalaz.Free.Trampoline
 import scalaz.Free.Trampoline
@@ -40,13 +40,13 @@ object ServletDriver {
         f(buf).map(_.toArray)
       })
 
-    def unsafeChunkR(is: => InputStream): Channel[Future,Array[Byte],Bytes] = {
+    def unsafeChunkR(is: => InputStream): Channel[Future, Array[Byte], Array[Byte]] = {
       resource(Future(is))(
         src => Future(src.close)) { src =>
         Future { (buf: Array[Byte]) => Future {
           val m = src.read(buf)
           if (m == -1) throw End
-          else new Bytes(buf, m)
+          else buf.take(m)
         }}
       }
     }
@@ -100,13 +100,13 @@ object ServletDriver {
         f(buf).map(_.toArray)
       })
 
-    def unsafeChunkR(is: => InputStream): Channel[Trampoline,Array[Byte],Bytes] = {
+    def unsafeChunkR(is: => InputStream): Channel[Trampoline,Array[Byte],Array[Byte]] = {
       resource(Trampoline.delay(is))(
         src => Trampoline.delay(src.close)) { src =>
         Trampoline.done { (buf: Array[Byte]) => Trampoline.delay {
           val m = src.read(buf)
           if (m == -1) throw End
-          else new Bytes(buf, m)
+          buf.take(m)
         }}
       }
     }
