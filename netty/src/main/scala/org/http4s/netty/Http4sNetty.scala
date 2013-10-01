@@ -31,6 +31,7 @@ import scalaz.{-\/, \/-, \/}
 import scalaz.stream.Process._
 import scala.util.control.NonFatal
 import scalaz.stream.Process
+import scalaz.stream.async
 
 
 object Http4sNetty {
@@ -90,11 +91,7 @@ abstract class Http4sNetty
       assert(cb != null)
       if (c.content().readableBytes() > 0)
         cb(\/-(buffToBodyChunk(c.content)))
-
-      if (!c.trailingHeaders().isEmpty)
-        cb(\/-(TrailerChunk(toHeaders(c.trailingHeaders()))))
-
-      cb(-\/(End))
+      cb(\/-(TrailerChunk(toHeaders(c.trailingHeaders()))))
       cb = null
 
     case chunk: http.HttpContent =>
@@ -213,18 +210,20 @@ abstract class Http4sNetty
       remote = remote // TODO using remoteName would trigger a lookup
     )
 
-    def go(step: Task[HttpChunk]): Process[Task, HttpChunk] = {
-      await[Task, HttpChunk, HttpChunk](step)( _ match {
-        case chunk: TrailerChunk =>  emit(chunk) ++ halt
-        case chunk: HttpChunk => emit(chunk) ++ go(step)
-      })
-    }
-    val t = Task.async[HttpChunk]{ register =>
-      println("Registering callback.")
-      cb = register
+    val (queue, body) = async.localQueue[HttpChunk]
+    cb = {
+      case \/-(chunk: BodyChunk) =>
+        logger.info("enqueued chunk")
+        queue.enqueue(chunk)
+      case \/-(chunk: TrailerChunk) =>
+        logger.info("enqueued trailer")
+        queue.enqueue(chunk)
+        queue.close
+      case -\/(err) =>
+        logger.error("received error", err)
+        queue.fail(err)
     }
 
-    val body = go(t)
     Request(prelude, body)
   }
 
