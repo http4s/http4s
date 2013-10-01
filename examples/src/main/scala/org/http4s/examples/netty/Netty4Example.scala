@@ -1,4 +1,4 @@
-/*
+
 package org.http4s
 package netty
 
@@ -8,9 +8,8 @@ import org.http4s.util.middleware.URITranslation
 
 object Netty4Example extends App with Logging {
 
-  import concurrent.ExecutionContext.Implicits.global
-
-  SimpleNettyServer()(URITranslation.TranslateRoot("/http4s")(ExampleRoute()))
+  //SimpleNettyServer()(URITranslation.translateRoot("/http4s")(ExampleRoute()))
+  SimpleNettyServer()(ExampleRoute())
 
 }
-*/
+

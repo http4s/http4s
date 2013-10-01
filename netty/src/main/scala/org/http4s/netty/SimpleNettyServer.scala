@@ -1,4 +1,4 @@
-/*
+
 package org.http4s
 package netty
 
@@ -14,13 +14,14 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.{ChannelOption, ChannelInitializer}
 import io.netty.channel.socket.SocketChannel
+import scalaz.concurrent.Task
 
 object SimpleNettyServer {
-  def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(route: Route)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
-    new SimpleNettyServer(port, staticFiles, Seq(route))
+  def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(service: HttpService[Task]) =
+    new SimpleNettyServer(port, staticFiles, service)
 }
 
-class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Route])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
+class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpService[Task])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
 
   private val bossThreadPool = new NioEventLoopGroup()
   private val workerThreadPool = new NioEventLoopGroup()
@@ -33,7 +34,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
         def initChannel(ch: SocketChannel) {
           ch.pipeline()
             .addLast("httpcodec", new http.HttpServerCodec())    // TODO: set max header sizes etc in the constructor
-            .addLast("http4s", Http4sNetty(routes.reduce(_ orElse _)))
+            .addLast("http4s", Http4sNetty(service))
         }
       })
       .option(ChannelOption.SO_LINGER, new Integer(0))
@@ -48,4 +49,4 @@ class SimpleNettyServer private(port: Int, staticFiles: String, routes: Seq[Rout
     bossThreadPool.shutdownGracefully()
     workerThreadPool.shutdownGracefully()
   }
-}*/
+}
