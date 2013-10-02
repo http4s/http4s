@@ -31,6 +31,7 @@ import scalaz.{-\/, \/-, \/}
 import scalaz.stream.Process._
 import scala.util.control.NonFatal
 import scalaz.stream.Process
+import scalaz.stream.async
 
 
 object Http4sNetty {
@@ -63,6 +64,7 @@ abstract class Http4sNetty
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
     logger.trace("Caught exception: %s", cause.getStackTraceString)
+    println(s"Caught an exception: ${cause.getClass}\n" + cause.getStackTraceString)
     try {
       if (ctx.channel.isOpen) {
         val msg = (cause.getMessage + "\n" + cause.getStackTraceString).getBytes(CharsetUtil.UTF_8)
@@ -89,11 +91,7 @@ abstract class Http4sNetty
       assert(cb != null)
       if (c.content().readableBytes() > 0)
         cb(\/-(buffToBodyChunk(c.content)))
-
-      if (!c.trailingHeaders().isEmpty)
-        cb(\/-(TrailerChunk(toHeaders(c.trailingHeaders()))))
-
-      cb(-\/(End))
+      cb(\/-(TrailerChunk(toHeaders(c.trailingHeaders()))))
       cb = null
 
     case chunk: http.HttpContent =>
@@ -136,75 +134,9 @@ abstract class Http4sNetty
       Process.Halt(e)
     }
     println("Request Running.")
-    parser.run.runAsync( _ => ())
+    parser.run.run
   }
 
-  /*
-  protected def chunkedIteratee(ctx: ChannelHandlerContext, f: ChannelFuture, isHttp10: Boolean, closeOnFinish: Boolean) = {
-    // deal with the trailer or end of file after a chunked result
-    def finisher(trailerChunk: Option[TrailerChunk], ctx: ChannelHandlerContext, lastOp: ChannelFuture): Iteratee[HttpChunk, Unit] = {
-      if(!isHttp10) {
-        val respTrailer = new http.DefaultLastHttpContent()
-        for { c <- trailerChunk
-              h <- c.headers    } respTrailer.trailingHeaders().set(h.name, h.value)
-
-        val f = ctx.channel.writeAndFlush(respTrailer)
-        if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
-        Iteratee.flatten(f.map(ch => Done(())))
-
-      } else {
-        if (closeOnFinish) lastOp.addListener(ChannelFutureListener.CLOSE)
-        Iteratee.flatten(lastOp.map(_ => Done(())))
-      }
-    }
-
-
-    def chunkedFolder(ctx: ChannelHandlerContext, lastOp: ChannelFuture)(i: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = i match {
-      case Input.El(c: BodyChunk) =>
-        val buff = Unpooled.wrappedBuffer(c.toArray)
-        val f = ctx.channel().writeAndFlush(new DefaultHttpContent(buff))
-        Cont(chunkedFolder(ctx, f))
-
-      case Input.Empty => Cont(chunkedFolder(ctx, lastOp))
-
-      case Input.El(c: TrailerChunk) if isHttp10 =>
-        logger.warn("Received a trailer on a Http1.0 response. Trailer ignored.")
-        Cont(chunkedFolder(ctx, lastOp))
-
-      case Input.El(c: TrailerChunk)=> finisher(Some(c), ctx, lastOp)
-
-      case Input.EOF => finisher(None, ctx, lastOp)
-    }
-
-    Cont(chunkedFolder(ctx, f))
-  }
-
-  protected def collectedIteratee(ctx: ChannelHandlerContext,
-                                  protocolVersion: http.HttpVersion,
-                                  stat: http.HttpResponseStatus,
-                                  headers: List[(String, String)],
-                                  length: Int,
-                                  closeOnFinish: Boolean) = {
-    val buff = ctx.alloc().buffer(length)
-
-    // Folder method that just piles bytes into the buffer.
-    def folder(in: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = {
-      if (ctx.channel().isOpen()) in match {
-        case Input.El(c: BodyChunk) => buff.writeBytes(c.toArray); Cont(folder)
-        case Input.El(e: TrailerChunk)  => sys.error("Chunk detected in nonchunked response: " + e)
-        case Input.Empty => Cont(folder)
-        case Input.EOF =>
-          val resp = new DefaultFullHttpResponse(protocolVersion, stat, buff)
-          headers.foreach { case (k,v) => resp.headers.set(k,v)}
-          resp.headers().set(Names.CONTENT_LENGTH, buff.readableBytes())
-          val f = ctx.channel.writeAndFlush(resp)
-          if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
-          Iteratee.flatten(f.map(_ => Done(())))
-
-      } else Done(())
-    }
-    Cont(folder)
-  }    */
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, respPrelude: ResponsePrelude): Sink[Task, HttpChunk] = {
 
@@ -260,6 +192,7 @@ abstract class Http4sNetty
 
   private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress): Request[Task] = {
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
+    println("Received request: " + req.getUri)
     val uri = new URI(req.getUri)
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
@@ -277,18 +210,20 @@ abstract class Http4sNetty
       remote = remote // TODO using remoteName would trigger a lookup
     )
 
-    def go(step: Task[HttpChunk]): Process[Task, HttpChunk] = {
-      await[Task, HttpChunk, HttpChunk](step)( _ match {
-        case chunk: TrailerChunk =>  emit(chunk) ++ halt
-        case chunk: HttpChunk => emit(chunk) ++ go(step)
-      })
-    }
-    val t = Task.async[HttpChunk]{ register =>
-      println("Registering callback.")
-      cb = register
+    val (queue, body) = async.localQueue[HttpChunk]
+    cb = {
+      case \/-(chunk: BodyChunk) =>
+        logger.info("enqueued chunk")
+        queue.enqueue(chunk)
+      case \/-(chunk: TrailerChunk) =>
+        logger.info("enqueued trailer")
+        queue.enqueue(chunk)
+        queue.close
+      case -\/(err) =>
+        logger.error("received error", err)
+        queue.fail(err)
     }
 
-    val body = go(t)
     Request(prelude, body)
   }
 
