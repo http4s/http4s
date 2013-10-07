@@ -39,13 +39,18 @@ object Writable {
       def asChunk(i: Int) = BodyChunk(i.toString, charset.nioCharset)
     }
 
+  implicit def taskWritable[A](implicit writable: Writable[A]) =
+    new Writable[Task[A]] {
+      def contentType: ContentType = writable.contentType
+      def toBody(a: Task[A]) = a.flatMap(writable.toBody(_))
+    }
+
   implicit def futureWritable[A](implicit ec: ExecutionContext, writable: Writable[A]) =
     new Writable[Future[A]] {
       def contentType: ContentType = writable.contentType
-      def toBody(f: Future[A]) = {
-        futureToTask(ec)(f).flatMap(writable.toBody(_))
-      }
+      def toBody(f: Future[A]) = taskWritable[A].toBody(futureToTask(ec)(f))
     }
+
 /*
   implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[A]) =
     new Writable[F[A]] {
