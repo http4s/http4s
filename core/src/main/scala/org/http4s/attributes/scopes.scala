@@ -4,6 +4,7 @@ package attributes
 import scala.language.implicitConversions
 import scala.Ordering
 import java.util.UUID
+import scala.collection.concurrent.TrieMap
 
 object Scope {
 
@@ -13,33 +14,30 @@ object Scope {
 
 }
 
-sealed trait Scope extends Ordered[Scope] { self =>
+sealed trait Scope extends Ordered[Scope] with ScopedAttributes { self =>
   def rank: Int
+
+  lazy val underlying = new TrieMap[Key[_], Any]
 
   def compare(that: Scope) = -(rank compare that.rank)
 
-  private val lock = new AnyRef()
-  private var viewCount = 0
-
-  private[attributes] def removeView() = lock.synchronized {
-    viewCount -= 1
-    if(viewCount == 0) GlobalState.clear(self)
-    else if (viewCount < 0)  sys.error(s"Invalid reference count: $viewCount")
-  }
-
-  private[http4s] def newAttributesView() = lock.synchronized {
-    viewCount += 1
-    new AttributesView(GlobalState.forScope(self))(self)
-  }
+  def scope = self
 }
 
-object ThisServer extends Scope {
-  val rank = 0
-}
-case class AppScope(uuid: UUID = UUID.randomUUID()) extends Scope {
-  val rank = 100
+object GlobalScope extends ServerScope { override def rank: Int = 1 }
+
+trait ServerScope extends Scope { self =>
+  def rank = 10
 }
 
-case class RequestScope(uuid: UUID) extends Scope {
-  val rank = 1000
+class AppScope extends Scope {
+  def rank = 100
+}
+
+class RequestScope extends Scope {
+  def rank = 1000
+}
+
+class ValueScope extends Scope {
+  def rank = 10000
 }

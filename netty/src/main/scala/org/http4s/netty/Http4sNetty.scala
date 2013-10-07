@@ -38,7 +38,6 @@ object Http4sNetty {
     }
 }
 
-
 abstract class Http4sNetty(implicit executor: ExecutionContext)
             extends ChannelInboundHandlerAdapter with Logging {
 
