@@ -35,7 +35,7 @@ import scalaz.stream.async
 
 
 object Http4sNetty {
-  def apply(toMount: HttpService[Task]) =
+  def apply(toMount: HttpService) =
     new Http4sNetty {
       val service = toMount
     }
@@ -45,7 +45,7 @@ object Http4sNetty {
 abstract class Http4sNetty
             extends ChannelInboundHandlerAdapter with Logging {
 
-  def service: HttpService[Task]
+  def service: HttpService
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty")
 
@@ -122,19 +122,15 @@ abstract class Http4sNetty
     val request = toRequest(ctx, req, rem)
     //val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
     //catch { case t: Throwable => Done[HttpChunk, Response](InternalServerError(t)) }
-    val parser = service(request)
-      .flatMap( resp => renderResponse(ctx, req, resp.prelude))
-      .handle { case NonFatal(e) =>
-      logger.error("Error handling request", e)
-      val msg = ("500 Error\nTrace:\n" + e.getMessage + "\n" + e.getStackTraceString).getBytes(CharsetUtil.UTF_8)
-      val buff = Unpooled.wrappedBuffer(msg)
-      val resp = new http.DefaultFullHttpResponse(http.HttpVersion.HTTP_1_0, http.HttpResponseStatus.INTERNAL_SERVER_ERROR, buff)
-
-      ctx.channel.writeAndFlush(resp).addListener(ChannelFutureListener.CLOSE)
-      Process.Halt(e)
+    val task = service(request).handle {
+      case e =>
+        e.printStackTrace()
+        InternalServerError()
+    }.map { resp =>
+      renderResponse(ctx, req, resp.prelude)
     }
     println("Request Running.")
-    parser.run.run
+    task.run
   }
 
 
@@ -190,7 +186,7 @@ abstract class Http4sNetty
 
 
 
-  private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress): Request[Task] = {
+  private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress): Request = {
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
     println("Received request: " + req.getUri)
     val uri = new URI(req.getUri)

@@ -16,9 +16,7 @@ object ServletExample extends App {
 
   import concurrent.ExecutionContext.Implicits.global
 
-  val taskServlet = new Http4sServlet(new ExampleRoute[Task].apply())
-  val futureServlet = new Http4sServlet(new ExampleRoute[Future].apply())
-  val trampolineServlet = new Http4sServlet(new ExampleRoute[Trampoline].apply())
+  val taskServlet = new Http4sServlet(new ExampleRoute().apply())
 
   val rawServlet = new HttpServlet {
     override def service(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -45,8 +43,6 @@ object ServletExample extends App {
   context.setContextPath("/")
   server.setHandler(context);
   context.addServlet(new ServletHolder(taskServlet), "/http4s/task/*")
-  context.addServlet(new ServletHolder(futureServlet), "/http4s/future/*")
-  context.addServlet(new ServletHolder(trampolineServlet), "/http4s/trampoline/*")
   context.addServlet(new ServletHolder(rawServlet), "/raw/*")
   server.start()
   server.join()

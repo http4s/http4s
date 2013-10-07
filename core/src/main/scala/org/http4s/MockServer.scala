@@ -1,27 +1,27 @@
 package org.http4s
 
 import scalaz.stream.Process
-import scalaz.Monad
-import scalaz.Catchable
+import scalaz.{\/-, -\/, Monad, Catchable}
 import scala.util.control.NonFatal
+import scalaz.concurrent.Task
 
-class MockServer[F[_]](service: HttpService[F]) {
+class MockServer(service: HttpService) {
   import MockServer._
 
-  def apply(request: Request[F])(implicit F: Monad[F], C: Catchable[F]): F[MockResponse] = {
-    val process = for {
+  def apply(request: Request): Task[MockResponse] = {
+    val task = for {
       response <- service(request)
-      body <- response.body.toSemigroup
+      body <- response.body.toSemigroup.toTask
     } yield MockResponse(
       response.prelude.status,
       response.prelude.headers,
       body.toArray
     )
-    process.handle {
-      case NonFatal(e) =>
+    task.handle {
+      case e =>
         e.printStackTrace()
-        Process.emit(MockResponse(Status.InternalServerError))
-    }.runLastOr(MockResponse(Status.NotFound))
+        MockResponse(Status.InternalServerError)
+    }
   }
 }
 

@@ -10,11 +10,11 @@ import org.http4s.{Response, HttpChunk, HttpService, RequestPrelude}
  */
 
 object URITranslation {
-  def translateRoot[F[_]](prefix: String)(service: HttpService[F]): HttpService[F] = {
+  def translateRoot[F[_]](prefix: String)(service: HttpService): HttpService = {
     val newPrefix = if (!prefix.startsWith("/")) "/" + prefix else prefix
 
     {
-      case req: Request[F] if req.prelude.pathInfo.startsWith(newPrefix) =>
+      case req: Request if req.prelude.pathInfo.startsWith(newPrefix) =>
         service(req.copy(prelude = req.prelude.copy(pathInfo = req.prelude.pathInfo.substring(newPrefix.length))))
 
       case _ =>
@@ -22,7 +22,7 @@ object URITranslation {
     }
   }
 
-  def translatePath[F[_]](trans: String => String)(service: HttpService[F]): HttpService[F] = { req: Request[F] =>
+  def translatePath(trans: String => String)(service: HttpService): HttpService = { req: Request =>
     service(req.copy(prelude = req.prelude.copy(pathInfo = trans(req.prelude.pathInfo))))
   }
 }

@@ -6,7 +6,7 @@ import scalaz.stream.Process._
 import scalaz.stream.Process
 import org.http4s.Status.Ok
 
-class ExampleRoute[F[_]] extends RouteHandler[F] {
+class ExampleRoute extends RouteHandler {
   import BodyParser._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
@@ -15,12 +15,12 @@ class ExampleRoute[F[_]] extends RouteHandler[F] {
 
   GlobalState(myVar) = "cats"
 
-  def apply(): HttpService[F] = {
+  def apply(): HttpService = {
     case Get -> Root / "ping" =>
-      emit(Response(body = Process.emit("pong").map(s => BodyChunk(s.getBytes))))
+      Task.now(Ok("pong"))
 
     case req @ Get -> Root / ("echo" | "echo2") =>
-      emit(Response(body = req.body.map {
+      Task.now(Response(body = req.body.map {
         case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
       }))
@@ -29,11 +29,11 @@ class ExampleRoute[F[_]] extends RouteHandler[F] {
       text(req) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
-      }
+      }.toTask
 
     case req =>
       println("Got request that didn't match: " + req.prelude.pathInfo)
-      emit(Response(body = Process.emit(s"Didn't find match: ${req.prelude.pathInfo}").map(s => BodyChunk(s.getBytes))))
+      Task.now(Response(body = Process.emit(s"Didn't find match: ${req.prelude.pathInfo}").map(s => BodyChunk(s.getBytes))))
 
 /*
     case req @ Post -> Root / "sum" =>

@@ -7,27 +7,27 @@ import scalaz.concurrent.Task
 import org.http4s.Status.Ok
 import org.http4s.BodyParser._
 
-object ExampleRoute extends RouteHandler[Task] {
+object ExampleRoute extends RouteHandler {
   object myVar extends Key[String]
 
-  def apply(): HttpService[Task] = {
+  def apply(): HttpService = {
     case Get -> Root / "ping" =>
-      Ok("pong").emit
+      Task.now(Ok("pong"))
 
     case req @ Post -> Root / "echo" =>
-      Response(body = req.body).emit
+      Task.now(Response(body = req.body))
 
     case req @ Get -> Root / ("echo" | "echo2") =>
-      Response(body = req.body.map {
+      Task.now(Response(body = req.body.map {
         case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
-      }).emit
+      }))
 
     case req @ Post -> Root / "sum"  =>
       text(req) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
-      }
+      }.toTask
 
 /*
     case req @ Post -> Root / "trailer" =>
@@ -41,15 +41,17 @@ object ExampleRoute extends RouteHandler[Task] {
 */
 
     case req @ Get -> Root / "stream" =>
-      Response(body =
+      Task.now(Response(body =
         awakeEvery(1.second) zip range(0, 10) map { case (_, i) => BodyChunk(i.toString) }
-      ).emit
+      ))
 
     case Get -> Root / "bigstring" =>
-      Response(body = range(0, 1000).map(i => BodyChunk(s"This is string number $i"))).emit
+      Task.now(Response(body = range(0, 1000).map(i => BodyChunk(s"This is string number $i"))))
 
+/*
     case Get(Root / "future") =>
-      Ok(Task.delay("Hello from the future!")).emit
+      Task.now(Ok(Task.delay("Hello from the future!")))
+*/
 
     /*
     case req @ Get -> Root / "challenge" =>
@@ -75,16 +77,16 @@ object ExampleRoute extends RouteHandler[Task] {
     */
 
     case Get -> Root / "html" =>
-      Ok(
+      Task.now(Ok(
         <html><body>
           <div id="main">
             <h2>Hello world!</h2><br/>
             <h1>This is H1</h1>
           </div>
         </body></html>
-      ).emit
+      ))
 
     case Root :/ "fail" =>
-      sys.error("FAIL")
+      Task.delay(sys.error("FAIL"))
   }
 }

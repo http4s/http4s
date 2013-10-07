@@ -8,10 +8,11 @@ import scala.util.{Success, Try}
 import scalaz.\/
 import scalaz.stream._
 import scalaz.syntax.either._
+import scalaz.concurrent.Task
 
-class BodyParser[F[_], A] private (p: Process[F, Response[F] \/ A]) {
-  def apply(f: A => Response[F]): Process[F, Response[F]] = p.map(_.fold(identity, f))
-  def map[B](f: A => B): BodyParser[F, B] = new BodyParser(p.map(_.map(f)))
+class BodyParser[A] private (p: Process[Task, Response \/ A]) {
+  def apply(f: A => Response): Process[Task, Response] = p.map(_.fold(identity, f))
+  def map[B](f: A => B): BodyParser[B] = new BodyParser(p.map(_.map(f)))
 //  def flatMap[B](f: A => BodyParser[B]): BodyParser[B] =
 //    BodyParser(it.flatMap[Either[Response, B]](_.fold(
 //      { responder: Response => Done(Left(responder)) },
@@ -29,7 +30,7 @@ object BodyParser {
     bodyParser(identity)
 */
 
-  def text[F[_], A](req: Request[F], limit: Int = DefaultMaxEntitySize): BodyParser[F, String] =
+  def text[A](req: Request, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
     new BodyParser(req.body |> takeBytes(limit)).map(_.decodeString(req.prelude.charset))
 /*
   /**
@@ -66,7 +67,7 @@ object BodyParser {
       }.map(Right(_))))
 */
 
-  private def takeBytes(n: Int): Process.Process1[HttpChunk, Response[Nothing] \/ HttpChunk] = {
+  private def takeBytes(n: Int): Process.Process1[HttpChunk, Response \/ HttpChunk] = {
     Process.await1[HttpChunk] flatMap {
       case chunk: BodyChunk =>
         if (chunk.length > n)

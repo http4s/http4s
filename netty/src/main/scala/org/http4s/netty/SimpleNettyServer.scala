@@ -17,11 +17,11 @@ import io.netty.channel.socket.SocketChannel
 import scalaz.concurrent.Task
 
 object SimpleNettyServer {
-  def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(service: HttpService[Task]) =
+  def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(service: HttpService) =
     new SimpleNettyServer(port, staticFiles, service)
 }
 
-class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpService[Task])(implicit executionContext: ExecutionContext = ExecutionContext.global) {
+class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpService)(implicit executionContext: ExecutionContext = ExecutionContext.global) {
 
   private val bossThreadPool = new NioEventLoopGroup()
   private val workerThreadPool = new NioEventLoopGroup()

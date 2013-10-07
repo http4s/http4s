@@ -20,8 +20,7 @@ import scalaz.stream.processes
 import scalaz.{Monad, Catchable}
 import scalaz.stream.Process.Process0
 
-class Http4sServlet[F[_]](service: HttpService[F], chunkSize: Int = DefaultChunkSize)
-                         (implicit F: Monad[F], C: Catchable[F], driver: ServletDriver[F]) extends HttpServlet with Logging {
+class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) extends HttpServlet with Logging {
   private[this] var serverSoftware: ServerSoftware = _
 
   override def init(config: ServletConfig) {
@@ -30,22 +29,25 @@ class Http4sServlet[F[_]](service: HttpService[F], chunkSize: Int = DefaultChunk
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     val request = toRequest(servletRequest)
-    driver.run(servletRequest, servletResponse, process(request, servletResponse))
+    val ctx = servletRequest.startAsync()
+    Task.fork(process(request, ctx)).runAsync(_ => ctx.complete())
   }
 
-  protected def process(request: Request[F], servletResponse: HttpServletResponse): Process[F, Unit] =
-    service(request).flatMap { response =>
+  protected def process(request: Request, ctx: AsyncContext): Task[Unit] = {
+    service(request).handle {
+      case t =>
+        t.printStackTrace()
+        InternalServerError()
+    }.flatMap { response =>
+      val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
       for (header <- response.prelude.headers)
         servletResponse.addHeader(header.name, header.value)
-      response.body.map(_.toArray)
-    }.to(driver.responseBodySink(servletResponse))
-     .handle { case NonFatal(e) =>
-      logger.error("Error handling request", e)
-      Process.emit(servletResponse.sendError(500))
+      response.body.map(_.toArray).to(chunkW(servletResponse.getOutputStream)).toTask
     }
+  }
 
-  protected def toRequest(req: HttpServletRequest): Request[F] = {
+  protected def toRequest(req: HttpServletRequest): Request = {
     val prelude = RequestPrelude(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
@@ -59,7 +61,7 @@ class Http4sServlet[F[_]](service: HttpService[F], chunkSize: Int = DefaultChunk
       serverSoftware = serverSoftware,
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )
-    val body = driver.requestBody(req, chunkSize)
+    val body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval
     Request(prelude, body)
   }
 

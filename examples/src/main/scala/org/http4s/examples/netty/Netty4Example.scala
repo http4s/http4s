@@ -10,7 +10,7 @@ import scalaz.concurrent.Task
 object Netty4Example extends App with Logging {
 
   //SimpleNettyServer()(URITranslation.translateRoot("/http4s")(new ExampleRoute[Task].apply())
-  SimpleNettyServer()(new ExampleRoute[Task].apply())
+  SimpleNettyServer()(new ExampleRoute().apply())
 
 }
 

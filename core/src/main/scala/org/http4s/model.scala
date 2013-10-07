@@ -263,6 +263,6 @@ final class RequestPrelude private(
   override def clone(): AnyRef = copy()
 }
 
-case class Request[+F[_]](prelude: RequestPrelude = RequestPrelude(), body: HttpBody[F] = Process.halt)
+case class Request(prelude: RequestPrelude = RequestPrelude(), body: HttpBody = Process.halt)
 
 case class ResponsePrelude(status: Status = Status.Ok, headers: HttpHeaders = HttpHeaders.empty) extends HttpPrelude
