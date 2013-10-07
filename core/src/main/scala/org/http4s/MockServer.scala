@@ -11,7 +11,7 @@ class MockServer(service: HttpService) {
   def apply(request: Request): Task[MockResponse] = {
     val task = for {
       response <- service(request)
-      body <- response.body.toSemigroup.toTask
+      body <- response.body.scanSemigroup.toTask
     } yield MockResponse(
       response.prelude.status,
       response.prelude.headers,

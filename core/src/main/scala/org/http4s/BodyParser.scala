@@ -73,9 +73,9 @@ object BodyParser {
         if (chunk.length > n)
           Process.halt
         else
-          Process.emit(chunk.right) then takeBytes(n - chunk.length)
+          Process.emit(chunk.right) fby takeBytes(n - chunk.length)
       case chunk =>
-        Process.emit(chunk.right) then takeBytes(n)
+        Process.emit(chunk.right) fby takeBytes(n)
     }
   }
 
