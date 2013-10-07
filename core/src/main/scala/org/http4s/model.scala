@@ -177,7 +177,7 @@ final class RequestPrelude private(
         serverPort,
         serverSoftware,
         remote,
-        RequestScope(UUID.randomUUID()))
+        RequestScope(null /* FIXME -- UUID.randomUUID() is synchronized */))
   private[this] implicit val _scope = scope
 
   def uuid = scope.uuid
