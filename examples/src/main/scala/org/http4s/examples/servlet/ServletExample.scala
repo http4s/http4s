@@ -30,10 +30,11 @@ object ServletExample extends App {
           resp.flushBuffer()
         }
       }
-      else if (req.getPathInfo == "/bigstring") {
-        val builder = new StringBuilder(20*1000)
-        (0 until 1000) foreach { i => builder.append(s"This is string number $i") }
-        resp.getOutputStream.write(builder.result().getBytes)
+      else if (req.getPathInfo == "/bigstring2") {
+        for (i <- 0 to 1000) {
+          resp.getOutputStream.write(s"This is string number $i".getBytes())
+          resp.flushBuffer()
+        }
       }
     }
   }
@@ -42,7 +43,7 @@ object ServletExample extends App {
   val context = new ServletContextHandler()
   context.setContextPath("/")
   server.setHandler(context);
-  context.addServlet(new ServletHolder(taskServlet), "/http4s/task/*")
+  context.addServlet(new ServletHolder(taskServlet), "/http4s/*")
   context.addServlet(new ServletHolder(rawServlet), "/raw/*")
   server.start()
   server.join()

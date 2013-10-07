@@ -78,12 +78,13 @@ class ExampleRoute extends RouteHandler {
     case Get -> Root / "future" =>
       Ok(Future("Hello from the future!"))
 
-    /*
   case req @ Get -> Root / "bigstring2" =>
-    Done{
-      Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.value) }: _*))
+    val body = Process.range(0, 1000).map(i => BodyChunk(s"This is string number $i\n"))
+    Task.now {
+      Response(body = body)
     }
 
+    /*
   case req @ Get -> Root / "bigstring3" =>
     Done{
       Ok(flatBigString)

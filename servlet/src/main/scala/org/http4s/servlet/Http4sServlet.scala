@@ -43,9 +43,13 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
       servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
       for (header <- response.prelude.headers)
         servletResponse.addHeader(header.name, header.value)
-      response.body.map(_.toArray).to(chunkW(servletResponse.getOutputStream)).toTask
+        val out = servletResponse.getOutputStream
+        response.body.map(_.toArray).map { bytes =>
+          out.write(bytes)
+          servletResponse.flushBuffer()
+        }.last.toTask
+      }
     }
-  }
 
   protected def toRequest(req: HttpServletRequest): Request = {
     val prelude = RequestPrelude(
