@@ -5,6 +5,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scalaz.stream.Process
 import org.http4s.Status.Ok
+import scala.concurrent.Future
 
 class ExampleRoute extends RouteHandler {
   import BodyParser._
@@ -14,6 +15,8 @@ class ExampleRoute extends RouteHandler {
   object myVar extends Key[String]
 
   GlobalState(myVar) = "cats"
+
+  import scala.concurrent.ExecutionContext.Implicits.global
 
   def apply(): HttpService = {
     case Get -> Root / "ping" =>
@@ -30,10 +33,6 @@ class ExampleRoute extends RouteHandler {
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }.toTask
-
-    case req =>
-      println("Got request that didn't match: " + req.prelude.pathInfo)
-      Task.now(Response(body = Process.emit(s"Didn't find match: ${req.prelude.pathInfo}").map(s => BodyChunk(s.getBytes))))
 
 /*
     case req @ Post -> Root / "sum" =>
@@ -76,38 +75,39 @@ class ExampleRoute extends RouteHandler {
       ))
 */
 
-      /*
     case Get -> Root / "future" =>
-      Done{
-        Ok(Future("Hello from the future!"))
-      }
+      Task.now(Ok(Future("Hello from the future!")))
 
-    case req @ Get -> Root / "bigstring2" =>
-      Done{
-        Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.value) }: _*))
-      }
+    /*
+  case req @ Get -> Root / "bigstring2" =>
+    Done{
+      Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.value) }: _*))
+    }
 
-    case req @ Get -> Root / "bigstring3" =>
-      Done{
-        Ok(flatBigString)
-      }
+  case req @ Get -> Root / "bigstring3" =>
+    Done{
+      Ok(flatBigString)
+    }
 
-    case Get -> Root / "contentChange" =>
-      Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
+  case Get -> Root / "contentChange" =>
+    Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
 
-      // Ross wins the challenge
-    case req @ Get -> Root / "challenge" =>
-      Iteratee.head[HttpChunk].map {
-        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
-          Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
-        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
-          BadRequest("Booo!")
-        case _ =>
-          BadRequest("No data!")
-      }
+    // Ross wins the challenge
+  case req @ Get -> Root / "challenge" =>
+    Iteratee.head[HttpChunk].map {
+      case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
+        Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
+      case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
+        BadRequest("Booo!")
+      case _ =>
+        BadRequest("No data!")
+    }
 
-    case req @ Get -> Root / "fail" =>
-      sys.error("FAIL")
+  case req @ Get -> Root / "fail" =>
+    sys.error("FAIL")
 */
+    case req =>
+      println("Got request that didn't match: " + req.prelude.pathInfo)
+      Task.now(Response(body = Process.emit(s"Didn't find match: ${req.prelude.pathInfo}").map(s => BodyChunk(s.getBytes))))
   }
 }

@@ -2,16 +2,15 @@ package org
 
 import http4s.attributes._
 import http4s.ext.Http4sString
-import scala.concurrent.{ExecutionContext, Future}
+import scala.concurrent.{ExecutionContext, Promise, Future}
 import com.typesafe.config.{ConfigFactory, Config}
-import scalaz.stream.Process
-import scalaz._
 import org.http4s.attributes.RequestScope
 import org.http4s.attributes.AppScope
-import scalaz.effect.IO
-import scalaz.Free.Trampoline
-import scalaz.Trampoline
+import scalaz.{-\/, \/-, Semigroup, ~>}
 import scalaz.concurrent.Task
+import scalaz.syntax.either._
+import scalaz.stream.Process
+import scala.util.{Failure, Success}
 
 
 package object http4s {
@@ -74,34 +73,26 @@ package object http4s {
   }
   */
 
-  // https://gist.github.com/stew/3900735 -- replace with scalaz-contrib
-  implicit def futureFunctor(implicit executor: ExecutionContext) : Functor[Future] = new Functor[Future] {
-    override def map[A,B](fa: Future[A])(f: A=>B) = fa map f
+  implicit val taskToFuture: Task ~> Future = new (Task ~> Future) {
+    def apply[A](task: Task[A]): Future[A] = {
+      val p = Promise[A]()
+      task.runAsync {
+        case \/-(a) => p.success(a)
+        case -\/(t) => p.failure(t)
+      }
+      p.future
+    }
   }
 
-  // https://gist.github.com/stew/3900735 -- replace with scalaz-contrib
-  implicit def futureMonad(implicit executor: ExecutionContext) : Monad[Future] with Zip[Future] = new Monad[Future] with Zip[Future] {
-    override def bind[A,B](fa: Future[A])(f: A=>Future[B]) = fa flatMap f
-    override def point[A](a: => A) = Future(a)
-    override def zip[A, B](a: => Future[A], b: => Future[B]) =
-      for {
-        x <- a
-        y <- b
-      } yield (x, y)
-
-  }
-
-  implicit def futureCatchable(implicit executor: ExecutionContext): Catchable[Future] = new Catchable[Future] {
-    def fail[A](err: Throwable): Future[A] = Future.failed(err)
-    def attempt[A](f: Future[A]): Future[\/[Throwable, A]] = f.map(\/-.apply _).recover { case t => -\/.apply(t) }
-  }
-
-  // half-baked
-  implicit val TrampolineCatchable: Catchable[Trampoline] = new Catchable[Trampoline] {
-    def attempt[A](f: Trampoline[A]): Trampoline[\/[Throwable, A]] =
-      Trampoline.done(try { \/-(f.run) } catch { case t: Throwable => -\/(t) })
-
-    def fail[A](err: Throwable): Trampoline[A] = ???
+  implicit def futureToTask(implicit ec: ExecutionContext): Future ~> Task = new (Future ~> Task) {
+    def apply[A](future: Future[A]): Task[A] = {
+      Task.async { f =>
+        future.onComplete {
+          case Success(a) => f(a.right)
+          case Failure(t) => f(t.left)
+        }
+      }
+    }
   }
 }
 

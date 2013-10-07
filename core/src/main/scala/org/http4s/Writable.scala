@@ -3,6 +3,7 @@ package org.http4s
 import scalaz.stream.Process
 import scalaz.syntax.monad._
 import scalaz.Functor
+import scala.concurrent.{ExecutionContext, Future}
 
 trait Writable[-A] {
   def contentType: ContentType
@@ -35,6 +36,14 @@ object Writable {
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asChunk(i: Int) = BodyChunk(i.toString, charset.nioCharset)
+    }
+
+  implicit def futureWritable[A](implicit ec: ExecutionContext, writable: Writable[A]) =
+    new Writable[Future[A]] {
+      def contentType: ContentType = writable.contentType
+      def toBody(f: Future[A]) = {
+        (Process.emit(futureToTask(ec)(f).map { a => (writable.toBody(a)._1) }).eval.join, None)
+      }
     }
 /*
   implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[A]) =
