@@ -4,6 +4,7 @@ import util.DateTime
 import scalaz.stream._
 import java.net.{URI, URL}
 import scalaz.concurrent.Task
+import org.http4s.HttpHeaders
 
 case class Response(
   prelude: ResponsePrelude = ResponsePrelude(),
@@ -68,20 +69,21 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
 object Status {
   trait NoEntityResponseGenerator { self: Status =>
     private[this] val StatusResponder = Response(ResponsePrelude(this))
-    def apply(): Response = StatusResponder
+    def apply(): Task[Response] = Task.now(StatusResponder)
   }
 
   trait EntityResponseGenerator extends NoEntityResponseGenerator { self: Status =>
-    def apply[F[_], A](body: A)(implicit w: Writable[A]): Response =
+    def apply[F[_], A](body: A)(implicit w: Writable[A]): Task[Response] =
       apply(body, w.contentType)(w)
 
-    def apply[F[_], A](body: A, contentType: ContentType)(implicit w: Writable[A]): Response = {
+    def apply[F[_], A](body: A, contentType: ContentType)(implicit w: Writable[A]): Task[Response] = {
       var headers = HttpHeaders.Empty
       // tuple assignment runs afoul of https://issues.scala-lang.org/browse/SI-5301
-      val bodyPair = w.toBody(body)
       headers :+= HttpHeaders.ContentType(contentType)
-      bodyPair._2.foreach { length => headers :+= HttpHeaders.ContentLength(length) }
-      Response(ResponsePrelude(self, headers), bodyPair._1)
+      w.toBody(body).map { case (proc, len) =>
+        len foreach { headers :+= HttpHeaders.ContentLength(_) }
+        Response(ResponsePrelude(self, headers), proc)
+      }
     }
   }
 
@@ -112,8 +114,10 @@ object Status {
   object ResetContent extends Status(205, "Reset Content") with NoEntityResponseGenerator
   object PartialContent extends Status(206, "Partial Content") with EntityResponseGenerator {
     // TODO type this header
-    def apply[F[_], A](range: String, body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Response =
-      headers.foldLeft(apply(body).addHeader(HttpHeaders.RawHeader("Range", range))) { _.addHeader(_) }
+    def apply[F[_], A](range: String, body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Task[Response] =
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(HttpHeaders.RawHeader("Range", range))) { _.addHeader(_) }
+      }
   }
   object MultiStatus extends Status(207, "Multi-Status") with EntityResponseGenerator
   object AlreadyReported extends Status(208, "Already Reported") with EntityResponseGenerator
@@ -129,24 +133,30 @@ object Status {
 
   object BadRequest extends Status(400, "Bad Request") with EntityResponseGenerator
   object Unauthorized extends Status(401, "Unauthorized") with EntityResponseGenerator {
-    // TODO type this header
-    def apply[F[_], A](wwwAuthenticate: String, body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Response =
-      headers.foldLeft(apply(body).addHeader(HttpHeaders.RawHeader("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
+    def apply[F[_], A](wwwAuthenticate: String, body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Task[Response] =
+      // TODO type this header
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(HttpHeaders.RawHeader("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
+      }
   }
   object PaymentRequired extends Status(402, "Payment Required") with EntityResponseGenerator
   object Forbidden extends Status(403, "Forbidden") with EntityResponseGenerator
   object NotFound extends Status(404, "Not Found") with EntityResponseGenerator {
-    def apply(request: RequestPrelude): Response = apply(s"${request.pathInfo} not found")
+    def apply(request: RequestPrelude): Task[Response] = apply(s"${request.pathInfo} not found")
   }
   object MethodNotAllowed extends Status(405, "Method Not Allowed") with EntityResponseGenerator {
-    def apply[F[_], A](allowed: TraversableOnce[Method], body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Response =
-      headers.foldLeft(apply(body).addHeader(HttpHeaders.RawHeader("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
+    def apply[F[_], A](allowed: TraversableOnce[Method], body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Task[Response] =
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(HttpHeaders.RawHeader("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
+      }
   }
   object NotAcceptable extends Status(406, "Not Acceptable") with EntityResponseGenerator
   object ProxyAuthenticationRequired extends Status(407, "Proxy Authentication Required") with EntityResponseGenerator {
     // TODO type this header
-    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Response =
-      headers.foldLeft(apply(body).addHeader(HttpHeaders.RawHeader("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
+    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: HttpHeaders = HttpHeaders.Empty)(implicit w: Writable[A]): Task[Response] =
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(HttpHeaders.RawHeader("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
+      }
   }
   object RequestTimeOut extends Status(408, "Request Time-out") with EntityResponseGenerator
   object Conflict extends Status(409, "Conflict") with EntityResponseGenerator

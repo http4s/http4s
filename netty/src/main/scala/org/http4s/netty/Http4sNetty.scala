@@ -122,11 +122,11 @@ abstract class Http4sNetty
     val request = toRequest(ctx, req, rem)
     //val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
     //catch { case t: Throwable => Done[HttpChunk, Response](InternalServerError(t)) }
-    val task = service(request).handle {
+    val task = service(request)/*.handle {
       case e =>
         e.printStackTrace()
         InternalServerError()
-    }.map { resp =>
+    }*/.map { resp =>
       renderResponse(ctx, req, resp.prelude)
     }
     println("Request Running.")

@@ -20,7 +20,7 @@ class ExampleRoute extends RouteHandler {
 
   def apply(): HttpService = {
     case Get -> Root / "ping" =>
-      Task.now(Ok("pong"))
+      Ok("pong")
 
     case req @ Get -> Root / ("echo" | "echo2") =>
       Task.now(Response(body = req.body.map {
@@ -28,13 +28,13 @@ class ExampleRoute extends RouteHandler {
         case chunk => chunk
       }))
 
+/*
     case req @ Post -> Root / "sum"  =>
       text(req) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }.toTask
 
-/*
     case req @ Post -> Root / "sum" =>
       text(req.charset, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
@@ -76,7 +76,7 @@ class ExampleRoute extends RouteHandler {
 */
 
     case Get -> Root / "future" =>
-      Task.now(Ok(Future("Hello from the future!")))
+      Ok(Future("Hello from the future!"))
 
     /*
   case req @ Get -> Root / "bigstring2" =>

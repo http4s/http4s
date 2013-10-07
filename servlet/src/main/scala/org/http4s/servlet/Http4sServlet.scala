@@ -34,11 +34,11 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   }
 
   protected def process(request: Request, ctx: AsyncContext): Task[Unit] = {
-    service(request).handle {
+    service(request)/*.handle {
       case t =>
         t.printStackTrace()
         InternalServerError()
-    }.flatMap { response =>
+    }*/.flatMap { response =>
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
       for (header <- response.prelude.headers)

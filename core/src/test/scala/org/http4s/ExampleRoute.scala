@@ -12,7 +12,7 @@ object ExampleRoute extends RouteHandler {
 
   def apply(): HttpService = {
     case Get -> Root / "ping" =>
-      Task.now(Ok("pong"))
+      Ok("pong")
 
     case req @ Post -> Root / "echo" =>
       Task.now(Response(body = req.body))
@@ -23,13 +23,13 @@ object ExampleRoute extends RouteHandler {
         case chunk => chunk
       }))
 
+/*
     case req @ Post -> Root / "sum"  =>
       text(req) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
-      }.toTask
+      }
 
-/*
     case req @ Post -> Root / "trailer" =>
       trailer(t => Ok(t.headers.length))
 
@@ -77,14 +77,14 @@ object ExampleRoute extends RouteHandler {
     */
 
     case Get -> Root / "html" =>
-      Task.now(Ok(
+      Ok(
         <html><body>
           <div id="main">
             <h2>Hello world!</h2><br/>
             <h1>This is H1</h1>
           </div>
         </body></html>
-      ))
+      )
 
     case Root :/ "fail" =>
       Task.delay(sys.error("FAIL"))

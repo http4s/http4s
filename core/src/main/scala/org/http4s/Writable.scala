@@ -4,17 +4,18 @@ import scalaz.stream.Process
 import scalaz.syntax.monad._
 import scalaz.Functor
 import scala.concurrent.{ExecutionContext, Future}
+import scalaz.concurrent.Task
 
 trait Writable[-A] {
   def contentType: ContentType
-  def toBody(a: A): (HttpBody, Option[Int])
+  def toBody(a: A): Task[(HttpBody, Option[Int])]
 }
 
 trait SimpleWritable[-A] extends Writable[A] {
   def asChunk(data: A): BodyChunk
-  override def toBody(a: A): (HttpBody, Option[Int]) = {
+  override def toBody(a: A): Task[(HttpBody, Option[Int])] = {
     val chunk = asChunk(a)
-    (Process.emit(chunk), Some(chunk.length))
+    Task.now(Process.emit(chunk), Some(chunk.length))
   }
 }
 
@@ -42,7 +43,7 @@ object Writable {
     new Writable[Future[A]] {
       def contentType: ContentType = writable.contentType
       def toBody(f: Future[A]) = {
-        (Process.emit(futureToTask(ec)(f).map { a => (writable.toBody(a)._1) }).eval.join, None)
+        futureToTask(ec)(f).flatMap(writable.toBody(_))
       }
     }
 /*
