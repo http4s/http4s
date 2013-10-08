@@ -46,7 +46,6 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
         val out = servletResponse.getOutputStream
         response.body.map(_.toArray).map { bytes =>
           out.write(bytes)
-          servletResponse.flushBuffer()
         }.last.toTask
       }
     }

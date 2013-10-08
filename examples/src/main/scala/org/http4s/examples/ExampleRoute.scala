@@ -79,7 +79,7 @@ class ExampleRoute extends RouteHandler {
       Ok(Future("Hello from the future!"))
 
   case req @ Get -> Root / "bigstring2" =>
-    val body = Process.range(0, 1000).map(i => BodyChunk(s"This is string number $i\n"))
+    val body = Process.range(0, 1000).map(i => BodyChunk(s"This is string number $i"))
     Task.now {
       Response(body = body)
     }
