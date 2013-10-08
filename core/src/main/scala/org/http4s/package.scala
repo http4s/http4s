@@ -26,27 +26,16 @@ package object http4s {
   
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
 
-  trait RouteHandler {
-    implicit val appScope = AppScope()
-    val attributes = appScope.newAttributesView()
+  // TODO: why should this have a scope? it just generates routes...
+  trait RouteHandler { self =>
     def apply(): HttpService
   }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
-  implicit object GlobalState extends attributes.ServerContext {
-    import attributes.ScopableAttributeKey
-
-    private def scopedKey[T](key: Key[T]) = new ScopableAttributeKey[T](key) in ThisServer
-
-    def apply[T](key: Key[T]): T = super.apply(scopedKey(key))
-    def update[T](key: Key[T], value: T): T = super.update(scopedKey(key), value)
-  }
-
-  implicit def attribute2scoped[T](attributeKey: AttributeKey[T]) = new attributes.ScopableAttributeKey(attributeKey)
-  implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
-  implicit def app2scope(routes: RouteHandler) = routes.appScope
-  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
+//  implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
+//  implicit def app2scope(routes: RouteHandler) = routes.appScope
+//  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
   implicit def string2headerkey(name: String): HttpHeaderKey[HttpHeader] = HttpHeaders.Key(name)
 
   val Get = Method.Get

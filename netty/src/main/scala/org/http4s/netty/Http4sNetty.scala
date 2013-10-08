@@ -29,8 +29,6 @@ import scala.collection.mutable.ListBuffer
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-, \/}
 import scalaz.stream.Process._
-import scala.util.control.NonFatal
-import scalaz.stream.Process
 import scalaz.stream.async
 
 
@@ -40,7 +38,6 @@ object Http4sNetty {
       val service = toMount
     }
 }
-
 
 abstract class Http4sNetty
             extends ChannelInboundHandlerAdapter with Logging {

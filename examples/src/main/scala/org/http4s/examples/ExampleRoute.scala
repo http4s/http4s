@@ -6,15 +6,20 @@ import scalaz.stream.Process._
 import scalaz.stream.Process
 import org.http4s.Status.Ok
 import scala.concurrent.Future
+import org.http4s.attributes.{Key}
 
 class ExampleRoute extends RouteHandler {
+  import Status._
+  import Writable._
   import BodyParser._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
-  object myVar extends Key[String]
+  val routeScope = new attributes.AppScope
 
-  GlobalState(myVar) = "cats"
+  object myVar extends Key[Int]
+
+  myVar in routeScope := 0
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
@@ -42,8 +47,10 @@ class ExampleRoute extends RouteHandler {
       }
 
     case req @ Get -> Root / "attributes" =>
-      req + (myVar, "5")
-      Ok("Hello" + req.get(myVar) + ", and " + GlobalState(myVar))
+      req(myVar) = 55
+      myVar in routeScope := 1 + (myVar in routeScope value)
+      myVar in req := (myVar in req value) + 1
+      Ok("Hello" + req(myVar) +  ", and " + (myVar in routeScope value) + ". end.\n")
 
     case Get -> Root / "html" =>
       Ok(

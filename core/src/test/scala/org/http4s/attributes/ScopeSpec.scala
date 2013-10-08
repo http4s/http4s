@@ -11,10 +11,11 @@ class ScopeSpec extends Specification {
 
   "A list of scopes" should {
     "sort from high to low ranking" in {
-      val appid = UUID.randomUUID()
-      val reqid = UUID.randomUUID()
-      val nw = List(AppScope(appid), ThisServer, RequestScope(reqid)).sorted
-      nw must_== List(RequestScope(reqid), AppScope(appid), ThisServer)
+      val appScope = new AppScope
+      val reqScope = new RequestScope
+      val valScope = new ValueScope
+      val nw = List(GlobalScope, appScope, reqScope, valScope).sorted
+      nw must_== List(valScope, reqScope, appScope, GlobalScope)
     }
   }
 }
