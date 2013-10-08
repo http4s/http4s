@@ -40,17 +40,21 @@ class ExampleRoute extends RouteHandler {
         Ok(sum)
       }.toTask
 
-    case req @ Post -> Root / "sum" =>
-      text(req.charset, 16) { s =>
-        val sum = s.split('\n').map(_.toInt).sum
-        Ok(sum)
-      }
-
     case req @ Get -> Root / "attributes" =>
       req(myVar) = 55
       myVar in routeScope := 1 + (myVar in routeScope value)
       myVar in req := (myVar in req value) + 1
       Ok("Hello" + req(myVar) +  ", and " + (myVar in routeScope value) + ". end.\n")
+
+    case req @ Post -> Root / "trailer" =>
+      trailer(t => Ok(t.headers.length))
+
+    case req @ Post -> Root / "body-and-trailer" =>
+      for {
+        body <- text(req.charset)
+        trailer <- trailer
+      } yield Ok(s"$body\n${trailer.headers("Hi").value}")
+*/
 
     case Get -> Root / "html" =>
       Ok(
@@ -62,6 +66,7 @@ class ExampleRoute extends RouteHandler {
         </body></html>
       )
 
+/*
     case req @ Get -> Root / "stream" =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
@@ -76,20 +81,19 @@ class ExampleRoute extends RouteHandler {
           }.start()
 
       }))
+
     case Get -> Root / "bigstring" =>
-      emit(Response(body =
-        range(0, 1000).map(i => BodyChunk(s"This is string number $i"))
-      ))
+      Ok(body = (0 until 1000).map(i => BodyChunk(s"This is string number $i")))
 */
 
     case Get -> Root / "future" =>
       Ok(Future("Hello from the future!"))
 
-  case req @ Get -> Root / "bigstring2" =>
-    val body = Process.range(0, 1000).map(i => BodyChunk(s"This is string number $i"))
-    Task.now {
-      Response(body = body)
-    }
+    case req @ Get -> Root / "bigstring2" =>
+      val body = Process.range(0, 1000).map(i => BodyChunk(s"This is string number $i"))
+      Task.now {
+        Response(body = body)
+      }
 
     /*
   case req @ Get -> Root / "bigstring3" =>
@@ -100,20 +104,30 @@ class ExampleRoute extends RouteHandler {
   case Get -> Root / "contentChange" =>
     Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
 
-    // Ross wins the challenge
-  case req @ Get -> Root / "challenge" =>
-    Iteratee.head[HttpChunk].map {
-      case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
-        Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
-      case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
-        BadRequest("Booo!")
-      case _ =>
-        BadRequest("No data!")
-    }
+    case req @ Get -> Root / "challenge" =>
+      req.body |> (await1[HttpChunk] flatMap {
+        case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("Go") =>
+          Process.emit(Response(body = emit(bits) then req.body))
+        case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("NoGo") =>
+          Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("Booo!"))))
+        case _ =>
+          Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("no data"))))
+      })
 
-  case req @ Get -> Root / "fail" =>
-    sys.error("FAIL")
+    case req @ Root :/ "root-element-name" =>
+      req.body |> takeBytes(1024 * 1024) |>
+        (processes.fromSemigroup[HttpChunk].map { chunks =>
+          val in = chunks.asInputStream
+          val source = new InputSource(in)
+          source.setEncoding(req.prelude.charset.value)
+          val elem = XML.loadXML(source, XML.parser)
+          Response(body = emit(BodyChunk(elem.label)))
+        }).liftR |>
+        processes.lift(_.fold(identity _, identity _))
 */
+    case req @ Get -> Root / "fail" =>
+      sys.error("FAIL")
+
     case req =>
       println("Got request that didn't match: " + req.prelude.pathInfo)
       Task.now(Response(body = Process.emit(s"Didn't find match: ${req.prelude.pathInfo}").map(s => BodyChunk(s.getBytes))))
