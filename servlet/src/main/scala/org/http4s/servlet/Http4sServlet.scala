@@ -4,21 +4,14 @@ package servlet
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
-import concurrent.{ExecutionContext,Future}
 import javax.servlet.{ServletConfig, AsyncContext}
-import org.http4s.Status.{InternalServerError, NotFound}
 
 import Http4sServlet._
-import scala.util.logging.Logged
 import com.typesafe.scalalogging.slf4j.Logging
-import java.util.concurrent.ExecutorService
-import scalaz.concurrent.{Strategy, Task}
-import scalaz.stream.Process
-import scala.util.control.NonFatal
+import scalaz.concurrent.Task
 import scalaz.stream.io._
-import scalaz.stream.processes
-import scalaz.{Monad, Catchable}
-import scalaz.stream.Process.Process0
+import scalaz.{-\/, \/-}
+import scala.util.control.NonFatal
 
 class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) extends HttpServlet with Logging {
   private[this] var serverSoftware: ServerSoftware = _
@@ -28,29 +21,43 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   }
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
-    val request = toRequest(servletRequest)
-    val ctx = servletRequest.startAsync()
-    Task.fork(process(request, ctx)).runAsync(_ => ctx.complete())
+    try {
+      val request = toRequest(servletRequest)
+      val ctx = servletRequest.startAsync()
+      handle(request, ctx)
+    } catch {
+      case NonFatal(e) => handleError(e, servletResponse)
+    }
   }
 
-  protected def process(request: Request, ctx: AsyncContext): Task[Unit] = {
-    service(request)/*.handle {
-      case t =>
-        t.printStackTrace()
-        InternalServerError()
-    }*/.flatMap { response =>
-      val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-      servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
-      for (header <- response.prelude.headers)
-        servletResponse.addHeader(header.name, header.value)
+  private def handleError(t: Throwable, response: HttpServletResponse) {
+    logger.error("Error processing request", t)
+    if (!response.isCommitted)
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+  }
+
+  private def handle(request: Request, ctx: AsyncContext): Unit = {
+    val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
+    Task.fork {
+      service(request).flatMap { response =>
+        servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
+        for (header <- response.prelude.headers)
+          servletResponse.addHeader(header.name, header.value)
         val out = servletResponse.getOutputStream
         response.body.map(_.toArray).map { bytes =>
           out.write(bytes)
         }.last.toTask
       }
+    }.runAsync {
+      case \/-(_) =>
+        ctx.complete()
+      case -\/(t) =>
+        handleError(t, servletResponse)
+        ctx.complete()
     }
+  }
 
-  protected def toRequest(req: HttpServletRequest): Request = {
+  private def toRequest(req: HttpServletRequest): Request = {
     val prelude = RequestPrelude(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
@@ -68,7 +75,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
     Request(prelude, body)
   }
 
-  protected def toHeaders(req: HttpServletRequest): HttpHeaders = {
+  private def toHeaders(req: HttpServletRequest): HttpHeaders = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
