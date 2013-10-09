@@ -5,7 +5,6 @@ import scalaz.syntax.monad._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
 import scala.language.implicitConversions
-import play.api.libs.iteratee._
 import util.Execution.{overflowingExecutionContext => oec}
 
 trait Writable[-A] {
