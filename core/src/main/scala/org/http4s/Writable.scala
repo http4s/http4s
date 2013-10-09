@@ -2,9 +2,11 @@ package org.http4s
 
 import scalaz.stream.Process
 import scalaz.syntax.monad._
-import scalaz.Functor
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
+import scala.language.implicitConversions
+import play.api.libs.iteratee._
+import util.Execution.{overflowingExecutionContext => oec}
 
 trait Writable[-A] {
   def contentType: ContentType
@@ -45,12 +47,6 @@ object Writable {
       def toBody(a: Task[A]) = a.flatMap(writable.toBody(_))
     }
 
-  implicit def futureWritable[A](implicit ec: ExecutionContext, writable: Writable[A]) =
-    new Writable[Future[A]] {
-      def contentType: ContentType = writable.contentType
-      def toBody(f: Future[A]) = taskWritable[A].toBody(futureToTask(ec)(f))
-    }
-
 /*
   implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[A]) =
     new Writable[F[A]] {
@@ -58,5 +54,23 @@ object Writable {
       private def send(fa: F[A]) = Process.emit(fa.map(writable.toBody(_)._1)).eval.join
       override def toBody(fa: F[A]) = (send(fa), None)
     }
-    */
+
+  implicit def enumerateeWritable =
+  new Writable[Enumeratee[HttpChunk, HttpChunk]] {
+    def contentType = ContentType.`application/octet-stream`
+    override def toBody(a: Enumeratee[HttpChunk, HttpChunk])= (a, None)
+  }
+
+  implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
+  new Writable[Enumerator[A]] {
+    def contentType = writable.contentType
+    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => BodyChunk(writable.asByteString(i))}(oec)), None)
+  }
+*/
+
+  implicit def futureWritable[A](implicit ec: ExecutionContext, writable: Writable[A]) =
+    new Writable[Future[A]] {
+      def contentType: ContentType = writable.contentType
+      def toBody(f: Future[A]) = taskWritable[A].toBody(futureToTask(ec)(f))
+    }
 }

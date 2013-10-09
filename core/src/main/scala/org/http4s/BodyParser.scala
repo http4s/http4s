@@ -37,6 +37,7 @@ object BodyParser {
    * Handles a request body as XML.
    *
    * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
+   * TODO how to pass the EC correctly?
    *
    * @param charset the charset of the input
    * @param limit the maximum size before an EntityTooLarge error is returned
@@ -55,12 +56,12 @@ object BodyParser {
       Try(XML.loadXML(source, parser)).map(Right(_)).recover {
         case e: SAXException => Left(onSaxException(e))
       }.get
-    }.joinRight
+    }(tec).joinRight
 
-  def ignoreBody: BodyParser[Unit] = BodyParser(whileBodyChunk &>> Iteratee.ignore[BodyChunk].map(Right(_)))
+  def ignoreBody: BodyParser[Unit] = BodyParser(whileBodyChunk &>> Iteratee.ignore[BodyChunk].map(Right(_))(oec))
 
   def trailer: BodyParser[TrailerChunk] = BodyParser(
-    Enumeratee.dropWhile[HttpChunk](_.isInstanceOf[BodyChunk]) &>>
+    Enumeratee.dropWhile[HttpChunk](_.isInstanceOf[BodyChunk])(oec) &>>
       (Iteratee.head[HttpChunk].map {
         case Some(trailer: TrailerChunk) => trailer
         case _ => TrailerChunk()
@@ -95,15 +96,16 @@ object BodyParser {
     def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
   }
 
+  // TODO: why are we using blocking file ops here!?!
   // File operations
-  def binFile(file: java.io.File)(f: => Response): Iteratee[HttpChunk,Response] = {
+  def binFile(file: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Responder] = {
     val out = new java.io.FileOutputStream(file)
-    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }.map{ _ => out.close(); f }
+    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }(ec).map{ _ => out.close(); f }(oec)
   }
 
-  def textFile(req: RequestPrelude, in: java.io.File)(f: => Response): Iteratee[HttpChunk,Response] = {
+  def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Responder] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
-    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }.map{ _ => is.close(); f }
+    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }(ec).map{ _ => is.close(); f }(oec)
   }
 */
 }

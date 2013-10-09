@@ -7,6 +7,7 @@ import org.specs2.time.NoTimeConversions
 import org.http4s.HttpHeaders.RawHeader
 
 class MockServerSpec extends Specification with NoTimeConversions {
+  import concurrent.ExecutionContext.Implicits.global
 
   val server = new MockServer(ExampleRoute())
 
