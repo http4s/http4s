@@ -2,6 +2,7 @@ package org.http4s
 
 import scala.language.implicitConversions
 import play.api.libs.iteratee._
+import util.Execution.{overflowingExecutionContext => oec}
 import concurrent.{ExecutionContext, Future}
 import akka.util.ByteString
 
@@ -79,7 +80,7 @@ object Writable {
   implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
   new Writable[Enumerator[A]] {
     def contentType = writable.contentType
-    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => BodyChunk(writable.asByteString(i)) }), None)
+    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => BodyChunk(writable.asByteString(i))}(oec)), None)
   }
 
   implicit def futureWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =

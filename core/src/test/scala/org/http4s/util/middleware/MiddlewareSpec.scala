@@ -12,6 +12,8 @@ import play.api.libs.iteratee.Enumerator
 class MiddlewareSpec extends Specification with NoTimeConversions {
   import util.middleware.URITranslation._
 
+  import concurrent.ExecutionContext.Implicits.global
+
   val echoBody = Enumerator("one", "two", "three").map[HttpChunk](s => BodyChunk(s))
   val echoReq = RequestPrelude(requestMethod = Method.Post, pathInfo = "/rootPath/echo")
 

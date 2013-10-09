@@ -18,10 +18,11 @@ import akka.util.ByteString
 
 class BodyParserSpec extends Specification with NoTimeConversions {
   import BodyParser._
+  import concurrent.ExecutionContext.Implicits.global
 
   "xml" should {
     val server = new MockServer({
-      case req => xml(req.charset) { elem => Ok(elem.label) }
+      case req => xml(req.charset){ elem => Ok(elem.label) }
     })
 
     "parse the XML" in {
