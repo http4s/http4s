@@ -44,9 +44,13 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
         for (header <- response.prelude.headers)
           servletResponse.addHeader(header.name, header.value)
         val out = servletResponse.getOutputStream
-        response.body.map(_.toArray).map { bytes =>
-          out.write(bytes)
-        }.last.toTask
+        val isChunked = response.prelude.headers.get(HttpHeaders.TransferEncoding)
+          .fold(false)(_.coding.matches(HttpEncodings.chunked))
+        response.body.map { bytes =>
+          out.write(bytes.toArray)
+          if (isChunked)
+            servletResponse.flushBuffer()
+        }.run
       }
     }.runAsync {
       case \/-(_) =>
