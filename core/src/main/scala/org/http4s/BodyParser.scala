@@ -7,7 +7,7 @@ import javax.xml.parsers.SAXParser
 import scala.util.{Success, Try}
 import scalaz.\/
 import scalaz.stream._
-import scalaz.syntax.either._
+import scalaz.syntax.id._
 import scalaz.concurrent.Task
 
 class BodyParser[A] private (p: Process[Task, Response \/ A]) {

@@ -34,7 +34,7 @@ object Dependencies {
 
   val ScalaStm = "org.scala-stm" %% "scala-stm" % "0.7"
 
-  val ScalazStream = "org.scalaz.stream" %% "scalaz-stream" % "0.1-SNAPSHOT"
+  val ScalazStream = "org.scalaz.stream" %% "scalaz-stream" % "0.2-SNAPSHOT"
 
   val TypesafeConfig = "com.typesafe" % "config" % "1.0.0"
 

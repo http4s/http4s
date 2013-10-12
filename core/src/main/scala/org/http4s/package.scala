@@ -8,7 +8,7 @@ import org.http4s.attributes.RequestScope
 import org.http4s.attributes.AppScope
 import scalaz.{-\/, \/-, Semigroup, ~>}
 import scalaz.concurrent.Task
-import scalaz.syntax.either._
+import scalaz.syntax.id._
 import scalaz.stream.Process
 import scala.util.{Failure, Success}
 
