@@ -1,17 +1,13 @@
 package org
 
-import http4s.attributes._
 import http4s.ext.Http4sString
 import scala.concurrent.{ExecutionContext, Promise, Future}
 import com.typesafe.config.{ConfigFactory, Config}
-import org.http4s.attributes.RequestScope
-import org.http4s.attributes.AppScope
 import scalaz.{-\/, \/-, Semigroup, ~>}
 import scalaz.concurrent.Task
 import scalaz.syntax.id._
 import scalaz.stream.Process
 import scala.util.{Failure, Success}
-
 
 package object http4s {
   type HttpService = Request => Task[Response]
@@ -25,11 +21,6 @@ package object http4s {
   }
   
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
-
-  // TODO: why should this have a scope? it just generates routes...
-  trait RouteHandler { self =>
-    def apply(): HttpService
-  }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
@@ -84,4 +75,3 @@ package object http4s {
     }
   }
 }
-

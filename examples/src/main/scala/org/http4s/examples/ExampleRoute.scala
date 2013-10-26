@@ -1,27 +1,21 @@
 package org.http4s
 
-import attributes.Key
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scalaz.stream.Process
 import org.http4s.Status.Ok
 import scala.concurrent.Future
-import org.http4s.attributes.{Key}
 
-class ExampleRoute extends RouteHandler {
+class ExampleRoute {
   import Status._
   import Writable._
   import BodyParser._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
-  val routeScope = new attributes.AppScope
-
-  object myVar extends Key[Int]
-
-  myVar in routeScope := 0
-
   import scala.concurrent.ExecutionContext.Implicits.global
+
+  val MyVar = AttributeKey[Int]("myVar")
 
   def apply(): HttpService = {
     case Get -> Root / "ping" =>
@@ -41,10 +35,8 @@ class ExampleRoute extends RouteHandler {
       }.toTask
 
     case req @ Get -> Root / "attributes" =>
-      req(myVar) = 55
-      myVar in routeScope := 1 + (myVar in routeScope value)
-      myVar in req := (myVar in req value) + 1
-      Ok("Hello" + req(myVar) +  ", and " + (myVar in routeScope value) + ". end.\n")
+      val req2 = req.updated(MyVar, 55)
+      Ok("Hello" + req(MyVar) +  " and " + req2(MyVar) + ".\n")
 
     case req @ Post -> Root / "trailer" =>
       trailer(t => Ok(t.headers.length))

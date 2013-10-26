@@ -12,7 +12,7 @@ object Dependencies {
 
   val LogbackClassic = "ch.qos.logback" % "logback-classic" % "1.0.9" % "runtime"
 
-  val Netty4 = "io.netty" % "netty-all" % "4.0.9.Final"
+  val Netty4 = "io.netty" % "netty-all" % "4.0.10.Final"
 
   val ParboiledScala = "org.parboiled" %%  "parboiled-scala" % "1.1.4"
 

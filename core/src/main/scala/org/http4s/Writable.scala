@@ -60,6 +60,16 @@ object Writable {
     override def toBody(a: Enumeratee[HttpChunk, HttpChunk])= (a, None)
   }
 
+  implicit def genericEnumerateeWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
+    new Writable[Enumeratee[HttpChunk, A]] {
+      def contentType = writable.contentType
+
+      def toBody(a: Enumeratee[HttpChunk, A]): (Enumeratee[HttpChunk, HttpChunk], Option[Int]) = {
+        val finalenum = a.compose(Enumeratee.map[A]( i => BodyChunk(writable.asByteString(i)): HttpChunk))
+        (finalenum , None)
+      }
+    }
+
   implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
   new Writable[Enumerator[A]] {
     def contentType = writable.contentType

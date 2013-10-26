@@ -8,7 +8,8 @@ import org.http4s.HttpHeaders
 
 case class Response(
   prelude: ResponsePrelude = ResponsePrelude(),
-  body: HttpBody = Process.halt
+  body: HttpBody = Process.halt,
+  attributes: AttributeMap = AttributeMap.empty
 ) {
   def contentType: Option[ContentType] =  Response.getContentType(this)
   def contentType(contentType: ContentType) = Response.setContentType(this, contentType)
