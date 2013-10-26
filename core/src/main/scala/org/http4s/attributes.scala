@@ -4,7 +4,7 @@
  *
  * Simplified for http4s' simplified needs.
  */
-package org.http4s.util
+package org.http4s
 
 import scala.reflect.Manifest
 

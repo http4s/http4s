@@ -4,7 +4,7 @@ package org.http4s
 import play.api.libs.iteratee._
 import java.net.{URL, URI}
 import reflect.ClassTag
-import util.{AttributeMap, DateTime}
+import util.{DateTime}
 
 
 case class Responder(

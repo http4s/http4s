@@ -6,7 +6,6 @@ import akka.util.{ByteIterator, ByteStringBuilder, ByteString}
 import collection.{mutable, IndexedSeqOptimized}
 import scala.collection.generic.CanBuildFrom
 import java.nio.ByteBuffer
-import org.http4s.util.{AttributeKey, AttributeMap}
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
