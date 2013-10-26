@@ -4,12 +4,13 @@ package org.http4s
 import play.api.libs.iteratee._
 import java.net.{URL, URI}
 import reflect.ClassTag
-import util.DateTime
+import util.{AttributeMap, DateTime}
 
 
 case class Responder(
   prelude: ResponsePrelude,
-  body: ResponderBody = Responder.EmptyBody
+  body: ResponderBody = Responder.EmptyBody,
+  attributes: AttributeMap = AttributeMap.empty
 ) {
   def contentType: Option[ContentType] =  Responder.getContentType(this)
   def contentType(contentType: ContentType) = Responder.setContentType(this, contentType)

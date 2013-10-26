@@ -1,14 +1,12 @@
 package org.http4s
 
-import attributes.{RequestScope, Key}
 import java.io.File
 import java.net.{URI, InetAddress}
-import java.util.UUID
 import akka.util.{ByteIterator, ByteStringBuilder, ByteString}
 import collection.{mutable, IndexedSeqOptimized}
 import scala.collection.generic.CanBuildFrom
 import java.nio.ByteBuffer
-import io.Codec
+import org.http4s.util.{AttributeKey, AttributeMap}
 
 // Our Http message "currency" types
 sealed trait HasHeaders {
@@ -89,114 +87,21 @@ case class TrailerChunk(headers: HttpHeaders = HttpHeaders.empty) extends HttpCh
   final def bytes: ByteString = ByteString.empty
 }
 
-object RequestPrelude {
-//  def apply(
-//    requestMethod: Method = Method.Get,
-//    scriptName: String = "",
-//    pathInfo: String = "",
-//    queryString: String = "",
-//    pathTranslated: Option[File] = None,
-//    protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-//    headers: HttpHeaders = HttpHeaders.empty,
-//    cookies: RequestCookieJar = RequestCookieJar.empty,
-//    urlScheme: UrlScheme = HttpUrlScheme.Http,
-//    serverName: String = InetAddress.getLocalHost.getHostName,
-//    serverPort: Int = 80,
-//    serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-//    remote: InetAddress = InetAddress.getLocalHost): RequestPrelude =
-//    new RequestPrelude(
-//      requestMethod,
-//      scriptName,
-//      pathInfo,
-//      queryString,
-//      pathTranslated,
-//      protocol,
-//      headers,
-//      urlScheme,
-//      serverName,
-//      serverPort,
-//      serverSoftware,
-//      remote
-//    )
-//
-//  def unapply(request: RequestPrelude): Option[(Method, String, String, String, Option[File], ServerProtocol, HttpHeaders, UrlScheme, String, Int, ServerSoftware, HttpIp)] =
-//    Some((request.requestMethod, request.scriptName, request.pathInfo, request.queryString, request.pathTranslated, request.protocol, request.headers, request.urlScheme, request.serverName, request.serverPort, request.serverSoftware, request.remote))
-def apply(requestMethod: Method = Method.Get,
-         scriptName: String = "",
-         pathInfo: String = "",
-         queryString: String = "",
-         pathTranslated: Option[File] = None,
-         protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-         headers: HttpHeaders = HttpHeaders.empty,
-         urlScheme: UrlScheme = HttpUrlScheme.Http,
-         serverName: String = InetAddress.getLocalHost.getHostName,
-         serverPort: Int = 80,
-         serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-         remote: HttpIp = HttpIp.localhost) =
-    new RequestPrelude(
-      requestMethod,
-      scriptName,
-      pathInfo,
-      queryString,
-      pathTranslated,
-      protocol: ServerProtocol,
-      headers: HttpHeaders,
-      urlScheme: UrlScheme,
-      serverName: String,
-      serverPort: Int,
-      serverSoftware,
-      remote: HttpIp,
-      new RequestScope(),
-      UUID.randomUUID())
-
-  implicit def reqToScope(req: RequestPrelude) = req.scope
-
-  private def cookiesFromHeaders(h: HttpHeaders) = h.getAll(HttpHeaders.Cookie).flatMap(_.cookies).distinct
-}
-case class RequestPrelude private(
-      requestMethod: Method,
-      scriptName: String,
-      pathInfo: String,
-      queryString: String,
-      pathTranslated: Option[File],
-      protocol: ServerProtocol,
-      headers: HttpHeaders,
-      urlScheme: UrlScheme,
-      serverName: String,
-      serverPort: Int,
-      serverSoftware: ServerSoftware,
-      remote: HttpIp,
-      scope: RequestScope,
-      uuid: UUID) {
-
-  def this(requestMethod: Method = Method.Get,
-    scriptName: String = "",
-    pathInfo: String = "",
-    queryString: String = "",
-    pathTranslated: Option[File] = None,
-    protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-    headers: HttpHeaders = HttpHeaders.empty,
-    urlScheme: UrlScheme = HttpUrlScheme.Http,
-    serverName: String = InetAddress.getLocalHost.getHostName,
-    serverPort: Int = 80,
-    serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-    remote: HttpIp = HttpIp.localhost) =
-    this(
-      requestMethod,
-      scriptName,
-      pathInfo,
-      queryString,
-      pathTranslated,
-      protocol: ServerProtocol,
-      headers: HttpHeaders,
-      urlScheme: UrlScheme,
-      serverName: String,
-      serverPort: Int,
-      serverSoftware,
-      remote: HttpIp,
-      new RequestScope(),
-      UUID.randomUUID())
-
+case class RequestPrelude(
+  requestMethod: Method = Method.Get,
+  scriptName: String = "",
+  pathInfo: String = "",
+  queryString: String = "",
+  pathTranslated: Option[File] = None,
+  protocol: ServerProtocol = HttpVersion.`Http/1.1`,
+  headers: HttpHeaders = HttpHeaders.empty,
+  urlScheme: UrlScheme = HttpUrlScheme.Http,
+  serverName: String = InetAddress.getLocalHost.getHostName,
+  serverPort: Int = 80,
+  serverSoftware: ServerSoftware = ServerSoftware.Unknown,
+  remote: HttpIp = HttpIp.localhost,
+  attributes: AttributeMap = AttributeMap.empty
+) {
   def contentLength: Option[Int] = headers.get(HttpHeaders.ContentLength).map(_.length)
 
   def contentType: Option[ContentType] = headers.get(HttpHeaders.ContentType).map(_.contentType)
@@ -213,37 +118,12 @@ case class RequestPrelude private(
   lazy val remoteUser: Option[String] = None
 
   /* Attributes proxy */
-
-  def updated[T](key: Key[T], value: T) = { scope.updated(key, value); this }
-
-  def update[T](key: Key[T], value: T) = scope.update(key, value)
-
-  def apply[T](key: Key[T]): T = scope(key)
-  def get[T](key: Key[T]): Option[T] = scope.get(key)
-  def getOrElse[T](key: Key[T], default: => T) = get(key).getOrElse(default)
-  def +[T](kv: (Key[T], T)) = {
-    scope(kv._1) = kv._2
-    this
-  }
-
-  def -[T](key: Key[T]) = { scope.remove(key); this }
-
-  def contains[T](key: Key[T]): Boolean = scope.contains(key)
-  /* Attributes proxy end */
-
- override def hashCode(): Int = uuid.##
-
-  override def equals(obj: Any): Boolean = obj match {
-    case req: RequestPrelude => req.uuid == uuid
-    case _ => false
-  }
-
-  override def toString: String = {
-    s"RequestPrelude(uuid: $uuid, method: $requestMethod, pathInfo: $pathInfo, queryString: $queryString, " +
-    s"pathTranslated: $pathTranslated, protocol: $protocol, urlScheme: $urlScheme, serverName: $serverName, " +
-    s"serverPort: $serverPort, serverSoftware: $serverSoftware, remote: $remote, headers: $headers, attributes: ${scope.toMap}"
-  }
-
-  override def clone(): AnyRef = copy()
+  def updated[T](key: AttributeKey[T], value: T) = copy(attributes = attributes.put(key, value))
+  def apply[T](key: AttributeKey[T]): T = attributes(key)
+  def get[T](key: AttributeKey[T]): Option[T] = attributes.get(key)
+  def getOrElse[T](key: AttributeKey[T], default: => T) = get(key).getOrElse(default)
+  def +[T](kv: (AttributeKey[T], T)) = updated(kv._1, kv._2)
+  def -[T](key: AttributeKey[T]) = copy(attributes = attributes.remove(key))
+  def contains[T](key: AttributeKey[T]): Boolean = attributes.contains(key)
 }
 case class ResponsePrelude(status: Status, headers: HttpHeaders = HttpHeaders.empty) extends HttpPrelude

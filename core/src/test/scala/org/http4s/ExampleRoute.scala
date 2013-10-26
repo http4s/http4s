@@ -1,17 +1,17 @@
 package org.http4s
 
-import attributes._
 import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import akka.util.ByteString
+import org.http4s.util.AttributeKey
 
-object ExampleRoute extends RouteHandler {
+object ExampleRoute {
   import Status._
   import Writable._
   import BodyParser._
 
-  object myVar extends Key[String]
+  val MyVar = AttributeKey[String]("myVar")
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case Get -> Root / "ping" =>

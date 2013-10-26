@@ -1,14 +1,10 @@
 package org
 
-import http4s.attributes._
 import http4s.ext.Http4sString
 import play.api.libs.iteratee.{Enumeratee, Iteratee}
 import scala.language.implicitConversions
 import concurrent.ExecutionContext
 import com.typesafe.config.{ConfigFactory, Config}
-import org.http4s.attributes.RequestScope
-import org.http4s.attributes.AppScope
-
 
 package object http4s {
   type Route = PartialFunction[RequestPrelude, Iteratee[HttpChunk, Responder]]
@@ -18,11 +14,6 @@ package object http4s {
   type Middleware = (Route => Route)
 
   private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
-
-  // TODO: why should this have a scope? it just generates routes...
-  trait RouteHandler { self =>
-    def apply(implicit executionContext: ExecutionContext): Route
-  }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
