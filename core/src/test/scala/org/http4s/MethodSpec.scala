@@ -4,12 +4,12 @@ import org.specs2.mutable.Specification
 
 class MethodSpec extends Specification {
   "A standard method" should {
-    "be findable by uppercase" in {
+    "be findable by name" in {
       Method.get("GET") should beSome(Method.Get)
     }
 
-    "be findable by lowercase" in {
-      Method.get("get") should beSome(Method.Get)
+    "be case sensitive" in {
+      Method.get("get") should beNone`
     }
   }
 

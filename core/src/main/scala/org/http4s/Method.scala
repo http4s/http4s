@@ -20,7 +20,7 @@ sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempo
     Method.register(this)
 
   def unapply(request: RequestPrelude): Option[Path] =
-    if (request.requestMethod.name.toUpperCase == name.toUpperCase) Some(Path(request.pathInfo) ) else None
+    if (request.requestMethod.name == name) Some(Path(request.pathInfo) ) else None
 
 //  def :/(path: String): Path = new :/(this, Path(path))
 //  def /(path: String): Path = new /(this, Path(path))
@@ -83,10 +83,7 @@ object Method {
    * @param name the name, case insensitive
    * @return the method, if registered
    */
-  def get(name: String): Option[Method] = {
-    val canonicalName = name.toUpperCase(Locale.ENGLISH)
-    registry.get(canonicalName)
-  }
+  def get(name: String): Option[Method] = registry.get(name)
 
   /**
    * Retrieves a method from the registry, or creates an extension method otherwise.
@@ -97,6 +94,4 @@ object Method {
    * @return the method, if registered; otherwise, an extension method
    */
   def apply(name: String): Method = get(name).getOrElse(new ExtensionMethod(name, isSafe = false, isIdempotent = false))
-
-
 }
