@@ -1,51 +1,25 @@
 import sbt._
-import Keys._
 
-import spray.revolver.RevolverPlugin._
+object Http4sDependencies {
+  lazy val akkaActor           = "com.typesafe.akka"        %% "akka-actor"              % "2.1.0"
+  lazy val atmosphereRuntime   = "org.atmosphere"            % "atmosphere-runtime"      % "1.0.11"
+  lazy val typesafeConfig      = "com.typesafe"              % "config"                  % "1.0.0"
+  lazy val grizzlyHttpServer   = "org.glassfish.grizzly"     % "grizzly-http-server"     % "2.2.19"
+  lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.0.1"
+  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "8.1.8.v20121106"
+  lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
+  lazy val jettyWebSocket      = "org.eclipse.jetty"         % "jetty-websocket"         % jettyServer.revision
+  lazy val junit               = "junit"                     % "junit"                   % "4.11"
+  lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
+  lazy val netty4              = "io.netty"                  % "netty-all"               % "4.0.10.Final"
+  lazy val parboiledScala      = "org.parboiled"            %% "parboiled-scala"         % "1.1.4"
+  lazy val playIteratees       = "com.typesafe.play"        %% "play-iteratees"          % "2.2.0"
+  lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.2"
+  lazy val scalaloggingSlf4j   = "com.typesafe"             %% "scalalogging-slf4j"      % "1.0.1"
+  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.2-SNAPSHOT"
+  lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
+  lazy val specs2              = "org.specs2"               %% "specs2"                  % "1.13"
+  lazy val shapeless           = "com.chuusai"              %% "shapeless"               % "1.2.3"
 
-object build extends Build {
-
-  val gc = TaskKey[Unit]("gc", "runs garbage collector")
-  val gcTask = gc := {
-    println("requesting garbage collection")
-    System gc()
-  }
-
-  val http4sSettings = Defaults.defaultSettings ++ Seq(gcTask)
-
-  lazy val project = Project (
-    "project",
-    file("."),
-    settings = http4sSettings
-  ) aggregate(core, servlet, netty, grizzly, examples)
-
-  lazy val core = Project(
-    "core",
-    file("core"),
-    settings = http4sSettings
-  )
-
-  lazy val servlet = Project(
-    "servlet",
-    file("servlet"),
-    settings = http4sSettings
-  ) dependsOn(core % "compile;test->test")
-
-  lazy val netty = Project(
-    "netty",
-    file("netty"),
-    settings = http4sSettings
-  ) dependsOn(core % "compile;test->test")
-
-  lazy val grizzly = Project(
-    "grizzly",
-    file("grizzly"),
-    settings = http4sSettings
-  ) dependsOn(core % "compile;test->test")
-
-  lazy val examples = Project(
-    "examples",
-    file("examples"),
-    settings = http4sSettings ++ Revolver.settings ++ Seq(mainClass in Revolver.reStart := Some("org.http4s.grizzly.GrizzlyExample")) //Temporary
-  ) dependsOn(grizzly, netty, servlet)
+  def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
 }

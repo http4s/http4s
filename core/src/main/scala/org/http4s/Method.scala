@@ -1,9 +1,7 @@
 package org.http4s
 
-import java.util.Locale
 import scala.collection
 import collection.concurrent.TrieMap
-import annotation.tailrec
 
 /**
  * An HTTP method.
@@ -20,7 +18,7 @@ sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempo
     Method.register(this)
 
   def unapply(request: Request): Option[Path] =
-    if (request.prelude.requestMethod.name.toUpperCase == name.toUpperCase)
+    if (request.prelude.requestMethod.name == name)
       Some(Path(request.prelude.pathInfo) )
     else
       None
@@ -86,10 +84,7 @@ object Method {
    * @param name the name, case insensitive
    * @return the method, if registered
    */
-  def get(name: String): Option[Method] = {
-    val canonicalName = name.toUpperCase(Locale.ENGLISH)
-    registry.get(canonicalName)
-  }
+  def get(name: String): Option[Method] = registry.get(name)
 
   /**
    * Retrieves a method from the registry, or creates an extension method otherwise.
@@ -100,6 +95,4 @@ object Method {
    * @return the method, if registered; otherwise, an extension method
    */
   def apply(name: String): Method = get(name).getOrElse(new ExtensionMethod(name, isSafe = false, isIdempotent = false))
-
-
 }

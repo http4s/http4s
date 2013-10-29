@@ -1,23 +1,21 @@
-import Dependencies._
+import Http4sDependencies._
 
 name := "http4s-core"
 
 description := "Core http4s framework"
 
-libraryDependencies <+= scalaVersion(ScalaReflect)
+libraryDependencies <+= scalaVersion(scalaReflect)
 
 libraryDependencies ++= Seq(
-  Junit % "test",
-  Rl,
-  Slf4j,
-  ScalaStm,
-  ScalazStream,
-  ScalaloggingSlf4j,
-  Shapeless,
-  Specs2 % "test",
-  ParboiledScala,
-  PlayIteratees,
-  TypesafeConfig
+  akkaActor,
+  parboiledScala,
+  playIteratees % "test",
+  rl,
+  slf4jApi,
+  scalazStream,
+  scalaloggingSlf4j,
+  shapeless,
+  typesafeConfig
 )
 
 seq(buildInfoSettings:_*)

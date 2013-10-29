@@ -1,3 +1,21 @@
+import Http4sDependencies._
+
+lazy val core = project
+
+lazy val grizzly = project.dependsOn(core)
+
+lazy val netty = project.dependsOn(core)
+
+lazy val servlet = project.dependsOn(core)
+
+lazy val examples = project.dependsOn(grizzly, netty, servlet)
+
+/* common dependencies */
+libraryDependencies in ThisBuild ++= Seq(
+  junit % "test",
+  specs2 % "test"
+)
+
 /* basic project info */
 name := "http4s"
 

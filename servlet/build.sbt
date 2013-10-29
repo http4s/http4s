@@ -1,12 +1,11 @@
-import Dependencies._
+import Http4sDependencies._
 
 name := "http4s-servlet"
 
 description := "Servlet backend for http4s"
 
 libraryDependencies ++= Seq(
-//  AtmosphereRuntime,
-  JettyServer % "test",
-  JettyServlet % "test",
-  ServletApi % "provided"
+  javaxServletApi % "provided",
+  jettyServer % "test",
+  jettyServlet % "test"
 )
