@@ -4,6 +4,8 @@ import parser.HttpParser
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 import util.DateTime
+import scala.collection.mutable.ListBuffer
+import scala.annotation.tailrec
 
 trait HttpHeaderKey[T <: HttpHeader] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -25,37 +27,6 @@ trait HttpHeaderKey[T <: HttpHeader] {
   protected[this] def collectHeader: PartialFunction[HttpHeader, T]
 }
 
-class HttpHeaders private(headers: Seq[HttpHeader])
-  extends immutable.Seq[HttpHeader]
-  with collection.SeqLike[HttpHeader, HttpHeaders] {
-  override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
-
-  def length: Int = headers.length
-
-  def apply(idx: Int): HttpHeader = headers(idx)
-
-  def iterator: Iterator[HttpHeader] = headers.iterator
-
-  def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
-
-  def get[T <: HttpHeader](key: HttpHeaderKey[T]): Option[T] = key from this
-
-  def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
-
-  def put(header: HttpHeader): HttpHeaders = {
-    val builder = Seq.newBuilder[HttpHeader]
-    var missing = true
-    headers.foreach { h =>
-      if(missing && h.name == header.name) {
-        builder += header
-        missing = true
-      } else builder += h
-    }
-    if (missing) builder += header
-    new HttpHeaders(builder.result())
-  }
-}
-
 abstract class HttpHeader {
   def name: String
 
@@ -74,6 +45,51 @@ abstract class HttpHeader {
 
 object HttpHeader {
   def unapply(header: HttpHeader): Option[(String, String)] = Some((header.lowercaseName, header.value))
+}
+
+class HttpHeaders private(headers: List[HttpHeader])
+  extends immutable.Seq[HttpHeader]
+  with collection.SeqLike[HttpHeader, HttpHeaders] {
+  override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
+
+  def length: Int = headers.length
+
+  def apply(idx: Int): HttpHeader = headers(idx)
+
+  def iterator: Iterator[HttpHeader] = headers.iterator
+
+  def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
+
+  def get[T <: HttpHeader](key: HttpHeaderKey[T]): Option[T] = key from this
+
+  def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
+
+  def put(header: HttpHeader): HttpHeaders = {
+    @tailrec
+    def findNext(l: List[HttpHeader]): List[HttpHeader] = { // Get the list headed by the first match or Nil
+      if (l.isEmpty) Nil
+      else if (l.head.name == header.name) l
+      else findNext(l.tail)
+    }
+
+    val firstMatch = findNext(headers)
+    
+    if (firstMatch.isEmpty) new HttpHeaders(header::headers)
+    else {       // Copy the headers up to that point, and then append the remaining
+      val builder = new ListBuffer[HttpHeader]
+      builder += header
+      @tailrec
+      def go(l: List[HttpHeader]): List[HttpHeader] = {
+        if (l eq firstMatch) builder.prependToList(l.tail) // We are at the header to drop
+        else {
+          builder += l.head
+          go(l.tail)
+        }
+      }
+
+      new HttpHeaders(go(headers))
+    }
+  }
 }
 
 object HttpHeaders {
@@ -637,7 +653,7 @@ object HttpHeaders {
 
   def empty = Empty
 
-  def apply(headers: HttpHeader*): HttpHeaders = new HttpHeaders(headers)
+  def apply(headers: HttpHeader*): HttpHeaders =  new HttpHeaders(headers.toList)
 
   implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, HttpHeaders] =
     new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] {
@@ -647,7 +663,7 @@ object HttpHeaders {
     }
 
   private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] =
-    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (new HttpHeaders(_))
+    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (b => new HttpHeaders(b.result()))
 
   object Key {
 

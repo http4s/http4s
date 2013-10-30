@@ -16,13 +16,21 @@ class ResponderSpec extends Specification {
 
     "Replace content type" in {
       resp.contentType must_== None
-      val c1 = resp.contentType(ContentType.`text/plain`)
+      val c1 = resp.addHeader(HttpHeaders.ContentLength(4))
+        .contentType(ContentType.`text/plain`)
+        .addHeader(HttpHeaders.Host("foo"))
+
+      c1.prelude.headers.count(_.name == HttpHeaders.ContentLength.name) must_== 1
+      c1.prelude.headers.length must_== 3
       c1.contentType must_== Some(ContentType.`text/plain`)
 
-      val c2 = resp.contentType(ContentType.`application/json`)
+      val c2 = c1.contentType(ContentType.`application/json`)
+
       c2.contentType must_== Some(ContentType.`application/json`)
 
       c2.prelude.headers.count(_.name == HttpHeaders.ContentType.name) must_== 1
+      c2.prelude.headers.count(_.name == HttpHeaders.ContentLength.name) must_== 1
+      c2.prelude.headers.count(_.name == HttpHeaders.Host.name) must_== 1
     }
 
     "Replace headers" in {
