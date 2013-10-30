@@ -22,7 +22,7 @@ class ResponderSpec extends Specification {
       val c2 = resp.contentType(ContentType.`application/json`)
       c2.contentType must_== Some(ContentType.`application/json`)
 
-      c2.prelude.headers.filter(_.name == HttpHeaders.ContentType.name).length must_== 1
+      c2.prelude.headers.count(_.name == HttpHeaders.ContentType.name) must_== 1
     }
 
     "Replace headers" in {

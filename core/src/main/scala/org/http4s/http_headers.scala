@@ -42,7 +42,7 @@ class HttpHeaders private(headers: Seq[HttpHeader])
 
   def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
 
-  def addOrReplace(header: HttpHeader): HttpHeaders = {
+  def put(header: HttpHeader): HttpHeaders = {
     val builder = Seq.newBuilder[HttpHeader]
     var missing = true
     headers.foreach { h =>

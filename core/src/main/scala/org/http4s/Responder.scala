@@ -22,7 +22,7 @@ case class Responder(
   def contentType: Option[ContentType] =  prelude.headers.get(HttpHeaders.ContentType).map(_.contentType)
 
   def contentType(contentType: ContentType): Responder = copy(prelude =
-    prelude.copy(headers = prelude.headers.addOrReplace(HttpHeaders.ContentType(contentType))))
+    prelude.copy(headers = prelude.headers.put(HttpHeaders.ContentType(contentType))))
 
   def addCookie(cookie: HttpCookie): Responder = addHeader(HttpHeaders.Cookie(cookie))
 
