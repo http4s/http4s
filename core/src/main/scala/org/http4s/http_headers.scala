@@ -6,6 +6,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
 import scala.annotation.tailrec
 import org.joda.time.DateTime
+import java.net.InetAddress
 
 trait HttpHeaderKey[T <: HttpHeader] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -485,22 +486,6 @@ object HttpHeaders {
 
   object Referer extends DefaultHttpHeaderKey
 
-  object RemoteAddress extends HttpHeaderKey[RemoteAddress] {
-    override val name: String = "Remote-Address"
-
-    protected[this] def collectHeader: PartialFunction[HttpHeader, RemoteAddress] = {
-      case h: RemoteAddress => h
-    }
-  }
-
-  case class RemoteAddress(ip: HttpIp) extends HttpHeader {
-    def name = "Remote-Address"
-
-    def lowercaseName = "remote-address"
-
-    def value = ip.value
-  }
-
   object RetryAfter extends DefaultHttpHeaderKey {
     override val name: String = "Retry-After"
   }
@@ -625,15 +610,15 @@ object HttpHeaders {
       case h: XForwardedFor => h
     }
 
-    def apply(first: HttpIp, more: HttpIp*): XForwardedFor = apply((first +: more).map(Some(_)))
+    def apply(first: InetAddress, more: InetAddress*): XForwardedFor = apply((first +: more).map(Some(_)))
   }
 
-  case class XForwardedFor(ips: Seq[Option[HttpIp]]) extends HttpHeader {
+  case class XForwardedFor(ips: Seq[Option[InetAddress]]) extends HttpHeader {
     def name = "X-Forwarded-For"
 
     def lowercaseName = "x-forwarded-for"
 
-    def value = ips.map(_.getOrElse("unknown")).mkString(", ")
+    def value = ips.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
 
   object XForwardedProto extends DefaultHttpHeaderKey {
