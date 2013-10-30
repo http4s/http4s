@@ -1,7 +1,7 @@
 package org.http4s
 
-import scala.collection
-import collection.concurrent.TrieMap
+import scala.collection.concurrent
+import scala.collection.concurrent.TrieMap
 
 import Method._
 
@@ -16,7 +16,7 @@ sealed abstract class Method(val name: String, methodType: MethodType = MethodTy
   override def toString = name
 
   if (register)
-    Method.register(this)
+    Method.registry(name) = this
 
   def unapply(request: RequestPrelude): Option[Path] =
     if (request.requestMethod.name == name) Some(Path(request.pathInfo) ) else None
@@ -74,13 +74,7 @@ object Method {
     def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
   }
 
-  private[this] lazy val registry: collection.concurrent.Map[String, Method] = TrieMap.empty
-
-  private def register(method: Method) {
-    val oldValue = registry.putIfAbsent(method.name, method)
-    if (oldValue.isDefined && !registry.replace(method.name, oldValue.get, method))
-      register(method)
-  }
+  private val registry: concurrent.Map[String, Method] = TrieMap.empty
 
   /**
    * Returns a set of all registered methods.
