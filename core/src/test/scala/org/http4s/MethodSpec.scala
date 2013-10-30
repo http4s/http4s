@@ -24,10 +24,6 @@ class MethodSpec extends Specification {
       Method.get("huh") should beNone
     }
 
-    "be created on demand by apply" in {
-      Method("huh") should beAnInstanceOf[ExtensionMethod]
-    }
-
     "not be registered by apply" in {
       Method("huh")
       Method.get("huh") should beNone
