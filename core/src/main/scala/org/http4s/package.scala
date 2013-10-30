@@ -22,16 +22,6 @@ package object http4s {
 //  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
   implicit def string2headerkey(name: String): HttpHeaderKey[HttpHeader] = HttpHeaders.Key(name)
 
-  val Get = Method.Get
-  val Post = Method.Post
-  val Put = Method.Put
-  val Delete = Method.Delete
-  val Trace = Method.Trace
-  val Options = Method.Options
-  val Patch = Method.Patch
-  val Head = Method.Head
-  val Connect = Method.Connect
-
   /*
   type RequestRewriter = PartialFunction[Request, Request]
 

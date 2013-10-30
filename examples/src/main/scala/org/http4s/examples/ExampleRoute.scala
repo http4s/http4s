@@ -4,6 +4,7 @@ import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import akka.util.ByteString
+import org.http4s.dsl._
 
 object ExampleRoute {
   import Status._

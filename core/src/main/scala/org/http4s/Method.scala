@@ -4,6 +4,7 @@ import scala.collection.concurrent
 import scala.collection.concurrent.TrieMap
 
 import Method._
+import org.http4s.dsl.Path
 
 /**
  * An HTTP method.
@@ -17,9 +18,6 @@ sealed abstract class Method(val name: String, methodType: MethodType = MethodTy
 
   if (register)
     Method.registry(name) = this
-
-  def unapply(request: RequestPrelude): Option[Path] =
-    if (request.requestMethod.name == name) Some(Path(request.pathInfo) ) else None
 
   final def isSafe: Boolean = methodType == MethodType.Safe
 
