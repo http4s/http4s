@@ -8,13 +8,13 @@ libraryDependencies <+= scalaVersion(scalaReflect)
 
 libraryDependencies ++= Seq(
   akkaActor,
-  rl,
-  slf4jApi,
-  scalazCore,
-  scalaloggingSlf4j,
-  shapeless,
   parboiledScala,
   playIteratees,
+  rl,
+  slf4jApi,
+  scalaloggingSlf4j,
+  scalazCore,
+  shapeless,
   typesafeConfig
 )
 
