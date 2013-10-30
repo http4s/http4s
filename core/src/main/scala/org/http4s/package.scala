@@ -5,6 +5,9 @@ import play.api.libs.iteratee.{Enumeratee, Iteratee}
 import scala.language.implicitConversions
 import concurrent.ExecutionContext
 import com.typesafe.config.{ConfigFactory, Config}
+import org.joda.time.{DateTime, DateTimeZone, ReadableInstant}
+import org.joda.time.format.DateTimeFormat
+import java.util.Locale
 
 package object http4s {
   type Route = PartialFunction[RequestPrelude, Iteratee[HttpChunk, Responder]]
@@ -45,4 +48,15 @@ package object http4s {
     route: Route => route andThen { handler => handler.map(f) }
   }
   */
+
+  private[this] val Rfc1123Format = DateTimeFormat
+    .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+    .withLocale(Locale.US)
+    .withZone(DateTimeZone.UTC);
+
+  implicit class RichReadableInstant(instant: ReadableInstant) {
+    def formatRfc1123: String = Rfc1123Format.print(instant)
+  }
+
+  val UnixEpoch = new DateTime(0)
 }

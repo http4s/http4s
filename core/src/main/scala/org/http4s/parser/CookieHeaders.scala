@@ -3,7 +3,7 @@ package parser
 
 import org.parboiled.scala._
 import BasicRules._
-import util.DateTime
+import org.joda.time.DateTime
 
 // http://tools.ietf.org/html/draft-ietf-httpstate-cookie-23#section-4
 // with one exception: we are more lenient on additional or missing whitespace

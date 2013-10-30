@@ -3,9 +3,9 @@ package org.http4s
 import parser.HttpParser
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
-import util.DateTime
 import scala.collection.mutable.ListBuffer
 import scala.annotation.tailrec
+import org.joda.time.DateTime
 
 trait HttpHeaderKey[T <: HttpHeader] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -385,7 +385,7 @@ object HttpHeaders {
 
     def lowercaseName = "date"
 
-    def value = date.toRfc1123DateTimeString
+    def value = date.formatRfc1123
   }
 
   object ETag extends DefaultHttpHeaderKey
@@ -448,7 +448,7 @@ object HttpHeaders {
 
     def lowercaseName = "last-modified"
 
-    def value = date.toRfc1123DateTimeString
+    def value = date.formatRfc1123
   }
 
   object Location extends HttpHeaderKey[Location] {

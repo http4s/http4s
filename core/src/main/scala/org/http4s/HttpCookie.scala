@@ -1,8 +1,8 @@
 package org.http4s
 
-import util.DateTime
 import collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
+import org.joda.time.DateTime
 
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)
@@ -111,7 +111,7 @@ case class HttpCookie(
   extension: Option[String] = None
 ) {
   def value: String = name + "=\"" + content + '"' +
-                      expires.map("; Expires=" + _.toRfc1123DateTimeString).getOrElse("") +
+                      expires.map("; Expires=" + _.formatRfc1123).getOrElse("") +
                       maxAge.map("; Max-Age=" + _).getOrElse("") +
                       domain.map("; Domain=" + _).getOrElse("") +
                       path.map("; Path=" + _).getOrElse("") +

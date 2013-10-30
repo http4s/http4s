@@ -3,9 +3,6 @@ package org.http4s
 
 import play.api.libs.iteratee._
 import java.net.{URL, URI}
-import reflect.ClassTag
-import util.{DateTime}
-
 
 case class Responder(
   prelude: ResponsePrelude,
@@ -27,7 +24,7 @@ case class Responder(
   def addCookie(cookie: HttpCookie): Responder = addHeader(HttpHeaders.Cookie(cookie))
 
   def removeCookie(cookie: HttpCookie): Responder =
-    addHeader(HttpHeaders.SetCookie(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
+    addHeader(HttpHeaders.SetCookie(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
 
   def status: Status = prelude.status
 
