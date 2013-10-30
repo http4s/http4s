@@ -12,7 +12,6 @@ libraryDependencies ++= Seq(
   slf4jApi,
   scalazCore,
   scalaloggingSlf4j,
-  shapeless,
   parboiledScala,
   playIteratees,
   typesafeConfig

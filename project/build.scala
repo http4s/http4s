@@ -19,7 +19,6 @@ object Http4sDependencies {
   lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.0.0-M7"
   lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
   lazy val specs2              = "org.specs2"               %% "specs2"                  % "1.13"
-  lazy val shapeless           = "com.chuusai"              %% "shapeless"               % "1.2.3"
 
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
 }

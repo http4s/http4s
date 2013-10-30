@@ -9,7 +9,7 @@ class MethodSpec extends Specification {
     }
 
     "be case sensitive" in {
-      Method.get("get") should beNone`
+      Method.get("get") should beNone
     }
   }
 

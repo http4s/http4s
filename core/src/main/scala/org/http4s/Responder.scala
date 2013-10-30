@@ -12,13 +12,20 @@ case class Responder(
   body: ResponderBody = Responder.EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
 ) {
-  def contentType: Option[ContentType] =  Responder.getContentType(this)
-  def contentType(contentType: ContentType) = Responder.setContentType(this, contentType)
-  def addCookie(cookie: HttpCookie) = Responder.addCookie(this, cookie)
-  def removeCookie(cookie: HttpCookie) = Responder.removeCookie(this, cookie)
-  def addHeader(header: HttpHeader) = Responder.addHeader(this, header)
-  def status = Responder.getStatus(this)
-  def status[T <% Status](status: T) = Responder.setStatus(this, status)
+  def addHeader(header: HttpHeader) = copy(prelude = prelude.copy(headers = prelude.headers :+ header))
+
+  def contentType: Option[ContentType] =  prelude.headers.get(HttpHeaders.ContentType).map(_.contentType)
+
+  def contentType(contentType: ContentType): Responder = addHeader(HttpHeaders.ContentType(contentType))
+
+  def addCookie(cookie: HttpCookie): Responder = addHeader(HttpHeaders.Cookie(cookie))
+
+  def removeCookie(cookie: HttpCookie): Responder =
+    addHeader(HttpHeaders.SetCookie(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
+
+  def status: Status = prelude.status
+
+  def status[T <% Status](status: T) = copy(prelude.copy(status = status))
 }
 
 object Responder {
@@ -26,38 +33,6 @@ object Responder {
 
   implicit def responder2Handler(responder: Responder): Iteratee[HttpChunk, Responder] = Done(responder)
 
-  import shapeless._
-  import Lens._
-  import Nat._
-
-  implicit val responsePreludeIso = Iso.hlist(ResponsePrelude.apply _, ResponsePrelude.unapply _)
-  implicit val statusIso = Iso.hlist(Status.apply(_: Int, _: String), Status.unapply _)
-  implicit val responderIso = Iso.hlist(Responder.apply _, Responder.unapply _)
-
-  val headersLens = Lens[Responder] >> _0 >> _1
-  val statusLens = Lens[Responder] >> _0 >> _0
-
-  def addCookie(responder: Responder, cookie: HttpCookie) = {
-    addHeader(responder, HttpHeaders.SetCookie(cookie))
-  }
-
-  def removeCookie(responder: Responder, cookie: HttpCookie) = {
-    addHeader(responder, HttpHeaders.SetCookie(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
-  }
-
-  def addHeader(responder: Responder, header: HttpHeader) = {
-    headersLens.modify(responder)(_ :+ header)
-  }
-
-  def setContentType(responder: Responder, contentType: ContentType) = {
-    headersLens.modify(responder)(_ :+ HttpHeaders.ContentType(contentType))
-  }
-
-  def getContentType(responder: Responder): Option[ContentType] =
-    headersLens.get(responder).get(HttpHeaders.ContentType).map(_.contentType)
-
-  def getStatus(responder: Responder) = statusLens.get(responder)
-  def setStatus(responder: Responder, status: Status) = statusLens.set(responder)(status)
 }
 
 case class Status(code: Int, reason: String) extends Ordered[Status] {
