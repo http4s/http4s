@@ -57,8 +57,9 @@ object Method {
   object Delete  extends StandardMethod("DELETE",  isSafe = false, isIdempotent = true)
   object Trace   extends StandardMethod("TRACE",   isSafe = false, isIdempotent = true)
   object Connect extends StandardMethod("CONNECT", isSafe = true,  isIdempotent = false)
-  object Any     extends StandardMethod("_", isSafe = false, isIdempotent = false) {
-    override def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
+
+  object Any {
+    def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
   }
 
   // PATCH is not part of the RFC, but common enough we'll support it.
