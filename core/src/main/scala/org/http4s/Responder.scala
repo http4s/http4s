@@ -14,9 +14,15 @@ case class Responder(
 ) {
   def addHeader(header: HttpHeader) = copy(prelude = prelude.copy(headers = prelude.headers :+ header))
 
+  def dropHeaders(f: HttpHeader => Boolean): Responder =
+    copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
+
+  def dropHeader(header: HttpHeaderKey[_]): Responder = dropHeaders(_.name != header.name)
+
   def contentType: Option[ContentType] =  prelude.headers.get(HttpHeaders.ContentType).map(_.contentType)
 
-  def contentType(contentType: ContentType): Responder = addHeader(HttpHeaders.ContentType(contentType))
+  def contentType(contentType: ContentType): Responder = copy(prelude =
+    prelude.copy(headers = prelude.headers.addOrReplace(HttpHeaders.ContentType(contentType))))
 
   def addCookie(cookie: HttpCookie): Responder = addHeader(HttpHeaders.Cookie(cookie))
 
