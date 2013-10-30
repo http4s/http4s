@@ -11,48 +11,26 @@ case class Response(
   body: HttpBody = Process.halt,
   attributes: AttributeMap = AttributeMap.empty
 ) {
-  def contentType: Option[ContentType] =  Response.getContentType(this)
-  def contentType(contentType: ContentType) = Response.setContentType(this, contentType)
-  def addCookie(cookie: HttpCookie) = Response.addCookie(this, cookie)
-  def removeCookie(cookie: HttpCookie) = Response.removeCookie(this, cookie)
-  def addHeader(header: HttpHeader) = Response.addHeader(this, header)
-  def status = Response.getStatus(this)
-  def status[T <% Status](status: T) = Response.setStatus(this, status)
-}
+  def addHeader(header: HttpHeader) = copy(prelude = prelude.copy(headers = prelude.headers :+ header))
 
-object Response {
-  import shapeless._
-  import Lens._
-  import Nat._
+  def dropHeaders(f: HttpHeader => Boolean): Response =
+    copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
 
-  implicit val responsePreludeIso = Iso.hlist(ResponsePrelude.apply _, ResponsePrelude.unapply _)
-  implicit val statusIso = Iso.hlist(Status.apply(_: Int, _: String), Status.unapply _)
-  implicit val responseIso = Iso.hlist(Response.apply _, Response.unapply _)
+  def dropHeader(header: HttpHeaderKey[_]): Response = dropHeaders(_.name != header.name)
 
-  def headersLens = Lens[Response] >> _0 >> _1
-  def statusLens = Lens[Response] >> _0 >> _0
+  def contentType: Option[ContentType] =  prelude.headers.get(HttpHeaders.ContentType).map(_.contentType)
 
-  def addCookie(response: Response, cookie: HttpCookie) = {
-    addHeader(response, HttpHeaders.SetCookie(cookie))
-  }
+  def contentType(contentType: ContentType): Response = copy(prelude =
+    prelude.copy(headers = prelude.headers.put(HttpHeaders.ContentType(contentType))))
 
-  def removeCookie(response: Response, cookie: HttpCookie) = {
-    addHeader(response, HttpHeaders.SetCookie(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
-  }
+  def addCookie(cookie: HttpCookie): Response = addHeader(HttpHeaders.Cookie(cookie))
 
-  def addHeader(response: Response, header: HttpHeader) = {
-    headersLens.modify(response)(_ :+ header)
-  }
+  def removeCookie(cookie: HttpCookie): Response =
+    addHeader(HttpHeaders.SetCookie(cookie.copy(content = "", expires = Some(DateTime(0)), maxAge = Some(0))))
 
-  def setContentType(response: Response, contentType: ContentType) = {
-    headersLens.modify(response)(_ :+ HttpHeaders.ContentType(contentType))
-  }
+  def status: Status = prelude.status
 
-  def getContentType(response: Response): Option[ContentType] =
-    headersLens.get(response).get(HttpHeaders.ContentType).map(_.contentType)
-
-  def getStatus(response: Response) = statusLens.get(response)
-  def setStatus(response: Response, status: Status) = statusLens.set(response)(status)
+  def status[T <% Status](status: T) = copy(prelude.copy(status = status))
 }
 
 case class Status(code: Int, reason: String) extends Ordered[Status] {

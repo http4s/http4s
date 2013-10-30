@@ -1,27 +1,32 @@
 package org.http4s
 
-import scala.collection
-import collection.concurrent.TrieMap
+import scala.collection.concurrent
+import scala.collection.concurrent.TrieMap
+
+import Method._
 
 /**
  * An HTTP method.
  *
  * @param name the name of the method.
- * @param isSafe true if the method is safe.  See RFC 2616, Section 9.1.1.
- * @param isIdempotent true if the method is idempotent.  See RFC 2616, Section 9.1.2.
+ * @param methodType the safety guarantee of the method.  See RFC 2616, Section 9.1.1.
  * @param register true if the method should be registered
  */
-sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempotent: Boolean, register: Boolean = false) {
+sealed abstract class Method(val name: String, methodType: MethodType = MethodType.NotIdempotent, register: Boolean = false) {
   override def toString = name
 
   if (register)
-    Method.register(this)
+    Method.registry(name) = this
 
   def unapply(request: Request): Option[Path] =
     if (request.prelude.requestMethod.name == name)
       Some(Path(request.prelude.pathInfo) )
     else
       None
+
+  final def isSafe: Boolean = methodType == MethodType.Safe
+
+  final def isIdempotent: Boolean = methodType != MethodType.NotIdempotent
 
 //  def :/(path: String): Path = new :/(this, Path(path))
 //  def /(path: String): Path = new /(this, Path(path))
@@ -32,46 +37,47 @@ sealed abstract class Method(val name: String, val isSafe: Boolean, val isIdempo
  * method is registered.
  *
  * @param name the name of the method.
- * @param isSafe true if the method is safe.  See RFC 2616, Section 9.1.1.
- * @param isIdempotent true if the method is idempotent.  See RFC 2616, Section 9.1.2.
+ * @param methodType the safety guarantee of the method.  See RFC 2616, Section 9.1.1.
  */
-sealed class StandardMethod(name: String, isSafe: Boolean, isIdempotent: Boolean)
-  extends Method(name, isSafe, isIdempotent, true)
+sealed class StandardMethod(name: String, methodType: MethodType = MethodType.NotIdempotent)
+  extends Method(name, methodType, true)
 
 /**
  * Denotes an extension method allowed, but not defined, by the HTTP 1.1 specification.
  * These methods are not registered by default.
  *
  * @param name the name of the method.
- * @param isSafe true if the method is safe.  See RFC 2616, Section 9.1.1.
- * @param isIdempotent true if the method is idempotent.  See RFC 2616, Section 9.1.2.
+ * @param methodType the safety guarantee of the method.  See RFC 2616, Section 9.1.1.
  */
-class ExtensionMethod(name: String, isSafe: Boolean, isIdempotent: Boolean, register: Boolean = false)
-  extends Method(name, isSafe, isIdempotent, register)
+class ExtensionMethod(name: String, methodType: MethodType = MethodType.NotIdempotent, register: Boolean = false)
+  extends Method(name, methodType, register)
 
 object Method {
-  object Options extends StandardMethod("OPTIONS", isSafe = false, isIdempotent = true)
-  object Get     extends StandardMethod("GET",     isSafe = true,  isIdempotent = true)
-  object Head    extends StandardMethod("HEAD",    isSafe = true,  isIdempotent = true)
-  object Post    extends StandardMethod("POST",    isSafe = false, isIdempotent = false)
-  object Put     extends StandardMethod("PUT",     isSafe = false, isIdempotent = true)
-  object Delete  extends StandardMethod("DELETE",  isSafe = false, isIdempotent = true)
-  object Trace   extends StandardMethod("TRACE",   isSafe = false, isIdempotent = true)
-  object Connect extends StandardMethod("CONNECT", isSafe = true,  isIdempotent = false)
-  object Any     extends StandardMethod("_", isSafe = false, isIdempotent = false) {
-    override def unapply(request: Request): Option[Path] = Some(Path(request.prelude.pathInfo))
+  sealed trait MethodType
+
+  object MethodType {
+    case object NotIdempotent extends MethodType
+    case object Idempotent extends MethodType
+    case object Safe extends MethodType
   }
 
-  // PATCH is not part of the RFC, but common enough we'll support it.
-  object Patch   extends ExtensionMethod("PATCH",  isSafe = false, isIdempotent = false, register = true)
+  import MethodType._
+  object Options extends StandardMethod("OPTIONS", Idempotent)
+  object Get     extends StandardMethod("GET",     Safe)
+  object Head    extends StandardMethod("HEAD",    Safe)
+  object Post    extends StandardMethod("POST",    NotIdempotent)
+  object Put     extends StandardMethod("PUT",     Idempotent)
+  object Delete  extends StandardMethod("DELETE",  Idempotent)
+  object Trace   extends StandardMethod("TRACE",   Idempotent)
+  object Connect extends StandardMethod("CONNECT", NotIdempotent)
+  // http://tools.ietf.org/html/rfc5789
+  object Patch   extends ExtensionMethod("PATCH", NotIdempotent, register = true)
 
-  private[this] lazy val registry: collection.concurrent.Map[String, Method] = TrieMap.empty
-
-  private def register(method: Method) {
-    val oldValue = registry.putIfAbsent(method.name, method)
-    if (oldValue.isDefined && !registry.replace(method.name, oldValue.get, method))
-      register(method)
+  object Any {
+    def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
   }
+
+  private val registry: concurrent.Map[String, Method] = TrieMap.empty
 
   /**
    * Returns a set of all registered methods.
@@ -94,5 +100,5 @@ object Method {
    * @param name the name, case insensitive
    * @return the method, if registered; otherwise, an extension method
    */
-  def apply(name: String): Method = get(name).getOrElse(new ExtensionMethod(name, isSafe = false, isIdempotent = false))
+  def apply(name: String): Method = get(name).getOrElse(new ExtensionMethod(name, NotIdempotent))
 }

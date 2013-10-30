@@ -16,10 +16,11 @@ object Http4sDependencies {
   lazy val playIteratees       = "com.typesafe.play"        %% "play-iteratees"          % "2.2.0"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.2"
   lazy val scalaloggingSlf4j   = "com.typesafe"             %% "scalalogging-slf4j"      % "1.0.1"
+  lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.4-M2"
+  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.0.0-M7"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.2-SNAPSHOT"
   lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
   lazy val specs2              = "org.specs2"               %% "specs2"                  % "1.13"
-  lazy val shapeless           = "com.chuusai"              %% "shapeless"               % "1.2.3"
 
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
 }

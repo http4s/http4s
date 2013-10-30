@@ -41,6 +41,19 @@ class HttpHeaders private(headers: Seq[HttpHeader])
   def get[T <: HttpHeader](key: HttpHeaderKey[T]): Option[T] = key from this
 
   def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
+
+  def put(header: HttpHeader): HttpHeaders = {
+    val builder = Seq.newBuilder[HttpHeader]
+    var missing = true
+    headers.foreach { h =>
+      if(missing && h.name == header.name) {
+        builder += header
+        missing = true
+      } else builder += h
+    }
+    if (missing) builder += header
+    new HttpHeaders(builder.result())
+  }
 }
 
 abstract class HttpHeader {
