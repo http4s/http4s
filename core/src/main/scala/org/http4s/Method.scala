@@ -28,6 +28,13 @@ object Method {
 
   private class MethodImpl(name: String, val isSafe: Boolean, val isIdempotent: Boolean) extends Method(name)
 
+  private val registry: concurrent.Map[String, Method] = TrieMap.empty
+
+  private def register(method: Method): method.type = {
+    registry.update(method.name, method)
+    method
+  }
+
   val Options = register(idempotent("OPTIONS"))
   val Get = register(safe("GET"))
   val Head = register(safe("HEAD"))
@@ -40,13 +47,6 @@ object Method {
 
   object Any {
     def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
-  }
-
-  private val registry: concurrent.Map[String, Method] = TrieMap.empty
-
-  private def register(method: Method): method.type = {
-    registry.update(method.name, method)
-    method
   }
 
   /**
