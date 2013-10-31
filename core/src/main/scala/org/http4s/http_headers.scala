@@ -8,6 +8,7 @@ import scala.annotation.tailrec
 import org.joda.time.DateTime
 import java.net.InetAddress
 import org.http4s.HttpHeaders.Cons
+import java.util.Locale
 
 trait HttpHeaderKey[T <: HttpHeader] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -17,10 +18,10 @@ trait HttpHeaderKey[T <: HttpHeader] {
   override def toString: String = name
 
   def unapply(headers: HttpHeaders): Option[T] =
-    (headers find (_ is name.toLowerCase) map (_.parsed)).collectFirst(collectHeader)
+    (headers find (_ is name.toLowerCase(Locale.US)) map (_.parsed)).collectFirst(collectHeader)
 
   def unapplySeq(headers: HttpHeaders): Option[Seq[T]] =
-    Some((headers filter (_ is name.toLowerCase) map (_.parsed)).collect(collectHeader))
+    Some((headers filter (_ is name.toLowerCase(Locale.US)) map (_.parsed)).collect(collectHeader))
 
   def from(headers: HttpHeaders): Option[T] = unapply(headers)
 
@@ -36,9 +37,7 @@ abstract class HttpHeader {
 
   def value: String
 
-  def is(nameInLowerCase: String): Boolean = lowercaseName == nameInLowerCase
-
-  def isNot(nameInLowerCase: String): Boolean = lowercaseName != nameInLowerCase
+  def is(name: String): Boolean = lowercaseName == name.toLowerCase(Locale.US)
 
   override def toString = name + ": " + value
 
