@@ -1,8 +1,7 @@
 /*
 package org.http4s
 
-import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
+import play.api.libs.iteratee.Enumerator
 import Status._
 
 import scala.concurrent.duration._
@@ -10,13 +9,14 @@ import scala.concurrent.duration._
 import java.io.{FileOutputStream,FileInputStream,File,InputStreamReader}
 import concurrent.Await
 import akka.util.ByteString
+import org.scalatest.{Matchers, WordSpec}
 
 /**
  * @author Bryce Anderson
  * Created on 2/14/13 at 8:44 PM
  */
 
-class BodyParserSpec extends Specification with NoTimeConversions {
+class BodyParserSpec extends WordSpec with Matchers {
   import BodyParser._
   import concurrent.ExecutionContext.Implicits.global
 
@@ -27,13 +27,13 @@ class BodyParserSpec extends Specification with NoTimeConversions {
 
     "parse the XML" in {
       val resp = Await.result(server(RequestPrelude(), Enumerator("<html><h1>h1</h1></html>").map(s => BodyChunk(s))), 2 seconds)
-      resp.statusLine.code must_==(200)
-      resp.body must_==("html".getBytes)
+      resp.statusLine.code should equal (200)
+      resp.body should equal ("html".getBytes)
     }
 
     "handle a parse failure" in {
       val resp = Await.result(server(RequestPrelude(), Enumerator("This is not XML.").map(s => BodyChunk(s))), 2 seconds)
-      resp.statusLine.code must_==(400)
+      resp.statusLine.code should equal (400)
     }
   }
 
@@ -68,9 +68,9 @@ class BodyParserSpec extends Specification with NoTimeConversions {
           }
       })
 
-      readTextFile(tmpFile) must_== new String(binData)
-      response.statusLine must_== Status.Ok
-      response.body must_== "Hello".getBytes
+      readTextFile(tmpFile) should equal (new String(binData))
+      response.statusLine should equal (Status.Ok)
+      response.body should equal ("Hello".getBytes)
     }
 
     "Write a binary file from a byte string" in {
@@ -80,9 +80,9 @@ class BodyParserSpec extends Specification with NoTimeConversions {
           BodyParser.binFile(tmpFile)(Ok("Hello"))
       })
 
-      response.statusLine must_== Status.Ok
-      response.body must_== "Hello".getBytes
-      readFile(tmpFile) must_== binData
+      response.statusLine should equal (Status.Ok)
+      response.body should equal ("Hello".getBytes)
+      readFile(tmpFile) should equal (binData)
     }
   }
 

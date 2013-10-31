@@ -9,6 +9,8 @@ object Http4sDependencies {
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "8.1.8.v20121106"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val jettyWebSocket      = "org.eclipse.jetty"         % "jetty-websocket"         % jettyServer.revision
+  lazy val jodaConvert         = "org.joda"                  % "joda-convert"            % "1.5"
+  lazy val jodaTime            = "joda-time"                 % "joda-time"               % "2.3"
   lazy val junit               = "junit"                     % "junit"                   % "4.11"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
   lazy val netty4              = "io.netty"                  % "netty-all"               % "4.0.10.Final"
@@ -17,10 +19,10 @@ object Http4sDependencies {
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.2"
   lazy val scalaloggingSlf4j   = "com.typesafe"             %% "scalalogging-slf4j"      % "1.0.1"
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.4-M2"
+  lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.0.RC3"
   lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.0.0-M7"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.2-SNAPSHOT"
   lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
-  lazy val specs2              = "org.specs2"               %% "specs2"                  % "1.13"
 
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
 }

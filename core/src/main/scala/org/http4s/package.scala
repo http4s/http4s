@@ -8,6 +8,9 @@ import scalaz.concurrent.Task
 import scalaz.syntax.id._
 import scalaz.stream.Process
 import scala.util.{Failure, Success}
+import org.joda.time.{DateTime, DateTimeZone, ReadableInstant}
+import org.joda.time.format.DateTimeFormat
+import java.util.Locale
 
 package object http4s {
   type HttpService = Request => Task[Response]
@@ -74,4 +77,15 @@ package object http4s {
       }
     }
   }
+
+  private[this] val Rfc1123Format = DateTimeFormat
+    .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
+    .withLocale(Locale.US)
+    .withZone(DateTimeZone.UTC);
+
+  implicit class RichReadableInstant(instant: ReadableInstant) {
+    def formatRfc1123: String = Rfc1123Format.print(instant)
+  }
+
+  val UnixEpoch = new DateTime(0)
 }

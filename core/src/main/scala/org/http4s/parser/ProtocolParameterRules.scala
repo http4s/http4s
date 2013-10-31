@@ -20,7 +20,8 @@ package parser
 
 import org.parboiled.scala._
 import org.parboiled.errors.ParsingException
-import util.DateTime
+import org.joda.time.DateTime
+import scala.util.Try
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
 private[parser] trait ProtocolParameterRules {
@@ -57,11 +58,10 @@ private[parser] trait ProtocolParameterRules {
   }
 
   private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int) = {
-    val dt = DateTime(year, month, day, hour, min, sec)
-    if (dt.weekday != wkday)
-      throw new ParsingException("Illegal weekday in date: is '" + DateTime.WEEKDAYS(wkday) +
-        "' but should be '" + DateTime.WEEKDAYS(dt.weekday) + "')" + dt)
-    dt
+    Try(new DateTime(year, month, day, hour, min, sec)).getOrElse {
+      // TODO Would be better if this message had the real input.
+      throw new ParsingException("Invalid date: "+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec)
+    }
   }
 
   def Date1 = rule { Digit2 ~ ch(' ') ~ Month ~ ch(' ') ~ Digit4 }

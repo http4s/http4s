@@ -110,7 +110,7 @@ case class RequestPrelude(
   serverName: String = InetAddress.getLocalHost.getHostName,
   serverPort: Int = 80,
   serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-  remote: HttpIp = HttpIp.localhost,
+  remote: InetAddress = InetAddress.getLocalHost,
   attributes: AttributeMap = AttributeMap.empty
 ) {
   def contentLength: Option[Int] = headers.get(HttpHeaders.ContentLength).map(_.length)
@@ -123,8 +123,8 @@ case class RequestPrelude(
 
   lazy val authType: Option[AuthType] = None
 
-  lazy val remoteAddr = remote.hostAddress
-  lazy val remoteHost = remote.hostName
+  lazy val remoteAddr = remote.getHostAddress
+  lazy val remoteHost = remote.getHostName
 
   lazy val remoteUser: Option[String] = None
 

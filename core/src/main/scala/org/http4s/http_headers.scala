@@ -3,7 +3,12 @@ package org.http4s
 import parser.HttpParser
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
-import util.DateTime
+import scala.collection.mutable.ListBuffer
+import scala.annotation.tailrec
+import org.joda.time.DateTime
+import java.net.InetAddress
+import org.http4s.HttpHeaders.Cons
+import java.util.Locale
 
 trait HttpHeaderKey[T <: HttpHeader] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -13,47 +18,16 @@ trait HttpHeaderKey[T <: HttpHeader] {
   override def toString: String = name
 
   def unapply(headers: HttpHeaders): Option[T] =
-    (headers find (_ is name.toLowerCase) map (_.parsed)).collectFirst(collectHeader)
+    (headers find (_ is name.toLowerCase(Locale.US)) map (_.parsed)).collectFirst(collectHeader)
 
   def unapplySeq(headers: HttpHeaders): Option[Seq[T]] =
-    Some((headers filter (_ is name.toLowerCase) map (_.parsed)).collect(collectHeader))
+    Some((headers filter (_ is name.toLowerCase(Locale.US)) map (_.parsed)).collect(collectHeader))
 
   def from(headers: HttpHeaders): Option[T] = unapply(headers)
 
   def findIn(headers: HttpHeaders): Seq[T] = unapplySeq(headers) getOrElse Seq.empty
 
   protected[this] def collectHeader: PartialFunction[HttpHeader, T]
-}
-
-class HttpHeaders private(headers: Seq[HttpHeader])
-  extends immutable.Seq[HttpHeader]
-  with collection.SeqLike[HttpHeader, HttpHeaders] {
-  override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
-
-  def length: Int = headers.length
-
-  def apply(idx: Int): HttpHeader = headers(idx)
-
-  def iterator: Iterator[HttpHeader] = headers.iterator
-
-  def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
-
-  def get[T <: HttpHeader](key: HttpHeaderKey[T]): Option[T] = key from this
-
-  def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
-
-  def put(header: HttpHeader): HttpHeaders = {
-    val builder = Seq.newBuilder[HttpHeader]
-    var missing = true
-    headers.foreach { h =>
-      if(missing && h.name == header.name) {
-        builder += header
-        missing = true
-      } else builder += h
-    }
-    if (missing) builder += header
-    new HttpHeaders(builder.result())
-  }
 }
 
 abstract class HttpHeader {
@@ -63,9 +37,7 @@ abstract class HttpHeader {
 
   def value: String
 
-  def is(nameInLowerCase: String): Boolean = lowercaseName == nameInLowerCase
-
-  def isNot(nameInLowerCase: String): Boolean = lowercaseName != nameInLowerCase
+  def is(name: String): Boolean = lowercaseName == name.toLowerCase(Locale.US)
 
   override def toString = name + ": " + value
 
@@ -76,8 +48,42 @@ object HttpHeader {
   def unapply(header: HttpHeader): Option[(String, String)] = Some((header.lowercaseName, header.value))
 }
 
-object HttpHeaders {
+sealed abstract class HttpHeaders
+  extends immutable.LinearSeq[HttpHeader]
+  with collection.LinearSeqOptimized[HttpHeader, HttpHeaders] {
+  override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
 
+  def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
+
+  def get[T <: HttpHeader](key: HttpHeaderKey[T]): Option[T] = key from this
+
+  def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
+
+  def replace(header: HttpHeader): HttpHeaders = {
+    val builder = newBuilder
+    @tailrec
+    def loop(headers: HttpHeaders, replaced: Boolean): HttpHeaders = headers match {
+      case HttpHeaders.Nil =>
+        if (!replaced) builder += header
+        builder.result()
+      case Cons(h, rest) if h.name == header.name =>
+        if (!replaced) builder += header
+        loop(rest, true)
+      case Cons(h, rest) =>
+        builder += h
+        loop(rest, replaced)
+    }
+    loop(this, false)
+  }
+}
+
+object HttpHeaders {
+  case object Nil extends HttpHeaders {
+    override def isEmpty: Boolean = true
+  }
+  final case class Cons(override val head: HttpHeader, override val tail: HttpHeaders) extends HttpHeaders {
+    override def isEmpty: Boolean = false
+  }
 
   abstract class DefaultHttpHeaderKey extends HttpHeaderKey[HttpHeader] {
 
@@ -369,7 +375,7 @@ object HttpHeaders {
 
     def lowercaseName = "date"
 
-    def value = date.toRfc1123DateTimeString
+    def value = date.formatRfc1123
   }
 
   object ETag extends DefaultHttpHeaderKey
@@ -432,7 +438,7 @@ object HttpHeaders {
 
     def lowercaseName = "last-modified"
 
-    def value = date.toRfc1123DateTimeString
+    def value = date.formatRfc1123
   }
 
   object Location extends HttpHeaderKey[Location] {
@@ -468,22 +474,6 @@ object HttpHeaders {
   object Range extends DefaultHttpHeaderKey
 
   object Referer extends DefaultHttpHeaderKey
-
-  object RemoteAddress extends HttpHeaderKey[RemoteAddress] {
-    override val name: String = "Remote-Address"
-
-    protected[this] def collectHeader: PartialFunction[HttpHeader, RemoteAddress] = {
-      case h: RemoteAddress => h
-    }
-  }
-
-  case class RemoteAddress(ip: HttpIp) extends HttpHeader {
-    def name = "Remote-Address"
-
-    def lowercaseName = "remote-address"
-
-    def value = ip.value
-  }
 
   object RetryAfter extends DefaultHttpHeaderKey {
     override val name: String = "Retry-After"
@@ -609,15 +599,15 @@ object HttpHeaders {
       case h: XForwardedFor => h
     }
 
-    def apply(first: HttpIp, more: HttpIp*): XForwardedFor = apply((first +: more).map(Some(_)))
+    def apply(first: InetAddress, more: InetAddress*): XForwardedFor = apply((first +: more).map(Some(_)))
   }
 
-  case class XForwardedFor(ips: Seq[Option[HttpIp]]) extends HttpHeader {
+  case class XForwardedFor(ips: Seq[Option[InetAddress]]) extends HttpHeader {
     def name = "X-Forwarded-For"
 
     def lowercaseName = "x-forwarded-for"
 
-    def value = ips.map(_.getOrElse("unknown")).mkString(", ")
+    def value = ips.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
 
   object XForwardedProto extends DefaultHttpHeaderKey {
@@ -633,21 +623,26 @@ object HttpHeaders {
     override lazy val parsed: HttpHeader = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
-  val Empty = apply()
+  def apply(headers: HttpHeader*): HttpHeaders = if (headers.isEmpty) Nil else (newBuilder ++= headers).result
 
-  def empty = Empty
+  val empty = Nil
 
-  def apply(headers: HttpHeader*): HttpHeaders = new HttpHeaders(headers)
-
-  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, HttpHeaders] =
+  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] =
     new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] {
       def apply(from: TraversableOnce[HttpHeader]): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
 
       def apply(): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
     }
 
-  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] =
-    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (new HttpHeaders(_))
+  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = new mutable.Builder[HttpHeader, HttpHeaders] {
+    private val buffer = mutable.ArrayBuffer.newBuilder[HttpHeader]
+    def +=(elem: HttpHeader): this.type = {
+      buffer += elem
+      this
+    }
+    def clear(): Unit = buffer.clear()
+    def result(): HttpHeaders = buffer.result.foldRight(Nil: HttpHeaders)(Cons(_, _))
+  }
 
   object Key {
 

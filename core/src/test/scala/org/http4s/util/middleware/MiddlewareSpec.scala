@@ -1,15 +1,15 @@
 /*
 package org.http4s.util.middleware
 
-import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
-
 import org.http4s._
+import play.api.libs.iteratee.Enumerator
+import org.scalatest.{Matchers, WordSpec}
+
 /**
  * @author Bryce Anderson
  * Created on 3/9/13 at 11:10 AM
  */
-class MiddlewareSpec extends Specification with NoTimeConversions {
+class MiddlewareSpec extends WordSpec with Matchers {
   import util.middleware.URITranslation._
 
   import concurrent.ExecutionContext.Implicits.global
@@ -24,13 +24,13 @@ class MiddlewareSpec extends Specification with NoTimeConversions {
     val server = new MockServer(TranslateRoot("/rootPath")(ExampleRoute()))
 
     "Translate address" in {
-      new String(server.response(echoReq, echoBody).body) should_==("onetwothree")
-      new String(server.response(pingReq, pingBody).body) should_==("pong")
+      new String(server.response(echoReq, echoBody).body) should equal ("onetwothree")
+      new String(server.response(pingReq, pingBody).body) should equal ("pong")
     }
 
     "Be undefined at non-matching address" in {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/foo/echo")
-      server.response(req, echoBody) should_== server.onNotFound
+      server.response(req, echoBody) should equal (server.onNotFound)
     }
 
   }
@@ -43,13 +43,13 @@ class MiddlewareSpec extends Specification with NoTimeConversions {
     }(ExampleRoute()))
 
     "Translate path" in {
-      new String(server.response(echoReq, echoBody).body) should_==("onetwothree")
-      new String(server.response(pingReq, pingBody).body) should_==("pong")
+      new String(server.response(echoReq, echoBody).body) should equal ("onetwothree")
+      new String(server.response(pingReq, pingBody).body) should equal ("pong")
     }
 
     "Be undefined at non-matching address" in {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/foo/echo")
-      server.response(req, echoBody) should_== server.onNotFound
+      server.response(req, echoBody) should equal (server.onNotFound)
     }
   }
 

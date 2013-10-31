@@ -14,7 +14,7 @@ lazy val examples = project.dependsOn(grizzly, netty, servlet)
 libraryDependencies in ThisBuild ++= Seq(
   junit % "test",
   scalameter % "test",
-  specs2 % "test"
+  scalatest % "test"
 )
 
 /* basic project info */
