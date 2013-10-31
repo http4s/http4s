@@ -7,6 +7,7 @@ import scala.collection.mutable.ListBuffer
 import scala.annotation.tailrec
 import org.joda.time.DateTime
 import java.net.InetAddress
+import org.http4s.HttpHeaders.Cons
 
 trait HttpHeaderKey[T <: HttpHeader] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -48,16 +49,10 @@ object HttpHeader {
   def unapply(header: HttpHeader): Option[(String, String)] = Some((header.lowercaseName, header.value))
 }
 
-class HttpHeaders private(headers: List[HttpHeader])
-  extends immutable.Seq[HttpHeader]
-  with collection.SeqLike[HttpHeader, HttpHeaders] {
+sealed abstract class HttpHeaders
+  extends immutable.LinearSeq[HttpHeader]
+  with collection.LinearSeqOptimized[HttpHeader, HttpHeaders] {
   override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
-
-  def length: Int = headers.length
-
-  def apply(idx: Int): HttpHeader = headers(idx)
-
-  def iterator: Iterator[HttpHeader] = headers.iterator
 
   def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
 
@@ -65,36 +60,31 @@ class HttpHeaders private(headers: List[HttpHeader])
 
   def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
 
-  def put(header: HttpHeader): HttpHeaders = {
+  def replace(header: HttpHeader): HttpHeaders = {
+    val builder = newBuilder
     @tailrec
-    def findNext(l: List[HttpHeader]): List[HttpHeader] = { // Get the list headed by the first match or Nil
-      if (l.isEmpty) Nil
-      else if (l.head.name == header.name) l
-      else findNext(l.tail)
+    def loop(headers: HttpHeaders, replaced: Boolean): HttpHeaders = headers match {
+      case HttpHeaders.Nil =>
+        if (!replaced) builder += header
+        builder.result()
+      case Cons(h, rest) if h.name == header.name =>
+        if (!replaced) builder += header
+        loop(rest, true)
+      case Cons(h, rest) =>
+        builder += h
+        loop(rest, replaced)
     }
-
-    val firstMatch = findNext(headers)
-    
-    if (firstMatch.isEmpty) new HttpHeaders(header::headers)
-    else {       // Copy the headers up to that point, and then append the remaining
-      val builder = new ListBuffer[HttpHeader]
-      builder += header
-      @tailrec
-      def go(l: List[HttpHeader]): List[HttpHeader] = {
-        if (l eq firstMatch) builder.prependToList(l.tail) // We are at the header to drop
-        else {
-          builder += l.head
-          go(l.tail)
-        }
-      }
-
-      new HttpHeaders(go(headers))
-    }
+    loop(this, false)
   }
 }
 
 object HttpHeaders {
-
+  case object Nil extends HttpHeaders {
+    override def isEmpty: Boolean = true
+  }
+  final case class Cons(override val head: HttpHeader, override val tail: HttpHeaders) extends HttpHeaders {
+    override def isEmpty: Boolean = false
+  }
 
   abstract class DefaultHttpHeaderKey extends HttpHeaderKey[HttpHeader] {
 
@@ -634,21 +624,26 @@ object HttpHeaders {
     override lazy val parsed: HttpHeader = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
-  val Empty = apply()
+  def apply(headers: HttpHeader*): HttpHeaders = if (headers.isEmpty) Nil else (newBuilder ++= headers).result
 
-  def empty = Empty
+  val empty = Nil
 
-  def apply(headers: HttpHeader*): HttpHeaders =  new HttpHeaders(headers.toList)
-
-  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, HttpHeaders] =
+  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] =
     new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] {
       def apply(from: TraversableOnce[HttpHeader]): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
 
       def apply(): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
     }
 
-  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] =
-    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (b => new HttpHeaders(b.result()))
+  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = new mutable.Builder[HttpHeader, HttpHeaders] {
+    private val buffer = mutable.ArrayBuffer.newBuilder[HttpHeader]
+    def +=(elem: HttpHeader): this.type = {
+      buffer += elem
+      this
+    }
+    def clear(): Unit = buffer.clear()
+    def result(): HttpHeaders = buffer.result.foldRight(Nil: HttpHeaders)(Cons(_, _))
+  }
 
   object Key {
 
