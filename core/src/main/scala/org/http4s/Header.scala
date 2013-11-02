@@ -37,9 +37,13 @@ abstract class Header {
 
   def value: String
 
-  def is(key: HeaderKey[_]): Boolean = this.getClass.isAssignableFrom(key._clazz)
+  def is(key: HeaderKey[_]): Boolean = key._clazz.getClass.isAssignableFrom(this.getClass)
 
   def isNot(key: HeaderKey[_]): Boolean = !is(key)
+
+  def is(otherName: CiString) = this.lowercaseName == otherName
+
+  def isNot(otherName: CiString) = !is(otherName)
 
   override def toString = name + ": " + value
 
