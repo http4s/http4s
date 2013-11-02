@@ -8,7 +8,7 @@ import scala.collection.concurrent.TrieMap
  *
  * @param name the name of the method.
  */
-abstract case class Method private (name: String) {
+sealed abstract case class Method (name: String) {
   override def toString = name
 
   def unapply(request: RequestPrelude): Option[Path] =
@@ -21,14 +21,12 @@ abstract case class Method private (name: String) {
 //  def /(path: String): Path = new /(this, Path(path))
 }
 
-object Method {
+object Methods extends ObjectRegistry[String, Method] {
   def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
   def idempotent(name: String): Method = new MethodImpl(name, false, true)
   def safe(name: String): Method = new MethodImpl(name, true, true)
 
   private class MethodImpl(name: String, val isSafe: Boolean, val isIdempotent: Boolean) extends Method(name)
-
-  private val registry: concurrent.Map[String, Method] = TrieMap.empty
 
   private def register(method: Method): method.type = {
     registry.update(method.name, method)
