@@ -3,7 +3,7 @@ package parser
 
 import org.parboiled.scala._
 import BasicRules._
-import LanguageRanges._
+import LanguageTags._
 
 private[parser] trait AcceptLanguageHeader {
   this: Parser with ProtocolParameterRules =>
@@ -13,7 +13,7 @@ private[parser] trait AcceptLanguageHeader {
   )
 
   def LanguageRangeDef = rule {
-    (LanguageTag ~~> (Language(_, _: _*)) | "*" ~ push(`*`)) ~ optional(LanguageQuality)
+    (LanguageTag ~~> (org.http4s.LanguageTag(_, _: _*)) | "*" ~ push(`*`)) ~ optional(LanguageQuality)
   }
 
   def LanguageQuality = rule {

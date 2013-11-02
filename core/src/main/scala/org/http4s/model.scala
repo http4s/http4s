@@ -40,12 +40,12 @@ case class BodyChunk(bytes: ByteString) extends HttpChunk
   /**
    * Decodes this ByteString as a UTF-8 encoded String.
    */
-  final def utf8String: String = decodeString(HttpCharsets.`UTF-8`)
+  final def utf8String: String = decodeString(Charsets.`UTF-8`)
 
   /**
    * Decodes this ByteString using a charset to produce a String.
    */
-  def decodeString(charset: HttpCharset): String = bytes.decodeString(charset.value)
+  def decodeString(charset: Charset): String = bytes.decodeString(charset.value)
 }
 
 object BodyChunk {
@@ -59,9 +59,9 @@ object BodyChunk {
 
   def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(ByteString(bytes))
 
-  def apply(string: String): BodyChunk = apply(string, HttpCharsets.`UTF-8`)
+  def apply(string: String): BodyChunk = apply(string, Charsets.`UTF-8`)
 
-  def apply(string: String, charset: HttpCharset): BodyChunk = BodyChunk(ByteString(string, charset.value))
+  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(ByteString(string, charset.value))
 
   def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk =
     BodyChunk(ByteString.fromArray(array, offset, length))
@@ -100,7 +100,7 @@ case class RequestPrelude(
 
   def contentType: Option[ContentType] = headers.get(Headers.ContentType).map(_.contentType)
 
-  def charset: HttpCharset = contentType.map(_.charset) getOrElse HttpCharsets.`ISO-8859-1`
+  def charset: Charset = contentType.map(_.charset) getOrElse Charsets.`ISO-8859-1`
 
   val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 

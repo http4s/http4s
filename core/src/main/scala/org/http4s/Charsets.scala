@@ -1,19 +1,19 @@
 package org.http4s
 
-import java.nio.charset.Charset
+import java.nio.charset.{Charset => NioCharset}
 
-sealed abstract class HttpCharsetRange {
+sealed abstract class CharsetRange {
   def value: String
-  def matches(charset: HttpCharset): Boolean
+  def matches(charset: Charset): Boolean
   override def toString = "HttpCharsetRange(" + value + ')'
 }
 
-sealed abstract class HttpCharset extends HttpCharsetRange {
-  val nioCharset: Charset = Charset.forName(value)
+sealed abstract class Charset extends CharsetRange {
+  val nioCharset: NioCharset = NioCharset.forName(value)
   def aliases: Seq[String]
-  def matches(charset: HttpCharset) = this == charset
+  def matches(charset: Charset) = this == charset
   override def equals(obj: Any) = obj match {
-    case x: HttpCharset => (this eq x) || value == x.value
+    case x: Charset => (this eq x) || value == x.value
     case _ => false
   }
   override def hashCode() = value.##
@@ -21,20 +21,20 @@ sealed abstract class HttpCharset extends HttpCharsetRange {
 }
 
 // see http://www.iana.org/assignments/character-sets
-object HttpCharsets extends ObjectRegistry[String, HttpCharset] {
+object Charsets extends ObjectRegistry[String, Charset] {
 
-  def register(charset: HttpCharset): HttpCharset = {
+  def register(charset: Charset): Charset = {
     register(charset.value.toLowerCase, charset)
     charset.aliases.foreach(alias => register(alias.toLowerCase, charset))
     charset
   }
 
-  object `*` extends HttpCharsetRange {
+  object `*` extends CharsetRange {
     def value = "*"
-    def matches(charset: HttpCharset) = true
+    def matches(charset: Charset) = true
   }
 
-  private class PredefCharset(val value: String, val aliases: String*) extends HttpCharset
+  private class PredefCharset(val value: String, val aliases: String*) extends Charset
 
   val `US-ASCII`     = register(new PredefCharset("US-ASCII", "iso-ir-6", "ANSI_X3.4-1986", "ISO_646.irv:1991", "ASCII", "ISO646-US", "us", "IBM367", "cp367", "csASCII"))
   val `ISO-8859-1`   = register(new PredefCharset("ISO-8859-1", "iso-ir-100", "ISO_8859-1", "latin1", "l1", "IBM819", "CP819", "csISOLatin1"))
@@ -61,11 +61,11 @@ object HttpCharsets extends ObjectRegistry[String, HttpCharset] {
   val `windows-1254` = register(new PredefCharset("windows-1254", "cp1254", "cp5350"))
   val `windows-1257` = register(new PredefCharset("windows-1257", "cp1257", "cp5353"))
 
-  class CustomHttpCharset private (val value: String, val aliases: Seq[String]) extends HttpCharset
-  object CustomHttpCharset {
-    def apply(value: String, aliases: Seq[String] = Nil): Option[CustomHttpCharset] = {
+  class CustomCharset private (val value: String, val aliases: Seq[String]) extends Charset
+  object CustomCharset {
+    def apply(value: String, aliases: Seq[String] = Nil): Option[CustomCharset] = {
       try {
-        Some(new CustomHttpCharset(value.toLowerCase, aliases))
+        Some(new CustomCharset(value.toLowerCase, aliases))
       } catch {
         case e: java.nio.charset.UnsupportedCharsetException => None
       }

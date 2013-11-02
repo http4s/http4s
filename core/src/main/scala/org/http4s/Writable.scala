@@ -37,19 +37,19 @@ object Writable {
       Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
   }
   // Simple types defined
-  implicit def stringWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+  implicit def stringWritable(implicit charset: Charset = Charsets.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asByteString(s: String) = ByteString(s, charset.nioCharset.name)
     }
 
-  implicit def htmlWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+  implicit def htmlWritable(implicit charset: Charset = Charsets.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: ContentType = ContentType(MediaTypes.`text/html`).withCharset(charset)
       def asByteString(s: xml.Elem) = ByteString(s.buildString(false), charset.nioCharset.name)
     }
 
-  implicit def intWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+  implicit def intWritable(implicit charset: Charset = Charsets.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asByteString(i: Int): ByteString = ByteString(i.toString, charset.nioCharset.name)

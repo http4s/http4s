@@ -31,7 +31,7 @@ object BodyParser {
   implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Responder]): Iteratee[HttpChunk, Responder] =
     bodyParser(identity)
 
-  def text[A](charset: HttpCharset, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
+  def text[A](charset: Charset, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
     consumeUpTo(BodyChunkConsumer, limit).map(_.decodeString(charset))(oec)
 
   /**
@@ -45,7 +45,7 @@ object BodyParser {
    * @param parser the SAX parser to use to parse the XML
    * @return a request handler
    */
-  def xml(charset: HttpCharset,
+  def xml(charset: Charset,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
           onSaxException: SAXException => Responder = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
