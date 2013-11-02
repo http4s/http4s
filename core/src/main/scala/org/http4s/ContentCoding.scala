@@ -1,28 +1,24 @@
 package org.http4s
 
-import org.http4s.util.Lowercase
-import scalaz.@@
-import java.util.Locale
-
 sealed abstract class ContentCodingRange {
-  def value: String @@ Lowercase
+  def value: CiString
   def matches(encoding: ContentCoding): Boolean
 }
 
-final case class ContentCoding(value: String @@ Lowercase) extends ContentCodingRange {
+final case class ContentCoding(value: CiString) extends ContentCodingRange {
   def matches(encoding: ContentCoding) = this == encoding
 }
 
-object ContentCodings extends ObjectRegistry[String @@ Lowercase, ContentCoding] {
+object ContentCodings extends ObjectRegistry[CiString, ContentCoding] {
   def register(encoding: ContentCoding): ContentCoding = {
-    register(encoding.value.lowercase, encoding)
+    register(encoding.value, encoding)
     encoding
   }
 
-  def register(value: String): ContentCoding = ContentCoding(value.lowercase(Locale.ENGLISH))
+  def register(value: String): ContentCoding = ContentCoding(value.lowercaseEn)
 
   val `*`: ContentCodingRange = new ContentCodingRange {
-    def value = "*".lowercase
+    def value = "*".lowercaseEn
     def matches(encoding: ContentCoding) = true
   }
 

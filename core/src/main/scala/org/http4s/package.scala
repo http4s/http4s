@@ -8,7 +8,8 @@ import com.typesafe.config.{ConfigFactory, Config}
 import org.joda.time.{DateTime, DateTimeZone, ReadableInstant}
 import org.joda.time.format.DateTimeFormat
 import java.util.Locale
-import org.http4s.util.LowercaseSyntax
+import org.http4s.util.{LowercaseEn, LowercaseSyntax}
+import scalaz.@@
 
 package object http4s extends LowercaseSyntax {
   type Route = PartialFunction[RequestPrelude, Iteratee[Chunk, Responder]]

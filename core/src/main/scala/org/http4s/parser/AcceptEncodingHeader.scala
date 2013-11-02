@@ -4,7 +4,6 @@ package parser
 import org.parboiled.scala._
 import BasicRules._
 import ContentCodings._
-import java.util.Locale
 
 private[parser] trait AcceptEncodingHeader {
   this: Parser with ProtocolParameterRules =>
@@ -19,7 +18,7 @@ private[parser] trait AcceptEncodingHeader {
 
   def EncodingRangeDef = rule (
       "*" ~ push(`*`)
-    | ContentCoding ~~> (x => getForKey(x.lowercase(Locale.ENGLISH)).getOrElse(new ContentCoding(x.lowercase(Locale.ENGLISH))))
+    | ContentCoding ~~> (x => getForKey(x.lowercaseEn).getOrElse(org.http4s.ContentCoding(x.lowercaseEn)))
   )
 
   def EncodingQuality = rule {

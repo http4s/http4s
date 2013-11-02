@@ -10,15 +10,15 @@ import scalaz.@@
 trait HeaderKey[T <: Header] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
 
-  def name = _cn
+  def name: CiString = _cn.lowercaseEn
 
   override def toString: String = name
 
   def unapply(headers: HeaderCollection): Option[T] =
-    (headers find (_ is name.lowercase(Locale.US)) map (_.parsed)).collectFirst(collectHeader)
+    (headers find (_ is name) map (_.parsed)).collectFirst(collectHeader)
 
   def unapplySeq(headers: HeaderCollection): Option[Seq[T]] =
-    Some((headers filter (_ is name.lowercase(Locale.US)) map (_.parsed)).collect(collectHeader))
+    Some((headers filter (_ is name) map (_.parsed)).collect(collectHeader))
 
   def from(headers: HeaderCollection): Option[T] = unapply(headers)
 
@@ -30,13 +30,13 @@ trait HeaderKey[T <: Header] {
 abstract class Header {
   def name: String
 
-  def lowercaseName: String @@ Lowercase
+  def lowercaseName: CiString
 
   def value: String
 
-  def is(name: String @@ Lowercase): Boolean = this.lowercaseName == name
+  def is(name: CiString): Boolean = this.lowercaseName == name
 
-  def isNot(name: String @@ Lowercase): Boolean = this.lowercaseName != name
+  def isNot(name: CiString): Boolean = this.lowercaseName != name
 
   override def toString = name + ": " + value
 
@@ -69,13 +69,13 @@ object Headers {
   case class Accept(mediaRanges: Seq[MediaRange]) extends Header {
     def name = "Accept"
 
-    def lowercaseName = "accept".lowercase
+    def lowercaseName = "accept".lowercaseEn
 
     def value = mediaRanges.map(_.value).mkString(", ")
   }
 
   object AcceptCharset extends HeaderKey[AcceptCharset] {
-    override val name: String = "Accept-Charset"
+    override val name: CiString = "Accept-Charset".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, AcceptCharset] = {
       case h: AcceptCharset => h
@@ -86,13 +86,13 @@ object Headers {
   case class AcceptCharset(charsetRanges: Seq[CharsetRange]) extends Header {
     def name = "Accept-Charset"
 
-    def lowercaseName = "accept-charset".lowercase
+    def lowercaseName = "accept-charset".lowercaseEn
 
     def value = charsetRanges.map(_.value).mkString(", ")
   }
 
   object AcceptEncoding extends HeaderKey[AcceptEncoding] {
-    override val name: String = "Accept-Encoding"
+    override val name: CiString = "Accept-Encoding".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, AcceptEncoding] = {
       case h: AcceptEncoding => h
@@ -104,13 +104,13 @@ object Headers {
   case class AcceptEncoding(encodings: Seq[ContentCodingRange]) extends Header {
     def name = "Accept-Encoding"
 
-    def lowercaseName = "accept-encoding".lowercase
+    def lowercaseName = "accept-encoding".lowercaseEn
 
     def value = encodings.map(_.value).mkString(", ")
   }
 
   object AcceptLanguage extends HeaderKey[AcceptLanguage] {
-    override val name: String = "Accept-Language"
+    override val name: CiString = "Accept-Language".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, AcceptLanguage] = {
       case h: AcceptLanguage => h
@@ -122,13 +122,13 @@ object Headers {
   case class AcceptLanguage(languageRanges: Seq[LanguageRange]) extends Header {
     def name = "Accept-Language"
 
-    def lowercaseName = "accept-language".lowercase
+    def lowercaseName = "accept-language".lowercaseEn
 
     def value = languageRanges.map(_.value).mkString(", ")
   }
 
   object AcceptRanges extends HeaderKey[AcceptRanges] {
-    override val name: String = "Accept-Ranges"
+    override val name: CiString = "Accept-Ranges".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, AcceptRanges] = {
       case h: AcceptRanges => h
@@ -140,45 +140,45 @@ object Headers {
   case class AcceptRanges(rangeUnits: Seq[RangeUnit]) extends Header {
     def name = "Accept-Ranges"
 
-    def lowercaseName = "accept-ranges".lowercase
+    def lowercaseName = "accept-ranges".lowercaseEn
 
     def value = if (rangeUnits.isEmpty) "none" else rangeUnits.mkString(", ")
   }
 
   object AcceptPatch extends DefaultHeaderKey {
-    override val name: String = "Accept-Patch"
+    override val name: CiString = "Accept-Patch".lowercaseEn
   }
 
   object AccessControlAllowCredentials extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Allow-Credentials"
+    override val name: CiString = "Access-Control-Allow-Credentials".lowercaseEn
   }
 
   object AccessControlAllowHeaders extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Allow-Headers"
+    override val name: CiString = "Access-Control-Allow-Headers".lowercaseEn
   }
 
   object AccessControlAllowMethods extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Allow-Methods"
+    override val name: CiString = "Access-Control-Allow-Methods".lowercaseEn
   }
 
   object AccessControlAllowOrigin extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Allow-Origin"
+    override val name: CiString = "Access-Control-Allow-Origin".lowercaseEn
   }
 
   object AccessControlExposeHeaders extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Expose-Headers"
+    override val name: CiString = "Access-Control-Expose-Headers".lowercaseEn
   }
 
   object AccessControlMaxAge extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Max-Age"
+    override val name: CiString = "Access-Control-Max-Age".lowercaseEn
   }
 
   object AccessControlRequestHeaders extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Request-Headers"
+    override val name: CiString = "Access-Control-Request-Headers".lowercaseEn
   }
 
   object AccessControlRequestMethod extends DefaultHeaderKey {
-    override val name: String = "Access-Control-Request-Method"
+    override val name: CiString = "Access-Control-Request-Method".lowercaseEn
   }
 
   object Age extends DefaultHeaderKey
@@ -194,13 +194,13 @@ object Headers {
   case class Authorization(credentials: Credentials) extends Header {
     def name = "Authorization"
 
-    def lowercaseName = "authorization".lowercase
+    def lowercaseName = "authorization".lowercaseEn
 
     def value = credentials.value
   }
   object CacheControl extends HeaderKey[CacheControl] {
 
-      override val name: String = "Cache-Control"
+      override val name: CiString = "Cache-Control".lowercaseEn
 
       protected[this] def collectHeader: PartialFunction[Header, CacheControl] = {
         case h: CacheControl => h
@@ -212,7 +212,7 @@ object Headers {
   case class CacheControl(directives: Seq[CacheDirective]) extends Header {
     def name = "Cache-Control"
 
-    def lowercaseName = "cache-control".lowercase
+    def lowercaseName = "cache-control".lowercaseEn
 
     def value = directives.mkString(", ")
   }
@@ -227,7 +227,7 @@ object Headers {
   case class Connection(connectionTokens: Seq[String]) extends Header {
     def name = "Connection"
 
-    def lowercaseName = "connection".lowercase
+    def lowercaseName = "connection".lowercaseEn
 
     def value = connectionTokens.mkString(", ")
 
@@ -237,11 +237,11 @@ object Headers {
   }
 
   object ContentBase extends DefaultHeaderKey {
-    override val name: String = "Content-Base"
+    override val name: CiString = "Content-Base".lowercaseEn
   }
 
   object ContentDisposition extends HeaderKey[ContentDisposition] {
-    override val name: String = "Content-Disposition"
+    override val name: CiString = "Content-Disposition".lowercaseEn
     protected[this] def collectHeader: PartialFunction[Header, ContentDisposition] = { case h: ContentDisposition => h}
   }
 
@@ -249,55 +249,58 @@ object Headers {
   case class ContentDisposition(dispositionType: String, parameters: Map[String, String]) extends Header {
     def name = "Content-Disposition"
 
-    def lowercaseName = "content-disposition".lowercase
+    def lowercaseName = "content-disposition".lowercaseEn
 
     def value = parameters.map(p => "; " + p._1 + "=\"" + p._2 + '"').mkString(dispositionType, "", "")
   }
 
   object ContentEncoding extends HeaderKey[ContentEncoding] {
-    override val name: String = "Content-Encoding"
+    override val name: CiString = "Content-Encoding".lowercaseEn
     protected[this] def collectHeader: PartialFunction[Header, ContentEncoding] = { case h: ContentEncoding => h}
   }
   case class ContentEncoding(encoding: ContentCoding) extends Header {
     def name = "Content-Encoding"
 
-    def lowercaseName = "content-encoding".lowercase
+    def lowercaseName = "content-encoding".lowercaseEn
 
     def value = encoding.value
   }
 
-  object ContentLanguage extends DefaultHeaderKey { override val name: String = "Content-Language" }
+  object ContentLanguage extends DefaultHeaderKey {
+    override val name: CiString = "Content-Language".lowercaseEn
+  }
+
   object ContentLength extends HeaderKey[ContentLength] {
-    override val name: String = "Content-Length"
+    override val name: CiString = "Content-Length".lowercaseEn
     protected[this] def collectHeader: PartialFunction[Header, ContentLength] = { case h: ContentLength => h }
   }
 
   case class ContentLength(length: Int) extends Header {
     def name = "Content-Length"
 
-    def lowercaseName = "content-length".lowercase
+    def lowercaseName = "content-length".lowercaseEn
 
     def value = length.toString
   }
 
   object ContentLocation extends DefaultHeaderKey {
-    override val name: String = "Content-Location"
+    override val name: CiString = "Content-Location".lowercaseEn
   }
 
   object ContentTransferEncoding extends DefaultHeaderKey {
-    override val name: String = "Content-Transfer-Encoding"
+    override val name: CiString = "Content-Transfer-Encoding".lowercaseEn
   }
 
   object ContentMd5 extends DefaultHeaderKey {
-    override val name: String = "Content-MD5"
+    override val name: CiString = "Content-MD5".lowercaseEn
   }
 
   object ContentRange extends DefaultHeaderKey {
-    override val name: String = "Content-Range"
+    override val name: CiString = "Content-Range".lowercaseEn
   }
 
   object ContentType extends HeaderKey[ContentType] {
-    override val name: String = "Content-Type"
+    override val name: CiString = "Content-Type".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, ContentType] = {
       case h: ContentType => h
@@ -306,7 +309,7 @@ object Headers {
   case class ContentType(contentType: org.http4s.ContentType) extends Header {
     def name = "Content-Type"
 
-    def lowercaseName = "content-type".lowercase
+    def lowercaseName = "content-type".lowercaseEn
 
     def value = contentType.value
   }
@@ -323,7 +326,7 @@ object Headers {
   case class Cookie(cookies: Seq[org.http4s.Cookie]) extends Header {
     def name = "Cookie"
 
-    def lowercaseName = "cookie".lowercase
+    def lowercaseName = "cookie".lowercaseEn
 
     def value = cookies.mkString("; ")
   }
@@ -337,7 +340,7 @@ object Headers {
   case class Date(date: DateTime) extends Header {
     def name = "Date"
 
-    def lowercaseName = "date".lowercase
+    def lowercaseName = "date".lowercaseEn
 
     def value = date.formatRfc1123
   }
@@ -351,7 +354,7 @@ object Headers {
   object From extends DefaultHeaderKey
 
   object FrontEndHttps extends DefaultHeaderKey {
-    override val name: String = "Front-End-Https"
+    override val name: CiString = "Front-End-Https".lowercaseEn
   }
 
   object Host extends HeaderKey[Host] {
@@ -364,33 +367,33 @@ object Headers {
   case class Host(host: String, port: Option[Int] = None) extends Header {
     def name = "Host"
 
-    def lowercaseName = "host".lowercase
+    def lowercaseName = "host".lowercaseEn
 
     def value = port.map(host + ':' + _).getOrElse(host)
   }
 
   object IfMatch extends DefaultHeaderKey {
-    override val name: String = "If-Match"
+    override val name: CiString = "If-Match".lowercaseEn
   }
 
   object IfModifiedSince extends DefaultHeaderKey {
-    override val name: String = "If-Modified-Since"
+    override val name: CiString = "If-Modified-Since".lowercaseEn
   }
 
   object IfNoneMatch extends DefaultHeaderKey {
-    override val name: String = "If-None-Match"
+    override val name: CiString = "If-None-Match".lowercaseEn
   }
 
   object IfRange extends DefaultHeaderKey {
-    override val name: String = "If-Range"
+    override val name: CiString = "If-Range".lowercaseEn
   }
 
   object IfUnmodifiedSince extends DefaultHeaderKey {
-    override val name: String = "If-Unmodified-Since"
+    override val name: CiString = "If-Unmodified-Since".lowercaseEn
   }
 
   object LastModified extends HeaderKey[LastModified] {
-    override val name: String = "Last-Modified"
+    override val name: CiString = "Last-Modified".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, LastModified] = {
       case h: LastModified => h
@@ -400,7 +403,7 @@ object Headers {
   case class LastModified(date: DateTime) extends Header {
     def name = "Last-Modified"
 
-    def lowercaseName = "last-modified".lowercase
+    def lowercaseName = "last-modified".lowercaseEn
 
     def value = date.formatRfc1123
   }
@@ -414,13 +417,13 @@ object Headers {
   case class Location(absoluteUri: String) extends Header {
     def name = "Location"
 
-    def lowercaseName = "location".lowercase
+    def lowercaseName = "location".lowercaseEn
 
     def value = absoluteUri
   }
 
   object MaxForwards extends DefaultHeaderKey {
-    override val name: String = "Max-Forwards"
+    override val name: CiString = "Max-Forwards".lowercaseEn
   }
 
   object Origin extends DefaultHeaderKey
@@ -428,11 +431,11 @@ object Headers {
   object Pragma extends DefaultHeaderKey
 
   object ProxyAuthenticate extends DefaultHeaderKey {
-    override val name: String = "Proxy-Authenticate"
+    override val name: CiString = "Proxy-Authenticate".lowercaseEn
   }
 
   object ProxyAuthorization extends DefaultHeaderKey {
-    override val name: String = "Proxy-Authorization"
+    override val name: CiString = "Proxy-Authorization".lowercaseEn
   }
 
   object Range extends DefaultHeaderKey
@@ -440,45 +443,45 @@ object Headers {
   object Referer extends DefaultHeaderKey
 
   object RetryAfter extends DefaultHeaderKey {
-    override val name: String = "Retry-After"
+    override val name: CiString = "Retry-After".lowercaseEn
   }
 
   object SecWebSocketKey extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Key"
+    override val name: CiString = "Sec-WebSocket-Key".lowercaseEn
   }
 
   object SecWebSocketKey1 extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Key1"
+    override val name: CiString = "Sec-WebSocket-Key1".lowercaseEn
   }
 
   object SecWebSocketKey2 extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Key2"
+    override val name: CiString = "Sec-WebSocket-Key2".lowercaseEn
   }
 
   object SecWebSocketLocation extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Location"
+    override val name: CiString = "Sec-WebSocket-Location".lowercaseEn
   }
 
   object SecWebSocketOrigin extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Origin"
+    override val name: CiString = "Sec-WebSocket-Origin".lowercaseEn
   }
 
   object SecWebSocketProtocol extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Protocol"
+    override val name: CiString = "Sec-WebSocket-Protocol".lowercaseEn
   }
 
   object SecWebSocketVersion extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Version"
+    override val name: CiString = "Sec-WebSocket-Version".lowercaseEn
   }
 
   object SecWebSocketAccept extends DefaultHeaderKey {
-    override val name: String = "Sec-WebSocket-Accept"
+    override val name: CiString = "Sec-WebSocket-Accept".lowercaseEn
   }
 
   object Server extends DefaultHeaderKey
 
   object SetCookie extends HeaderKey[SetCookie] {
-    override val name: String = "Set-Cookie"
+    override val name: CiString = "Set-Cookie".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, SetCookie] = {
       case h: SetCookie => h
@@ -487,14 +490,14 @@ object Headers {
   case class SetCookie(cookie: org.http4s.Cookie) extends Header {
     def name = "Set-Cookie"
 
-    def lowercaseName = "set-cookie".lowercase
+    def lowercaseName = "set-cookie".lowercaseEn
 
     def value = cookie.value
   }
 
 
   object SetCookie2 extends DefaultHeaderKey {
-    override val name: String = "Set-Cookie2"
+    override val name: CiString = "Set-Cookie2".lowercaseEn
   }
 
   object TE extends DefaultHeaderKey
@@ -502,7 +505,7 @@ object Headers {
   object Trailer extends DefaultHeaderKey
 
   object TransferEncoding extends HeaderKey[TransferEncoding] {
-    override val name: String = "Transfer-Encoding"
+    override val name: CiString = "Transfer-Encoding".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, TransferEncoding] = {
       case h: TransferEncoding => h
@@ -511,7 +514,7 @@ object Headers {
   case class TransferEncoding(coding: ContentCoding) extends Header {
     def name = "Transfer-Encoding"
 
-    def lowercaseName = "transfer-encoding".lowercase
+    def lowercaseName = "transfer-encoding".lowercaseEn
 
     def value = coding.value
   }
@@ -519,7 +522,7 @@ object Headers {
   object Upgrade extends DefaultHeaderKey
 
   object UserAgent extends DefaultHeaderKey {
-    override val name: String = "User-Agent"
+    override val name: CiString = "User-Agent".lowercaseEn
   }
 
   object Vary extends DefaultHeaderKey
@@ -529,19 +532,19 @@ object Headers {
   object Warning extends DefaultHeaderKey
 
   object WebSocketLocation extends DefaultHeaderKey {
-    override val name: String = "WebSocket-Location"
+    override val name: CiString = "WebSocket-Location".lowercaseEn
   }
 
   object WebSocketOrigin extends DefaultHeaderKey {
-    override val name: String = "WebSocket-Origin"
+    override val name: CiString = "WebSocket-Origin".lowercaseEn
   }
 
   object WebSocketProtocol extends DefaultHeaderKey {
-    override val name: String = "WebSocket-Protocol"
+    override val name: CiString = "WebSocket-Protocol".lowercaseEn
   }
 
   object WWWAuthenticate extends HeaderKey[WWWAuthenticate] {
-    override val name: String = "WWW-Authenticate"
+    override val name: CiString = "WWW-Authenticate".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, WWWAuthenticate] = {
       case h: WWWAuthenticate => h
@@ -552,12 +555,12 @@ object Headers {
   case class WWWAuthenticate(challenges: Seq[Challenge]) extends Header {
     def name = "WWW-Authenticate"
 
-    def lowercaseName = "www-authenticate".lowercase
+    def lowercaseName = "www-authenticate".lowercaseEn
 
     def value = challenges.mkString(", ")
   }
   object XForwardedFor extends HeaderKey[XForwardedFor] {
-    override val name: String = "X-Forwarded-For"
+    override val name: CiString = "X-Forwarded-For".lowercaseEn
 
     protected[this] def collectHeader: PartialFunction[Header, XForwardedFor] = {
       case h: XForwardedFor => h
@@ -569,34 +572,34 @@ object Headers {
   case class XForwardedFor(ips: Seq[Option[InetAddress]]) extends Header {
     def name = "X-Forwarded-For"
 
-    def lowercaseName = "x-forwarded-for".lowercase
+    def lowercaseName = "x-forwarded-for".lowercaseEn
 
     def value = ips.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
 
   object XForwardedProto extends DefaultHeaderKey {
-    override val name: String = "X-Forwarded-Proto"
+    override val name: CiString = "X-Forwarded-Proto".lowercaseEn
   }
 
   object XPoweredBy extends DefaultHeaderKey {
-    override val name: String = "X-Powered-By"
+    override val name: CiString = "X-Powered-By".lowercaseEn
   }
 
   case class RawHeader(name: String, value: String) extends Header {
-    val lowercaseName = name.lowercase(Locale.US)
+    val lowercaseName = name.lowercaseEn
     override lazy val parsed: Header = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
   object Key {
 
     def apply[T <: Header](nm: String, collector: PartialFunction[Header, T]): HeaderKey[T] = new HeaderKey[T] {
-      override val name: String = nm
+      override val name: CiString = nm.lowercaseEn
 
       protected[this] def collectHeader: PartialFunction[Header, T] = collector
     }
 
     def apply(nm: String): HeaderKey[Header] = new DefaultHeaderKey {
-      override val name: String = nm
+      override val name: CiString = nm.lowercaseEn
     }
   }
 }
