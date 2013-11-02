@@ -20,7 +20,7 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
         .contentType(ContentType.`text/plain`)
         .addHeader(Headers.Host("foo"))
 
-      c1.prelude.headers.count(_.name == Headers.ContentLength.name) should equal (1)
+      c1.prelude.headers.count(_.lowercaseName == Headers.ContentLength.name) should equal (1)
       c1.prelude.headers should have length (3)
       c1.contentType.value should equal (ContentType.`text/plain`)
 
@@ -28,9 +28,9 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
 
       c2.contentType.value should equal (ContentType.`application/json`)
 
-      c2.prelude.headers.count(_.name == Headers.ContentType.name) should equal (1)
-      c2.prelude.headers.count(_.name == Headers.ContentLength.name) should equal (1)
-      c2.prelude.headers.count(_.name == Headers.Host.name) should equal (1)
+      c2.prelude.headers.count(_.lowercaseName == Headers.ContentType.name) should equal (1)
+      c2.prelude.headers.count(_.lowercaseName == Headers.ContentLength.name) should equal (1)
+      c2.prelude.headers.count(_.lowercaseName == Headers.Host.name) should equal (1)
     }
 
     "Replace headers" in {

@@ -15,7 +15,7 @@ case class Responder(
   def dropHeaders(f: Header => Boolean): Responder =
     copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
 
-  def dropHeader(header: HeaderKey[_]): Responder = dropHeaders(_.name != header.name)
+  def dropHeader(header: HeaderKey[_]): Responder = dropHeaders(_.lowercaseName != header.name)
 
   def contentType: Option[ContentType] =  prelude.headers.get(Headers.ContentType).map(_.contentType)
 
