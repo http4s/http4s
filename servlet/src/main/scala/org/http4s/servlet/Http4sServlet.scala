@@ -39,7 +39,7 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     val parser = try {
       route.lift(request).getOrElse(Done(NotFound(request)))
-    } catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
+    } catch { case t: Throwable => Done[Chunk, Responder](InternalServerError(t)) }
     val handler = parser.flatMap { responder =>
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)
@@ -57,7 +57,7 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
       })
     }
     Enumerator.fromStream(servletRequest.getInputStream, chunkSize)
-      .map[HttpChunk](BodyChunk(_))
+      .map[Chunk](BodyChunk(_))
       .run(handler)
       .onComplete(_ => ctx.complete() )
   }

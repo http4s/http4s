@@ -17,17 +17,17 @@ object ExampleRoute {
       Ok("pong")
 
     case Post -> Root / "echo" =>
-      Ok(Enumeratee.passAlong[HttpChunk])
+      Ok(Enumeratee.passAlong[Chunk])
 
     case Get -> Root / "echo"  =>
-      Ok(Enumeratee.map[HttpChunk] {
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
+      Ok(Enumeratee.map[Chunk] {
+        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): Chunk
         case chunk => chunk
       })
 
     case Get -> Root / "echo2" =>
-      Ok(Enumeratee.map[HttpChunk]{
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): HttpChunk
+      Ok(Enumeratee.map[Chunk]{
+        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): Chunk
         case chunk => chunk
       })
 
@@ -67,9 +67,9 @@ object ExampleRoute {
 
       // Ross wins the challenge
     case req @ Get -> Root / "challenge" =>
-      Iteratee.head[HttpChunk].map {
+      Iteratee.head[Chunk].map {
         case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
-          Ok(Enumeratee.heading(Enumerator(bits: HttpChunk)))
+          Ok(Enumeratee.heading(Enumerator(bits: Chunk)))
         case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>

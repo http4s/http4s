@@ -15,7 +15,7 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http
 import http.HttpHeaders.{Names, Values, isKeepAlive}
 
-import org.http4s.{Headers, HttpChunk, Responder, RequestPrelude}
+import org.http4s.{Headers, Chunk, Responder, RequestPrelude}
 import org.http4s.Status.{InternalServerError, NotFound}
 import org.http4s.TrailerChunk
 
@@ -114,7 +114,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     else enum = new ChunkEnum
     val request = toRequest(ctx, req, rem)
     val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
-    catch { case t: Throwable => Done[HttpChunk, Responder](InternalServerError(t)) }
+    catch { case t: Throwable => Done[Chunk, Responder](InternalServerError(t)) }
 
     val handler = parser.flatMap(renderResponse(ctx, req, _))
     enum.run[Unit](handler)
@@ -122,7 +122,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
 
   protected def chunkedIteratee(ctx: ChannelHandlerContext, f: ChannelFuture, isHttp10: Boolean, closeOnFinish: Boolean) = {
     // deal with the trailer or end of file after a chunked result
-    def finisher(trailerChunk: Option[TrailerChunk], ctx: ChannelHandlerContext, lastOp: ChannelFuture): Iteratee[HttpChunk, Unit] = {
+    def finisher(trailerChunk: Option[TrailerChunk], ctx: ChannelHandlerContext, lastOp: ChannelFuture): Iteratee[Chunk, Unit] = {
       if(!isHttp10) {
         val respTrailer = new http.DefaultLastHttpContent()
         for { c <- trailerChunk
@@ -138,7 +138,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
       }
     }
 
-    def chunkedFolder(ctx: ChannelHandlerContext, lastOp: ChannelFuture)(i: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = i match {
+    def chunkedFolder(ctx: ChannelHandlerContext, lastOp: ChannelFuture)(i: Input[Chunk]): Iteratee[Chunk, Unit] = i match {
       case Input.El(c: BodyChunk) =>
         val buff = Unpooled.wrappedBuffer(c.toArray)
         val f = ctx.channel().writeAndFlush(new DefaultHttpContent(buff))
@@ -167,7 +167,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     val buff = ctx.alloc().buffer(length)
 
     // Folder method that just piles bytes into the buffer.
-    def folder(in: Input[HttpChunk]): Iteratee[HttpChunk, Unit] = {
+    def folder(in: Input[Chunk]): Iteratee[Chunk, Unit] = {
       if (ctx.channel().isOpen()) in match {
         case Input.El(c: BodyChunk) => buff.writeBytes(c.toArray); Cont(folder)
         case Input.El(e: TrailerChunk)  => sys.error("Chunk detected in nonchunked response: " + e)
@@ -185,7 +185,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     Cont(folder)
   }
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, responder: Responder): Iteratee[HttpChunk, Unit] = {
+  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, responder: Responder): Iteratee[Chunk, Unit] = {
 
     val stat = new http.HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
 

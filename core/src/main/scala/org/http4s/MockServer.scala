@@ -9,10 +9,10 @@ import play.api.libs.iteratee.{Enumerator, Iteratee}
 class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionContext.global) {
   import MockServer.Response
 
-  def apply(req: RequestPrelude, enum: Enumerator[HttpChunk]): Future[Response] = {
+  def apply(req: RequestPrelude, enum: Enumerator[Chunk]): Future[Response] = {
     try {
       route.lift(req).fold(Future.successful(onNotFound)) { parser =>
-        val it: Iteratee[HttpChunk, Response] = parser.flatMap { responder =>
+        val it: Iteratee[Chunk, Response] = parser.flatMap { responder =>
           val responseBodyIt: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume()
           responder.body ><> BodyParser.whileBodyChunk &>> responseBodyIt map { bytes: BodyChunk =>
             Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray)
@@ -26,7 +26,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
   }
 
   def response(req: RequestPrelude,
-               body: Enumerator[HttpChunk] = Enumerator.eof,
+               body: Enumerator[Chunk] = Enumerator.eof,
                wait: Duration = 5.seconds): MockServer.Response = {
     Await.result(apply(req, body), 5.seconds)
   }

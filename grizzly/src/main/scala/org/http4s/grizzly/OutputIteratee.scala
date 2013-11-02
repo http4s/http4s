@@ -12,11 +12,11 @@ import org.http4s.TrailerChunk
  * @author Bryce Anderson
  * Created on 2/11/13 at 8:44 AM
  */
-class OutputIteratee(os: NIOOutputStream, isChunked: Boolean)(implicit executionContext: ExecutionContext) extends Iteratee[HttpChunk,Unit]
+class OutputIteratee(os: NIOOutputStream, isChunked: Boolean)(implicit executionContext: ExecutionContext) extends Iteratee[Chunk,Unit]
   with Logging
 {
 
-  private[this] def push(in: Input[HttpChunk]): Iteratee[HttpChunk,Unit] =  {
+  private[this] def push(in: Input[Chunk]): Iteratee[Chunk,Unit] =  {
     in match {
       case Input.El(chunk: BodyChunk) =>
         try {
@@ -39,5 +39,5 @@ class OutputIteratee(os: NIOOutputStream, isChunked: Boolean)(implicit execution
   }
 
   // TODO: should the ec be utilized?
-  def fold[B](folder: (Step[HttpChunk, Unit]) => Future[B])(implicit ec: ExecutionContext) = folder(Step.Cont(push))
+  def fold[B](folder: (Step[Chunk, Unit]) => Future[B])(implicit ec: ExecutionContext) = folder(Step.Cont(push))
 }

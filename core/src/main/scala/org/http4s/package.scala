@@ -11,9 +11,9 @@ import java.util.Locale
 import org.http4s.util.LowercaseSyntax
 
 package object http4s extends LowercaseSyntax {
-  type Route = PartialFunction[RequestPrelude, Iteratee[HttpChunk, Responder]]
+  type Route = PartialFunction[RequestPrelude, Iteratee[Chunk, Responder]]
 
-  type ResponderBody = Enumeratee[HttpChunk, HttpChunk]
+  type ResponderBody = Enumeratee[Chunk, Chunk]
 
   type Middleware = (Route => Route)
 

@@ -13,10 +13,10 @@ class MiddlewareSpec extends WordSpec with Matchers {
 
   import concurrent.ExecutionContext.Implicits.global
 
-  val echoBody = Enumerator("one", "two", "three").map[HttpChunk](s => BodyChunk(s))
+  val echoBody = Enumerator("one", "two", "three").map[Chunk](s => BodyChunk(s))
   val echoReq = RequestPrelude(requestMethod = Method.Post, pathInfo = "/rootPath/echo")
 
-  val pingBody = Enumerator.eof[HttpChunk]
+  val pingBody = Enumerator.eof[Chunk]
   val pingReq = RequestPrelude(requestMethod = Method.Get, pathInfo = "/rootPath/ping")
 
   "TranslateRoot" should {

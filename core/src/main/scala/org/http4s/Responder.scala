@@ -1,8 +1,9 @@
 package org.http4s
 
-
 import play.api.libs.iteratee._
 import java.net.{URL, URI}
+
+case class ResponsePrelude(status: Status, headers: HeaderCollection = HeaderCollection.empty)
 
 case class Responder(
   prelude: ResponsePrelude,
@@ -32,9 +33,9 @@ case class Responder(
 }
 
 object Responder {
-  val EmptyBody: Enumeratee[HttpChunk, HttpChunk] = Enumeratee.heading(Enumerator.eof)
+  val EmptyBody: Enumeratee[Chunk, Chunk] = Enumeratee.heading(Enumerator.eof)
 
-  implicit def responder2Handler(responder: Responder): Iteratee[HttpChunk, Responder] = Done(responder)
+  implicit def responder2Handler(responder: Responder): Iteratee[Chunk, Responder] = Done(responder)
 
 }
 

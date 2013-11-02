@@ -11,8 +11,8 @@ import play.api.libs.iteratee.Enumeratee.CheckDone
 import util.Execution.{overflowingExecutionContext => oec, trampoline => tec}
 import scala.concurrent.ExecutionContext
 
-case class BodyParser[A](it: Iteratee[HttpChunk, Either[Responder, A]]) {
-  def apply(f: A => Responder): Iteratee[HttpChunk, Responder] = it.map(_.right.map(f).merge)(oec)
+case class BodyParser[A](it: Iteratee[Chunk, Either[Responder, A]]) {
+  def apply(f: A => Responder): Iteratee[Chunk, Responder] = it.map(_.right.map(f).merge)(oec)
   def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = BodyParser(it.map[Either[Responder, B]](_.right.map(f)))
   def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] =
     BodyParser(it.flatMap[Either[Responder, B]](_.fold(
@@ -28,7 +28,7 @@ object BodyParser {
 
   private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
 
-  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Responder]): Iteratee[HttpChunk, Responder] =
+  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Responder]): Iteratee[Chunk, Responder] =
     bodyParser(identity)
 
   def text[A](charset: Charset, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
@@ -62,8 +62,8 @@ object BodyParser {
   def ignoreBody: BodyParser[Unit] = BodyParser(whileBodyChunk &>> Iteratee.ignore[BodyChunk].map(Right(_))(oec))
 
   def trailer: BodyParser[TrailerChunk] = BodyParser(
-    Enumeratee.dropWhile[HttpChunk](_.isInstanceOf[BodyChunk])(oec) &>>
-      (Iteratee.head[HttpChunk].map {
+    Enumeratee.dropWhile[Chunk](_.isInstanceOf[BodyChunk])(oec) &>>
+      (Iteratee.head[Chunk].map {
         case Some(trailer: TrailerChunk) => Right(trailer)
         case _ =>                           Right(TrailerChunk())
       }(oec)))
@@ -77,16 +77,16 @@ object BodyParser {
     BodyParser(whileBodyChunk &>> it)
   }
 
-  val whileBodyChunk: Enumeratee[HttpChunk, BodyChunk] = new CheckDone[HttpChunk, BodyChunk] {
-    def step[A](k: K[BodyChunk, A]): K[HttpChunk, Iteratee[BodyChunk, A]] = {
+  val whileBodyChunk: Enumeratee[Chunk, BodyChunk] = new CheckDone[Chunk, BodyChunk] {
+    def step[A](k: K[BodyChunk, A]): K[Chunk, Iteratee[BodyChunk, A]] = {
       case in @ Input.El(e: BodyChunk) =>
-        new CheckDone[HttpChunk, BodyChunk] {
+        new CheckDone[Chunk, BodyChunk] {
           def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
         } &> k(in.asInstanceOf[Input[BodyChunk]])
       case in @ Input.El(e) =>
         Done(Cont(k), in)
       case in @ Input.Empty =>
-        new CheckDone[HttpChunk, BodyChunk] { def continue[A](k: K[BodyChunk, A]) = Cont(step(k)) } &> k(in)
+        new CheckDone[Chunk, BodyChunk] { def continue[A](k: K[BodyChunk, A]) = Cont(step(k)) } &> k(in)
       case Input.EOF => Done(Cont(k), Input.EOF)
     }
     def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
@@ -94,12 +94,12 @@ object BodyParser {
 
   // TODO: why are we using blocking file ops here!?!
   // File operations
-  def binFile(file: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Responder] = {
+  def binFile(file: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[Chunk,Responder] = {
     val out = new java.io.FileOutputStream(file)
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }(ec).map{ _ => out.close(); f }(oec)
   }
 
-  def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Responder] = {
+  def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[Chunk,Responder] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }(ec).map{ _ => is.close(); f }(oec)
   }
