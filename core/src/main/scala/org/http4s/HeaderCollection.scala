@@ -15,6 +15,8 @@ final class HeaderCollection private (headers: List[Header])
 
   override def foreach[B](f: Header => B) = headers.foreach(f)
 
+  def +: (header: Header) = new HeaderCollection(header::headers)
+
   override def drop(n: Int) = new HeaderCollection(headers.drop(n))
 
   def length: Int = headers.length
@@ -30,7 +32,7 @@ final class HeaderCollection private (headers: List[Header])
   def getAll[T <: Header](key: HeaderKey[T]): Seq[T] = key findIn this
 
   def put(header: Header): HeaderCollection =
-    new HeaderCollection(header :: headers.filterNot(_.lowercaseName == header.lowercaseName))
+    new HeaderCollection(header :: headers.filterNot(_.getClass == header.getClass))
 }
 
 object HeaderCollection {
