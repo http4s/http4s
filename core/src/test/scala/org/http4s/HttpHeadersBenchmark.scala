@@ -11,14 +11,42 @@ object HttpHeadersBenchmark extends PerformanceTest.Quickbenchmark {
     i <- 0 until size
   } yield HttpHeaders.RawHeader("X-HttpHeaders-Benchmark-"+i, i.toString)
 
+  val replacements: Gen[(HttpHeaders, HttpHeader)] = for {
+    headers <- headerses
+  } yield {
+    val i = headers.size / 2
+    val header = HttpHeaders.RawHeader("X-HttpHeaders-Benchmark-"+i, "replacement")
+    (HttpHeaders.apply(headers: _*), header)
+  }
 
   performance of "HttpHeaders" in {
-    measure method "apply" config {
-      exec.benchRuns -> 100000
+    measure method "apply" config (
+      exec.benchRuns -> 500000,
       exec.minWarmupRuns -> 100000
-    } in {
+    ) in {
       using (headerses) in {
         headers => HttpHeaders.apply(headers: _*)
+      }
+    }
+
+    measure method ":+=" config (
+      exec.benchRuns -> 500000,
+      exec.minWarmupRuns -> 100000
+    ) in {
+      using (headerses) in { headers =>
+        var target: HttpHeaders = HttpHeaders.empty
+        for (header <- headers) {
+          target :+= header
+        }
+      }
+    }
+
+    measure method "replace"  in {
+      using (replacements) config (
+        exec.benchRuns -> 500000,
+        exec.minWarmupRuns -> 100000
+      ) in { case (headers, replacement) =>
+        headers.put(replacement)
       }
     }
   }

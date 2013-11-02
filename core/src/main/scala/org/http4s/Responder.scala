@@ -9,10 +9,7 @@ case class Responder(
   body: ResponderBody = Responder.EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
 ) {
-  def addHeader(header: HttpHeader) = {
-    println(s"headers = ${prelude.headers} :+ ${header}")
-    copy(prelude = prelude.copy(headers = prelude.headers :+ header))
-  }
+  def addHeader(header: HttpHeader) = copy(prelude = prelude.copy(headers = prelude.headers :+ header))
 
   def dropHeaders(f: HttpHeader => Boolean): Responder =
     copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
@@ -22,7 +19,7 @@ case class Responder(
   def contentType: Option[ContentType] =  prelude.headers.get(HttpHeaders.ContentType).map(_.contentType)
 
   def contentType(contentType: ContentType): Responder = copy(prelude =
-    prelude.copy(headers = prelude.headers.replace(HttpHeaders.ContentType(contentType))))
+    prelude.copy(headers = prelude.headers.put(HttpHeaders.ContentType(contentType))))
 
   def addCookie(cookie: HttpCookie): Responder = addHeader(HttpHeaders.Cookie(cookie))
 
@@ -64,9 +61,9 @@ object Status {
       apply(body, w.contentType)(w)
 
     def apply[A](body: A, contentType: ContentType)(implicit w: Writable[A]) = {
-      var headers: HttpHeaders = HttpHeaders.empty
+      var headers = HttpHeaders.empty
       val (parsedBody, length) = w.toBody(body)
-      headers :+= (HttpHeaders.ContentType(contentType))
+      headers :+= HttpHeaders.ContentType(contentType)
       length.foreach{ length => headers :+= HttpHeaders.ContentLength(length) }
       Responder(ResponsePrelude(self, headers), parsedBody)
     }

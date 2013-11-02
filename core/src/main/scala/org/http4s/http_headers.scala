@@ -3,8 +3,6 @@ package org.http4s
 import parser.HttpParser
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
-import scala.collection.mutable.ListBuffer
-import scala.annotation.tailrec
 import org.joda.time.DateTime
 import java.net.InetAddress
 import java.util.Locale
@@ -51,12 +49,17 @@ object HttpHeader {
   def unapply(header: HttpHeader): Option[(String, String)] = Some((header.lowercaseName, header.value))
 }
 
-sealed abstract class HttpHeaders
-  extends immutable.LinearSeq[HttpHeader]
-  with collection.LinearSeqOptimized[HttpHeader, HttpHeaders] {
-  import HttpHeaders.{Cons, Nil}
-
+final class HttpHeaders private (headers: List[HttpHeader])
+  extends immutable.Seq[HttpHeader]
+  with collection.SeqLike[HttpHeader, HttpHeaders]
+{
   override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
+
+  def length: Int = headers.length
+
+  def apply(idx: Int): HttpHeader = headers(idx)
+
+  def iterator: Iterator[HttpHeader] = headers.iterator
 
   def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
 
@@ -64,31 +67,13 @@ sealed abstract class HttpHeaders
 
   def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
 
-  def replace(header: HttpHeader): HttpHeaders = {
-    val builder = newBuilder
-    @tailrec
-    def loop(headers: HttpHeaders, replaced: Boolean): HttpHeaders = headers match {
-      case Nil =>
-        if (!replaced) builder += header
-        builder.result()
-      case Cons(h, rest) if h.name == header.name =>
-        if (!replaced) builder += header
-        loop(rest, true)
-      case Cons(h, rest) =>
-        builder += h
-        loop(rest, replaced)
-    }
-    loop(this, false)
+  def put(header: HttpHeader): HttpHeaders = {
+    new HttpHeaders(header :: headers.filterNot(_.lowercaseName == header.lowercaseName))
   }
 }
 
 object HttpHeaders {
-  case object Nil extends HttpHeaders {
-    override def isEmpty: Boolean = true
-  }
-  final case class Cons(override val head: HttpHeader, override val tail: HttpHeaders) extends HttpHeaders {
-    override def isEmpty: Boolean = false
-  }
+
 
   abstract class DefaultHttpHeaderKey extends HttpHeaderKey[HttpHeader] {
 
@@ -628,26 +613,19 @@ object HttpHeaders {
     override lazy val parsed: HttpHeader = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
-  def apply(headers: HttpHeader*): HttpHeaders = if (headers.isEmpty) Nil else (newBuilder ++= headers).result
+  val empty = apply()
 
-  val empty = Nil
+  def apply(headers: HttpHeader*): HttpHeaders =  new HttpHeaders(headers.toList)
 
-  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] =
+  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, HttpHeaders] =
     new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] {
       def apply(from: TraversableOnce[HttpHeader]): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
 
       def apply(): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
     }
 
-  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = new mutable.Builder[HttpHeader, HttpHeaders] {
-    private val buffer = mutable.ArrayBuffer.newBuilder[HttpHeader]
-    def +=(elem: HttpHeader): this.type = {
-      buffer += elem
-      this
-    }
-    def clear(): Unit = buffer.clear()
-    def result(): HttpHeaders = buffer.result.foldRight(Nil: HttpHeaders)(Cons(_, _))
-  }
+  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] =
+    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (b => new HttpHeaders(b.result()))
 
   object Key {
 
