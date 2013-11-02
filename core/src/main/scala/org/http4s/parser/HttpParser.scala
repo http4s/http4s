@@ -2,7 +2,7 @@ package org.http4s
 package parser
 
 import org.parboiled.scala._
-import org.http4s.HttpHeaders.RawHeader
+import org.http4s.Headers.RawHeader
 
 /**
  * Parser for all HTTP headers as defined by
@@ -27,18 +27,18 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
   override implicit def toRule(string :String): Rule0 =
     super.toRule(string) ~ BasicRules.OptWS
 
-  val rules: Map[String, Rule1[HttpHeader]] =
+  val rules: Map[String, Rule1[Header]] =
     HttpParser
       .getClass
       .getMethods
       .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
       .map { method =>
-        method.getName.toLowerCase.replace('_', '-') -> method.invoke(HttpParser).asInstanceOf[Rule1[HttpHeader]]
+        method.getName.toLowerCase.replace('_', '-') -> method.invoke(HttpParser).asInstanceOf[Rule1[Header]]
       } (collection.breakOut)
 
-  def parseHeader(header: HttpHeader): Either[String, HttpHeader] = {
+  def parseHeader(header: Header): Either[String, Header] = {
     header match {
-      case x@ HttpHeaders.RawHeader(name, value) =>
+      case x@ Headers.RawHeader(name, value) =>
         rules.get(x.lowercaseName) match {
           case Some(rule) => parse(rule, value).left.map("Illegal HTTP header '" + name + "': " + _.formatPretty)
           case None => Right(x) // if we don't have a rule for the header we leave it unparsed
@@ -47,7 +47,7 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
     }
   }
 
-  def parseHeaders(headers: List[HttpHeader]): (List[String], List[HttpHeader]) = {
+  def parseHeaders(headers: List[Header]): (List[String], List[Header]) = {
     val errors = List.newBuilder[String]
     val parsedHeaders = headers.map { header =>
       parseHeader(header) match {

@@ -9,7 +9,7 @@ private[parser] trait CacheControlHeader {
   this: Parser with ProtocolParameterRules =>
 
   def CACHE_CONTROL = rule (
-    zeroOrMore(CacheDirective, separator = ListSep) ~ EOI ~~> (HttpHeaders.CacheControl(_))
+    zeroOrMore(CacheDirective, separator = ListSep) ~ EOI ~~> (Headers.CacheControl(_))
   )
 
   def CacheDirective = rule (

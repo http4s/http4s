@@ -11,12 +11,7 @@ import java.nio.charset.Charset
 import java.nio.ByteBuffer
 import scala.io.Codec
 
-// Our Http message "currency" types
-sealed trait HasHeaders {
-  def headers: HttpHeaders
-}
-
-sealed trait HttpPrelude extends HasHeaders
+sealed trait HttpPrelude
 
 sealed trait HttpChunk extends IndexedSeq[Byte] {
   // TODO optimize for array reads
@@ -92,7 +87,7 @@ object BodyChunk {
     }
 }
 
-case class TrailerChunk(headers: HttpHeaders = HttpHeaders.empty) extends HttpChunk {
+case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends HttpChunk {
   override def apply(idx: Int): Byte = throw new IndexOutOfBoundsException(idx.toString)
 
   def length: Int = 0
@@ -105,7 +100,7 @@ case class RequestPrelude(
   queryString: String = "",
   pathTranslated: Option[File] = None,
   protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-  headers: HttpHeaders = HttpHeaders.empty,
+  headers: HeaderCollection = HeaderCollection.empty,
   urlScheme: UrlScheme = HttpUrlScheme.Http,
   serverName: String = InetAddress.getLocalHost.getHostName,
   serverPort: Int = 80,
@@ -113,9 +108,9 @@ case class RequestPrelude(
   remote: InetAddress = InetAddress.getLocalHost,
   attributes: AttributeMap = AttributeMap.empty
 ) {
-  def contentLength: Option[Int] = headers.get(HttpHeaders.ContentLength).map(_.length)
+  def contentLength: Option[Int] = headers.get(Headers.ContentLength).map(_.length)
 
-  def contentType: Option[ContentType] = headers.get(HttpHeaders.ContentType).map(_.contentType)
+  def contentType: Option[ContentType] = headers.get(Headers.ContentType).map(_.contentType)
 
   def charset: HttpCharset = contentType.map(_.charset) getOrElse HttpCharsets.`ISO-8859-1`
 
@@ -140,4 +135,4 @@ case class RequestPrelude(
 
 case class Request(prelude: RequestPrelude = RequestPrelude(), body: HttpBody = Process.halt)
 
-case class ResponsePrelude(status: Status = Status.Ok, headers: HttpHeaders = HttpHeaders.empty) extends HttpPrelude
+case class ResponsePrelude(status: Status = Status.Ok, headers: HeaderCollection = HeaderCollection.empty) extends HttpPrelude

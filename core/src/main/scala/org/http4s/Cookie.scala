@@ -7,12 +7,12 @@ import org.joda.time.DateTime
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)
   
-  def apply(cookies: HttpCookie*): RequestCookieJar = (newBuilder ++= cookies).result()
+  def apply(cookies: Cookie*): RequestCookieJar = (newBuilder ++= cookies).result()
   /** The default builder for RequestCookieJar objects.
    */
-  def newBuilder: mutable.Builder[HttpCookie, RequestCookieJar] = new mutable.Builder[HttpCookie, RequestCookieJar] {
-    private[this] val coll = mutable.ListBuffer[HttpCookie]()
-    def +=(elem: HttpCookie): this.type = {
+  def newBuilder: mutable.Builder[Cookie, RequestCookieJar] = new mutable.Builder[Cookie, RequestCookieJar] {
+    private[this] val coll = mutable.ListBuffer[Cookie]()
+    def +=(elem: Cookie): this.type = {
       coll += elem
       this
     }
@@ -23,26 +23,26 @@ object RequestCookieJar {
   }
   
   
-  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[HttpCookie], HttpCookie, RequestCookieJar] =
-    new CanBuildFrom[TraversableOnce[HttpCookie], HttpCookie, RequestCookieJar] {
-      def apply(from: TraversableOnce[HttpCookie]): mutable.Builder[HttpCookie, RequestCookieJar] =
+  implicit def canBuildFrom: CanBuildFrom[TraversableOnce[Cookie], Cookie, RequestCookieJar] =
+    new CanBuildFrom[TraversableOnce[Cookie], Cookie, RequestCookieJar] {
+      def apply(from: TraversableOnce[Cookie]): mutable.Builder[Cookie, RequestCookieJar] =
         newBuilder ++= from
   
-      def apply(): mutable.Builder[HttpCookie, RequestCookieJar] = newBuilder
+      def apply(): mutable.Builder[Cookie, RequestCookieJar] = newBuilder
     }
   
 }
-class RequestCookieJar(headers: Seq[HttpCookie]) extends Iterable[HttpCookie] with IterableLike[HttpCookie, RequestCookieJar] {
-  override protected[this] def newBuilder: mutable.Builder[HttpCookie, RequestCookieJar] = RequestCookieJar.newBuilder
-  def iterator: Iterator[HttpCookie] = headers.iterator
+class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with IterableLike[Cookie, RequestCookieJar] {
+  override protected[this] def newBuilder: mutable.Builder[Cookie, RequestCookieJar] = RequestCookieJar.newBuilder
+  def iterator: Iterator[Cookie] = headers.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
   
-  def get(key: String): Option[HttpCookie] = headers.find(_.name == key)
-  def apply(key: String): HttpCookie = get(key) getOrElse default(key)
+  def get(key: String): Option[Cookie] = headers.find(_.name == key)
+  def apply(key: String): Cookie = get(key) getOrElse default(key)
   def contains(key: String): Boolean = headers.exists(_.name == key)
-  def getOrElse(key: String, default: => String): HttpCookie = get(key) getOrElse HttpCookie(key, default)
+  def getOrElse(key: String, default: => String): Cookie = get(key) getOrElse Cookie(key, default)
   override def seq: RequestCookieJar = this
-  def default(key: String): HttpCookie = throw new NoSuchElementException("Can't find cookie " + key)
+  def default(key: String): Cookie = throw new NoSuchElementException("Can't find cookie " + key)
 
   def keySet: Set[String] = headers.map(_.name).toSet
 
@@ -62,7 +62,7 @@ class RequestCookieJar(headers: Seq[HttpCookie]) extends Iterable[HttpCookie] wi
    *
    *  @return the values of this map as an iterable.
    */
-  def cookies: Iterable[HttpCookie] = headers
+  def cookies: Iterable[Cookie] = headers
   
 
   /** Creates an iterator for all keys.
@@ -85,8 +85,8 @@ class RequestCookieJar(headers: Seq[HttpCookie]) extends Iterable[HttpCookie] wi
   def filterKeys(p: String => Boolean): RequestCookieJar = new RequestCookieJar(headers.filter(c => p(c.name)))
 
   /* Overridden for efficiency. */
-  override def toSeq: Seq[HttpCookie] = headers
-  override def toBuffer[C >: HttpCookie]: mutable.Buffer[C] = {
+  override def toSeq: Seq[Cookie] = headers
+  override def toBuffer[C >: Cookie]: mutable.Buffer[C] = {
     val result = new mutable.ArrayBuffer[C](size)
     copyToBuffer(result)
     result
@@ -99,7 +99,7 @@ class RequestCookieJar(headers: Seq[HttpCookie]) extends Iterable[HttpCookie] wi
 
 
 // see http://tools.ietf.org/html/rfc6265
-case class HttpCookie(
+case class Cookie(
   name: String,
   content: String,
   expires: Option[DateTime] = None,

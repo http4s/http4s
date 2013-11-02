@@ -44,8 +44,8 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
         for (header <- response.prelude.headers)
           servletResponse.addHeader(header.name, header.value)
         val out = servletResponse.getOutputStream
-        val isChunked = response.prelude.headers.get(HttpHeaders.TransferEncoding)
-          .fold(false)(_.coding.matches(HttpEncodings.chunked))
+        val isChunked = response.prelude.headers.get(Headers.TransferEncoding)
+          .fold(false)(_.coding.matches(ContentCodings.chunked))
         response.body.map { bytes =>
           out.write(bytes.toArray)
           if (isChunked)
@@ -79,12 +79,12 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
     Request(prelude, body)
   }
 
-  private def toHeaders(req: HttpServletRequest): HttpHeaders = {
+  protected def toHeaders(req: HttpServletRequest): HeaderCollection = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield HttpHeaders.RawHeader(name, value)
-    HttpHeaders(headers.toSeq : _*)
+    } yield Headers.RawHeader(name, value)
+    HeaderCollection(headers.toSeq : _*)
   }
 }
 

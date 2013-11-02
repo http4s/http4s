@@ -98,12 +98,12 @@ object BodyParser {
 
   // TODO: why are we using blocking file ops here!?!
   // File operations
-  def binFile(file: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Responder] = {
+  def binFile(file: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Response] = {
     val out = new java.io.FileOutputStream(file)
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }(ec).map{ _ => out.close(); f }(oec)
   }
 
-  def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Responder] = {
+  def textFile(req: RequestPrelude, in: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Response] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }(ec).map{ _ => is.close(); f }(oec)
   }

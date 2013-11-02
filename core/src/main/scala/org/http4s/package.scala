@@ -11,8 +11,9 @@ import scala.util.{Failure, Success}
 import org.joda.time.{DateTime, DateTimeZone, ReadableInstant}
 import org.joda.time.format.DateTimeFormat
 import java.util.Locale
+import org.http4s.util.LowercaseSyntax
 
-package object http4s {
+package object http4s extends LowercaseSyntax {
   type HttpService = Request => Task[Response]
   type HttpBody = Process[Task, HttpChunk]
 
@@ -30,7 +31,7 @@ package object http4s {
 //  implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
 //  implicit def app2scope(routes: RouteHandler) = routes.appScope
 //  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
-  implicit def string2headerkey(name: String): HttpHeaderKey[HttpHeader] = HttpHeaders.Key(name)
+  implicit def string2headerkey(name: String): HeaderKey[Header] = Headers.Key(name)
 
   val Get = Method.Get
   val Post = Method.Post

@@ -13,8 +13,7 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http
 import http.HttpHeaders.{Names, Values, isKeepAlive}
 
-import org.http4s.{HttpHeaders, HttpChunk, Response, RequestPrelude}
-import org.http4s.Status.{InternalServerError, NotFound}
+import org.http4s.Headers
 import org.http4s.TrailerChunk
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -22,7 +21,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelInboundHandlerAdapter, ChannelHandlerContext}
 import io.netty.util.{ReferenceCountUtil, CharsetUtil}
 import io.netty.buffer.{Unpooled, ByteBuf}
-import org.http4s.HttpHeaders.RawHeader
+import org.http4s.Headers.RawHeader
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http.{HttpServerCodec, DefaultHttpContent, DefaultFullHttpResponse}
 import scala.collection.mutable.ListBuffer
@@ -135,7 +134,7 @@ abstract class Http4sNetty
 
     val stat = new http.HttpResponseStatus(respPrelude.status.code, respPrelude.status.reason)
 
-    val length = respPrelude.headers.get(HttpHeaders.ContentLength).map(_.length)
+    val length = respPrelude.headers.get(Headers.ContentLength).map(_.length)
     val isHttp10 = req.getProtocolVersion == http.HttpVersion.HTTP_1_0
 
     val headers = new ListBuffer[(String, String)]
@@ -222,7 +221,7 @@ abstract class Http4sNetty
 
   private def toHeaders(headers: http.HttpHeaders) = {
     import collection.JavaConversions._
-    HttpHeaders( headers.entries.map(entry => RawHeader(entry.getKey, entry.getValue)):_*)
+    HeaderCollection( headers.entries.map(entry => RawHeader(entry.getKey, entry.getValue)):_*)
   }
 }
 

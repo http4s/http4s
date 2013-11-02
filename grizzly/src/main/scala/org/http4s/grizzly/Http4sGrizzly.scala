@@ -29,8 +29,8 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
       for (header <- responder.prelude.headers)
         resp.addHeader(header.name, header.value)
 
-      import HttpEncodings.chunked
-      val isChunked = responder.prelude.headers.get(HttpHeaders.TransferEncoding).map(_.coding.matches(chunked)).getOrElse(false)
+      import ContentCodings.chunked
+      val isChunked = responder.prelude.headers.get(Headers.TransferEncoding).map(_.coding.matches(chunked)).getOrElse(false)
       val out = new OutputIteratee(resp.getNIOOutputStream, isChunked)
       responder.body.transform(out)
     }
@@ -74,12 +74,12 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     )
   }
 
-  protected def toHeaders(req: GrizReq): HttpHeaders = {
+  protected def toHeaders(req: GrizReq): HeaderCollection = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield HttpHeaders.RawHeader(name, value)
-    HttpHeaders(headers.toSeq : _*)
+    } yield Headers.RawHeader(name, value)
+    HeaderCollection(headers.toSeq : _*)
   }
 }
 */
