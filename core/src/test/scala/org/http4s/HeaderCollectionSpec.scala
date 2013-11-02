@@ -2,10 +2,10 @@ package org.http4s
 
 import org.scalatest.{WordSpec, Matchers}
 
-class HttpHeadersSpec extends WordSpec with Matchers {
+class HeaderCollectionSpec extends WordSpec with Matchers {
   "put" should {
     "replace duplicate headers" in {
-      val headers = HttpHeaders(
+      val headers = HeaderCollection(
         HttpHeaders.SetCookie(HttpCookie("foo", "bar")),
         HttpHeaders.SetCookie(HttpCookie("baz", "quux"))
       )

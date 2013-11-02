@@ -7,12 +7,7 @@ import collection.{mutable, IndexedSeqOptimized}
 import scala.collection.generic.CanBuildFrom
 import java.nio.ByteBuffer
 
-// Our Http message "currency" types
-sealed trait HasHeaders {
-  def headers: HttpHeaders
-}
-
-sealed trait HttpPrelude extends HasHeaders
+sealed trait HttpPrelude
 
 // IPC: Do we still need HttpChunk?
 sealed trait HttpChunk
@@ -82,7 +77,7 @@ object BodyChunk {
     }
 }
 
-case class TrailerChunk(headers: HttpHeaders = HttpHeaders.empty) extends HttpChunk {
+case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends HttpChunk {
   final def bytes: ByteString = ByteString.empty
 }
 
@@ -93,7 +88,7 @@ case class RequestPrelude(
   queryString: String = "",
   pathTranslated: Option[File] = None,
   protocol: ServerProtocol = HttpVersion.`Http/1.1`,
-  headers: HttpHeaders = HttpHeaders.empty,
+  headers: HeaderCollection = HeaderCollection.empty,
   urlScheme: UrlScheme = HttpUrlScheme.Http,
   serverName: String = InetAddress.getLocalHost.getHostName,
   serverPort: Int = 80,
@@ -125,4 +120,4 @@ case class RequestPrelude(
   def -[T](key: AttributeKey[T]) = copy(attributes = attributes.remove(key))
   def contains[T](key: AttributeKey[T]): Boolean = attributes.contains(key)
 }
-case class ResponsePrelude(status: Status, headers: HttpHeaders = HttpHeaders.empty) extends HttpPrelude
+case class ResponsePrelude(status: Status, headers: HeaderCollection = HeaderCollection.empty) extends HttpPrelude

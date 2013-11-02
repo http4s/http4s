@@ -37,7 +37,7 @@ class MockServerSpec extends WordSpec with Matchers {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/body-and-trailer")
       val body = Enumerator[HttpChunk](
         BodyChunk("1234567890123456"),
-        TrailerChunk(HttpHeaders(RawHeader("Hi", "I'm a trailer")))
+        TrailerChunk(HeaderCollection(RawHeader("Hi", "I'm a trailer")))
       )
       new String(server.response(req, body).body) should equal ("1234567890123456\nI'm a trailer")
     }

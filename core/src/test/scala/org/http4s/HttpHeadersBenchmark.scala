@@ -11,12 +11,12 @@ object HttpHeadersBenchmark extends PerformanceTest.Quickbenchmark {
     i <- 0 until size
   } yield HttpHeaders.RawHeader("X-HttpHeaders-Benchmark-"+i, i.toString)
 
-  val replacements: Gen[(HttpHeaders, HttpHeader)] = for {
+  val replacements: Gen[(HeaderCollection, HttpHeader)] = for {
     headers <- headerses
   } yield {
     val i = headers.size / 2
     val header = HttpHeaders.RawHeader("X-HttpHeaders-Benchmark-"+i, "replacement")
-    (HttpHeaders.apply(headers: _*), header)
+    (HeaderCollection.apply(headers: _*), header)
   }
 
   performance of "HttpHeaders" in {
@@ -25,7 +25,7 @@ object HttpHeadersBenchmark extends PerformanceTest.Quickbenchmark {
       exec.minWarmupRuns -> 100000
     ) in {
       using (headerses) in {
-        headers => HttpHeaders.apply(headers: _*)
+        headers => HeaderCollection.apply(headers: _*)
       }
     }
 
@@ -34,7 +34,7 @@ object HttpHeadersBenchmark extends PerformanceTest.Quickbenchmark {
       exec.minWarmupRuns -> 100000
     ) in {
       using (headerses) in { headers =>
-        var target: HttpHeaders = HttpHeaders.empty
+        var target: HeaderCollection = HeaderCollection.empty
         for (header <- headers) {
           target :+= header
         }

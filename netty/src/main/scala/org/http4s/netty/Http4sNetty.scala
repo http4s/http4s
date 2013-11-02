@@ -244,6 +244,6 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
 
   private def toHeaders(headers: http.HttpHeaders) = {
     import collection.JavaConversions._
-    HttpHeaders( headers.entries.map(entry => RawHeader(entry.getKey, entry.getValue)):_*)
+    HeaderCollection( headers.entries.map(entry => RawHeader(entry.getKey, entry.getValue)):_*)
   }
 }

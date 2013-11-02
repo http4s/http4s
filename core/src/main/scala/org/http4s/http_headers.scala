@@ -16,15 +16,15 @@ trait HttpHeaderKey[T <: HttpHeader] {
 
   override def toString: String = name
 
-  def unapply(headers: HttpHeaders): Option[T] =
+  def unapply(headers: HeaderCollection): Option[T] =
     (headers find (_ is name.lowercase(Locale.US)) map (_.parsed)).collectFirst(collectHeader)
 
-  def unapplySeq(headers: HttpHeaders): Option[Seq[T]] =
+  def unapplySeq(headers: HeaderCollection): Option[Seq[T]] =
     Some((headers filter (_ is name.lowercase(Locale.US)) map (_.parsed)).collect(collectHeader))
 
-  def from(headers: HttpHeaders): Option[T] = unapply(headers)
+  def from(headers: HeaderCollection): Option[T] = unapply(headers)
 
-  def findIn(headers: HttpHeaders): Seq[T] = unapplySeq(headers) getOrElse Seq.empty
+  def findIn(headers: HeaderCollection): Seq[T] = unapplySeq(headers) getOrElse Seq.empty
 
   protected[this] def collectHeader: PartialFunction[HttpHeader, T]
 }
@@ -47,29 +47,6 @@ abstract class HttpHeader {
 
 object HttpHeader {
   def unapply(header: HttpHeader): Option[(String, String)] = Some((header.lowercaseName, header.value))
-}
-
-final class HttpHeaders private (headers: List[HttpHeader])
-  extends immutable.Seq[HttpHeader]
-  with collection.SeqLike[HttpHeader, HttpHeaders]
-{
-  override protected[this] def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] = HttpHeaders.newBuilder
-
-  def length: Int = headers.length
-
-  def apply(idx: Int): HttpHeader = headers(idx)
-
-  def iterator: Iterator[HttpHeader] = headers.iterator
-
-  def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
-
-  def get[T <: HttpHeader](key: HttpHeaderKey[T]): Option[T] = key from this
-
-  def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
-
-  def put(header: HttpHeader): HttpHeaders = {
-    new HttpHeaders(header :: headers.filterNot(_.lowercaseName == header.lowercaseName))
-  }
 }
 
 object HttpHeaders {
@@ -613,20 +590,6 @@ object HttpHeaders {
     override lazy val parsed: HttpHeader = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
-  val empty = apply()
-
-  def apply(headers: HttpHeader*): HttpHeaders =  new HttpHeaders(headers.toList)
-
-  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, HttpHeaders] =
-    new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HttpHeaders] {
-      def apply(from: TraversableOnce[HttpHeader]): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
-
-      def apply(): mutable.Builder[HttpHeader, HttpHeaders] = newBuilder
-    }
-
-  private def newBuilder: mutable.Builder[HttpHeader, HttpHeaders] =
-    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (b => new HttpHeaders(b.result()))
-
   object Key {
 
     def apply[T <: HttpHeader](nm: String, collector: PartialFunction[HttpHeader, T]): HttpHeaderKey[T] = new HttpHeaderKey[T] {
@@ -639,6 +602,4 @@ object HttpHeaders {
       override val name: String = nm
     }
   }
-
-
 }
