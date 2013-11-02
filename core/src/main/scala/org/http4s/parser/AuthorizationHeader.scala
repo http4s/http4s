@@ -9,7 +9,7 @@ private[parser] trait AuthorizationHeader {
   this: Parser with ProtocolParameterRules with AdditionalRules =>
 
   def AUTHORIZATION = rule {
-    CredentialDef ~ EOI ~~> (HttpHeaders.Authorization(_))
+    CredentialDef ~ EOI ~~> (Headers.Authorization(_))
   }
 
   def CredentialDef = rule {
@@ -17,7 +17,7 @@ private[parser] trait AuthorizationHeader {
   }
 
   def BasicCredentialDef = rule {
-    "Basic" ~ BasicCookie ~> (BasicHttpCredentials(_))
+    "Basic" ~ BasicCookie ~> (BasicCredentials(_))
   }
 
   def BasicCookie = rule {
@@ -29,7 +29,7 @@ private[parser] trait AuthorizationHeader {
   }
 
   def GenericHttpCredentialsDef = rule {
-    AuthScheme ~ CredentialParams ~~> GenericHttpCredentials
+    AuthScheme ~ CredentialParams ~~> GenericCredentials
   }
 
   def CredentialParams = rule (

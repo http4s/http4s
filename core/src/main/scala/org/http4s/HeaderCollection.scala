@@ -3,25 +3,25 @@ package org.http4s
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 
-final class HeaderCollection private (headers: List[HttpHeader])
-  extends immutable.Seq[HttpHeader]
-  with collection.SeqLike[HttpHeader, HeaderCollection]
+final class HeaderCollection private (headers: List[Header])
+  extends immutable.Seq[Header]
+  with collection.SeqLike[Header, HeaderCollection]
 {
-  override protected[this] def newBuilder: mutable.Builder[HttpHeader, HeaderCollection] = HeaderCollection.newBuilder
+  override protected[this] def newBuilder: mutable.Builder[Header, HeaderCollection] = HeaderCollection.newBuilder
 
   def length: Int = headers.length
 
-  def apply(idx: Int): HttpHeader = headers(idx)
+  def apply(idx: Int): Header = headers(idx)
 
-  def iterator: Iterator[HttpHeader] = headers.iterator
+  def iterator: Iterator[Header] = headers.iterator
 
-  def apply[T <: HttpHeader](key: HttpHeaderKey[T]) = get(key).get
+  def apply[T <: Header](key: HeaderKey[T]) = get(key).get
 
-  def get[T <: HttpHeader](key: HttpHeaderKey[T]): Option[T] = key from this
+  def get[T <: Header](key: HeaderKey[T]): Option[T] = key from this
 
-  def getAll[T <: HttpHeader](key: HttpHeaderKey[T]): Seq[T] = key findIn this
+  def getAll[T <: Header](key: HeaderKey[T]): Seq[T] = key findIn this
 
-  def put(header: HttpHeader): HeaderCollection = {
+  def put(header: Header): HeaderCollection = {
     new HeaderCollection(header :: headers.filterNot(_.lowercaseName == header.lowercaseName))
   }
 }
@@ -29,15 +29,15 @@ final class HeaderCollection private (headers: List[HttpHeader])
 object HeaderCollection {
   val empty = apply()
 
-  def apply(headers: HttpHeader*): HeaderCollection =  new HeaderCollection(headers.toList)
+  def apply(headers: Header*): HeaderCollection =  new HeaderCollection(headers.toList)
 
-  implicit def canBuildFrom: CanBuildFrom[Traversable[HttpHeader], HttpHeader, HeaderCollection] =
-    new CanBuildFrom[TraversableOnce[HttpHeader], HttpHeader, HeaderCollection] {
-      def apply(from: TraversableOnce[HttpHeader]): mutable.Builder[HttpHeader, HeaderCollection] = newBuilder
+  implicit def canBuildFrom: CanBuildFrom[Traversable[Header], Header, HeaderCollection] =
+    new CanBuildFrom[TraversableOnce[Header], Header, HeaderCollection] {
+      def apply(from: TraversableOnce[Header]): mutable.Builder[Header, HeaderCollection] = newBuilder
 
-      def apply(): mutable.Builder[HttpHeader, HeaderCollection] = newBuilder
+      def apply(): mutable.Builder[Header, HeaderCollection] = newBuilder
     }
 
-  private def newBuilder: mutable.Builder[HttpHeader, HeaderCollection] =
-    mutable.ListBuffer.newBuilder[HttpHeader] mapResult (b => new HeaderCollection(b.result()))
+  private def newBuilder: mutable.Builder[Header, HeaderCollection] =
+    mutable.ListBuffer.newBuilder[Header] mapResult (b => new HeaderCollection(b.result()))
 }

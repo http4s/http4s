@@ -6,7 +6,7 @@ import scala.language.reflectiveCalls
 
 import play.api.libs.iteratee._
 
-import org.http4s.HttpHeaders.RawHeader
+import org.http4s.Headers.RawHeader
 import org.scalatest.{WordSpec, Matchers}
 
 class MockServerSpec extends WordSpec with Matchers {

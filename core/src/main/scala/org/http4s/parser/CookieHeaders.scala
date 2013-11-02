@@ -11,15 +11,15 @@ private[parser] trait CookieHeaders {
   this: Parser with ProtocolParameterRules =>
 
   def SET_COOKIE = rule {
-    CookiePair ~ zeroOrMore(";" ~ CookieAttrs) ~ EOI ~~> (HttpHeaders.SetCookie(_))
+    CookiePair ~ zeroOrMore(";" ~ CookieAttrs) ~ EOI ~~> (Headers.SetCookie(_))
   }
 
   def COOKIE = rule {
-    oneOrMore(CookiePair, separator = ";") ~ EOI ~~> (HttpHeaders.`Cookie`(_))
+    oneOrMore(CookiePair, separator = ";") ~ EOI ~~> (Headers.Cookie(_))
   }
 
   def CookiePair = rule {
-    Token ~ ch('=') ~ CookieValue ~~> (HttpCookie(_, _))
+    Token ~ ch('=') ~ CookieValue ~~> (Cookie(_, _))
   }
 
   def CookieValue = rule (
@@ -32,13 +32,13 @@ private[parser] trait CookieHeaders {
   }
 
   def CookieAttrs = rule (
-      str("Expires=") ~ HttpDate ~~> { (cookie: HttpCookie, dateTime: DateTime) => cookie.copy(expires = Some(dateTime)) }
-    | str("Max-Age=") ~ NonNegativeLong ~~> { (cookie: HttpCookie, seconds: Long) => cookie.copy(maxAge = Some(seconds)) }
-    | str("Domain=") ~ DomainName ~~> { (cookie: HttpCookie, domainName: String) => cookie.copy(domain = Some(domainName)) }
-    | str("Path=") ~ StringValue ~~> { (cookie: HttpCookie, pathValue: String) => cookie.copy(path = Some(pathValue)) }
-    | str("Secure") ~~> { (cookie: HttpCookie) => cookie.copy(secure = true) }
-    | str("HttpOnly") ~~> { (cookie: HttpCookie) => cookie.copy(httpOnly = true) }
-    | StringValue ~~> { (cookie: HttpCookie, stringValue: String) => cookie.copy(extension = Some(stringValue)) }
+      str("Expires=") ~ HttpDate ~~> { (cookie: Cookie, dateTime: DateTime) => cookie.copy(expires = Some(dateTime)) }
+    | str("Max-Age=") ~ NonNegativeLong ~~> { (cookie: Cookie, seconds: Long) => cookie.copy(maxAge = Some(seconds)) }
+    | str("Domain=") ~ DomainName ~~> { (cookie: Cookie, domainName: String) => cookie.copy(domain = Some(domainName)) }
+    | str("Path=") ~ StringValue ~~> { (cookie: Cookie, pathValue: String) => cookie.copy(path = Some(pathValue)) }
+    | str("Secure") ~~> { (cookie: Cookie) => cookie.copy(secure = true) }
+    | str("HttpOnly") ~~> { (cookie: Cookie) => cookie.copy(httpOnly = true) }
+    | StringValue ~~> { (cookie: Cookie, stringValue: String) => cookie.copy(extension = Some(stringValue)) }
   )
 
   def NonNegativeLong = rule { oneOrMore(Digit) ~> (_.toLong) }

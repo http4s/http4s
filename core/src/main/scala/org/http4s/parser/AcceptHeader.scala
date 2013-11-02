@@ -8,7 +8,7 @@ private[parser] trait AcceptHeader {
   this: Parser with ProtocolParameterRules with CommonActions =>
 
   def ACCEPT = rule (
-    zeroOrMore(MediaRangeDecl ~ optional(AcceptParams), separator = ListSep) ~ EOI ~~> (HttpHeaders.Accept(_))
+    zeroOrMore(MediaRangeDecl ~ optional(AcceptParams), separator = ListSep) ~ EOI ~~> (Headers.Accept(_))
   )
 
   def MediaRangeDecl = rule {

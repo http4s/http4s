@@ -3,7 +3,7 @@ package parser
 
 import org.parboiled.scala._
 import BasicRules._
-import HttpHeaders._
+import Headers._
 
 /**
  * parser rules for all headers that can be parsed with one simple rule
@@ -12,7 +12,7 @@ private[parser] trait SimpleHeaders {
   this: Parser with ProtocolParameterRules with AdditionalRules =>
 
   def CONNECTION = rule (
-    oneOrMore(Token, separator = ListSep) ~ EOI ~~> (HttpHeaders.Connection(_))
+    oneOrMore(Token, separator = ListSep) ~ EOI ~~> (Headers.Connection(_))
   )
 
   def CONTENT_LENGTH = rule {
