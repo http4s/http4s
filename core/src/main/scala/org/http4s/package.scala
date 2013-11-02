@@ -15,9 +15,9 @@ import org.http4s.util.LowercaseSyntax
 
 package object http4s extends LowercaseSyntax {
   type HttpService = Request => Task[Response]
-  type HttpBody = Process[Task, HttpChunk]
+  type HttpBody = Process[Task, Chunk]
 
-  implicit val HttpChunkSemigroup: Semigroup[HttpChunk] = Semigroup.instance {
+  implicit val ChunkSemigroup: Semigroup[Chunk] = Semigroup.instance {
     case (a: BodyChunk, b: BodyChunk) => a ++ b
     case (a: BodyChunk, _) => a
     case (_, b: BodyChunk) => b

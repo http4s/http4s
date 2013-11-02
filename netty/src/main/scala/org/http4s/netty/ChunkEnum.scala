@@ -1,7 +1,12 @@
 /*
 package org.http4s.netty
 
-import org.http4s.HttpChunk
+<<<<<<< HEAD
+import org.http4s.Chunk
+=======
+import play.api.libs.iteratee._
+import org.http4s.Chunk
+>>>>>>> develop
 import scala.concurrent.{ExecutionContext, Promise, Future}
 import scala.util.{Failure, Success}
 
@@ -11,16 +16,16 @@ import scala.util.{Failure, Success}
  */
 
 
-class ChunkEnum(implicit ec: ExecutionContext) extends Enumerator[HttpChunk] {
-  private var i: Future[Iteratee[HttpChunk, _]] = null
-  private val p = Promise[Iteratee[HttpChunk, _]]
+class ChunkEnum(implicit ec: ExecutionContext) extends Enumerator[Chunk] {
+  private var i: Future[Iteratee[Chunk, _]] = null
+  private val p = Promise[Iteratee[Chunk, _]]
 
-  def apply[A](i: Iteratee[HttpChunk, A]): Future[Iteratee[HttpChunk, A]] = {
+  def apply[A](i: Iteratee[Chunk, A]): Future[Iteratee[Chunk, A]] = {
     this.i = Future.successful(i)
-    p.future.asInstanceOf[Future[Iteratee[HttpChunk, A]]]
+    p.future.asInstanceOf[Future[Iteratee[Chunk, A]]]
   }
 
-  def push(chunk: HttpChunk) {
+  def push(chunk: Chunk) {
     assert(i != null)
     i = i.flatMap(_.pureFold {
       case Step.Cont(f) =>

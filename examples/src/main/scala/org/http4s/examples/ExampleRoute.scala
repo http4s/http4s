@@ -97,18 +97,26 @@ class ExampleRoute {
     Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
 
     case req @ Get -> Root / "challenge" =>
-      req.body |> (await1[HttpChunk] flatMap {
+<<<<<<< HEAD
+      req.body |> (await1[Chunk] flatMap {
         case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("Go") =>
           Process.emit(Response(body = emit(bits) then req.body))
         case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("NoGo") =>
           Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("Booo!"))))
+=======
+      Iteratee.head[Chunk].map {
+        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
+          Ok(Enumeratee.heading(Enumerator(bits: Chunk)))
+        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
+          BadRequest("Booo!")
+>>>>>>> develop
         case _ =>
           Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("no data"))))
       })
 
     case req @ Root :/ "root-element-name" =>
       req.body |> takeBytes(1024 * 1024) |>
-        (processes.fromSemigroup[HttpChunk].map { chunks =>
+        (processes.fromSemigroup[Chunk].map { chunks =>
           val in = chunks.asInputStream
           val source = new InputSource(in)
           source.setEncoding(req.prelude.charset.value)

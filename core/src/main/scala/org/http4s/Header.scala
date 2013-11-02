@@ -81,9 +81,9 @@ object Headers {
       case h: AcceptCharset => h
     }
 
-    def apply(first: HttpCharsetRange, more: HttpCharsetRange*): AcceptCharset = apply(first +: more)
+    def apply(first: CharsetRange, more: CharsetRange*): AcceptCharset = apply(first +: more)
   }
-  case class AcceptCharset(charsetRanges: Seq[HttpCharsetRange]) extends Header {
+  case class AcceptCharset(charsetRanges: Seq[CharsetRange]) extends Header {
     def name = "Accept-Charset"
 
     def lowercaseName = "accept-charset".lowercase

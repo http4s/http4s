@@ -22,7 +22,11 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val request = toRequest(req)
     val parser = try {
       route.lift(request).getOrElse(Done(NotFound(request)))
-    } catch { case t: Throwable => Done[HttpChunk, Response](InternalServerError(t)) }
+<<<<<<< HEAD
+    } catch { case t: Throwable => Done[Chunk, Response](InternalServerError(t)) }
+=======
+    } catch { case t: Throwable => Done[Chunk, Responder](InternalServerError(t)) }
+>>>>>>> develop
 
     val handler = parser.flatMap { responder =>
       resp.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
@@ -36,7 +40,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     }
 
     var canceled = false
-    Concurrent.unicast[HttpChunk]({
+    Concurrent.unicast[Chunk]({
       channel =>
         val bytes = new Array[Byte](chunkSize)
         val is = req.getNIOInputStream

@@ -29,7 +29,7 @@ final class HeaderCollection private (headers: List[Header])
 object HeaderCollection {
   val empty = apply()
 
-  def apply(headers: Header*): HeaderCollection =  new HeaderCollection(headers.toList)
+  def apply(headers: Header*): HeaderCollection = new HeaderCollection(headers.toList)
 
   implicit def canBuildFrom: CanBuildFrom[Traversable[Header], Header, HeaderCollection] =
     new CanBuildFrom[TraversableOnce[Header], Header, HeaderCollection] {
@@ -39,5 +39,5 @@ object HeaderCollection {
     }
 
   private def newBuilder: mutable.Builder[Header, HeaderCollection] =
-    mutable.ListBuffer.newBuilder[Header] mapResult (b => new HeaderCollection(b.result()))
+    new mutable.ListBuffer[Header] mapResult (b => new HeaderCollection(b))
 }

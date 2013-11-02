@@ -22,19 +22,19 @@ trait SimpleWritable[-A] extends Writable[A] {
 
 object Writable {
   // Simple types defined
-  implicit def stringWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+  implicit def stringWritable(implicit charset: Charset = Charsets.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asChunk(s: String) = BodyChunk(s, charset.nioCharset)
     }
 
-  implicit def htmlWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+  implicit def htmlWritable(implicit charset: Charset = Charsets.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: ContentType = ContentType(MediaTypes.`text/html`).withCharset(charset)
       def asChunk(s: xml.Elem) = BodyChunk(s.buildString(false), charset.nioCharset)
     }
 
-  implicit def intWritable(implicit charset: HttpCharset = HttpCharsets.`UTF-8`) =
+  implicit def intWritable(implicit charset: Charset = Charsets.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asChunk(i: Int) = BodyChunk(i.toString, charset.nioCharset)
@@ -55,17 +55,17 @@ object Writable {
     }
 
   implicit def enumerateeWritable =
-  new Writable[Enumeratee[HttpChunk, HttpChunk]] {
+  new Writable[Enumeratee[Chunk, Chunk]] {
     def contentType = ContentType.`application/octet-stream`
-    override def toBody(a: Enumeratee[HttpChunk, HttpChunk])= (a, None)
+    override def toBody(a: Enumeratee[Chunk, Chunk])= (a, None)
   }
 
   implicit def genericEnumerateeWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
-    new Writable[Enumeratee[HttpChunk, A]] {
+    new Writable[Enumeratee[Chunk, A]] {
       def contentType = writable.contentType
 
-      def toBody(a: Enumeratee[HttpChunk, A]): (Enumeratee[HttpChunk, HttpChunk], Option[Int]) = {
-        val finalenum = a.compose(Enumeratee.map[A]( i => BodyChunk(writable.asByteString(i)): HttpChunk))
+      def toBody(a: Enumeratee[Chunk, A]): (Enumeratee[Chunk, Chunk], Option[Int]) = {
+        val finalenum = a.compose(Enumeratee.map[A]( i => BodyChunk(writable.asByteString(i)): Chunk))
         (finalenum , None)
       }
     }
@@ -73,7 +73,7 @@ object Writable {
   implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
   new Writable[Enumerator[A]] {
     def contentType = writable.contentType
-    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[HttpChunk]{ i => BodyChunk(writable.asByteString(i))}(oec)), None)
+    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[Chunk]{ i => BodyChunk(writable.asByteString(i))}(oec)), None)
   }
 */
 

@@ -1,6 +1,6 @@
 package org.http4s
 
-import HttpCharsets._
+import Charsets._
 import org.parboiled.common.Base64
 
 sealed abstract class Credentials {

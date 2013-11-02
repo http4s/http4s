@@ -1,8 +1,5 @@
 package org.http4s
 
-import scalaz.stream.Process
-import scalaz.{\/-, -\/, Monad, Catchable}
-import scala.util.control.NonFatal
 import scalaz.concurrent.Task
 
 class MockServer(service: HttpService) {

@@ -46,7 +46,7 @@ abstract class Http4sNetty
   val serverSoftware = ServerSoftware("HTTP4S / Netty")
 
   //private var enum: ChunkEnum = null
-  private var cb: Throwable \/ HttpChunk => Unit = null
+  private var cb: Throwable \/ Chunk => Unit = null
 
   // Just a front method to forward the request and finally release the buffer
   override def channelRead(ctx: ChannelHandlerContext, msg: Object) {
@@ -117,7 +117,7 @@ abstract class Http4sNetty
 
     val request = toRequest(ctx, req, rem)
     //val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
-    //catch { case t: Throwable => Done[HttpChunk, Response](InternalServerError(t)) }
+    //catch { case t: Throwable => Done[Chunk, Response](InternalServerError(t)) }
     val task = service(request)/*.handle {
       case e =>
         e.printStackTrace()
@@ -130,8 +130,7 @@ abstract class Http4sNetty
   }
 
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, respPrelude: ResponsePrelude): Sink[Task, HttpChunk] = {
-
+  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, respPrelude: ResponsePrelude): Sink[Task, Chunk] = {
     val stat = new http.HttpResponseStatus(respPrelude.status.code, respPrelude.status.reason)
 
     val length = respPrelude.headers.get(Headers.ContentLength).map(_.length)
@@ -163,7 +162,7 @@ abstract class Http4sNetty
       else ctx.channel.write(resp)   // Future
 
       //type Sink[+F[_],-O] = Process[F, O => F[Unit]]
-      val sink: Sink[Task, HttpChunk] = emit((chunk:HttpChunk) => chunk match {
+      val sink: Sink[Task, Chunk] = emit((chunk:Chunk) => chunk match {
           case c: BodyChunk =>
             if (length.isEmpty) ctx.channel().writeAndFlush(new DefaultHttpContent(Unpooled.wrappedBuffer(chunk.toArray)))
             else ctx.channel().write(new DefaultHttpContent(Unpooled.wrappedBuffer(chunk.toArray)))
@@ -202,7 +201,7 @@ abstract class Http4sNetty
       remote = remote // TODO using remoteName would trigger a lookup
     )
 
-    val (queue, body) = async.localQueue[HttpChunk]
+    val (queue, body) = async.localQueue[Chunk]
     cb = {
       case \/-(chunk: BodyChunk) =>
         logger.info("enqueued chunk")

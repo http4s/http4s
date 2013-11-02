@@ -2,8 +2,6 @@ package org.http4s
 package util
 package middleware
 
-import org.http4s.{Response, HttpChunk, HttpService, RequestPrelude}
-
 /**
  * @author Bryce Anderson
  *         Created on 3/9/13 at 10:43 AM

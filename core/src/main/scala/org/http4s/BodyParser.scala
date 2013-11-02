@@ -26,13 +26,11 @@ object BodyParser {
 /*
   private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
 
-  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[HttpChunk, Response] =
-    bodyParser(identity)
-*/
+  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
 
   def text[A](req: Request, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
     new BodyParser(req.body |> takeBytes(limit)).map(_.decodeString(req.prelude.charset))
-/*
+
   /**
    * Handles a request body as XML.
    *
@@ -44,7 +42,7 @@ object BodyParser {
    * @param parser the SAX parser to use to parse the XML
    * @return a request handler
    */
-  def xml(charset: HttpCharset,
+  def xml(charset: Charset,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
           onSaxException: SAXException => Response = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
@@ -61,15 +59,15 @@ object BodyParser {
   def ignoreBody: BodyParser[Unit] = BodyParser(whileBodyChunk &>> Iteratee.ignore[BodyChunk].map(Right(_))(oec))
 
   def trailer: BodyParser[TrailerChunk] = BodyParser(
-    Enumeratee.dropWhile[HttpChunk](_.isInstanceOf[BodyChunk])(oec) &>>
-      (Iteratee.head[HttpChunk].map {
-        case Some(trailer: TrailerChunk) => trailer
-        case _ => TrailerChunk()
-      }.map(Right(_))))
+    Enumeratee.dropWhile[Chunk](_.isInstanceOf[BodyChunk])(oec) &>>
+      (Iteratee.head[Chunk].map {
+        case Some(trailer: TrailerChunk) => Right(trailer)
+        case _ =>                           Right(TrailerChunk())
+      }(oec)))
 */
 
-  private def takeBytes(n: Int): Process.Process1[HttpChunk, Response \/ HttpChunk] = {
-    Process.await1[HttpChunk] flatMap {
+  private def takeBytes(n: Int): Process.Process1[Chunk, Response \/ Chunk] = {
+    Process.await1[Chunk] flatMap {
       case chunk: BodyChunk =>
         if (chunk.length > n)
           Process.halt
@@ -81,16 +79,16 @@ object BodyParser {
   }
 
 /*
-  val whileBodyChunk: Enumeratee[HttpChunk, BodyChunk] = new CheckDone[HttpChunk, BodyChunk] {
-    def step[A](k: K[BodyChunk, A]): K[HttpChunk, Iteratee[BodyChunk, A]] = {
+  val whileBodyChunk: Enumeratee[Chunk, BodyChunk] = new CheckDone[Chunk, BodyChunk] {
+    def step[A](k: K[BodyChunk, A]): K[Chunk, Iteratee[BodyChunk, A]] = {
       case in @ Input.El(e: BodyChunk) =>
-        new CheckDone[HttpChunk, BodyChunk] {
+        new CheckDone[Chunk, BodyChunk] {
           def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
         } &> k(in.asInstanceOf[Input[BodyChunk]])
       case in @ Input.El(e) =>
         Done(Cont(k), in)
       case in @ Input.Empty =>
-        new CheckDone[HttpChunk, BodyChunk] { def continue[A](k: K[BodyChunk, A]) = Cont(step(k)) } &> k(in)
+        new CheckDone[Chunk, BodyChunk] { def continue[A](k: K[BodyChunk, A]) = Cont(step(k)) } &> k(in)
       case Input.EOF => Done(Cont(k), Input.EOF)
     }
     def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
@@ -98,12 +96,12 @@ object BodyParser {
 
   // TODO: why are we using blocking file ops here!?!
   // File operations
-  def binFile(file: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Response] = {
+  def binFile(file: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[Chunk,Response] = {
     val out = new java.io.FileOutputStream(file)
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }(ec).map{ _ => out.close(); f }(oec)
   }
 
-  def textFile(req: RequestPrelude, in: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[HttpChunk,Response] = {
+  def textFile(req: RequestPrelude, in: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[Chunk,Response] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }(ec).map{ _ => is.close(); f }(oec)
   }

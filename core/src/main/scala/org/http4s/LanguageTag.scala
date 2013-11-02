@@ -7,13 +7,14 @@ sealed abstract class LanguageRange {
   override def toString = "LanguageRange(" + value + ')'
 }
 
-object LanguageRanges {
+object LanguageTags {
 
   case object `*` extends LanguageRange {
     def primaryTag = "*"
     def subTags = Seq.empty[String]
   }
 
-  case class Language(primaryTag: String, subTags: String*) extends LanguageRange
-
 }
+
+case class LanguageTag(primaryTag: String, subTags: String*) extends LanguageRange
+

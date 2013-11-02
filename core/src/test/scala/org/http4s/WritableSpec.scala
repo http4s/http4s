@@ -16,7 +16,7 @@ class WritableSpec extends WordSpec with Matchers {
     import Writable._
 
     def route(in: Route): String =
-      new String(new MockServer(in).response(RequestPrelude(), Enumerator.eof[HttpChunk]).body)
+      new String(new MockServer(in).response(RequestPrelude(), Enumerator.eof[Chunk]).body)
 
     "Build String"
 
