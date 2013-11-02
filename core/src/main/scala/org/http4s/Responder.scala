@@ -10,12 +10,12 @@ case class Responder(
   body: ResponderBody = Responder.EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
 ) {
-  def addHeader(header: Header) = copy(prelude = prelude.copy(headers = prelude.headers :+ header))
+  def addHeader(header: Header) = copy(prelude = prelude.copy(headers = header +: prelude.headers))
 
   def dropHeaders(f: Header => Boolean): Responder =
     copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
 
-  def dropHeader(header: HeaderKey[_]): Responder = dropHeaders(_.lowercaseName != header.name)
+  def dropHeader(headerKey: HeaderKey[_]): Responder = dropHeaders(_ isNot headerKey)
 
   def contentType: Option[ContentType] =  prelude.headers.get(Headers.ContentType).map(_.contentType)
 

@@ -6,19 +6,22 @@ import java.net.InetAddress
 import java.util.Locale
 import org.http4s.util.Lowercase
 import scalaz.@@
+import scala.reflect.ClassTag
 
-trait HeaderKey[T <: Header] {
+abstract class HeaderKey[T <: Header : ClassTag] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
+
+  private[http4s] val _clazz = implicitly[ClassTag[T]].runtimeClass
 
   def name: CiString = _cn.lowercaseEn
 
   override def toString: String = name
 
   def unapply(headers: HeaderCollection): Option[T] =
-    (headers find (_ is name) map (_.parsed)).collectFirst(collectHeader)
+    (headers find (_ is this) map (_.parsed)).collectFirst(collectHeader)
 
   def unapplySeq(headers: HeaderCollection): Option[Seq[T]] =
-    Some((headers filter (_ is name) map (_.parsed)).collect(collectHeader))
+    Some((headers filter (_ is this) map (_.parsed)).collect(collectHeader))
 
   def from(headers: HeaderCollection): Option[T] = unapply(headers)
 
@@ -34,9 +37,13 @@ abstract class Header {
 
   def value: String
 
-  def is(name: CiString): Boolean = this.lowercaseName == name
+  def is(key: HeaderKey[_]): Boolean = key._clazz.getClass.isAssignableFrom(this.getClass)
 
-  def isNot(name: CiString): Boolean = this.lowercaseName != name
+  def isNot(key: HeaderKey[_]): Boolean = !is(key)
+
+  def is(otherName: CiString) = this.lowercaseName == otherName
+
+  def isNot(otherName: CiString) = !is(otherName)
 
   override def toString = name + ": " + value
 
@@ -592,7 +599,7 @@ object Headers {
 
   object Key {
 
-    def apply[T <: Header](nm: String, collector: PartialFunction[Header, T]): HeaderKey[T] = new HeaderKey[T] {
+    def apply[T <: Header : ClassTag](nm: String, collector: PartialFunction[Header, T]): HeaderKey[T] = new HeaderKey[T] {
       override val name: CiString = nm.lowercaseEn
 
       protected[this] def collectHeader: PartialFunction[Header, T] = collector
