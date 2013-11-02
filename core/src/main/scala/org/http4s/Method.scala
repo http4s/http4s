@@ -11,9 +11,6 @@ import scala.collection.concurrent.TrieMap
 sealed abstract case class Method (name: String) {
   override def toString = name
 
-  def unapply(request: RequestPrelude): Option[Path] =
-    if (request.requestMethod.name == name) Some(Path(request.pathInfo) ) else None
-
   def isSafe: Boolean
   def isIdempotent: Boolean
 
@@ -42,10 +39,6 @@ object Methods extends ObjectRegistry[String, Method] {
   val Trace = register(idempotent("TRACE"))
   val Connect = register(notIdempotent("CONNECT"))
   val Patch = register(notIdempotent("PATCH"))
-
-  object Any {
-    def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
-  }
 
   /**
    * Returns a set of all registered methods.

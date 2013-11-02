@@ -24,16 +24,6 @@ package object http4s extends LowercaseSyntax {
 
   implicit def string2headerkey(name: String): HeaderKey[Header] = Headers.Key(name)
 
-  val Get = Methods.Get
-  val Post = Methods.Post
-  val Put = Methods.Put
-  val Delete = Methods.Delete
-  val Trace = Methods.Trace
-  val Options = Methods.Options
-  val Patch = Methods.Patch
-  val Head = Methods.Head
-  val Connect = Methods.Connect
-
   private[this] val Rfc1123Format = DateTimeFormat
     .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
     .withLocale(Locale.US)

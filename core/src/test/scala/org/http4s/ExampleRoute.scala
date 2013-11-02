@@ -4,6 +4,7 @@ import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import akka.util.ByteString
+import org.http4s.dsl._
 
 object ExampleRoute {
   import Status._
@@ -60,7 +61,7 @@ object ExampleRoute {
       val builder = new StringBuilder(20*1028)
       Ok((0 until 1000) map { i => s"This is string number $i" })
 
-    case Get(Root / "future") =>
+    case Get -> Root / "future" =>
       Done{
         Ok(Future("Hello from the future!"))
       }
