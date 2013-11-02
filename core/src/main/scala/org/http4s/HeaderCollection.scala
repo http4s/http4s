@@ -4,10 +4,18 @@ import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 
 final class HeaderCollection private (headers: List[Header])
-  extends immutable.Seq[Header]
+  extends AnyRef with immutable.Seq[Header]
   with collection.SeqLike[Header, HeaderCollection]
 {
   override protected[this] def newBuilder: mutable.Builder[Header, HeaderCollection] = HeaderCollection.newBuilder
+
+  override def tail = new HeaderCollection(headers.tail)
+
+  override def head = headers.head
+
+  override def foreach[B](f: Header => B) = headers.foreach(f)
+
+  override def drop(n: Int) = new HeaderCollection(headers.drop(n))
 
   def length: Int = headers.length
 
@@ -21,15 +29,16 @@ final class HeaderCollection private (headers: List[Header])
 
   def getAll[T <: Header](key: HeaderKey[T]): Seq[T] = key findIn this
 
-  def put(header: Header): HeaderCollection = {
+  def put(header: Header): HeaderCollection =
     new HeaderCollection(header :: headers.filterNot(_.lowercaseName == header.lowercaseName))
-  }
 }
 
 object HeaderCollection {
   val empty = apply()
 
-  def apply(headers: Header*): HeaderCollection = new HeaderCollection(headers.toList)
+  def apply(headers: Header*): HeaderCollection = HeaderCollection(headers.toList)
+
+  def apply(headers: List[Header]): HeaderCollection = new HeaderCollection(headers)
 
   implicit def canBuildFrom: CanBuildFrom[Traversable[Header], Header, HeaderCollection] =
     new CanBuildFrom[TraversableOnce[Header], Header, HeaderCollection] {

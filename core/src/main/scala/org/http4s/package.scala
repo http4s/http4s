@@ -21,9 +21,6 @@ package object http4s extends LowercaseSyntax {
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
-//  implicit def request2scope(req: RequestPrelude) = RequestScope(req.uuid)
-//  implicit def app2scope(routes: RouteHandler) = routes.appScope
-//  implicit def attribute2defaultScope[T, S <: Scope](attributeKey: AttributeKey[T])(implicit scope: S) = attributeKey in scope
   implicit def string2headerkey(name: String): HeaderKey[Header] = Headers.Key(name)
 
   val Get = Method.Get
@@ -35,20 +32,6 @@ package object http4s extends LowercaseSyntax {
   val Patch = Method.Patch
   val Head = Method.Head
   val Connect = Method.Connect
-
-  /*
-  type RequestRewriter = PartialFunction[Request, Request]
-
-  def rewriteRequest(f: RequestRewriter): Middleware = {
-    route: Route => f.orElse({ case req: Request => req }: RequestRewriter).andThen(route)
-  }
-
-  type ResponseTransformer = PartialFunction[Response, Response]
-
-  def transformResponse(f: ResponseTransformer): Middleware = {
-    route: Route => route andThen { handler => handler.map(f) }
-  }
-  */
 
   private[this] val Rfc1123Format = DateTimeFormat
     .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
