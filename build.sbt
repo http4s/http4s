@@ -8,7 +8,9 @@ lazy val netty = project.dependsOn(core)
 
 lazy val servlet = project.dependsOn(core)
 
-lazy val examples = project.dependsOn(grizzly, netty, servlet)
+lazy val dsl = project.dependsOn(core)
+
+lazy val examples = project.dependsOn(grizzly, netty, servlet, dsl)
 
 /* common dependencies */
 libraryDependencies in ThisBuild ++= Seq(

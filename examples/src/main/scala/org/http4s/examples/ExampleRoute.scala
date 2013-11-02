@@ -1,10 +1,9 @@
 package org.http4s
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process._
 import scalaz.stream.Process
-import org.http4s.Status.Ok
 import scala.concurrent.Future
+import org.http4s.dsl._
 
 class ExampleRoute {
   import Status._

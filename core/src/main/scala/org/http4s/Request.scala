@@ -5,7 +5,7 @@ import java.net.{URI, InetAddress}
 import scalaz.stream.Process
 
 case class RequestPrelude(
-                           requestMethod: Method = Method.Get,
+                           requestMethod: Method = Methods.Get,
                            scriptName: String = "",
                            pathInfo: String = "",
                            queryString: String = "",

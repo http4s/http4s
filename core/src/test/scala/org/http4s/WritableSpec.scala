@@ -1,6 +1,8 @@
 /*
 package org.http4s
 
+import scala.language.postfixOps      // the http4s team resents importing this.
+
 import play.api.libs.iteratee.Enumerator
 import org.http4s.Status._
 import akka.util.ByteString
@@ -18,7 +20,6 @@ class WritableSpec extends WordSpec with Matchers {
     def route(in: Route): String =
       new String(new MockServer(in).response(RequestPrelude(), Enumerator.eof[Chunk]).body)
 
-    "Build String"
 
     "Get Strings" in {
       route { case _ => Ok("pong")} should equal("pong")

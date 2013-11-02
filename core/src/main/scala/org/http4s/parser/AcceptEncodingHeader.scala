@@ -18,7 +18,7 @@ private[parser] trait AcceptEncodingHeader {
 
   def EncodingRangeDef = rule (
       "*" ~ push(`*`)
-    | ContentCoding ~~> (x => getForKey(x.toLowerCase).getOrElse(new CustomHttpContentCoding(x)))
+    | ContentCoding ~~> (x => getForKey(x.lowercaseEn).getOrElse(org.http4s.ContentCoding(x.lowercaseEn)))
   )
 
   def EncodingQuality = rule {

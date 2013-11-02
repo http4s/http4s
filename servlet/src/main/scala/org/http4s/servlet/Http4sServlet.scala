@@ -61,9 +61,9 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
     }
   }
 
-  private def toRequest(req: HttpServletRequest): Request = {
+  protected def toRequest(req: HttpServletRequest): Request = {
     val prelude = RequestPrelude(
-      requestMethod = Method(req.getMethod),
+      requestMethod = Methods(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
       queryString = Option(req.getQueryString).getOrElse(""),

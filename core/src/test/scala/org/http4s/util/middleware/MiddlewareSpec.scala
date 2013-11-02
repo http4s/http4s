@@ -15,10 +15,10 @@ class MiddlewareSpec extends WordSpec with Matchers {
   import concurrent.ExecutionContext.Implicits.global
 
   val echoBody = Enumerator("one", "two", "three").map[Chunk](s => BodyChunk(s))
-  val echoReq = RequestPrelude(requestMethod = Method.Post, pathInfo = "/rootPath/echo")
+  val echoReq = RequestPrelude(requestMethod = Methods.Post, pathInfo = "/rootPath/echo")
 
   val pingBody = Enumerator.eof[Chunk]
-  val pingReq = RequestPrelude(requestMethod = Method.Get, pathInfo = "/rootPath/ping")
+  val pingReq = RequestPrelude(requestMethod = Methods.Get, pathInfo = "/rootPath/ping")
 
   "TranslateRoot" should {
     val server = new MockServer(TranslateRoot("/rootPath")(ExampleRoute()))
@@ -29,7 +29,7 @@ class MiddlewareSpec extends WordSpec with Matchers {
     }
 
     "Be undefined at non-matching address" in {
-      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/foo/echo")
+      val req = RequestPrelude(requestMethod = Methods.Post, pathInfo = "/foo/echo")
       server.response(req, echoBody) should equal (server.onNotFound)
     }
 
@@ -48,7 +48,7 @@ class MiddlewareSpec extends WordSpec with Matchers {
     }
 
     "Be undefined at non-matching address" in {
-      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/foo/echo")
+      val req = RequestPrelude(requestMethod = Methods.Post, pathInfo = "/foo/echo")
       server.response(req, echoBody) should equal (server.onNotFound)
     }
   }

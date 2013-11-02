@@ -1,15 +1,16 @@
 package org.http4s
 
-import java.util.concurrent.atomic.AtomicReference
+import scala.collection.concurrent
+import scala.collection.concurrent.TrieMap
 
+private[http4s] trait ObjectRegistry[K, V <: AnyRef] {
+  protected val registry: concurrent.Map[K, V] = TrieMap.empty
 
-private[http4s] trait ObjectRegistry[K, V] {
-  private[this] val registry = new AtomicReference(Map.empty[K, V])
+  final def register(key: K, obj: V): obj.type = {
+    registry.update(key, obj)
+    obj
+  }
 
-  final def register(key: K, obj: V) =
-    registry.set(registry.get.updated(key, obj))
-
-
-  def getForKey(key: K): Option[V] = registry.get.get(key)
+  def getForKey(key: K): Option[V] = registry.get(key)
 }
 

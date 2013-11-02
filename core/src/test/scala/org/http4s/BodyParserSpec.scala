@@ -1,14 +1,15 @@
 /*
 package org.http4s
 
+import scala.language.postfixOps  // the http4s team resents importing this.
+
 import play.api.libs.iteratee.Enumerator
 import Status._
 
 import scala.concurrent.duration._
 
-import java.io.{FileOutputStream,FileInputStream,File,InputStreamReader}
+import java.io.{FileInputStream,File,InputStreamReader}
 import concurrent.Await
-import akka.util.ByteString
 import org.scalatest.{Matchers, WordSpec}
 
 /**

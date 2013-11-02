@@ -1,43 +1,34 @@
 package org.http4s
 
 sealed abstract class ContentCodingRange {
-  def value: String
+  def value: CiString
   def matches(encoding: ContentCoding): Boolean
-  override def toString = "HttpEncodingRange(" + value + ')'
 }
 
-sealed abstract class ContentCoding extends ContentCodingRange {
+final case class ContentCoding(value: CiString) extends ContentCodingRange {
   def matches(encoding: ContentCoding) = this == encoding
-  override def equals(obj: Any) = obj match {
-    case x: ContentCoding => (this eq x) || value == x.value
-    case _ => false
-  }
-  override def hashCode() = value.##
-  override def toString = "Encoding(" + value + ')'
 }
 
-// see http://www.iana.org/assignments/http-parameters/http-parameters.xml
-object ContentCodings extends ObjectRegistry[String, ContentCoding] {
-
+object ContentCodings extends ObjectRegistry[CiString, ContentCoding] {
   def register(encoding: ContentCoding): ContentCoding = {
-    register(encoding.value.toLowerCase, encoding)
+    register(encoding.value, encoding)
     encoding
   }
 
+  def register(value: String): ContentCoding = ContentCoding(value.lowercaseEn)
+
   val `*`: ContentCodingRange = new ContentCodingRange {
-    def value = "*"
+    def value = "*".lowercaseEn
     def matches(encoding: ContentCoding) = true
   }
 
-  private class PredefContentCoding(val value: String) extends ContentCoding
-
-  val compress      = register(new PredefContentCoding("compress"))
-  val chunked       = register(new PredefContentCoding("chunked"))
-  val deflate       = register(new PredefContentCoding("deflate"))
-  val gzip          = register(new PredefContentCoding("gzip"))
-  val identity      = register(new PredefContentCoding("identity"))
-  val `x-compress`  = register(new PredefContentCoding("x-compress"))
-  val `x-zip`       = register(new PredefContentCoding("x-zip"))
-
-  case class CustomHttpContentCoding(value: String) extends ContentCoding
+  // see http://www.iana.org/assignments/http-parameters/http-parameters.xml
+  val compress       = register("compress")
+  // TODO: This is actually a transfer-coding
+  val chunked        = register("chunked")
+  val deflate        = register("deflate")
+  val exi            = register("exi")
+  val gzip           = register("gzip")
+  val identity       = register("identity")
+  val `pack200-gzip` = register("pack200-gzip")
 }

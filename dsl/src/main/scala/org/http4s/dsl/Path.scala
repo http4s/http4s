@@ -6,6 +6,7 @@
  */
 
 package org.http4s
+package dsl
 
 import scala.util.control.Exception.catching
 

@@ -188,7 +188,7 @@ abstract class Http4sNetty
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
     val prelude = RequestPrelude(
-      requestMethod = Method(req.getMethod.name),
+      requestMethod = Methods(req.getMethod.name),
       //scriptName = contextPath,
       pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,

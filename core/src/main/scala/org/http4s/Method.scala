@@ -1,21 +1,12 @@
 package org.http4s
 
-import scala.collection.concurrent
-import scala.collection.concurrent.TrieMap
-
 /**
  * An HTTP method.
  *
  * @param name the name of the method.
  */
-abstract case class Method private (name: String) {
+sealed abstract case class Method (name: String) {
   override def toString = name
-
-  def unapply(request: Request): Option[Path] =
-    if (request.prelude.requestMethod.name == name)
-      Some(Path(request.prelude.pathInfo) )
-    else
-      None
 
   def isSafe: Boolean
   def isIdempotent: Boolean
@@ -24,14 +15,12 @@ abstract case class Method private (name: String) {
 //  def /(path: String): Path = new /(this, Path(path))
 }
 
-object Method {
+object Methods extends ObjectRegistry[String, Method] {
   def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
   def idempotent(name: String): Method = new MethodImpl(name, false, true)
   def safe(name: String): Method = new MethodImpl(name, true, true)
 
   private class MethodImpl(name: String, val isSafe: Boolean, val isIdempotent: Boolean) extends Method(name)
-
-  private val registry: concurrent.Map[String, Method] = TrieMap.empty
 
   private def register(method: Method): method.type = {
     registry.update(method.name, method)
@@ -47,10 +36,6 @@ object Method {
   val Trace = register(idempotent("TRACE"))
   val Connect = register(notIdempotent("CONNECT"))
   val Patch = register(notIdempotent("PATCH"))
-
-  object Any {
-    def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
-  }
 
   /**
    * Returns a set of all registered methods.

@@ -64,7 +64,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
   protected def toRequest(req: GrizReq): RequestPrelude = {
     val input = req.getNIOInputStream
     RequestPrelude(
-      requestMethod = Method(req.getMethod.toString),
+      requestMethod = Methods(req.getMethod.toString),
       scriptName = req.getContextPath, // + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
       queryString = Option(req.getQueryString).getOrElse(""),
