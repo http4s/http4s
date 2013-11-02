@@ -4,7 +4,6 @@ import scala.language.reflectiveCalls
 import concurrent.{Future, ExecutionContext}
 import play.api.libs.iteratee._
 import akka.util.ByteString
-import org.http4s.dsl._
 
 object ExampleRoute {
   import Status._
@@ -13,41 +12,51 @@ object ExampleRoute {
 
   val MyVar = AttributeKey[String]("myVar")
 
+  /*
+   * We can't see the dsl package from core.  This is an ad hoc thing
+   * to make this test a little asier to write.
+   */
+  object Req {
+    def unapply(req: RequestPrelude): Option[(Method, String)] = Some(req.requestMethod, req.pathInfo)
+  }
+
+  import Methods._
+
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
-    case Get -> Root / "ping" =>
+    case Req(Get, "/ping") =>
       Ok("pong")
 
-    case Post -> Root / "echo" =>
+    case Req(Post, "/echo") =>
       Ok(Enumeratee.passAlong[Chunk])
 
-    case Get -> Root / "echo"  =>
+    case Req(Get, "/echo") =>
       Ok(Enumeratee.map[Chunk] {
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): Chunk
         case chunk => chunk
       })
 
-    case Get -> Root / "echo2" =>
+    case Req(Get, "/echo2") =>
       Ok(Enumeratee.map[Chunk]{
         case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): Chunk
         case chunk => chunk
       })
 
-    case req @ Post -> Root / "sum"  =>
+    case req @ Req(Post, "/sum")  =>
       text(req.charset, 16) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
-    case req @ Post -> Root / "trailer" =>
+    case Req(Post, "/trailer") =>
       trailer(t => Ok(t.headers.length))
 
-    case req @ Post -> Root / "body-and-trailer" =>
+    case req @ Req(Post, "/body-and-trailer") =>
       for {
         body <- text(req.charset)
         trailer <- trailer
       } yield Ok(s"$body\n${trailer.headers("Hi").value}")
 
-    case req @ Get -> Root / "stream" =>
+    case req @ Req(Get, "/stream") =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
@@ -57,17 +66,17 @@ object ExampleRoute {
           channel.eofAndEnd()
       }))
 
-    case Get -> Root / "bigstring" =>
+    case Req(Get, "/bigstring") =>
       val builder = new StringBuilder(20*1028)
       Ok((0 until 1000) map { i => s"This is string number $i" })
 
-    case Get -> Root / "future" =>
+    case Req(Get, "/future") =>
       Done{
         Ok(Future("Hello from the future!"))
       }
 
       // Ross wins the challenge
-    case req @ Get -> Root / "challenge" =>
+    case req @ Req(Get, "/challenge") =>
       Iteratee.head[Chunk].map {
         case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
           Ok(Enumeratee.heading(Enumerator(bits: Chunk)))
@@ -77,12 +86,12 @@ object ExampleRoute {
           BadRequest("No data!")
       }
 
-    case req @ Root :/ "root-element-name" =>
+    case req @ Req(Get, "/root-element-name") =>
       xml(req.charset) { elem =>
         Ok(elem.label)
       }
 
-    case Get -> Root / "html" =>
+    case Req(Get, "/html") =>
       Ok(
         <html><body>
           <div id="main">
@@ -92,7 +101,7 @@ object ExampleRoute {
         </body></html>
       )
 
-    case Root :/ "fail" =>
+    case Req(Get, "/fail") =>
       sys.error("FAIL")
   }
 }
