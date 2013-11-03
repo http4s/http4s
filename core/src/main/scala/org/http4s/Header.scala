@@ -7,6 +7,7 @@ import java.util.Locale
 import org.http4s.util.Lowercase
 import scalaz.@@
 import scala.reflect.ClassTag
+import org.http4s.Headers.RawHeader
 
 abstract class HeaderKey[T <: Header : ClassTag] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -35,11 +36,14 @@ abstract class HeaderKey[T <: Header : ClassTag] {
 abstract class Header {
   def name: String
 
-  def lowercaseName: CiString
+  def lowercaseName: CiString = name.lowercaseEn
 
   def value: String
 
-  def is(key: HeaderKey[_]): Boolean = key._clazz.isAssignableFrom(this.getClass)
+  def is(key: HeaderKey[_]): Boolean = {
+    if (this.isInstanceOf[RawHeader]) this.lowercaseName == key.name
+    else key._clazz.isAssignableFrom(this.getClass)
+  }
 
   def isNot(key: HeaderKey[_]): Boolean = !is(key)
 
@@ -72,8 +76,6 @@ object Headers {
   case class Accept(mediaRanges: Seq[MediaRange]) extends Header {
     def name = "Accept"
 
-    def lowercaseName = "accept".lowercaseEn
-
     def value = mediaRanges.map(_.value).mkString(", ")
   }
 
@@ -84,8 +86,6 @@ object Headers {
   }
   case class AcceptCharset(charsetRanges: Seq[CharsetRange]) extends Header {
     def name = "Accept-Charset"
-
-    def lowercaseName = "accept-charset".lowercaseEn
 
     def value = charsetRanges.map(_.value).mkString(", ")
   }
@@ -99,8 +99,6 @@ object Headers {
   case class AcceptEncoding(encodings: Seq[ContentCodingRange]) extends Header {
     def name = "Accept-Encoding"
 
-    def lowercaseName = "accept-encoding".lowercaseEn
-
     def value = encodings.map(_.value).mkString(", ")
   }
 
@@ -113,8 +111,6 @@ object Headers {
   case class AcceptLanguage(languageRanges: Seq[LanguageRange]) extends Header {
     def name = "Accept-Language"
 
-    def lowercaseName = "accept-language".lowercaseEn
-
     def value = languageRanges.map(_.value).mkString(", ")
   }
 
@@ -126,8 +122,6 @@ object Headers {
 
   case class AcceptRanges(rangeUnits: Seq[RangeUnit]) extends Header {
     def name = "Accept-Ranges"
-
-    def lowercaseName = "accept-ranges".lowercaseEn
 
     def value = if (rangeUnits.isEmpty) "none" else rangeUnits.mkString(", ")
   }
@@ -178,8 +172,6 @@ object Headers {
   case class Authorization(credentials: Credentials) extends Header {
     def name = "Authorization"
 
-    def lowercaseName = "authorization".lowercaseEn
-
     def value = credentials.value
   }
   object CacheControl extends HeaderKey[CacheControl] {
@@ -192,8 +184,6 @@ object Headers {
   case class CacheControl(directives: Seq[CacheDirective]) extends Header {
     def name = "Cache-Control"
 
-    def lowercaseName = "cache-control".lowercaseEn
-
     def value = directives.mkString(", ")
   }
 
@@ -203,8 +193,6 @@ object Headers {
 
   case class Connection(connectionTokens: Seq[String]) extends Header {
     def name = "Connection"
-
-    def lowercaseName = "connection".lowercaseEn
 
     def value = connectionTokens.mkString(", ")
 
@@ -225,8 +213,6 @@ object Headers {
   case class ContentDisposition(dispositionType: String, parameters: Map[String, String]) extends Header {
     def name = "Content-Disposition"
 
-    def lowercaseName = "content-disposition".lowercaseEn
-
     def value = parameters.map(p => "; " + p._1 + "=\"" + p._2 + '"').mkString(dispositionType, "", "")
   }
 
@@ -235,8 +221,6 @@ object Headers {
   }
   case class ContentEncoding(encoding: ContentCoding) extends Header {
     def name = "Content-Encoding"
-
-    def lowercaseName = "content-encoding".lowercaseEn
 
     def value = encoding.value
   }
@@ -251,8 +235,6 @@ object Headers {
 
   case class ContentLength(length: Int) extends Header {
     def name = "Content-Length"
-
-    def lowercaseName = "content-length".lowercaseEn
 
     def value = length.toString
   }
@@ -279,8 +261,6 @@ object Headers {
   case class ContentType(contentType: org.http4s.ContentType) extends Header {
     def name = "Content-Type"
 
-    def lowercaseName = "content-type".lowercaseEn
-
     def value = contentType.value
   }
 
@@ -292,8 +272,6 @@ object Headers {
   case class Cookie(cookies: Seq[org.http4s.Cookie]) extends Header {
     def name = "Cookie"
 
-    def lowercaseName = "cookie".lowercaseEn
-
     def value = cookies.mkString("; ")
   }
 
@@ -301,8 +279,6 @@ object Headers {
 
   case class Date(date: DateTime) extends Header {
     def name = "Date"
-
-    def lowercaseName = "date".lowercaseEn
 
     def value = date.formatRfc1123
   }
@@ -325,8 +301,6 @@ object Headers {
 
   case class Host(host: String, port: Option[Int] = None) extends Header {
     def name = "Host"
-
-    def lowercaseName = "host".lowercaseEn
 
     def value = port.map(host + ':' + _).getOrElse(host)
   }
@@ -358,8 +332,6 @@ object Headers {
   case class LastModified(date: DateTime) extends Header {
     def name = "Last-Modified"
 
-    def lowercaseName = "last-modified".lowercaseEn
-
     def value = date.formatRfc1123
   }
 
@@ -367,8 +339,6 @@ object Headers {
 
   case class Location(absoluteUri: String) extends Header {
     def name = "Location"
-
-    def lowercaseName = "location".lowercaseEn
 
     def value = absoluteUri
   }
@@ -437,8 +407,6 @@ object Headers {
   case class SetCookie(cookie: org.http4s.Cookie) extends Header {
     def name = "Set-Cookie"
 
-    def lowercaseName = "set-cookie".lowercaseEn
-
     def value = cookie.value
   }
 
@@ -456,8 +424,6 @@ object Headers {
   }
   case class TransferEncoding(coding: ContentCoding) extends Header {
     def name = "Transfer-Encoding"
-
-    def lowercaseName = "transfer-encoding".lowercaseEn
 
     def value = coding.value
   }
@@ -495,8 +461,6 @@ object Headers {
   case class WWWAuthenticate(challenges: Seq[Challenge]) extends Header {
     def name = "WWW-Authenticate"
 
-    def lowercaseName = "www-authenticate".lowercaseEn
-
     def value = challenges.mkString(", ")
   }
   object XForwardedFor extends HeaderKey[XForwardedFor] {
@@ -507,8 +471,6 @@ object Headers {
 
   case class XForwardedFor(ips: Seq[Option[InetAddress]]) extends Header {
     def name = "X-Forwarded-For"
-
-    def lowercaseName = "x-forwarded-for".lowercaseEn
 
     def value = ips.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
@@ -522,7 +484,6 @@ object Headers {
   }
 
   case class RawHeader(name: String, value: String) extends Header {
-    val lowercaseName = name.lowercaseEn
     override lazy val parsed: Header = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
