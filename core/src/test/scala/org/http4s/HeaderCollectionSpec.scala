@@ -15,4 +15,14 @@ class HeaderCollectionSpec extends WordSpec with Matchers {
       ))
     }
   }
+
+  "getAll by header key" should {
+    "also find headers created raw" in {
+      val headers = HeaderCollection(
+        Headers.SetCookie(Cookie("foo", "bar")),
+        Headers.RawHeader("Set-Cookie", Cookie("baz", "quux").toString)
+      )
+      headers.getAll(Headers.SetCookie) should have length (2)
+    }
+  }
 }

@@ -7,6 +7,7 @@ import java.util.Locale
 import org.http4s.util.Lowercase
 import scalaz.@@
 import scala.reflect.ClassTag
+import com.typesafe.scalalogging.slf4j.Logging
 
 abstract class HeaderKey[T <: Header : ClassTag] {
   private[this] val _cn = getClass.getName.split("\\.").last.split("\\$").last.replace("\\$$", "")
@@ -32,14 +33,14 @@ abstract class HeaderKey[T <: Header : ClassTag] {
   }
 }
 
-abstract class Header {
+abstract class Header extends Logging {
   def name: String
 
   def lowercaseName: CiString
 
   def value: String
 
-  def is(key: HeaderKey[_]): Boolean = key._clazz.isAssignableFrom(this.getClass)
+  def is(key: HeaderKey[_]): Boolean = is(key.name)
 
   def isNot(key: HeaderKey[_]): Boolean = !is(key)
 
@@ -49,7 +50,7 @@ abstract class Header {
 
   override def toString = name + ": " + value
 
-  lazy val parsed = this
+  lazy val parsed: Header = HttpParser.parseHeader(this).fold(_ => this, identity)
 }
 
 object Header {
@@ -523,7 +524,6 @@ object Headers {
 
   case class RawHeader(name: String, value: String) extends Header {
     val lowercaseName = name.lowercaseEn
-    override lazy val parsed: Header = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
   object Key {
