@@ -17,15 +17,15 @@ case class Responder(
 
   def dropHeader(headerKey: HeaderKey[_]): Responder = dropHeaders(_ isNot headerKey)
 
-  def contentType: Option[ContentType] =  prelude.headers.get(Headers.ContentType).map(_.contentType)
+  def contentType: Option[ContentType] =  prelude.headers.get(Headers.`Content-Type`).map(_.contentType)
 
   def contentType(contentType: ContentType): Responder = copy(prelude =
-    prelude.copy(headers = prelude.headers.put(Headers.ContentType(contentType))))
+    prelude.copy(headers = prelude.headers.put(Headers.`Content-Type`(contentType))))
 
   def addCookie(cookie: Cookie): Responder = addHeader(Headers.Cookie(cookie))
 
   def removeCookie(cookie: Cookie): Responder =
-    addHeader(Headers.SetCookie(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
+    addHeader(Headers.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
 
   def status: Status = prelude.status
 
@@ -64,8 +64,8 @@ object Status {
     def apply[A](body: A, contentType: ContentType)(implicit w: Writable[A]) = {
       var headers = HeaderCollection.empty
       val (parsedBody, length) = w.toBody(body)
-      headers :+= Headers.ContentType(contentType)
-      length.foreach{ length => headers :+= Headers.ContentLength(length) }
+      headers :+= Headers.`Content-Type`(contentType)
+      length.foreach{ length => headers :+= Headers.`Content-Length`(length) }
       Responder(ResponsePrelude(self, headers), parsedBody)
     }
   }

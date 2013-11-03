@@ -16,11 +16,11 @@ private[parser] trait SimpleHeaders {
   )
 
   def CONTENT_LENGTH = rule {
-    oneOrMore(Digit) ~> (s => ContentLength(s.toInt)) ~ EOI
+    oneOrMore(Digit) ~> (s => `Content-Length`(s.toInt)) ~ EOI
   }
 
   def CONTENT_DISPOSITION = rule {
-    Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~~> (_.toMap) ~~> (ContentDisposition(_, _))
+    Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~~> (_.toMap) ~~> (`Content-Disposition`(_, _))
   }
 
   def DATE = rule {
@@ -35,11 +35,11 @@ private[parser] trait SimpleHeaders {
   }
 
   def LAST_MODIFIED = rule {
-    HttpDate ~ EOI ~~> (LastModified(_))
+    HttpDate ~ EOI ~~> (`Last-Modified`(_))
   }
 
   def X_FORWARDED_FOR = rule {
-    oneOrMore(Ip ~~> (Some(_)) | "unknown" ~ push(None), separator = ListSep) ~ EOI ~~> (XForwardedFor(_))
+    oneOrMore(Ip ~~> (Some(_)) | "unknown" ~ push(None), separator = ListSep) ~ EOI ~~> (`X-Forwarded-For`(_))
   }
 
 }

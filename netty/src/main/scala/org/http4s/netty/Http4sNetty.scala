@@ -189,7 +189,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
 
     val stat = new http.HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
 
-    val length = responder.prelude.headers.get(Headers.ContentLength).map(_.length)
+    val length = responder.prelude.headers.get(Headers.`Content-Length`).map(_.length)
     val isHttp10 = req.getProtocolVersion == http.HttpVersion.HTTP_1_0
 
     val headers = new ListBuffer[(String, String)]

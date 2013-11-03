@@ -18,9 +18,9 @@ case class RequestPrelude(
                            remote: InetAddress = InetAddress.getLocalHost,
                            attributes: AttributeMap = AttributeMap.empty
                            ) {
-  def contentLength: Option[Int] = headers.get(Headers.ContentLength).map(_.length)
+  def contentLength: Option[Int] = headers.get(Headers.`Content-Length`).map(_.length)
 
-  def contentType: Option[ContentType] = headers.get(Headers.ContentType).map(_.contentType)
+  def contentType: Option[ContentType] = headers.get(Headers.`Content-Type`).map(_.contentType)
 
   def charset: Charset = contentType.map(_.charset) getOrElse Charsets.`ISO-8859-1`
 

@@ -8,7 +8,7 @@ private[parser] trait AcceptRangesHeader {
   this: Parser with ProtocolParameterRules =>
 
   def ACCEPT_RANGES = rule (
-    RangeUnitsDef ~ EOI ~~> (Headers.AcceptRanges(_))
+    RangeUnitsDef ~ EOI ~~> (Headers.`Accept-Ranges`(_))
   )
 
   def RangeUnitsDef = rule {

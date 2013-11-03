@@ -6,12 +6,12 @@ class HeaderCollectionSpec extends WordSpec with Matchers {
   "put" should {
     "replace duplicate headers" in {
       val headers = HeaderCollection(
-        Headers.SetCookie(Cookie("foo", "bar")),
-        Headers.SetCookie(Cookie("baz", "quux"))
+        Headers.`Set-Cookie`(Cookie("foo", "bar")),
+        Headers.`Set-Cookie`(Cookie("baz", "quux"))
       )
-      headers.getAll(Headers.SetCookie) should have length (2)
-      headers.put(Headers.SetCookie(Cookie("piff", "paff"))).getAll(Headers.SetCookie) should be (Seq(
-        Headers.SetCookie(Cookie("piff", "paff"))
+      headers.getAll(Headers.`Set-Cookie`) should have length (2)
+      headers.put(Headers.`Set-Cookie`(Cookie("piff", "paff"))).getAll(Headers.`Set-Cookie`) should be (Seq(
+        Headers.`Set-Cookie`(Cookie("piff", "paff"))
       ))
     }
   }
@@ -19,10 +19,10 @@ class HeaderCollectionSpec extends WordSpec with Matchers {
   "getAll by header key" should {
     "also find headers created raw" in {
       val headers = HeaderCollection(
-        Headers.SetCookie(Cookie("foo", "bar")),
+        Headers.`Set-Cookie`(Cookie("foo", "bar")),
         Headers.RawHeader("Set-Cookie", Cookie("baz", "quux").toString)
       )
-      headers.getAll(Headers.SetCookie) should have length (2)
+      headers.getAll(Headers.`Set-Cookie`) should have length (2)
     }
   }
 }

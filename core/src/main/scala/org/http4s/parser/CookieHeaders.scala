@@ -11,7 +11,7 @@ private[parser] trait CookieHeaders {
   this: Parser with ProtocolParameterRules =>
 
   def SET_COOKIE = rule {
-    CookiePair ~ zeroOrMore(";" ~ CookieAttrs) ~ EOI ~~> (Headers.SetCookie(_))
+    CookiePair ~ zeroOrMore(";" ~ CookieAttrs) ~ EOI ~~> (Headers.`Set-Cookie`(_))
   }
 
   def COOKIE = rule {

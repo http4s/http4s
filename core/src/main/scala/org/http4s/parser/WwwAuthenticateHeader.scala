@@ -8,7 +8,7 @@ private[parser] trait WwwAuthenticateHeader {
   this: Parser with AdditionalRules =>
 
   def WWW_AUTHENTICATE = rule {
-    oneOrMore(Challenge, separator = ListSep) ~ EOI ~~> (Headers.WWWAuthenticate(_))
+    oneOrMore(Challenge, separator = ListSep) ~ EOI ~~> (Headers.`WWW-Authenticate`(_))
   }
 
   def Challenge = rule {
