@@ -11,31 +11,31 @@ trait HeaderKey[T <: Header] {
 
   def name: String
 
-  def option(header: Header): Option[T]
+  def matchHeader(header: Header): Option[T]
+
+  def unapply(header: Header) = matchHeader(header)
 
   override def toString: String = name
 
   def unapply(headers: HeaderCollection): Option[T] =  {
     val it =headers.iterator
     while(it.hasNext) {
-      val n = option(it.next())
+      val n = matchHeader(it.next())
       if (n.isDefined) return n
     }
     None // Didn't find it
   }
 
   def unapplySeq(headers: HeaderCollection): Option[Seq[T]] =
-    Some(headers flatMap option)
+    Some(headers flatMap matchHeader)
 
   def from(headers: HeaderCollection): Option[T] = unapply(headers)
 
   def findIn(headers: HeaderCollection): Seq[T] = unapplySeq(headers) getOrElse Seq.empty
 
-  def unapply(header: Header): Option[T] = option(header)
+  def isNot(header: Header): Boolean = unapply(header).isEmpty
 
-  def isNot(header: Header) = option(header).isEmpty
-
-  def is(header: Header) = !isNot(header)
+  def is(header: Header): Boolean = !isNot(header)
 }
 
 sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKey[T] {
@@ -43,22 +43,20 @@ sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKe
 
   private val runtimeClass = implicitly[ClassTag[T]].runtimeClass
 
-  override def option(header: Header): Option[T] = {
-    if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[T])
-    else if (header.isInstanceOf[RawHeader] && runtimeClass.isInstance(header.parsed)) {
-      Some(header.parsed.asInstanceOf[T])
-    } else None
+  override def matchHeader(header: Header): Option[T] = {
+    if (runtimeClass.isInstance(header.parsed)) Some(header.parsed.asInstanceOf[T])
+    else None
   }
 }
 
-abstract class Header extends Logging {
+sealed trait Header extends Logging {
   def name: String
 
   def lowercaseName: CiString = name.lowercaseEn
 
   def value: String
 
-  def option[T <: Header](key: HeaderKey[T]): Option[T] = key.option(this)
+  def fromKey[T <: Header](key: HeaderKey[T]): Option[T] = key.unapply(this)
 
   def is(key: HeaderKey[_]): Boolean = key.is(this)
 
@@ -66,7 +64,11 @@ abstract class Header extends Logging {
 
   override def toString = name + ": " + value
 
-  lazy val parsed: Header = HttpParser.parseHeader(this).fold(_ => this, identity)
+  def parsed: Header
+}
+
+trait ParsedHeader extends Header {
+  def parsed: this.type = this
 }
 
 object Header {
@@ -74,9 +76,10 @@ object Header {
 }
 
 object Headers {
+
   class DefaultHeaderKey extends InternalHeaderKey[Header] {
     // All these headers will likely be raw
-    override def option(header: Header): Option[Header] = {
+    override def matchHeader(header: Header): Option[Header] = {
       if (header.name.equalsIgnoreCase(this.name)) Some(header)
       else None
     }
@@ -85,7 +88,7 @@ object Headers {
   object Accept extends InternalHeaderKey[Accept] {
     def apply(first: MediaRange, more: MediaRange*): Accept = apply(first +: more)
   }
-  case class Accept private[http4s] (mediaRanges: Seq[MediaRange]) extends Header {
+  final case class Accept private[http4s] (mediaRanges: Seq[MediaRange]) extends ParsedHeader {
     def name = "Accept"
     def value = mediaRanges.map(_.value).mkString(", ")
   }
@@ -93,7 +96,7 @@ object Headers {
   object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] {
     def apply(first: CharsetRange, more: CharsetRange*): `Accept-Charset` = apply(first +: more)
   }
-  case class `Accept-Charset` private[http4s] (charsetRanges: Seq[CharsetRange]) extends Header {
+  final case class `Accept-Charset` private[http4s] (charsetRanges: Seq[CharsetRange]) extends ParsedHeader {
     def name = "Accept-Charset"
     def value = charsetRanges.map(_.value).mkString(", ")
   }
@@ -101,7 +104,7 @@ object Headers {
   object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] {
     def apply(first: ContentCodingRange, more: ContentCodingRange*): `Accept-Encoding` = apply(first +: more)
   }
-  case class `Accept-Encoding` private[http4s] (contentCodings: Seq[ContentCodingRange]) extends Header {
+  final case class `Accept-Encoding` private[http4s] (contentCodings: Seq[ContentCodingRange]) extends ParsedHeader {
     def name = "Accept-Encoding"
     def value = contentCodings.map(_.value).mkString(", ")
   }
@@ -109,7 +112,7 @@ object Headers {
   object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] {
     def apply(first: LanguageRange, more: LanguageRange*): `Accept-Language` = apply(first +: more)
   }
-  case class `Accept-Language` private[http4s] (languageRanges: Seq[LanguageRange]) extends Header {
+  final case class `Accept-Language` private[http4s] (languageRanges: Seq[LanguageRange]) extends ParsedHeader {
     def name = "Accept-Language"
     def value = languageRanges.map(_.value).mkString(", ")
   }
@@ -117,7 +120,7 @@ object Headers {
   object `Accept-Ranges` extends InternalHeaderKey[`Accept-Ranges`] {
     def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
   }
-  case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends Header {
+  final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends ParsedHeader {
     def name = "Accept-Ranges"
     def value = if (rangeUnits.isEmpty) "none" else rangeUnits.mkString(", ")
   }
@@ -145,7 +148,7 @@ object Headers {
   object Allow extends DefaultHeaderKey
 
   object Authorization extends InternalHeaderKey[Authorization]
-  case class Authorization(credentials: Credentials) extends Header {
+  final case class Authorization(credentials: Credentials) extends ParsedHeader {
     def name = "Authorization"
     def value = credentials.value
   }
@@ -153,7 +156,7 @@ object Headers {
   object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] {
     def apply(first: CacheDirective, more: CacheDirective*): `Cache-Control` = apply(first +: more)
   }
-  case class `Cache-Control` private[http4s] (directives: Seq[CacheDirective]) extends Header {
+  final case class `Cache-Control` private[http4s] (directives: Seq[CacheDirective]) extends ParsedHeader {
     def name = "Cache-Control"
     def value = directives.mkString(", ")
   }
@@ -161,7 +164,7 @@ object Headers {
   object Connection extends InternalHeaderKey[Connection] {
     def apply(first: String, more: String*): Connection = apply(first +: more)
   }
-  case class Connection private[http4s] (connectionTokens: Seq[String]) extends Header {
+  final case class Connection private[http4s] (connectionTokens: Seq[String]) extends ParsedHeader {
     def name = "Connection"
     def value = connectionTokens.mkString(", ")
     def hasClose = connectionTokens.exists(_.toLowerCase == "close")
@@ -172,13 +175,13 @@ object Headers {
 
   object `Content-Disposition` extends InternalHeaderKey[`Content-Disposition`]
   // see http://tools.ietf.org/html/rfc2183
-  case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Header {
+  final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends ParsedHeader {
     def name = "Content-Disposition"
     def value = parameters.map(p => "; " + p._1 + "=\"" + p._2 + '"').mkString(dispositionType, "", "")
   }
 
   object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`]
-  case class `Content-Encoding`(contentCoding: ContentCoding) extends Header {
+  final case class `Content-Encoding`(contentCoding: ContentCoding) extends ParsedHeader {
     def name = "Content-Encoding"
     def value = contentCoding.value
   }
@@ -186,7 +189,7 @@ object Headers {
   object `Content-Language` extends DefaultHeaderKey
 
   object `Content-Length` extends InternalHeaderKey[`Content-Length`]
-  case class `Content-Length`(length: Int) extends Header {
+  final case class `Content-Length`(length: Int) extends ParsedHeader {
     def name = "Content-Length"
     def value = length.toString
   }
@@ -200,7 +203,7 @@ object Headers {
   object `Content-Range` extends DefaultHeaderKey
 
   object `Content-Type` extends InternalHeaderKey[`Content-Type`]
-  case class `Content-Type`(contentType: ContentType) extends Header {
+  final case class `Content-Type`(contentType: ContentType) extends ParsedHeader {
     def name = "Content-Type"
     def value = contentType.value
   }
@@ -208,13 +211,13 @@ object Headers {
   object Cookie extends InternalHeaderKey[Cookie] {
     def apply(first: org.http4s.Cookie, more: org.http4s.Cookie*): Cookie = apply(first +: more)
   }
-  case class Cookie private[http4s] (cookies: Seq[org.http4s.Cookie]) extends Header {
+  final case class Cookie private[http4s] (cookies: Seq[org.http4s.Cookie]) extends ParsedHeader {
     def name = "Cookie"
     def value = cookies.mkString("; ")
   }
 
   object Date extends InternalHeaderKey[Date]
-  case class Date(date: DateTime) extends Header {
+  final case class Date(date: DateTime) extends ParsedHeader {
     def name = "Date"
     def value = date.formatRfc1123
   }
@@ -232,7 +235,7 @@ object Headers {
   object Host extends InternalHeaderKey[Host] {
     def apply(host: String, port: Int): Host = apply(host, Some(port))
   }
-  case class Host (host: String, port: Option[Int] = None) extends Header {
+  final case class Host (host: String, port: Option[Int] = None) extends ParsedHeader {
     def name = "Host"
     def value = port.map(host + ':' + _).getOrElse(host)
   }
@@ -248,14 +251,14 @@ object Headers {
   object `If-Unmodified-Since` extends DefaultHeaderKey
 
   object `Last-Modified` extends InternalHeaderKey[`Last-Modified`]
-  case class `Last-Modified`(date: DateTime) extends Header {
+  final case class `Last-Modified`(date: DateTime) extends ParsedHeader {
     def name = "Last-Modified"
     def value = date.formatRfc1123
   }
 
   object Location extends InternalHeaderKey[Location]
 
-  case class Location(absoluteUri: String) extends Header {
+  final case class Location(absoluteUri: String) extends ParsedHeader {
     def name = "Location"
     def value = absoluteUri
   }
@@ -295,7 +298,7 @@ object Headers {
   object Server extends DefaultHeaderKey
 
   object `Set-Cookie` extends InternalHeaderKey[`Set-Cookie`]
-  case class `Set-Cookie`(cookie: org.http4s.Cookie) extends Header {
+  final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends ParsedHeader {
     def name = "Set-Cookie"
     def value = cookie.value
   }
@@ -307,7 +310,7 @@ object Headers {
   object `Trailer` extends DefaultHeaderKey
 
   object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`]
-  case class `Transfer-Encoding`(coding: ContentCoding) extends Header {
+  final case class `Transfer-Encoding`(coding: ContentCoding) extends ParsedHeader {
     def name = "Transfer-Encoding"
     def value = coding.value
   }
@@ -331,7 +334,7 @@ object Headers {
   object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] {
     def apply(first: Challenge, more: Challenge*): `WWW-Authenticate` = apply(first +: more)
   }
-  case class `WWW-Authenticate` private[http4s] (challenges: Seq[Challenge]) extends Header {
+  final case class `WWW-Authenticate` private[http4s] (challenges: Seq[Challenge]) extends ParsedHeader {
     def name = "WWW-Authenticate"
     def value = challenges.mkString(", ")
   }
@@ -339,7 +342,7 @@ object Headers {
   object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] {
     def apply(first: InetAddress, more: InetAddress*): `X-Forwarded-For` = apply((first +: more).map(Some(_)))
   }
-  case class `X-Forwarded-For` private[http4s] (ips: Seq[Option[InetAddress]]) extends Header {
+  final case class `X-Forwarded-For` private[http4s] (ips: Seq[Option[InetAddress]]) extends ParsedHeader {
     def name = "X-Forwarded-For"
     def value = ips.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
@@ -348,5 +351,7 @@ object Headers {
 
   object `X-Powered-By` extends DefaultHeaderKey
 
-  case class RawHeader(name: String, value: String) extends Header
+  final case class RawHeader(name: String, value: String) extends Header {
+    override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
+  }
 }
