@@ -37,14 +37,13 @@ abstract class Header extends Logging {
   def value: String
 
   def is(key: HeaderKey[_]): Boolean = {
-    if (this.isInstanceOf[RawHeader] ||
-        key.isInstanceOf[Headers.DefaultHeaderKey]) this.lowercaseName == key.name
+    if (this.isInstanceOf[RawHeader] || key.runtimeClass.isAssignableFrom(classOf[Header])) is(key.name)
     else key.runtimeClass.isAssignableFrom(this.getClass)
   }
 
   def isNot(key: HeaderKey[_]): Boolean = !is(key)
 
-  def is(otherName: CiString) = this.lowercaseName == otherName
+  def is(otherName: CiString) = this.name.equalsIgnoreCase(otherName)
 
   def isNot(otherName: CiString) = !is(otherName)
 
@@ -60,7 +59,7 @@ object Header {
 object Headers {
   class DefaultHeaderKey extends HeaderKey[Header] {
     protected[http4s] override def collectHeader: PartialFunction[Header, Header] = {
-      case h => h
+      case h if h.name.equalsIgnoreCase(this.name) => h
     }
   }
 
