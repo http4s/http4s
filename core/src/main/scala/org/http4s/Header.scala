@@ -24,8 +24,8 @@ sealed trait Header extends Logging {
 
   def parsed: Header
 
-  override def equals(obj: scala.Any): Boolean = obj match {
-    case h: Header => h.parsed.hashCode() == this.parsed.hashCode()
+  final override def equals(obj: scala.Any): Boolean = obj match {
+    case h: Header if h.parsed.getClass == this.parsed.getClass => h.parsed.hashCode() == this.parsed.hashCode()
     case _ => false
   }
 }
