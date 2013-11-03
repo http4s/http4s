@@ -7,8 +7,8 @@ import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s.Headers.RawHeader
 
-sealed abstract class HeaderKey[T <: Header : ClassTag] {
-  lazy val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
+sealed abstract class HeaderKey[T <: Header: ClassTag] {
+  val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
 
   private[http4s] val runtimeClass = implicitly[ClassTag[T]].runtimeClass
 
@@ -38,7 +38,7 @@ abstract class Header extends Logging {
 
   def is(key: HeaderKey[_]): Boolean = {
     if (this.isInstanceOf[RawHeader] || key.runtimeClass.isAssignableFrom(classOf[Header])) is(key.name)
-    else key.runtimeClass.isAssignableFrom(this.getClass)
+    else key.runtimeClass.isInstance(this)
   }
 
   def isNot(key: HeaderKey[_]): Boolean = !is(key)
@@ -59,7 +59,7 @@ object Header {
 object Headers {
   class DefaultHeaderKey extends HeaderKey[Header] {
     protected[http4s] override def collectHeader: PartialFunction[Header, Header] = {
-      case h if h.name.equalsIgnoreCase(this.name) => h
+      case h => h
     }
   }
 

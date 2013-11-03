@@ -24,7 +24,7 @@ package object http4s extends LowercaseSyntax {
 
   @deprecated("Who's using this?")
   implicit def string2headerkey(nm: String): HeaderKey[Header] = new Headers.DefaultHeaderKey {
-    override lazy val name = nm.lowercaseEn
+    override val name = nm.lowercaseEn
   }
 
   private[this] val Rfc1123Format = DateTimeFormat
