@@ -42,7 +42,7 @@ object Headers {
 
     override def matchHeader(header: Header): Option[T] = {
       if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[T])
-      else if (name.equalsIgnoreCase(header.name) && runtimeClass.isInstance(header.parsed))
+      else if (header.isInstanceOf[RawHeader] && name.equalsIgnoreCase(header.name) && runtimeClass.isInstance(header.parsed))
         Some(header.parsed.asInstanceOf[T])
       else None
     }
