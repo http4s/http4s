@@ -41,7 +41,8 @@ abstract class Header {
   def value: String
 
   def is(key: HeaderKey[_]): Boolean = {
-    if (this.isInstanceOf[RawHeader]) this.lowercaseName == key.name
+    if (this.isInstanceOf[RawHeader] ||
+        key.isInstanceOf[Headers.DefaultHeaderKey]) this.lowercaseName == key.name
     else key._clazz.isAssignableFrom(this.getClass)
   }
 
