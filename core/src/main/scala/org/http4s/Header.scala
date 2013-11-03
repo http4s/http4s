@@ -7,25 +7,47 @@ import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s.Headers.RawHeader
 
-sealed abstract class HeaderKey[T <: Header: ClassTag] {
-  val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
+abstract class HeaderKey[T <: Header: ClassTag] {
+
+  def name: String
+
+  def option(header: Header): Option[T]
 
   private[http4s] val runtimeClass = implicitly[ClassTag[T]].runtimeClass
 
   override def toString: String = name
 
-  def unapply(headers: HeaderCollection): Option[T] =
-    (headers find (_ is this) map (_.parsed)).collectFirst(collectHeader)
+  def unapply(headers: HeaderCollection): Option[T] =  {
+    val it =headers.iterator
+    while(it.hasNext) {
+      val n = option(it.next())
+      if (n.isDefined) return n
+    }
+    None // Didn't find it
+  }
 
   def unapplySeq(headers: HeaderCollection): Option[Seq[T]] =
-    Some((headers filter (_ is this) map (_.parsed)).collect(collectHeader))
+    Some(headers flatMap option)
 
   def from(headers: HeaderCollection): Option[T] = unapply(headers)
 
   def findIn(headers: HeaderCollection): Seq[T] = unapplySeq(headers) getOrElse Seq.empty
 
-  private[http4s] def collectHeader: PartialFunction[Header, T] = {
-    case h if runtimeClass.isInstance(h) => h.asInstanceOf[T]
+  def unapply(header: Header): Option[T] = option(header)
+
+  def isNot(header: Header) = option(header).isEmpty
+
+  def is(header: Header) = !isNot(header)
+}
+
+sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKey[T] {
+  val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
+
+  override def option(header: Header): Option[T] = {
+    if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[T])
+    else if (header.isInstanceOf[RawHeader] && runtimeClass.isInstance(header.parsed)) {
+      Some(header.parsed.asInstanceOf[T])
+    } else None
   }
 }
 
@@ -36,16 +58,11 @@ abstract class Header extends Logging {
 
   def value: String
 
-  def is(key: HeaderKey[_]): Boolean = {
-    if (this.isInstanceOf[RawHeader] || key.runtimeClass.isAssignableFrom(classOf[Header])) is(key.name)
-    else key.runtimeClass.isInstance(this)
-  }
+  def option[T <: Header](key: HeaderKey[T]): Option[T] = key.option(this)
 
-  def isNot(key: HeaderKey[_]): Boolean = !is(key)
+  def is(key: HeaderKey[_]): Boolean = key.is(this)
 
-  def is(otherName: CiString) = this.name.equalsIgnoreCase(otherName)
-
-  def isNot(otherName: CiString) = !is(otherName)
+  def isNot(key: HeaderKey[_]): Boolean = key.isNot(this)
 
   override def toString = name + ": " + value
 
@@ -57,13 +74,15 @@ object Header {
 }
 
 object Headers {
-  class DefaultHeaderKey extends HeaderKey[Header] {
-    protected[http4s] override def collectHeader: PartialFunction[Header, Header] = {
-      case h => h
+  class DefaultHeaderKey extends InternalHeaderKey[Header] {
+    // All these headers will likely be raw
+    override def option(header: Header): Option[Header] = {
+      if (header.name.equalsIgnoreCase(this.name)) Some(header)
+      else None
     }
   }
 
-  object Accept extends HeaderKey[Accept] {
+  object Accept extends InternalHeaderKey[Accept] {
     def apply(first: MediaRange, more: MediaRange*): Accept = apply(first +: more)
   }
   case class Accept private[http4s] (mediaRanges: Seq[MediaRange]) extends Header {
@@ -71,7 +90,7 @@ object Headers {
     def value = mediaRanges.map(_.value).mkString(", ")
   }
 
-  object `Accept-Charset` extends HeaderKey[`Accept-Charset`] {
+  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] {
     def apply(first: CharsetRange, more: CharsetRange*): `Accept-Charset` = apply(first +: more)
   }
   case class `Accept-Charset` private[http4s] (charsetRanges: Seq[CharsetRange]) extends Header {
@@ -79,7 +98,7 @@ object Headers {
     def value = charsetRanges.map(_.value).mkString(", ")
   }
 
-  object `Accept-Encoding` extends HeaderKey[`Accept-Encoding`] {
+  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] {
     def apply(first: ContentCodingRange, more: ContentCodingRange*): `Accept-Encoding` = apply(first +: more)
   }
   case class `Accept-Encoding` private[http4s] (contentCodings: Seq[ContentCodingRange]) extends Header {
@@ -87,7 +106,7 @@ object Headers {
     def value = contentCodings.map(_.value).mkString(", ")
   }
 
-  object `Accept-Language` extends HeaderKey[`Accept-Language`] {
+  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] {
     def apply(first: LanguageRange, more: LanguageRange*): `Accept-Language` = apply(first +: more)
   }
   case class `Accept-Language` private[http4s] (languageRanges: Seq[LanguageRange]) extends Header {
@@ -95,7 +114,7 @@ object Headers {
     def value = languageRanges.map(_.value).mkString(", ")
   }
 
-  object `Accept-Ranges` extends HeaderKey[`Accept-Ranges`] {
+  object `Accept-Ranges` extends InternalHeaderKey[`Accept-Ranges`] {
     def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
   }
   case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends Header {
@@ -125,13 +144,13 @@ object Headers {
 
   object Allow extends DefaultHeaderKey
 
-  object Authorization extends HeaderKey[Authorization]
+  object Authorization extends InternalHeaderKey[Authorization]
   case class Authorization(credentials: Credentials) extends Header {
     def name = "Authorization"
     def value = credentials.value
   }
 
-  object `Cache-Control` extends HeaderKey[`Cache-Control`] {
+  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] {
     def apply(first: CacheDirective, more: CacheDirective*): `Cache-Control` = apply(first +: more)
   }
   case class `Cache-Control` private[http4s] (directives: Seq[CacheDirective]) extends Header {
@@ -139,7 +158,7 @@ object Headers {
     def value = directives.mkString(", ")
   }
 
-  object Connection extends HeaderKey[Connection] {
+  object Connection extends InternalHeaderKey[Connection] {
     def apply(first: String, more: String*): Connection = apply(first +: more)
   }
   case class Connection private[http4s] (connectionTokens: Seq[String]) extends Header {
@@ -151,14 +170,14 @@ object Headers {
 
   object `Content-Base` extends DefaultHeaderKey
 
-  object `Content-Disposition` extends HeaderKey[`Content-Disposition`]
+  object `Content-Disposition` extends InternalHeaderKey[`Content-Disposition`]
   // see http://tools.ietf.org/html/rfc2183
   case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Header {
     def name = "Content-Disposition"
     def value = parameters.map(p => "; " + p._1 + "=\"" + p._2 + '"').mkString(dispositionType, "", "")
   }
 
-  object `Content-Encoding` extends HeaderKey[`Content-Encoding`]
+  object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`]
   case class `Content-Encoding`(contentCoding: ContentCoding) extends Header {
     def name = "Content-Encoding"
     def value = contentCoding.value
@@ -166,7 +185,7 @@ object Headers {
 
   object `Content-Language` extends DefaultHeaderKey
 
-  object `Content-Length` extends HeaderKey[`Content-Length`]
+  object `Content-Length` extends InternalHeaderKey[`Content-Length`]
   case class `Content-Length`(length: Int) extends Header {
     def name = "Content-Length"
     def value = length.toString
@@ -180,13 +199,13 @@ object Headers {
 
   object `Content-Range` extends DefaultHeaderKey
 
-  object `Content-Type` extends HeaderKey[`Content-Type`]
+  object `Content-Type` extends InternalHeaderKey[`Content-Type`]
   case class `Content-Type`(contentType: ContentType) extends Header {
     def name = "Content-Type"
     def value = contentType.value
   }
 
-  object Cookie extends HeaderKey[Cookie] {
+  object Cookie extends InternalHeaderKey[Cookie] {
     def apply(first: org.http4s.Cookie, more: org.http4s.Cookie*): Cookie = apply(first +: more)
   }
   case class Cookie private[http4s] (cookies: Seq[org.http4s.Cookie]) extends Header {
@@ -194,7 +213,7 @@ object Headers {
     def value = cookies.mkString("; ")
   }
 
-  object Date extends HeaderKey[Date]
+  object Date extends InternalHeaderKey[Date]
   case class Date(date: DateTime) extends Header {
     def name = "Date"
     def value = date.formatRfc1123
@@ -210,7 +229,7 @@ object Headers {
 
   object `Front-End-Https` extends DefaultHeaderKey
 
-  object Host extends HeaderKey[Host] {
+  object Host extends InternalHeaderKey[Host] {
     def apply(host: String, port: Int): Host = apply(host, Some(port))
   }
   case class Host (host: String, port: Option[Int] = None) extends Header {
@@ -228,13 +247,13 @@ object Headers {
 
   object `If-Unmodified-Since` extends DefaultHeaderKey
 
-  object `Last-Modified` extends HeaderKey[`Last-Modified`]
+  object `Last-Modified` extends InternalHeaderKey[`Last-Modified`]
   case class `Last-Modified`(date: DateTime) extends Header {
     def name = "Last-Modified"
     def value = date.formatRfc1123
   }
 
-  object Location extends HeaderKey[Location]
+  object Location extends InternalHeaderKey[Location]
 
   case class Location(absoluteUri: String) extends Header {
     def name = "Location"
@@ -275,7 +294,7 @@ object Headers {
 
   object Server extends DefaultHeaderKey
 
-  object `Set-Cookie` extends HeaderKey[`Set-Cookie`]
+  object `Set-Cookie` extends InternalHeaderKey[`Set-Cookie`]
   case class `Set-Cookie`(cookie: org.http4s.Cookie) extends Header {
     def name = "Set-Cookie"
     def value = cookie.value
@@ -287,7 +306,7 @@ object Headers {
 
   object `Trailer` extends DefaultHeaderKey
 
-  object `Transfer-Encoding` extends HeaderKey[`Transfer-Encoding`]
+  object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`]
   case class `Transfer-Encoding`(coding: ContentCoding) extends Header {
     def name = "Transfer-Encoding"
     def value = coding.value
@@ -309,7 +328,7 @@ object Headers {
 
   object `WebSocket-Protocol` extends DefaultHeaderKey
 
-  object `WWW-Authenticate` extends HeaderKey[`WWW-Authenticate`] {
+  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] {
     def apply(first: Challenge, more: Challenge*): `WWW-Authenticate` = apply(first +: more)
   }
   case class `WWW-Authenticate` private[http4s] (challenges: Seq[Challenge]) extends Header {
@@ -317,7 +336,7 @@ object Headers {
     def value = challenges.mkString(", ")
   }
 
-  object `X-Forwarded-For` extends HeaderKey[`X-Forwarded-For`] {
+  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] {
     def apply(first: InetAddress, more: InetAddress*): `X-Forwarded-For` = apply((first +: more).map(Some(_)))
   }
   case class `X-Forwarded-For` private[http4s] (ips: Seq[Option[InetAddress]]) extends Header {

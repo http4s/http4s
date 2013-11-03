@@ -25,7 +25,7 @@ final class HeaderCollection private (headers: List[Header])
 
   def iterator: Iterator[Header] = headers.iterator
 
-  def apply[T <: Header](key: HeaderKey[T]) = get(key).get
+  def apply[T <: Header](key: HeaderKey[T]) = get(key).get    // YOLO!
 
   def get[T <: Header](key: HeaderKey[T]): Option[T] = key from this
 
