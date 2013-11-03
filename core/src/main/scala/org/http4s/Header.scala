@@ -37,7 +37,7 @@ abstract class Header {
 
   def value: String
 
-  def is(key: HeaderKey[_]): Boolean = key._clazz.getClass.isAssignableFrom(this.getClass)
+  def is(key: HeaderKey[_]): Boolean = key._clazz.isAssignableFrom(this.getClass)
 
   def isNot(key: HeaderKey[_]): Boolean = !is(key)
 
