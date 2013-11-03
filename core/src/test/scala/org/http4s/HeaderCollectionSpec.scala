@@ -25,4 +25,16 @@ class HeaderCollectionSpec extends WordSpec with Matchers {
       headers.getAll(Headers.`Set-Cookie`) should have length (2)
     }
   }
+
+  "getAll with DefaultHeaderKeys" should {
+    "Find the headers with DefaultHeaderKey keys" in {
+      val headers = HeaderCollection(
+        Headers.`Set-Cookie`(Cookie("foo", "bar")),
+        Headers.RawHeader("Accept-Patch",""),
+        Headers.RawHeader("Access-Control-Allow-Credentials","")
+      )
+
+      headers.getAll(Headers.`Accept-Patch`) should have length (1)
+    }
+  }
 }

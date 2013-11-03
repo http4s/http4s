@@ -5,11 +5,12 @@ import org.joda.time.DateTime
 import java.net.InetAddress
 import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.Headers.RawHeader
 
 sealed abstract class HeaderKey[T <: Header : ClassTag] {
   lazy val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
 
-  private[this] val runtimeClass = implicitly[ClassTag[T]].runtimeClass
+  private[http4s] val runtimeClass = implicitly[ClassTag[T]].runtimeClass
 
   override def toString: String = name
 
@@ -31,11 +32,15 @@ sealed abstract class HeaderKey[T <: Header : ClassTag] {
 abstract class Header extends Logging {
   def name: String
 
-  def lowercaseName: CiString
+  def lowercaseName: CiString = name.lowercaseEn
 
   def value: String
 
-  def is(key: HeaderKey[_]): Boolean = is(key.name)
+  def is(key: HeaderKey[_]): Boolean = {
+    if (this.isInstanceOf[RawHeader] ||
+        key.isInstanceOf[Headers.DefaultHeaderKey]) this.lowercaseName == key.name
+    else key.runtimeClass.isAssignableFrom(this.getClass)
+  }
 
   def isNot(key: HeaderKey[_]): Boolean = !is(key)
 
@@ -64,7 +69,6 @@ object Headers {
   }
   case class Accept private[http4s] (mediaRanges: Seq[MediaRange]) extends Header {
     def name = "Accept"
-    def lowercaseName = "accept".lowercaseEn
     def value = mediaRanges.map(_.value).mkString(", ")
   }
 
@@ -73,7 +77,6 @@ object Headers {
   }
   case class `Accept-Charset` private[http4s] (charsetRanges: Seq[CharsetRange]) extends Header {
     def name = "Accept-Charset"
-    def lowercaseName = "accept-charset".lowercaseEn
     def value = charsetRanges.map(_.value).mkString(", ")
   }
 
@@ -82,7 +85,6 @@ object Headers {
   }
   case class `Accept-Encoding` private[http4s] (contentCodings: Seq[ContentCodingRange]) extends Header {
     def name = "Accept-Encoding"
-    def lowercaseName = "accept-encoding".lowercaseEn
     def value = contentCodings.map(_.value).mkString(", ")
   }
 
@@ -91,7 +93,6 @@ object Headers {
   }
   case class `Accept-Language` private[http4s] (languageRanges: Seq[LanguageRange]) extends Header {
     def name = "Accept-Language"
-    def lowercaseName = "accept-language".lowercaseEn
     def value = languageRanges.map(_.value).mkString(", ")
   }
 
@@ -100,7 +101,6 @@ object Headers {
   }
   case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends Header {
     def name = "Accept-Ranges"
-    def lowercaseName = "accept-ranges".lowercaseEn
     def value = if (rangeUnits.isEmpty) "none" else rangeUnits.mkString(", ")
   }
 
@@ -129,7 +129,6 @@ object Headers {
   object Authorization extends HeaderKey[Authorization]
   case class Authorization(credentials: Credentials) extends Header {
     def name = "Authorization"
-    def lowercaseName = "authorization".lowercaseEn
     def value = credentials.value
   }
 
@@ -138,7 +137,6 @@ object Headers {
   }
   case class `Cache-Control` private[http4s] (directives: Seq[CacheDirective]) extends Header {
     def name = "Cache-Control"
-    def lowercaseName = "cache-control".lowercaseEn
     def value = directives.mkString(", ")
   }
 
@@ -147,7 +145,6 @@ object Headers {
   }
   case class Connection private[http4s] (connectionTokens: Seq[String]) extends Header {
     def name = "Connection"
-    def lowercaseName = "connection".lowercaseEn
     def value = connectionTokens.mkString(", ")
     def hasClose = connectionTokens.exists(_.toLowerCase == "close")
     def hasKeepAlive = connectionTokens.exists(_.toLowerCase == "keep-alive")
@@ -159,14 +156,12 @@ object Headers {
   // see http://tools.ietf.org/html/rfc2183
   case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Header {
     def name = "Content-Disposition"
-    def lowercaseName = "content-disposition".lowercaseEn
     def value = parameters.map(p => "; " + p._1 + "=\"" + p._2 + '"').mkString(dispositionType, "", "")
   }
 
   object `Content-Encoding` extends HeaderKey[`Content-Encoding`]
   case class `Content-Encoding`(contentCoding: ContentCoding) extends Header {
     def name = "Content-Encoding"
-    def lowercaseName = "content-encoding".lowercaseEn
     def value = contentCoding.value
   }
 
@@ -175,7 +170,6 @@ object Headers {
   object `Content-Length` extends HeaderKey[`Content-Length`]
   case class `Content-Length`(length: Int) extends Header {
     def name = "Content-Length"
-    def lowercaseName = "content-length".lowercaseEn
     def value = length.toString
   }
 
@@ -190,7 +184,6 @@ object Headers {
   object `Content-Type` extends HeaderKey[`Content-Type`]
   case class `Content-Type`(contentType: ContentType) extends Header {
     def name = "Content-Type"
-    def lowercaseName = "content-type".lowercaseEn
     def value = contentType.value
   }
 
@@ -199,14 +192,12 @@ object Headers {
   }
   case class Cookie private[http4s] (cookies: Seq[org.http4s.Cookie]) extends Header {
     def name = "Cookie"
-    def lowercaseName = "cookie".lowercaseEn
     def value = cookies.mkString("; ")
   }
 
   object Date extends HeaderKey[Date]
   case class Date(date: DateTime) extends Header {
     def name = "Date"
-    def lowercaseName = "date".lowercaseEn
     def value = date.formatRfc1123
   }
 
@@ -225,7 +216,6 @@ object Headers {
   }
   case class Host (host: String, port: Option[Int] = None) extends Header {
     def name = "Host"
-    def lowercaseName = "host".lowercaseEn
     def value = port.map(host + ':' + _).getOrElse(host)
   }
 
@@ -242,7 +232,6 @@ object Headers {
   object `Last-Modified` extends HeaderKey[`Last-Modified`]
   case class `Last-Modified`(date: DateTime) extends Header {
     def name = "Last-Modified"
-    def lowercaseName = "last-modified".lowercaseEn
     def value = date.formatRfc1123
   }
 
@@ -250,7 +239,6 @@ object Headers {
 
   case class Location(absoluteUri: String) extends Header {
     def name = "Location"
-    def lowercaseName = "location".lowercaseEn
     def value = absoluteUri
   }
 
@@ -291,7 +279,6 @@ object Headers {
   object `Set-Cookie` extends HeaderKey[`Set-Cookie`]
   case class `Set-Cookie`(cookie: org.http4s.Cookie) extends Header {
     def name = "Set-Cookie"
-    def lowercaseName = "set-cookie".lowercaseEn
     def value = cookie.value
   }
 
@@ -304,7 +291,6 @@ object Headers {
   object `Transfer-Encoding` extends HeaderKey[`Transfer-Encoding`]
   case class `Transfer-Encoding`(coding: ContentCoding) extends Header {
     def name = "Transfer-Encoding"
-    def lowercaseName = "transfer-encoding".lowercaseEn
     def value = coding.value
   }
 
@@ -329,7 +315,6 @@ object Headers {
   }
   case class `WWW-Authenticate` private[http4s] (challenges: Seq[Challenge]) extends Header {
     def name = "WWW-Authenticate"
-    def lowercaseName = "www-authenticate".lowercaseEn
     def value = challenges.mkString(", ")
   }
 
@@ -338,7 +323,6 @@ object Headers {
   }
   case class `X-Forwarded-For` private[http4s] (ips: Seq[Option[InetAddress]]) extends Header {
     def name = "X-Forwarded-For"
-    def lowercaseName = "x-forwarded-for".lowercaseEn
     def value = ips.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
 
@@ -346,7 +330,5 @@ object Headers {
 
   object `X-Powered-By` extends DefaultHeaderKey
 
-  case class RawHeader(name: String, value: String) extends Header {
-    val lowercaseName = name.lowercaseEn
-  }
+  case class RawHeader(name: String, value: String) extends Header
 }
