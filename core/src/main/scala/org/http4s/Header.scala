@@ -23,6 +23,11 @@ sealed trait Header extends Logging {
   override def toString = name + ": " + value
 
   def parsed: Header
+
+  override def equals(obj: scala.Any): Boolean = obj match {
+    case h: Header => h.parsed.hashCode() == this.parsed.hashCode()
+    case _ => false
+  }
 }
 
 abstract class ParsedHeader extends Header {
