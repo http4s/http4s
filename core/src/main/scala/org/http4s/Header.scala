@@ -5,7 +5,6 @@ import org.joda.time.DateTime
 import java.net.InetAddress
 import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
-import org.http4s.Headers.RawHeader
 
 trait HeaderKey[T <: Header] {
 
@@ -15,7 +14,7 @@ trait HeaderKey[T <: Header] {
 
   def unapply(header: Header) = matchHeader(header)
 
-  override def toString: String = name
+  override def toString: String = "HeaderKey[" + name + "]"
 
   def unapply(headers: HeaderCollection): Option[T] =  {
     val it =headers.iterator
@@ -44,7 +43,9 @@ sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKe
   private val runtimeClass = implicitly[ClassTag[T]].runtimeClass
 
   override def matchHeader(header: Header): Option[T] = {
-    if (runtimeClass.isInstance(header.parsed)) Some(header.parsed.asInstanceOf[T])
+    if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[T])
+    else if (name.equalsIgnoreCase(header.name) && runtimeClass.isInstance(header.parsed))
+      Some(header.parsed.asInstanceOf[T])
     else None
   }
 }
@@ -67,7 +68,7 @@ sealed trait Header extends Logging {
   def parsed: Header
 }
 
-trait ParsedHeader extends Header {
+abstract class ParsedHeader extends Header {
   def parsed: this.type = this
 }
 
@@ -77,7 +78,7 @@ object Header {
 
 object Headers {
 
-  class DefaultHeaderKey extends InternalHeaderKey[Header] {
+  abstract class DefaultHeaderKey extends InternalHeaderKey[Header] {
     // All these headers will likely be raw
     override def matchHeader(header: Header): Option[Header] = {
       if (header.name.equalsIgnoreCase(this.name)) Some(header)
