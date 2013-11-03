@@ -6,51 +6,8 @@ import java.net.InetAddress
 import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
 
-trait HeaderKey[T <: Header] {
-
-  def name: String
-
-  def matchHeader(header: Header): Option[T]
-
-  def unapply(header: Header) = matchHeader(header)
-
-  override def toString: String = "HeaderKey[" + name + "]"
-
-  def unapply(headers: HeaderCollection): Option[T] =  {
-    val it =headers.iterator
-    while(it.hasNext) {
-      val n = matchHeader(it.next())
-      if (n.isDefined) return n
-    }
-    None // Didn't find it
-  }
-
-  def unapplySeq(headers: HeaderCollection): Option[Seq[T]] =
-    Some(headers flatMap matchHeader)
-
-  def from(headers: HeaderCollection): Option[T] = unapply(headers)
-
-  def findIn(headers: HeaderCollection): Seq[T] = unapplySeq(headers) getOrElse Seq.empty
-
-  def isNot(header: Header): Boolean = unapply(header).isEmpty
-
-  def is(header: Header): Boolean = !isNot(header)
-}
-
-sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKey[T] {
-  val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
-
-  private val runtimeClass = implicitly[ClassTag[T]].runtimeClass
-
-  override def matchHeader(header: Header): Option[T] = {
-    if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[T])
-    else if (name.equalsIgnoreCase(header.name) && runtimeClass.isInstance(header.parsed))
-      Some(header.parsed.asInstanceOf[T])
-    else None
-  }
-}
-
 sealed trait Header extends Logging {
+
   def name: String
 
   def lowercaseName: CiString = name.lowercaseEn
@@ -78,12 +35,23 @@ object Header {
 
 object Headers {
 
-  abstract class DefaultHeaderKey extends InternalHeaderKey[Header] {
-    // All these headers will likely be raw
-    override def matchHeader(header: Header): Option[Header] = {
-      if (header.name.equalsIgnoreCase(this.name)) Some(header)
+  sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKey[T] {
+    val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
+
+    private val runtimeClass = implicitly[ClassTag[T]].runtimeClass
+
+    override def matchHeader(header: Header): Option[T] = {
+      if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[T])
+      else if (name.equalsIgnoreCase(header.name) && runtimeClass.isInstance(header.parsed))
+        Some(header.parsed.asInstanceOf[T])
       else None
     }
+  }
+
+  sealed trait DefaultHeaderKey extends InternalHeaderKey[Header] with StringHeaderKey
+
+  final case class RawHeader(name: String, value: String) extends Header {
+    override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
   object Accept extends InternalHeaderKey[Accept] {
@@ -351,8 +319,4 @@ object Headers {
   object `X-Forwarded-Proto` extends DefaultHeaderKey
 
   object `X-Powered-By` extends DefaultHeaderKey
-
-  final case class RawHeader(name: String, value: String) extends Header {
-    override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
-  }
 }
