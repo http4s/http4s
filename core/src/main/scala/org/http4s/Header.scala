@@ -7,13 +7,11 @@ import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s.Headers.RawHeader
 
-abstract class HeaderKey[T <: Header: ClassTag] {
+trait HeaderKey[T <: Header] {
 
   def name: String
 
   def option(header: Header): Option[T]
-
-  private[http4s] val runtimeClass = implicitly[ClassTag[T]].runtimeClass
 
   override def toString: String = name
 
@@ -42,6 +40,8 @@ abstract class HeaderKey[T <: Header: ClassTag] {
 
 sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKey[T] {
   val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
+
+  private val runtimeClass = implicitly[ClassTag[T]].runtimeClass
 
   override def option(header: Header): Option[T] = {
     if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[T])
