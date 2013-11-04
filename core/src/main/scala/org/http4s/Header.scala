@@ -57,6 +57,8 @@ object Headers {
 
   final case class RawHeader(name: String, value: String) extends Header {
     override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
+
+    override def hashCode(): Int = parsed.hashCode()
   }
 
   object Accept extends InternalHeaderKey[Accept] {

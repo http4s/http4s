@@ -53,6 +53,12 @@ class HeaderSpec extends WordSpec with Matchers {
       h1 shouldNot equal (h2)
       h2 shouldNot equal (h1)
     }
+
+    "have same hash code for equal raw and parsed header" in {
+      val h1 = Headers.`Content-Length`(4)
+      val h2 = Headers.RawHeader("Content-Length", "4")
+      h1.hashCode should equal (h2.hashCode)
+    }
   }
 
 }
