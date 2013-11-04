@@ -12,52 +12,48 @@ class HeaderSpec extends WordSpec with Matchers {
       val h1 = Headers.`Content-Length`(4)
       val h2 = Headers.`Content-Length`(4)
 
-      h1 should equal (h2)
+      h1 =:= h2 should equal (true)
+      h2 =:= h1 should equal (true)
     }
 
     "not equal different headers" in {
       val h1 = Headers.`Content-Length`(4)
       val h2 = Headers.`Content-Length`(5)
 
-      h1 shouldNot equal (h2)
+      h1 =:= h2 should equal (false)
+      h2 =:= h1 should equal (false)
     }
 
     "equal same raw headers" in {
       val h1 = Headers.`Content-Length`(4)
       val h2 = Headers.RawHeader("Content-Length", "4")
 
-      h1 should equal (h2)
-      h2 should equal (h1)
+      h1 =:= h2 should equal (true)
+      h2 =:= h1 should equal (true)
     }
 
     "not equal same raw headers" in {
       val h1 = Headers.`Content-Length`(4)
       val h2 = Headers.RawHeader("Content-Length", "5")
 
-      h1 shouldNot equal (h2)
-      h2 shouldNot equal (h1)
+      h1 =:= h2 should equal (false)
+      h2 =:= h1 should equal (false)
     }
 
     "equate raw to same raw headers" in {
       val h1 = Headers.RawHeader("Content-Length", "4")
       val h2 = Headers.RawHeader("Content-Length", "4")
 
-      h1 should equal (h2)
-      h2 should equal (h1)
+      h1 =:= h2 should equal (true)
+      h2 =:= h1 should equal (true)
     }
 
     "not equate raw to same raw headers" in {
       val h1 = Headers.RawHeader("Content-Length", "4")
       val h2 = Headers.RawHeader("Content-Length", "5")
 
-      h1 shouldNot equal (h2)
-      h2 shouldNot equal (h1)
-    }
-
-    "have same hash code for equal raw and parsed header" in {
-      val h1 = Headers.`Content-Length`(4)
-      val h2 = Headers.RawHeader("Content-Length", "4")
-      h1.hashCode should equal (h2.hashCode)
+      h1 =:= h2 should equal (false)
+      h2 =:= h1 should equal (false)
     }
   }
 

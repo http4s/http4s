@@ -24,10 +24,7 @@ sealed trait Header extends Logging {
 
   def parsed: Header
 
-  final override def equals(obj: scala.Any): Boolean = obj match {
-    case h: Header if h.parsed.getClass == this.parsed.getClass => h.parsed.hashCode() == this.parsed.hashCode()
-    case _ => false
-  }
+  def =:=(obj: Header): Boolean = this.parsed == obj.parsed
 }
 
 abstract class ParsedHeader extends Header {
@@ -57,8 +54,6 @@ object Headers {
 
   final case class RawHeader(name: String, value: String) extends Header {
     override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
-
-    override def hashCode(): Int = parsed.hashCode()
   }
 
   object Accept extends InternalHeaderKey[Accept] {
