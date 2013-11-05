@@ -22,7 +22,16 @@ object ExampleRoute {
 
   import Methods._
 
+  import PushSupport._
+
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
+
+    case Req(Get, "/push") =>
+      Ok("Pushing: ").push("/pushed")
+
+    case Req(Get, "/pushed") =>
+      Ok("Pushed").push("/ping")
+
     case Req(Get, "/ping") =>
       Ok("pong")
 

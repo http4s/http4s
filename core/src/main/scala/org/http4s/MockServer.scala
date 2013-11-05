@@ -15,7 +15,7 @@ class MockServer(route: Route)(implicit executor: ExecutionContext = ExecutionCo
         val it: Iteratee[Chunk, Response] = parser.flatMap { responder =>
           val responseBodyIt: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume()
           responder.body ><> BodyParser.whileBodyChunk &>> responseBodyIt map { bytes: BodyChunk =>
-            Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray)
+            Response(responder.prelude.status, responder.prelude.headers, body = bytes.toArray, responder.attributes)
           }
         }
         enum.run(it)
@@ -46,6 +46,7 @@ object MockServer {
   case class Response(
     statusLine: Status = Status.Ok,
     headers: HeaderCollection = HeaderCollection.empty,
-    body: Array[Byte] = emptyBody
+    body: Array[Byte] = emptyBody,
+    attributes: AttributeMap = AttributeMap.empty
   )
 }
