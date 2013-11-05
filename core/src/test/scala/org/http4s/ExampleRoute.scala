@@ -14,7 +14,7 @@ object ExampleRoute {
 
   /*
    * We can't see the dsl package from core.  This is an ad hoc thing
-   * to make this test a little asier to write.
+   * to make this test a little easier to write.
    */
   object Req {
     def unapply(req: RequestPrelude): Option[(Method, String)] = Some(req.requestMethod, req.pathInfo)
