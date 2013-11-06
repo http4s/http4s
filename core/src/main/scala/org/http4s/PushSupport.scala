@@ -2,13 +2,14 @@ package org.http4s
 
 import scala.concurrent.Future
 import play.api.libs.iteratee.Iteratee
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author Bryce Anderson
  *         Created on 11/5/13
  */
 
-object PushSupport {
+object PushSupport extends Logging {
 
   // TODO: choose the right ec
   import concurrent.ExecutionContext.Implicits.global
@@ -25,24 +26,31 @@ object PushSupport {
     }
   }
 
+  private def handleException(ex: Throwable) {
+    logger.error("Push resource route failure", ex)
+  }
+
   private def locToRequest(push: PushLocation, prelude: RequestPrelude): RequestPrelude =
     RequestPrelude(pathInfo = push.location, headers = prelude.headers)
 
   private def collectResponder(r: Vector[PushLocation], req: RequestPrelude, route: Route): Future[Vector[PushResponder]] = 
     r.foldLeft(Future.successful(Vector.empty[PushResponder])){ (facc, v) =>
+      val newReq = locToRequest(v, req)
       if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-        route(locToRequest(v, req)).run
-          .flatMap { responder =>             // Inside the future result of this pushed resource
+        try route(newReq).run
+          .flatMap { responder =>                  // Inside the future result of this pushed resource
             responder.attributes.get(pushLocationKey)
             .map { pushed =>
               collectResponder(pushed, req, route)
                 .map(accumulated ++ _ :+ PushResponder(v.location, responder))
             }.getOrElse(Future.successful(accumulated:+PushResponder(v.location, responder)))
           }
+        catch { case t: Throwable => handleException(t); facc }
       } else {
-        route(locToRequest(v, req))
+        try route(newReq)   // Need to make sure to catch exceptions
           .run
           .flatMap( resp => facc.map(_ :+ PushResponder(v.location, resp)))
+        catch { case t: Throwable => handleException(t); facc }
       }
     }
   
