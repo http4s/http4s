@@ -17,8 +17,8 @@ object PushSupport {
   implicit class PushSupportResponder(responder: Responder) extends AnyRef {
     def push(url: String, cascade: Boolean = true): Responder = {
       val newPushResouces = responder.attributes.get(pushLocationKey)
-          .map(_.map(_ :+ PushLocation(url, cascade)))
-          .getOrElse(Future.successful(Vector(PushLocation(url,cascade))))
+          .map(_ :+ PushLocation(url, cascade))
+          .getOrElse(Vector(PushLocation(url,cascade)))
 
       Responder(responder.prelude, responder.body,
         responder.attributes.put(PushSupport.pushLocationKey, newPushResouces))
@@ -28,23 +28,24 @@ object PushSupport {
   private def locToRequest(push: PushLocation, prelude: RequestPrelude): RequestPrelude =
     RequestPrelude(pathInfo = push.location, headers = prelude.headers)
 
-  private def collectResponder(r: Future[Vector[PushLocation]], req: RequestPrelude, route: Route): Future[Vector[PushResponder]] = r.flatMap(
-    _.foldLeft(Future.successful(Vector.empty[PushResponder])){ (f, v) =>
-      if (v.cascasde) f.flatMap { vresp => // Need to gather the sub resources
+  private def collectResponder(r: Vector[PushLocation], req: RequestPrelude, route: Route): Future[Vector[PushResponder]] = 
+    r.foldLeft(Future.successful(Vector.empty[PushResponder])){ (facc, v) =>
+      if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
         route(locToRequest(v, req)).run
           .flatMap { responder =>             // Inside the future result of this pushed resource
             responder.attributes.get(pushLocationKey)
-            .map { fresp =>                   // More resources. Need to collect them and add all this up
-               collectResponder(fresp, req, route).map(vresp ++ _ :+ PushResponder(v.location, responder))
-            }.getOrElse(Future.successful(vresp:+PushResponder(v.location, responder)))
+            .map { pushed =>
+              collectResponder(pushed, req, route)
+                .map(accumulated ++ _ :+ PushResponder(v.location, responder))
+            }.getOrElse(Future.successful(accumulated:+PushResponder(v.location, responder)))
           }
       } else {
         route(locToRequest(v, req))
           .run
-          .flatMap{ resp => f.map(_ :+ PushResponder(v.location, resp))}
+          .flatMap( resp => facc.map(_ :+ PushResponder(v.location, resp)))
       }
     }
-  )
+  
 
   /** Transform the route such that requests will gather pushed resources
    *
@@ -65,9 +66,9 @@ object PushSupport {
     }
   }
 
-  private [PushSupport] case class PushLocation(location: String, cascasde: Boolean)
+  private [PushSupport] case class PushLocation(location: String, cascade: Boolean)
   private [PushSupport] case class PushResponder(location: String, resp: Responder)
 
-  private[PushSupport] val pushLocationKey = AttributeKey[Future[Vector[PushLocation]]]("http4sPush")
+  private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]("http4sPush")
   private[http4s] val pushRespondersKey = AttributeKey[Future[Vector[PushResponder]]]("http4sPushResponders")
 }
