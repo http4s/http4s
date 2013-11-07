@@ -6,6 +6,7 @@ import java.net.InetAddress
 import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.annotation.tailrec
+import scala.util.hashing.MurmurHash3
 
 sealed trait Header extends Logging with Product {
 
@@ -25,31 +26,14 @@ sealed trait Header extends Logging with Product {
 
   def parsed: Header
 
-  final def valueEquals(that: Header) = {
-    val arity = parsed.productArity
-    @tailrec def loop(i: Int): Boolean =
-      if (i < arity)
-        parsed.productElement(i) == that.parsed.productElement(i) && loop(i + 1)
-      else
-        true
-    (arity == that.parsed.productArity) && loop(0)
-  }
-
-  final override def hashCode(): Int = {
-    var code = lowercaseName.hashCode
-    val arity = parsed.productArity
-    @tailrec def loop(i: Int): Int =
-      if (i < arity) {
-        code = code * 41 + parsed.productElement(i).##
-        loop(i)
-      } else
-        code
-    loop(0)
-  }
+  final override def hashCode(): Int = MurmurHash3.mixLast(lowercaseName.hashCode, MurmurHash3.productHash(parsed))
 
   override def equals(that: Any): Boolean = that match {
     case h: AnyRef if this eq h => true
-    case h: Header => lowercaseName.equals(h.lowercaseName) && valueEquals(h)
+    case h: Header =>
+      (parsed.productArity == h.parsed.productArity) &&
+      (lowercaseName == h.lowercaseName) &&
+      (parsed.productIterator sameElements h.parsed.productIterator)
     case _ => false
   }
 }
