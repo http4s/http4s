@@ -9,7 +9,7 @@ private[parser] trait AcceptLanguageHeader {
   this: Parser with ProtocolParameterRules =>
 
   def ACCEPT_LANGUAGE = rule (
-    oneOrMore(LanguageRangeDef, separator = ListSep) ~ EOI ~~> (Headers.`Accept-Language`(_))
+    oneOrMore(LanguageRangeDef, separator = ListSep) ~ EOI ~~> (xs => Headers.`Accept-Language`(xs.head, xs.tail: _*))
   )
 
   def LanguageRangeDef = rule {

@@ -116,14 +116,13 @@ object Headers {
     def name = "Accept-Encoding"
   }
 
-  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] {
-    def apply(first: LanguageRange, more: LanguageRange*): `Accept-Language` = apply(first +: more)
-  }
-  final case class `Accept-Language` private[http4s] (languageRanges: Seq[LanguageRange]) extends ParsedHeader {
+  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderCompanion[LanguageRange, `Accept-Language`]
+  final case class `Accept-Language`(values: NonEmptyList[LanguageRange]) extends RecurringHeader[LanguageRange, `Accept-Language`] {
+    val companion = `Accept-Language`
     def name = "Accept-Language"
-    def value = languageRanges.map(_.value).mkString(", ")
   }
 
+  // TODO Interpreting this as not a recurring header, because of "none".
   object `Accept-Ranges` extends InternalHeaderKey[`Accept-Ranges`] {
     def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
   }
