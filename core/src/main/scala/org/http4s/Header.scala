@@ -5,6 +5,7 @@ import org.joda.time.DateTime
 import java.net.InetAddress
 import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
+import scalaz.NonEmptyList
 
 sealed trait Header extends Logging {
 
@@ -25,9 +26,39 @@ sealed trait Header extends Logging {
   def parsed: Header
 }
 
-abstract class ParsedHeader extends Header {
+trait ParsedHeader extends Header {
   def parsed: this.type = this
 }
+
+/**
+ * A recurring header that satisfies this clause of the Spec:
+ *
+ * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
+ * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
+ * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
+ * of the message, by appending each subsequent field-value to the first, each separated by a comma.
+ *
+ * @tparam A The type of value
+ * @tparam Self A self type to support specific return types.
+ */
+trait RecurringHeader[A, Self <: RecurringHeader[A, Self]] extends ParsedHeader { this: Self =>
+  def companion: RecurringHeaderCompanion[A, Self]
+  def values: NonEmptyList[A]
+  def value: String = values.list.mkString(", ")
+  def +(that: Self): Self = companion(values append that.values)
+}
+
+/**
+ * A companion object to a recurring header.
+ *
+ * @tparam A The type of value contained by H
+ * @tparam H The type of header this is the companion to.
+ */
+trait RecurringHeaderCompanion[A, H <: RecurringHeader[A, H]] {
+  def apply(values: NonEmptyList[A]): H
+  def apply(first: A, more: A*): H = apply(NonEmptyList.apply(first, more: _*))
+}
+
 
 object Header {
   def unapply(header: Header): Option[(String, String)] = Some((header.lowercaseName, header.value))
@@ -54,28 +85,22 @@ object Headers {
     override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
-  object Accept extends InternalHeaderKey[Accept] {
-    def apply(first: MediaRange, more: MediaRange*): Accept = apply(first +: more)
-  }
-  final case class Accept private[http4s] (mediaRanges: Seq[MediaRange]) extends ParsedHeader {
+  object Accept extends InternalHeaderKey[Accept] with RecurringHeaderCompanion[MediaRange, Accept]
+  final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringHeader[MediaRange, Accept] {
+    val companion = Accept
     def name = "Accept"
-    def value = mediaRanges.map(_.value).mkString(", ")
   }
 
-  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] {
-    def apply(first: CharsetRange, more: CharsetRange*): `Accept-Charset` = apply(first +: more)
-  }
-  final case class `Accept-Charset` private[http4s] (charsetRanges: Seq[CharsetRange]) extends ParsedHeader {
+  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderCompanion[CharsetRange, `Accept-Charset`]
+  final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringHeader[CharsetRange, `Accept-Charset`] {
+    val companion = `Accept-Charset`
     def name = "Accept-Charset"
-    def value = charsetRanges.map(_.value).mkString(", ")
   }
 
-  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] {
-    def apply(first: ContentCodingRange, more: ContentCodingRange*): `Accept-Encoding` = apply(first +: more)
-  }
-  final case class `Accept-Encoding` private[http4s] (contentCodings: Seq[ContentCodingRange]) extends ParsedHeader {
+  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderCompanion[ContentCodingRange, `Accept-Encoding`]
+  final case class `Accept-Encoding`(values: NonEmptyList[ContentCodingRange]) extends RecurringHeader[ContentCodingRange, `Accept-Encoding`] {
+    val companion = `Accept-Encoding`
     def name = "Accept-Encoding"
-    def value = contentCodings.map(_.value).mkString(", ")
   }
 
   object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] {
@@ -122,22 +147,18 @@ object Headers {
     def value = credentials.value
   }
 
-  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] {
-    def apply(first: CacheDirective, more: CacheDirective*): `Cache-Control` = apply(first +: more)
-  }
-  final case class `Cache-Control` private[http4s] (directives: Seq[CacheDirective]) extends ParsedHeader {
+  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderCompanion[CacheDirective, `Cache-Control`]
+  final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringHeader[CacheDirective, `Cache-Control`] {
+    val companion = `Cache-Control`
     def name = "Cache-Control"
-    def value = directives.mkString(", ")
   }
 
-  object Connection extends InternalHeaderKey[Connection] {
-    def apply(first: String, more: String*): Connection = apply(first +: more)
-  }
-  final case class Connection private[http4s] (connectionTokens: Seq[String]) extends ParsedHeader {
+  object Connection extends InternalHeaderKey[Connection] with RecurringHeaderCompanion[String, Connection]
+  final case class Connection(values: NonEmptyList[String]) extends RecurringHeader[String, Connection] {
+    val companion = Connection
     def name = "Connection"
-    def value = connectionTokens.mkString(", ")
-    def hasClose = connectionTokens.exists(_.toLowerCase == "close")
-    def hasKeepAlive = connectionTokens.exists(_.toLowerCase == "keep-alive")
+    def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
+    def hasKeepAlive = values.list.exists(_.equalsIgnoreCase("keep-alive"))
   }
 
   object `Content-Base` extends DefaultHeaderKey
@@ -177,12 +198,11 @@ object Headers {
     def value = contentType.value
   }
 
-  object Cookie extends InternalHeaderKey[Cookie] {
-    def apply(first: org.http4s.Cookie, more: org.http4s.Cookie*): Cookie = apply(first +: more)
-  }
-  final case class Cookie private[http4s] (cookies: Seq[org.http4s.Cookie]) extends ParsedHeader {
+  object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderCompanion[org.http4s.Cookie, Cookie]
+  final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringHeader[org.http4s.Cookie, Cookie] {
+    val companion = Cookie
     def name = "Cookie"
-    def value = cookies.mkString("; ")
+    override def value: String = values.list.mkString("; ")
   }
 
   object Date extends InternalHeaderKey[Date]
@@ -300,20 +320,17 @@ object Headers {
 
   object `WebSocket-Protocol` extends DefaultHeaderKey
 
-  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] {
-    def apply(first: Challenge, more: Challenge*): `WWW-Authenticate` = apply(first +: more)
-  }
-  final case class `WWW-Authenticate` private[http4s] (challenges: Seq[Challenge]) extends ParsedHeader {
+  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] with RecurringHeaderCompanion[Challenge, `WWW-Authenticate`]
+  final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringHeader[Challenge, `WWW-Authenticate`] {
+    val companion = `WWW-Authenticate`
     def name = "WWW-Authenticate"
-    def value = challenges.mkString(", ")
   }
 
-  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] {
-    def apply(first: InetAddress, more: InetAddress*): `X-Forwarded-For` = apply((first +: more).map(Some(_)))
-  }
-  final case class `X-Forwarded-For` private[http4s] (ips: Seq[Option[InetAddress]]) extends ParsedHeader {
+  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderCompanion[Option[InetAddress], `X-Forwarded-For`]
+  final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends RecurringHeader[Option[InetAddress], `X-Forwarded-For`] {
+    val companion = `X-Forwarded-For`
     def name = "X-Forwarded-For"
-    def value = ips.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
+    override def value = values.list.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
 
   object `X-Forwarded-Proto` extends DefaultHeaderKey

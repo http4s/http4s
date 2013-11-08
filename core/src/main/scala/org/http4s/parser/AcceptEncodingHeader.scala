@@ -9,7 +9,7 @@ private[parser] trait AcceptEncodingHeader {
   this: Parser with ProtocolParameterRules =>
 
   def ACCEPT_ENCODING = rule (
-    oneOrMore(EncodingRangeDecl, separator = ListSep) ~ EOI ~~> (Headers.`Accept-Encoding`(_))
+    oneOrMore(EncodingRangeDecl, separator = ListSep) ~ EOI ~~> (xs => Headers.`Accept-Encoding`(xs.head, xs.tail: _*))
   )
 
   def EncodingRangeDecl = rule (

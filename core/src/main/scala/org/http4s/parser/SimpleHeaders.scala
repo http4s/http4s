@@ -12,7 +12,7 @@ private[parser] trait SimpleHeaders {
   this: Parser with ProtocolParameterRules with AdditionalRules =>
 
   def CONNECTION = rule (
-    oneOrMore(Token, separator = ListSep) ~ EOI ~~> (Headers.Connection(_))
+    oneOrMore(Token, separator = ListSep) ~ EOI ~~> (xs => Headers.Connection(xs.head, xs.tail: _*))
   )
 
   def CONTENT_LENGTH = rule {
@@ -39,7 +39,7 @@ private[parser] trait SimpleHeaders {
   }
 
   def X_FORWARDED_FOR = rule {
-    oneOrMore(Ip ~~> (Some(_)) | "unknown" ~ push(None), separator = ListSep) ~ EOI ~~> (`X-Forwarded-For`(_))
+    oneOrMore(Ip ~~> (Some(_)) | "unknown" ~ push(None), separator = ListSep) ~ EOI ~~> (xs => `X-Forwarded-For`(xs.head, xs.tail: _*))
   }
 
 }

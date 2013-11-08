@@ -15,7 +15,7 @@ private[parser] trait CookieHeaders {
   }
 
   def COOKIE = rule {
-    oneOrMore(CookiePair, separator = ";") ~ EOI ~~> (Headers.Cookie(_))
+    oneOrMore(CookiePair, separator = ";") ~ EOI ~~> (xs => Headers.Cookie(xs.head, xs.tail: _*))
   }
 
   def CookiePair = rule {
