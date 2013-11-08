@@ -6,8 +6,10 @@ import java.net.InetAddress
 import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.NonEmptyList
+import scala.annotation.tailrec
+import scala.util.hashing.MurmurHash3
 
-sealed trait Header extends Logging {
+sealed trait Header extends Logging with Product {
 
   def name: String
 
@@ -24,6 +26,17 @@ sealed trait Header extends Logging {
   override def toString = name + ": " + value
 
   def parsed: Header
+
+  final override def hashCode(): Int = MurmurHash3.mixLast(lowercaseName.hashCode, MurmurHash3.productHash(parsed))
+
+  override def equals(that: Any): Boolean = that match {
+    case h: AnyRef if this eq h => true
+    case h: Header =>
+      (parsed.productArity == h.parsed.productArity) &&
+      (lowercaseName == h.lowercaseName) &&
+      (parsed.productIterator sameElements h.parsed.productIterator)
+    case _ => false
+  }
 }
 
 trait ParsedHeader extends Header {
