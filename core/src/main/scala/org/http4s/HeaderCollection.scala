@@ -25,11 +25,7 @@ final class HeaderCollection private (headers: List[Header])
 
   def iterator: Iterator[Header] = headers.iterator
 
-  def apply[T <: Header](key: HeaderKey[T]) = get(key).get    // YOLO!
-
-  def get[T <: Header](key: HeaderKey[T]): Option[T] = key from this
-
-  def getAll[T <: Header](key: HeaderKey[T]): Seq[T] = key findIn this
+  def get(key: HeaderKey): key.GetT = key.from(this)
 
   def put(header: Header): HeaderCollection =
     new HeaderCollection(header :: headers.filterNot(_.getClass == header.getClass))

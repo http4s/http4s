@@ -22,9 +22,6 @@ package object http4s extends LowercaseSyntax {
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
-  @deprecated("Who's using this?")
-  implicit def string2headerkey(nm: String): HeaderKey[Header] = new SimpleHeaderKey(nm.lowercaseEn)
-
   private[this] val Rfc1123Format = DateTimeFormat
     .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
     .withLocale(Locale.US)
