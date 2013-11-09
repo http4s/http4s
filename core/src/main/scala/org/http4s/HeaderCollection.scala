@@ -27,9 +27,18 @@ final class HeaderCollection private (headers: List[Header])
 
   def apply[T <: Header](key: HeaderKey[T]) = get(key).get    // YOLO!
 
-  def get[T <: Header](key: HeaderKey[T]): Option[T] = key from this
-
-  def getAll[T <: Header](key: HeaderKey[T]): Seq[T] = key findIn this
+  def get[T <: Header](key: HeaderKey[T]): Option[T] =
+    key match {
+      case recurringKey: RecurringHeaderKey[_, _] =>
+        key.findIn(this) match {
+          case headers if headers.isEmpty =>
+            None
+          case headers =>
+            Some(headers.reduceLeft(_ + _)
+        }
+      case singletonKey =>
+        key.from(this)
+    }
 
   def put(header: Header): HeaderCollection =
     new HeaderCollection(header :: headers.filterNot(_.getClass == header.getClass))

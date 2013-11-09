@@ -54,7 +54,7 @@ class SimpleHeaderKey(val name: String) extends StringHeaderKey
  * @tparam A The type of value contained by H
  * @tparam H The type of header this is the companion to.
  */
-trait RecurringHeaderKey[A, H <: RecurringHeader[A, H]] {
+trait RecurringHeaderKey[A, H <: RecurringHeader[A, H]] extends HeaderKey[H] {
   def apply(values: NonEmptyList[A]): H
   def apply(first: A, more: A*): H = apply(NonEmptyList.apply(first, more: _*))
 }
