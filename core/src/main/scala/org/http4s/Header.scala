@@ -52,26 +52,14 @@ trait ParsedHeader extends Header {
  * of the message, by appending each subsequent field-value to the first, each separated by a comma.
  *
  * @tparam A The type of value
- * @tparam Self A self type to support specific return types.
+ * @tparam MyType A self type to support specific return types.
  */
-trait RecurringHeader[A, Self <: RecurringHeader[A, Self]] extends ParsedHeader { this: Self =>
-  def companion: RecurringHeaderCompanion[A, Self]
+trait RecurringHeader[A, MyType <: RecurringHeader[A, MyType]] extends ParsedHeader { this: MyType =>
+  def key: RecurringHeaderKey[A, MyType]
   def values: NonEmptyList[A]
   def value: String = values.list.mkString(", ")
-  def +(that: Self): Self = companion(values append that.values)
+  def +(that: MyType): MyType = key(values append that.values)
 }
-
-/**
- * A companion object to a recurring header.
- *
- * @tparam A The type of value contained by H
- * @tparam H The type of header this is the companion to.
- */
-trait RecurringHeaderCompanion[A, H <: RecurringHeader[A, H]] {
-  def apply(values: NonEmptyList[A]): H
-  def apply(first: A, more: A*): H = apply(NonEmptyList.apply(first, more: _*))
-}
-
 
 object Header {
   def unapply(header: Header): Option[(String, String)] = Some((header.lowercaseName, header.value))
@@ -98,27 +86,27 @@ object Headers {
     override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
-  object Accept extends InternalHeaderKey[Accept] with RecurringHeaderCompanion[MediaRange, Accept]
+  object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey[MediaRange, Accept]
   final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringHeader[MediaRange, Accept] {
-    val companion = Accept
+    val key = Accept
     def name = "Accept"
   }
 
-  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderCompanion[CharsetRange, `Accept-Charset`]
+  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey[CharsetRange, `Accept-Charset`]
   final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringHeader[CharsetRange, `Accept-Charset`] {
-    val companion = `Accept-Charset`
+    val key = `Accept-Charset`
     def name = "Accept-Charset"
   }
 
-  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderCompanion[ContentCodingRange, `Accept-Encoding`]
+  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey[ContentCodingRange, `Accept-Encoding`]
   final case class `Accept-Encoding`(values: NonEmptyList[ContentCodingRange]) extends RecurringHeader[ContentCodingRange, `Accept-Encoding`] {
-    val companion = `Accept-Encoding`
+    val key = `Accept-Encoding`
     def name = "Accept-Encoding"
   }
 
-  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderCompanion[LanguageRange, `Accept-Language`]
+  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey[LanguageRange, `Accept-Language`]
   final case class `Accept-Language`(values: NonEmptyList[LanguageRange]) extends RecurringHeader[LanguageRange, `Accept-Language`] {
-    val companion = `Accept-Language`
+    val key = `Accept-Language`
     def name = "Accept-Language"
   }
 
@@ -159,15 +147,15 @@ object Headers {
     def value = credentials.value
   }
 
-  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderCompanion[CacheDirective, `Cache-Control`]
+  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey[CacheDirective, `Cache-Control`]
   final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringHeader[CacheDirective, `Cache-Control`] {
-    val companion = `Cache-Control`
+    val key = `Cache-Control`
     def name = "Cache-Control"
   }
 
-  object Connection extends InternalHeaderKey[Connection] with RecurringHeaderCompanion[String, Connection]
+  object Connection extends InternalHeaderKey[Connection] with RecurringHeaderKey[String, Connection]
   final case class Connection(values: NonEmptyList[String]) extends RecurringHeader[String, Connection] {
-    val companion = Connection
+    val key = Connection
     def name = "Connection"
     def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
     def hasKeepAlive = values.list.exists(_.equalsIgnoreCase("keep-alive"))
@@ -210,9 +198,9 @@ object Headers {
     def value = contentType.value
   }
 
-  object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderCompanion[org.http4s.Cookie, Cookie]
+  object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderKey[org.http4s.Cookie, Cookie]
   final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringHeader[org.http4s.Cookie, Cookie] {
-    val companion = Cookie
+    val key = Cookie
     def name = "Cookie"
     override def value: String = values.list.mkString("; ")
   }
@@ -332,15 +320,15 @@ object Headers {
 
   object `WebSocket-Protocol` extends DefaultHeaderKey
 
-  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] with RecurringHeaderCompanion[Challenge, `WWW-Authenticate`]
+  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] with RecurringHeaderKey[Challenge, `WWW-Authenticate`]
   final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringHeader[Challenge, `WWW-Authenticate`] {
-    val companion = `WWW-Authenticate`
+    val key = `WWW-Authenticate`
     def name = "WWW-Authenticate"
   }
 
-  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderCompanion[Option[InetAddress], `X-Forwarded-For`]
+  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderKey[Option[InetAddress], `X-Forwarded-For`]
   final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends RecurringHeader[Option[InetAddress], `X-Forwarded-For`] {
-    val companion = `X-Forwarded-For`
+    val key = `X-Forwarded-For`
     def name = "X-Forwarded-For"
     override def value = values.list.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }

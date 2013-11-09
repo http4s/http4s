@@ -1,5 +1,7 @@
 package org.http4s
 
+import scalaz.NonEmptyList
+
 /**
  * @author Bryce Anderson
  *         Created on 11/3/13
@@ -45,3 +47,14 @@ private[http4s] trait StringHeaderKey extends HeaderKey[Header] {
 }
 
 class SimpleHeaderKey(val name: String) extends StringHeaderKey
+
+/**
+ * A companion object to a recurring header.
+ *
+ * @tparam A The type of value contained by H
+ * @tparam H The type of header this is the companion to.
+ */
+trait RecurringHeaderKey[A, H <: RecurringHeader[A, H]] {
+  def apply(values: NonEmptyList[A]): H
+  def apply(first: A, more: A*): H = apply(NonEmptyList.apply(first, more: _*))
+}
