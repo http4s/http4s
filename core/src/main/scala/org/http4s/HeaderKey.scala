@@ -39,27 +39,25 @@ trait SingletonHeaderKey extends HeaderKey {
  *
  * @tparam A The type of value contained by H
  */
-trait RecurringHeaderKey extends HeaderKey {
+trait RecurringHeaderKey extends HeaderKey { self =>
   type Value
   type HeaderT <: RecurringHeader
   type GetT = Option[HeaderT]
   def apply(values: NonEmptyList[Value]): HeaderT
   def apply(first: Value, more: Value*): HeaderT = apply(NonEmptyList.apply(first, more: _*))
   def from(headers: HeaderCollection): GetT = {
-    @tailrec def loop(hs: HeaderCollection, acc: NonEmptyList[Value]): NonEmptyList[Value] = hs match {
-      case hs if hs.isEmpty => acc
-      case hs if hs.head is this =>
-        loop(hs.tail, acc append hs.head.asInstanceOf[HeaderT].values.asInstanceOf[NonEmptyList[Value]])
-      case hs =>
-        loop(hs.tail, acc)
-    }
-    @tailrec def start(hs: HeaderCollection): GetT = hs match {
-      case hs if hs.isEmpty => None
-      case hs if hs.head is this =>
-        Some(apply(loop(hs.tail, hs.head.asInstanceOf[HeaderT].values.asInstanceOf[NonEmptyList[Value]])))
-      case hs =>
-        start(hs.tail)
-    }
+    @tailrec def loop(hs: HeaderCollection, acc: NonEmptyList[Value]): NonEmptyList[Value] =
+      if (hs.nonEmpty) matchHeader(hs.head) match {
+        case Some(header) => loop(hs.tail, acc append header.values.asInstanceOf[NonEmptyList[Value]])
+        case None => loop(hs.tail, acc)
+      }
+      else acc
+    @tailrec def start(hs: HeaderCollection): GetT =
+      if (hs.nonEmpty) matchHeader(hs.head) match {
+        case Some(header) => Some(apply(loop(hs.tail, header.values.asInstanceOf[NonEmptyList[Value]])))
+        case None => start(hs.tail)
+      }
+      else None
     start(headers)
   }
 }

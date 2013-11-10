@@ -34,7 +34,7 @@ class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
         Headers.RawHeader("Accept-Patch",""),
         Headers.RawHeader("Access-Control-Allow-Credentials","")
       )
-      headers.get(`Accept-Patch`).value should be ("")
+      headers.get(`Accept-Patch`).value.value should equal ("")
     }
   }
 }
