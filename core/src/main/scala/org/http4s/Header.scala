@@ -53,6 +53,7 @@ trait RecurringHeader extends ParsedHeader {
   type MyType <: RecurringHeader
   type Value
   val key: RecurringHeaderKey
+  def name = key.name
   def values: NonEmptyList[Value]
   def value: String = values.list.mkString(", ")
 }
@@ -91,7 +92,6 @@ object Headers {
   final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringHeader {
     val key = Accept
     type Value = MediaRange
-    def name = "Accept"
   }
 
   object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey {
@@ -99,7 +99,6 @@ object Headers {
   final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringHeader {
     val key = `Accept-Charset`
     type Value = CharsetRange
-    def name = "Accept-Charset"
   }
 
   object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey {
@@ -107,7 +106,6 @@ object Headers {
   final case class `Accept-Encoding`(values: NonEmptyList[ContentCodingRange]) extends RecurringHeader {
     val key = `Accept-Encoding`
     type Value = ContentCodingRange
-    def name = "Accept-Encoding"
   }
 
   object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey {
@@ -115,7 +113,6 @@ object Headers {
   final case class `Accept-Language`(values: NonEmptyList[LanguageRange]) extends RecurringHeader {
     val key = `Accept-Language`
     type Value = LanguageRange
-    def name = "Accept-Language"
   }
 
   // TODO Interpreting this as not a recurring header, because of "none".
@@ -160,7 +157,6 @@ object Headers {
   final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringHeader {
     val key = `Cache-Control`
     type Value = CacheDirective
-    def name = "Cache-Control"
   }
 
   object Connection extends InternalHeaderKey[Connection] with RecurringHeaderKey {
@@ -168,7 +164,6 @@ object Headers {
   final case class Connection(values: NonEmptyList[String]) extends RecurringHeader {
     val key = Connection
     type Value = String
-    def name = "Connection"
     def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
     def hasKeepAlive = values.list.exists(_.equalsIgnoreCase("keep-alive"))
   }
@@ -215,7 +210,6 @@ object Headers {
   final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringHeader {
     val key = Cookie
     type Value = org.http4s.Cookie
-    def name = "Cookie"
     override def value: String = values.list.mkString("; ")
   }
 
@@ -339,7 +333,6 @@ object Headers {
   final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringHeader {
     val key = `WWW-Authenticate`
     type Value = Challenge
-    def name = "WWW-Authenticate"
   }
 
   object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderKey {
@@ -347,7 +340,6 @@ object Headers {
   final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends RecurringHeader {
     val key = `X-Forwarded-For`
     type Value = Option[InetAddress]
-    def name = "X-Forwarded-For"
     override def value = values.list.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
 
