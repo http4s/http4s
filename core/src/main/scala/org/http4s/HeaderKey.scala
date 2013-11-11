@@ -40,21 +40,20 @@ trait SingletonHeaderKey extends HeaderKey {
  * @tparam A The type of value contained by H
  */
 trait RecurringHeaderKey extends HeaderKey { self =>
-  type Value
   type HeaderT <: RecurringHeader
   type GetT = Option[HeaderT]
-  def apply(values: NonEmptyList[Value]): HeaderT
-  def apply(first: Value, more: Value*): HeaderT = apply(NonEmptyList.apply(first, more: _*))
+  def apply(values: NonEmptyList[HeaderT#Value]): HeaderT
+  def apply(first: HeaderT#Value, more: HeaderT#Value*): HeaderT = apply(NonEmptyList.apply(first, more: _*))
   def from(headers: HeaderCollection): GetT = {
-    @tailrec def loop(hs: HeaderCollection, acc: NonEmptyList[Value]): NonEmptyList[Value] =
+    @tailrec def loop(hs: HeaderCollection, acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
       if (hs.nonEmpty) matchHeader(hs.head) match {
-        case Some(header) => loop(hs.tail, acc append header.values.asInstanceOf[NonEmptyList[Value]])
+        case Some(header) => loop(hs.tail, acc append header.values)
         case None => loop(hs.tail, acc)
       }
       else acc
     @tailrec def start(hs: HeaderCollection): GetT =
       if (hs.nonEmpty) matchHeader(hs.head) match {
-        case Some(header) => Some(apply(loop(hs.tail, header.values.asInstanceOf[NonEmptyList[Value]])))
+        case Some(header) => Some(apply(loop(hs.tail, header.values)))
         case None => start(hs.tail)
       }
       else None
