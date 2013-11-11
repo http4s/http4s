@@ -62,26 +62,6 @@ object Header {
 }
 
 object Headers {
-
-  sealed abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKey {
-    type HeaderT = T
-
-    val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
-
-    private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
-
-    override def matchHeader(header: Header): Option[HeaderT] = {
-      if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[HeaderT])
-      else if (header.isInstanceOf[RawHeader] && name.equalsIgnoreCase(header.name) && runtimeClass.isInstance(header.parsed))
-        Some(header.parsed.asInstanceOf[HeaderT])
-      else None
-    }
-  }
-
-  sealed trait DefaultHeaderKey extends InternalHeaderKey[Header] with StringHeaderKey {
-    override type HeaderT = Header
-  }
-
   final case class RawHeader(name: String, value: String) extends Header {
     override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
   }

@@ -25,7 +25,7 @@ final class HeaderCollection private (private val headers: List[Header])
 
   def iterator: Iterator[Header] = headers.iterator
 
-  def get(key: HeaderKey): key.GetT = key.from(this)
+  def get(key: ExtractableHeaderKey): Option[key.HeaderT] = key.from(this)
 
   def put(header: Header): HeaderCollection =
     new HeaderCollection(header :: headers.filterNot(_.getClass == header.getClass))
