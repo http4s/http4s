@@ -38,6 +38,8 @@ sealed trait Header extends Logging with Product {
 }
 
 trait ParsedHeader extends Header {
+  def key: HeaderKey
+  def name = key.name
   def parsed: this.type = this
 }
 
@@ -51,8 +53,6 @@ trait ParsedHeader extends Header {
  */
 trait RecurringHeader extends ParsedHeader {
   type Value
-  val key: RecurringHeaderKey
-  def name = key.name
   def values: NonEmptyList[Value]
   def value: String = values.list.mkString(", ")
 }
@@ -89,28 +89,28 @@ object Headers {
   object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey {
   }
   final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringHeader {
-    val key = Accept
+    def key = Accept
     type Value = MediaRange
   }
 
   object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey {
   }
   final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringHeader {
-    val key = `Accept-Charset`
+    def key = `Accept-Charset`
     type Value = CharsetRange
   }
 
   object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey {
   }
   final case class `Accept-Encoding`(values: NonEmptyList[ContentCodingRange]) extends RecurringHeader {
-    val key = `Accept-Encoding`
+    def key = `Accept-Encoding`
     type Value = ContentCodingRange
   }
 
   object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey {
   }
   final case class `Accept-Language`(values: NonEmptyList[LanguageRange]) extends RecurringHeader {
-    val key = `Accept-Language`
+    def key = `Accept-Language`
     type Value = LanguageRange
   }
 
@@ -119,7 +119,7 @@ object Headers {
     def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
   }
   final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends ParsedHeader {
-    def name = "Accept-Ranges"
+    def key = `Accept-Ranges`
     def value = if (rangeUnits.isEmpty) "none" else rangeUnits.mkString(", ")
   }
 
@@ -147,21 +147,21 @@ object Headers {
 
   object Authorization extends InternalHeaderKey[Authorization] with SingletonHeaderKey
   final case class Authorization(credentials: Credentials) extends ParsedHeader {
-    def name = "Authorization"
+    def key = `Authorization`
     def value = credentials.value
   }
 
   object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey {
   }
   final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringHeader {
-    val key = `Cache-Control`
+    def key = `Cache-Control`
     type Value = CacheDirective
   }
 
   object Connection extends InternalHeaderKey[Connection] with RecurringHeaderKey {
   }
   final case class Connection(values: NonEmptyList[String]) extends RecurringHeader {
-    val key = Connection
+    def key = Connection
     type Value = String
     def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
     def hasKeepAlive = values.list.exists(_.equalsIgnoreCase("keep-alive"))
@@ -172,13 +172,13 @@ object Headers {
   object `Content-Disposition` extends InternalHeaderKey[`Content-Disposition`] with SingletonHeaderKey
   // see http://tools.ietf.org/html/rfc2183
   final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends ParsedHeader {
-    def name = "Content-Disposition"
+    def key = `Content-Disposition`
     def value = parameters.map(p => "; " + p._1 + "=\"" + p._2 + '"').mkString(dispositionType, "", "")
   }
 
   object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`] with SingletonHeaderKey
   final case class `Content-Encoding`(contentCoding: ContentCoding) extends ParsedHeader {
-    def name = "Content-Encoding"
+    def key = `Content-Encoding`
     def value = contentCoding.value
   }
 
@@ -186,7 +186,7 @@ object Headers {
 
   object `Content-Length` extends InternalHeaderKey[`Content-Length`] with SingletonHeaderKey
   final case class `Content-Length`(length: Int) extends ParsedHeader {
-    def name = "Content-Length"
+    def key = `Content-Length`
     def value = length.toString
   }
 
@@ -200,21 +200,21 @@ object Headers {
 
   object `Content-Type` extends InternalHeaderKey[`Content-Type`] with SingletonHeaderKey
   final case class `Content-Type`(contentType: ContentType) extends ParsedHeader {
-    def name = "Content-Type"
+    def key = `Content-Type`
     def value = contentType.value
   }
 
   object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderKey {
   }
   final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringHeader {
-    val key = Cookie
+    def key = Cookie
     type Value = org.http4s.Cookie
     override def value: String = values.list.mkString("; ")
   }
 
   object Date extends InternalHeaderKey[Date] with SingletonHeaderKey
   final case class Date(date: DateTime) extends ParsedHeader {
-    def name = "Date"
+    def key = `Date`
     def value = date.formatRfc1123
   }
 
@@ -232,7 +232,7 @@ object Headers {
     def apply(host: String, port: Int): Host = apply(host, Some(port))
   }
   final case class Host (host: String, port: Option[Int] = None) extends ParsedHeader {
-    def name = "Host"
+    def key = `Host`
     def value = port.map(host + ':' + _).getOrElse(host)
   }
 
@@ -248,14 +248,14 @@ object Headers {
 
   object `Last-Modified` extends InternalHeaderKey[`Last-Modified`] with SingletonHeaderKey
   final case class `Last-Modified`(date: DateTime) extends ParsedHeader {
-    def name = "Last-Modified"
+    def key = `Last-Modified`
     def value = date.formatRfc1123
   }
 
   object Location extends InternalHeaderKey[Location] with SingletonHeaderKey
 
   final case class Location(absoluteUri: String) extends ParsedHeader {
-    def name = "Location"
+    def key = `Location`
     def value = absoluteUri
   }
 
@@ -295,7 +295,7 @@ object Headers {
 
   object `Set-Cookie` extends InternalHeaderKey[`Set-Cookie`] with SingletonHeaderKey
   final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends ParsedHeader {
-    def name = "Set-Cookie"
+    def key = `Set-Cookie`
     def value = cookie.value
   }
 
@@ -307,7 +307,7 @@ object Headers {
 
   object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`] with SingletonHeaderKey
   final case class `Transfer-Encoding`(coding: ContentCoding) extends ParsedHeader {
-    def name = "Transfer-Encoding"
+    def key = `Transfer-Encoding`
     def value = coding.value
   }
 
@@ -330,14 +330,14 @@ object Headers {
   object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] with RecurringHeaderKey {
   }
   final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringHeader {
-    val key = `WWW-Authenticate`
+    def key = `WWW-Authenticate`
     type Value = Challenge
   }
 
   object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderKey {
   }
   final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends RecurringHeader {
-    val key = `X-Forwarded-For`
+    def key = `X-Forwarded-For`
     type Value = Option[InetAddress]
     override def value = values.list.map(_.fold("unknown")(_.getHostAddress)).mkString(", ")
   }
