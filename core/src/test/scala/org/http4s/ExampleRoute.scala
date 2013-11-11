@@ -54,7 +54,7 @@ object ExampleRoute {
       for {
         body <- text(req.charset)
         trailer <- trailer
-      } yield Ok(s"$body\n${trailer.headers("Hi").value}")
+      } yield trailer.headers.find(_.lowercaseName == "hi").fold(InternalServerError()){ hi =>  Ok(s"$body\n${hi.value}") }
 
     case req @ Req(Get, "/stream") =>
       Ok(Concurrent.unicast[ByteString]({
