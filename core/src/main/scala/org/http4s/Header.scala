@@ -66,29 +66,25 @@ object Headers {
     override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
-  object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey {
-  }
+  object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey
   final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringHeader {
     def key = Accept
     type Value = MediaRange
   }
 
-  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey {
-  }
+  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey
   final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringHeader {
     def key = `Accept-Charset`
     type Value = CharsetRange
   }
 
-  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey {
-  }
+  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey
   final case class `Accept-Encoding`(values: NonEmptyList[ContentCodingRange]) extends RecurringHeader {
     def key = `Accept-Encoding`
     type Value = ContentCodingRange
   }
 
-  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey {
-  }
+  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey
   final case class `Accept-Language`(values: NonEmptyList[LanguageRange]) extends RecurringHeader {
     def key = `Accept-Language`
     type Value = LanguageRange
@@ -131,15 +127,13 @@ object Headers {
     def value = credentials.value
   }
 
-  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey {
-  }
+  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey
   final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringHeader {
     def key = `Cache-Control`
     type Value = CacheDirective
   }
 
-  object Connection extends InternalHeaderKey[Connection] with RecurringHeaderKey {
-  }
+  object Connection extends InternalHeaderKey[Connection] with RecurringHeaderKey
   final case class Connection(values: NonEmptyList[String]) extends RecurringHeader {
     def key = Connection
     type Value = String
@@ -184,8 +178,7 @@ object Headers {
     def value = contentType.value
   }
 
-  object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderKey {
-  }
+  object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderKey
   final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringHeader {
     def key = Cookie
     type Value = org.http4s.Cookie
@@ -307,15 +300,13 @@ object Headers {
 
   object `WebSocket-Protocol` extends DefaultHeaderKey
 
-  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] with RecurringHeaderKey {
-  }
+  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] with RecurringHeaderKey
   final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringHeader {
     def key = `WWW-Authenticate`
     type Value = Challenge
   }
 
-  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderKey {
-  }
+  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderKey
   final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends RecurringHeader {
     def key = `X-Forwarded-For`
     type Value = Option[InetAddress]
