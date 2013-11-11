@@ -50,7 +50,6 @@ trait ParsedHeader extends Header {
  * of the message, by appending each subsequent field-value to the first, each separated by a comma.
  */
 trait RecurringHeader extends ParsedHeader {
-  type MyType <: RecurringHeader
   type Value
   val key: RecurringHeaderKey
   def name = key.name
