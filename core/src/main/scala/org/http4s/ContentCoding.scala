@@ -31,4 +31,8 @@ object ContentCoding extends ObjectRegistry[CiString, ContentCoding] {
   val gzip           = register("gzip")
   val identity       = register("identity")
   val `pack200-gzip` = register("pack200-gzip")
+
+  // Legacy encodings defined by RFC2616 3.5.
+  register("x-compress".lowercaseEn, compress)
+  register("x-gzip".lowercaseEn, gzip)
 }
