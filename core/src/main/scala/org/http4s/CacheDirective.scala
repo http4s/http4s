@@ -8,7 +8,7 @@ sealed trait CacheDirective extends Product {
   override def toString = value
 }
 
-object CacheDirectives {
+object CacheDirective {
   sealed trait RequestDirective extends CacheDirective
   sealed trait ResponseDirective extends CacheDirective
 

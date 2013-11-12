@@ -91,7 +91,7 @@ object ExampleRoute {
       }
 
     case Get -> Root / "contentChange" =>
-      Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
+      Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
 
       // Ross wins the challenge
     case req @ Get -> Root / "challenge" =>

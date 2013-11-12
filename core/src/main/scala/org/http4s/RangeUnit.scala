@@ -22,7 +22,7 @@ sealed abstract class RangeUnit {
   override def toString = value
 }
 
-object RangeUnits {
+object RangeUnit {
 
   val bytes = new RangeUnit {
     def value = "bytes"

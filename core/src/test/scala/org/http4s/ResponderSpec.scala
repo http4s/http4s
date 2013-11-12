@@ -15,11 +15,11 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
     }
 
     "Replace content type" in {
-      import Headers._
+      import Header._
       resp.contentType should be (None)
-      val c1 = resp.addHeader(Headers.`Content-Length`(4))
+      val c1 = resp.addHeader(Header.`Content-Length`(4))
         .contentType(ContentType.`text/plain`)
-        .addHeader(Headers.Host("foo"))
+        .addHeader(Header.Host("foo"))
 
       c1.prelude.headers.count(_ is `Content-Type`) should equal (1)
       c1.prelude.headers.count(_ is `Content-Length`) should equal (1)
@@ -35,11 +35,11 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
     }
 
     "Replace headers" in {
-      val wHeader = resp.addHeader(Headers.Connection("close"))
-      wHeader.prelude.headers.get(Headers.Connection).value should equal (Headers.Connection("close"))
+      val wHeader = resp.addHeader(Header.Connection("close"))
+      wHeader.prelude.headers.get(Header.Connection).value should equal (Header.Connection("close"))
 
-      val newHeaders = wHeader.dropHeader(Headers.Connection)
-      newHeaders.prelude.headers.get(Headers.Connection) should be (None)
+      val newHeaders = wHeader.dropHeader(Header.Connection)
+      newHeaders.prelude.headers.get(Header.Connection) should be (None)
     }
 
   }

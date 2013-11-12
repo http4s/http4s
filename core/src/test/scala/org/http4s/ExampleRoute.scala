@@ -20,7 +20,7 @@ object ExampleRoute {
     def unapply(req: RequestPrelude): Option[(Method, String)] = Some(req.requestMethod, req.pathInfo)
   }
 
-  import Methods._
+  import Method._
 
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
     case Req(Get, "/ping") =>

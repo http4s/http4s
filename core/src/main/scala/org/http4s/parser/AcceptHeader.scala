@@ -8,7 +8,7 @@ private[parser] trait AcceptHeader {
   this: Parser with ProtocolParameterRules with CommonActions =>
 
   def ACCEPT = rule (
-    oneOrMore(MediaRangeDecl ~ optional(AcceptParams), separator = ListSep) ~ EOI ~~> (xs => Headers.Accept(xs.head, xs.tail: _*))
+    oneOrMore(MediaRangeDecl ~ optional(AcceptParams), separator = ListSep) ~ EOI ~~> (xs => Header.Accept(xs.head, xs.tail: _*))
   )
 
   def MediaRangeDecl = rule {
@@ -33,7 +33,7 @@ private[parser] trait AcceptHeader {
   def getMediaRange(mainType: String, subType: String): MediaRange = {
     if (subType == "*") {
       val mainTypeLower = mainType.toLowerCase
-      MediaRanges.getForKey(mainTypeLower).getOrElse(MediaRanges.CustomMediaRange(mainTypeLower))
+      MediaRange.getForKey(mainTypeLower).getOrElse(MediaRange.CustomMediaRange(mainTypeLower))
     } else {
       getMediaType(mainType, subType)
     }

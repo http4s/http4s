@@ -3,13 +3,13 @@ package parser
 
 import org.parboiled.scala._
 import BasicRules._
-import CacheDirectives._
+import CacheDirective._
 
 private[parser] trait CacheControlHeader {
   this: Parser with ProtocolParameterRules =>
 
   def CACHE_CONTROL = rule (
-    oneOrMore(CacheDirective, separator = ListSep) ~ EOI ~~> (xs => Headers.`Cache-Control`(xs.head, xs.tail: _*))
+    oneOrMore(CacheDirective, separator = ListSep) ~ EOI ~~> (xs => Header.`Cache-Control`(xs.head, xs.tail: _*))
   )
 
   def CacheDirective = rule (

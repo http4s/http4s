@@ -167,7 +167,7 @@ private[parser] trait ProtocolParameterRules {
 
   def RangeUnit = rule { BytesUnit | OtherRangeUnit }
 
-  def BytesUnit = rule { "bytes" ~ push(RangeUnits.bytes) }
+  def BytesUnit = rule { "bytes" ~ push(org.http4s.RangeUnit.bytes) }
 
-  def OtherRangeUnit = rule { Token ~~> RangeUnits.CustomRangeUnit }
+  def OtherRangeUnit = rule { Token ~~> org.http4s.RangeUnit.CustomRangeUnit }
 }

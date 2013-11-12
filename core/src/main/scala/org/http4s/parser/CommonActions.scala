@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import MediaTypes._
+import MediaType._
 import org.parboiled.errors.ParsingException
 
 private[parser] trait CommonActions {
@@ -18,14 +18,14 @@ private[parser] trait CommonActions {
         case custom        => new MultipartMediaType(custom, boundary)
       }
       case mainLower =>
-        MediaTypes.getForKey((mainLower, subType.toLowerCase)).getOrElse(new CustomMediaType(mainType, subType))
+        MediaType.getForKey((mainLower, subType.toLowerCase)).getOrElse(new CustomMediaType(mainType, subType))
     }
   }
 
   val getCharset: String => Charset = { charsetName =>
-    Charsets
+    Charset
       .getForKey(charsetName.toLowerCase)
-      .orElse(Charsets.CustomCharset(charsetName))
+      .orElse(Charset.CustomCharset(charsetName))
       .getOrElse(throw new ParsingException("Unsupported charset: " + charsetName))
   }
 }

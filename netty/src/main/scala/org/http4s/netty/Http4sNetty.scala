@@ -15,7 +15,7 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http
 import http.HttpHeaders.{Names, Values, isKeepAlive}
 
-import org.http4s.{Headers, Chunk, Responder, RequestPrelude}
+import org.http4s.{Header, Chunk, Responder, RequestPrelude}
 import org.http4s.Status.{InternalServerError, NotFound}
 import org.http4s.TrailerChunk
 
@@ -24,7 +24,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelInboundHandlerAdapter, ChannelHandlerContext}
 import io.netty.util.{ReferenceCountUtil, CharsetUtil}
 import io.netty.buffer.{Unpooled, ByteBuf}
-import org.http4s.Headers.RawHeader
+import org.http4s.Header.RawHeader
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http.{HttpServerCodec, DefaultHttpContent, DefaultFullHttpResponse}
 import scala.collection.mutable.ListBuffer
@@ -189,7 +189,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
 
     val stat = new http.HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
 
-    val length = responder.prelude.headers.get(Headers.`Content-Length`).map(_.length)
+    val length = responder.prelude.headers.get(Header.`Content-Length`).map(_.length)
     val isHttp10 = req.getProtocolVersion == http.HttpVersion.HTTP_1_0
 
     val headers = new ListBuffer[(String, String)]
@@ -228,7 +228,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
     RequestPrelude(
-      requestMethod = Methods(req.getMethod.name),
+      requestMethod = Method(req.getMethod.name),
       //scriptName = contextPath,
       pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,

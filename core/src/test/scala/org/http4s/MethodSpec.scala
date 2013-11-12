@@ -5,28 +5,28 @@ import org.scalatest.{OptionValues, Matchers, WordSpec}
 class MethodSpec extends WordSpec with Matchers with OptionValues {
   "A standard method" should {
     "be findable by name" in {
-      Methods.getForKey("GET").value should equal (Methods.Get)
+      Method.getForKey("GET").value should equal (Method.Get)
     }
 
     "be case sensitive" in {
-      Methods.getForKey("get") should be (None)
+      Method.getForKey("get") should be (None)
     }
   }
 
   "PATCH" should {
     "be registered" in {
-      Methods.getForKey("PATCH").value should equal (Methods.Patch)
+      Method.getForKey("PATCH").value should equal (Method.Patch)
     }
   }
 
   "Extension methods" should {
     "not be returned by get" in {
-      Methods.get("huh") should be (None)
+      Method.get("huh") should be (None)
     }
 
     "not be registered by apply" in {
-      Methods("huh")
-      Methods.get("huh") should be (None)
+      Method("huh")
+      Method.get("huh") should be (None)
     }
   }
 }

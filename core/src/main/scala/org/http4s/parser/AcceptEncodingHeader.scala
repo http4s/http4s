@@ -3,13 +3,13 @@ package parser
 
 import org.parboiled.scala._
 import BasicRules._
-import ContentCodings._
+import ContentCoding._
 
 private[parser] trait AcceptEncodingHeader {
   this: Parser with ProtocolParameterRules =>
 
   def ACCEPT_ENCODING = rule (
-    oneOrMore(EncodingRangeDecl, separator = ListSep) ~ EOI ~~> (xs => Headers.`Accept-Encoding`(xs.head, xs.tail: _*))
+    oneOrMore(EncodingRangeDecl, separator = ListSep) ~ EOI ~~> (xs => Header.`Accept-Encoding`(xs.head, xs.tail: _*))
   )
 
   def EncodingRangeDecl = rule (

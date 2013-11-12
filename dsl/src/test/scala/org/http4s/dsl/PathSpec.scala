@@ -85,7 +85,7 @@ class PathSpec extends WordSpec with Matchers {
     }
 
     "-> extractor /test.json" in {
-      val req = RequestPrelude(requestMethod = Methods.Get, pathInfo = "/test.json")
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
       (req match {
         case Get -> Root / "test.json" => true
         case _                         => false
@@ -93,7 +93,7 @@ class PathSpec extends WordSpec with Matchers {
     }
 
     "-> extractor /foo/test.json" in {
-      val req = RequestPrelude(requestMethod = Methods.Get, pathInfo = "/foo/test.json")
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/foo/test.json")
       (req match {
         case Get -> Root / "foo" / "test.json" => true
         case _                         => false
@@ -117,7 +117,7 @@ class PathSpec extends WordSpec with Matchers {
 //    }
 
     "request path info extractor" in {
-      val req = RequestPrelude(requestMethod = Methods.Get, pathInfo = "/test.json")
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
       (req match {
         case Root :/ "test.json" => true
         case _ => false
@@ -125,7 +125,7 @@ class PathSpec extends WordSpec with Matchers {
     }
 
    "request path info extractor for /" in {
-      val req = RequestPrelude(requestMethod = Methods.Get, pathInfo = "/")
+      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/")
       (req match {
         case _ -> Root => true
         case _ => false

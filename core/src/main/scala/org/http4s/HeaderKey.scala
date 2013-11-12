@@ -3,7 +3,7 @@ package org.http4s
 import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import org.http4s.Headers.RawHeader
+import org.http4s.Header.RawHeader
 
 /**
  * @author Bryce Anderson
