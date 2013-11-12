@@ -30,6 +30,10 @@ case class Responder(
   def status: Status = prelude.status
 
   def status[T <% Status](status: T) = copy(prelude.copy(status = status))
+
+  def isChunked: Boolean = prelude.headers.get(Header.`Transfer-Encoding`)
+    .map(_.values.list.contains(TransferCoding.chunked))
+    .getOrElse(false)
 }
 
 object Responder {

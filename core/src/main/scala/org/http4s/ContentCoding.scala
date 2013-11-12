@@ -22,10 +22,8 @@ object ContentCoding extends ObjectRegistry[CiString, ContentCoding] {
     def matches(encoding: ContentCoding) = true
   }
 
-  // see http://www.iana.org/assignments/http-parameters/http-parameters.xml
+  // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
   val compress       = register("compress")
-  // TODO: This is actually a transfer-coding
-  val chunked        = register("chunked")
   val deflate        = register("deflate")
   val exi            = register("exi")
   val gzip           = register("gzip")
@@ -33,6 +31,6 @@ object ContentCoding extends ObjectRegistry[CiString, ContentCoding] {
   val `pack200-gzip` = register("pack200-gzip")
 
   // Legacy encodings defined by RFC2616 3.5.
-  register("x-compress".lowercaseEn, compress)
-  register("x-gzip".lowercaseEn, gzip)
+  val `x-compress`   = register("x-compress".lowercaseEn, compress)
+  val `x-gzip`       = register("x-gzip".lowercaseEn, gzip)
 }

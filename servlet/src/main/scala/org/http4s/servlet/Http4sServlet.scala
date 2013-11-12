@@ -44,9 +44,7 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)
         servletResponse.addHeader(header.name, header.value)
-      import ContentCoding.chunked
-      val isChunked =
-        responder.prelude.headers.get(Header.`Transfer-Encoding`).map(_.coding.matches(chunked)).getOrElse(false)
+      val isChunked = responder.isChunked
       responder.body.transform(Iteratee.foreach {
         case BodyChunk(chunk) =>
           val out = servletResponse.getOutputStream

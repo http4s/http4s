@@ -276,10 +276,10 @@ object Header {
 
   object `Trailer` extends DefaultHeaderKey
 
-  object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`] with SingletonHeaderKey
-  final case class `Transfer-Encoding`(coding: ContentCoding) extends ParsedHeader {
+  object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`] with RecurringHeaderKey
+  final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends RecurringHeader {
     def key = `Transfer-Encoding`
-    def value = coding.value
+    type Value = TransferCoding
   }
 
   object Upgrade extends DefaultHeaderKey
