@@ -11,22 +11,22 @@ case class Response(
   body: HttpBody = Response.EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
 ) {
-  def addHeader(header: Header) = copy(prelude = prelude.copy(headers = prelude.headers :+ header))
+  def addHeader(header: Header) = copy(prelude = prelude.copy(headers = header +: prelude.headers))
 
   def dropHeaders(f: Header => Boolean): Response =
     copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
 
-  def dropHeader(header: HeaderKey[_]): Response = dropHeaders(_.name != header.name)
+  def dropHeader(key: HeaderKey): Response = dropHeaders(_ isNot key)
 
-  def contentType: Option[ContentType] =  prelude.headers.get(Headers.ContentType).map(_.contentType)
+  def contentType: Option[ContentType] =  prelude.headers.get(Header.`Content-Type`).map(_.contentType)
 
   def contentType(contentType: ContentType): Response = copy(prelude =
-    prelude.copy(headers = prelude.headers.put(Headers.ContentType(contentType))))
+    prelude.copy(headers = prelude.headers.put(Header.`Content-Type`(contentType))))
 
-  def addCookie(cookie: Cookie): Response = addHeader(Headers.Cookie(cookie))
+  def addCookie(cookie: Cookie): Response = addHeader(Header.Cookie(cookie))
 
   def removeCookie(cookie: Cookie): Response =
-    addHeader(Headers.SetCookie(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
+    addHeader(Header.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
 
   def status: Status = prelude.status
 
@@ -56,22 +56,22 @@ object Status {
   }
 
   trait EntityResponseGenerator extends NoEntityResponseGenerator { self: Status =>
-    def apply[F[_], A](body: A)(implicit w: Writable[A]): Task[Response] =
+    def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
       apply(body, w.contentType)(w)
 
-    def apply[F[_], A](body: A, contentType: ContentType)(implicit w: Writable[A]): Task[Response] = {
+    def apply[A](body: A, contentType: ContentType)(implicit w: Writable[A]): Task[Response] = {
       var headers: HeaderCollection = HeaderCollection.empty
       // tuple assignment runs afoul of https://issues.scala-lang.org/browse/SI-5301
-      headers :+= Headers.ContentType(contentType)
+      headers :+= Header.`Content-Type`(contentType)
       w.toBody(body).map { case (proc, len) =>
-        len foreach { headers :+= Headers.ContentLength(_) }
+        len foreach { headers :+= Header.`Content-Length`(_) }
         Response(ResponsePrelude(self, headers), proc)
       }
     }
   }
 
   trait RedirectResponderGenerator { self: Status =>
-    def apply(uri: String): Response = Response(ResponsePrelude(self, HeaderCollection(Headers.Location(uri))))
+    def apply(uri: String): Response = Response(ResponsePrelude(self, HeaderCollection(Header.Location(uri))))
 
     def apply(uri: URI): Response = apply(uri.toString)
 
@@ -85,7 +85,7 @@ object Status {
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Response =
-      Response(ResponsePrelude(this, Headers.RawHeader("Upgrade", protocols) +: headers), Response.EmptyBody)
+      Response(ResponsePrelude(this, Header.RawHeader("Upgrade", protocols) +: headers), Response.EmptyBody)
   }
   object Processing extends Status(102, "Processing") with NoEntityResponseGenerator
 
@@ -99,7 +99,7 @@ object Status {
     // TODO type this header
     def apply[A](range: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Headers.RawHeader("Range", range))) { _.addHeader(_) }
+        headers.foldLeft(r.addHeader(Header.RawHeader("Range", range))) { _.addHeader(_) }
       }
   }
   object MultiStatus extends Status(207, "Multi-Status") with EntityResponseGenerator
@@ -119,7 +119,7 @@ object Status {
     def apply[A](wwwAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
       // TODO type this header
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Headers.RawHeader("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
+        headers.foldLeft(r.addHeader(Header.RawHeader("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
       }
   }
   object PaymentRequired extends Status(402, "Payment Required") with EntityResponseGenerator
@@ -130,7 +130,7 @@ object Status {
   object MethodNotAllowed extends Status(405, "Method Not Allowed") with EntityResponseGenerator {
     def apply[A](allowed: TraversableOnce[Method], body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Headers.RawHeader("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
+        headers.foldLeft(r.addHeader(Header.RawHeader("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
       }
   }
   object NotAcceptable extends Status(406, "Not Acceptable") with EntityResponseGenerator
@@ -138,7 +138,7 @@ object Status {
     // TODO type this header
     def apply[F[_], A](proxyAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Headers.RawHeader("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
+        headers.foldLeft(r.addHeader(Header.RawHeader("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
       }
   }
   object RequestTimeOut extends Status(408, "Request Time-out") with EntityResponseGenerator

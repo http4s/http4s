@@ -1,6 +1,6 @@
 package org.http4s
 
-import Charsets._
+import Charset._
 import java.nio.charset.Charset
 
 //case class ContentType(mediaType: MediaType, params: List[(String, String)] = Nil)
@@ -46,11 +46,11 @@ case class ContentType(mediaType: MediaType, definedCharset: Option[Charset]) {
 }
 
 object ContentType {
-  val `text/plain` = ContentType(MediaTypes.`text/plain`)
-  val `application/octet-stream` = ContentType(MediaTypes.`application/octet-stream`)
+  val `text/plain` = ContentType(MediaType.`text/plain`)
+  val `application/octet-stream` = ContentType(MediaType.`application/octet-stream`)
 
   // RFC4627 defines JSON to always be UTF encoded, we always render JSON to UTF-8
-  val `application/json` = ContentType(MediaTypes.`application/json`, `UTF-8`)
+  val `application/json` = ContentType(MediaType.`application/json`, `UTF-8`)
 
   def apply(mediaType: MediaType, charset: Charset): ContentType = apply(mediaType, Some(charset))
   implicit def apply(mediaType: MediaType): ContentType = apply(mediaType, None)

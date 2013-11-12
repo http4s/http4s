@@ -3,7 +3,7 @@ package org.http4s
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 
-final class HeaderCollection private (headers: List[Header])
+final class HeaderCollection private (private val headers: List[Header])
   extends AnyRef with immutable.Seq[Header]
   with collection.SeqLike[Header, HeaderCollection]
 {
@@ -15,6 +15,8 @@ final class HeaderCollection private (headers: List[Header])
 
   override def foreach[B](f: Header => B) = headers.foreach(f)
 
+  def +: (header: Header) = new HeaderCollection(header::headers)
+
   override def drop(n: Int) = new HeaderCollection(headers.drop(n))
 
   def length: Int = headers.length
@@ -23,14 +25,10 @@ final class HeaderCollection private (headers: List[Header])
 
   def iterator: Iterator[Header] = headers.iterator
 
-  def apply[T <: Header](key: HeaderKey[T]) = get(key).get
-
-  def get[T <: Header](key: HeaderKey[T]): Option[T] = key from this
-
-  def getAll[T <: Header](key: HeaderKey[T]): Seq[T] = key findIn this
+  def get(key: ExtractableHeaderKey): Option[key.HeaderT] = key.from(this)
 
   def put(header: Header): HeaderCollection =
-    new HeaderCollection(header :: headers.filterNot(_.lowercaseName == header.lowercaseName))
+    new HeaderCollection(header :: headers.filterNot(_.getClass == header.getClass))
 }
 
 object HeaderCollection {

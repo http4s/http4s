@@ -9,7 +9,7 @@ final case class ContentCoding(value: CiString) extends ContentCodingRange {
   def matches(encoding: ContentCoding) = this == encoding
 }
 
-object ContentCodings extends ObjectRegistry[CiString, ContentCoding] {
+object ContentCoding extends ObjectRegistry[CiString, ContentCoding] {
   def register(encoding: ContentCoding): ContentCoding = {
     register(encoding.value, encoding)
     encoding

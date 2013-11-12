@@ -8,7 +8,11 @@ import play.api.libs.iteratee._
 import org.http4s.HttpHeaders.RawHeader
 =======
 
+<<<<<<< HEAD
 import org.http4s.Headers.RawHeader
+>>>>>>> develop
+=======
+import org.http4s.Header.RawHeader
 >>>>>>> develop
 import org.scalatest.{WordSpec, Matchers}
 
@@ -19,25 +23,25 @@ class MockServerSpec extends WordSpec with Matchers {
 
   "A mock server" should {
     "handle matching routes" in {
-      val req = RequestPrelude(requestMethod = Methods.Post, pathInfo = "/echo")
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/echo")
       val body = Enumerator("one", "two", "three").map[Chunk](s => BodyChunk(s, req.charset))
       new String(server.response(req, body).body) should equal ("onetwothree")
     }
 
     "runs a sum" in {
-      val req = RequestPrelude(requestMethod = Methods.Post, pathInfo = "/sum")
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/sum")
       val body = Enumerator("1\n", "2\n3", "\n4").map[Chunk](s => BodyChunk(s, req.charset))
       new String(server.response(req, body).body) should equal ("10")
     }
 
     "runs too large of a sum" in {
-      val req = RequestPrelude(requestMethod = Methods.Post, pathInfo = "/sum")
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/sum")
       val body = Enumerator("12345678\n901234567").map[Chunk](s => BodyChunk(s, req.charset))
       server.response(req, body).statusLine should equal (Status.RequestEntityTooLarge)
     }
 
     "not consume the trailer when parsing the body" in {
-      val req = RequestPrelude(requestMethod = Methods.Post, pathInfo = "/body-and-trailer")
+      val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/body-and-trailer")
       val body = Enumerator[Chunk](
         BodyChunk("1234567890123456"),
         TrailerChunk(HeaderCollection(RawHeader("Hi", "I'm a trailer")))

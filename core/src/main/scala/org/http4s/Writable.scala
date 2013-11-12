@@ -22,19 +22,19 @@ trait SimpleWritable[-A] extends Writable[A] {
 
 object Writable {
   // Simple types defined
-  implicit def stringWritable(implicit charset: Charset = Charsets.`UTF-8`) =
+  implicit def stringWritable(implicit charset: Charset = Charset.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asChunk(s: String) = BodyChunk(s, charset.nioCharset)
     }
 
-  implicit def htmlWritable(implicit charset: Charset = Charsets.`UTF-8`) =
+  implicit def htmlWritable(implicit charset: Charset = Charset.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
-      def contentType: ContentType = ContentType(MediaTypes.`text/html`).withCharset(charset)
+      def contentType: ContentType = ContentType(MediaType.`text/html`).withCharset(charset)
       def asChunk(s: xml.Elem) = BodyChunk(s.buildString(false), charset.nioCharset)
     }
 
-  implicit def intWritable(implicit charset: Charset = Charsets.`UTF-8`) =
+  implicit def intWritable(implicit charset: Charset = Charset.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asChunk(i: Int) = BodyChunk(i.toString, charset.nioCharset)

@@ -92,8 +92,13 @@ class ExampleRoute {
       Ok(flatBigString)
     }
 
+<<<<<<< HEAD
   case Get -> Root / "contentChange" =>
     Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
+=======
+    case Get -> Root / "contentChange" =>
+      Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
+>>>>>>> develop
 
     case req @ Get -> Root / "challenge" =>
 <<<<<<< HEAD

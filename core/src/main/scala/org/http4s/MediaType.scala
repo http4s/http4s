@@ -21,7 +21,7 @@ sealed abstract class MediaRange {
   override def toString = "MediaRange(" + value + ')'
 }
 
-object MediaRanges extends ObjectRegistry[String, MediaRange] {
+object MediaRange extends ObjectRegistry[String, MediaRange] {
 
   def register(mediaRange: MediaRange): MediaRange = {
     register(mediaRange.mainType.toLowerCase, mediaRange)
@@ -115,11 +115,8 @@ sealed abstract class MediaType extends MediaRange {
   override def toString = "MediaType(" + value + ')'
 }
 
-object MediaType {
+object MediaType extends ObjectRegistry[(String, String), MediaType] {
   def unapply(mimeType: MediaType): Option[(String, String)] = Some((mimeType.mainType, mimeType.subType))
-}
-
-object MediaTypes extends ObjectRegistry[(String, String), MediaType] {
 
   private[this] val extensionMap = new AtomicReference(Map.empty[String, MediaType])
 

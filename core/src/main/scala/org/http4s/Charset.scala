@@ -21,7 +21,7 @@ sealed abstract class Charset extends CharsetRange {
 }
 
 // see http://www.iana.org/assignments/character-sets
-object Charsets extends ObjectRegistry[String, Charset] {
+object Charset extends ObjectRegistry[String, Charset] {
 
   def register(charset: Charset): Charset = {
     register(charset.value.toLowerCase, charset)

@@ -29,8 +29,6 @@ package object http4s extends LowercaseSyntax {
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 
-  implicit def string2headerkey(name: String): HeaderKey[Header] = Headers.Key(name)
-
   implicit val taskToFuture: Task ~> Future = new (Task ~> Future) {
     def apply[A](task: Task[A]): Future[A] = {
       val p = Promise[A]()

@@ -26,15 +26,15 @@ package object netty {
   }
 
   implicit def jHttpMethod2HttpMethod(orig: http.HttpMethod): Method = orig match {
-    case http.HttpMethod.CONNECT => Methods.Connect
-    case http.HttpMethod.DELETE => Methods.Delete
-    case http.HttpMethod.GET => Methods.Get
-    case http.HttpMethod.HEAD => Methods.Head
-    case http.HttpMethod.OPTIONS => Methods.Options
-    case http.HttpMethod.PATCH => Methods.Patch
-    case http.HttpMethod.POST => Methods.Post
-    case http.HttpMethod.PUT => Methods.Put
-    case http.HttpMethod.TRACE => Methods.Trace
+    case http.HttpMethod.CONNECT => Method.Connect
+    case http.HttpMethod.DELETE => Method.Delete
+    case http.HttpMethod.GET => Method.Get
+    case http.HttpMethod.HEAD => Method.Head
+    case http.HttpMethod.OPTIONS => Method.Options
+    case http.HttpMethod.PATCH => Method.Patch
+    case http.HttpMethod.POST => Method.Post
+    case http.HttpMethod.PUT => Method.Put
+    case http.HttpMethod.TRACE => Method.Trace
   }
 
   implicit def respStatus2nettyStatus(stat: Status) = new http.HttpResponseStatus(stat.code, stat.reason.blankOption.getOrElse(""))

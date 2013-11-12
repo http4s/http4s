@@ -3,13 +3,13 @@ package parser
 
 import org.parboiled.scala._
 import BasicRules._
-import LanguageTags._
+import LanguageTag._
 
 private[parser] trait AcceptLanguageHeader {
   this: Parser with ProtocolParameterRules =>
 
   def ACCEPT_LANGUAGE = rule (
-    oneOrMore(LanguageRangeDef, separator = ListSep) ~ EOI ~~> (Headers.AcceptLanguage(_))
+    oneOrMore(LanguageRangeDef, separator = ListSep) ~ EOI ~~> (xs => Header.`Accept-Language`(xs.head, xs.tail: _*))
   )
 
   def LanguageRangeDef = rule {

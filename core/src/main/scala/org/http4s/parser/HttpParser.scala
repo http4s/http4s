@@ -2,7 +2,7 @@ package org.http4s
 package parser
 
 import org.parboiled.scala._
-import org.http4s.Headers.RawHeader
+import org.http4s.Header.RawHeader
 
 /**
  * Parser for all HTTP headers as defined by
@@ -38,7 +38,7 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
 
   def parseHeader(header: Header): Either[String, Header] = {
     header match {
-      case x@ Headers.RawHeader(name, value) =>
+      case x@ Header.RawHeader(name, value) =>
         rules.get(x.lowercaseName) match {
           case Some(rule) => parse(rule, value).left.map("Illegal HTTP header '" + name + "': " + _.formatPretty)
           case None => Right(x) // if we don't have a rule for the header we leave it unparsed

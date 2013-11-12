@@ -15,7 +15,7 @@ sealed abstract case class Method (name: String) {
 //  def /(path: String): Path = new /(this, Path(path))
 }
 
-object Methods extends ObjectRegistry[String, Method] {
+object Method extends ObjectRegistry[String, Method] {
   def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
   def idempotent(name: String): Method = new MethodImpl(name, false, true)
   def safe(name: String): Method = new MethodImpl(name, true, true)

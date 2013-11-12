@@ -5,7 +5,7 @@ import java.net.{URI, InetAddress}
 import scalaz.stream.Process
 
 case class RequestPrelude(
-                           requestMethod: Method = Methods.Get,
+                           requestMethod: Method = Method.Get,
                            scriptName: String = "",
                            pathInfo: String = "",
                            queryString: String = "",
@@ -19,11 +19,11 @@ case class RequestPrelude(
                            remote: InetAddress = InetAddress.getLocalHost,
                            attributes: AttributeMap = AttributeMap.empty
                            ) {
-  def contentLength: Option[Int] = headers.get(Headers.ContentLength).map(_.length)
+  def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
 
-  def contentType: Option[ContentType] = headers.get(Headers.ContentType).map(_.contentType)
+  def contentType: Option[ContentType] = headers.get(Header.`Content-Type`).map(_.contentType)
 
-  def charset: Charset = contentType.map(_.charset) getOrElse Charsets.`ISO-8859-1`
+  def charset: Charset = contentType.map(_.charset) getOrElse Charset.`ISO-8859-1`
 
   val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
