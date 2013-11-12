@@ -14,7 +14,7 @@ libraryDependencies ++= Seq(
   playIteratees % "test",
   rl,
   slf4jApi,
-  scalazStream,
+//  scalazStream,
   scalaloggingSlf4j,
   typesafeConfig
 )

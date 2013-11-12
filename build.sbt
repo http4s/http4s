@@ -1,6 +1,8 @@
 import Http4sDependencies._
 
-lazy val core = project
+lazy val scalazStream = ProjectRef(uri("git://github.com/scalaz/scalaz-stream.git"), "scalaz-stream")
+
+lazy val core = project.dependsOn(scalazStream)
 
 lazy val grizzly = project.dependsOn(core)
 
