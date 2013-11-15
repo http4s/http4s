@@ -8,11 +8,12 @@ import play.api.libs.iteratee._
 
 import org.http4s.Header.RawHeader
 import org.scalatest.{WordSpec, Matchers}
+import scala.concurrent.Future
 
 class MockServerSpec extends WordSpec with Matchers {
   import concurrent.ExecutionContext.Implicits.global
 
-  val server = new MockServer(ExampleRoute())
+  val server = new MockServer(PushSupport(ExampleRoute()))
 
   "A mock server" should {
     "handle matching routes" in {
@@ -81,5 +82,35 @@ class MockServerSpec extends WordSpec with Matchers {
       returned.statusLine should equal (Status.BadRequest)
       new String(returned.body) should equal ("No data!")
     }
+
+    "Deal with pushed results" in {
+      import concurrent.Await
+      import concurrent.duration._
+
+      def runBody(body: Enumeratee[Chunk, Chunk]): Future[String] = {
+        val responseBodyIt: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume()
+        val route = body ><> BodyParser.whileBodyChunk &>> responseBodyIt map { bytes: BodyChunk =>
+          new String(bytes.toArray)
+        }
+        route.run
+      }
+
+      val req = RequestPrelude(pathInfo = "/push")
+      val returned = server.response(req)
+      val pushOptions = returned.attributes.get(PushSupport.pushRespondersKey)
+
+      pushOptions.isDefined shouldNot equal(false)
+
+      val pushResponder = Await.result(pushOptions.get, 5 seconds)
+      pushResponder.length should equal (2)
+
+      pushResponder(0).location should equal("/ping")
+      pushResponder(1).location should equal("/pushed")
+
+      Await.result(runBody(pushResponder(0).resp.body), 5 seconds) should equal("pong")
+      Await.result(runBody(pushResponder(1).resp.body), 5 seconds) should equal("Pushed")
+    }
   }
+
+
 }

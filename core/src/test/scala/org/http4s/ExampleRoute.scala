@@ -14,7 +14,7 @@ object ExampleRoute {
 
   /*
    * We can't see the dsl package from core.  This is an ad hoc thing
-   * to make this test a little asier to write.
+   * to make this test a little easier to write.
    */
   object Req {
     def unapply(req: RequestPrelude): Option[(Method, String)] = Some(req.requestMethod, req.pathInfo)
@@ -22,7 +22,16 @@ object ExampleRoute {
 
   import Method._
 
+  import PushSupport._
+
   def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
+
+    case Req(Get, "/push") =>
+      Ok("Pushing: ").push("/pushed")
+
+    case Req(Get, "/pushed") =>
+      Ok("Pushed").push("/ping")
+
     case Req(Get, "/ping") =>
       Ok("pong")
 
