@@ -21,7 +21,7 @@ class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
     "also find headers created raw" in {
       val headers = HeaderCollection(
         Header.`Cookie`(Cookie("foo", "bar")),
-        RawHeader("Cookie", Cookie("baz", "quux").toString)
+        Header("Cookie", Cookie("baz", "quux").toString)
       )
       headers.get(Header.Cookie).value.values.list should have length (2)
     }
@@ -31,8 +31,8 @@ class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
     "Find the headers with DefaultHeaderKey keys" in {
       val headers = HeaderCollection(
         Header.`Set-Cookie`(Cookie("foo", "bar")),
-        Header.RawHeader("Accept-Patch",""),
-        Header.RawHeader("Access-Control-Allow-Credentials","")
+        Header("Accept-Patch",""),
+        Header("Access-Control-Allow-Credentials","")
       )
       headers.get(`Accept-Patch`).value.value should equal ("")
     }

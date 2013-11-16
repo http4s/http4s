@@ -126,7 +126,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
       if(!isHttp10) {
         val respTrailer = new http.DefaultLastHttpContent()
         for { c <- trailerChunk
-              h <- c.headers    } respTrailer.trailingHeaders().set(h.name, h.value)
+              h <- c.headers    } respTrailer.trailingHeaders().set(h.name.toString, h.value)
 
         val f = ctx.channel.writeAndFlush(respTrailer)
         if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
@@ -244,6 +244,6 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
 
   private def toHeaders(headers: http.HttpHeaders) = {
     import collection.JavaConversions._
-    HeaderCollection( headers.entries.map(entry => RawHeader(entry.getKey, entry.getValue)):_*)
+    HeaderCollection( headers.entries.map(entry => Header(entry.getKey, entry.getValue)):_*)
   }
 }

@@ -89,7 +89,7 @@ object Status {
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header.RawHeader("Upgrade", protocols) +: headers), Responder.EmptyBody)
+      Responder(ResponsePrelude(this, Header("Upgrade", protocols) +: headers), Responder.EmptyBody)
   }
   object Processing extends Status(102, "Processing") with NoEntityResponderGenerator
 
@@ -102,7 +102,7 @@ object Status {
   object PartialContent extends Status(206, "Partial Content") with EntityResponderGenerator {
     // TODO type this header
     def apply(range: String, body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header.RawHeader("Range", range) +: headers), body)
+      Responder(ResponsePrelude(this, Header("Range", range) +: headers), body)
   }
   object MultiStatus extends Status(207, "Multi-Status") with EntityResponderGenerator
   object AlreadyReported extends Status(208, "Already Reported") with EntityResponderGenerator
@@ -120,7 +120,7 @@ object Status {
   object Unauthorized extends Status(401, "Unauthorized") with EntityResponderGenerator {
     // TODO type this header
     def apply(wwwAuthenticate: String, body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header.RawHeader("WWW-Authenticate", wwwAuthenticate) +: headers), body)
+      Responder(ResponsePrelude(this, Header("WWW-Authenticate", wwwAuthenticate) +: headers), body)
   }
   object PaymentRequired extends Status(402, "Payment Required") with EntityResponderGenerator
   object Forbidden extends Status(403, "Forbidden") with EntityResponderGenerator
@@ -129,13 +129,13 @@ object Status {
   }
   object MethodNotAllowed extends Status(405, "Method Not Allowed") {
     def apply(allowed: TraversableOnce[Method], body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header.RawHeader("Allowed", allowed.mkString(", ")) +: headers), body)
+      Responder(ResponsePrelude(this, Header("Allowed", allowed.mkString(", ")) +: headers), body)
   }
   object NotAcceptable extends Status(406, "Not Acceptable") with EntityResponderGenerator
   object ProxyAuthenticationRequired extends Status(407, "Proxy Authentication Required") {
     // TODO type this header
     def apply(proxyAuthenticate: String, body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header.RawHeader("Proxy-Authenticate", proxyAuthenticate) +: headers), body)
+      Responder(ResponsePrelude(this, Header("Proxy-Authenticate", proxyAuthenticate) +: headers), body)
   }
   object RequestTimeOut extends Status(408, "Request Time-out") with EntityResponderGenerator
   object Conflict extends Status(409, "Conflict") with EntityResponderGenerator

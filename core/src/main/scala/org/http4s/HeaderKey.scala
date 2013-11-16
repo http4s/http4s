@@ -4,6 +4,7 @@ import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import org.http4s.Header.RawHeader
+import org.http4s.util.CaseInsensitiveString
 
 /**
  * @author Bryce Anderson
@@ -12,7 +13,7 @@ import org.http4s.Header.RawHeader
 sealed trait HeaderKey {
   type HeaderT <: Header
 
-  def name: String
+  def name: CaseInsensitiveString
 
   def matchHeader(header: Header): Option[HeaderT]
   def unapply(header: Header): Option[HeaderT] = matchHeader(header)
@@ -63,13 +64,13 @@ trait RecurringHeaderKey extends ExtractableHeaderKey { self =>
 private[http4s] abstract class InternalHeaderKey[T <: Header : ClassTag] extends HeaderKey {
   type HeaderT = T
 
-  val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").lowercaseEn
+  val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").ci
 
   private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
 
   override def matchHeader(header: Header): Option[HeaderT] = {
     if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[HeaderT])
-    else if (header.isInstanceOf[RawHeader] && name.equalsIgnoreCase(header.name) && runtimeClass.isInstance(header.parsed))
+    else if (header.isInstanceOf[RawHeader] && name == header.name && runtimeClass.isInstance(header.parsed))
       Some(header.parsed.asInstanceOf[HeaderT])
     else None
   }
@@ -79,7 +80,7 @@ private[http4s] trait StringHeaderKey extends SingletonHeaderKey {
   type HeaderT = Header
 
   override def matchHeader(header: Header): Option[HeaderT] = {
-    if (header.name.equalsIgnoreCase(this.name)) Some(header)
+    if (header.name == name) Some(header)
     else None
   }
 

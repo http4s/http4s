@@ -6,7 +6,7 @@ import scala.language.reflectiveCalls
 
 import play.api.libs.iteratee._
 
-import org.http4s.Header.RawHeader
+import org.http4s.Header
 import org.scalatest.{WordSpec, Matchers}
 import scala.concurrent.Future
 
@@ -38,7 +38,7 @@ class MockServerSpec extends WordSpec with Matchers {
       val req = RequestPrelude(requestMethod = Method.Post, pathInfo = "/body-and-trailer")
       val body = Enumerator[Chunk](
         BodyChunk("1234567890123456"),
-        TrailerChunk(HeaderCollection(RawHeader("Hi", "I'm a trailer")))
+        TrailerChunk(HeaderCollection(Header("Hi", "I'm a trailer")))
       )
       new String(server.response(req, body).body) should equal ("1234567890123456\nI'm a trailer")
     }

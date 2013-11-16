@@ -2,7 +2,8 @@ package org.http4s
 package parser
 
 import org.parboiled.scala._
-import org.http4s.Header.RawHeader
+import org.http4s.Header
+import org.http4s.util.CaseInsensitiveString
 
 /**
  * Parser for all HTTP headers as defined by
@@ -27,19 +28,19 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
   override implicit def toRule(string :String): Rule0 =
     super.toRule(string) ~ BasicRules.OptWS
 
-  val rules: Map[String, Rule1[Header]] =
+  val rules: Map[CaseInsensitiveString, Rule1[Header]] =
     HttpParser
       .getClass
       .getMethods
       .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
       .map { method =>
-        method.getName.toLowerCase.replace('_', '-') -> method.invoke(HttpParser).asInstanceOf[Rule1[Header]]
+        method.getName.replace('_', '-').ci -> method.invoke(HttpParser).asInstanceOf[Rule1[Header]]
       } (collection.breakOut)
 
   def parseHeader(header: Header): Either[String, Header] = {
     header match {
       case x@ Header.RawHeader(name, value) =>
-        rules.get(x.lowercaseName) match {
+        rules.get(name) match {
           case Some(rule) => parse(rule, value).left.map("Illegal HTTP header '" + name + "': " + _.formatPretty)
           case None => Right(x) // if we don't have a rule for the header we leave it unparsed
         }
@@ -67,21 +68,21 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
    */
   def warmUp() {
     HttpParser.parseHeaders(List(
-      RawHeader("Accept", "*/*,text/plain,custom/custom"),
-      RawHeader("Accept-Charset", "*,UTF-8"),
-      RawHeader("Accept-Encoding", "gzip,custom"),
-      RawHeader("Accept-Language", "*,nl-be,custom"),
-      RawHeader("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
-      RawHeader("Cache-Control", "no-cache"),
-      RawHeader("Connection", "close"),
-      RawHeader("Content-Disposition", "form-data"),
-      RawHeader("Content-Encoding", "deflate"),
-      RawHeader("Content-Length", "42"),
-      RawHeader("Content-Type", "application/json"),
-      RawHeader("Cookie", "http4s=cool"),
-      RawHeader("Host", "http4s.org"),
-      RawHeader("X-Forwarded-For", "1.2.3.4"),
-      RawHeader("Fancy-Custom-Header", "yeah")
+      Header("Accept", "*/*,text/plain,custom/custom"),
+      Header("Accept-Charset", "*,UTF-8"),
+      Header("Accept-Encoding", "gzip,custom"),
+      Header("Accept-Language", "*,nl-be,custom"),
+      Header("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
+      Header("Cache-Control", "no-cache"),
+      Header("Connection", "close"),
+      Header("Content-Disposition", "form-data"),
+      Header("Content-Encoding", "deflate"),
+      Header("Content-Length", "42"),
+      Header("Content-Type", "application/json"),
+      Header("Cookie", "http4s=cool"),
+      Header("Host", "http4s.org"),
+      Header("X-Forwarded-For", "1.2.3.4"),
+      Header("Fancy-Custom-Header", "yeah")
     ))
 
     QueryParser.parseQueryString("a=b&c=d")

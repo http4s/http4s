@@ -43,7 +43,7 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
     val handler = parser.flatMap { responder =>
       servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)
-        servletResponse.addHeader(header.name, header.value)
+        servletResponse.addHeader(header.name.toString, header.value)
       val isChunked = responder.isChunked
       responder.body.transform(Iteratee.foreach {
         case BodyChunk(chunk) =>
@@ -80,7 +80,7 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header.RawHeader(name, value)
+    } yield Header(name, value)
     HeaderCollection(headers.toSeq : _*)
   }
 }

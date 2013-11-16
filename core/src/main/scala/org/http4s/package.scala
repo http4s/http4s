@@ -3,15 +3,13 @@ package org
 import http4s.ext.Http4sString
 import play.api.libs.iteratee.{Enumeratee, Iteratee}
 import scala.language.implicitConversions
-import concurrent.ExecutionContext
 import com.typesafe.config.{ConfigFactory, Config}
 import org.joda.time.{DateTime, DateTimeZone, ReadableInstant}
 import org.joda.time.format.DateTimeFormat
 import java.util.Locale
-import org.http4s.util.{LowercaseEn, LowercaseSyntax}
-import scalaz.@@
+import org.http4s.util.CaseInsensitiveStringSyntax
 
-package object http4s extends LowercaseSyntax {
+package object http4s extends CaseInsensitiveStringSyntax {
   type Route = PartialFunction[RequestPrelude, Iteratee[Chunk, Responder]]
 
   type ResponderBody = Enumeratee[Chunk, Chunk]
