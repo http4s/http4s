@@ -6,6 +6,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.{mutable, IndexedSeqOptimized}
 import scala.io.Codec
 import scalaz.{RopeBuilder, Rope}
+import java.nio.charset.Charset
 
 sealed trait Chunk extends IndexedSeq[Byte] {
   // TODO optimize for array reads
@@ -19,7 +20,9 @@ sealed trait Chunk extends IndexedSeq[Byte] {
     }
   }
 
-  def decodeString(charset: Charset): String = new String(toArray, charset.value)
+  def decodeString(charset: Charset): String = new String(toArray, charset)
+
+  def decodeString(charset: CharacterSet): String = decodeString(charset.charset)
 }
 
 class BodyChunk private (private val self: Rope[Byte]) extends Chunk with IndexedSeqOptimized[Byte, BodyChunk]
@@ -39,15 +42,14 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
     def asByteBuffer: ByteBuffer = bytes.asByteBuffer
 
     /**
-     * Creates a new ByteBuffer with a copy of all bytes contained in this
-     * ByteString.
-     */
-    def toByteBuffer: ByteBuffer = bytes.toByteBuffer
-
-    /**
      * Decodes this ByteString as a UTF-8 encoded String.
      */
-    final def utf8String: String = decodeString(HttpCharsets.`UTF-8`)
+    final def utf8String: String = decodeString(CharacterSet.`UTF-8`)
+
+    /**
+     * Decodes this ByteString using a charset to produce a String.
+     */
+    def decodeString(charset: CharacterSet): String = bytes.decodeString(charset.value)
   */
 
   def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
@@ -66,7 +68,7 @@ object BodyChunk {
 
   def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
 
-  def apply(string: String, charset: java.nio.charset.Charset): BodyChunk = BodyChunk(Rope.fromArray(string.getBytes(charset)))
+  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(Rope.fromArray(string.getBytes(charset)))
 
   def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk = BodyChunk(array.slice(offset, length))
 

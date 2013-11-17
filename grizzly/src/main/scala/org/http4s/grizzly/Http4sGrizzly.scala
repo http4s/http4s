@@ -2,7 +2,7 @@
 package org.http4s
 package grizzly
 
-import org.glassfish.grizzly.http.server.{Response,Request=>GrizReq, HttpHandler}
+import org.glassfish.grizzly.http.server.{Response=>GrizResp,Request=>GrizReq, HttpHandler}
 
 import java.net.InetAddress
 import scala.collection.JavaConverters._
@@ -17,25 +17,21 @@ import scala.util.Try
 
 class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor: ExecutionContext = ExecutionContext.global) extends HttpHandler {
 
-  override def service(req: GrizReq, resp: Response) {
+  override def service(req: GrizReq, resp: GrizResp) {
     resp.suspend()  // Suspend the response until we close it
     val request = toRequest(req)
     val parser = try {
       route.lift(request).getOrElse(Done(NotFound(request)))
-<<<<<<< HEAD
     } catch { case t: Throwable => Done[Chunk, Response](InternalServerError(t)) }
-=======
-    } catch { case t: Throwable => Done[Chunk, Responder](InternalServerError(t)) }
->>>>>>> develop
 
-    val handler = parser.flatMap { responder =>
-      resp.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
-      for (header <- responder.prelude.headers)
+    val handler = parser.flatMap { response =>
+      resp.setStatus(response.prelude.status.code, response.prelude.status.reason)
+      for (header <- response.prelude.headers)
         resp.addHeader(header.name.toString, header.value)
 
-      val isChunked = responder.isChunked
+      val isChunked = response.isChunked
       val out = new OutputIteratee(resp.getNIOOutputStream, isChunked)
-      responder.body.transform(out)
+      response.body.transform(out)
     }
 
     var canceled = false

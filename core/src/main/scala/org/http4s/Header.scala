@@ -71,9 +71,9 @@ object Header {
   }
 
   object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey
-  final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringHeader {
+  final case class `Accept-Charset`(values: NonEmptyList[CharacterSetRange]) extends RecurringHeader {
     def key = `Accept-Charset`
-    type Value = CharsetRange
+    type Value = CharacterSetRange
   }
 
   object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey

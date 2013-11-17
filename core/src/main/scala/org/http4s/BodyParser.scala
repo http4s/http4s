@@ -13,12 +13,15 @@ import scalaz.concurrent.Task
 class BodyParser[A] private (p: Process[Task, Response \/ A]) {
   def apply(f: A => Response): Process[Task, Response] = p.map(_.fold(identity, f))
   def map[B](f: A => B): BodyParser[B] = new BodyParser(p.map(_.map(f)))
-//  def flatMap[B](f: A => BodyParser[B]): BodyParser[B] =
-//    BodyParser(it.flatMap[Either[Response, B]](_.fold(
-//      { responder: Response => Done(Left(responder)) },
-//      { a: A => f(a).it }
-//    )))
-//  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Response, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight))
+/*
+  def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] =
+    BodyParser(it.flatMap[Either[Response, B]](_.fold(
+    { response: Response => Done(Left(response)) },
+    { a: A => f(a).it }
+    )))
+
+  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Response, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight)(oec))
+*/
 }
 
 object BodyParser {
@@ -27,9 +30,10 @@ object BodyParser {
   private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
 
   implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
+    bodyParser(identity)
 
-  def text[A](req: Request, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
-    new BodyParser(req.body |> takeBytes(limit)).map(_.decodeString(req.prelude.charset))
+  def text[A](charset: CharacterSet, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
+    consumeUpTo(BodyChunkConsumer, limit).map(_.decodeString(charset))(oec)
 
   /**
    * Handles a request body as XML.
@@ -42,7 +46,7 @@ object BodyParser {
    * @param parser the SAX parser to use to parse the XML
    * @return a request handler
    */
-  def xml(charset: Charset,
+  def xml(charset: CharacterSet,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
           onSaxException: SAXException => Response = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })

@@ -23,7 +23,7 @@ case class RequestPrelude(
 
   def contentType: Option[ContentType] = headers.get(Header.`Content-Type`).map(_.contentType)
 
-  def charset: Charset = contentType.map(_.charset) getOrElse Charset.`ISO-8859-1`
+  def charset: CharacterSet = contentType.map(_.charset) getOrElse CharacterSet.`ISO-8859-1`
 
   val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 

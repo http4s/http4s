@@ -22,22 +22,22 @@ trait SimpleWritable[-A] extends Writable[A] {
 
 object Writable {
   // Simple types defined
-  implicit def stringWritable(implicit charset: Charset = Charset.`UTF-8`) =
+  implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asChunk(s: String) = BodyChunk(s, charset.nioCharset)
+      def asChunk(s: String) = BodyChunk(s, charset.charset)
     }
 
-  implicit def htmlWritable(implicit charset: Charset = Charset.`UTF-8`) =
+  implicit def htmlWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: ContentType = ContentType(MediaType.`text/html`).withCharset(charset)
-      def asChunk(s: xml.Elem) = BodyChunk(s.buildString(false), charset.nioCharset)
+      def asChunk(s: xml.Elem) = BodyChunk(s.buildString(false), charset.charset)
     }
 
-  implicit def intWritable(implicit charset: Charset = Charset.`UTF-8`) =
+  implicit def intWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asChunk(i: Int) = BodyChunk(i.toString, charset.nioCharset)
+      def asChunk(i: Int) = BodyChunk(i.toString, charset.charset)
     }
 
   implicit def taskWritable[A](implicit writable: Writable[A]) =

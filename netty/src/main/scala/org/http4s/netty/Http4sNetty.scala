@@ -130,7 +130,6 @@ abstract class Http4sNetty
     task.run
   }
 
-
   protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, respPrelude: ResponsePrelude): Sink[Task, Chunk] = {
     val stat = new http.HttpResponseStatus(respPrelude.status.code, respPrelude.status.reason)
 

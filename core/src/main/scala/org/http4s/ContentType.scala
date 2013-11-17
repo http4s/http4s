@@ -1,6 +1,6 @@
 package org.http4s
 
-import Charset._
+import CharacterSet._
 import java.nio.charset.Charset
 
 //case class ContentType(mediaType: MediaType, params: List[(String, String)] = Nil)
@@ -10,10 +10,10 @@ import java.nio.charset.Charset
 
 
 
-case class ContentTypeRange(mediaRange: MediaRange, charsetRange: CharsetRange = `*`) {
+case class ContentTypeRange(mediaRange: MediaRange, charsetRange: CharacterSetRange = `*`) {
   def value: String = charsetRange match {
     case `*` => mediaRange.value
-    case x: Charset => mediaRange.value + "; charset=" + x.value
+    case x: CharacterSet => mediaRange.value + "; charset=" + x.value
   }
   def matches(contentType: ContentType) = {
     mediaRange.matches(contentType.mediaType) &&
@@ -26,7 +26,7 @@ object ContentTypeRange {
   implicit def fromMediaRange(mediaRange: MediaRange): ContentTypeRange = apply(mediaRange)
 }
 
-case class ContentType(mediaType: MediaType, definedCharset: Option[Charset]) {
+case class ContentType(mediaType: MediaType, definedCharset: Option[CharacterSet]) {
   def value: String = definedCharset match {
     case Some(cs) => mediaType.value + "; charset=" + cs.value
     case _ => mediaType.value
@@ -34,7 +34,7 @@ case class ContentType(mediaType: MediaType, definedCharset: Option[Charset]) {
 
   def withMediaType(mediaType: MediaType) =
     if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
-  def withCharset(charset: Charset) =
+  def withCharset(charset: CharacterSet) =
     if (noCharsetDefined || charset != definedCharset.get) copy(definedCharset = Some(charset)) else this
   def withoutDefinedCharset =
     if (isCharsetDefined) copy(definedCharset = None) else this
@@ -42,7 +42,7 @@ case class ContentType(mediaType: MediaType, definedCharset: Option[Charset]) {
   def isCharsetDefined = definedCharset.isDefined
   def noCharsetDefined = definedCharset.isEmpty
 
-  def charset: Charset = definedCharset.getOrElse(`ISO-8859-1`)
+  def charset: CharacterSet = definedCharset.getOrElse(`ISO-8859-1`)
 }
 
 object ContentType {
@@ -52,6 +52,6 @@ object ContentType {
   // RFC4627 defines JSON to always be UTF encoded, we always render JSON to UTF-8
   val `application/json` = ContentType(MediaType.`application/json`, `UTF-8`)
 
-  def apply(mediaType: MediaType, charset: Charset): ContentType = apply(mediaType, Some(charset))
+  def apply(mediaType: MediaType, charset: CharacterSet): ContentType = apply(mediaType, Some(charset))
   implicit def apply(mediaType: MediaType): ContentType = apply(mediaType, None)
 }

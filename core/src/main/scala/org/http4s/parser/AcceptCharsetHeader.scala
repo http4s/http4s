@@ -3,7 +3,7 @@ package parser
 
 import org.parboiled.scala._
 import BasicRules._
-import Charset._
+import CharacterSet._
 
 private[parser] trait AcceptCharsetHeader {
   this: Parser with ProtocolParameterRules with CommonActions =>
