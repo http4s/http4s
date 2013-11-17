@@ -15,14 +15,14 @@ object PushSupport extends Logging {
   import concurrent.ExecutionContext.Implicits.global
 
   // An implicit conversion class
-  implicit class PushSupportResponder(responder: Responder) extends AnyRef {
-    def push(url: String, cascade: Boolean = true): Responder = {
-      val newPushResouces = responder.attributes.get(pushLocationKey)
+  implicit class PushSupportResponder(response: Response) extends AnyRef {
+    def push(url: String, cascade: Boolean = true): Response = {
+      val newPushResouces = response.attributes.get(pushLocationKey)
           .map(_ :+ PushLocation(url, cascade))
           .getOrElse(Vector(PushLocation(url,cascade)))
 
-      Responder(responder.prelude, responder.body,
-        responder.attributes.put(PushSupport.pushLocationKey, newPushResouces))
+      Response(response.prelude, response.body,
+        response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
     }
   }
 
@@ -33,23 +33,23 @@ object PushSupport extends Logging {
   private def locToRequest(push: PushLocation, prelude: RequestPrelude): RequestPrelude =
     RequestPrelude(pathInfo = push.location, headers = prelude.headers)
 
-  private def collectResponder(r: Vector[PushLocation], req: RequestPrelude, route: Route): Future[Vector[PushResponder]] = 
-    r.foldLeft(Future.successful(Vector.empty[PushResponder])){ (facc, v) =>
+  private def collectResponder(r: Vector[PushLocation], req: RequestPrelude, route: Route): Future[Vector[PushResponse]] = 
+    r.foldLeft(Future.successful(Vector.empty[PushResponse])){ (facc, v) =>
       val newReq = locToRequest(v, req)
       if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
         try route(newReq).run
-          .flatMap { responder =>                  // Inside the future result of this pushed resource
-            responder.attributes.get(pushLocationKey)
+          .flatMap { response =>                  // Inside the future result of this pushed resource
+            response.attributes.get(pushLocationKey)
             .map { pushed =>
               collectResponder(pushed, req, route)
-                .map(accumulated ++ _ :+ PushResponder(v.location, responder))
-            }.getOrElse(Future.successful(accumulated:+PushResponder(v.location, responder)))
+                .map(accumulated ++ _ :+ PushResponse(v.location, response))
+            }.getOrElse(Future.successful(accumulated:+PushResponse(v.location, response)))
           }
         catch { case t: Throwable => handleException(t); facc }
       } else {
         try route(newReq)   // Need to make sure to catch exceptions
           .run
-          .flatMap( resp => facc.map(_ :+ PushResponder(v.location, resp)))
+          .flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
         catch { case t: Throwable => handleException(t); facc }
       }
     }
@@ -61,22 +61,22 @@ object PushSupport extends Logging {
    * @return      Transformed route
    */
   def apply(route: Route): Route = {
-    def gather(req: RequestPrelude, i: Iteratee[Chunk, Responder]): Iteratee[Chunk, Responder] = i map { resp =>
+    def gather(req: RequestPrelude, i: Iteratee[Chunk, Response]): Iteratee[Chunk, Response] = i map { resp =>
       resp.attributes.get(pushLocationKey).map { fresource =>
-        val collected: Future[Vector[PushResponder]] = collectResponder(fresource, req, route)
-        Responder(resp.prelude, resp.body, resp.attributes.put(pushRespondersKey, collected))
+        val collected: Future[Vector[PushResponse]] = collectResponder(fresource, req, route)
+        Response(resp.prelude, resp.body, resp.attributes.put(pushResponseKey, collected))
       }.getOrElse(resp)
     }
 
     new Route {
-      def apply(v1: RequestPrelude): Iteratee[Chunk, Responder] = gather(v1, route(v1))
+      def apply(v1: RequestPrelude): Iteratee[Chunk, Response] = gather(v1, route(v1))
       def isDefinedAt(x: RequestPrelude): Boolean = route.isDefinedAt(x)
     }
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)
-  private [PushSupport] case class PushResponder(location: String, resp: Responder)
+  private [PushSupport] case class PushResponse(location: String, resp: Response)
 
   private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]("http4sPush")
-  private[http4s] val pushRespondersKey = AttributeKey[Future[Vector[PushResponder]]]("http4sPushResponders")
+  private[http4s] val pushResponseKey = AttributeKey[Future[Vector[PushResponse]]]("http4sPushResponders")
 }

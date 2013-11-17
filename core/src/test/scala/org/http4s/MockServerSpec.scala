@@ -97,7 +97,7 @@ class MockServerSpec extends WordSpec with Matchers {
 
       val req = RequestPrelude(pathInfo = "/push")
       val returned = server.response(req)
-      val pushOptions = returned.attributes.get(PushSupport.pushRespondersKey)
+      val pushOptions = returned.attributes.get(PushSupport.pushResponseKey)
 
       pushOptions.isDefined shouldNot equal(false)
 

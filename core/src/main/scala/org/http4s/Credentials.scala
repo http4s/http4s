@@ -1,6 +1,6 @@
 package org.http4s
 
-import Charset._
+import CharacterSet._
 import org.parboiled.common.Base64
 
 sealed abstract class Credentials {
@@ -11,7 +11,7 @@ sealed abstract class Credentials {
 case class BasicCredentials(username: String, password: String) extends Credentials {
   lazy val value = {
     val userPass = username + ':' + password
-    val bytes = userPass.getBytes(`ISO-8859-1`.nioCharset)
+    val bytes = userPass.getBytes(`ISO-8859-1`.charset)
     val cookie = Base64.rfc2045.encodeToString(bytes, false)
     "Basic " + cookie
   }
@@ -20,7 +20,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
 object BasicCredentials {
   def apply(credentials: String): BasicCredentials = {
     val bytes = Base64.rfc2045.decodeFast(credentials)
-    val userPass = new String(bytes, `ISO-8859-1`.nioCharset)
+    val userPass = new String(bytes, `ISO-8859-1`.charset)
     userPass.indexOf(':') match {
       case -1 => apply(userPass, "")
       case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1))

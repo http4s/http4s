@@ -15,7 +15,7 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.http
 import http.HttpHeaders.{Names, Values, isKeepAlive}
 
-import org.http4s.{Header, Chunk, Responder, RequestPrelude}
+import org.http4s.{Header, Chunk, Response, RequestPrelude}
 import org.http4s.Status.{InternalServerError, NotFound}
 import org.http4s.TrailerChunk
 
@@ -114,7 +114,7 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     else enum = new ChunkEnum
     val request = toRequest(ctx, req, rem)
     val parser = try { route.lift(request).getOrElse(Done(NotFound(request))) }
-    catch { case t: Throwable => Done[Chunk, Responder](InternalServerError(t)) }
+    catch { case t: Throwable => Done[Chunk, Response](InternalServerError(t)) }
 
     val handler = parser.flatMap(renderResponse(ctx, req, _))
     enum.run[Unit](handler)
@@ -185,11 +185,11 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
     Cont(folder)
   }
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, responder: Responder): Iteratee[Chunk, Unit] = {
+  protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, response: Response): Iteratee[Chunk, Unit] = {
 
-    val stat = new http.HttpResponseStatus(responder.prelude.status.code, responder.prelude.status.reason)
+    val stat = new http.HttpResponseStatus(response.prelude.status.code, response.prelude.status.reason)
 
-    val length = responder.prelude.headers.get(Header.`Content-Length`).map(_.length)
+    val length = response.prelude.headers.get(Header.`Content-Length`).map(_.length)
     val isHttp10 = req.getProtocolVersion == http.HttpVersion.HTTP_1_0
 
     val headers = new ListBuffer[(String, String)]
@@ -216,9 +216,9 @@ abstract class Http4sNetty(implicit executor: ExecutionContext)
       headers.foreach { case (k, v) => resp.headers.set(k,v) }
       val f = ctx.channel.writeAndFlush(resp)
       ctx.flush()
-      responder.body &>> chunkedIteratee(ctx, f, isHttp10, closeOnFinish)
+      response.body &>> chunkedIteratee(ctx, f, isHttp10, closeOnFinish)
     } { length => // Known length, buffer the results and then send it out.
-      responder.body &>> collectedIteratee(ctx, req.getProtocolVersion, stat, headers.result, length, closeOnFinish)
+      response.body &>> collectedIteratee(ctx, req.getProtocolVersion, stat, headers.result, length, closeOnFinish)
     }
   }
 

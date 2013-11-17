@@ -37,22 +37,22 @@ object Writable {
       Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
   }
   // Simple types defined
-  implicit def stringWritable(implicit charset: Charset = Charset.`UTF-8`) =
+  implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asByteString(s: String) = ByteString(s, charset.nioCharset.name)
+      def asByteString(s: String) = ByteString(s, charset.charset.name)
     }
 
-  implicit def htmlWritable(implicit charset: Charset = Charset.`UTF-8`) =
+  implicit def htmlWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: ContentType = ContentType(MediaType.`text/html`).withCharset(charset)
-      def asByteString(s: xml.Elem) = ByteString(s.buildString(false), charset.nioCharset.name)
+      def asByteString(s: xml.Elem) = ByteString(s.buildString(false), charset.charset.name)
     }
 
-  implicit def intWritable(implicit charset: Charset = Charset.`UTF-8`) =
+  implicit def intWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asByteString(i: Int): ByteString = ByteString(i.toString, charset.nioCharset.name)
+      def asByteString(i: Int): ByteString = ByteString(i.toString, charset.charset.name)
     }
 
   implicit def ByteStringWritable =

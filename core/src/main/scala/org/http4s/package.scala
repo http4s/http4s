@@ -10,9 +10,9 @@ import java.util.Locale
 import org.http4s.util.CaseInsensitiveStringSyntax
 
 package object http4s extends CaseInsensitiveStringSyntax {
-  type Route = PartialFunction[RequestPrelude, Iteratee[Chunk, Responder]]
+  type Route = PartialFunction[RequestPrelude, Iteratee[Chunk, Response]]
 
-  type ResponderBody = Enumeratee[Chunk, Chunk]
+  type ResponseBody = Enumeratee[Chunk, Chunk]
 
   type Middleware = (Route => Route)
 

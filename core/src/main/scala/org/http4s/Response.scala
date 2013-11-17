@@ -5,26 +5,26 @@ import java.net.{URL, URI}
 
 case class ResponsePrelude(status: Status, headers: HeaderCollection = HeaderCollection.empty)
 
-case class Responder(
+case class Response(
   prelude: ResponsePrelude,
-  body: ResponderBody = Responder.EmptyBody,
+  body: ResponseBody = Response.EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
 ) {
   def addHeader(header: Header) = copy(prelude = prelude.copy(headers = header +: prelude.headers))
 
-  def dropHeaders(f: Header => Boolean): Responder =
+  def dropHeaders(f: Header => Boolean): Response =
     copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
 
-  def dropHeader(key: HeaderKey): Responder = dropHeaders(_ isNot key)
+  def dropHeader(key: HeaderKey): Response = dropHeaders(_ isNot key)
 
   def contentType: Option[ContentType] =  prelude.headers.get(Header.`Content-Type`).map(_.contentType)
 
-  def contentType(contentType: ContentType): Responder = copy(prelude =
+  def contentType(contentType: ContentType): Response = copy(prelude =
     prelude.copy(headers = prelude.headers.put(Header.`Content-Type`(contentType))))
 
-  def addCookie(cookie: Cookie): Responder = addHeader(Header.Cookie(cookie))
+  def addCookie(cookie: Cookie): Response = addHeader(Header.Cookie(cookie))
 
-  def removeCookie(cookie: Cookie): Responder =
+  def removeCookie(cookie: Cookie): Response =
     addHeader(Header.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
 
   def status: Status = prelude.status
@@ -36,10 +36,10 @@ case class Responder(
     .getOrElse(false)
 }
 
-object Responder {
+object Response {
   val EmptyBody: Enumeratee[Chunk, Chunk] = Enumeratee.heading(Enumerator.eof)
 
-  implicit def responder2Handler(responder: Responder): Iteratee[Chunk, Responder] = Done(responder)
+  implicit def response2Handler(response: Response): Iteratee[Chunk, Response] = Done(response)
 
 }
 
@@ -57,12 +57,12 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
 
 object Status {
   trait NoEntityResponderGenerator { self: Status =>
-    private[this] val StatusResponder = Responder(ResponsePrelude(this))
-    def apply(): Responder = StatusResponder
+    private[this] val StatusResponder = Response(ResponsePrelude(this))
+    def apply(): Response = StatusResponder
   }
 
   trait EntityResponderGenerator extends NoEntityResponderGenerator { self: Status =>
-    def apply[A](body: A)(implicit w: Writable[A]): Responder =
+    def apply[A](body: A)(implicit w: Writable[A]): Response =
       apply(body, w.contentType)(w)
 
     def apply[A](body: A, contentType: ContentType)(implicit w: Writable[A]) = {
@@ -70,16 +70,16 @@ object Status {
       val (parsedBody, length) = w.toBody(body)
       headers :+= Header.`Content-Type`(contentType)
       length.foreach{ length => headers :+= Header.`Content-Length`(length) }
-      Responder(ResponsePrelude(self, headers), parsedBody)
+      Response(ResponsePrelude(self, headers), parsedBody)
     }
   }
 
   trait RedirectResponderGenerator { self: Status =>
-    def apply(uri: String): Responder = Responder(ResponsePrelude(self, HeaderCollection(Header.Location(uri))))
+    def apply(uri: String): Response = Response(ResponsePrelude(self, HeaderCollection(Header.Location(uri))))
 
-    def apply(uri: URI): Responder = apply(uri.toString)
+    def apply(uri: URI): Response = apply(uri.toString)
 
-    def apply(url: URL): Responder = apply(url.toString)
+    def apply(url: URL): Response = apply(url.toString)
   }
 
   /**
@@ -88,8 +88,8 @@ object Status {
   object Continue extends Status(100, "Continue") with NoEntityResponderGenerator
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
-    def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header("Upgrade", protocols) +: headers), Responder.EmptyBody)
+    def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Response =
+      Response(ResponsePrelude(this, Header("Upgrade", protocols) +: headers), Response.EmptyBody)
   }
   object Processing extends Status(102, "Processing") with NoEntityResponderGenerator
 
@@ -101,8 +101,8 @@ object Status {
   object ResetContent extends Status(205, "Reset Content") with NoEntityResponderGenerator
   object PartialContent extends Status(206, "Partial Content") with EntityResponderGenerator {
     // TODO type this header
-    def apply(range: String, body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header("Range", range) +: headers), body)
+    def apply(range: String, body: ResponseBody, headers: HeaderCollection = HeaderCollection.empty): Response =
+      Response(ResponsePrelude(this, Header("Range", range) +: headers), body)
   }
   object MultiStatus extends Status(207, "Multi-Status") with EntityResponderGenerator
   object AlreadyReported extends Status(208, "Already Reported") with EntityResponderGenerator
@@ -119,23 +119,23 @@ object Status {
   object BadRequest extends Status(400, "Bad Request") with EntityResponderGenerator
   object Unauthorized extends Status(401, "Unauthorized") with EntityResponderGenerator {
     // TODO type this header
-    def apply(wwwAuthenticate: String, body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header("WWW-Authenticate", wwwAuthenticate) +: headers), body)
+    def apply(wwwAuthenticate: String, body: ResponseBody, headers: HeaderCollection = HeaderCollection.empty): Response =
+      Response(ResponsePrelude(this, Header("WWW-Authenticate", wwwAuthenticate) +: headers), body)
   }
   object PaymentRequired extends Status(402, "Payment Required") with EntityResponderGenerator
   object Forbidden extends Status(403, "Forbidden") with EntityResponderGenerator
   object NotFound extends Status(404, "Not Found") with EntityResponderGenerator {
-    def apply(request: RequestPrelude): Responder = apply(s"${request.pathInfo} not found")
+    def apply(request: RequestPrelude): Response = apply(s"${request.pathInfo} not found")
   }
   object MethodNotAllowed extends Status(405, "Method Not Allowed") {
-    def apply(allowed: TraversableOnce[Method], body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header("Allowed", allowed.mkString(", ")) +: headers), body)
+    def apply(allowed: TraversableOnce[Method], body: ResponseBody, headers: HeaderCollection = HeaderCollection.empty): Response =
+      Response(ResponsePrelude(this, Header("Allowed", allowed.mkString(", ")) +: headers), body)
   }
   object NotAcceptable extends Status(406, "Not Acceptable") with EntityResponderGenerator
   object ProxyAuthenticationRequired extends Status(407, "Proxy Authentication Required") {
     // TODO type this header
-    def apply(proxyAuthenticate: String, body: ResponderBody, headers: HeaderCollection = HeaderCollection.empty): Responder =
-      Responder(ResponsePrelude(this, Header("Proxy-Authenticate", proxyAuthenticate) +: headers), body)
+    def apply(proxyAuthenticate: String, body: ResponseBody, headers: HeaderCollection = HeaderCollection.empty): Response =
+      Response(ResponsePrelude(this, Header("Proxy-Authenticate", proxyAuthenticate) +: headers), body)
   }
   object RequestTimeOut extends Status(408, "Request Time-out") with EntityResponderGenerator
   object Conflict extends Status(409, "Conflict") with EntityResponderGenerator
@@ -159,7 +159,7 @@ object Status {
 
   object InternalServerError extends Status(500, "Internal Server Error") with EntityResponderGenerator {
     // TODO Bad in production.  Development mode?  Implicit renderer?
-    def apply(t: Throwable): Responder = apply(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
+    def apply(t: Throwable): Response = apply(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
   }
   object NotImplemented extends Status(501, "Not Implemented") with EntityResponderGenerator
   object BadGateway extends Status(502, "Bad Gateway") with EntityResponderGenerator

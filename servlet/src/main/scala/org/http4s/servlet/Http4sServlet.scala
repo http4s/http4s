@@ -39,13 +39,13 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     val parser = try {
       route.lift(request).getOrElse(Done(NotFound(request)))
-    } catch { case t: Throwable => Done[Chunk, Responder](InternalServerError(t)) }
-    val handler = parser.flatMap { responder =>
-      servletResponse.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
-      for (header <- responder.prelude.headers)
+    } catch { case t: Throwable => Done[Chunk, Response](InternalServerError(t)) }
+    val handler = parser.flatMap { response =>
+      servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
+      for (header <- response.prelude.headers)
         servletResponse.addHeader(header.name.toString, header.value)
-      val isChunked = responder.isChunked
-      responder.body.transform(Iteratee.foreach {
+      val isChunked = response.isChunked
+      response.body.transform(Iteratee.foreach {
         case BodyChunk(chunk) =>
           val out = servletResponse.getOutputStream
           out.write(chunk.toArray)

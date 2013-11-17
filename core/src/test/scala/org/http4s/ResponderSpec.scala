@@ -3,11 +3,11 @@ package org.http4s
 import org.scalatest.{OptionValues, WordSpec, Matchers}
 
 class ResponderSpec extends WordSpec with Matchers with OptionValues {
-  val resp = Responder(ResponsePrelude(Status.Ok))
+  val resp = Response(ResponsePrelude(Status.Ok))
 
   "Responder" should {
     "Change status" in {
-      val resp = Responder(ResponsePrelude(Status.Ok))
+      val resp = Response(ResponsePrelude(Status.Ok))
 
       resp.status should equal (Status.Ok)
 

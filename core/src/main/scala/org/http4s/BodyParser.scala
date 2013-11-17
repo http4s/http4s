@@ -11,16 +11,16 @@ import play.api.libs.iteratee.Enumeratee.CheckDone
 import util.Execution.{overflowingExecutionContext => oec, trampoline => tec}
 import scala.concurrent.ExecutionContext
 
-case class BodyParser[A](it: Iteratee[Chunk, Either[Responder, A]]) {
-  def apply(f: A => Responder): Iteratee[Chunk, Responder] = it.map(_.right.map(f).merge)(oec)
-  def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = BodyParser(it.map[Either[Responder, B]](_.right.map(f)))
+case class BodyParser[A](it: Iteratee[Chunk, Either[Response, A]]) {
+  def apply(f: A => Response): Iteratee[Chunk, Response] = it.map(_.right.map(f).merge)(oec)
+  def map[B](f: A => B)(implicit ec: ExecutionContext): BodyParser[B] = BodyParser(it.map[Either[Response, B]](_.right.map(f)))
   def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] =
-    BodyParser(it.flatMap[Either[Responder, B]](_.fold(
-      { responder: Responder => Done(Left(responder)) },
+    BodyParser(it.flatMap[Either[Response, B]](_.fold(
+      { response: Response => Done(Left(response)) },
       { a: A => f(a).it }
     )))
 
-  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Responder, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight)(oec))
+  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Response, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight)(oec))
 }
 
 object BodyParser {
@@ -28,10 +28,10 @@ object BodyParser {
 
   private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
 
-  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Responder]): Iteratee[Chunk, Responder] =
+  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
     bodyParser(identity)
 
-  def text[A](charset: Charset, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
+  def text[A](charset: CharacterSet, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
     consumeUpTo(BodyChunkConsumer, limit).map(_.decodeString(charset))(oec)
 
   /**
@@ -45,10 +45,10 @@ object BodyParser {
    * @param parser the SAX parser to use to parse the XML
    * @return a request handler
    */
-  def xml(charset: Charset,
+  def xml(charset: CharacterSet,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser,
-          onSaxException: SAXException => Responder = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
+          onSaxException: SAXException => Response = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
   : BodyParser[Elem] =
     consumeUpTo(BodyChunkConsumer, limit).map { bytes =>
       val in = bytes.iterator.asInputStream
@@ -94,12 +94,12 @@ object BodyParser {
 
   // TODO: why are we using blocking file ops here!?!
   // File operations
-  def binFile(file: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[Chunk,Responder] = {
+  def binFile(file: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[Chunk,Response] = {
     val out = new java.io.FileOutputStream(file)
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }(ec).map{ _ => out.close(); f }(oec)
   }
 
-  def textFile(req: RequestPrelude, in: java.io.File)(f: => Responder)(implicit ec: ExecutionContext): Iteratee[Chunk,Responder] = {
+  def textFile(req: RequestPrelude, in: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[Chunk,Response] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
     whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }(ec).map{ _ => is.close(); f }(oec)
   }
