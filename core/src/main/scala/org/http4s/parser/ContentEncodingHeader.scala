@@ -13,7 +13,7 @@ private[parser] trait ContentEncodingHeader {
   )
 
   def ContentEncoding = rule {
-    ContentCoding ~~> (x => org.http4s.ContentCoding.getForKey(x.lowercaseEn).getOrElse(org.http4s.ContentCoding(x.lowercaseEn)))
+    ContentCoding ~~> (x => org.http4s.ContentCoding.getForKey(x.ci).getOrElse(org.http4s.ContentCoding(x.ci)))
   }
 
 }

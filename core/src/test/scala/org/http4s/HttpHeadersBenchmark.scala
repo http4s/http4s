@@ -9,13 +9,13 @@ object HttpHeadersBenchmark extends PerformanceTest.Quickbenchmark {
     size <- sizes
   } yield for {
     i <- 0 until size
-  } yield Header.RawHeader("X-Headers-Benchmark-"+i, i.toString)
+  } yield Header("X-Headers-Benchmark-"+i, i.toString)
 
   val replacements: Gen[(HeaderCollection, Header)] = for {
     headers <- headerses
   } yield {
     val i = headers.size / 2
-    val header = Header.RawHeader("X-Headers-Benchmark-"+i, "replacement")
+    val header = Header("X-Headers-Benchmark-"+i, "replacement")
     (HeaderCollection.apply(headers: _*), header)
   }
 

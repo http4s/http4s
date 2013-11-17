@@ -11,10 +11,9 @@ import scala.util.{Failure, Success}
 import org.joda.time.{DateTime, DateTimeZone, ReadableInstant}
 import org.joda.time.format.DateTimeFormat
 import java.util.Locale
-import org.http4s.util.{LowercaseEn, LowercaseSyntax}
-import scalaz.@@
+import org.http4s.util.CaseInsensitiveStringSyntax
 
-package object http4s extends LowercaseSyntax {
+package object http4s extends CaseInsensitiveStringSyntax {
   type HttpService = Request => Task[Response]
   type HttpBody = Process[Task, Chunk]
 

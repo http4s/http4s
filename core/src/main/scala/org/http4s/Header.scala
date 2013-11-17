@@ -8,12 +8,11 @@ import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
+import org.http4s.util.CaseInsensitiveString
 
 sealed trait Header extends Logging with Product {
 
-  def name: String
-
-  def lowercaseName: CiString = name.lowercaseEn
+  def name: CaseInsensitiveString
 
   def value: String
 
@@ -25,13 +24,12 @@ sealed trait Header extends Logging with Product {
 
   def parsed: Header
 
-  final override def hashCode(): Int = MurmurHash3.mixLast(lowercaseName.hashCode, MurmurHash3.productHash(parsed))
+  final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
   override def equals(that: Any): Boolean = that match {
     case h: AnyRef if this eq h => true
-    case h: Header =>
+    case h: Header => (name == h.name) &&
       (parsed.productArity == h.parsed.productArity) &&
-      (lowercaseName == h.lowercaseName) &&
       (parsed.productIterator sameElements h.parsed.productIterator)
     case _ => false
   }
@@ -58,9 +56,11 @@ trait RecurringHeader extends ParsedHeader {
 }
 
 object Header {
-  def unapply(header: Header): Option[(String, String)] = Some((header.lowercaseName, header.value))
+  def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
 
-  final case class RawHeader(name: String, value: String) extends Header {
+  def apply(name: String, value: String): Header = RawHeader(name.ci, value)
+
+  final case class RawHeader private[Header] (name: CaseInsensitiveString, value: String) extends Header {
     override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
   }
 
@@ -151,7 +151,7 @@ object Header {
   object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`] with SingletonHeaderKey
   final case class `Content-Encoding`(contentCoding: ContentCoding) extends ParsedHeader {
     def key = `Content-Encoding`
-    def value = contentCoding.value
+    def value = contentCoding.value.toString
   }
 
   object `Content-Language` extends DefaultHeaderKey
@@ -276,10 +276,10 @@ object Header {
 
   object `Trailer` extends DefaultHeaderKey
 
-  object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`] with SingletonHeaderKey
-  final case class `Transfer-Encoding`(coding: ContentCoding) extends ParsedHeader {
+  object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`] with RecurringHeaderKey
+  final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends RecurringHeader {
     def key = `Transfer-Encoding`
-    def value = coding.value
+    type Value = TransferCoding
   }
 
   object Upgrade extends DefaultHeaderKey

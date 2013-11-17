@@ -12,7 +12,8 @@ class MockServer(service: HttpService) {
     } yield MockResponse(
       response.prelude.status,
       response.prelude.headers,
-      body.toArray
+      body.toArray,
+      response.attributes
     )
     task.handle {
       case e =>
@@ -28,6 +29,7 @@ object MockServer {
   case class MockResponse(
     statusLine: Status = Status.Ok,
     headers: HeaderCollection = HeaderCollection.empty,
-    body: Array[Byte] = emptyBody
+    body: Array[Byte] = emptyBody,
+    attributes: AttributeMap = AttributeMap.empty
   )
 }

@@ -31,10 +31,9 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val handler = parser.flatMap { responder =>
       resp.setStatus(responder.prelude.status.code, responder.prelude.status.reason)
       for (header <- responder.prelude.headers)
-        resp.addHeader(header.name, header.value)
+        resp.addHeader(header.name.toString, header.value)
 
-      import ContentCoding.chunked
-      val isChunked = responder.prelude.headers.get(Header.`Transfer-Encoding`).map(_.coding.matches(chunked)).getOrElse(false)
+      val isChunked = responder.isChunked
       val out = new OutputIteratee(resp.getNIOOutputStream, isChunked)
       responder.body.transform(out)
     }
@@ -82,7 +81,7 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
-    } yield Header.RawHeader(name, value)
+    } yield Header(name, value)
     HeaderCollection(headers.toSeq : _*)
   }
 }
