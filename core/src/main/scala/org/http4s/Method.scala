@@ -2,6 +2,7 @@ package org.http4s
 
 import scala.collection.concurrent
 import scala.collection.concurrent.TrieMap
+import org.http4s.util.Registry
 
 /**
  * An HTTP method.
@@ -18,7 +19,7 @@ sealed abstract case class Method (name: String) {
 //  def /(path: String): Path = new /(this, Path(path))
 }
 
-object Method extends ObjectRegistry[String, Method] {
+object Method extends Registry[String, Method] {
   def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
   def idempotent(name: String): Method = new MethodImpl(name, false, true)
   def safe(name: String): Method = new MethodImpl(name, true, true)

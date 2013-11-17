@@ -1,10 +1,10 @@
 package org.http4s
 
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.util.{Registry, CaseInsensitiveString}
 
 final case class TransferCoding(value: CaseInsensitiveString)
 
-object TransferCoding extends ObjectRegistry[CaseInsensitiveString, TransferCoding] {
+object TransferCoding extends Registry[CaseInsensitiveString, TransferCoding] {
   def register(encoding: TransferCoding): TransferCoding = {
     register(encoding.value, encoding)
     encoding

@@ -2,6 +2,7 @@ package org.http4s
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
+import org.http4s.util.Registry
 
 
 sealed abstract class MediaRange {
@@ -21,7 +22,7 @@ sealed abstract class MediaRange {
   override def toString = "MediaRange(" + value + ')'
 }
 
-object MediaRange extends ObjectRegistry[String, MediaRange] {
+object MediaRange extends Registry[String, MediaRange] {
 
   def register(mediaRange: MediaRange): MediaRange = {
     register(mediaRange.mainType.toLowerCase, mediaRange)
@@ -115,7 +116,7 @@ sealed abstract class MediaType extends MediaRange {
   override def toString = "MediaType(" + value + ')'
 }
 
-object MediaType extends ObjectRegistry[(String, String), MediaType] {
+object MediaType extends Registry[(String, String), MediaType] {
   def unapply(mimeType: MediaType): Option[(String, String)] = Some((mimeType.mainType, mimeType.subType))
 
   private[this] val extensionMap = new AtomicReference(Map.empty[String, MediaType])

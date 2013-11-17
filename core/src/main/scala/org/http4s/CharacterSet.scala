@@ -1,6 +1,7 @@
 package org.http4s
 
 import java.nio.charset.Charset
+import org.http4s.util.Registry
 
 sealed abstract class CharacterSetRange {
   def value: String
@@ -21,7 +22,7 @@ sealed abstract class CharacterSet extends CharacterSetRange {
 }
 
 // see http://www.iana.org/assignments/character-sets
-object CharacterSet extends ObjectRegistry[String, CharacterSet] {
+object CharacterSet extends Registry[String, CharacterSet] {
 
   def register(charset: CharacterSet): CharacterSet = {
     register(charset.value.toLowerCase, charset)
