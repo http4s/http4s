@@ -2,10 +2,8 @@ package org.http4s
 
 import org.http4s.util.{CaseInsensitiveString, Registry}
 
-sealed abstract class ServerProtocol(protocol: CaseInsensitiveString, version: Option[ServerProtocol.Version] = None) {
-  def value: CaseInsensitiveString
-  override def toString = value.toString
-}
+sealed abstract class ServerProtocol(protocol: CaseInsensitiveString, version: Option[ServerProtocol.Version] = None)
+  extends HttpValue[CaseInsensitiveString]
 
 /**
  * The Server Protocol of a request.

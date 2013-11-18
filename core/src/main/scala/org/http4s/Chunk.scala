@@ -40,7 +40,7 @@ case class BodyChunk(bytes: ByteString) extends Chunk
   /**
    * Decodes this ByteString using a charset to produce a String.
    */
-  def decodeString(charset: CharacterSet): String = bytes.decodeString(charset.value)
+  def decodeString(charset: CharacterSet): String = bytes.decodeString(charset.name)
 }
 
 object BodyChunk {
@@ -56,7 +56,7 @@ object BodyChunk {
 
   def apply(string: String): BodyChunk = apply(string, CharacterSet.`UTF-8`)
 
-  def apply(string: String, charset: CharacterSet): BodyChunk = BodyChunk(ByteString(string, charset.value))
+  def apply(string: String, charset: CharacterSet): BodyChunk = BodyChunk(ByteString(string, charset.name))
 
   def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk =
     BodyChunk(ByteString.fromArray(array, offset, length))

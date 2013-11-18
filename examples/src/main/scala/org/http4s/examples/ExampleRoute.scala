@@ -61,7 +61,7 @@ object ExampleRoute {
           new Thread {
             override def run() {
               for (i <- 1 to 10) {
-                channel.push(ByteString("%d\n".format(i), req.charset.value))
+                channel.push(ByteString("%d\n".format(i), req.charset.name))
                 Thread.sleep(1000)
               }
               channel.eofAndEnd()
@@ -82,7 +82,7 @@ object ExampleRoute {
 
     case req @ Get -> Root / "bigstring2" =>
       Done{
-        Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.value) }: _*))
+        Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.name) }: _*))
       }
 
     case req @ Get -> Root / "bigstring3" =>

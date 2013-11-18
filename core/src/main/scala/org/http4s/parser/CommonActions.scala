@@ -23,9 +23,7 @@ private[parser] trait CommonActions {
   }
 
   val getCharset: String => CharacterSet = { charsetName =>
-    CharacterSet
-      .getForKey(charsetName.toLowerCase)
-      .orElse(CharacterSet.CustomCharacterSet(charsetName))
+    CharacterSet(charsetName)
       .getOrElse(throw new ParsingException("Unsupported charset: " + charsetName))
   }
 }

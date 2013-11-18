@@ -69,7 +69,7 @@ object ExampleRoute {
       Ok(Concurrent.unicast[ByteString]({
         channel =>
           for (i <- 1 to 10) {
-            channel.push(ByteString("%d\n".format(i), req.charset.value))
+            channel.push(ByteString("%d\n".format(i), req.charset.name))
             Thread.sleep(1000)
           }
           channel.eofAndEnd()
