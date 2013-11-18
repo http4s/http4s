@@ -6,7 +6,6 @@ import io.netty.handler.codec.http
 import io.netty.handler.ssl.SslHandler
 import java.io.{UnsupportedEncodingException, FileNotFoundException, RandomAccessFile, File}
 import javax.activation.MimetypesFileTypeMap
-import org.http4s.HttpVersion
 import scala.io.Codec
 import java.text.SimpleDateFormat
 import java.util.{Date, TimeZone}
@@ -78,7 +77,7 @@ object StaticFileHandler {
   }
 
   def sendError(ctx: ChannelHandlerContext, status: http.HttpResponseStatus) {
-    val response = new http.DefaultFullHttpResponse(HttpVersion.`Http/1.1`, status,
+    val response = new http.DefaultFullHttpResponse(ServerProtocol.`HTTP/1.1`, status,
       Unpooled.wrappedBuffer(("Failure: " + status.toString + "\r\n").getBytes(Codec.UTF8.charSet)))
     response.headers.set(http.HttpHeaders.Names.CONTENT_TYPE, "text/plain; charset=UTF-8")
 
@@ -87,7 +86,7 @@ object StaticFileHandler {
   }
 
   def sendNotModified(ctx: ChannelHandlerContext) {
-    val response = new http.DefaultHttpResponse(HttpVersion.`Http/1.1`, Status.NotModified)
+    val response = new http.DefaultHttpResponse(ServerProtocol.`HTTP/1.1`, Status.NotModified)
     setDateHeader(response)
 
     // Close the connection as soon as the error message is sent.

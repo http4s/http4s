@@ -9,7 +9,7 @@ case class RequestPrelude(
                            pathInfo: String = "",
                            queryString: String = "",
                            pathTranslated: Option[File] = None,
-                           protocol: ServerProtocol = HttpVersion.`Http/1.1`,
+                           protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
                            headers: HeaderCollection = HeaderCollection.empty,
                            urlScheme: UrlScheme = HttpUrlScheme.Http,
                            serverName: String = InetAddress.getLocalHost.getHostName,

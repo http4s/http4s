@@ -6,6 +6,7 @@ import scala.util.{Failure, Success}
 import scala.language.implicitConversions
 import io.netty.handler.codec.http
 import Method._
+import org.http4s.ServerProtocol.HttpVersion
 
 package object netty {
 
