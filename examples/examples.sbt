@@ -10,7 +10,8 @@ libraryDependencies ++= Seq(
   logbackClassic,
   javaxServletApi,
   jettyServer,
-  jettyServlet
+  jettyServlet,
+  jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
 )
 
 mainClass in Revolver.reStart := Some("org.http4s.grizly.GrizzlyExample")
