@@ -2,16 +2,17 @@ package org.http4s
 
 import org.http4s.util.{Registry, CaseInsensitiveString}
 
-sealed abstract class ContentCodingRange {
-  def value: CaseInsensitiveString
+sealed abstract class ContentCodingRange extends HttpValue[CaseInsensitiveString] {
   def matches(encoding: ContentCoding): Boolean
 }
 
-final case class ContentCoding(value: CaseInsensitiveString) extends ContentCodingRange {
+sealed case class ContentCoding private (value: CaseInsensitiveString) extends ContentCodingRange {
   def matches(encoding: ContentCoding) = this == encoding
 }
 
 object ContentCoding extends Registry[CaseInsensitiveString, ContentCoding] {
+  def apply(name: String): ContentCoding = getForKey(name.ci).getOrElse(new ContentCoding(name.ci))
+
   def register(encoding: ContentCoding): ContentCoding = {
     register(encoding.value, encoding)
     encoding
