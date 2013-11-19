@@ -6,7 +6,7 @@ object Http4sDependencies {
   lazy val typesafeConfig      = "com.typesafe"              % "config"                  % "1.0.0"
   lazy val grizzlyHttpServer   = "org.glassfish.grizzly"     % "grizzly-http-server"     % "2.2.19"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.0.1"
-  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "8.1.8.v20121106"
+  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.1.0.v20131115"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val jettyWebSocket      = "org.eclipse.jetty"         % "jetty-websocket"         % jettyServer.revision
   lazy val jodaConvert         = "org.joda"                  % "joda-convert"            % "1.5"
