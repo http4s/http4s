@@ -13,6 +13,6 @@ libraryDependencies ++= Seq(
   jettyServlet
 )
 
-mainClass in Revolver.reStart := Some("org.http4s.grizly.GrizzlyExample")
+mainClass in Revolver.reStart := Some("org.http4s.netty.Netty4Example")
 
 fork in run := true
