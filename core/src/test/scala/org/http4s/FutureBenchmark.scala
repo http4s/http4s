@@ -24,16 +24,18 @@ object FutureBenchmark extends PerformanceTest.Quickbenchmark {
 
   def doTask(concurrency: Int, ops: Int) {
     val tasks = (0 to concurrency).map { _ =>
-      var t = Task(0)
-      for (i <- 1 to ops) { t = t.map(_ + 1) }
-      t
+      Task.fork {
+        var t = Task(0)
+        for (i <- 1 to ops) { t = t.map(_ + 1) }
+        t
+      }
     }
-    Task.gatherUnordered(tasks).run
+    Task.fork(Task.gatherUnordered(tasks)).run
   }
 
   def bench(f: (Int, Int) => Unit) {
     using(params) config (
-      exec.benchRuns -> 200,
+      exec.benchRuns -> 2000,
       exec.minWarmupRuns -> 200
     ) in { case (concurrency, ops) => f(concurrency, ops) }
   }
@@ -43,6 +45,7 @@ object FutureBenchmark extends PerformanceTest.Quickbenchmark {
     bench(doFuture _)
   }
 
+  /*
   performance of "scala.concurrent.Future with EC with affinity" in {
     implicit val trampoline: ExecutionContext = new ExecutionContext {
       private val local = new ThreadLocal[Deque[Runnable]]
@@ -73,6 +76,7 @@ object FutureBenchmark extends PerformanceTest.Quickbenchmark {
     }
     bench(doFuture _)
   }
+  */
 
   performance of "scalaz.concurrent.Task" in {
     bench(doTask _)
