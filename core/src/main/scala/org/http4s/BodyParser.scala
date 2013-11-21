@@ -5,14 +5,18 @@ import xml.{Elem, XML, NodeSeq}
 import org.xml.sax.{SAXException, InputSource}
 import javax.xml.parsers.SAXParser
 import scala.util.{Success, Try}
-import scalaz.\/
-import scalaz.stream._
+import scalaz.{\/-, -\/, \/}
+import scalaz.stream.process1
 import scalaz.syntax.id._
 import scalaz.concurrent.Task
+import scalaz.stream.Process
+import scalaz.stream.Process._
 
-class BodyParser[A] private (p: Process[Task, Response \/ A]) {
-  def apply(f: A => Response): Process[Task, Response] = p.map(_.fold(identity, f))
-  def map[B](f: A => B): BodyParser[B] = new BodyParser(p.map(_.map(f)))
+class BodyParser[A] private (p: Process[Task, Chunk] => Task[Response \/ A]) {
+  def apply(body: Process[Task, Chunk])(f: A => Task[Response]): Task[Response] = {
+    p(body).flatMap(_.fold(Task.now, f))
+  }
+  def map[B](f: A => B): BodyParser[B] = new BodyParser(p.andThen(_.map(_.map(f))))
 /*
   def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] =
     BodyParser(it.flatMap[Either[Response, B]](_.fold(
@@ -25,16 +29,45 @@ class BodyParser[A] private (p: Process[Task, Response \/ A]) {
 }
 
 object BodyParser {
+
   val DefaultMaxEntitySize = Http4sConfig.getInt("org.http4s.default-max-entity-size")
+
+  //  private val BodyChunkConsumer: Process1[BodyChunk, BodyChunk] =
+  //    process1.scan[BodyChunk,StringBuilder](new StringBuilder)((b, c) => c.toArray)
+
+  //  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
+  //    bodyParser(identity)
+
+  def text[A](req: Request, charset: CharacterSet = CharacterSet.`UTF-8`, limit: Int = DefaultMaxEntitySize)
+             (f: String => Task[Response]): Task[Response] = {
+
+    val buff = new StringBuilder
+    var overflowed = false
+    val p1: Process1[Chunk,Unit] = {
+      def go(chunk: Chunk, size: Int): Process1[Chunk, Unit] = chunk match {
+        case b: BodyChunk =>
+          val acc = size + b.length
+          if (acc > limit) {
+            overflowed = true
+            halt
+          } else {
+            buff.append(chunk.decodeString(charset))
+            await(Get[Chunk])(go(_, acc))
+          }
+        case c => await(Get[Chunk])(go(_, size))
+      }
+      await(Get[Chunk])(go(_, 0))
+    }
+
+    req.body.pipe(p1).run.flatMap{ _ =>
+      if (overflowed) {
+          Status.RequestEntityTooLarge()
+        } else f(buff.result())
+    }
+  }
+
+
 /*
-  private val BodyChunkConsumer: Iteratee[BodyChunk, BodyChunk] = Iteratee.consume[BodyChunk]()
-
-  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
-    bodyParser(identity)
-
-  def text[A](charset: CharacterSet, limit: Int = DefaultMaxEntitySize): BodyParser[String] =
-    consumeUpTo(BodyChunkConsumer, limit).map(_.decodeString(charset))(oec)
-
   /**
    * Handles a request body as XML.
    *
@@ -73,10 +106,8 @@ object BodyParser {
   private def takeBytes(n: Int): Process.Process1[Chunk, Response \/ Chunk] = {
     Process.await1[Chunk] flatMap {
       case chunk: BodyChunk =>
-        if (chunk.length > n)
-          Process.halt
-        else
-          Process.emit(chunk.right) fby takeBytes(n - chunk.length)
+        if (chunk.length > n) Process.halt
+        else Process.emit(chunk.right) fby takeBytes(n - chunk.length)
       case chunk =>
         Process.emit(chunk.right) fby takeBytes(n)
     }

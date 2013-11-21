@@ -107,7 +107,7 @@ abstract class Http4sNetty
       case m: MatchError => Status.NotFound(request.prelude)
       case e => throw e
     }
-    task.run
+    task.runAsync(_ => ())
   }
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, response: Response): Task[Unit] = {

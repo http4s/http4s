@@ -20,19 +20,19 @@ class ExampleRoute {
     case Get -> Root / "ping" =>
       Ok("pong")
 
-    case req @ Get -> Root / ("echo" | "echo2") =>
+    case req @ Post -> Root / ("echo" | "echo2") =>
       Task.now(Response(body = req.body.map {
         case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
       }))
 
-/*
+
     case req @ Post -> Root / "sum"  =>
       text(req) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
-      }.toTask
-
+      }
+/*
     case req @ Get -> Root / "attributes" =>
       val req2 = req.updated(MyVar, 55)
       Ok("Hello" + req(MyVar) +  " and " + req2(MyVar) + ".\n")
