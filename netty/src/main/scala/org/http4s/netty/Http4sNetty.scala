@@ -15,11 +15,11 @@ import org.http4s.TrailerChunk
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-import io.netty.channel.{ChannelFutureListener, ChannelInboundHandlerAdapter, ChannelHandlerContext}
+import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, SimpleChannelInboundHandler}
 import io.netty.util.{ReferenceCountUtil, CharsetUtil}
 import io.netty.buffer.{Unpooled, ByteBuf}
 import io.netty.handler.ssl.SslHandler
-import io.netty.handler.codec.http.DefaultHttpContent
+import io.netty.handler.codec.http.{HttpObject, DefaultHttpContent}
 import scala.collection.mutable.ListBuffer
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-, \/}
@@ -35,23 +35,13 @@ object Http4sNetty {
 }
 
 abstract class Http4sNetty
-            extends ChannelInboundHandlerAdapter with Logging {
+            extends SimpleChannelInboundHandler[HttpObject] with Logging {
 
   def service: HttpService
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty")
 
-  //private var enum: ChunkEnum = null
   private var cb: Throwable \/ Chunk => Unit = null
-
-  // Just a front method to forward the request and finally release the buffer
-  override def channelRead(ctx: ChannelHandlerContext, msg: Object) {
-    try {
-      doRead(ctx, msg)
-    } finally {
-      ReferenceCountUtil.release(msg)
-    }
-  }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
     logger.trace("Caught exception: %s", cause.getStackTraceString)
@@ -71,17 +61,17 @@ abstract class Http4sNetty
     }
   }
 
-  private def doRead(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
+  override def channelRead0(ctx: ChannelHandlerContext, msg: HttpObject): Unit = msg match {
     case req: http.HttpRequest =>
       logger.trace("Netty request received")
       assert(cb == null)
       startHttpRequest(ctx, req, ctx.channel().remoteAddress().asInstanceOf[InetSocketAddress].getAddress)
 
     case c: http.LastHttpContent =>
-      logger.trace(s"Netty last Content received.")
       assert(cb != null)
       if (c.content().readableBytes() > 0)
         cb(\/-(buffToBodyChunk(c.content)))
+
       cb(\/-(TrailerChunk(toHeaders(c.trailingHeaders()))))
       cb = null
 
@@ -142,42 +132,42 @@ abstract class Http4sNetty
       true
     } else false
 
-    if(!isHttp10) headers += ((http.HttpHeaders.Names.TRANSFER_ENCODING, http.HttpHeaders.Values.CHUNKED))
+    if(!isHttp10 && length.isEmpty) headers += ((http.HttpHeaders.Names.TRANSFER_ENCODING, http.HttpHeaders.Values.CHUNKED))
 
     val msg = new http.DefaultHttpResponse(req.getProtocolVersion, stat)
     headers.foreach { case (k, v) => msg.headers.set(k,v) }
     response.prelude.headers.foreach(h => msg.headers().set(h.name.toString, h.value))
     if (length.isEmpty) ctx.channel.writeAndFlush(msg)
-    else ctx.channel.write(msg)   // Future
+    else ctx.channel.write(msg)
 
     var closed = false
 
-    def folder(chunk: Chunk): Process1[Chunk, Unit] = chunk match {
-      case c: BodyChunk =>
-        val out = new DefaultHttpContent(Unpooled.wrappedBuffer(chunk.toArray))
-        if (length.isEmpty) ctx.channel().writeAndFlush(out)
-        else ctx.channel().write(out)
-        await(Get[Chunk])(folder)
-      
-      case c: TrailerChunk =>
-        val respTrailer = new http.DefaultLastHttpContent()
-        for ( h <- c.headers ) respTrailer.trailingHeaders().set(h.name.toString, h.value)
+    def folder(chunk: Chunk): Process1[Chunk, Unit] = {
+      chunk match {
+        case c: BodyChunk =>
+          val out = new DefaultHttpContent(Unpooled.wrappedBuffer(chunk.toArray))
+          if (length.isEmpty) ctx.channel().writeAndFlush(out)
+          else ctx.channel().write(out)
+          await(Get[Chunk])(folder)
 
-        val f = ctx.channel.writeAndFlush(respTrailer)
-        if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
-        closed = true
-        halt
+        case c: TrailerChunk =>
+          val respTrailer = new http.DefaultLastHttpContent()
+          for ( h <- c.headers ) respTrailer.trailingHeaders().set(h.name.toString, h.value)
+
+          val f = ctx.channel.writeAndFlush(respTrailer)
+          if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
+          closed = true
+          halt
+      }
     }
 
     val process1: Process1[Chunk, Unit] = await(Get[Chunk])(folder)
-    response.body.pipe(process1).run.map{ _ =>
-      if (!closed) {
-        if (!isHttp10) {
+    response.body.pipe(process1).run.map { _ =>
+      logger.trace("Finished stream.")
+      if (!closed && ctx.channel.isOpen) {
           val msg = new http.DefaultLastHttpContent()
           val f = ctx.channel.writeAndFlush(msg)
           if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
-        }
-        else ctx.channel().close()
       }
       ()
     }
@@ -187,7 +177,7 @@ abstract class Http4sNetty
 
   private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress): Request = {
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
-    logger.info("Received request: " + req.getUri)
+    logger.trace("Received request: " + req.getUri)
     val uri = new URI(req.getUri)
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
@@ -208,10 +198,10 @@ abstract class Http4sNetty
     val (queue, body) = async.localQueue[Chunk]
     cb = {
       case \/-(chunk: BodyChunk) =>
-        logger.info("enqueued chunk")
+        logger.trace("enqueued chunk")
         queue.enqueue(chunk)
       case \/-(chunk: TrailerChunk) =>
-        logger.info("enqueued trailer")
+        logger.trace("enqueued trailer")
         queue.enqueue(chunk)
         queue.close
       case -\/(err) =>
