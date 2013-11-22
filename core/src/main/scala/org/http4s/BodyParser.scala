@@ -11,21 +11,22 @@ import scalaz.syntax.id._
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.Process._
+import java.nio.BufferOverflowException
 
-class BodyParser[A] private (p: Process[Task, Chunk] => Task[Response \/ A]) {
-  def apply(body: Process[Task, Chunk])(f: A => Task[Response]): Task[Response] = {
-    p(body).flatMap(_.fold(Task.now, f))
+class BodyParser[A] private (p: Process1[Chunk, A], req: Request) { parent =>
+  def apply(f: A => Task[Response], fail: (Throwable) => Task[Response] = _ => Status.InternalServerError()): Task[Response] = {
+    req.body.pipe(p).runLast.attempt.flatMap {
+      case \/-(Some(a)) => f(a)
+      case -\/(t)       => fail(t)
+      case _            => Status.InternalServerError()
+    }
   }
-  def map[B](f: A => B): BodyParser[B] = new BodyParser(p.andThen(_.map(_.map(f))))
-/*
-  def flatMap[B](f: A => BodyParser[B])(implicit ec: ExecutionContext): BodyParser[B] =
-    BodyParser(it.flatMap[Either[Response, B]](_.fold(
-    { response: Response => Done(Left(response)) },
-    { a: A => f(a).it }
-    )))
 
-  def joinRight[A1 >: A, B](implicit ev: <:<[A1, Either[Response, B]]): BodyParser[B] = BodyParser(it.map(_.joinRight)(oec))
-*/
+  def map[B](m: A => B): BodyParser[B] = new BodyParser(p.map(m), req) {
+    override def apply(f: (B) => Task[Response], fail: (Throwable) => Task[Response] = _ => Status.InternalServerError()) = {
+      parent(m.andThen(f), fail)
+    }
+  }
 }
 
 object BodyParser {
@@ -38,32 +39,18 @@ object BodyParser {
   //  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
   //    bodyParser(identity)
 
-  def text[A](req: Request, charset: CharacterSet = CharacterSet.`UTF-8`, limit: Int = DefaultMaxEntitySize)
-             (f: String => Task[Response]): Task[Response] = {
-
+  def text[A](req: Request, charset: CharacterSet = CharacterSet.`UTF-8`, limit: Int = DefaultMaxEntitySize) = {
+      //  (f: String => Task[Response], fail: (Throwable, Task[Response]) => Task[Response] = (_, r) => r)
+    
     val buff = new StringBuilder
-    var overflowed = false
-    val p1: Process1[Chunk,Unit] = {
-      def go(chunk: Chunk, size: Int): Process1[Chunk, Unit] = chunk match {
-        case b: BodyChunk =>
-          val acc = size + b.length
-          if (acc > limit) {
-            overflowed = true
-            halt
-          } else {
-            buff.append(chunk.decodeString(charset))
-            await(Get[Chunk])(go(_, acc))
-          }
-        case c => await(Get[Chunk])(go(_, size))
+    val p = process1.fold[Chunk, StringBuilder](buff){(b,c) =>
+      c match {
+        case c: BodyChunk => b.append(c.decodeString(charset))
+        case _ =>
       }
-      await(Get[Chunk])(go(_, 0))
-    }
-
-    req.body.pipe(p1).run.flatMap{ _ =>
-      if (overflowed) {
-          Status.RequestEntityTooLarge()
-        } else f(buff.result())
-    }
+      b
+    }.map(_.result())
+    new BodyParser(takeBytes(limit).pipe(p), req)
   }
 
 
@@ -103,14 +90,16 @@ object BodyParser {
       }(oec)))
 */
 
-  private def takeBytes(n: Int): Process.Process1[Chunk, Response \/ Chunk] = {
-    Process.await1[Chunk] flatMap {
-      case chunk: BodyChunk =>
-        if (chunk.length > n) Process.halt
-        else Process.emit(chunk.right) fby takeBytes(n - chunk.length)
-      case chunk =>
-        Process.emit(chunk.right) fby takeBytes(n)
+  private def takeBytes(n: Int): Process1[Chunk, Chunk] = {
+    def go(taken: Int, chunk: Chunk): Process1[Chunk, Chunk] = chunk match {
+      case c: BodyChunk =>
+        val sz = taken + c.length
+        if (sz > n) Halt(new Exception(s"Body Parse size exceeded: $sz > $n"))
+        else Emit(c::Nil, await(Get[Chunk])(go(sz, _)))
+
+      case c =>  Emit(c::Nil, await(Get[Chunk])(go(taken, _)))
     }
+    await(Get[Chunk])(go(0,_))
   }
 
 /*

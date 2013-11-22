@@ -32,6 +32,12 @@ class ExampleRoute {
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
+
+    case req @ Post -> Root / "shortsum"  =>
+      text(req, limit = 3) { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Ok(sum)
+      }
 /*
     case req @ Get -> Root / "attributes" =>
       val req2 = req.updated(MyVar, 55)
