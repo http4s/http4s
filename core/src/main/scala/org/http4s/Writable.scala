@@ -22,6 +22,11 @@ trait SimpleWritable[-A] extends Writable[A] {
 
 object Writable {
   // Simple types defined
+  implicit def chunkWritable = new SimpleWritable[BodyChunk] {
+      def contentType: ContentType = ContentType.`application/octet-stream`
+      def asChunk(i: BodyChunk) = i
+    }
+
   implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
@@ -39,6 +44,7 @@ object Writable {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
       def asChunk(i: Int) = BodyChunk(i.toString, charset.charset)
     }
+
 
   implicit def taskWritable[A](implicit writable: Writable[A]) =
     new Writable[Task[A]] {
@@ -76,6 +82,21 @@ object Writable {
     override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[Chunk]{ i => BodyChunk(writable.asByteString(i))}(oec)), None)
   }
 */
+
+  implicit def processWritable[A](implicit w: SimpleWritable[A]) = new Writable[Process[Task, A]] {
+    def contentType: ContentType = w.contentType
+
+    def toBody(a: Process[Task, A]): Task[(_root_.org.http4s.HttpBody, Option[Int])] = Task.now((a.map(w.asChunk), None))
+  }
+
+  implicit def seqWritable[A](implicit w: SimpleWritable[A]) = new Writable[Seq[A]] {
+    def contentType: ContentType = w.contentType
+
+    def toBody(a: Seq[A]): Task[(HttpBody, Option[Int])] = {
+      val p = Process.emitSeq(a.map(w.asChunk))
+      Task.now((p, None))
+    }
+  }
 
   implicit def futureWritable[A](implicit ec: ExecutionContext, writable: Writable[A]) =
     new Writable[Future[A]] {

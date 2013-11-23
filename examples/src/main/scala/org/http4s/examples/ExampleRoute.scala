@@ -4,6 +4,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scala.concurrent.Future
 import org.http4s.dsl._
+import scala.util.{Failure, Success}
 
 class ExampleRoute {
   import Status._
@@ -28,21 +29,22 @@ class ExampleRoute {
 
 
     case req @ Post -> Root / "sum"  =>
-      text(req) { s =>
+      text(req) { case Success(s) =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
     case req @ Post -> Root / "shortsum"  =>
-      text(req, limit = 3) { s =>
-        val sum = s.split('\n').map(_.toInt).sum
-        Ok(sum)
-      }
-/*
-    case req @ Get -> Root / "attributes" =>
-      val req2 = req.updated(MyVar, 55)
-      Ok("Hello" + req(MyVar) +  " and " + req2(MyVar) + ".\n")
+      text(req, limit = 3) {
+        case Success(s) =>
+          val sum = s.split('\n').map(_.toInt).sum
+          Ok(sum)
 
+        case Failure(f) =>
+          Ok("Got error, but its OK: " + f.getMessage)
+      }
+
+/*
     case req @ Post -> Root / "trailer" =>
       trailer(t => Ok(t.headers.length))
 
@@ -78,26 +80,21 @@ class ExampleRoute {
           }.start()
 
       }))
-
+  */
     case Get -> Root / "bigstring" =>
-      Ok(body = (0 until 1000).map(i => BodyChunk(s"This is string number $i")))
-*/
+      Ok(body = (0 until 1000).map(i => BodyChunk(s"This is string number $i")))     // *
+
 
     case Get -> Root / "future" =>
       Ok(Future("Hello from the future!"))
 
     case req @ Get -> Root / "bigstring2" =>
-      val body = Process.range(0, 1000).map(i => BodyChunk(s"This is string number $i"))
-      Task.now {
-        Response(body = body)
-      }
+      Ok(Process.range(0, 1000).map(i => s"This is string number $i"))
 
-    /*
-  case req @ Get -> Root / "bigstring3" =>
-    Done{
-      Ok(flatBigString)
-    }
 
+
+  case req @ Get -> Root / "bigstring3" => Ok(flatBigString)
+   /*
 <<<<<<< HEAD
   case Get -> Root / "contentChange" =>
     Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
