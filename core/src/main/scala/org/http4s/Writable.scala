@@ -22,11 +22,6 @@ trait SimpleWritable[-A] extends Writable[A] {
 
 object Writable {
   // Simple types defined
-  implicit def chunkWritable = new SimpleWritable[BodyChunk] {
-      def contentType: ContentType = ContentType.`application/octet-stream`
-      def asChunk(i: BodyChunk) = i
-    }
-
   implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)

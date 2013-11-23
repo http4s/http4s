@@ -82,7 +82,7 @@ class ExampleRoute {
       }))
   */
     case Get -> Root / "bigstring" =>
-      Ok(body = (0 until 1000).map(i => BodyChunk(s"This is string number $i")))     // *
+      Ok((0 until 1000).map(i => s"This is string number $i"))     // *
 
 
     case Get -> Root / "future" =>
