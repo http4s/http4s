@@ -61,13 +61,13 @@ object BodyParser {
   //  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
   //    bodyParser(identity)
 
-  def text[A](req: Request, charset: CharacterSet = CharacterSet.`UTF-8`, limit: Int = DefaultMaxEntitySize) = {
+  def text[A](req: Request, limit: Int = DefaultMaxEntitySize) = {
       //  (f: String => Task[Response], fail: (Throwable, Task[Response]) => Task[Response] = (_, r) => r)
     
     val buff = new StringBuilder
     val p = process1.fold[Chunk, StringBuilder](buff){(b,c) =>
       c match {
-        case c: BodyChunk => b.append(c.decodeString(charset))
+        case c: BodyChunk => b.append(c.decodeString(req.prelude.charset))
         case _ =>
       }
       b
@@ -82,20 +82,18 @@ object BodyParser {
    *
    * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
    *
-   * @param charset the charset of the input
    * @param limit the maximum size before an EntityTooLarge error is returned
    * @param parser the SAX parser to use to parse the XML
    * @return a request handler
    */
   def xml(req: Request,
-          charset: CharacterSet = CharacterSet.`UTF-8`,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser) //,
           //onSaxException: SAXException => Response = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
   : BodyParser[Elem] = {
     val p = comsumeUpTo(limit).flatMap{ chunk =>
       val source = new InputSource(chunk.asInputStream)
-      source.setEncoding(charset.value)
+      source.setEncoding(req.prelude.charset.value)
       try emit(XML.loadXML(source, parser))
       catch { case e: Throwable => Halt(e)
       }
