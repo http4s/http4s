@@ -33,6 +33,13 @@ object ParserFailHandler {
   }
 }
 
+/** Helper to apply gathering parsers to a request.
+ *
+ * @param p Gathering Process1[Chunk, A] which will accumulate the result and forward it too a simpler method
+ * @param req Request which to parse
+ * @tparam A  The accumulated result of the parsing Process1
+ */
+
 class BodyParser[A] private (p: Process1[Chunk, A], req: Request) { parent =>
   def apply(f: A => Task[Response])(implicit fail: ParserFailHandler[A]): Task[Response] = {
     req.body.pipe(p).runLast.attempt.flatMap {
@@ -62,7 +69,6 @@ object BodyParser {
   //    bodyParser(identity)
 
   def text[A](req: Request, limit: Int = DefaultMaxEntitySize) = {
-      //  (f: String => Task[Response], fail: (Throwable, Task[Response]) => Task[Response] = (_, r) => r)
     
     val buff = new StringBuilder
     val p = process1.fold[Chunk, StringBuilder](buff){(b,c) =>
@@ -88,9 +94,7 @@ object BodyParser {
    */
   def xml(req: Request,
           limit: Int = DefaultMaxEntitySize,
-          parser: SAXParser = XML.parser) //,
-          //onSaxException: SAXException => Response = { saxEx => /*saxEx.printStackTrace();*/ Status.BadRequest() })
-  : BodyParser[Elem] = {
+          parser: SAXParser = XML.parser): BodyParser[Elem] = {
     val p = comsumeUpTo(limit).flatMap{ chunk =>
       val source = new InputSource(chunk.asInputStream)
       source.setEncoding(req.prelude.charset.value)
