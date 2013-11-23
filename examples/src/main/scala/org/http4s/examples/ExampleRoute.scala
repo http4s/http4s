@@ -41,7 +41,7 @@ class ExampleRoute {
           Ok(sum)
 
         case Failure(f) =>
-          Ok("Got error, but its OK: " + f.getMessage)
+          Ok("Got a nonfatal Exception, but its OK")
       }
 
 /*
