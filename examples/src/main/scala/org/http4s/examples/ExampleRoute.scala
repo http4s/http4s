@@ -34,7 +34,7 @@ class ExampleRoute {
       }
 
     case req @ Post -> Root / "shortsum"  =>
-      text(req) { s =>
+      text(req, limit = 3) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
