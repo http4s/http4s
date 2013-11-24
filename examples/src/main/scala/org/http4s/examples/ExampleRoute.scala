@@ -1,7 +1,8 @@
 package org.http4s
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process
+import scalaz.stream.Process, Process.{Get => PGet, _}
+import scalaz.stream.process1
 import scala.concurrent.Future
 import org.http4s.dsl._
 import scala.util.{Failure, Success}
@@ -93,20 +94,21 @@ class ExampleRoute {
 
     case req @ Get -> Root / "bigstring3" => Ok(flatBigString)
 
-   /*
     case Get -> Root / "contentChange" =>
       Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
 
-    case req @ Get -> Root / "challenge" =>
-      req.body |> (await1[Chunk] flatMap {
+    case req @ Post -> Root / "challenge" =>
+      val parser = await1[Chunk] map {
         case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("Go") =>
-          Process.emit(Response(body = emit(bits) then req.body))
+          Task.now(Response(body = emit(bits) fby req.body))
         case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("NoGo") =>
-          Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("Booo!"))))
+          BadRequest("Booo!")
         case _ =>
-          Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("no data"))))
-      })
+          BadRequest("no data")
+      }
+      (req.body |> parser).eval.toTask
 
+/*
     case req @ Root :/ "root-element-name" =>
       req.body |> takeBytes(1024 * 1024) |>
         (processes.fromSemigroup[Chunk].map { chunks =>
