@@ -30,19 +30,17 @@ class ExampleRoute {
 
 
     case req @ Post -> Root / "sum"  =>
-      text(req) { case Success(s) =>
+      text(req).flatMap{ s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
     case req @ Post -> Root / "shortsum"  =>
-      text(req, limit = 3) {
-        case Success(s) =>
-          val sum = s.split('\n').map(_.toInt).sum
-          Ok(sum)
-
-        case Failure(f) =>
-          Ok("Got a nonfatal Exception, but its OK")
+      text(req, limit = 3).flatMap { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Ok(sum)
+      } handle { case EntityTooLarge(_) =>
+        Ok("Got a nonfatal Exception, but its OK").run
       }
 
 /*
@@ -108,18 +106,9 @@ class ExampleRoute {
       }
       (req.body |> parser).eval.toTask
 
-/*
-    case req @ Root :/ "root-element-name" =>
-      req.body |> takeBytes(1024 * 1024) |>
-        (processes.fromSemigroup[Chunk].map { chunks =>
-          val in = chunks.asInputStream
-          val source = new InputSource(in)
-          source.setEncoding(req.prelude.charset.value)
-          val elem = XML.loadXML(source, XML.parser)
-          Response(body = emit(BodyChunk(elem.label)))
-        }).liftR |>
-        processes.lift(_.fold(identity _, identity _))
-*/
+    case req @ Get -> Root / "root-element-name" =>
+      xml(req).flatMap(root => Ok(root.label))
+
     case req @ Get -> Root / "fail" =>
       sys.error("FAIL")
 

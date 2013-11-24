@@ -6,13 +6,14 @@ import org.xml.sax.{SAXException, InputSource}
 import javax.xml.parsers.SAXParser
 import scala.util.{Failure, Success, Try}
 import scalaz.{\/-, -\/, \/}
-import scalaz.stream.process1
+import scalaz.stream.{processes, process1}
 import scalaz.syntax.id._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scala.collection.mutable.ArrayBuffer
 import scala.util.control.{NonFatal, NoStackTrace}
 import com.typesafe.scalalogging.slf4j.Logging
+import scalaz.std.string._
 
 /** Helper to apply gathering parsers to a request.
  *
@@ -20,7 +21,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @param req Request which to parse
  * @tparam A  The accumulated result of the parsing Process1
  */
-
+/*
 class BodyParser[A] private (p: Process1[Chunk, A], req: Request) extends Logging { parent =>
   import BodyParser._
 
@@ -75,6 +76,7 @@ class BodyParser[A] private (p: Process1[Chunk, A], req: Request) extends Loggin
     }
   }
 }
+*/
 
 object BodyParser {
   case class EntityTooLarge(limit: Int) extends Exception with NoStackTrace
@@ -88,17 +90,12 @@ object BodyParser {
   //  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
   //    bodyParser(identity)
 
-  def text[A](req: Request, limit: Int = DefaultMaxEntitySize) = {
-    
+  def text[A](req: Request, limit: Int = DefaultMaxEntitySize): Task[String] = {
     val buff = new StringBuilder
-    val p = process1.fold[Chunk, StringBuilder](buff){(b,c) =>
-      c match {
-        case c: BodyChunk => b.append(c.decodeString(req.prelude.charset))
-        case _ =>
-      }
-      b
-    }.map(_.result())
-    new BodyParser(takeBytes(limit).pipe(p), req)
+    (req.body |> takeBytes(limit) |> processes.fold(buff) { (b, c) => c match {
+      case c: BodyChunk => b.append(c.decodeString(req.prelude.charset))
+      case _ => b
+    }}).map(_.result()).runLastOr("")
   }
 
 
@@ -114,12 +111,11 @@ object BodyParser {
    */
   def xml(req: Request,
           limit: Int = DefaultMaxEntitySize,
-          parser: SAXParser = XML.parser): BodyParser[Elem] = {
+          parser: SAXParser = XML.parser): Task[Elem] =
     text(req, limit).map { s =>
       val source = new InputSource(new StringReader(s))
       XML.loadXML(source, parser)
     }
-  }
 
   /*
 
