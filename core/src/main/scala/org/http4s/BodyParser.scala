@@ -115,14 +115,10 @@ object BodyParser {
   def xml(req: Request,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser): BodyParser[Elem] = {
-    val p = comsumeUpTo(limit).flatMap{ chunk =>
-      val source = new InputSource(chunk.asInputStream)
-      source.setEncoding(req.prelude.charset.value)
-      try emit(XML.loadXML(source, parser))
-      catch { case e: Throwable => Halt(e)
-      }
+    text(req, limit).map { s =>
+      val source = new InputSource(new StringReader(s))
+      XML.loadXML(source, parser)
     }
-    new BodyParser(p, req)
   }
 
   /*

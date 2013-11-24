@@ -91,32 +91,18 @@ class ExampleRoute {
     case req @ Get -> Root / "bigstring2" =>
       Ok(Process.range(0, 1000).map(i => s"This is string number $i"))
 
+    case req @ Get -> Root / "bigstring3" => Ok(flatBigString)
 
-
-  case req @ Get -> Root / "bigstring3" => Ok(flatBigString)
    /*
-<<<<<<< HEAD
-  case Get -> Root / "contentChange" =>
-    Ok("<h2>This will have an html content type!</h2>", MediaTypes.`text/html`)
-=======
     case Get -> Root / "contentChange" =>
       Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
->>>>>>> develop
 
     case req @ Get -> Root / "challenge" =>
-<<<<<<< HEAD
       req.body |> (await1[Chunk] flatMap {
         case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("Go") =>
           Process.emit(Response(body = emit(bits) then req.body))
         case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("NoGo") =>
           Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("Booo!"))))
-=======
-      Iteratee.head[Chunk].map {
-        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
-          Ok(Enumeratee.heading(Enumerator(bits: Chunk)))
-        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
-          BadRequest("Booo!")
->>>>>>> develop
         case _ =>
           Process.emit(Response(ResponsePrelude(status = Status.BadRequest), body = Process.emit(BodyChunk("no data"))))
       })
