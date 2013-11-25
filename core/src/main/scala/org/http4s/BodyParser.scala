@@ -86,22 +86,15 @@ object BodyParser {
     takeBytes(n) |> p
   }
 
-/*
-  val whileBodyChunk: Enumeratee[Chunk, BodyChunk] = new CheckDone[Chunk, BodyChunk] {
-    def step[A](k: K[BodyChunk, A]): K[Chunk, Iteratee[BodyChunk, A]] = {
-      case in @ Input.El(e: BodyChunk) =>
-        new CheckDone[Chunk, BodyChunk] {
-          def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
-        } &> k(in.asInstanceOf[Input[BodyChunk]])
-      case in @ Input.El(e) =>
-        Done(Cont(k), in)
-      case in @ Input.Empty =>
-        new CheckDone[Chunk, BodyChunk] { def continue[A](k: K[BodyChunk, A]) = Cont(step(k)) } &> k(in)
-      case Input.EOF => Done(Cont(k), Input.EOF)
+  def whileBodyChunk: Process1[Chunk, BodyChunk] = {
+    def go(chunk: Chunk): Process1[Chunk, BodyChunk] = chunk match {
+      case c: BodyChunk => Emit(c::Nil, await(Get[Chunk])(go))
+      case _ => halt
     }
-    def continue[A](k: K[BodyChunk, A]) = Cont(step(k))
+    await(Get[Chunk])(go)
   }
 
+/*
   // TODO: why are we using blocking file ops here!?!
   // File operations
   def binFile(file: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[Chunk,Response] = {

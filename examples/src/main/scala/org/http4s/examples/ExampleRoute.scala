@@ -22,7 +22,10 @@ class ExampleRoute {
     case Get -> Root / "ping" =>
       Ok("pong")
 
-    case req @ Post -> Root / ("echo" | "echo2") =>
+    case req @ Post -> Root / "echo" =>
+      Task.now(Response(body = req.body))
+
+    case req @ Post -> Root / "echo2" =>
       Task.now(Response(body = req.body.map {
         case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
