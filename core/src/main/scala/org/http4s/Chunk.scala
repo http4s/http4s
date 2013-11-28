@@ -26,8 +26,12 @@ sealed trait Chunk extends IndexedSeq[Byte] {
   def decodeString(charset: CharacterSet): String = decodeString(charset.charset)
 }
 
-class BodyChunk private (private val self: Rope[Byte]) extends Chunk with IndexedSeqOptimized[Byte, BodyChunk]
-{
+class BodyChunk private (private val self: Rope[Byte]) extends Chunk with IndexedSeqOptimized[Byte, BodyChunk] {
+
+  override def iterator: Iterator[Byte] = self.iterator
+
+  override def reverseIterator: Iterator[Byte] = self.reverseIterator
+
   override def apply(idx: Int): Byte = self.get(idx).getOrElse(throw new IndexOutOfBoundsException(idx.toString))
 
   def length: Int = self.length
