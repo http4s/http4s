@@ -15,13 +15,15 @@ import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.{ChannelOption, ChannelInitializer}
 import io.netty.channel.socket.SocketChannel
 import scalaz.concurrent.Task
+import com.typesafe.scalalogging.slf4j.Logging
 
 object SimpleNettyServer {
   def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(service: HttpService) =
     new SimpleNettyServer(port, staticFiles, service)
 }
 
-class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpService)(implicit executionContext: ExecutionContext = ExecutionContext.global) {
+class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpService)
+                (implicit executionContext: ExecutionContext = ExecutionContext.global) extends Logging {
 
   private val bossThreadPool = new NioEventLoopGroup()
   private val workerThreadPool = new NioEventLoopGroup()
@@ -33,6 +35,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpSer
         .channel(classOf[NioServerSocketChannel])
         .childHandler(new ChannelInitializer[SocketChannel] {
         def initChannel(ch: SocketChannel) {
+          logger.trace(s"Started new connection to remote address ${ch.remoteAddress()}")
           ch.pipeline()
             .addLast("httpcodec", new http.HttpServerCodec())    // TODO: set max header sizes etc in the constructor
             .addLast("http4s", Http4sNetty(service))

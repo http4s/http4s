@@ -71,7 +71,13 @@ object BodyChunk {
 
   def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes.toArray)
 
-  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes.array)
+  def apply(bytes: ByteBuffer): BodyChunk = {
+    val pos = bytes.position()
+    val rem = bytes.remaining()
+    val n = new Array[Byte](rem)
+    System.arraycopy(bytes.array(), pos, n, 0, rem)
+    BodyChunk(n)
+  }
 
   def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
 

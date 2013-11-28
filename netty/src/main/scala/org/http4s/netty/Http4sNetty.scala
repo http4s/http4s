@@ -222,7 +222,7 @@ abstract class Http4sNetty extends SimpleChannelInboundHandler[HttpObject] with 
     logger.trace("Received request: " + req.getUri)
     val uri = new URI(req.getUri)
 
-    val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
+    val servAddr = ctx.channel.remoteAddress().asInstanceOf[InetSocketAddress]
     val prelude = RequestPrelude(
       requestMethod = Method(req.getMethod.name),
       //scriptName = contextPath,
@@ -239,7 +239,7 @@ abstract class Http4sNetty extends SimpleChannelInboundHandler[HttpObject] with 
 
     manager = new ChannelManager(ctx)
 
-    val cleanup = eval(Task{
+    val cleanup = eval(Task {
       if (manager != null) {
         manager.kill(End)
         manager = null
