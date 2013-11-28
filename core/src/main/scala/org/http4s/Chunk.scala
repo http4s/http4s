@@ -7,9 +7,10 @@ import scala.collection.{mutable, IndexedSeqOptimized}
 import scala.io.Codec
 import scalaz.{RopeBuilder, Rope}
 import java.nio.charset.Charset
+import scala.reflect.ClassTag
 
 sealed trait Chunk extends IndexedSeq[Byte] {
-  // TODO optimize for array reads
+
   def asInputStream: InputStream = new InputStream {
     var pos = 0
 
@@ -30,6 +31,8 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
   override def apply(idx: Int): Byte = self.get(idx).getOrElse(throw new IndexOutOfBoundsException(idx.toString))
 
   def length: Int = self.length
+
+  override def toArray[B >: Byte : ClassTag]: Array[B] = self.toArray
 
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
   /*
