@@ -8,7 +8,7 @@ package middleware
  */
 
 object URITranslation {
-  def translateRoot[F[_]](prefix: String)(service: HttpService): HttpService = {
+  def translateRoot(prefix: String)(service: HttpService): HttpService = {
     val newPrefix = if (!prefix.startsWith("/")) "/" + prefix else prefix
 
     {

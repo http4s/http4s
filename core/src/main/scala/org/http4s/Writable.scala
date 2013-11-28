@@ -1,11 +1,9 @@
 package org.http4s
 
 import scalaz.stream.Process
-import scalaz.syntax.monad._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
 import scala.language.implicitConversions
-import util.Execution.{overflowingExecutionContext => oec}
 
 trait Writable[-A] {
   def contentType: ContentType
@@ -47,41 +45,19 @@ object Writable {
       def toBody(a: Task[A]) = a.flatMap(writable.toBody(_))
     }
 
-/*
+  /*
   implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[A]) =
     new Writable[F[A]] {
       def contentType = writable.contentType
       private def send(fa: F[A]) = Process.emit(fa.map(writable.toBody(_)._1)).eval.join
       override def toBody(fa: F[A]) = (send(fa), None)
     }
-
-  implicit def enumerateeWritable =
-  new Writable[Enumeratee[Chunk, Chunk]] {
-    def contentType = ContentType.`application/octet-stream`
-    override def toBody(a: Enumeratee[Chunk, Chunk])= (a, None)
-  }
-
-  implicit def genericEnumerateeWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
-    new Writable[Enumeratee[Chunk, A]] {
-      def contentType = writable.contentType
-
-      def toBody(a: Enumeratee[Chunk, A]): (Enumeratee[Chunk, Chunk], Option[Int]) = {
-        val finalenum = a.compose(Enumeratee.map[A]( i => BodyChunk(writable.asByteString(i)): Chunk))
-        (finalenum , None)
-      }
-    }
-
-  implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
-  new Writable[Enumerator[A]] {
-    def contentType = writable.contentType
-    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[Chunk]{ i => BodyChunk(writable.asByteString(i))}(oec)), None)
-  }
-*/
+  */
 
   implicit def processWritable[A](implicit w: SimpleWritable[A]) = new Writable[Process[Task, A]] {
     def contentType: ContentType = w.contentType
 
-    def toBody(a: Process[Task, A]): Task[(_root_.org.http4s.HttpBody, Option[Int])] = Task.now((a.map(w.asChunk), None))
+    def toBody(a: Process[Task, A]): Task[(HttpBody, Option[Int])] = Task.now((a.map(w.asChunk), None))
   }
 
   implicit def seqWritable[A](implicit w: SimpleWritable[A]) = new Writable[Seq[A]] {

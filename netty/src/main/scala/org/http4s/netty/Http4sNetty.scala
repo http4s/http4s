@@ -29,6 +29,7 @@ import java.nio.channels.ServerSocketChannel
 import io.netty.channel.socket.nio.NioSocketChannel
 import java.lang.Boolean
 import java.util
+import java.io.IOException
 
 
 object Http4sNetty {
@@ -38,29 +39,28 @@ object Http4sNetty {
     }
 }
 
-abstract class Http4sNetty
-            extends SimpleChannelInboundHandler[HttpObject] with Logging {
+abstract class Http4sNetty extends SimpleChannelInboundHandler[HttpObject] with Logging {
 
   def service: HttpService
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty")
 
+  private var manager: ChannelManager = null
+
   class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10, 5) {
-    def queueFull() {
+    def onQueueFull() {
       logger.trace("Queue full.")
       assert(ctx != null)
-//      disableRead(ctx)
+      disableRead(ctx)
     }
 
-    def queueReady() {
+    def onQueueReady() {
       logger.trace("Queue ready.")
       assert(ctx != null)
-//      enableRead(ctx)
+      enableRead(ctx)
     }
   }
 
-  //private var cb: Throwable \/ Chunk => Unit = null
-  private var manager: ChannelManager = null
 
   private def disableRead(ctx: ChannelHandlerContext) {
     ctx.channel().config().setOption(ChannelOption.AUTO_READ, new Boolean(false))
@@ -71,7 +71,16 @@ abstract class Http4sNetty
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
-    logger.trace("Caught exception: %s", cause.getStackTraceString)
+    // Kill the Stream
+    if (manager != null) manager.kill(cause)
+
+    cause match {
+      case ex: IOException =>
+        ctx.channel().close()
+        return
+    }
+
+    logger.error("Caught exception: %s", cause.getStackTraceString)
     println(s"Caught an exception: ${cause.getMessage}, by ${cause.getClass}\n" + cause.getStackTraceString)
     try {
       if (ctx.channel.isOpen) {
@@ -95,17 +104,18 @@ abstract class Http4sNetty
       startHttpRequest(ctx, req, ctx.channel().remoteAddress().asInstanceOf[InetSocketAddress].getAddress)
 
     case c: http.LastHttpContent =>
-      assert(manager != null)
-      if (c.content().readableBytes() > 0)
-        manager.enque(buffToBodyChunk(c.content))
+      if (manager != null) {
+        if (c.content().readableBytes() > 0)
+          manager.enque(buffToBodyChunk(c.content))
 
-      manager.close(TrailerChunk(toHeaders(c.trailingHeaders())))
-      manager = null
+        manager.close(TrailerChunk(toHeaders(c.trailingHeaders())))
+        manager = null
+      } else logger.warn("Received LastHttpContent but manager is null. Discarding.")
 
     case chunk: http.HttpContent =>
       logger.trace("Netty content received.")
-      assert(manager != null)
-      manager.enque(buffToBodyChunk(chunk.content))
+      if (manager != null) manager.enque(buffToBodyChunk(chunk.content))
+      else logger.warn("Received HttpContent but manager is null. Discarding.")
 
     case msg => forward(ctx, msg)// Done know what it is...
   }
@@ -132,9 +142,17 @@ abstract class Http4sNetty
     catch {
       // TODO: don't rely on exceptions for bad requests
       case m: MatchError => Status.NotFound(request.prelude)
-      case e => throw e
+      case e: Throwable => throw e
     }
-    task.runAsync(_ => ())
+    task.runAsync {
+      case -\/(t) =>
+      logger.error("Final Task results in an Exception.", t)
+        ctx.channel().close()
+
+      // Make sure we are allowing reading. Might be disabled of there was unused body
+      case \/-(_) =>  if (ctx.channel.isOpen) enableRead(ctx)
+    }
+
   }
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: http.HttpRequest, response: Response): Task[Unit] = {
@@ -196,11 +214,8 @@ abstract class Http4sNetty
           val f = ctx.channel.writeAndFlush(msg)
           if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
       }
-      ()
     }
   }
-
-
 
   private def toRequest(ctx: ChannelHandlerContext, req: http.HttpRequest, remote: InetAddress): Request = {
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
@@ -222,22 +237,9 @@ abstract class Http4sNetty
       remote = remote // TODO using remoteName would trigger a lookup
     )
 
-//    val (queue, body) = async.localQueue[Chunk]
-//    cb = {
-//      case \/-(chunk: BodyChunk) =>
-//        logger.trace("enqueued chunk")
-//        queue.enqueue(chunk)
-//      case \/-(chunk: TrailerChunk) =>
-//        logger.trace("enqueued trailer")
-//        queue.enqueue(chunk)
-//        queue.close
-//      case -\/(err) =>
-//        logger.error("received error", err)
-//        queue.fail(err)
-//    }
     manager = new ChannelManager(ctx)
 
-    val cleanup = eval(Task{manager.kill(End); throw End})
+    val cleanup = eval(Task{ if (manager != null) manager.kill(End); throw End})
     val t = Task.async[Chunk](cb => manager.request(cb))
     val stream = await(t)(emit, cleanup = cleanup).repeat
 
@@ -247,67 +249,6 @@ abstract class Http4sNetty
   private def toHeaders(headers: http.HttpHeaders) = {
     import collection.JavaConversions._
     HeaderCollection( headers.entries.map(entry => Header(entry.getKey, entry.getValue)):_*)
-  }
-}
-
-abstract class ChunkHandler(highWater: Int, lowWater: Int) {
-  import java.util.{Queue, LinkedList}
-  import scalaz.stream.Process.End
-
-  type CB = Throwable \/ Chunk => Unit
-  private val queue: Queue[Chunk] = new LinkedList[Chunk]()
-  private var cb: CB = null
-  private var endThrowable: Throwable = null
-  private var closed = false
-  private var queuesize = 0
-
-  def queueFull(): Unit
-
-  def queueReady(): Unit
-
-  def close(trailer: TrailerChunk): Unit = queue.synchronized {
-    enque(trailer)
-    closed = true
-    endThrowable = End
-  }
-
-  def kill(t: Throwable): Unit = queue.synchronized {
-    closed = true
-    endThrowable = t
-    queue.clear()
-    if (cb != null) {
-      cb(-\/(t))
-      cb = null
-    }
-  }
-
-  def request(cb: CB): Unit = queue.synchronized {
-    //println("Requesting chunk.")
-    assert(this.cb == null)
-    if (closed && queue.isEmpty) cb(-\/(endThrowable))
-    else {
-      val chunk = queue.poll()
-      if (chunk == null) this.cb = cb
-      else {
-        cb(\/-(chunk))
-        queuesize -= 1
-        if (queuesize <= lowWater) queueReady()
-      }
-    }
-  }
-
-  def enque(chunk: Chunk): Unit = queue.synchronized {
-    //println("Enqueing chunk " + this.cb)
-    if (closed) return
-    if (this.cb != null) {
-      val cb = this.cb
-      this.cb = null
-      cb(\/-(chunk))
-    } else {
-      queue.add(chunk)
-      queuesize += 1
-      if (queuesize > highWater) queueFull()
-    }
   }
 }
 

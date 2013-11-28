@@ -62,7 +62,7 @@ object BodyChunk {
 
   def apply(bytes: Array[Byte]): BodyChunk = BodyChunk(Rope.fromArray(bytes))
 
-  def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes: _*)
+  def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes.toArray)
 
   def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(bytes.array)
 
