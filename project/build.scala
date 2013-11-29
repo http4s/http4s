@@ -14,6 +14,8 @@ object Http4sDependencies {
   lazy val junit               = "junit"                     % "junit"                   % "4.11"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
   lazy val netty4              = "io.netty"                  % "netty-all"               % "4.0.10.Final"
+  lazy val npn_api             = "org.eclipse.jetty.npn"     % "npn-api"                 % npn_version
+  lazy val npn_boot            = "org.mortbay.jetty.npn"     % "npn-boot"                % npn_version
   lazy val parboiledScala      = "org.parboiled"            %% "parboiled-scala"         % "1.1.4"
   lazy val playIteratees       = "com.typesafe.play"        %% "play-iteratees"          % "2.2.0"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.2"
@@ -25,4 +27,6 @@ object Http4sDependencies {
   lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
 
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
+
+  val npn_version = "8.1.2.v20120308"
 }

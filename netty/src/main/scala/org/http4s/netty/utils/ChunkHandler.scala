@@ -1,8 +1,9 @@
-package org.http4s.netty
+package org.http4s.netty.utils
 
 import scalaz.{\/-, -\/, \/}
+import scalaz.stream.Process.End
+
 import org.http4s.{TrailerChunk, Chunk}
-import scalaz.stream.Process._
 import java.util.{Queue, LinkedList}
 
 /**
@@ -68,6 +69,11 @@ abstract class ChunkHandler(highWater: Int, lowWater: Int) {
     }
   }
 
+  /** enqueues a chunk if the channel is open
+    *
+    * @param chunk Chunk to enqueue
+    * @return whether the Handler is still accepting chunks
+    */
   def enque(chunk: Chunk): Boolean = queue.synchronized {
     //println("Enqueing chunk " + this.cb)
     if (closed) return false

@@ -11,6 +11,7 @@ class ExampleRoute {
   import Status._
   import Writable._
   import BodyParser._
+  import PushSupport._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
@@ -21,6 +22,26 @@ class ExampleRoute {
   def apply(): HttpService = {
     case Get -> Root / "ping" =>
       Ok("pong")
+
+    case Get -> Root / "push" =>
+      val data = <html><body><img src="image.jpg"/></body></html>
+      Ok(data).push("/http4s/image.jpg")
+
+    case Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
+      val bytes = {
+        val is = getClass.getResourceAsStream("/nasa_blackhole_image.jpg")
+        assert(is != null)
+        val buff = new Array[Byte](5000)
+        def go(acc: Vector[Array[Byte]]): Array[Byte] = {
+          if (is.available() > 0) {
+            go(acc :+ buff.slice(0, is.read(buff)))
+          }
+          else acc.flatten.toArray
+        }
+        go(Vector.empty)
+      }
+      Ok(bytes)
+
 
     case req @ Post -> Root / "echo" =>
       Task.now(Response(body = req.body))
@@ -115,8 +136,6 @@ class ExampleRoute {
     case req @ Get -> Root / "fail" =>
       sys.error("FAIL")
 
-    case req =>
-      println("Got request that didn't match: " + req.prelude.pathInfo)
-      Task.now(Response(body = Process.emit(s"Didn't find match: ${req.prelude.pathInfo}").map(s => BodyChunk(s.getBytes))))
+    case req => NotFound(req)
   }
 }

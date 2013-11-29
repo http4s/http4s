@@ -60,6 +60,12 @@ object Writable {
     def toBody(a: Process[Task, A]): Task[(HttpBody, Option[Int])] = Task.now((a.map(w.asChunk), None))
   }
 
+  implicit def byteArrayWritable = new Writable[Array[Byte]] {
+    def contentType: ContentType = ContentType.`application/octet-stream`
+
+    def toBody(a: Array[Byte]): Task[(HttpBody, Option[Int])] = Task.now((Process.emit(BodyChunk(a)), Some(a.length)))
+  }
+
   implicit def seqWritable[A](implicit w: SimpleWritable[A]) = new Writable[Seq[A]] {
     def contentType: ContentType = w.contentType
 

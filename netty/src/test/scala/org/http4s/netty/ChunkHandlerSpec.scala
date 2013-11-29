@@ -4,6 +4,7 @@ import org.scalatest.{Matchers, WordSpec}
 import scalaz.\/
 import org.http4s.{TrailerChunk, BodyChunk, Chunk}
 import scalaz.stream.Process.End
+import org.http4s.netty.utils.ChunkHandler
 
 /**
  * @author Bryce Anderson

@@ -14,8 +14,8 @@ object PushSupport extends Logging {
   import concurrent.ExecutionContext.Implicits.global
 
   // An implicit conversion class
-  implicit class PushSupportResponse(response: Response) extends AnyRef {
-    def push(url: String, cascade: Boolean = true): Response = {
+  implicit class PushSupportResponse(response: Task[Response]) extends AnyRef {
+    def push(url: String, cascade: Boolean = true): Task[Response] = response.map { response =>
       val newPushResouces = response.attributes.get(pushLocationKey)
           .map(_ :+ PushLocation(url, cascade))
           .getOrElse(Vector(PushLocation(url,cascade)))

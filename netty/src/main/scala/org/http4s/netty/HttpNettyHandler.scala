@@ -17,6 +17,8 @@ import org.http4s.Request
 import org.http4s.RequestPrelude
 import org.http4s.TrailerChunk
 import io.netty.util.ReferenceCountUtil
+import scalaz.{-\/, \/-}
+import io.netty.handler.codec.spdy.DefaultSpdyDataFrame
 
 
 /**
@@ -116,7 +118,7 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
   }
 
   private def sendOutput(body: Process[Task, Chunk], flush: Boolean, closeOnFinish: Boolean, ctx: ChannelHandlerContext): Task[Unit] = {
-    var closed = false
+    var finished = false
     def folder(chunk: Chunk): Process1[Chunk, Unit] = {
       chunk match {
         case c: BodyChunk =>
@@ -131,21 +133,21 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
 
           val f = ctx.channel.writeAndFlush(respTrailer)
           if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
-          closed = true
+          finished = true
           halt
       }
     }
 
-    val process1: Process1[Chunk, Unit] = await(Get[Chunk])(folder)
+    val p: Process1[Chunk, Unit] = await(Get[Chunk])(folder)
 
-    body.pipe(process1).run.map { _ =>
+    body.pipe(p).run.map { _ =>
       logger.trace("Finished stream.")
-      manager = null
-      if (!closed && ctx.channel.isOpen) {     // Deal with end of process that didn't give a Trailer
-      val msg = new DefaultLastHttpContent()
-        val f = ctx.channel.writeAndFlush(msg)
+      if (!finished && ctx.channel.isOpen) {
+        val f = ctx.channel.writeAndFlush(new DefaultLastHttpContent())
         if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
       }
+      logger.trace("Finished stream.")
+      manager = null
     }
   }
 }

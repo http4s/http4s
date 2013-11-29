@@ -16,6 +16,7 @@ import io.netty.buffer.ByteBuf
 import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.util.ReferenceCountUtil
+import org.http4s.netty.utils.ChunkHandler
 
 /**
  * @author Bryce Anderson
@@ -92,13 +93,14 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     logger.trace("Starting http request.")
 
     val request = toRequest(ctx, req)
-    val task = try service(request).flatMap(renderResponse(ctx, req, _))
+    val task = try service(request)
     catch {
       // TODO: don't rely on exceptions for bad requests
       case m: MatchError => Status.NotFound(request.prelude)
       case e: Throwable => throw e
     }
-    task.runAsync {
+
+    task.flatMap(renderResponse(ctx, req, _)).runAsync {
       case -\/(t) =>
         logger.error("Final Task results in an Exception.", t)
         ctx.channel().close()

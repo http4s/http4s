@@ -13,6 +13,14 @@ libraryDependencies ++= Seq(
   jettyServlet
 )
 
-mainClass in Revolver.reStart := Some("org.http4s.netty.Netty4Example")
+mainClass in Revolver.reStart := Some("org.http4s.examples.spdynetty.SpdyNettyExample")
 
-fork in run := true
+fork := true
+
+// Adds NPN to the boot classpath for Spdy support
+javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
+   for {
+     file <- attList.map(_.data)
+     path = file.getAbsolutePath if path.contains("jetty.npn")
+   } yield "-Xbootclasspath/p:" + path
+}
