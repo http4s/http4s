@@ -44,7 +44,7 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
 
         manager.close(TrailerChunk(toHeaders(c.trailingHeaders())))
         manager = null
-      } else logger.warn("Received LastHttpContent but manager is null. Discarding.")
+      } // Discard frame
 
     case chunk: HttpContent =>
       logger.trace("Netty content received.")
