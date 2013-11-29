@@ -33,7 +33,7 @@ object PushSupport extends Logging {
     Request(RequestPrelude(pathInfo = push.location, headers = req.prelude.headers))
 
   private def collectResponse(r: Vector[PushLocation], req: Request, route: HttpService): Task[Vector[PushResponse]] =
-    r.foldLeft(Task.delay(Vector.empty[PushResponse])){ (facc, v) =>
+    r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>
       val newReq = locToRequest(v, req)
       if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
         try route(newReq)
@@ -42,7 +42,7 @@ object PushSupport extends Logging {
             .map { pushed =>
               collectResponse(pushed, req, route)
                 .map(accumulated ++ _ :+ PushResponse(v.location, response))
-            }.getOrElse(Task.delay(accumulated:+PushResponse(v.location, response)))
+            }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
           }
         catch { case t: Throwable => handleException(t); facc }
       } else {
@@ -68,12 +68,11 @@ object PushSupport extends Logging {
 
     new HttpService {
       def apply(v1: Request): Task[Response] = gather(v1, route(v1))
-//      def isDefinedAt(x: Request): Boolean = route.isDefinedAt(x)
     }
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)
-  private [PushSupport] case class PushResponse(location: String, resp: Response)
+  private [http4s] case class PushResponse(location: String, resp: Response)
 
   private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]("http4sPush")
   private[http4s] val pushResponsesKey = AttributeKey[Task[Vector[PushResponse]]]("http4sPushResponses")

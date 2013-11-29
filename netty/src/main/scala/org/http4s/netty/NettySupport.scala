@@ -1,32 +1,30 @@
 package org.http4s
 package netty
 
-import io.netty.channel.{SimpleChannelInboundHandler, ChannelOption, ChannelHandlerContext}
+import io.netty.channel.{ChannelInboundHandlerAdapter, ChannelOption, ChannelHandlerContext}
 
-import java.net.{InetSocketAddress, InetAddress}
+import java.net.{InetSocketAddress}
 import java.util.Map.Entry
 import java.lang.Iterable
 
 import scalaz.concurrent.Task
+import scalaz.stream.Process
+import Process.{await, emit, repeatEval, End}
 import scalaz.{-\/, \/-}
 
 import io.netty.buffer.ByteBuf
 import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.Logging
-import java.io.IOException
+import io.netty.util.ReferenceCountUtil
 
 /**
  * @author Bryce Anderson
  *         Created on 11/28/13
  */
 
-abstract class NettySupport[MsgType] extends SimpleChannelInboundHandler[MsgType] with Logging {
+abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandlerAdapter with Logging {
 
-  type RequestType <: MsgType
-
-  sealed trait StateChange
-  case object Idle extends StateChange
-  case object StartRequest extends StateChange
+  class InvalidStateException(msg: String) extends Exception(msg)
 
   def serverSoftware: ServerSoftware
 
@@ -34,17 +32,40 @@ abstract class NettySupport[MsgType] extends SimpleChannelInboundHandler[MsgType
 
   def localAddress: InetSocketAddress
 
-  def remoteAddress: InetAddress
+  def remoteAddress: InetSocketAddress
 
+  /** Method that turns a netty request into a Http4s request
+    *
+    * @param ctx the channels ChannelHandlerContext
+    * @param req request head
+*     @throws  InvalidStateException if now is not an appropriate time to receive a request
+    * @return http4s request
+    */
+  @throws[InvalidStateException]
   protected def toRequest(ctx: ChannelHandlerContext, req: RequestType): Request
 
   protected def renderResponse(ctx: ChannelHandlerContext, req: RequestType, response: Response): Task[Unit]
 
-  /** Checks to make sure the handler is in the propper state for starting a request
-    *
-    * @return if it safe to proceed
+  /** deal with incoming messages which belong to this service
+    * @param ctx ChannelHandlerContext of the pipeline
+    * @param msg received message
     */
-  def changeState(next: StateChange): Boolean
+  def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit
+
+  /** Shortcut for raising invalid state Exceptions
+    * @param msg Message for the exception
+    * @return Nothing
+    */
+  def invalidState(msg: String): Nothing = throw new InvalidStateException(msg)
+
+  /** Forward the message, and release the object once we are finished
+    * @param ctx ChannelHandlerContext for the channel
+    * @param msg Message to be forwarded
+    */
+  final override def channelRead(ctx: ChannelHandlerContext, msg: AnyRef) = {
+    try onHttpMessage(ctx, msg)
+    finally  ReferenceCountUtil.release(msg)
+  }
 
   /** Disable the netty read process
     *
@@ -62,10 +83,13 @@ abstract class NettySupport[MsgType] extends SimpleChannelInboundHandler[MsgType
     ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
   }
 
-  protected def startHttpRequest(ctx: ChannelHandlerContext, req: RequestType, rem: InetAddress) {
-    logger.trace("Starting http request.")
+  protected def getStream(manager: ChannelManager): Process[Task, Chunk] = {
+    val t = Task.async[Chunk](cb => manager.request(cb))
+    repeatEval(t)
+  }
 
-    if (!changeState(StartRequest)) ??? // TODO: what should we do?
+  protected def startHttpRequest(ctx: ChannelHandlerContext, req: RequestType) {
+    logger.trace("Starting http request.")
 
     val request = toRequest(ctx, req)
     val task = try service(request).flatMap(renderResponse(ctx, req, _))
@@ -104,6 +128,31 @@ abstract class NettySupport[MsgType] extends SimpleChannelInboundHandler[MsgType
     val arr = new Array[Byte](buff.readableBytes())
     buff.getBytes(0, arr)
     BodyChunk(arr)
+  }
+
+  /** Manages the input stream providing back pressure
+    * @param ctx ChannelHandlerContext of the channel
+    */          // TODO: allow control of buffer size and use bytes, not chunks as limit
+  protected class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10, 5) {
+    def onQueueFull() {
+      logger.trace("Queue full.")
+      assert(ctx != null)
+      disableRead()
+    }
+
+    def onQueueReady() {
+      logger.trace("Queue ready.")
+      assert(ctx != null)
+      enableRead()
+    }
+
+    private def disableRead() {
+      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(false))
+    }
+
+    private def enableRead() {
+      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
+    }
   }
 }
 

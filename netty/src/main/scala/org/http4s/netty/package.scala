@@ -3,26 +3,30 @@ package org.http4s
 import io.netty.channel.{ChannelFutureListener, ChannelFuture, Channel}
 import concurrent.{Promise, Future}
 import io.netty.handler.codec.http
+import scalaz.concurrent.Task
+import scalaz.{-\/, \/-}
 
 package object netty {
 
   class Cancelled(val channel: Channel) extends Throwable
   class ChannelError(val channel: Channel, val reason: Throwable) extends Throwable
 
-  private[netty] implicit def channelFuture2Future(cf: ChannelFuture): Future[Channel] = {
-    val prom = Promise[Channel]()
-    cf.addListener(new ChannelFutureListener {
-      def operationComplete(future: ChannelFuture) {
-        if (future.isSuccess) {
-          prom.success(future.channel)
-        } else if (future.isCancelled) {
-          prom.failure(new Cancelled(future.channel))
-        } else {
-          prom.failure(new ChannelError(future.channel, future.cause))
-        }
+  private[netty] implicit def channelFuture2Task(cf: ChannelFuture): Task[Channel] = {
+    if(cf.isDone) Task.now(cf.channel())
+    else Task.async{ cb =>
+      if(cf.isDone) {
+        if (cf.isSuccess) cb(\/-(cf.channel()))
+        else if (cf.isCancelled) cb(-\/((new Cancelled(cf.channel))))
+        else cb(-\/((cf.cause)))
       }
-    })
-    prom.future
+      else cf.addListener(new ChannelFutureListener {
+        def operationComplete(future: ChannelFuture) {
+          if (future.isSuccess) cb(\/-((future.channel)))
+          else if (future.isCancelled) cb(-\/((new Cancelled(future.channel))))
+          else cb(-\/((future.cause)))
+        }
+      })
+    }
   }
 
   implicit def jHttpMethod2HttpMethod(orig: http.HttpMethod): Method = orig match {

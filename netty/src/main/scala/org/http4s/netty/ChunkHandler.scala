@@ -18,6 +18,14 @@ abstract class ChunkHandler(highWater: Int, lowWater: Int) {
   private var closed = false
   private var queuesize = 0
 
+  override def toString() = {
+    val sb = new StringBuilder
+    sb.append(s"${this.getClass.getName}(")
+    val it = queue.iterator()
+    while(it.hasNext) sb.append(it.next().toString())
+    sb.result()
+  }
+
   def queueSize(): Int = queuesize
 
   def onQueueFull(): Unit

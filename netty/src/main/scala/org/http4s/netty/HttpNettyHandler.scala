@@ -1,11 +1,9 @@
 package org.http4s
 package netty
 
-import com.typesafe.scalalogging.slf4j.Logging
-
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
-import io.netty.channel.{ChannelOption, ChannelFutureListener, ChannelHandlerContext}
+import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.ssl.SslHandler
 import io.netty.buffer.Unpooled
 
@@ -14,23 +12,49 @@ import scalaz.stream.Process
 import Process._
 
 import scala.collection.mutable.ListBuffer
-import java.net.{InetSocketAddress, URI, InetAddress}
+import java.net.{InetSocketAddress, URI}
 import org.http4s.Request
 import org.http4s.RequestPrelude
 import org.http4s.TrailerChunk
+import io.netty.util.ReferenceCountUtil
 
 
 /**
  * @author Bryce Anderson
  *         Created on 11/28/13
  */
-abstract class HttpNettySupport extends NettySupport[HttpObject] {
-
-  type RequestType = HttpRequest
+class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAddress, val remoteAddress: InetSocketAddress)
+            extends NettySupport[HttpObject, HttpRequest] {
 
   private var manager: ChannelManager = null
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, response: Response): Task[Unit] = {
+  val serverSoftware = ServerSoftware("HTTP4S / Netty / HTTP")
+
+  def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
+    case req: HttpRequest =>
+      logger.trace("Netty request received")
+      startHttpRequest(ctx, req)
+
+    case c: LastHttpContent =>
+      if (manager != null) {
+        if (c.content().readableBytes() > 0)
+          manager.enque(buffToBodyChunk(c.content))
+
+        manager.close(TrailerChunk(toHeaders(c.trailingHeaders())))
+        manager = null
+      } else logger.warn("Received LastHttpContent but manager is null. Discarding.")
+
+    case chunk: HttpContent =>
+      logger.trace("Netty content received.")
+      if (manager != null) manager.enque(buffToBodyChunk(chunk.content))
+      else logger.warn("Received HttpContent but manager is null. Discarding.")
+
+    case msg =>
+      ReferenceCountUtil.retain(msg)   // Done know what it is, fire upstream
+      ctx.fireChannelRead(msg)
+  }
+
+  override protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, response: Response): Task[Unit] = {
 
     val prelude = response.prelude
     val stat = new HttpResponseStatus(prelude.status.code, prelude.status.reason)
@@ -65,6 +89,9 @@ abstract class HttpNettySupport extends NettySupport[HttpObject] {
   }
 
   override def toRequest(ctx: ChannelHandlerContext, req: HttpRequest): Request = {
+
+    if(manager != null) invalidState(s"Chunk manager still present. Is a previous request still underway? $manager")
+
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
     logger.trace("Received request: " + req.getUri)
     val uri = new URI(req.getUri)
@@ -81,22 +108,11 @@ abstract class HttpNettySupport extends NettySupport[HttpObject] {
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
-      remote = remoteAddress // TODO using remoteName would trigger a lookup
+      remote = remoteAddress.getAddress
     )
 
     manager = new ChannelManager(ctx)
-
-    val cleanup = eval(Task{
-      if (manager != null) {
-        manager.kill(End)
-        manager = null
-      }
-      throw End
-    })
-    val t = Task.async[Chunk](cb => manager.request(cb))
-    val stream = await(t)(emit, cleanup = cleanup).repeat
-
-    Request(prelude, stream)
+    Request(prelude, getStream(manager))
   }
 
   private def sendOutput(body: Process[Task, Chunk], flush: Boolean, closeOnFinish: Boolean, ctx: ChannelHandlerContext): Task[Unit] = {
@@ -124,33 +140,12 @@ abstract class HttpNettySupport extends NettySupport[HttpObject] {
 
     body.pipe(process1).run.map { _ =>
       logger.trace("Finished stream.")
+      manager = null
       if (!closed && ctx.channel.isOpen) {     // Deal with end of process that didn't give a Trailer
       val msg = new DefaultLastHttpContent()
         val f = ctx.channel.writeAndFlush(msg)
         if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
       }
-    }
-  }
-
-  class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10, 5) {
-    def onQueueFull() {
-      logger.trace("Queue full.")
-      assert(ctx != null)
-      disableRead()
-    }
-
-    def onQueueReady() {
-      logger.trace("Queue ready.")
-      assert(ctx != null)
-      enableRead()
-    }
-
-    private def disableRead() {
-      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(false))
-    }
-
-    private def enableRead() {
-      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
     }
   }
 }
