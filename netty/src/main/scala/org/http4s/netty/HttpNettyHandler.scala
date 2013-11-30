@@ -17,8 +17,6 @@ import org.http4s.Request
 import org.http4s.RequestPrelude
 import org.http4s.TrailerChunk
 import io.netty.util.ReferenceCountUtil
-import scalaz.{-\/, \/-}
-import io.netty.handler.codec.spdy.DefaultSpdyDataFrame
 
 
 /**
@@ -44,12 +42,13 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
 
         manager.close(TrailerChunk(toHeaders(c.trailingHeaders())))
         manager = null
-      } // Discard frame
+      }
+      else logger.trace("Received LastHttpContent but manager is null. Discarding.")
 
     case chunk: HttpContent =>
       logger.trace("Netty content received.")
       if (manager != null) manager.enque(buffToBodyChunk(chunk.content))
-      else logger.warn("Received HttpContent but manager is null. Discarding.")
+      else logger.trace("Received HttpContent but manager is null. Discarding.")
 
     case msg =>
       ReferenceCountUtil.retain(msg)   // Done know what it is, fire upstream

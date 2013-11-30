@@ -45,7 +45,7 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
   @throws[InvalidStateException]
   protected def toRequest(ctx: ChannelHandlerContext, req: RequestType): Request
 
-  protected def renderResponse(ctx: ChannelHandlerContext, req: RequestType, response: Response): Task[Unit]
+  protected def renderResponse(ctx: ChannelHandlerContext, req: RequestType, response: Response): Task[_]
 
   /** deal with incoming messages which belong to this service
     * @param ctx ChannelHandlerContext of the pipeline
@@ -84,7 +84,7 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
   }
 
-  protected def getStream(manager: ChannelManager): Process[Task, Chunk] = {
+  protected def getStream(manager: ChunkHandler): Process[Task, Chunk] = {
     val t = Task.async[Chunk](cb => manager.request(cb))
     repeatEval(t)
   }
@@ -94,10 +94,9 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
 
     val request = toRequest(ctx, req)
     val task = try service(request)
-    catch {
-      // TODO: don't rely on exceptions for bad requests
+    catch { // TODO: don't rely on exceptions for bad requests?
       case m: MatchError => Status.NotFound(request.prelude)
-      case e: Throwable => throw e
+      case e: Throwable =>  Status.InternalServerError()
     }
 
     task.flatMap(renderResponse(ctx, req, _)).runAsync {
@@ -114,7 +113,7 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     * @param headers headers container
     * @return a collection of the raw http4s headers
     */
-  protected def toHeaders(headers: Iterable[Entry[String, String]]): HeaderCollection = {
+  def toHeaders(headers: Iterable[Entry[String, String]]): HeaderCollection = {
     val lb = new ListBuffer[Header]
     val i = headers.iterator()
     while (i.hasNext) { val n = i.next(); lb += Header(n.getKey, n.getValue) }
@@ -126,7 +125,7 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     * @param buff netty ByteBuf which to convert
     * @return
     */
-  protected def buffToBodyChunk(buff: ByteBuf): BodyChunk = {
+  def buffToBodyChunk(buff: ByteBuf): BodyChunk = {
     val arr = new Array[Byte](buff.readableBytes())
     buff.getBytes(0, arr)
     BodyChunk(arr)
