@@ -1,7 +1,11 @@
-package org.http4s
+package org.http4s.util.middleware
 
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.concurrent.Task
+import org.http4s._
+import org.http4s.Request
+import org.http4s.AttributeKey
+import org.http4s.RequestPrelude
 
 /**
  * @author Bryce Anderson

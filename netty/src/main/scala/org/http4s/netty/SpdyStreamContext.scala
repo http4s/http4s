@@ -4,7 +4,8 @@ package netty
 import com.typesafe.scalalogging.slf4j.Logging
 
 import org.http4s.netty.utils.{ClosedChunkHandler, ChunkHandler}
-import org.http4s.PushSupport.PushResponse
+import org.http4s.util.middleware.PushSupport
+import PushSupport.PushResponse
 import org.http4s.Header.`Content-Length`
 
 import io.netty.handler.codec.spdy._

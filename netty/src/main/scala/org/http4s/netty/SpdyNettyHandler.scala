@@ -14,6 +14,7 @@ import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scalaz.{-\/, \/-}
+import org.http4s.util.middleware.PushSupport
 
 
 /**
