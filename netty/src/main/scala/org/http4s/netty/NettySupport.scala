@@ -25,7 +25,7 @@ import org.http4s.netty.utils.ChunkHandler
 
 abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandlerAdapter with Logging {
 
-  class InvalidStateException(msg: String) extends Exception(msg)
+  import NettySupport.InvalidStateException
 
   def serverSoftware: ServerSoftware
 
@@ -84,12 +84,7 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
   }
 
-  protected def getStream(manager: ChunkHandler): Process[Task, Chunk] = {
-    val t = Task.async[Chunk](cb => manager.request(cb))
-    repeatEval(t)
-  }
-
-  protected def startHttpRequest(ctx: ChannelHandlerContext, req: RequestType) {
+  protected def runHttpRequest(ctx: ChannelHandlerContext, req: RequestType) {
     logger.trace("Starting http request.")
 
     val request = toRequest(ctx, req)
@@ -109,6 +104,10 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     }
   }
 
+
+}
+
+object NettySupport {
   /** Method for converting collections of headers to http4s HeaderCollection
     * @param headers headers container
     * @return a collection of the raw http4s headers
@@ -131,29 +130,11 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     BodyChunk(arr)
   }
 
-  /** Manages the input stream providing back pressure
-    * @param ctx ChannelHandlerContext of the channel
-    */          // TODO: allow control of buffer size and use bytes, not chunks as limit
-  protected class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10, 5) {
-    def onQueueFull() {
-      logger.trace("Queue full.")
-      assert(ctx != null)
-      disableRead()
-    }
-
-    def onQueueReady() {
-      logger.trace("Queue ready.")
-      assert(ctx != null)
-      enableRead()
-    }
-
-    private def disableRead() {
-      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(false))
-    }
-
-    private def enableRead() {
-      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
-    }
+  def getStream(manager: ChunkHandler): Process[Task, Chunk] = {
+    val t = Task.async[Chunk](cb => manager.request(cb))
+    repeatEval(t)
   }
+
+  class InvalidStateException(msg: String) extends Exception(msg)
 }
 

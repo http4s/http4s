@@ -3,7 +3,7 @@ package netty
 
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
+import io.netty.channel.{ChannelOption, ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.ssl.SslHandler
 import io.netty.buffer.Unpooled
 
@@ -17,6 +17,7 @@ import org.http4s.Request
 import org.http4s.RequestPrelude
 import org.http4s.TrailerChunk
 import io.netty.util.ReferenceCountUtil
+import org.http4s.netty.utils.ChunkHandler
 
 
 /**
@@ -26,6 +27,8 @@ import io.netty.util.ReferenceCountUtil
 class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAddress, val remoteAddress: InetSocketAddress)
             extends NettySupport[HttpObject, HttpRequest] {
 
+  import NettySupport._
+
   private var manager: ChannelManager = null
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / HTTP")
@@ -33,7 +36,7 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: HttpRequest =>
       logger.trace("Netty request received")
-      startHttpRequest(ctx, req)
+      runHttpRequest(ctx, req)
 
     case c: LastHttpContent =>
       if (manager != null) {
@@ -147,6 +150,31 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
       }
       logger.trace("Finished stream.")
       manager = null
+    }
+  }
+
+  /** Manages the input stream providing back pressure
+    * @param ctx ChannelHandlerContext of the channel
+    */          // TODO: allow control of buffer size and use bytes, not chunks as limit
+  protected class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10, 5) {
+    def onQueueFull() {
+      logger.trace("Queue full.")
+      assert(ctx != null)
+      disableRead()
+    }
+
+    def onQueueReady() {
+      logger.trace("Queue ready.")
+      assert(ctx != null)
+      enableRead()
+    }
+
+    private def disableRead() {
+      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(false))
+    }
+
+    private def enableRead() {
+      ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
     }
   }
 }

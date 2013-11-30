@@ -1,22 +1,15 @@
 package org.http4s
 package netty
 
-import org.http4s.netty.utils.{ChunkHandler, ClosedChunkHandler}
+import org.http4s.netty.utils.ChunkHandler
 
 import scala.util.control.Exception.allCatch
 
 import java.net.{URI, InetSocketAddress}
-import java.util.concurrent.atomic.AtomicInteger
 import java.util.concurrent.ConcurrentHashMap
 
 import io.netty.handler.codec.spdy._
-import io.netty.channel.{ChannelFutureListener, Channel, ChannelHandlerContext}
-import io.netty.util.ReferenceCountUtil
-import io.netty.handler.codec.http.HttpResponseStatus
-import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
-import org.http4s.PushSupport.PushResponse
-import io.netty.buffer.Unpooled
-import org.http4s.Header.`Content-Length`
+import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
@@ -32,6 +25,8 @@ class SpdyNettyHandler(srvc: HttpService,
                   val localAddress: InetSocketAddress,
                   val remoteAddress: InetSocketAddress) extends NettySupport[SpdyFrame, SpdySynStreamFrame]
                         with utils.SpdyStreamManager {
+
+  import NettySupport._
 
   /** Serves as a repository for active streams
     * If a stream is canceled, it get removed from the map. The allows the client to reject
@@ -80,7 +75,7 @@ class SpdyNettyHandler(srvc: HttpService,
     Request(prelude, getStream(streamctx.manager))
   }
 
-  override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[Int] = {
+  override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[Int]] = {
     val handler = activeStreams.get(req.getStreamId)
     if (handler != null) handler.renderResponse(ctx, req, response)
     else sys.error("Newly created stream disappeared!")
@@ -126,8 +121,8 @@ class SpdyNettyHandler(srvc: HttpService,
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: SpdySynStreamFrame =>
       logger.trace(s"Received Request frame with id ${req.getStreamId}")
-      streamID(req.getStreamId)
-      startHttpRequest(ctx, req)
+      setRequestStreamID(req.getStreamId)
+      runHttpRequest(ctx, req)
 
     case p: SpdyPingFrame =>
       if (p.getId % 2 == 1) {   // Must ignore Pings with even number id
@@ -152,7 +147,7 @@ class SpdyNettyHandler(srvc: HttpService,
 
     val initWindow = settings.getValue(SETTINGS_INITIAL_WINDOW_SIZE)
     // TODO: Deal with window sizes and buffering. http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3#TOC-2.6.8-WINDOW_UPDATE
-    if (initWindow > 0) logger.warn(s"Ignoring initial window size of $initWindow")
+    if (initWindow > 0) setInitialStreamWindow(initWindow)
   }
 
   class SpdyChunkHandler(high: Int, low: Int, streamid: Int) extends ChunkHandler(high, low) {
