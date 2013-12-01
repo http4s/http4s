@@ -16,7 +16,7 @@ import io.netty.buffer.ByteBuf
 import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.util.ReferenceCountUtil
-import org.http4s.netty.utils.ChunkHandler
+import org.http4s.netty.utils.{ChunkHandler, NettyOutput}
 
 /**
  * @author Bryce Anderson

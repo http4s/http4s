@@ -14,6 +14,7 @@ import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scalaz.{-\/, \/-}
+import io.netty.buffer.ByteBuf
 
 
 /**
@@ -75,7 +76,7 @@ class SpdyNettyHandler(srvc: HttpService,
     Request(prelude, getStream(streamctx.manager))
   }
 
-  override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[Int]] = {
+  override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
     val handler = activeStreams.get(req.getStreamId)
     if (handler != null) handler.renderResponse(ctx, req, response)
     else sys.error("Newly created stream disappeared!")

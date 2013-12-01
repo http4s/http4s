@@ -5,7 +5,7 @@ import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
 import io.netty.channel.{ChannelOption, ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.ssl.SslHandler
-import io.netty.buffer.Unpooled
+import io.netty.buffer.{ByteBuf, Unpooled}
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -17,7 +17,7 @@ import org.http4s.Request
 import org.http4s.RequestPrelude
 import org.http4s.TrailerChunk
 import io.netty.util.ReferenceCountUtil
-import org.http4s.netty.utils.ChunkHandler
+import org.http4s.netty.utils.{NettyOutput, ChunkHandler}
 
 
 /**
@@ -25,7 +25,7 @@ import org.http4s.netty.utils.ChunkHandler
  *         Created on 11/28/13
  */
 class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAddress, val remoteAddress: InetSocketAddress)
-            extends NettySupport[HttpObject, HttpRequest] {
+            extends NettySupport[HttpObject, HttpRequest] with NettyOutput[HttpObject] {
 
   import NettySupport._
 
@@ -89,7 +89,9 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     if (length.isEmpty) ctx.channel.writeAndFlush(msg)
     else ctx.channel.write(msg)
 
-    sendOutput(response.body, length.isEmpty, closeOnFinish, ctx)
+    writeStream(response.body, ctx).map{ _ =>
+      if (closeOnFinish) ctx.channel().close()
+    }
   }
 
   override def toRequest(ctx: ChannelHandlerContext, req: HttpRequest): Request = {
@@ -119,38 +121,12 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     Request(prelude, getStream(manager))
   }
 
-  private def sendOutput(body: Process[Task, Chunk], flush: Boolean, closeOnFinish: Boolean, ctx: ChannelHandlerContext): Task[Unit] = {
-    var finished = false
-    def folder(chunk: Chunk): Process1[Chunk, Unit] = {
-      chunk match {
-        case c: BodyChunk =>
-          val out = new DefaultHttpContent(Unpooled.wrappedBuffer(chunk.toArray))
-          if (flush) ctx.channel().writeAndFlush(out)
-          else ctx.channel().write(out)
-          await(Get[Chunk])(folder)
+  def bufferToMessage(buff: ByteBuf): HttpObject = new DefaultHttpContent(buff)
 
-        case c: TrailerChunk =>
-          val respTrailer = new DefaultLastHttpContent()
-          for ( h <- c.headers ) respTrailer.trailingHeaders().set(h.name.toString, h.value)
-
-          val f = ctx.channel.writeAndFlush(respTrailer)
-          if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
-          finished = true
-          halt
-      }
-    }
-
-    val p: Process1[Chunk, Unit] = await(Get[Chunk])(folder)
-
-    body.pipe(p).run.map { _ =>
-      logger.trace("Finished stream.")
-      if (!finished && ctx.channel.isOpen) {
-        val f = ctx.channel.writeAndFlush(new DefaultLastHttpContent())
-        if (closeOnFinish) f.addListener(ChannelFutureListener.CLOSE)
-      }
-      logger.trace("Finished stream.")
-      manager = null
-    }
+  def endOfStreamChunk(c: Option[TrailerChunk]): HttpObject = {
+    val respTrailer = new DefaultLastHttpContent()
+    if (c.isDefined) for ( h <- c.get.headers ) respTrailer.trailingHeaders().set(h.name.toString, h.value)
+    respTrailer
   }
 
   /** Manages the input stream providing back pressure
