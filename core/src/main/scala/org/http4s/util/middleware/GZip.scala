@@ -2,14 +2,12 @@ package org.http4s
 package util.middleware
 
 import scalaz.stream.Process._
-
-import java.util.zip.{GZIPOutputStream, Deflater}
 import scalaz.concurrent.Task
-import org.http4s.Header.{`Content-Length`, `Content-Encoding`, `Accept-Encoding`}
-import java.io.ByteArrayOutputStream
+
+import Header.{`Content-Length`, `Content-Encoding`, `Accept-Encoding`}
+import util.Gzipper
 
 import com.typesafe.scalalogging.slf4j.Logging
-import java.nio.BufferOverflowException
 
 /**
  * @author Bryce Anderson
@@ -22,19 +20,16 @@ object GZip extends Logging {
 
   /** Streaming GZip Process1 */
   def streamingGZip(buffersize: Int): Process1[Chunk, Chunk] = {
-    val bytes = new ByteArrayOutputStream(buffersize)
-    val gzip = new GZIPOutputStream(bytes, buffersize, false)
+//    val bytes = new ByteArrayOutputStream(0)
+//    val gzip = new GZIPOutputStream(bytes, buffersize, false)
+    val gzip = new Gzipper(buffersize)
 
-    def getBodyChunk = {
-      val c = BodyChunk(bytes.toByteArray)
-      bytes.reset()
-      c
-    }
+    def getBodyChunk = BodyChunk(gzip.getBytes())
 
     def folder(chunk: Chunk): Process1[Chunk, Chunk] = chunk match {
       case c: BodyChunk =>
         gzip.write(c.toArray)
-        if (bytes.size() < 0.8*buffersize) await(Get[Chunk])(folder) // Wait for ~80% buffer capacity
+        if (gzip.size() < 0.8*buffersize) await(Get[Chunk])(folder) // Wait for ~80% buffer capacity
         else Emit(getBodyChunk::Nil, await(Get[Chunk])(folder))      // Emit a chunk
 
       case t: TrailerChunk =>
@@ -47,7 +42,7 @@ object GZip extends Logging {
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply(route: HttpService, buffersize: Int = 512, maxAccumulated: Int = 1024*1024): HttpService = {
+  def apply(route: HttpService, buffersize: Int = 512): HttpService = {
 
     def request(req: Request): Task[Response] = {
       //Header.`Accept-Encoding` req.prelude.headers

@@ -70,7 +70,7 @@ object Writable {
     def contentType: ContentType = w.contentType
 
     def toBody(a: Seq[A]): Task[(HttpBody, Option[Int])] = {
-      val p = Process.emitSeq(a.map(w.asChunk))
+      val p = Process.emit(a.foldLeft(BodyChunk())((acc, c) => acc ++ w.asChunk(c)))
       Task.now((p, None))
     }
   }
