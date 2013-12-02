@@ -26,6 +26,11 @@ object Writable {
       def asChunk(s: String) = BodyChunk(s, charset.charset)
     }
 
+  implicit def byteWritable = new SimpleWritable[Array[Byte]] {
+    def asChunk(data: Array[Byte]): BodyChunk = BodyChunk(data)
+    def contentType: ContentType = ContentType.`application/octet-stream`
+  }
+
   implicit def htmlWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: ContentType = ContentType(MediaType.`text/html`).withCharset(charset)

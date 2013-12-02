@@ -3,10 +3,6 @@ package netty
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-import org.http4s.netty.utils.{NettyOutput, ClosedChunkHandler, ChunkHandler}
-import org.http4s.PushSupport.PushResponse
-import org.http4s.Header.`Content-Length`
-
 import io.netty.handler.codec.spdy._
 import io.netty.channel.ChannelHandlerContext
 import io.netty.buffer.ByteBuf
@@ -14,7 +10,12 @@ import io.netty.handler.codec.http.HttpVersion._
 import io.netty.handler.codec.http.HttpResponseStatus
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process.{End, halt, Process1, await, Get}
+import scalaz.stream.Process
+import Process.{End, halt, Process1, await, Get}
+
+import org.http4s.netty.utils.{SpdyValues, NettyOutput, ClosedChunkHandler, ChunkHandler}
+import org.http4s.PushSupport.PushResponse
+import org.http4s.Header.`Content-Length`
 
 
 /**
@@ -22,33 +23,14 @@ import scalaz.stream.Process.{End, halt, Process1, await, Get}
  *         Created on 11/29/13
  */
 
-class SpdyStreamContext(parentHandler: SpdyNettyHandler, val streamid: Int, val manager: ChunkHandler)
-  extends NettyOutput[SpdyStreamFrame] with Logging {
+class SpdyStreamContext(val parentHandler: SpdyNettyHandler, val streamid: Int, val manager: ChunkHandler)
+  extends SpdyWindowManager with Logging {
 
   import NettySupport._
 
   private def spdyversion = parentHandler.spdyversion     // Shortcut
 
   private var isalive = true
-
-  def spdyMessage(msg: SpdyFrame): Unit = msg match {     // the SpdyNettyHandler forwards messages to this method
-
-    case chunk: SpdyDataFrame =>
-      manager.enque(buffToBodyChunk( chunk.content()))
-      if (chunk.isLast) manager.close()
-
-    case headers: SpdyHeadersFrame =>
-      logger.error("Header frames not supported yet. Dropping.")
-      if (headers.isLast) {
-        if (!headers.headers().isEmpty) {
-          val headercollection = toHeaders(headers.headers)
-          manager.close(TrailerChunk(headercollection))
-        }
-        else manager.close()
-      }
-
-    case rst: SpdyRstStreamFrame => close()
-  }
 
   // TODO: implement these in a more meaningful way
   def close(): Task[Unit] = {
@@ -110,6 +92,8 @@ class SpdyStreamContext(parentHandler: SpdyNettyHandler, val streamid: Int, val 
     Task.suspend(pushedctx.writeStream(response.body, ctx))
   }
 
+  ////////////////////// NettyOutput Methods //////////////
+
   final def bufferToMessage(buff: ByteBuf) = new DefaultSpdyDataFrame(streamid, buff)
 
   final def endOfStreamChunk(trailer: Option[TrailerChunk]) = trailer match {
@@ -124,6 +108,7 @@ class SpdyStreamContext(parentHandler: SpdyNettyHandler, val streamid: Int, val 
       closer.setLast(true)
       closer
   }
+  /////////////////////////////////////////////////////////
 
   private def copyResponse(spdyresp: SpdyHeadersFrame, response: Response): Int = {
     SpdyHeaders.setStatus(parentHandler.spdyversion, spdyresp, getStatus(response))
@@ -137,8 +122,6 @@ class SpdyStreamContext(parentHandler: SpdyNettyHandler, val streamid: Int, val 
     size
   }
 
-  private def getStatus(response: Response) = {
+  private def getStatus(response: Response) =
     new HttpResponseStatus(response.prelude.status.code, response.prelude.status.reason)
-  }
-
 }

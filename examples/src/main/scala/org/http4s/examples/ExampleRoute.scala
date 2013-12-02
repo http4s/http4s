@@ -20,6 +20,11 @@ class ExampleRoute {
   val MyVar = AttributeKey[Int]("myVar")
 
   def apply(): HttpService = {
+
+    case Get -> Root / "bigfile" =>
+      val size = 40*1024*1024   // 40 MB
+      Ok(new Array[Byte](size))
+
     case Get -> Root / "ping" =>
       Ok("pong")
 

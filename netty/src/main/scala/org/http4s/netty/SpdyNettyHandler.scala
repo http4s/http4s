@@ -136,6 +136,16 @@ class SpdyNettyHandler(srvc: HttpService,
 
     case msg: SpdyStreamFrame => forwardMsg(ctx, msg)
 
+      // TODO: this is a bug in Netty, and should be fixed so we don't have to put this ugly code here!
+    case msg: SpdyWindowUpdateFrame =>
+      val handler = activeStreams.get(msg.getStreamId)
+      if (handler!= null) handler.spdyMessage(msg)
+      else  {
+        logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
+        val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
+        ctx.channel().writeAndFlush(rst)
+      }
+
     case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")
   }
 

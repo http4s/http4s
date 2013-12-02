@@ -13,7 +13,7 @@ import org.http4s.netty.utils.ChunkHandler
 class ChunkHandlerSpec extends WordSpec with Matchers {
   var lastFromCb: Throwable \/ Chunk = null
 
-  val c = BodyChunk()
+  val c = BodyChunk("12")
 
   def cb(c: Throwable \/ Chunk) {
     lastFromCb = c
@@ -23,7 +23,7 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
 
 
   "ChunkHandler" should {
-    val handler = new TestChunker(3, 1)
+    val handler = new TestChunker(6, 2)
 
     "start ready" in {
       handler.queueSize() should equal(0)
@@ -42,22 +42,26 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
     "enqueue a chunk and still be ready" in {
       handler.enque(c)
       handler.isQueueReady should equal(true)
+      handler.queueSize() should equal(2)
     }
 
     "enqueue two more chunks and be full" in {
       handler.enque(c)
       handler.enque(c)
       handler.isQueueReady should equal(false)
+      handler.queueSize() should equal(6)
     }
 
     "dequeue a chunk and still not be ready" in {
       handler.request(cb)
       handler.isQueueReady should equal(false)
+      handler.queueSize() should equal(4)
     }
 
     "dequeue another chunk and be ready" in {
       handler.request(cb)
       handler.isQueueReady should equal(true)
+      handler.queueSize() should equal(2)
     }
 
     "close and give a BodyChunk followed by a TrailerChunk" in {
@@ -67,16 +71,19 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
       handler.request(cb)
       handler.isQueueReady should equal(true)
       lastRight.isInstanceOf[TrailerChunk] should equal(true)
+      handler.queueSize() should equal(0)
     }
 
     "reject offered chunks after close" in {
       handler.enque(c) should equal(false)
+      handler.queueSize() should equal(0)
     }
 
     "start to receive End processes" in {
       handler.request(cb)
       lastFromCb.isLeft should equal(true)
       lastFromCb.swap.toOption.get should be theSameInstanceAs(End)
+      handler.queueSize() should equal(0)
     }
 
     "dump chunks on failure" in {
@@ -87,6 +94,7 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
       handler2.queueSize() should equal(0)
       handler2.request(cb)
       lastFromCb.swap.toOption.get should be theSameInstanceAs(t)
+      handler.queueSize() should equal(0)
     }
   }
 

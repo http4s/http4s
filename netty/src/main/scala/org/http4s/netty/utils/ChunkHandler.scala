@@ -58,11 +58,13 @@ abstract class ChunkHandler(highWater: Int, lowWater: Int) {
     assert(this.cb == null)
     if (closed && queue.isEmpty) cb(-\/(endThrowable))
     else {
-      queuesize -= 1
+
       val chunk = queue.poll()
       if (chunk == null) {
+        queuesize -= 1
         this.cb = cb
       } else {
+        queuesize -= chunk.length
         cb(\/-(chunk))
         if (queuesize <= lowWater) onQueueReady()
       }
@@ -77,13 +79,14 @@ abstract class ChunkHandler(highWater: Int, lowWater: Int) {
   def enque(chunk: Chunk): Boolean = queue.synchronized {
     //println("Enqueing chunk " + this.cb)
     if (closed) return false
-    queuesize += 1
     if (this.cb != null) {
       val cb = this.cb
       this.cb = null
+      queuesize = 0   // No chunks, no callbacks.
       cb(\/-(chunk))
     } else {
       queue.add(chunk)
+      queuesize += chunk.length
       if (queuesize >= highWater) onQueueFull()
     }
     true
