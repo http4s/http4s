@@ -47,7 +47,7 @@ trait SpdyWindowManager extends NettyOutput[SpdyFrame] { self: SpdyStreamContext
 
         // TODO: need to alert writeBytes that we are closing for business
 
-        ctx.channel().writeAndFlush(SpdyConstants.FLOW_CONTROL_ERROR(streamid))
+        ctx.writeAndFlush(SpdyConstants.FLOW_CONTROL_ERROR(streamid))
         kill(new Exception("Queue overflow."))
         isalive = false
         parentHandler.streamFinished(streamid)
@@ -57,7 +57,7 @@ trait SpdyWindowManager extends NettyOutput[SpdyFrame] { self: SpdyStreamContext
     override def onBytesSent(delta: Int): Unit =  {
       unaccountedBytes += delta
       if (unaccountedBytes > 0.5*highWater) {
-        ctx.channel().writeAndFlush(new DefaultSpdyWindowUpdateFrame(streamid, unaccountedBytes))
+        ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(streamid, unaccountedBytes))
         unaccountedBytes = 0
       }
     }
@@ -125,7 +125,7 @@ trait SpdyWindowManager extends NettyOutput[SpdyFrame] { self: SpdyStreamContext
         logger.trace(s"Waiting on WindowUpdate for ${b.readableBytes()} bytes")
 
         sizeAndWriteExcess(b)
-        ctx.channel().writeAndFlush(bufferToMessage(b))
+        ctx.writeAndFlush(bufferToMessage(b))
         val c = Continue(tail, buff, cb)
         continue = c
 
@@ -155,7 +155,7 @@ trait SpdyWindowManager extends NettyOutput[SpdyFrame] { self: SpdyStreamContext
     while (buff.readableBytes() > SpdyConstants.SPDY_MAX_LENGTH) {
       val b = ctx.alloc().buffer(SpdyConstants.SPDY_MAX_LENGTH, SpdyConstants.SPDY_MAX_LENGTH)
       buff.readBytes(b)
-      ctx.channel().write(bufferToMessage(b))
+      ctx.write(bufferToMessage(b))
     }
   }
 

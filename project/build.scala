@@ -13,7 +13,7 @@ object Http4sDependencies {
   lazy val jodaTime            = "joda-time"                 % "joda-time"               % "2.3"
   lazy val junit               = "junit"                     % "junit"                   % "4.11"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
-  lazy val netty4              = "io.netty"                  % "netty-all"               % "4.0.10.Final"
+  lazy val netty4              = "io.netty"                  % "netty-all"               % "4.0.13.Final"
   lazy val npn_api             = "org.eclipse.jetty.npn"     % "npn-api"                 % npn_version
   lazy val npn_boot            = "org.mortbay.jetty.npn"     % "npn-boot"                % npn_version
   lazy val parboiledScala      = "org.parboiled"            %% "parboiled-scala"         % "1.1.4"

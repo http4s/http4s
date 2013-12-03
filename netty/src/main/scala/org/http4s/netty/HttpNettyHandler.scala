@@ -86,11 +86,11 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     val msg = new DefaultHttpResponse(req.getProtocolVersion, stat)
     headers.foreach { case (k, v) => msg.headers.set(k,v) }
     response.prelude.headers.foreach(h => msg.headers().set(h.name.toString, h.value))
-    if (length.isEmpty) ctx.channel.writeAndFlush(msg)
-    else ctx.channel.write(msg)
+    if (length.isEmpty) ctx.writeAndFlush(msg)
+    else ctx.write(msg)
 
     writeStream(response.body, ctx).map{ _ =>
-      if (closeOnFinish) ctx.channel().close()
+      if (closeOnFinish) ctx.close()
     }
   }
 

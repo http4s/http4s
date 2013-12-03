@@ -21,10 +21,6 @@ class ExampleRoute {
 
   def apply(): HttpService = {
 
-    case Get -> Root / "bigfile" =>
-      val size = 40*1024*1024   // 40 MB
-      Ok(new Array[Byte](size))
-
     case Get -> Root / "ping" =>
       Ok("pong")
 
@@ -112,6 +108,9 @@ class ExampleRoute {
     case Get -> Root / "bigstring" =>
       Ok((0 until 1000).map(i => s"This is string number $i"))
 
+    case Get -> Root / "bigfile" =>
+      val size = 40*1024*1024   // 40 MB
+      Ok(new Array[Byte](size))
 
     case Get -> Root / "future" =>
       Ok(Future("Hello from the future!"))

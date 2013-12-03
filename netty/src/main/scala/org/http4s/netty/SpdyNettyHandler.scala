@@ -91,7 +91,7 @@ class SpdyNettyHandler(srvc: HttpService,
       activeStreams.clear()
       if (ctx.channel().isOpen) {  // Send GOAWAY frame to signal disconnect if we are still connected
         val goaway = new DefaultSpdyGoAwayFrame(lastOpenedStream, 2) // Internal Error
-        allCatch(ctx.channel().writeAndFlush(goaway).addListener(ChannelFutureListener.CLOSE))
+        allCatch(ctx.writeAndFlush(goaway).addListener(ChannelFutureListener.CLOSE))
       }
     } catch {    // Don't end up in an infinite loop of exceptions
       case t: Throwable =>
@@ -110,7 +110,7 @@ class SpdyNettyHandler(srvc: HttpService,
     else  {
       logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
       val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
-      ctx.channel().writeAndFlush(rst)
+      ctx.writeAndFlush(rst)
     }
   }
 
@@ -128,7 +128,7 @@ class SpdyNettyHandler(srvc: HttpService,
       if (p.getId % 2 == 1) {   // Must ignore Pings with even number id
         logger.trace(s"Sending ping reply frame with id ${p.getId}")
         val ping = new DefaultSpdyPingFrame(p.getId)
-        ctx.channel().writeAndFlush(ping)
+        ctx.writeAndFlush(ping)
       }
 
     case s: SpdySettingsFrame => handleSpdySettings(s)
@@ -142,7 +142,7 @@ class SpdyNettyHandler(srvc: HttpService,
       else  {
         logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
         val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
-        ctx.channel().writeAndFlush(rst)
+        ctx.writeAndFlush(rst)
       }
 
     case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")

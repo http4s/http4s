@@ -43,7 +43,7 @@ class SpdyStreamContext(protected val ctx: ChannelHandlerContext, val parentHand
     }
 
     t.flatMap { pushes =>
-      ctx.channel.write(resp)
+      ctx.write(resp)
 
       // TODO: need to honor Window size messages to maintain flow control
       val t = writeStream(response.body, ctx)
@@ -61,8 +61,8 @@ class SpdyStreamContext(protected val ctx: ChannelHandlerContext, val parentHand
     val response = push.resp
     logger.trace(s"Pushing content on stream $id associated with stream $parentid, url ${push.location}")
 
-    val pushedctx = new SpdyStreamContext(ctx, parentHandler, id)
-    assert(parentHandler.registerStream(pushedctx)) // Add a dummy Handler to signal that the stream is active
+    val pushedStream = new SpdyStreamContext(ctx, parentHandler, id)
+    assert(parentHandler.registerStream(pushedStream)) // Add a dummy Handler to signal that the stream is active
 
     // TODO: Default to priority 2. What should we really have?
     val msg = new DefaultSpdySynStreamFrame(id, parentid, 2.toByte)
@@ -71,10 +71,10 @@ class SpdyStreamContext(protected val ctx: ChannelHandlerContext, val parentHand
     SpdyHeaders.setHost(msg, host)
     val size = copyResponse(msg, response)
 
-    ctx.channel().write(msg)
+    ctx.write(msg)
 
     // Differ writing of the body until the main resource can go as well. This might be cached or unneeded
-    Task.suspend(pushedctx.writeStream(response.body, ctx))
+    Task.suspend(pushedStream.writeStream(response.body, ctx))
   }
 
   ////////////////////// NettyOutput Methods //////////////
