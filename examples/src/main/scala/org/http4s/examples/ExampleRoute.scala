@@ -21,6 +21,11 @@ class ExampleRoute {
   val MyVar = AttributeKey[Int]("myVar")
 
   def apply(): HttpService = {
+
+    case Get -> Root / "bigfile" =>
+      val size = 40*1024*1024   // 40 MB
+      Ok(new Array[Byte](size))
+
     case Get -> Root / "ping" =>
       Ok("pong")
 
@@ -106,7 +111,7 @@ class ExampleRoute {
       }))
   */
     case Get -> Root / "bigstring" =>
-      Ok((0 until 1000).map(i => s"This is string number $i"))     // *
+      Ok((0 until 1000).map(i => s"This is string number $i"))
 
 
     case Get -> Root / "future" =>

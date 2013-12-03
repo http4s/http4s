@@ -13,7 +13,7 @@ import org.http4s.netty.utils.ChunkHandler
 class ChunkHandlerSpec extends WordSpec with Matchers {
   var lastFromCb: Throwable \/ Chunk = null
 
-  val c = BodyChunk()
+  val c = BodyChunk("12")
 
   def cb(c: Throwable \/ Chunk) {
     lastFromCb = c
@@ -23,11 +23,11 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
 
 
   "ChunkHandler" should {
-    val handler = new TestChunker(3, 1)
+    val handler = new TestChunker(6)
 
     "start ready" in {
       handler.queueSize() should equal(0)
-      handler.isQueueReady should equal(true)
+      handler.queueFull should equal(false)
     }
 
     "hold a callback if there is no chunks available" in {
@@ -39,67 +39,77 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
       handler.queueSize() should equal(0)
     }
 
-    "enqueue a chunk and still be ready" in {
+    "enqueue a chunk and not be full" in {
       handler.enque(c)
-      handler.isQueueReady should equal(true)
+      handler.queueFull should equal(false)
+      handler.queueSize() should equal(2)
     }
 
     "enqueue two more chunks and be full" in {
       handler.enque(c)
       handler.enque(c)
-      handler.isQueueReady should equal(false)
+      handler.queueFull should equal(true)
+      handler.queueSize() should equal(6)
     }
 
-    "dequeue a chunk and still not be ready" in {
+    "dequeue a chunk and be ready" in {
       handler.request(cb)
-      handler.isQueueReady should equal(false)
+      handler.queueFull should equal(false)
+      handler.queueSize() should equal(4)
     }
 
     "dequeue another chunk and be ready" in {
       handler.request(cb)
-      handler.isQueueReady should equal(true)
+      handler.queueFull should equal(false)
+      handler.queueSize() should equal(2)
     }
 
     "close and give a BodyChunk followed by a TrailerChunk" in {
       handler.close(TrailerChunk())
       handler.request(cb)
-      handler.isQueueReady should equal(true)
+      handler.queueFull should equal(false)
       handler.request(cb)
-      handler.isQueueReady should equal(true)
+      handler.queueFull should equal(false)
       lastRight.isInstanceOf[TrailerChunk] should equal(true)
+      handler.queueSize() should equal(0)
     }
 
     "reject offered chunks after close" in {
-      handler.enque(c) should equal(false)
+      handler.enque(c) should equal(-1)
+      handler.queueSize() should equal(0)
     }
 
     "start to receive End processes" in {
       handler.request(cb)
       lastFromCb.isLeft should equal(true)
       lastFromCb.swap.toOption.get should be theSameInstanceAs(End)
+      handler.queueSize() should equal(0)
     }
 
     "dump chunks on failure" in {
-      val handler2 = new TestChunker(3, 1)
+      val handler2 = new TestChunker(3)
       handler2.enque(c)
       val t = new Exception("Failed.")
       handler2.kill(t)
       handler2.queueSize() should equal(0)
       handler2.request(cb)
       lastFromCb.swap.toOption.get should be theSameInstanceAs(t)
+      handler.queueSize() should equal(0)
     }
   }
 
   // Simple instance for testing purposes
-  class TestChunker(high: Int, low: Int) extends ChunkHandler(high, low) {
-    var isQueueReady = true
+  class TestChunker(high: Int) extends ChunkHandler(high) {
+    var sentBytes = 0
+    var queueFull = false
 
-    def onQueueFull(): Unit = {
-      isQueueReady = false
+    override def onQueueFull(): Unit = {
+      queueFull = true
     }
 
-    def onQueueReady(): Unit = {
-      isQueueReady = true
+    override def onBytesSent(n: Int): Unit = {
+      sentBytes = n
+      queueFull = false
     }
   }
 

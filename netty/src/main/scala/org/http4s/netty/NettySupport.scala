@@ -16,7 +16,7 @@ import io.netty.buffer.ByteBuf
 import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.util.ReferenceCountUtil
-import org.http4s.netty.utils.ChunkHandler
+import org.http4s.netty.utils.{ChunkHandler, NettyOutput}
 
 /**
  * @author Bryce Anderson
@@ -91,7 +91,9 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     val task = try service(request)
     catch { // TODO: don't rely on exceptions for bad requests?
       case m: MatchError => Status.NotFound(request.prelude)
-      case e: Throwable =>  Status.InternalServerError()
+      case e: Throwable =>
+        logger.error("Received error on route", e)
+        Status.InternalServerError()
     }
 
     task.flatMap(renderResponse(ctx, req, _)).runAsync {
