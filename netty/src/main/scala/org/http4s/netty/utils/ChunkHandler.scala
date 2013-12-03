@@ -10,7 +10,7 @@ import java.util.{Queue, LinkedList}
  * @author Bryce Anderson
  *         Created on 11/27/13
  */
-abstract class ChunkHandler(highWater: Int, lowWater: Int) {
+class ChunkHandler(val highWater: Int) {
 
   type CB = Throwable \/ Chunk => Unit
   private val queue: Queue[Chunk] = new LinkedList[Chunk]()
@@ -29,9 +29,10 @@ abstract class ChunkHandler(highWater: Int, lowWater: Int) {
 
   def queueSize(): Int = queuesize
 
-  def onQueueFull(): Unit
+  def onQueueFull(): Unit = {}
 
-  def onQueueReady(): Unit
+  /** Called when a chunk is sent out. This method will be called synchronously AFTER the cb is fired */
+  def onBytesSent(n: Int): Unit = {}
 
   def close(trailer: TrailerChunk): Unit = queue.synchronized {
     enque(trailer)
@@ -49,46 +50,56 @@ abstract class ChunkHandler(highWater: Int, lowWater: Int) {
     endThrowable = t
     queue.clear()
     if (cb != null) {
-      cb(-\/(t))
-      cb = null
+      try cb(-\/(t))
+      catch { case t: Throwable => cbException(t, cb) }
+      finally cb = null
     }
   }
 
-  def request(cb: CB): Unit = queue.synchronized {
+  def request(cb: CB): Int = queue.synchronized {
     assert(this.cb == null)
-    if (closed && queue.isEmpty) cb(-\/(endThrowable))
+    if (closed && queue.isEmpty) {
+      cb(-\/(endThrowable))
+      0
+    }
     else {
-
       val chunk = queue.poll()
       if (chunk == null) {
         queuesize -= 1
         this.cb = cb
       } else {
         queuesize -= chunk.length
-        cb(\/-(chunk))
-        if (queuesize <= lowWater) onQueueReady()
+        try cb(\/-(chunk))
+        catch { case t: Throwable => cbException(t, cb) }
+        finally onBytesSent(chunk.length)
       }
+      queuesize
     }
   }
 
   /** enqueues a chunk if the channel is open
     *
     * @param chunk Chunk to enqueue
-    * @return whether the Handler is still accepting chunks
+    * @return -1 if the queue is closed, else the current queue size (may be 0 if a cb was present)
     */
-  def enque(chunk: Chunk): Boolean = queue.synchronized {
-    //println("Enqueing chunk " + this.cb)
-    if (closed) return false
+  def enque(chunk: Chunk): Int = queue.synchronized {
+    if (closed) return -1
     if (this.cb != null) {
+      assert(queue.isEmpty)
       val cb = this.cb
       this.cb = null
       queuesize = 0   // No chunks, no callbacks.
       cb(\/-(chunk))
+      onBytesSent(chunk.length)
     } else {
       queue.add(chunk)
       queuesize += chunk.length
       if (queuesize >= highWater) onQueueFull()
     }
-    true
+    queuesize
+  }
+
+  private def cbException(t: Throwable, cb: CB) {
+    throw new Exception(s"Callback $cb threw and exception.", t)
   }
 }

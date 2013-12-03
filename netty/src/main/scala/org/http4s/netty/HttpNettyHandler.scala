@@ -132,14 +132,14 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
   /** Manages the input stream providing back pressure
     * @param ctx ChannelHandlerContext of the channel
     */          // TODO: allow control of buffer size and use bytes, not chunks as limit
-  protected class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10, 5) {
-    def onQueueFull() {
+  protected class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10*1024*1024) { // 10MB
+    override def onQueueFull() {
       logger.trace("Queue full.")
       assert(ctx != null)
       disableRead()
     }
 
-    def onQueueReady() {
+    override def onBytesSent(n: Int) {
       logger.trace("Queue ready.")
       assert(ctx != null)
       enableRead()

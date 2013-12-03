@@ -22,8 +22,6 @@ trait NettyOutput[MsgType] { self: Logging =>
 
   type CBType = Throwable \/ Unit => Unit
 
-  val monad = Monad[Task]
-
   def bufferToMessage(buff: ByteBuf): MsgType
 
   def endOfStreamChunk(trailer: Option[TrailerChunk]): MsgType
@@ -87,7 +85,7 @@ trait NettyOutput[MsgType] { self: Logging =>
         } else {  // Got a trailer
           if (!tail.isInstanceOf[Halt] ||
             (tail.asInstanceOf[Halt].cause ne End) )  // Got trailer, not end!
-            logger.warn("Received trailer, but not at end of stream")
+            logger.warn(s"Received trailer, but not at end of stream. Tail: $tail")
 
           writeLast(buff, t, ctx, cb)
         }
@@ -112,8 +110,9 @@ trait NettyOutput[MsgType] { self: Logging =>
     @tailrec
     def go(acc: BodyChunk, seq: Seq[Chunk]): (ByteBuf, TrailerChunk) = seq.head match {
       case c: BodyChunk =>
-        if (!seq.tail.isEmpty) go(acc ++ c, seq.tail)
-        else (Unpooled.wrappedBuffer(acc.toArray), null)
+        val cc = acc ++ c
+        if (!seq.tail.isEmpty) go(cc, seq.tail)
+        else (Unpooled.wrappedBuffer(cc.toArray), null)
 
       case c: TrailerChunk => (Unpooled.wrappedBuffer(acc.toArray), c)
     }

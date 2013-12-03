@@ -13,7 +13,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 import Process.{End, halt, Process1, await, Get}
 
-import org.http4s.netty.utils.{SpdyValues, NettyOutput, ClosedChunkHandler, ChunkHandler}
+import org.http4s.netty.utils.{SpdyConstants, NettyOutput, ClosedChunkHandler, ChunkHandler}
 import org.http4s.PushSupport.PushResponse
 import org.http4s.Header.`Content-Length`
 
@@ -23,27 +23,12 @@ import org.http4s.Header.`Content-Length`
  *         Created on 11/29/13
  */
 
-class SpdyStreamContext(val parentHandler: SpdyNettyHandler, val streamid: Int, val manager: ChunkHandler)
+class SpdyStreamContext(protected val ctx: ChannelHandlerContext, val parentHandler: SpdyNettyHandler, val streamid: Int)
   extends SpdyWindowManager with Logging {
 
   import NettySupport._
 
   private def spdyversion = parentHandler.spdyversion     // Shortcut
-
-  private var isalive = true
-
-  // TODO: implement these in a more meaningful way
-  def close(): Task[Unit] = {
-    isalive = false
-    manager.close()
-    Task.now()
-  }
-
-  def kill(t: Throwable): Task[Unit] = {
-    isalive = false
-    manager.kill(t)
-    Task.now()
-  }
 
   def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
     logger.trace("Rendering response.")
@@ -54,7 +39,7 @@ class SpdyStreamContext(val parentHandler: SpdyNettyHandler, val streamid: Int, 
       case None => Task.now(Nil)
 
       case Some(t) => // Push the heads of all the push resources. Sync on the Task
-        t.map (_.map { r =>  pushResource(r, req, ctx) })
+        t.map (_.map { r =>  pushResource(r, req) })
     }
 
     t.flatMap { pushes =>
@@ -67,7 +52,7 @@ class SpdyStreamContext(val parentHandler: SpdyNettyHandler, val streamid: Int, 
   }
 
   /** Submits the head of the resource, and returns the execution of the submission of the body as a Task */
-  private def pushResource(push: PushResponse, req: SpdySynStreamFrame, ctx: ChannelHandlerContext): Task[Unit] = {
+  private def pushResource(push: PushResponse, req: SpdySynStreamFrame): Task[Unit] = {
 
     val id = parentHandler.newPushStreamID()
     val parentid = req.getStreamId
@@ -76,7 +61,7 @@ class SpdyStreamContext(val parentHandler: SpdyNettyHandler, val streamid: Int, 
     val response = push.resp
     logger.trace(s"Pushing content on stream $id associated with stream $parentid, url ${push.location}")
 
-    val pushedctx = new SpdyStreamContext(parentHandler, id, new ClosedChunkHandler)
+    val pushedctx = new SpdyStreamContext(ctx, parentHandler, id)
     assert(parentHandler.registerStream(pushedctx)) // Add a dummy Handler to signal that the stream is active
 
     // TODO: Default to priority 2. What should we really have?

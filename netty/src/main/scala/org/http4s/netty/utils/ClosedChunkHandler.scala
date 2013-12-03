@@ -10,12 +10,12 @@ import scalaz.stream.Process.End
  *         Created on 11/29/13
  */
 /** Stub handler to speed up an already closed Handler */
-class ClosedChunkHandler extends ChunkHandler(1, 0) {
-  def onQueueFull() {}
+class ClosedChunkHandler extends ChunkHandler(1) {
 
-  def onQueueReady() {}
+  override def enque(chunk: Chunk) = 0
 
-  override def enque(chunk: Chunk): Boolean = false
-
-  override def request(cb: CB): Unit =  cb(-\/(End))
+  override def request(cb: CB) =  {
+    cb(-\/(End))
+    0
+  }
 }

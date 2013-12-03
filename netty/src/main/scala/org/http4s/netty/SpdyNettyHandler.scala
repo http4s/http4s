@@ -70,8 +70,7 @@ class SpdyNettyHandler(srvc: HttpService,
       remote = remoteAddress.getAddress // TODO using remoteName would trigger a lookup
     )
 
-    val chunkmanager = new SpdyChunkHandler(5, 3, req.getStreamId)
-    val streamctx = new SpdyStreamContext(this, req.getStreamId, chunkmanager)
+    val streamctx = new SpdyStreamContext(ctx, this, req.getStreamId)
     assert(activeStreams.put(req.getStreamId, streamctx) == null)
     Request(prelude, getStream(streamctx.manager))
   }
@@ -107,7 +106,7 @@ class SpdyNettyHandler(srvc: HttpService,
     */
   private def forwardMsg(ctx: ChannelHandlerContext, msg: SpdyStreamFrame) {
     val handler = activeStreams.get(msg.getStreamId)
-    if (handler!= null) handler.spdyMessage(msg)
+    if (handler!= null) handler.spdyMessage(ctx, msg)
     else  {
       logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
       val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
@@ -139,7 +138,7 @@ class SpdyNettyHandler(srvc: HttpService,
       // TODO: this is a bug in Netty, and should be fixed so we don't have to put this ugly code here!
     case msg: SpdyWindowUpdateFrame =>
       val handler = activeStreams.get(msg.getStreamId)
-      if (handler!= null) handler.spdyMessage(msg)
+      if (handler!= null) handler.spdyMessage(ctx, msg)
       else  {
         logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
         val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
@@ -159,12 +158,6 @@ class SpdyNettyHandler(srvc: HttpService,
     val initWindow = settings.getValue(SETTINGS_INITIAL_WINDOW_SIZE)
     // TODO: Deal with window sizes and buffering. http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3#TOC-2.6.8-WINDOW_UPDATE
     if (initWindow > 0) setInitialStreamWindow(initWindow)
-  }
-
-  class SpdyChunkHandler(high: Int, low: Int, streamid: Int) extends ChunkHandler(high, low) {
-    def onQueueFull(): Unit = logger.warn(s"Inbound queue full for stream $streamid")
-
-    def onQueueReady(): Unit = logger.trace(s"Queue ready for stream $streamid")
   }
 
   // TODO: Need to implement a Spdy HttpVersion
