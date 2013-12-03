@@ -1,8 +1,6 @@
 package org.http4s
 package netty
 
-import org.http4s.netty.utils.ChunkHandler
-
 import scala.util.control.Exception.allCatch
 
 import java.net.{URI, InetSocketAddress}
@@ -13,8 +11,8 @@ import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
-import scalaz.{-\/, \/-}
-import io.netty.buffer.ByteBuf
+
+import org.http4s.util.middleware.PushSupport
 
 
 /**

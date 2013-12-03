@@ -6,6 +6,7 @@ import scalaz.stream.process1
 import scala.concurrent.Future
 import org.http4s.dsl._
 import scala.util.{Failure, Success}
+import org.http4s.util.middleware.PushSupport
 
 class ExampleRoute {
   import Status._

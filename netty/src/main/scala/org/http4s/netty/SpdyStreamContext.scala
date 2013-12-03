@@ -3,6 +3,8 @@ package netty
 
 import com.typesafe.scalalogging.slf4j.Logging
 
+import org.http4s.util.middleware.PushSupport
+import PushSupport.PushResponse
 import io.netty.handler.codec.spdy._
 import io.netty.channel.ChannelHandlerContext
 import io.netty.buffer.ByteBuf
@@ -13,8 +15,6 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 import Process.{End, halt, Process1, await, Get}
 
-import org.http4s.netty.utils.{SpdyConstants, NettyOutput, ClosedChunkHandler, ChunkHandler}
-import org.http4s.PushSupport.PushResponse
 import org.http4s.Header.`Content-Length`
 
 

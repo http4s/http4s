@@ -2,7 +2,7 @@ package org.http4s.examples.spdynetty
 
 import org.http4s.netty.SimpleSpdyServer
 import org.http4s.ExampleRoute
-import org.http4s.util.middleware.URITranslation
+import org.http4s.util.middleware.{GZip, URITranslation}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import org.http4s.spdynetty.BogusKeystore
 import java.security.KeyStore
@@ -26,7 +26,7 @@ object SpdyNettyExample extends App {
     context.init(kmf.getKeyManagers(), null, null)
     context
   }
-
-  val server = SimpleSpdyServer(sslContext, 4430)(URITranslation.translateRoot("/http4s")(new ExampleRoute().apply()))
+  val route = GZip(new ExampleRoute().apply())
+  val server = SimpleSpdyServer(sslContext, 4430)(URITranslation.translateRoot("/http4s")(route))
   server.run()
 }
