@@ -138,9 +138,9 @@ class ExampleRoute {
 
     case req @ Post -> Root / "challenge" =>
       val parser = await1[Chunk] map {
-        case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("Go") =>
+        case bits: BodyChunk if (bits.decodeString(req.charset)).startsWith("Go") =>
           Task.now(Response(body = emit(bits) fby req.body))
-        case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("NoGo") =>
+        case bits: BodyChunk if (bits.decodeString(req.charset)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("no data")

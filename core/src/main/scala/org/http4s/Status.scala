@@ -1,45 +1,7 @@
 package org.http4s
 
-import scalaz.stream._
 import scalaz.concurrent.Task
 import java.net.{URL, URI}
-
-case class ResponsePrelude(status: Status = Status.Ok, headers: HeaderCollection = HeaderCollection.empty)
-
-case class Response(
-  prelude: ResponsePrelude = ResponsePrelude(),
-  body: HttpBody = Response.EmptyBody,
-  attributes: AttributeMap = AttributeMap.empty
-) {
-  def addHeader(header: Header) = copy(prelude = prelude.copy(headers = header +: prelude.headers))
-
-  def dropHeaders(f: Header => Boolean): Response =
-    copy(prelude = prelude.copy(headers = prelude.headers.filter(f)))
-
-  def dropHeader(key: HeaderKey): Response = dropHeaders(_ isNot key)
-
-  def contentType: Option[ContentType] =  prelude.headers.get(Header.`Content-Type`).map(_.contentType)
-
-  def contentType(contentType: ContentType): Response = copy(prelude =
-    prelude.copy(headers = prelude.headers.put(Header.`Content-Type`(contentType))))
-
-  def addCookie(cookie: Cookie): Response = addHeader(Header.Cookie(cookie))
-
-  def removeCookie(cookie: Cookie): Response =
-    addHeader(Header.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
-
-  def status: Status = prelude.status
-
-  def status[T <% Status](status: T) = copy(prelude.copy(status = status))
-
-  def isChunked: Boolean = prelude.headers.get(Header.`Transfer-Encoding`)
-    .map(_.values.list.contains(TransferCoding.chunked))
-    .getOrElse(false)
-}
-
-object Response {
-  val EmptyBody = Process.halt
-}
 
 case class Status(code: Int, reason: String) extends Ordered[Status] {
   def compare(that: Status) = code.compareTo(that.code)
@@ -89,7 +51,7 @@ object Status {
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Response =
-      Response(ResponsePrelude(this, Header("Upgrade", protocols) +: headers), Response.EmptyBody)
+      Response(ResponsePrelude(this, Header("Upgrade", protocols) +: headers), HttpBody.empty)
   }
   object Processing extends Status(102, "Processing") with NoEntityResponseGenerator
 
@@ -121,7 +83,7 @@ object Status {
   object BadRequest extends Status(400, "Bad Request") with EntityResponseGenerator
   object Unauthorized extends Status(401, "Unauthorized") with EntityResponseGenerator {
     def apply[A](wwwAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
-      // TODO type this header
+    // TODO type this header
       apply(body).map { r =>
         headers.foldLeft(r.addHeader(Header("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
       }
@@ -167,10 +129,10 @@ object Status {
   object RequestHeaderFieldsTooLarge extends Status(431, "Request Header Fields Too Large") with EntityResponseGenerator
 
   object InternalServerError extends Status(500, "Internal Server Error") with EntityResponseGenerator {
-/*
-    // TODO Bad in production.  Development mode?  Implicit renderer?
-    def apply(t: Throwable): Response = apply(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
-*/
+    /*
+        // TODO Bad in production.  Development mode?  Implicit renderer?
+        def apply(t: Throwable): Response = apply(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
+    */
   }
   object NotImplemented extends Status(501, "Not Implemented") with EntityResponseGenerator
   object BadGateway extends Status(502, "Bad Gateway") with EntityResponseGenerator
@@ -197,3 +159,4 @@ object Status {
   implicit def int2statusCode(i: Int): Status = apply(i)
   implicit def tuple2statusCode(tup: (Int, String)) = apply(tup._1, tup._2)
 }
+

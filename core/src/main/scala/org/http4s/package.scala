@@ -15,7 +15,11 @@ import org.http4s.util.CaseInsensitiveStringSyntax
 
 package object http4s extends CaseInsensitiveStringSyntax {
   type HttpService = Request => Task[Response]
+
   type HttpBody = Process[Task, Chunk]
+  object HttpBody {
+    val empty = Process.halt
+  }
 
   implicit val ChunkSemigroup: Semigroup[Chunk] = Semigroup.instance {
     case (a: BodyChunk, b: BodyChunk) => a ++ b

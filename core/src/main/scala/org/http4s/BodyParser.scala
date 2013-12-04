@@ -30,7 +30,7 @@ object BodyParser {
   def text[A](req: Request, limit: Int = DefaultMaxEntitySize): Task[String] = {
     val buff = new StringBuilder
     (req.body |> takeBytes(limit) |> processes.fold(buff) { (b, c) => c match {
-      case c: BodyChunk => b.append(c.decodeString(req.prelude.charset))
+      case c: BodyChunk => b.append(c.decodeString(req.charset))
       case _ => b
     }}).map(_.result()).runLastOr("")
   }

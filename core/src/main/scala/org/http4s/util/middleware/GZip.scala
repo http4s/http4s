@@ -47,7 +47,7 @@ object GZip extends Logging {
     def request(req: Request): Task[Response] = {
       //Header.`Accept-Encoding` req.prelude.headers
       val t = route(req)
-      req.prelude.headers.get(`Accept-Encoding`).fold(t){ h =>
+      req.headers.get(`Accept-Encoding`).fold(t){ h =>
         if (h.acceptsEncoding(ContentCoding.gzip) || h.acceptsEncoding(ContentCoding.`x-gzip`)) t.map { resp =>
           // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
           if (resp.prelude.headers.get(`Content-Encoding`).isEmpty) {

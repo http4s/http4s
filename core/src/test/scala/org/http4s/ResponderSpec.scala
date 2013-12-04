@@ -18,7 +18,7 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
       import Header._
       resp.contentType should be (None)
       val c1 = resp.addHeader(Header.`Content-Length`(4))
-        .contentType(ContentType.`text/plain`)
+        .withContentType(Some(ContentType.`text/plain`))
         .addHeader(Header.Host("foo"))
 
       c1.prelude.headers.count(_ is `Content-Type`) should equal (1)
@@ -26,7 +26,7 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
       c1.prelude.headers should have length (3)
       c1.contentType.value should equal (ContentType.`text/plain`)
 
-      val c2 = c1.contentType(ContentType.`application/json`)
+      val c2 = c1.withContentType(Some(ContentType.`application/json`))
 
       c2.contentType.value should equal (ContentType.`application/json`)
       c2.prelude.headers.count(_ is `Content-Type`) should equal (1)

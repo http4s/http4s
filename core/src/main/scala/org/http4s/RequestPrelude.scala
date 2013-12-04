@@ -19,12 +19,6 @@ case class RequestPrelude(
                            remote: InetAddress = InetAddress.getLocalHost,
                            attributes: AttributeMap = AttributeMap.empty
                            ) {
-  def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
-
-  def contentType: Option[ContentType] = headers.get(Header.`Content-Type`).map(_.contentType)
-
-  def charset: CharacterSet = contentType.map(_.charset) getOrElse CharacterSet.`ISO-8859-1`
-
   val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
   lazy val authType: Option[AuthType] = None
@@ -43,5 +37,3 @@ case class RequestPrelude(
   def -[T](key: AttributeKey[T]) = copy(attributes = attributes.remove(key))
   def contains[T](key: AttributeKey[T]): Boolean = attributes.contains(key)
 }
-
-case class Request(prelude: RequestPrelude = RequestPrelude(), body: HttpBody = Process.halt)
