@@ -1,4 +1,5 @@
 /*
+/*
  * Derived from Twitter Finagle.
  *
  * Original source:
@@ -211,4 +212,4 @@ class PathSpec extends WordSpec with Matchers {
       }) should be (true)
     }
   }
-}
+}*/

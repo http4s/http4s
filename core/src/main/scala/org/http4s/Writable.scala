@@ -1,102 +1,88 @@
 package org.http4s
 
+import scalaz.stream.Process
+import scala.concurrent.{ExecutionContext, Future}
+import scalaz.concurrent.Task
 import scala.language.implicitConversions
-import play.api.libs.iteratee._
-import util.Execution.{overflowingExecutionContext => oec}
-import concurrent.{ExecutionContext, Future}
-import akka.util.ByteString
 
 trait Writable[-A] {
   def contentType: ContentType
-  def toBody(a: A): (Enumeratee[Chunk, Chunk], Option[Int])
+  def toBody(a: A): Task[(HttpBody, Option[Int])]
 }
 
 trait SimpleWritable[-A] extends Writable[A] {
-  def asByteString(data: A): ByteString
-  override def toBody(a: A): (Enumeratee[Chunk, Chunk], Option[Int]) = {
-    val bs = asByteString(a)
-    (Writable.sendByteString(bs), Some(bs.length))
+  def asChunk(data: A): BodyChunk
+  override def toBody(a: A): Task[(HttpBody, Option[Int])] = {
+    val chunk = asChunk(a)
+    Task.now(Process.emit(chunk), Some(chunk.length))
   }
 }
 
 object Writable {
-  private[http4s] def sendByteString(data: ByteString): Enumeratee[Chunk, Chunk] =
-    new Enumeratee[Chunk, Chunk] {
-      def applyOn[A](inner: Iteratee[Chunk, A]): Iteratee[Chunk, Iteratee[Chunk, A]] =
-        Done(Iteratee.flatten(inner.feed(Input.El(BodyChunk(data)))), Input.Empty)
-    }
-
-  private[http4s] def sendFuture[T](f: Future[T])(implicit ec: ExecutionContext): Enumeratee[T, T] =
-    new Enumeratee[T, T] {
-      def applyOn[A](inner: Iteratee[T, A]): Iteratee[T, Iteratee[T, A]] =
-        Done(Iteratee.flatten(f.flatMap{ d => inner.feed(Input.El(d))}))
-    }
-
-  private[http4s] def sendEnumerator[F, T](enumerator: Enumerator[T]): Enumeratee[F, T] = new Enumeratee[F, T] {
-    def applyOn[A](inner: Iteratee[T, A]): Iteratee[F, Iteratee[T, A]] =
-      Done(Iteratee.flatten(enumerator(inner)), Input.Empty)
-  }
   // Simple types defined
   implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asByteString(s: String) = ByteString(s, charset.charset.name)
+      def asChunk(s: String) = BodyChunk(s, charset.charset)
     }
+
+  implicit def byteWritable = new SimpleWritable[Array[Byte]] {
+    def asChunk(data: Array[Byte]): BodyChunk = BodyChunk(data)
+    def contentType: ContentType = ContentType.`application/octet-stream`
+  }
 
   implicit def htmlWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: ContentType = ContentType(MediaType.`text/html`).withCharset(charset)
-      def asByteString(s: xml.Elem) = ByteString(s.buildString(false), charset.charset.name)
+      def asChunk(s: xml.Elem) = BodyChunk(s.buildString(false), charset.charset)
     }
 
   implicit def intWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: ContentType = ContentType.`text/plain`.withCharset(charset)
-      def asByteString(i: Int): ByteString = ByteString(i.toString, charset.charset.name)
+      def asChunk(i: Int) = BodyChunk(i.toString, charset.charset)
     }
 
-  implicit def ByteStringWritable =
-    new SimpleWritable[ByteString] {
-      def contentType: ContentType = ContentType.`application/octet-stream`
-      def asByteString(ByteString: ByteString) = ByteString
-    }
 
-  // More complex types can be implements in terms of simple types
-  implicit def traversableWritable[A](implicit writable: SimpleWritable[A]) =
-    new Writable[TraversableOnce[A]] {
+  implicit def taskWritable[A](implicit writable: Writable[A]) =
+    new Writable[Task[A]] {
       def contentType: ContentType = writable.contentType
-      override def toBody(as: TraversableOnce[A]) = {
-        val bs = as.foldLeft(ByteString.empty) { (acc, a) => acc ++ writable.asByteString(a) }
-        (sendByteString(bs), Some(bs.length))
-      }
+      def toBody(a: Task[A]) = a.flatMap(writable.toBody(_))
     }
 
-  implicit def enumerateeWritable =
-  new Writable[Enumeratee[Chunk, Chunk]] {
-    def contentType = ContentType.`application/octet-stream`
-    override def toBody(a: Enumeratee[Chunk, Chunk])= (a, None)
-  }
-
-  implicit def genericEnumerateeWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
-    new Writable[Enumeratee[Chunk, A]] {
+  /*
+  implicit def functorWritable[F[_], A](implicit F: Functor[F], writable: Writable[A]) =
+    new Writable[F[A]] {
       def contentType = writable.contentType
-
-      def toBody(a: Enumeratee[Chunk, A]): (Enumeratee[Chunk, Chunk], Option[Int]) = {
-        val finalenum = a.compose(Enumeratee.map[A]( i => BodyChunk(writable.asByteString(i)): Chunk))
-        (finalenum , None)
-      }
+      private def send(fa: F[A]) = Process.emit(fa.map(writable.toBody(_)._1)).eval.join
+      override def toBody(fa: F[A]) = (send(fa), None)
     }
+  */
 
-  implicit def enumeratorWritable[A](implicit writable: SimpleWritable[A]) =
-  new Writable[Enumerator[A]] {
-    def contentType = writable.contentType
-    override def toBody(a: Enumerator[A]) = (sendEnumerator(a.map[Chunk]{ i => BodyChunk(writable.asByteString(i))}(oec)), None)
+  implicit def processWritable[A](implicit w: SimpleWritable[A]) = new Writable[Process[Task, A]] {
+    def contentType: ContentType = w.contentType
+
+    def toBody(a: Process[Task, A]): Task[(HttpBody, Option[Int])] = Task.now((a.map(w.asChunk), None))
   }
 
-  implicit def futureWritable[A](implicit writable: SimpleWritable[A], ec: ExecutionContext) =
-  new Writable[Future[A]] {
-    def contentType = writable.contentType
-    override def toBody(f: Future[A]) = (sendFuture(f.map{ d => BodyChunk(writable.asByteString(d))}), None)
+  implicit def byteArrayWritable = new Writable[Array[Byte]] {
+    def contentType: ContentType = ContentType.`application/octet-stream`
+
+    def toBody(a: Array[Byte]): Task[(HttpBody, Option[Int])] = Task.now((Process.emit(BodyChunk(a)), Some(a.length)))
   }
 
+  implicit def seqWritable[A](implicit w: SimpleWritable[A]) = new Writable[Seq[A]] {
+    def contentType: ContentType = w.contentType
+
+    def toBody(a: Seq[A]): Task[(HttpBody, Option[Int])] = {
+      val p = Process.emit(a.foldLeft(BodyChunk())((acc, c) => acc ++ w.asChunk(c)))
+      Task.now((p, None))
+    }
+  }
+
+  implicit def futureWritable[A](implicit ec: ExecutionContext, writable: Writable[A]) =
+    new Writable[Future[A]] {
+      def contentType: ContentType = writable.contentType
+      def toBody(f: Future[A]) = taskWritable[A].toBody(futureToTask(ec)(f))
+    }
 }

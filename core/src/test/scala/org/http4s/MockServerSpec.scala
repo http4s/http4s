@@ -1,12 +1,24 @@
+/*
 package org.http4s
 
-import scala.language.implicitConversions
-import scala.language.reflectiveCalls
-
-
+import org.specs2.mutable.Specification
+import org.specs2.time.NoTimeConversions
 import play.api.libs.iteratee._
+<<<<<<< HEAD
+<<<<<<< HEAD
+import org.http4s.HttpHeaders.RawHeader
+=======
+
+<<<<<<< HEAD
+import org.http4s.Headers.RawHeader
+>>>>>>> develop
+=======
+import org.http4s.Header.RawHeader
+>>>>>>> develop
+=======
 
 import org.http4s.Header
+>>>>>>> develop
 import org.scalatest.{WordSpec, Matchers}
 import scala.concurrent.Future
 
@@ -114,3 +126,4 @@ class MockServerSpec extends WordSpec with Matchers {
 
 
 }
+*/

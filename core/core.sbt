@@ -11,11 +11,11 @@ libraryDependencies ++= Seq(
   jodaConvert, // Without this, get bad constant pool tag errors loading joda-time classes.
   jodaTime,
   parboiledScala,
-  playIteratees,
+  playIteratees % "test",
   rl,
   slf4jApi,
+//  scalazStream,
   scalaloggingSlf4j,
-  scalazCore,
   typesafeConfig
 )
 

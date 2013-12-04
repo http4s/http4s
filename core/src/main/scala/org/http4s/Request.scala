@@ -2,6 +2,7 @@ package org.http4s
 
 import java.io.File
 import java.net.{URI, InetAddress}
+import scalaz.stream.Process
 
 case class RequestPrelude(
                            requestMethod: Method = Method.Get,
@@ -42,3 +43,5 @@ case class RequestPrelude(
   def -[T](key: AttributeKey[T]) = copy(attributes = attributes.remove(key))
   def contains[T](key: AttributeKey[T]): Boolean = attributes.contains(key)
 }
+
+case class Request(prelude: RequestPrelude = RequestPrelude(), body: HttpBody = Process.halt)

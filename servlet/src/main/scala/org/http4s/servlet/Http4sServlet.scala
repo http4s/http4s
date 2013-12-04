@@ -2,20 +2,18 @@ package org.http4s
 package servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-import play.api.libs.iteratee.{Done, Iteratee, Enumerator}
 import java.net.InetAddress
 import scala.collection.JavaConverters._
-import concurrent.{ExecutionContext,Future}
 import javax.servlet.{ServletConfig, AsyncContext}
-import org.http4s.Status.{InternalServerError, NotFound}
-import akka.util.ByteString
 
 import Http4sServlet._
-import scala.util.logging.Logged
 import com.typesafe.scalalogging.slf4j.Logging
+import scalaz.concurrent.Task
+import scalaz.stream.io._
+import scalaz.{-\/, \/-}
+import scala.util.control.NonFatal
 
-class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
-                   (implicit executor: ExecutionContext = ExecutionContext.global) extends HttpServlet with Logging {
+class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) extends HttpServlet with Logging {
   private[this] var serverSoftware: ServerSoftware = _
 
   override def init(config: ServletConfig) {
@@ -23,45 +21,47 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
   }
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
-    val request = toRequest(servletRequest)
-    val ctx = servletRequest.startAsync()
-    executor.execute {
-      new Runnable {
-        def run() {
-          handle(request, ctx)
-        }
-      }
+    try {
+      val request = toRequest(servletRequest)
+      val ctx = servletRequest.startAsync()
+      handle(request, ctx)
+    } catch {
+      case NonFatal(e) => handleError(e, servletResponse)
     }
   }
 
-  protected def handle(request: RequestPrelude, ctx: AsyncContext) {
-    val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
+  private def handleError(t: Throwable, response: HttpServletResponse) {
+    logger.error("Error processing request", t)
+    if (!response.isCommitted)
+      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+  }
+
+  private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    val parser = try {
-      route.lift(request).getOrElse(Done(NotFound(request)))
-    } catch { case t: Throwable => Done[Chunk, Response](InternalServerError(t)) }
-    val handler = parser.flatMap { response =>
-      servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
-      for (header <- response.prelude.headers)
-        servletResponse.addHeader(header.name.toString, header.value)
-      val isChunked = response.isChunked
-      response.body.transform(Iteratee.foreach {
-        case BodyChunk(chunk) =>
-          val out = servletResponse.getOutputStream
-          out.write(chunk.toArray)
-          if(isChunked) out.flush()
-        case t: TrailerChunk =>
-          log("The servlet adapter does not implement trailers. Silently ignoring.")
-      })
+    Task.fork {
+      service(request).flatMap { response =>
+        servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
+        for (header <- response.prelude.headers)
+          servletResponse.addHeader(header.name.toString, header.value)
+        val out = servletResponse.getOutputStream
+        val isChunked = response.isChunked
+        response.body.map { bytes =>
+          out.write(bytes.toArray)
+          if (isChunked)
+            servletResponse.flushBuffer()
+        }.run
+      }
+    }.runAsync {
+      case \/-(_) =>
+        ctx.complete()
+      case -\/(t) =>
+        handleError(t, servletResponse)
+        ctx.complete()
     }
-    Enumerator.fromStream(servletRequest.getInputStream, chunkSize)
-      .map[Chunk](BodyChunk(_))
-      .run(handler)
-      .onComplete(_ => ctx.complete() )
   }
 
-  protected def toRequest(req: HttpServletRequest): RequestPrelude = {
-    RequestPrelude(
+  protected def toRequest(req: HttpServletRequest): Request = {
+    val prelude = RequestPrelude(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
@@ -74,6 +74,8 @@ class Http4sServlet(route: Route, chunkSize: Int = DefaultChunkSize)
       serverSoftware = serverSoftware,
       remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
     )
+    val body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval
+    Request(prelude, body)
   }
 
   protected def toHeaders(req: HttpServletRequest): HeaderCollection = {

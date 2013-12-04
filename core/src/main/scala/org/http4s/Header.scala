@@ -80,6 +80,16 @@ object Header {
   final case class `Accept-Encoding`(values: NonEmptyList[ContentCodingRange]) extends RecurringHeader {
     def key = `Accept-Encoding`
     type Value = ContentCodingRange
+
+    def acceptsEncoding(coding: ContentCoding): Boolean = {
+      @tailrec
+      def go(c: ContentCodingRange, rest: List[ContentCodingRange]): Boolean = {
+        if (c.matches(coding)) true
+        else if (rest.isEmpty) false
+        else go(rest.head, rest.tail)
+      }
+      go(values.head, values.tail)
+    }
   }
 
   object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey

@@ -87,8 +87,8 @@ object ~ {
 }
 
 object :/ {
-  def unapply(req: RequestPrelude): Option[(Path, String)] = {
-    val p = Path(req.pathInfo)
+  def unapply(req: Request): Option[(Path, String)] = {
+    val p = Path(req.prelude.pathInfo)
     Some(p.parent, p.lastOption.getOrElse(""))
   }
 }
@@ -116,8 +116,8 @@ object -> {
    *   (request.method, Path(request.path)) match {
    *     case Method.Get -> Root / "test.json" => ...
    */
-  def unapply(req: RequestPrelude): Option[(Method, Path)] = {
-    Some((req.requestMethod, Path(req.pathInfo)))
+  def unapply(req: Request): Option[(Method, Path)] = {
+    Some((req.prelude.requestMethod, Path(req.prelude.pathInfo)))
   }
 }
 

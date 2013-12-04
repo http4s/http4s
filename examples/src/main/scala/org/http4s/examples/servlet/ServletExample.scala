@@ -4,6 +4,10 @@ package servlet
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
+import scala.concurrent.Future
+import scalaz.concurrent.Task
+import scalaz.effect.IO
+import scalaz.Free.Trampoline
 
 /**
  * @author ross
@@ -12,7 +16,7 @@ object ServletExample extends App {
 
   import concurrent.ExecutionContext.Implicits.global
 
-  val http4sServlet = new Http4sServlet(ExampleRoute())
+  val taskServlet = new Http4sServlet(new ExampleRoute().apply())
 
   val rawServlet = new HttpServlet {
     override def service(req: HttpServletRequest, resp: HttpServletResponse) {
@@ -26,10 +30,11 @@ object ServletExample extends App {
           resp.flushBuffer()
         }
       }
-      else if (req.getPathInfo == "/bigstring") {
-        val builder = new StringBuilder(20*1000)
-        (0 until 1000) foreach { i => builder.append(s"This is string number $i") }
-        resp.getOutputStream.write(builder.result().getBytes)
+      else if (req.getPathInfo == "/bigstring2") {
+        for (i <- 0 to 1000) {
+          resp.getOutputStream.write(s"This is string number $i".getBytes())
+          resp.flushBuffer()
+        }
       }
     }
   }
@@ -38,7 +43,7 @@ object ServletExample extends App {
   val context = new ServletContextHandler()
   context.setContextPath("/")
   server.setHandler(context);
-  context.addServlet(new ServletHolder(http4sServlet), "/http4s/*")
+  context.addServlet(new ServletHolder(taskServlet), "/http4s/*")
   context.addServlet(new ServletHolder(rawServlet), "/raw/*")
   server.start()
   server.join()

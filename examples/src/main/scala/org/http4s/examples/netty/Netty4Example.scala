@@ -1,15 +1,15 @@
+
 package org.http4s
 package netty
 
-import play.api.libs.iteratee.{Enumeratee, Concurrent, Done}
 import org.http4s._
 import com.typesafe.scalalogging.slf4j.Logging
-import org.http4s.util.middleware.URITranslation
+import org.http4s.util.middleware.{GZip, URITranslation,ChunkAggregator}
+
 
 object Netty4Example extends App with Logging {
-
-  import concurrent.ExecutionContext.Implicits.global
-
-  SimpleNettyServer()(URITranslation.TranslateRoot("/http4s")(ExampleRoute())).run()
-
+  val route = ChunkAggregator(GZip(new ExampleRoute().apply()))
+  val server = SimpleNettyServer()(URITranslation.translateRoot("/http4s")(route))
+  server.run()
 }
+

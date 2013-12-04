@@ -1,3 +1,4 @@
+/*
 package org.http4s
 package grizzly
 
@@ -6,7 +7,6 @@ import org.glassfish.grizzly.http.server.{Response=>GrizResp,Request=>GrizReq, H
 import java.net.InetAddress
 import scala.collection.JavaConverters._
 import concurrent.{ExecutionContext}
-import play.api.libs.iteratee.{Concurrent, Done}
 import org.http4s.Status.{InternalServerError, NotFound}
 import org.glassfish.grizzly.ReadHandler
 import scala.util.Try
@@ -81,3 +81,4 @@ class Http4sGrizzly(route: Route, chunkSize: Int = 32 * 1024)(implicit executor:
     HeaderCollection(headers.toSeq : _*)
   }
 }
+*/

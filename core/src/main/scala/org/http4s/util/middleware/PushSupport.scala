@@ -1,8 +1,11 @@
-package org.http4s
+package org.http4s.util.middleware
 
-import scala.concurrent.Future
-import play.api.libs.iteratee.Iteratee
 import com.typesafe.scalalogging.slf4j.Logging
+import scalaz.concurrent.Task
+import org.http4s._
+import org.http4s.Request
+import org.http4s.AttributeKey
+import org.http4s.RequestPrelude
 
 /**
  * @author Bryce Anderson
@@ -15,8 +18,8 @@ object PushSupport extends Logging {
   import concurrent.ExecutionContext.Implicits.global
 
   // An implicit conversion class
-  implicit class PushSupportResponder(response: Response) extends AnyRef {
-    def push(url: String, cascade: Boolean = true): Response = {
+  implicit class PushSupportResponse(response: Task[Response]) extends AnyRef {
+    def push(url: String, cascade: Boolean = true): Task[Response] = response.map { response =>
       val newPushResouces = response.attributes.get(pushLocationKey)
           .map(_ :+ PushLocation(url, cascade))
           .getOrElse(Vector(PushLocation(url,cascade)))
@@ -30,25 +33,24 @@ object PushSupport extends Logging {
     logger.error("Push resource route failure", ex)
   }
 
-  private def locToRequest(push: PushLocation, prelude: RequestPrelude): RequestPrelude =
-    RequestPrelude(pathInfo = push.location, headers = prelude.headers)
+  private def locToRequest(push: PushLocation, req: Request): Request =
+    Request(RequestPrelude(pathInfo = push.location, headers = req.prelude.headers))
 
-  private def collectResponder(r: Vector[PushLocation], req: RequestPrelude, route: Route): Future[Vector[PushResponse]] = 
-    r.foldLeft(Future.successful(Vector.empty[PushResponse])){ (facc, v) =>
+  private def collectResponse(r: Vector[PushLocation], req: Request, route: HttpService): Task[Vector[PushResponse]] =
+    r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>
       val newReq = locToRequest(v, req)
       if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-        try route(newReq).run
+        try route(newReq)
           .flatMap { response =>                  // Inside the future result of this pushed resource
             response.attributes.get(pushLocationKey)
             .map { pushed =>
-              collectResponder(pushed, req, route)
+              collectResponse(pushed, req, route)
                 .map(accumulated ++ _ :+ PushResponse(v.location, response))
-            }.getOrElse(Future.successful(accumulated:+PushResponse(v.location, response)))
+            }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
           }
         catch { case t: Throwable => handleException(t); facc }
       } else {
         try route(newReq)   // Need to make sure to catch exceptions
-          .run
           .flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
         catch { case t: Throwable => handleException(t); facc }
       }
@@ -60,23 +62,22 @@ object PushSupport extends Logging {
    * @param route Route to transform
    * @return      Transformed route
    */
-  def apply(route: Route): Route = {
-    def gather(req: RequestPrelude, i: Iteratee[Chunk, Response]): Iteratee[Chunk, Response] = i map { resp =>
+  def apply(route: HttpService): HttpService = {
+    def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
       resp.attributes.get(pushLocationKey).map { fresource =>
-        val collected: Future[Vector[PushResponse]] = collectResponder(fresource, req, route)
-        Response(resp.prelude, resp.body, resp.attributes.put(pushResponseKey, collected))
+        val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, route)
+        Response(resp.prelude, resp.body, resp.attributes.put(pushResponsesKey, collected))
       }.getOrElse(resp)
     }
 
-    new Route {
-      def apply(v1: RequestPrelude): Iteratee[Chunk, Response] = gather(v1, route(v1))
-      def isDefinedAt(x: RequestPrelude): Boolean = route.isDefinedAt(x)
+    new HttpService {
+      def apply(v1: Request): Task[Response] = gather(v1, route(v1))
     }
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)
-  private [PushSupport] case class PushResponse(location: String, resp: Response)
+  private [http4s] case class PushResponse(location: String, resp: Response)
 
   private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]("http4sPush")
-  private[http4s] val pushResponseKey = AttributeKey[Future[Vector[PushResponse]]]("http4sPushResponders")
+  private[http4s] val pushResponsesKey = AttributeKey[Task[Vector[PushResponse]]]("http4sPushResponses")
 }

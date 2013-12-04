@@ -14,6 +14,14 @@ libraryDependencies ++= Seq(
   jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
 )
 
-mainClass in Revolver.reStart := Some("org.http4s.grizly.GrizzlyExample")
+mainClass in Revolver.reStart := Some("org.http4s.examples.spdynetty.SpdyNettyExample")
 
-fork in run := true
+fork := true
+
+// Adds NPN to the boot classpath for Spdy support
+javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
+   for {
+     file <- attList.map(_.data)
+     path = file.getAbsolutePath if path.contains("jetty.npn")
+   } yield "-Xbootclasspath/p:" + path
+}

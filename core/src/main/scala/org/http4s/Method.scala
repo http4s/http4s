@@ -1,7 +1,5 @@
 package org.http4s
 
-import scala.collection.concurrent
-import scala.collection.concurrent.TrieMap
 import org.http4s.util.Registry
 
 /**

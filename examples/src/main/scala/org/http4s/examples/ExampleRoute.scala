@@ -1,49 +1,84 @@
 package org.http4s
 
-import scala.language.reflectiveCalls
-import concurrent.{Future, ExecutionContext}
-import play.api.libs.iteratee._
-import akka.util.ByteString
+import scalaz.concurrent.Task
+import scalaz.stream.Process, Process.{Get => PGet, _}
+import scalaz.stream.process1
+import scala.concurrent.Future
 import org.http4s.dsl._
+import scala.util.{Failure, Success}
+import org.http4s.util.middleware.PushSupport
 
-object ExampleRoute {
+class ExampleRoute {
   import Status._
   import Writable._
   import BodyParser._
-
+  import PushSupport._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
+  import scala.concurrent.ExecutionContext.Implicits.global
+
   val MyVar = AttributeKey[Int]("myVar")
 
-  def apply(implicit executor: ExecutionContext = ExecutionContext.global): Route = {
+  def apply(): HttpService = {
+
     case Get -> Root / "ping" =>
-      Done(Ok("pong"))
+      Ok("pong")
 
-    case Post -> Root / "echo"  =>
-      Done(Ok(Enumeratee.passAlong: Enumeratee[Chunk, Chunk]))
+    case Get -> Root / "push" =>
+      val data = <html><body><img src="image.jpg"/></body></html>
+      Ok(data).push("/http4s/image.jpg")
 
-    case Get -> Root / "echo" =>
-      Done(Ok(Enumeratee.map[Chunk] {
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): Chunk
+    case Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
+      val bytes = {
+        val is = getClass.getResourceAsStream("/nasa_blackhole_image.jpg")
+        assert(is != null)
+        val buff = new Array[Byte](5000)
+        def go(acc: Vector[Array[Byte]]): Array[Byte] = {
+          if (is.available() > 0) {
+            go(acc :+ buff.slice(0, is.read(buff)))
+          }
+          else acc.flatten.toArray
+        }
+        go(Vector.empty)
+      }
+      Ok(bytes)
+
+
+    case req @ Post -> Root / "echo" =>
+      Task.now(Response(body = req.body))
+
+    case req @ Post -> Root / "echo2" =>
+      Task.now(Response(body = req.body.map {
+        case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
       }))
 
-    case Get -> Root / "echo2" =>
-      Done(Ok(Enumeratee.map[Chunk] {
-        case BodyChunk(e) => BodyChunk(e.slice(6, e.length)): Chunk
-        case chunk => chunk
-      }))
 
-    case req @ Post -> Root / "sum" =>
-      text(req.charset, 16) { s =>
+    case req @ Post -> Root / "sum"  =>
+      text(req).flatMap{ s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       }
 
-    case req @ Get -> Root / "attributes" =>
-      val req2 = req.updated(MyVar, 55)
-      Ok("Hello" + req(MyVar) +  " and " + req2(MyVar) + ".\n")
+    case req @ Post -> Root / "shortsum"  =>
+      text(req, limit = 3).flatMap { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Ok(sum)
+      } handle { case EntityTooLarge(_) =>
+        Ok("Got a nonfatal Exception, but its OK").run
+      }
+
+/*
+    case req @ Post -> Root / "trailer" =>
+      trailer(t => Ok(t.headers.length))
+
+    case req @ Post -> Root / "body-and-trailer" =>
+      for {
+        body <- text(req.charset)
+        trailer <- trailer
+      } yield Ok(s"$body\n${trailer.headers("Hi").value}")
+*/
 
     case Get -> Root / "html" =>
       Ok(
@@ -55,6 +90,19 @@ object ExampleRoute {
         </body></html>
       )
 
+    case req@ Post -> Root / "challenge" =>
+      val body = req.body.collect {
+        case c: BodyChunk => new String(c.toArray)
+      }.toTask
+
+      body.flatMap{ s: String =>
+        if (!s.startsWith("go")) {
+          Ok("Booo!!!")
+        } else {
+          Ok(emit(s) ++ repeatEval(body))
+        }
+      }
+/*
     case req @ Get -> Root / "stream" =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
@@ -69,42 +117,42 @@ object ExampleRoute {
           }.start()
 
       }))
-
+  */
     case Get -> Root / "bigstring" =>
-      Done{
-        Ok((0 until 1000) map { i => s"This is string number $i" })
-      }
+      Ok((0 until 1000).map(i => s"This is string number $i"))
+
+    case Get -> Root / "bigfile" =>
+      val size = 40*1024*1024   // 40 MB
+      Ok(new Array[Byte](size))
 
     case Get -> Root / "future" =>
-      Done{
-        Ok(Future("Hello from the future!"))
-      }
+      Ok(Future("Hello from the future!"))
 
     case req @ Get -> Root / "bigstring2" =>
-      Done{
-        Ok(Enumerator((0 until 1000) map { i => ByteString(s"This is string number $i", req.charset.name) }: _*))
-      }
+      Ok(Process.range(0, 1000).map(i => s"This is string number $i"))
 
-    case req @ Get -> Root / "bigstring3" =>
-      Done{
-        Ok(flatBigString)
-      }
+    case req @ Get -> Root / "bigstring3" => Ok(flatBigString)
 
     case Get -> Root / "contentChange" =>
       Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
 
-      // Ross wins the challenge
-    case req @ Get -> Root / "challenge" =>
-      Iteratee.head[Chunk].map {
-        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("Go") =>
-          Ok(Enumeratee.heading(Enumerator(bits: Chunk)))
-        case Some(bits: BodyChunk) if (bits.decodeString(req.charset)).startsWith("NoGo") =>
+    case req @ Post -> Root / "challenge" =>
+      val parser = await1[Chunk] map {
+        case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("Go") =>
+          Task.now(Response(body = emit(bits) fby req.body))
+        case bits: BodyChunk if (bits.decodeString(req.prelude.charset)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
-          BadRequest("No data!")
+          BadRequest("no data")
       }
+      (req.body |> parser).eval.toTask
+
+    case req @ Get -> Root / "root-element-name" =>
+      xml(req).flatMap(root => Ok(root.label))
 
     case req @ Get -> Root / "fail" =>
       sys.error("FAIL")
+
+    case req => NotFound(req)
   }
 }

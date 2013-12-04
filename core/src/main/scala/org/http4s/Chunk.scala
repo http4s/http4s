@@ -1,69 +1,93 @@
 package org.http4s
 
-import akka.util.{ByteStringBuilder, ByteIterator, ByteString}
+import java.io.InputStream
 import java.nio.ByteBuffer
 import scala.collection.generic.CanBuildFrom
 import scala.collection.{mutable, IndexedSeqOptimized}
+import scala.io.Codec
+import scalaz.{RopeBuilder, Rope}
+import java.nio.charset.Charset
+import scala.reflect.ClassTag
 
-sealed trait Chunk
+sealed trait Chunk extends IndexedSeq[Byte] {
 
-case class BodyChunk(bytes: ByteString) extends Chunk
-  with IndexedSeq[Byte] with IndexedSeqOptimized[Byte, BodyChunk]
-{
-  override def apply(idx: Int): Byte = bytes(idx)
+  def asInputStream: InputStream = new InputStream {
+    var pos = 0
 
-  override def toArray[B >: Byte](implicit evidence$1: scala.reflect.ClassTag[B]): Array[B] = bytes.toArray
+    def read(): Int = {
+      val result = if (pos < length) apply(pos) else -1
+      pos += 1
+      result
+    }
+  }
 
-  def length: Int = bytes.length
+  def decodeString(charset: Charset): String = new String(toArray, charset)
+
+  def decodeString(charset: CharacterSet): String = decodeString(charset.charset)
+}
+
+class BodyChunk private (private val self: Rope[Byte]) extends Chunk with IndexedSeqOptimized[Byte, BodyChunk] {
+
+  override def iterator: Iterator[Byte] = self.iterator
+
+  override def reverseIterator: Iterator[Byte] = self.reverseIterator
+
+  override def apply(idx: Int): Byte = self.get(idx).getOrElse(throw new IndexOutOfBoundsException(idx.toString))
+
+  def length: Int = self.length
+
+  override def toArray[B >: Byte : ClassTag]: Array[B] = self.toArray
 
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
+  /*
+    override def iterator: ByteIterator = bytes.iterator
 
-  override def iterator: ByteIterator = bytes.iterator
+    /**
+     * Returns a read-only ByteBuffer that directly wraps this ByteString
+     * if it is not fragmented.
+     */
+    def asByteBuffer: ByteBuffer = bytes.asByteBuffer
 
-  /**
-   * Returns a read-only ByteBuffer that directly wraps this ByteString
-   * if it is not fragmented.
-   */
-  def asByteBuffer: ByteBuffer = bytes.asByteBuffer
+    /**
+     * Decodes this ByteString as a UTF-8 encoded String.
+     */
+    final def utf8String: String = decodeString(CharacterSet.`UTF-8`)
 
-  /**
-   * Creates a new ByteBuffer with a copy of all bytes contained in this
-   * ByteString.
-   */
-  def toByteBuffer: ByteBuffer = bytes.toByteBuffer
+    /**
+     * Decodes this ByteString using a charset to produce a String.
+     */
+    def decodeString(charset: CharacterSet): String = bytes.decodeString(charset.value)
+  */
 
-  /**
-   * Decodes this ByteString as a UTF-8 encoded String.
-   */
-  final def utf8String: String = decodeString(CharacterSet.`UTF-8`)
-
-  /**
-   * Decodes this ByteString using a charset to produce a String.
-   */
-  def decodeString(charset: CharacterSet): String = bytes.decodeString(charset.name)
+  def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
 }
 
 object BodyChunk {
   type Builder = mutable.Builder[Byte, BodyChunk]
 
-  def apply(bytes: Array[Byte]): BodyChunk = BodyChunk(ByteString(bytes))
+  def apply(rope: Rope[Byte]): BodyChunk = new BodyChunk(rope)
 
-  def apply(bytes: Byte*): BodyChunk = BodyChunk(ByteString(bytes: _*))
+  def apply(bytes: Array[Byte]): BodyChunk = BodyChunk(Rope.fromArray(bytes))
 
-  def apply[T](bytes: T*)(implicit num: Integral[T]): BodyChunk = BodyChunk(ByteString(bytes: _*)(num))
+  def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes.toArray)
 
-  def apply(bytes: ByteBuffer): BodyChunk = BodyChunk(ByteString(bytes))
+  def apply(bytes: ByteBuffer): BodyChunk = {
+    val pos = bytes.position()
+    val rem = bytes.remaining()
+    val n = new Array[Byte](rem)
+    System.arraycopy(bytes.array(), pos, n, 0, rem)
+    BodyChunk(n)
+  }
 
-  def apply(string: String): BodyChunk = apply(string, CharacterSet.`UTF-8`)
+  def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
 
-  def apply(string: String, charset: CharacterSet): BodyChunk = BodyChunk(ByteString(string, charset.name))
+  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(Rope.fromArray(string.getBytes(charset)))
 
-  def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk =
-    BodyChunk(ByteString.fromArray(array, offset, length))
+  def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk = BodyChunk(array.slice(offset, length))
 
-  val Empty: BodyChunk = BodyChunk(ByteString.empty)
+  val empty: BodyChunk = BodyChunk(Rope.empty[Byte])
 
-  private def newBuilder: Builder = (new ByteStringBuilder).mapResult(BodyChunk(_))
+  private def newBuilder: Builder = (new RopeBuilder[Byte]).mapResult(BodyChunk.apply _)
 
   implicit def canBuildFrom: CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] =
     new CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] {
@@ -73,5 +97,7 @@ object BodyChunk {
 }
 
 case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends Chunk {
-  final def bytes: ByteString = ByteString.empty
+  override def apply(idx: Int): Byte = throw new IndexOutOfBoundsException(idx.toString)
+
+  def length: Int = 0
 }

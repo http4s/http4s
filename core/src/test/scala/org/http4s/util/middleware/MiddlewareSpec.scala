@@ -1,3 +1,4 @@
+/*
 package org.http4s.util.middleware
 
 import org.http4s._
@@ -53,3 +54,4 @@ class MiddlewareSpec extends WordSpec with Matchers {
   }
 
 }
+*/

@@ -4,7 +4,10 @@ name := "http4s-netty4"
 
 description := "Netty4 backend for http4s"
 
-libraryDependencies ++= Seq(
-  netty4
-)
+fork := true
 
+libraryDependencies ++= Seq(
+  netty4,
+  npn_boot,
+  npn_api
+)
