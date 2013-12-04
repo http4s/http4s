@@ -44,9 +44,9 @@ object Path {
 
   def unapplySeq(path: Path): Option[List[String]] = Some(path.toList)
 
-  def unapplySeq(request: RequestPrelude): Option[List[String]] = Some(Path(request.pathInfo).toList)
+  def unapplySeq(request: Request): Option[List[String]] = Some(Path(request.pathInfo).toList)
 
-  def unapply(request: RequestPrelude): Option[Path] = Some(Path(request.pathInfo))
+  def unapply(request: Request): Option[Path] = Some(Path(request.pathInfo))
 
 }
 
@@ -88,7 +88,7 @@ object ~ {
 
 object :/ {
   def unapply(req: Request): Option[(Path, String)] = {
-    val p = Path(req.prelude.pathInfo)
+    val p = Path(req.pathInfo)
     Some(p.parent, p.lastOption.getOrElse(""))
   }
 }
@@ -117,7 +117,7 @@ object -> {
    *     case Method.Get -> Root / "test.json" => ...
    */
   def unapply(req: Request): Option[(Method, Path)] = {
-    Some((req.prelude.requestMethod, Path(req.prelude.pathInfo)))
+    Some((req.requestMethod, Path(req.pathInfo)))
   }
 }
 

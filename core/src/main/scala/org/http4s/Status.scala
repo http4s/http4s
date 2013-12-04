@@ -91,8 +91,7 @@ object Status {
   object PaymentRequired extends Status(402, "Payment Required") with EntityResponseGenerator
   object Forbidden extends Status(403, "Forbidden") with EntityResponseGenerator
   object NotFound extends Status(404, "Not Found") with EntityResponseGenerator {
-    def apply(request: RequestPrelude): Task[Response] = apply(s"${request.pathInfo} not found")
-    def apply(request: Request): Task[Response] = apply(request.prelude)
+    def apply(request: Request): Task[Response] = apply(s"${request.pathInfo} not found")
   }
   object MethodNotAllowed extends Status(405, "Method Not Allowed") with EntityResponseGenerator {
     def apply[A](allowed: TraversableOnce[Method], body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =

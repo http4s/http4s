@@ -60,8 +60,8 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
     }
   }
 
-  protected def toRequest(req: HttpServletRequest): Request = {
-    val prelude = RequestPrelude(
+  protected def toRequest(req: HttpServletRequest): Request =
+    Request(
       requestMethod = Method(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
@@ -72,11 +72,9 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
       serverName = req.getServerName,
       serverPort = req.getServerPort,
       serverSoftware = serverSoftware,
-      remote = InetAddress.getByName(req.getRemoteAddr) // TODO using remoteName would trigger a lookup
+      remote = InetAddress.getByName(req.getRemoteAddr), // TODO using remoteName would trigger a lookup
+      body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval
     )
-    val body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval
-    Request(prelude, body)
-  }
 
   protected def toHeaders(req: HttpServletRequest): HeaderCollection = {
     val headers = for {

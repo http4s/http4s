@@ -1,6 +1,8 @@
 package org.http4s
 
 import scalaz.stream.Process
+import java.io.File
+import java.net.{URI, InetAddress}
 
 abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
@@ -35,13 +37,33 @@ abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: At
 }
 
 case class Request(
-  prelude: RequestPrelude = RequestPrelude(),
-  body: HttpBody = HttpBody.empty
-) extends Message(prelude.headers, body, prelude.attributes) {
+  requestMethod: Method = Method.Get,
+  scriptName: String = "",
+  pathInfo: String = "",
+  queryString: String = "",
+  pathTranslated: Option[File] = None,
+  protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
+  headers: HeaderCollection = HeaderCollection.empty,
+  urlScheme: UrlScheme = HttpUrlScheme.Http,
+  serverName: String = InetAddress.getLocalHost.getHostName,
+  serverPort: Int = 80,
+  serverSoftware: ServerSoftware = ServerSoftware.Unknown,
+  remote: InetAddress = InetAddress.getLocalHost,
+  body: HttpBody = HttpBody.empty,
+  attributes: AttributeMap = AttributeMap.empty
+) extends Message(headers, body, attributes) {
   type Self = Request
-  def headers: HeaderCollection = prelude.headers
-  def withHeaders(headers: HeaderCollection): Request = copy(prelude = prelude.copy(headers = headers))
+  def withHeaders(headers: HeaderCollection): Request = copy(headers = headers)
   def withBody(body: HttpBody): Request = copy(body = body)
+
+  val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
+
+  lazy val authType: Option[AuthType] = None
+
+  lazy val remoteAddr = remote.getHostAddress
+  lazy val remoteHost = remote.getHostName
+
+  lazy val remoteUser: Option[String] = None
 }
 
 case class Response(

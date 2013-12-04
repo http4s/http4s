@@ -55,7 +55,9 @@ class SpdyNettyHandler(srvc: HttpService,
     }
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    val prelude = RequestPrelude(
+    val streamctx = new SpdyStreamContext(ctx, this, req.getStreamId)
+    assert(activeStreams.put(req.getStreamId, streamctx) == null)
+    Request(
       requestMethod = Method(SpdyHeaders.getMethod(spdyversion, req).name),
       //scriptName = contextPath,
       pathInfo = uri.getRawPath,
@@ -66,12 +68,9 @@ class SpdyNettyHandler(srvc: HttpService,
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
-      remote = remoteAddress.getAddress // TODO using remoteName would trigger a lookup
+      remote = remoteAddress.getAddress, // TODO using remoteName would trigger a lookup
+      body = getStream(streamctx.manager)
     )
-
-    val streamctx = new SpdyStreamContext(ctx, this, req.getStreamId)
-    assert(activeStreams.put(req.getStreamId, streamctx) == null)
-    Request(prelude, getStream(streamctx.manager))
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {

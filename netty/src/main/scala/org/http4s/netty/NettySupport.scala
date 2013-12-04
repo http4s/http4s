@@ -90,7 +90,7 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
     val request = toRequest(ctx, req)
     val task = try service(request)
     catch { // TODO: don't rely on exceptions for bad requests?
-      case m: MatchError => Status.NotFound(request.prelude)
+      case m: MatchError => Status.NotFound(request)
       case e: Throwable =>
         logger.error("Received error on route", e)
         Status.InternalServerError()

@@ -14,7 +14,6 @@ import Process._
 import scala.collection.mutable.ListBuffer
 import java.net.{InetSocketAddress, URI}
 import org.http4s.Request
-import org.http4s.RequestPrelude
 import org.http4s.TrailerChunk
 import io.netty.util.ReferenceCountUtil
 import org.http4s.netty.utils.{NettyOutput, ChunkHandler}
@@ -102,7 +101,7 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     val uri = new URI(req.getUri)
 
     val servAddr = localAddress
-    val prelude = RequestPrelude(
+    Request(
       requestMethod = Method(req.getMethod.name),
       //scriptName = contextPath,
       pathInfo = uri.getRawPath,
@@ -113,11 +112,9 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
-      remote = remoteAddress.getAddress
+      remote = remoteAddress.getAddress,
+      body = getStream(new ChannelManager(ctx))
     )
-
-    manager = new ChannelManager(ctx)
-    Request(prelude, getStream(manager))
   }
 
   def bufferToMessage(buff: ByteBuf): HttpObject = new DefaultHttpContent(buff)

@@ -5,7 +5,6 @@ import scalaz.concurrent.Task
 import org.http4s._
 import org.http4s.Request
 import org.http4s.AttributeKey
-import org.http4s.RequestPrelude
 
 /**
  * @author Bryce Anderson
@@ -35,7 +34,7 @@ object PushSupport extends Logging {
   }
 
   private def locToRequest(push: PushLocation, req: Request): Request =
-    Request(RequestPrelude(pathInfo = push.location, headers = req.prelude.headers))
+    Request(pathInfo = push.location, headers = req.headers)
 
   private def collectResponse(r: Vector[PushLocation], req: Request, route: HttpService): Task[Vector[PushResponse]] =
     r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>
