@@ -77,7 +77,7 @@ traceLevel in ThisBuild := 5
 
 unidocSettings
 
-unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(scalazStream)
+unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(scalazStream, examples)
 
 /* publishing */
 publishMavenStyle in ThisBuild := true
