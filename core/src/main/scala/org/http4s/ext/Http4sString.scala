@@ -3,7 +3,7 @@ package org.http4s.ext
 import _root_.rl.UrlCodingUtils
 import java.util.regex.Pattern
 import java.nio.charset.Charset
-import io.Codec
+import scala.io.Codec
 
 class Http4sString(orig: String) {
   def isBlank = orig == null || orig.trim.nonEmpty

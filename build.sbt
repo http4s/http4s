@@ -1,4 +1,5 @@
 import Http4sDependencies._
+import UnidocKeys._
 
 lazy val scalazStream = ProjectRef(uri("git://github.com/scalaz/scalaz-stream.git"), "scalaz-stream")
 
@@ -73,6 +74,10 @@ testOptions in ThisBuild += Tests.Argument(TestFrameworks.Specs2, "console", "ju
 logLevel in (ThisBuild, compile) := Level.Warn
 
 traceLevel in ThisBuild := 5
+
+unidocSettings
+
+unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(scalazStream)
 
 /* publishing */
 publishMavenStyle in ThisBuild := true

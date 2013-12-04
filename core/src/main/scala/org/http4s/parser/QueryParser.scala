@@ -4,7 +4,7 @@ package parser
 import org.parboiled.scala._
 import java.io.UnsupportedEncodingException
 import org.parboiled.errors.ParsingException
-import io.Codec
+import scala.io.Codec
 import java.net.URLDecoder
 
 
