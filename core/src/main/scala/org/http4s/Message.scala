@@ -42,7 +42,6 @@ case class Request(
   scriptName: String = "",
   pathInfo: String = "",
   queryString: String = "",
-  pathTranslated: Option[File] = None,
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: HeaderCollection = HeaderCollection.empty,
   urlScheme: UrlScheme = HttpUrlScheme.Http,
@@ -53,6 +52,8 @@ case class Request(
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message(headers, body, attributes) {
+  import Request._
+
   type Self = Request
   def withHeaders(headers: HeaderCollection): Request = copy(headers = headers)
   def withBody(body: HttpBody): Request = copy(body = body)
@@ -61,10 +62,18 @@ case class Request(
 
   lazy val authType: Option[AuthType] = headers.get(Header.Authorization).map(_.credentials.authType)
 
+  lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
+
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName
 
   lazy val remoteUser: Option[String] = None
+}
+
+object Request {
+  object Keys {
+    val PathTranslated = AttributeKey.http4s[File]("request.pathTranslated")
+  }
 }
 
 case class Response(
