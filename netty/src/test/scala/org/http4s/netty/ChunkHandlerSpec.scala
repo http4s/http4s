@@ -96,6 +96,19 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
       lastFromCb.swap.toOption.get should be theSameInstanceAs(t)
       handler.queueSize() should equal(0)
     }
+
+    "terminate a waiting request with the ending throwable" in {
+      val handler2 = new TestChunker(3)
+      handler2.enque(c)
+      handler2.request(cb)
+      lastRight should be theSameInstanceAs(c)
+      val t = new Exception("Failed.")
+      handler2.request(cb)
+      handler2.kill(t)
+      handler2.queueSize() should equal(0)
+      lastFromCb.swap.toOption.get should be theSameInstanceAs(t)
+      handler.queueSize() should equal(0)
+    }
   }
 
   // Simple instance for testing purposes

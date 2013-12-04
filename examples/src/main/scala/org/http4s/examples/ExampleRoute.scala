@@ -90,6 +90,18 @@ class ExampleRoute {
         </body></html>
       )
 
+    case req@ Post -> Root / "challenge" =>
+      val body = req.body.collect {
+        case c: BodyChunk => new String(c.toArray)
+      }.toTask
+
+      body.flatMap{ s: String =>
+        if (!s.startsWith("go")) {
+          Ok("Booo!!!")
+        } else {
+          Ok(emit(s) ++ repeatEval(body))
+        }
+      }
 /*
     case req @ Get -> Root / "stream" =>
       Ok(Concurrent.unicast[ByteString]({

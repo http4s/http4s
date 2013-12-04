@@ -42,6 +42,8 @@ class ChunkHandler(val highWater: Int) {
   def close(): Unit = queue.synchronized {
     closed = true
     endThrowable = End
+    if (cb != null) cb(-\/(endThrowable))
+    cb = null
   }
 
   def kill(t: Throwable): Unit = queue.synchronized {
@@ -59,6 +61,7 @@ class ChunkHandler(val highWater: Int) {
   def request(cb: CB): Int = queue.synchronized {
     assert(this.cb == null)
     if (closed && queue.isEmpty) {
+      println("Sending the endThrowable.")
       cb(-\/(endThrowable))
       0
     }
