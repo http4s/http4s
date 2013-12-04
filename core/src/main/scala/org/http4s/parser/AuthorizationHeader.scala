@@ -29,7 +29,7 @@ private[parser] trait AuthorizationHeader {
   }
 
   def GenericHttpCredentialsDef = rule {
-    AuthScheme ~ CredentialParams ~~> { (scheme, params) => GenericCredentials(scheme.ci, params) }
+    AuthScheme ~ CredentialParams ~~> { (scheme, params) => GenericCredentials(org.http4s.AuthScheme.getOrCreate(scheme), params) }
   }
 
   def CredentialParams = rule (

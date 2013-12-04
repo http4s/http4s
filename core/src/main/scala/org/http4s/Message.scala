@@ -60,7 +60,7 @@ case class Request(
 
   val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
-  lazy val authType: Option[AuthType] = headers.get(Header.Authorization).map(_.credentials.authType)
+  lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
