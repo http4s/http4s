@@ -17,7 +17,7 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
 
 object Status {
   trait NoEntityResponseGenerator { self: Status =>
-    private[this] val StatusResponder = Response(ResponsePrelude(this))
+    private[this] val StatusResponder = Response(this)
     def apply(): Task[Response] = Task.now(StatusResponder)
   }
 
@@ -31,13 +31,13 @@ object Status {
       headers :+= Header.`Content-Type`(contentType)
       w.toBody(body).map { case (proc, len) =>
         len foreach { headers :+= Header.`Content-Length`(_) }
-        Response(ResponsePrelude(self, headers), proc)
+        Response(self, headers, proc)
       }
     }
   }
 
   trait RedirectResponderGenerator { self: Status =>
-    def apply(uri: String): Response = Response(ResponsePrelude(self, HeaderCollection(Header.Location(uri))))
+    def apply(uri: String): Response = Response(self, HeaderCollection(Header.Location(uri)))
 
     def apply(uri: URI): Response = apply(uri.toString)
 
@@ -51,7 +51,7 @@ object Status {
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Response =
-      Response(ResponsePrelude(this, Header("Upgrade", protocols) +: headers), HttpBody.empty)
+      Response(this, Header("Upgrade", protocols) +: headers, HttpBody.empty)
   }
   object Processing extends Status(102, "Processing") with NoEntityResponseGenerator
 

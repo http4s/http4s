@@ -40,8 +40,8 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
       service(request).flatMap { response =>
-        servletResponse.setStatus(response.prelude.status.code, response.prelude.status.reason)
-        for (header <- response.prelude.headers)
+        servletResponse.setStatus(response.status.code, response.status.reason)
+        for (header <- response.headers)
           servletResponse.addHeader(header.name.toString, header.value)
         val out = servletResponse.getOutputStream
         val isChunked = response.isChunked

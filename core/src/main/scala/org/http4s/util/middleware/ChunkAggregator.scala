@@ -36,10 +36,7 @@ object ChunkAggregator extends Logging {
       route(req).map { response =>
         val chunks = compact(response.body)
         if (!chunks.isEmpty) {
-          val prelude =response.prelude.copy(
-            headers = response.prelude.headers.put(`Content-Length`(chunks.head.length))
-          )
-          response.copy(prelude = prelude, body = emitSeq(chunks))
+          response.putHeader(`Content-Length`(chunks.head.length)).withBody(emitSeq(chunks))
         }
         else response
       }

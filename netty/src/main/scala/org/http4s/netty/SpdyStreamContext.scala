@@ -100,7 +100,7 @@ class SpdyStreamContext(protected val ctx: ChannelHandlerContext, val parentHand
     SpdyHeaders.setVersion(spdyversion, spdyresp, HTTP_1_1)
 
     var size = -1
-    response.prelude.headers.foreach { header =>
+    response.headers.foreach { header =>
       if (header.is(`Content-Length`)) size = header.parsed.asInstanceOf[`Content-Length`].length
       spdyresp.headers.set(header.name.toString, header.value)
     }
@@ -108,5 +108,5 @@ class SpdyStreamContext(protected val ctx: ChannelHandlerContext, val parentHand
   }
 
   private def getStatus(response: Response) =
-    new HttpResponseStatus(response.prelude.status.code, response.prelude.status.reason)
+    new HttpResponseStatus(response.status.code, response.status.reason)
 }

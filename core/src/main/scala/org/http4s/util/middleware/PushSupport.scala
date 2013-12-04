@@ -24,8 +24,9 @@ object PushSupport extends Logging {
           .map(_ :+ PushLocation(url, cascade))
           .getOrElse(Vector(PushLocation(url,cascade)))
 
-      Response(response.prelude, response.body,
-        response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
+      response.copy(
+        body = response.body,
+        attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
     }
   }
 
@@ -66,7 +67,9 @@ object PushSupport extends Logging {
     def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
       resp.attributes.get(pushLocationKey).map { fresource =>
         val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, route)
-        Response(resp.prelude, resp.body, resp.attributes.put(pushResponsesKey, collected))
+        resp.copy(
+          body = resp.body,
+          attributes = resp.attributes.put(pushResponsesKey, collected))
       }.getOrElse(resp)
     }
 

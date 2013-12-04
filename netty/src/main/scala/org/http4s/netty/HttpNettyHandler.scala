@@ -60,10 +60,9 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, response: Response): Task[Unit] = {
 
-    val prelude = response.prelude
-    val stat = new HttpResponseStatus(prelude.status.code, prelude.status.reason)
+    val stat = new HttpResponseStatus(response.status.code, response.status.reason)
 
-    val length = prelude.headers.get(Header.`Content-Length`).map(_.length)
+    val length = response.headers.get(Header.`Content-Length`).map(_.length)
     val isHttp10 = req.getProtocolVersion == HttpVersion.HTTP_1_0
 
     val headers = new ListBuffer[(String, String)]
@@ -85,7 +84,7 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
 
     val msg = new DefaultHttpResponse(req.getProtocolVersion, stat)
     headers.foreach { case (k, v) => msg.headers.set(k,v) }
-    response.prelude.headers.foreach(h => msg.headers().set(h.name.toString, h.value))
+    response.headers.foreach(h => msg.headers().set(h.name.toString, h.value))
     if (length.isEmpty) ctx.writeAndFlush(msg)
     else ctx.write(msg)
 

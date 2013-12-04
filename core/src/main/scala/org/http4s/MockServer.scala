@@ -10,8 +10,8 @@ class MockServer(service: HttpService) {
       response <- service(request)
       body <- response.body.scanSemigroup.toTask
     } yield MockResponse(
-      response.prelude.status,
-      response.prelude.headers,
+      response.status,
+      response.headers,
       body.toArray,
       response.attributes
     )

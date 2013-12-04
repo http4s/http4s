@@ -2,10 +2,8 @@ package org.http4s
 
 import scalaz.stream.Process
 
-sealed trait Message {
+abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
-
-  def headers: HeaderCollection
 
   def withHeaders(headers: HeaderCollection): Self
 
@@ -20,11 +18,11 @@ sealed trait Message {
 
   def charset: CharacterSet = contentType.map(_.charset) getOrElse CharacterSet.`ISO-8859-1`
 
-  def body: HttpBody
-
   def withBody(body: HttpBody): Self
 
   def addHeader(header: Header): Self = withHeaders(headers = header +: headers)
+
+  def putHeader(header: Header): Self = withHeaders(headers = headers.put(header))
 
   def dropHeaders(f: Header => Boolean): Self =
     withHeaders(headers = headers.filter(f))
@@ -39,7 +37,7 @@ sealed trait Message {
 case class Request(
   prelude: RequestPrelude = RequestPrelude(),
   body: HttpBody = HttpBody.empty
-) extends Message {
+) extends Message(prelude.headers, body, prelude.attributes) {
   type Self = Request
   def headers: HeaderCollection = prelude.headers
   def withHeaders(headers: HeaderCollection): Request = copy(prelude = prelude.copy(headers = headers))
@@ -47,13 +45,13 @@ case class Request(
 }
 
 case class Response(
-  prelude: ResponsePrelude = ResponsePrelude(),
+  status: Status = Status.Ok,
+  headers: HeaderCollection = HeaderCollection.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message {
+) extends Message(headers, body, attributes) {
   type Self = Response
-  def headers: HeaderCollection = prelude.headers
-  def withHeaders(headers: HeaderCollection): Response = copy(prelude = prelude.copy(headers = headers))
+  def withHeaders(headers: HeaderCollection): Response = copy(headers = headers)
   def withBody(body: _root_.org.http4s.HttpBody): Response = copy(body = body)
 
   def addCookie(cookie: Cookie): Response = addHeader(Header.Cookie(cookie))
@@ -61,7 +59,5 @@ case class Response(
   def removeCookie(cookie: Cookie): Response =
     addHeader(Header.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
 
-  def status: Status = prelude.status
-
-  def status[T <% Status](status: T) = copy(prelude.copy(status = status))
+  def withStatus[T <% Status](status: T) = copy(status = status)
 }
