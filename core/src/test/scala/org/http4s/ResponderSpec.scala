@@ -38,7 +38,7 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
       val wHeader = resp.addHeader(Header.Connection("close"))
       wHeader.headers.get(Header.Connection).value should equal (Header.Connection("close"))
 
-      val newHeaders = wHeader.dropHeader(Header.Connection)
+      val newHeaders = wHeader.removeHeader(Header.Connection)
       newHeaders.headers.get(Header.Connection) should be (None)
     }
 

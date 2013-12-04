@@ -53,7 +53,7 @@ object GZip extends Logging {
           if (resp.headers.get(`Content-Encoding`).isEmpty) {
             logger.trace("GZip middleware encoding content")
             val b = (resp.body ||| emit(FinalChunk)).pipe(streamingGZip(buffersize))
-            resp.dropHeader(`Content-Length`)
+            resp.removeHeader(`Content-Length`)
               .addHeader(`Content-Encoding`(ContentCoding.gzip))
               .copy(body = b)
           }

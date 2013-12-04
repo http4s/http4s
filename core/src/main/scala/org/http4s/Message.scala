@@ -26,10 +26,10 @@ abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: At
 
   def putHeader(header: Header): Self = withHeaders(headers = headers.put(header))
 
-  def dropHeaders(f: Header => Boolean): Self =
+  def filterHeaders(f: Header => Boolean): Self =
     withHeaders(headers = headers.filter(f))
 
-  def dropHeader(key: HeaderKey): Self = dropHeaders(_ isNot key)
+  def removeHeader(key: HeaderKey): Self = filterHeaders(_ isNot key)
 
   def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`)
     .map(_.values.list.contains(TransferCoding.chunked))
