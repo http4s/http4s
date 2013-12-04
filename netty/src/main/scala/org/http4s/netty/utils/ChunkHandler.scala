@@ -42,8 +42,11 @@ class ChunkHandler(val highWater: Int) {
   def close(): Unit = queue.synchronized {
     closed = true
     endThrowable = End
-    if (cb != null) cb(-\/(endThrowable))
-    cb = null
+    if (cb != null) {
+      try cb(-\/(endThrowable))
+      catch { case t: Throwable => cbException(t, cb) }
+      finally cb = null
+    }
   }
 
   def kill(t: Throwable): Unit = queue.synchronized {
