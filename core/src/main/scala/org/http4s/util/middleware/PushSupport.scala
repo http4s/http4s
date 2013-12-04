@@ -80,6 +80,6 @@ object PushSupport extends Logging {
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)
   private [http4s] case class PushResponse(location: String, resp: Response)
 
-  private[PushSupport] val pushLocationKey = AttributeKey[Vector[PushLocation]]("http4sPush")
-  private[http4s] val pushResponsesKey = AttributeKey[Task[Vector[PushResponse]]]("http4sPushResponses")
+  private[PushSupport] val pushLocationKey = AttributeKey.http4s[Vector[PushLocation]]("pushLocation")
+  private[http4s] val pushResponsesKey = AttributeKey.http4s[Task[Vector[PushResponse]]]("pushResponses")
 }

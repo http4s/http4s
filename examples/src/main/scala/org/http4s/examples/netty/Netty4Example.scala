@@ -1,10 +1,12 @@
 
 package org.http4s
+package examples
 package netty
 
 import org.http4s._
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s.util.middleware.{GZip, URITranslation,ChunkAggregator}
+import org.http4s.netty.SimpleNettyServer
 
 
 object Netty4Example extends App with Logging {

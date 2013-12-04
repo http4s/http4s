@@ -1,4 +1,5 @@
 package org.http4s
+package examples
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process, Process.{Get => PGet, _}
@@ -18,7 +19,7 @@ class ExampleRoute {
 
   import scala.concurrent.ExecutionContext.Implicits.global
 
-  val MyVar = AttributeKey[Int]("myVar")
+  val MyVar = AttributeKey[Int]("org.http4s.examples.myVar")
 
   def apply(): HttpService = {
 

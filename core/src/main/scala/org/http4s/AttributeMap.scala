@@ -16,6 +16,14 @@ import scala.reflect.Manifest
   * The key is uniquely defined by its [[name]] and type `T`, represented at runtime by [[manifest]]. */
 case class AttributeKey[T](name: String)(implicit manifest: Manifest[T])
 
+object AttributeKey {
+  /**
+   * Encourage greater consistency in internal keys by imposing a universal prefix.
+   */
+  private[http4s] def http4s[T](name: String)(implicit manifest: Manifest[T]): AttributeKey[T] =
+    apply("org.http4s."+name)
+}
+
 /** An immutable map where a key is the tuple `(String,T)` for a fixed type `T` and can only be associated with values of type `T`.
   * It is therefore possible for this map to contain mappings for keys with the same label but different types.
   * Excluding this possibility is the responsibility of the client if desired. */
