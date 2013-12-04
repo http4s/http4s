@@ -3,6 +3,7 @@ package org.http4s
 import scalaz.stream.Process
 import java.io.File
 import java.net.{URI, InetAddress}
+import org.http4s.util.CaseInsensitiveString
 
 abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
@@ -58,7 +59,7 @@ case class Request(
 
   val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
 
-  lazy val authType: Option[AuthType] = None
+  lazy val authType: Option[AuthType] = headers.get(Header.Authorization).map(_.credentials.authType)
 
   lazy val remoteAddr = remote.getHostAddress
   lazy val remoteHost = remote.getHostName

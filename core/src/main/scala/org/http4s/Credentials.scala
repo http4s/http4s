@@ -2,13 +2,17 @@ package org.http4s
 
 import CharacterSet._
 import org.parboiled.common.Base64
+import org.http4s.util.CaseInsensitiveString
 
 sealed abstract class Credentials {
   def value: String
+  def authType: AuthType
   override def toString = value
 }
 
 case class BasicCredentials(username: String, password: String) extends Credentials {
+  val authType = AuthType.Basic
+
   lazy val value = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(`ISO-8859-1`.charset)
@@ -30,12 +34,16 @@ object BasicCredentials {
 
 
 case class OAuth2BearerToken(token: String) extends Credentials {
+  val authType = AuthType.Bearer
+
   def value = "Bearer " + token
 }
 
 
-case class GenericCredentials(scheme: String, params: Map[String, String]) extends Credentials {
-  lazy val value = if (params.isEmpty) scheme else formatParams
+case class GenericCredentials(scheme: CaseInsensitiveString, params: Map[String, String]) extends Credentials {
+  lazy val value = if (params.isEmpty) scheme.toString else formatParams
+
+  lazy val authType = AuthType.ExtensionAuth(scheme)
 
   private def formatParams = {
     val sb = new java.lang.StringBuilder(scheme).append(' ')
