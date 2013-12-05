@@ -18,7 +18,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @author Bryce Anderson
  *         Created on 12/1/13
  */
-trait NettyOutput[MsgType] { self: Logging =>
+trait OldNettyOutput[MsgType] { self: Logging =>
 
   type CBType = Throwable \/ Unit => Unit
 

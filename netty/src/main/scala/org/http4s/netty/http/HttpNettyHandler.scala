@@ -2,7 +2,7 @@ package org.http4s.netty.http
 
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
-import io.netty.channel.{ChannelOption, ChannelFutureListener, ChannelHandlerContext}
+import io.netty.channel.{ChannelFuture, ChannelOption, ChannelFutureListener, ChannelHandlerContext}
 import io.netty.handler.ssl.SslHandler
 import io.netty.buffer.{ByteBuf, Unpooled}
 
@@ -13,8 +13,8 @@ import scala.collection.mutable.ListBuffer
 import java.net.{InetSocketAddress, URI}
 import org.http4s._
 import io.netty.util.ReferenceCountUtil
-import org.http4s.netty.utils.{NettyOutput, ChunkHandler}
-import org.http4s.netty.NettySupport
+import org.http4s.netty.utils.ChunkHandler
+import org.http4s.netty.{NettyOutput, NettySupport}
 import org.http4s.netty.NettySupport._
 import org.http4s.Response
 import org.http4s.TrailerChunk
@@ -24,10 +24,14 @@ import org.http4s.TrailerChunk
  * @author Bryce Anderson
  *         Created on 11/28/13
  */
-class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAddress, val remoteAddress: InetSocketAddress)
-            extends NettySupport[HttpObject, HttpRequest] with NettyOutput[HttpObject] {
+class HttpNettyHandler(val service: HttpService,
+                       val localAddress: InetSocketAddress,
+                       val remoteAddress: InetSocketAddress)
+            extends NettySupport[HttpObject, HttpRequest] with NettyOutput {
 
   import NettySupport._
+
+  private var ctx: ChannelHandlerContext = null
 
   private var manager: ChannelManager = null
 
@@ -56,6 +60,21 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     case msg =>
       ReferenceCountUtil.retain(msg)   // Done know what it is, fire upstream
       ctx.fireChannelRead(msg)
+  }
+
+  final override def channelRegistered(ctx: ChannelHandlerContext) {
+    this.ctx = ctx
+  }
+
+  protected def writeBodyBuffer(buff: ByteBuf): ChannelFuture = {
+    val msg =  new DefaultHttpContent(buff)
+    ctx.writeAndFlush(msg)
+  }
+
+  protected def writeEnd(t: Option[TrailerChunk]): ChannelFuture = {
+    val msg = new DefaultLastHttpContent()
+    if (t.isDefined) for ( h <- t.get.headers ) msg.trailingHeaders().set(h.name.toString, h.value)
+    ctx.writeAndFlush(msg)
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, response: Response): Task[Unit] = {
@@ -88,7 +107,7 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     if (length.isEmpty) ctx.writeAndFlush(msg)
     else ctx.write(msg)
 
-    writeStream(response.body, ctx).map{ _ =>
+    writeStream(response.body).map{ _ =>
       if (closeOnFinish) ctx.close()
     }
   }
@@ -118,14 +137,6 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     )
   }
 
-  def bufferToMessage(buff: ByteBuf): HttpObject = new DefaultHttpContent(buff)
-
-  def endOfStreamChunk(c: Option[TrailerChunk]): HttpObject = {
-    val respTrailer = new DefaultLastHttpContent()
-    if (c.isDefined) for ( h <- c.get.headers ) respTrailer.trailingHeaders().set(h.name.toString, h.value)
-    respTrailer
-  }
-
   /** Manages the input stream providing back pressure
     * @param ctx ChannelHandlerContext of the channel
     */          // TODO: allow control of buffer size and use bytes, not chunks as limit
@@ -137,7 +148,7 @@ class HttpNettyHandler(val service: HttpService, val localAddress: InetSocketAdd
     }
 
     override def onBytesSent(n: Int) {
-      logger.trace("Queue ready.")
+      logger.trace(s"Sent $n bytes. Queue ready.")
       assert(ctx != null)
       enableRead()
     }
