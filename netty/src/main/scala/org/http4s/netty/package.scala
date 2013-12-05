@@ -12,6 +12,15 @@ package object netty {
   class Cancelled(val channel: Channel) extends Throwable
   class ChannelError(val channel: Channel, val reason: Throwable) extends Throwable
 
+  implicit class TaskSyntax[+A](t: Task[A]) {
+    def handleWith[B>:A](f: PartialFunction[Throwable,Task[B]]): Task[B] = {
+      t.attempt.flatMap {
+        case -\/(t) => f.applyOrElse(t, Task.fail)
+        case \/-(r) => Task.now(r)
+      }
+    }
+  }
+
   private[netty] implicit def channelFuture2Task(cf: ChannelFuture): Task[Channel] = {
     if(cf.isDone) Task.now(cf.channel())
     else Task.async{ cb =>

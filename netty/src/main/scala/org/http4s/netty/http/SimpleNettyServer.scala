@@ -1,12 +1,8 @@
 
-package org.http4s
-package netty
-
-//import handlers.StaticFileHandler
+package org.http4s.netty.http
 
 import io.netty.handler.codec.http
 
-import java.util.concurrent.{CountDownLatch, Executors}
 import java.net.InetSocketAddress
 import concurrent.ExecutionContext
 import io.netty.bootstrap.ServerBootstrap
@@ -14,8 +10,8 @@ import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.channel.{ChannelOption, ChannelInitializer}
 import io.netty.channel.socket.SocketChannel
-import scalaz.concurrent.Task
 import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s._
 
 object SimpleNettyServer {
   def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(service: HttpService) =

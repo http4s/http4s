@@ -1,5 +1,4 @@
-package org.http4s
-package netty
+package org.http4s.netty.spdy
 
 import com.typesafe.scalalogging.slf4j.Logging
 
@@ -12,10 +11,10 @@ import io.netty.handler.codec.http.HttpVersion._
 import io.netty.handler.codec.http.HttpResponseStatus
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process
-import Process.{End, halt, Process1, await, Get}
 
 import org.http4s.Header.`Content-Length`
+import org.http4s.netty.NettySupport
+import org.http4s.{TrailerChunk, Response}
 
 
 /**

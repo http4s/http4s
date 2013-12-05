@@ -1,8 +1,7 @@
-package org.http4s.netty
+package org.http4s.netty.spdy
 
-import java.util.concurrent.atomic.{AtomicReference, AtomicInteger}
 
-import org.http4s.{TrailerChunk, Chunk}
+import org.http4s.Chunk
 import io.netty.buffer.ByteBuf
 import io.netty.channel.ChannelHandlerContext
 import org.http4s.netty.utils.{ChunkHandler, NettyOutput, SpdyConstants}
@@ -14,7 +13,6 @@ import org.http4s.TrailerChunk
 import scalaz.stream.Process
 import Process._
 import scalaz.concurrent.Task
-import java.util.concurrent.TimeUnit
 
 /**
  * @author Bryce Anderson

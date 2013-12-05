@@ -1,5 +1,4 @@
-package org.http4s
-package netty
+package org.http4s.netty.spdy
 
 import javax.net.ssl.SSLContext
 import scala.concurrent.ExecutionContext
@@ -15,6 +14,8 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.spdy.SpdyFrameCodec
 import java.net.InetSocketAddress
 import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.netty.spdy.SpdyNettyHandler
+import org.http4s._
 
 /**
  * @author Bryce Anderson

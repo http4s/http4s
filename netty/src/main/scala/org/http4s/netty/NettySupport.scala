@@ -16,7 +16,7 @@ import io.netty.buffer.ByteBuf
 import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.util.ReferenceCountUtil
-import org.http4s.netty.utils.{ChunkHandler, NettyOutput}
+import org.http4s.netty.utils.ChunkHandler
 
 /**
  * @author Bryce Anderson
@@ -96,7 +96,9 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
         Status.InternalServerError()
     }
 
-    task.flatMap(renderResponse(ctx, req, _)).runAsync {
+    Task.fork(task).handleWith {
+      case End => Status.BadRequest("End of stream reached. Insufficient data.")
+    }.flatMap(renderResponse(ctx, req, _)).runAsync {
       case -\/(t) =>
         logger.error("Final Task results in an Exception.", t)
         ctx.channel().close()

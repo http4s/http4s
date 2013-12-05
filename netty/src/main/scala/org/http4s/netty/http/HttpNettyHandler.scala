@@ -1,5 +1,4 @@
-package org.http4s
-package netty
+package org.http4s.netty.http
 
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
@@ -8,15 +7,17 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.buffer.{ByteBuf, Unpooled}
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process
 import Process._
 
 import scala.collection.mutable.ListBuffer
 import java.net.{InetSocketAddress, URI}
-import org.http4s.Request
-import org.http4s.TrailerChunk
+import org.http4s._
 import io.netty.util.ReferenceCountUtil
 import org.http4s.netty.utils.{NettyOutput, ChunkHandler}
+import org.http4s.netty.NettySupport
+import org.http4s.netty.NettySupport._
+import org.http4s.Response
+import org.http4s.TrailerChunk
 
 
 /**

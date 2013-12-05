@@ -1,11 +1,11 @@
 package org.http4s.examples.spdynetty
 
-import org.http4s.netty.SimpleSpdyServer
 import org.http4s.examples.ExampleRoute
 import org.http4s.util.middleware.{GZip, URITranslation}
 import javax.net.ssl.{KeyManagerFactory, SSLContext}
 import org.http4s.spdynetty.BogusKeystore
 import java.security.KeyStore
+import org.http4s.netty.spdy.SimpleSpdyServer
 
 /**
  * @author Bryce Anderson

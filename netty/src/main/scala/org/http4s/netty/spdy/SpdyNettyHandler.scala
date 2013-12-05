@@ -1,5 +1,4 @@
-package org.http4s
-package netty
+package org.http4s.netty.spdy
 
 import scala.util.control.Exception.allCatch
 
@@ -10,10 +9,11 @@ import io.netty.handler.codec.spdy._
 import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process._
 
 import org.http4s.util.middleware.PushSupport
-import org.http4s.ServerProtocol.HttpVersion
+import org.http4s._
+import org.http4s.netty.{utils, NettySupport}
+import org.http4s.Response
 
 
 /**
