@@ -11,7 +11,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 /** Manages the stream ID's for the SPDY protocol
   * In a separate trait to clean up the SpdyNettyHandler class
   */
-trait SpdyStreamManager extends Logging {
+trait SpdyStreamManager { self: Logging =>
   private val currentID = new AtomicInteger(0)
   private var maxStreams = Integer.MAX_VALUE >> 1   // 2^31
   private var initialStreamSize = 64*1024   // 64 KB
@@ -53,9 +53,11 @@ trait SpdyStreamManager extends Logging {
   /** Set the initial window size of the SPDY stream
     * @param n size in bytes of the initial window
     */
-  def setInitialStreamWindow(n: Int): Unit = initialStreamSize = n
+  protected def setInitialWindow(n: Int): Unit = {
+    initialStreamSize = n
+  }
 
-  def initialStreamWindow: Int = initialStreamSize
+  def initialWindow: Int = initialStreamSize
 
   def setMaxStreams(n: Int): Int = {
     if (n < maxStreams) maxStreams = n

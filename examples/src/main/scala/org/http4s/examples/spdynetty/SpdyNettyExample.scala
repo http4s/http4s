@@ -8,9 +8,9 @@ import java.security.KeyStore
 import org.http4s.netty.spdy.SimpleSpdyServer
 
 /**
- * @author Bryce Anderson
- *         Created on 11/29/13
- */
+* @author Bryce Anderson
+*         Created on 11/29/13
+*/
 object SpdyNettyExample extends App {
 
   val sslContext: SSLContext = {
@@ -26,7 +26,8 @@ object SpdyNettyExample extends App {
     context.init(kmf.getKeyManagers(), null, null)
     context
   }
-  val route = GZip(new ExampleRoute().apply())
+  //val route = GZip(new ExampleRoute().apply())
+  val route = new ExampleRoute().apply()
   val server = SimpleSpdyServer(sslContext, 4430)(URITranslation.translateRoot("/http4s")(route))
   server.run()
 }

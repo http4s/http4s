@@ -1,8 +1,7 @@
 package org.http4s
 
 import io.netty.channel.{ChannelFutureListener, ChannelFuture, Channel}
-import concurrent.{Promise, Future}
-import io.netty.handler.codec.http
+import io.netty.handler.codec.{http => n}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-}
 import org.http4s.ServerProtocol.HttpVersion
@@ -39,22 +38,22 @@ package object netty {
     }
   }
 
-  implicit def jHttpMethod2HttpMethod(orig: http.HttpMethod): Method = orig match {
-    case http.HttpMethod.CONNECT => Method.Connect
-    case http.HttpMethod.DELETE => Method.Delete
-    case http.HttpMethod.GET => Method.Get
-    case http.HttpMethod.HEAD => Method.Head
-    case http.HttpMethod.OPTIONS => Method.Options
-    case http.HttpMethod.PATCH => Method.Patch
-    case http.HttpMethod.POST => Method.Post
-    case http.HttpMethod.PUT => Method.Put
-    case http.HttpMethod.TRACE => Method.Trace
+  implicit def jHttpMethod2HttpMethod(orig: n.HttpMethod): Method = orig match {
+    case n.HttpMethod.CONNECT => Method.Connect
+    case n.HttpMethod.DELETE => Method.Delete
+    case n.HttpMethod.GET => Method.Get
+    case n.HttpMethod.HEAD => Method.Head
+    case n.HttpMethod.OPTIONS => Method.Options
+    case n.HttpMethod.PATCH => Method.Patch
+    case n.HttpMethod.POST => Method.Post
+    case n.HttpMethod.PUT => Method.Put
+    case n.HttpMethod.TRACE => Method.Trace
   }
 
-  implicit def respStatus2nettyStatus(stat: Status) = new http.HttpResponseStatus(stat.code, stat.reason.blankOption.getOrElse(""))
-  implicit def respStatus2nettyStatus(stat: http.HttpResponseStatus) = Status(stat.code, stat.reasonPhrase)
+  implicit def respStatus2nettyStatus(stat: Status) = new n.HttpResponseStatus(stat.code, stat.reason.blankOption.getOrElse(""))
+  implicit def respStatus2nettyStatus(stat: n.HttpResponseStatus) = Status(stat.code, stat.reasonPhrase)
   implicit def httpVersion2nettyVersion(ver: HttpVersion) = ver match {
-    case HttpVersion(1, 1) => http.HttpVersion.HTTP_1_1
-    case HttpVersion(1, 0) => http.HttpVersion.HTTP_1_0
+    case HttpVersion(1, 1) => n.HttpVersion.HTTP_1_1
+    case HttpVersion(1, 0) => n.HttpVersion.HTTP_1_0
   }
 }

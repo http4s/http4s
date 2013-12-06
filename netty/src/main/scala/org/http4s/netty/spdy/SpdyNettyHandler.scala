@@ -6,25 +6,29 @@ import java.net.{URI, InetSocketAddress}
 import java.util.concurrent.ConcurrentHashMap
 
 import io.netty.handler.codec.spdy._
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext}
+import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelHandlerContext}
 
 import scalaz.concurrent.Task
 
 import org.http4s.util.middleware.PushSupport
 import org.http4s._
-import org.http4s.netty.{utils, NettySupport}
+import org.http4s.netty.NettySupport
 import org.http4s.Response
+import org.http4s.netty.utils.SpdyStreamManager
+import io.netty.buffer.ByteBuf
 
 
 /**
- * @author Bryce Anderson
- *         Created on 11/28/13
- */
+* @author Bryce Anderson
+*         Created on 11/28/13
+*/
 class SpdyNettyHandler(srvc: HttpService,
                   val spdyversion: Int,
                   val localAddress: InetSocketAddress,
-                  val remoteAddress: InetSocketAddress) extends NettySupport[SpdyFrame, SpdySynStreamFrame]
-                        with utils.SpdyStreamManager {
+                  val remoteAddress: InetSocketAddress)
+          extends NettySupport[SpdyFrame, SpdySynStreamFrame]
+          with SpdyStreamManager
+          with SpdyConnectionWindow {
 
   import NettySupport._
 
@@ -32,19 +36,51 @@ class SpdyNettyHandler(srvc: HttpService,
     * If a stream is canceled, it get removed from the map. The allows the client to reject
     * data that it knows is already cached and this backend abort the outgoing stream
     */
-  private val activeStreams = new ConcurrentHashMap[Int, SpdyStreamContext]
+  private val activeStreams = new ConcurrentHashMap[Int, SpdyStream]
+  private var _ctx: ChannelHandlerContext = null
 
-  def registerStream(ctx: SpdyStreamContext): Boolean = {
-    activeStreams.put(ctx.streamid, ctx) == null
+  def ctx = _ctx
+
+  def registerStream(stream: SpdyStream): Boolean = {
+    activeStreams.put(stream.streamid, stream) == null
   }
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
 
   val service = PushSupport(srvc)
 
+  protected def writeBodyBytes(streamid: Int, buff: ByteBuf): ChannelFuture = {
+    ctx.writeAndFlush(new DefaultSpdyDataFrame(streamid, buff))
+  }
+
+  protected def writeEndBytes(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = {
+    t.fold{
+      val msg = new DefaultSpdyDataFrame(streamid, buff)
+      msg.setLast(true)
+      ctx.writeAndFlush(msg)
+    }{ t =>
+      if (buff.readableBytes() > 0) ctx.write(new DefaultSpdyDataFrame(streamid, buff))
+      val msg = new DefaultSpdyHeadersFrame(streamid)
+      t.headers.foreach( h => msg.headers().add(h.name.toString, h.value) )
+      ctx.writeAndFlush(msg)
+    }
+  }
+
+  override def channelRegistered(ctx: ChannelHandlerContext) {
+    _ctx = ctx
+  }
+
   def streamFinished(id: Int) {
-    logger.trace(s"Stream $id finished.")
+    logger.trace(s"Stream $id finished. Closing.")
     if (activeStreams.remove(id) == null) logger.warn(s"Stream id $id for address $remoteAddress was empty.")
+  }
+
+  def closeSpdyWindow(): Unit = {
+    foreachStream { s =>
+      s.closeSpdyWindow()
+      s.close()
+    }
+    ctx.close()
   }
 
   override protected def toRequest(ctx: ChannelHandlerContext, req: SpdySynStreamFrame): Request = {
@@ -55,8 +91,8 @@ class SpdyNettyHandler(srvc: HttpService,
     }
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    val streamctx = new SpdyStreamContext(ctx, this, req.getStreamId)
-    assert(activeStreams.put(req.getStreamId, streamctx) == null)
+    val replyStream = new SpdyReplyStream(req.getStreamId, ctx, this, initialWindow)
+    assert(activeStreams.put(req.getStreamId, replyStream) == null)
     Request(
       requestMethod = Method(SpdyHeaders.getMethod(spdyversion, req).name),
       //scriptName = contextPath,
@@ -69,23 +105,23 @@ class SpdyNettyHandler(srvc: HttpService,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
       remote = remoteAddress.getAddress, // TODO using remoteName would trigger a lookup
-      body = getStream(streamctx.manager)
+      body = getStream(replyStream.chunkHandler)
     )
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
     val handler = activeStreams.get(req.getStreamId)
-    if (handler != null) handler.renderResponse(ctx, req, response)
-    else sys.error("Newly created stream disappeared!")
+    if (handler != null)  {
+      assert(handler.isInstanceOf[SpdyReplyStream])   // Should only get requests to ReplyStreams
+      handler.asInstanceOf[SpdyReplyStream].handleRequest(req, response)
+    }
+    else sys.error("Newly created stream doesn't exist!")
   }
 
-  // TODO: need to honor Window size messages to maintain flow control
-  // TODO: need to make this lazy on flushes so we don't end up overflowing the netty outbound buffers
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
     try {
       logger.error(s"Exception on connection with $remoteAddress", cause)
-      val it = activeStreams.values().iterator()
-      while (it.hasNext) { val handler = it.next(); handler.kill(cause) }
+      foreachStream(_.kill(cause))
       activeStreams.clear()
       if (ctx.channel().isOpen) {  // Send GOAWAY frame to signal disconnect if we are still connected
         val goaway = new DefaultSpdyGoAwayFrame(lastOpenedStream, 2) // Internal Error
@@ -104,7 +140,7 @@ class SpdyNettyHandler(srvc: HttpService,
     */
   private def forwardMsg(ctx: ChannelHandlerContext, msg: SpdyStreamFrame) {
     val handler = activeStreams.get(msg.getStreamId)
-    if (handler!= null) handler.spdyMessage(ctx, msg)
+    if (handler!= null) handler.handle(msg)
     else  {
       logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
       val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
@@ -129,19 +165,22 @@ class SpdyNettyHandler(srvc: HttpService,
         ctx.writeAndFlush(ping)
       }
 
-    case s: SpdySettingsFrame => handleSpdySettings(s)
-
     case msg: SpdyStreamFrame => forwardMsg(ctx, msg)
 
-      // TODO: this is a bug in Netty, and should be fixed so we don't have to put this ugly code here!
     case msg: SpdyWindowUpdateFrame =>
-      val handler = activeStreams.get(msg.getStreamId)
-      if (handler!= null) handler.spdyMessage(ctx, msg)
-      else  {
-        logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
-        val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
-        ctx.writeAndFlush(rst)
+      logger.trace(s"Stream ${msg.getStreamId} received SpdyWindowUpdateFrame: $msg")
+      if (msg.getStreamId == 0) updateWindow(msg.getDeltaWindowSize)  // Global window size
+      else {
+        val handler = activeStreams.get(msg.getStreamId)
+        if (handler != null) handler.handle(msg)
+        else  {
+          logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
+          val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
+          ctx.writeAndFlush(rst)
+        }
       }
+
+    case s: SpdySettingsFrame => handleSpdySettings(s)
 
     case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")
   }
@@ -155,7 +194,16 @@ class SpdyNettyHandler(srvc: HttpService,
 
     val initWindow = settings.getValue(SETTINGS_INITIAL_WINDOW_SIZE)
     // TODO: Deal with window sizes and buffering. http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3#TOC-2.6.8-WINDOW_UPDATE
-    if (initWindow > 0) setInitialStreamWindow(initWindow)
+    if (initWindow > 0) {
+      val diff = initWindow - this.initialWindow
+      setInitialWindow(initWindow)
+      foreachStream(_.updateWindow(diff))
+    }
+  }
+
+  private def foreachStream(f: SpdyStream => Any) {
+    val it = activeStreams.values().iterator()
+    while(it.hasNext) f(it.next())
   }
 
   // TODO: Need to implement a Spdy HttpVersion

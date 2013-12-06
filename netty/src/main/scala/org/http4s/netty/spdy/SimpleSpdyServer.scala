@@ -14,13 +14,12 @@ import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.spdy.SpdyFrameCodec
 import java.net.InetSocketAddress
 import com.typesafe.scalalogging.slf4j.Logging
-import org.http4s.netty.spdy.SpdyNettyHandler
 import org.http4s._
 
 /**
- * @author Bryce Anderson
- *         Created on 11/28/13
- */
+* @author Bryce Anderson
+*         Created on 11/28/13
+*/
 
 object SimpleSpdyServer {
   def apply(sslContext: SSLContext, port: Int = 443)
@@ -41,7 +40,7 @@ class NPNProvider(channel: Channel) extends NextProtoNego.ServerProvider with Lo
 
   def protocols(): List[String] = {
     import collection.JavaConversions._
-    "spdy/3"::Nil
+    "spdy/3.1"::Nil
   }
 }
 class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)

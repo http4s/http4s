@@ -66,12 +66,14 @@ class HttpNettyHandler(val service: HttpService,
     this.ctx = ctx
   }
 
-  protected def writeBodyBuffer(buff: ByteBuf): ChannelFuture = {
+  override protected def writeBodyBuffer(buff: ByteBuf): ChannelFuture = {
     val msg =  new DefaultHttpContent(buff)
     ctx.writeAndFlush(msg)
   }
 
-  protected def writeEnd(t: Option[TrailerChunk]): ChannelFuture = {
+  override protected def writeEnd(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = {
+    val body = new DefaultHttpContent(buff)
+    ctx.write(body)
     val msg = new DefaultLastHttpContent()
     if (t.isDefined) for ( h <- t.get.headers ) msg.trailingHeaders().set(h.name.toString, h.value)
     ctx.writeAndFlush(msg)

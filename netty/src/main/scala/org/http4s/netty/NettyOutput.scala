@@ -22,7 +22,7 @@ trait NettyOutput { self: Logging =>
 
   protected def writeBodyBuffer(buff: ByteBuf): ChannelFuture
 
-  protected def writeEnd(t: Option[TrailerChunk]): ChannelFuture
+  protected def writeEnd(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture
 
   def writeStream(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, _))
 
@@ -34,26 +34,21 @@ trait NettyOutput { self: Logging =>
         val buff = buffandt._1
         val t = buffandt._2
 
-        if (buff.readableBytes() > 0) {  // We have some bytes to write
-          writeBodyBuffer(buff).addListener(new ChannelFutureListener {
-            def operationComplete(future: ChannelFuture) {
-              if (future.isSuccess) {
-                if (t == null) go(tail, cb)
+        if (t == null) writeBodyBuffer(buff).addListener(new ChannelFutureListener {
+          def operationComplete(future: ChannelFuture) {
+            if (future.isSuccess) go(tail, cb)
+            else if (future.isCancelled)  cb(-\/((new Cancelled(future.channel))))
+            else                          cb(-\/((future.cause)))
+          }
+        })
 
-                else {       // Send the last chunk
-                  if (!tail.isInstanceOf[Halt] ||
-                    (tail.asInstanceOf[Halt].cause ne End) )  // Got trailer, not end!
-                    logger.warn(s"Received trailer, but not at end of stream. Tail: $tail")
+        else {
+          if (!tail.isInstanceOf[Halt] &&
+            (tail.asInstanceOf[Halt].cause ne End))
+            logger.warn("Received trailer, but stream may not be empty.")
 
-                  writeEnd(Some(t)).addListener(new CompletionListener(cb))
-                }
-              }
-              else if (future.isCancelled)  cb(-\/((new Cancelled(future.channel))))
-              else                          cb(-\/((future.cause)))
-            }
-          })
+          writeEnd(buff, Some(t)).addListener(new CompletionListener(cb))
         }
-        else go(tail, cb)  // Possible stack overflow issue on a stream of empty BodyChunks
       }
 
     case Await(t, f, fb, c) => t.runAsync {  // Wait for it to finish, then continue to unwind
@@ -61,7 +56,7 @@ trait NettyOutput { self: Logging =>
       case -\/(t) => cb(-\/(t))
     }
 
-    case Halt(End) => writeEnd(None).addListener(new CompletionListener(cb))
+    case Halt(End) => writeEnd(Unpooled.EMPTY_BUFFER, None).addListener(new CompletionListener(cb))
 
     case Halt(error) => cb(-\/(error))
   }
