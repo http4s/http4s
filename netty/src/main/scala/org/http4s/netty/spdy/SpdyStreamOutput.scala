@@ -12,7 +12,7 @@ import org.http4s.netty. NettyOutput
  * @author Bryce Anderson
  *         Created on 12/4/13
  */
-trait SpdyStreamOutput extends NettyOutput with SpdyStreamWindow { self: Logging =>
+trait SpdyStreamOutput extends NettyOutput with SpdyStreamOutboundWindow { self: Logging =>
 
   def streamid: Int
 

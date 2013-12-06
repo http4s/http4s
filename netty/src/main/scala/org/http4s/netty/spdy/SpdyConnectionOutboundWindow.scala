@@ -15,15 +15,14 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @author Bryce Anderson
  *         Created on 12/5/13
  */
-trait SpdyConnectionWindow extends SpdyWindow { self: Logging =>
+trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
-  private var outboundWindow: Int = initialWindow
+  private var outboundWindow: Int = initialOutboundWindow
   private var queue = new LinkedList[StreamData]()
 
   def ctx: ChannelHandlerContext
 
-
-  def getWindow(): Int = outboundWindow
+  def getOutboundWindow(): Int = outboundWindow
 
   def writeStreamEnd(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = queue.synchronized {
     if (buff.readableBytes() >= outboundWindow) {
@@ -79,7 +78,7 @@ trait SpdyConnectionWindow extends SpdyWindow { self: Logging =>
     else writeBodyBuff(streamid, buff, false, true)
   }
 
-  def updateWindow(delta: Int) = queue.synchronized {
+  def updateOutboundWindow(delta: Int) = queue.synchronized {
     logger.trace(s"Updating window, delta: $delta")
     outboundWindow += delta
     if (!queue.isEmpty && outboundWindow > 0) {   // Send more chunks
@@ -93,7 +92,7 @@ trait SpdyConnectionWindow extends SpdyWindow { self: Logging =>
       else {   // write the whole thing and get another chunk
         writeBodyBuff(next.streamid, next.buff, false, queue.isEmpty || outboundWindow >= 0)
         next.p.setSuccess()
-        updateWindow(0)
+        updateOutboundWindow(0)
       }
     }
   }

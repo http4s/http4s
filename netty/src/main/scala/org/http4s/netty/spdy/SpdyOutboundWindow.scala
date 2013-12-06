@@ -8,17 +8,17 @@ import org.http4s.TrailerChunk
  * @author Bryce Anderson
  *         Created on 12/5/13
  */
-trait SpdyWindow {
+trait SpdyOutboundWindow {
 
-  def initialWindow: Int
+  def initialOutboundWindow: Int
 
   def closeSpdyWindow(): Unit
 
-  def getWindow(): Int
+  def getOutboundWindow(): Int
 
   def writeStreamEnd(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture
 
   def writeStreamBuffer(streamid: Int, buff: ByteBuf): ChannelFuture
 
-  def updateWindow(delta: Int): Unit
+  def updateOutboundWindow(delta: Int): Unit
 }

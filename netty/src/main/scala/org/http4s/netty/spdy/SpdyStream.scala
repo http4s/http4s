@@ -39,20 +39,27 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
 
     case msg: SpdyWindowUpdateFrame =>
       assert(msg.getStreamId == streamid)
-      updateWindow(msg.getDeltaWindowSize)
+      updateOutboundWindow(msg.getDeltaWindowSize)
   }
 
   /** Submits the head of the resource, and returns the execution of the submission of the body as a Task */
   protected def pushResource(push: PushResponse, req: SpdySynStreamFrame): Task[Unit] = {
 
     val id = parent.newPushStreamID()
+
+    if (id == -1) {    // We have exceeded the maximum stream ID value
+      logger.warn("Exceeded the maximum stream ID pool. Need to spool down connection.")
+      ctx.writeAndFlush(new DefaultSpdyGoAwayFrame(parent.lastOpenedStream))
+      return Task.now()
+    }
+
     val parentid = req.getStreamId
     val host = SpdyHeaders.getHost(req)
     val scheme = SpdyHeaders.getScheme(parent.spdyversion, req)
     val response = push.resp
     logger.trace(s"Pushing content on stream $id associated with stream $parentid, url ${push.location}")
 
-    val pushedStream = new SpdyPushStream(id, ctx, parent, initialWindow)
+    val pushedStream = new SpdyPushStream(id, ctx, parent, initialOutboundWindow)
     assert(parent.registerStream(pushedStream)) // Add a dummy Handler to signal that the stream is active
 
     // TODO: Default to priority 2. What should we really have?

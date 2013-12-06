@@ -15,18 +15,18 @@ import scalaz.concurrent.Task
  * @author Bryce Anderson
  *         Created on 12/5/13
  */
-trait SpdyStreamWindow extends SpdyWindow { self: Logging =>
+trait SpdyStreamOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
   private var isclosed = false
   private val outboundLock = new AnyRef
-  private var outboundWindow: Int = initialWindow
+  private var outboundWindow: Int = initialOutboundWindow
   private var guard: WindowGuard = null
 
   def streamid: Int
 
   protected def ctx: ChannelHandlerContext
 
-  def getWindow(): Int = outboundWindow
+  def getOutboundWindow(): Int = outboundWindow
 
   def closeSpdyWindow(): Unit = outboundLock.synchronized {
     if (!isclosed) {
@@ -49,7 +49,8 @@ trait SpdyStreamWindow extends SpdyWindow { self: Logging =>
 
   def awaitingWindowUpdate: Boolean = guard != null
 
-  def windowSize(): Int = outboundWindow
+  @inline
+  final def windowSize(): Int = outboundWindow
 
   // Kind of windy method
   def writeStreamEnd(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = outboundLock.synchronized {
@@ -61,7 +62,7 @@ trait SpdyStreamWindow extends SpdyWindow { self: Logging =>
       return p
     }
 
-    if (buff.readableBytes() > outboundWindow) { // Need to break it up
+    if (buff.readableBytes() > windowSize()) { // Need to break it up
       val p = ctx.channel().newPromise()
 
       writeStreamBuffer(streamid, buff).addListener(new ChannelFutureListener {
@@ -99,18 +100,14 @@ trait SpdyStreamWindow extends SpdyWindow { self: Logging =>
 
     logger.trace(s"Stream $streamid writing buffer of size ${buff.readableBytes()}")
 
-    if (buff.readableBytes() > outboundWindow) { // Need to break it up
-    val nbuff = ctx.alloc().buffer(outboundWindow, outboundWindow)
+    if (buff.readableBytes() > windowSize()) { // Need to break it up
+    val nbuff = ctx.alloc().buffer(windowSize(), windowSize())
       val p = ctx.channel().newPromise()
       buff.readBytes(nbuff)
-      outboundWindow = 0
-      writeBodyBytes(nbuff).addListener(new WindowGuard(streamid, buff, p))
+      sendDownstream(nbuff).addListener(new WindowGuard(streamid, buff, p))
       p
     }
-    else {
-      outboundWindow -= buff.readableBytes()
-      writeBodyBytes(buff)
-    }
+    else sendDownstream(buff)
   }
 
   private def writeExcess(streamid: Int, buff: ByteBuf, p: ChannelPromise): Unit = outboundLock.synchronized {
@@ -121,18 +118,16 @@ trait SpdyStreamWindow extends SpdyWindow { self: Logging =>
       return
     }
 
-    if (buff.readableBytes() > outboundWindow) { // Need to break it up
-      if (outboundWindow > 0) {
-        val nbuff = ctx.alloc().buffer(outboundWindow, outboundWindow)
+    if (buff.readableBytes() > windowSize()) { // Need to break it up
+      if (windowSize() > 0) {
+        val nbuff = ctx.alloc().buffer(windowSize(), windowSize())
         buff.readBytes(nbuff)
-        outboundWindow = 0
-        writeBodyBytes(nbuff).addListener(new WindowGuard(streamid, buff, p))
+        sendDownstream(nbuff).addListener(new WindowGuard(streamid, buff, p))
       }
       else guard = new WindowGuard(streamid, buff, p)  // Cannot write any bytes, set the window guard
     }
     else {   // There is enough room so just write and chain the future to the promise
-      outboundWindow -= buff.readableBytes()
-      writeBodyBytes(buff).addListener(new ChannelFutureListener {
+      sendDownstream(buff).addListener(new ChannelFutureListener {
         def operationComplete(future: ChannelFuture) {
           if (future.isSuccess) p.setSuccess()
           else if (future.isCancelled) p.setFailure(new Cancelled(future.channel()))
@@ -142,21 +137,27 @@ trait SpdyStreamWindow extends SpdyWindow { self: Logging =>
     }
   }
 
-  def updateWindow(delta: Int) = outboundLock.synchronized {
+  def updateOutboundWindow(delta: Int) = outboundLock.synchronized {
     logger.trace(s"Stream $streamid updated window by $delta")
     outboundWindow += delta
-    if (guard != null && outboundWindow > 0) {   // Send more chunks
+    if (guard != null && windowSize() > 0) {   // Send more chunks
     val g = guard
       guard = null
       writeExcess(g.streamid, g.remaining, g.p)
     }
   }
 
+  @inline
+  private def sendDownstream(buff: ByteBuf): ChannelFuture = {
+    outboundWindow -= buff.readableBytes()
+    writeBodyBytes(buff)
+  }
+
   private class WindowGuard(val streamid: Int, val remaining: ByteBuf, val p: ChannelPromise) extends ChannelFutureListener {
     def operationComplete(future: ChannelFuture) {
       if (future.isSuccess) outboundLock.synchronized {
-        logger.trace(s"Stream $streamid is contining! ${windowSize} ----------------------------------------------------------")
-        if (windowSize > 0) writeExcess(streamid, remaining, p)
+        logger.trace(s"Stream $streamid is contining! ${windowSize()} ----------------------------------------------------------")
+        if (windowSize() > 0) writeExcess(streamid, remaining, p)
         else guard = this
       }
       else if (future.isCancelled) p.setFailure(new Cancelled(future.channel()))

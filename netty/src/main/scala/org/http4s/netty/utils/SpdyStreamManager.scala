@@ -25,7 +25,8 @@ trait SpdyStreamManager { self: Logging =>
       val inc = if (current % 2 == 0) 2 else 1
       val next = current + inc
       if (!currentID.compareAndSet(current, next)) go()
-      else next
+      // Make sure we don't pass the maximum number of streams
+      else if (next < (Integer.MAX_VALUE >> 1)) next else -1
     }
       go()
   }

@@ -2,8 +2,9 @@ package org.http4s.netty.spdy
 
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.channel.ChannelHandlerContext
-import io.netty.handler.codec.spdy.{SpdyHeadersFrame, SpdyStreamFrame}
+import io.netty.handler.codec.spdy.{SpdyRstStreamFrame, SpdyStreamFrame}
 import scalaz.concurrent.Task
+import org.http4s.netty.utils.SpdyConstants._
 
 /**
  * @author Bryce Anderson
@@ -12,13 +13,26 @@ import scalaz.concurrent.Task
 class SpdyPushStream(val streamid: Int,
                      protected val ctx: ChannelHandlerContext,
                      protected val parent: SpdyNettyHandler,
-                     val initialWindow: Int) extends SpdyStream with Logging {
+                     val initialOutboundWindow: Int) extends SpdyStream with Logging {
 
 
   def close(): Task[Unit] = {
+    closeSpdyWindow()
     parent.streamFinished(streamid)
     Task.now()
   }
 
-  def handleStreamFrame(msg: SpdyStreamFrame): Unit = sys.error("Push Stream doesn't operate on requests")
+  def handleRstFrame(msg: SpdyRstStreamFrame) = msg.getStatus match {
+
+    case i if i == REFUSED_STREAM  || i == CANCEL => close()
+
+    case i => kill(new Exception(s"Push stream $streamid received RST frame with code $i"))
+  }
+
+  def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
+
+    case msg: SpdyRstStreamFrame => handleRstFrame(msg)
+
+    case msg => sys.error(s"Push Stream received invalid reply frame: $msg")
+  }
 }
