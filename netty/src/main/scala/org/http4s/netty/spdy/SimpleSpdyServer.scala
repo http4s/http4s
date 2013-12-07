@@ -1,6 +1,8 @@
 package org.http4s.netty.spdy
 
 import javax.net.ssl.SSLContext
+import java.lang.Boolean
+
 import scala.concurrent.ExecutionContext
 import io.netty.channel.{ChannelOption, ChannelInitializer, Channel}
 
@@ -73,9 +75,9 @@ class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
           }
         })
           .option(ChannelOption.SO_LINGER, new Integer(0))
-          .option(ChannelOption.SO_REUSEADDR, new java.lang.Boolean(true))
-          .option(ChannelOption.SO_KEEPALIVE, new java.lang.Boolean(true))
-          .option(ChannelOption.SO_KEEPALIVE, new java.lang.Boolean(true))
+          .option(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+          .option(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
+          .option(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
 
         bootstrap.bind(new InetSocketAddress(port)).sync()
           .channel().closeFuture().sync()

@@ -4,6 +4,8 @@ package org.http4s.netty.http
 import io.netty.handler.codec.http
 
 import java.net.InetSocketAddress
+import java.lang.Boolean
+
 import concurrent.ExecutionContext
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.nio.NioEventLoopGroup
@@ -40,9 +42,9 @@ class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpSer
         }
       })
         .option(ChannelOption.SO_LINGER, new Integer(0))
-        .option(ChannelOption.SO_REUSEADDR, new java.lang.Boolean(true))
-        .option(ChannelOption.SO_KEEPALIVE, new java.lang.Boolean(true))
-        .option(ChannelOption.SO_KEEPALIVE, new java.lang.Boolean(true))
+        .option(ChannelOption.SO_REUSEADDR, Boolean.TRUE)
+        .option(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
+        .option(ChannelOption.SO_KEEPALIVE, Boolean.TRUE)
 
       bootstrap.bind(new InetSocketAddress(port)).sync()
         .channel().closeFuture().sync()
