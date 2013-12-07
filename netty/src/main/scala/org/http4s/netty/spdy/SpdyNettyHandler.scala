@@ -28,7 +28,7 @@ class SpdyNettyHandler(srvc: HttpService,
                   val remoteAddress: InetSocketAddress)
           extends NettySupport[SpdyFrame, SpdySynStreamFrame]
           with SpdyStreamManager
-          with SpdyConnectionOutboundWindow {
+          with SpdyConnectionOutboundWindow  {
 
   import NettySupport._
 
@@ -38,6 +38,7 @@ class SpdyNettyHandler(srvc: HttpService,
     */
   private val activeStreams = new ConcurrentHashMap[Int, SpdyStream]
   private var _ctx: ChannelHandlerContext = null
+  private var inboundBytesReceivedSenseUpdate = 0
 
   def ctx = _ctx
 
@@ -167,13 +168,18 @@ class SpdyNettyHandler(srvc: HttpService,
         ctx.writeAndFlush(ping)
       }
 
-    case msg: SpdyDataFrame => // TODO: need to implement inbound flow control
+    case msg: SpdyDataFrame =>
+      val bytes = msg.content().readableBytes()
+      inboundBytesReceivedSenseUpdate += bytes
+      if (inboundBytesReceivedSenseUpdate > initialWindow / 2) {
+        ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(0, inboundBytesReceivedSenseUpdate))
+        inboundBytesReceivedSenseUpdate = 0
+      }
       forwardMsg(ctx, msg)
 
     case msg: SpdyStreamFrame => forwardMsg(ctx, msg)
 
     case msg: SpdyWindowUpdateFrame =>
-      logger.trace(s"Stream ${msg.getStreamId} received SpdyWindowUpdateFrame: $msg")
       if (msg.getStreamId == 0) updateOutboundWindow(msg.getDeltaWindowSize)  // Global window size
       else {
         val handler = activeStreams.get(msg.getStreamId)

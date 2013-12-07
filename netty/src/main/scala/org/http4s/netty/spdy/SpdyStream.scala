@@ -13,15 +13,17 @@ import org.http4s.Header.`Content-Length`
 import org.http4s.util.middleware.PushSupport.PushResponse
 import io.netty.handler.codec.http.HttpResponseStatus
 
+import org.http4s.netty.utils.SpdyConstants._
+
 /**
 * @author Bryce Anderson
 *         Created on 12/4/13
 */
 trait SpdyStream extends SpdyStreamOutput { self: Logging =>
+  
+  private var _streamIsOpen = true
 
   protected def parent: SpdyNettyHandler
-
-  def close(): Task[Unit]
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit
 
@@ -29,9 +31,21 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
 
   def spdyversion: Int = parent.spdyversion  // TODO: this is temporary
 
+  def close(): Task[Unit] = {
+    _streamIsOpen = false
+    closeSpdyWindow()
+    parent.streamFinished(streamid)
+    Task.now()
+  }
+
   def kill(t: Throwable): Task[Unit] = {
     closeSpdyWindow()
     close()
+  }
+
+  def handleRstFrame(msg: SpdyRstStreamFrame) = msg.getStatus match {
+    case i if i == REFUSED_STREAM  || i == CANCEL => close()
+    case i => kill(new Exception(s"Push stream $streamid received RST frame with code $i"))
   }
 
   def handle(msg: SpdyFrame): Unit = msg match {
@@ -87,12 +101,20 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
     size
   }
 
+  protected def canceledFuture(): ChannelFuture = {
+    val p = ctx.newPromise()
+    p.cancel(true)
+    p
+  }
+
   protected def writeBodyBytes(buff: ByteBuf): ChannelFuture = {
-    parent.writeStreamBuffer(streamid, buff)
+    if (_streamIsOpen) parent.writeStreamBuffer(streamid, buff)
+    else canceledFuture()
   }
 
   protected def writeEndBytes(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = {
-    parent.writeStreamEnd(streamid, buff, t)
+    if (_streamIsOpen) parent.writeStreamEnd(streamid, buff, t)
+    else canceledFuture()
   }
 
   private def getStatus(response: Response) =

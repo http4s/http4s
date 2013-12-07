@@ -16,19 +16,6 @@ class SpdyPushStream(val streamid: Int,
                      val initialOutboundWindow: Int) extends SpdyStream with Logging {
 
 
-  def close(): Task[Unit] = {
-    closeSpdyWindow()
-    parent.streamFinished(streamid)
-    Task.now()
-  }
-
-  def handleRstFrame(msg: SpdyRstStreamFrame) = msg.getStatus match {
-
-    case i if i == REFUSED_STREAM  || i == CANCEL => close()
-
-    case i => kill(new Exception(s"Push stream $streamid received RST frame with code $i"))
-  }
-
   def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
 
     case msg: SpdyRstStreamFrame => handleRstFrame(msg)

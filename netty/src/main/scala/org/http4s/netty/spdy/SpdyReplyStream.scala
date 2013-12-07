@@ -1,16 +1,15 @@
 package org.http4s.netty.spdy
 
 import com.typesafe.scalalogging.slf4j.Logging
-import io.netty.handler.codec.spdy.{DefaultSpdyWindowUpdateFrame, DefaultSpdySynReplyFrame, SpdySynStreamFrame, SpdyStreamFrame}
+import io.netty.handler.codec.spdy._
 import scalaz.concurrent.Task
 
-import org.http4s.{Chunk, Response}
+import org.http4s.{TrailerChunk, Chunk, Response}
 import io.netty.channel.ChannelHandlerContext
 import org.http4s.netty.utils.ChunkHandler
 import org.http4s.util.middleware.PushSupport
-import java.util.concurrent.atomic.AtomicInteger
 
-import org.http4s.netty.utils.SpdyConstants._
+import org.http4s.netty.NettySupport._
 
 /**
  * @author Bryce Anderson
@@ -27,41 +26,30 @@ import org.http4s.netty.utils.SpdyConstants._
 class SpdyReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
                       protected val parent: SpdyNettyHandler,
-                      val initialOutboundWindow: Int) extends SpdyStream with Logging {
+                      val initialOutboundWindow: Int)
+          extends SpdyStream
+          with Logging
+          with SpdyInboundWindow {
 
-  // Inbound flow control logic
-  private var inboundWindowSize = initialOutboundWindow
-  
+  //////   SpdyInboundWindow methods   ////////////////////////////////
+
+  def initialInboundWindowSize: Int = initialOutboundWindow
+
+  def submitDeltaWindow(n: Int): Unit = {
+    ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(streamid, n))
+  }
+
   val chunkHandler = new ChunkHandler(initialOutboundWindow) {
     
-    // TODO: what about initial window size changes here?
-    private val handledQueue = new AtomicInteger(0)
-    
     override def enque(chunk: Chunk): Int = {
-      val queuelength = queueSize()+chunk.length
-      if (queuelength > inboundWindowSize) {
-        ctx.writeAndFlush(FLOW_CONTROL_ERROR(streamid))
-        kill(new Exception(s"Inbound messages overflowed stream window"))
-        -1
-      } else super.enque(chunk)
+      decrementWindow(chunk.length)
+      super.enque(chunk)
     }
 
-    override def request(cb: CB): Int = {
-      val requested = super.request(cb)
-      val handled = handledQueue.addAndGet(requested)
-
-      // If we have depleted half the window and its not already been done, send a window update
-      if (handled > inboundWindowSize /2 && handledQueue.compareAndSet(handled, 0)) {
-        ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(streamid, handled))
-      }
-
-      requested
-    }
+    override def onBytesSent(n: Int): Unit = incrementWindow(n)
   }
 
-  def setInboundWindow(n: Int) {
-    inboundWindowSize = n
-  }
+  /////////////////////////////////////////////////////////////////////
 
   def handleRequest(req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
     logger.trace("Rendering response.")
@@ -82,14 +70,13 @@ class SpdyReplyStream(val streamid: Int,
     }
   }
 
-  // TODO: implement these in a more meaningful way
-  def close(): Task[Unit] = {
-    closeSpdyWindow()
-    parent.streamFinished(streamid)
-    Task.now(())
-  }
+  def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
 
-  def handleStreamFrame(msg: SpdyStreamFrame): Unit = {
-    logger.trace(s"Stream $streamid received SpdyStreamFrame: $msg")
+    case msg: SpdyDataFrame => chunkHandler.enque(buffToBodyChunk(msg.content))
+    case msg: SpdyHeadersFrame => chunkHandler.close(TrailerChunk(toHeaders(msg.headers)))
+    case msg: SpdyRstStreamFrame => handleRstFrame(msg)
+
+      // TODO: handle more types of messages correctly
+    case msg => logger.trace(s"Stream $streamid received SpdyStreamFrame: $msg")
   }
 }

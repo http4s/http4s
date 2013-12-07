@@ -18,6 +18,7 @@ import org.http4s.netty.{NettyOutput, NettySupport}
 import org.http4s.netty.NettySupport._
 import org.http4s.Response
 import org.http4s.TrailerChunk
+import java.util.concurrent.atomic.AtomicReference
 
 
 /**
@@ -27,9 +28,10 @@ import org.http4s.TrailerChunk
 class HttpNettyHandler(val service: HttpService,
                        val localAddress: InetSocketAddress,
                        val remoteAddress: InetSocketAddress)
-            extends NettySupport[HttpObject, HttpRequest] with NettyOutput {
+              extends NettySupport[HttpObject, HttpRequest] with NettyOutput {
 
   import NettySupport._
+  import HttpNettyHandler._
 
   private var ctx: ChannelHandlerContext = null
 
@@ -37,10 +39,21 @@ class HttpNettyHandler(val service: HttpService,
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / HTTP")
 
+  private val requestQueue = new AtomicReference[ReqState](Idle)
+
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: HttpRequest =>
       logger.trace("Netty request received")
-      runHttpRequest(ctx, req)
+      requestQueue.getAndSet(Pending(req)) match {
+        case Idle =>
+          requestQueue.set(Running)
+          runHttpRequest(ctx, req)
+
+        case Running => // Nothing to do
+
+        case Pending(_) => // This is an invalid state
+          ctx.fireExceptionCaught(new InvalidStateException(s"Received request with a pending request in queue"))
+      }
 
     case c: LastHttpContent =>
       if (manager != null) {
@@ -67,14 +80,15 @@ class HttpNettyHandler(val service: HttpService,
   }
 
   override protected def writeBodyBuffer(buff: ByteBuf): ChannelFuture = {
-    val msg =  new DefaultHttpContent(buff)
-    ctx.writeAndFlush(msg)
+    if (buff.readableBytes() > 0) {
+      val msg =  new DefaultHttpContent(buff)
+      ctx.writeAndFlush(msg)
+    }
+    else ctx.newSucceededFuture()
   }
 
   override protected def writeEnd(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = {
-    val body = new DefaultHttpContent(buff)
-    ctx.write(body)
-    val msg = new DefaultLastHttpContent()
+    val msg = new DefaultLastHttpContent(buff)
     if (t.isDefined) for ( h <- t.get.headers ) msg.trailingHeaders().set(h.name.toString, h.value)
     ctx.writeAndFlush(msg)
   }
@@ -109,8 +123,19 @@ class HttpNettyHandler(val service: HttpService,
     if (length.isEmpty) ctx.writeAndFlush(msg)
     else ctx.write(msg)
 
-    writeStream(response.body).map{ _ =>
-      if (closeOnFinish) ctx.close()
+    writeStream(response.body).map { _ =>
+      val next = requestQueue.getAndSet(Idle)
+      if (closeOnFinish) {
+        if (next.isInstanceOf[Pending])
+          logger.warn(s"Received pending request, but channel set to close. Request: $next")
+        ctx.close()
+      } else next match {
+        case Pending(req) =>
+          requestQueue.set(Running)
+          runHttpRequest(ctx, req)
+
+        case _ => // Nothing to do
+      }
     }
   }
 
@@ -163,4 +188,11 @@ class HttpNettyHandler(val service: HttpService,
       ctx.channel().config().setOption(ChannelOption.AUTO_READ, new java.lang.Boolean(true))
     }
   }
+}
+
+object HttpNettyHandler {
+  private sealed trait ReqState
+  private case object Idle extends ReqState
+  private case object Running extends ReqState
+  private case class Pending(req: HttpRequest) extends ReqState
 }

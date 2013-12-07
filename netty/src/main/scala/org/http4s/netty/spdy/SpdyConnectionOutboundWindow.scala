@@ -18,13 +18,13 @@ import com.typesafe.scalalogging.slf4j.Logging
 trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
   private var outboundWindow: Int = initialOutboundWindow
-  private var queue = new LinkedList[StreamData]()
+  private var connOutboundQueue = new LinkedList[StreamData]()
 
   def ctx: ChannelHandlerContext
 
   def getOutboundWindow(): Int = outboundWindow
 
-  def writeStreamEnd(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = queue.synchronized {
+  def writeStreamEnd(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = connOutboundQueue.synchronized {
     if (buff.readableBytes() >= outboundWindow) {
       val p = ctx.newPromise()
       writeStreamBuffer(streamid, buff).addListener(new ChannelFutureListener {
@@ -63,7 +63,7 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
     }
   }
 
-  def writeStreamBuffer(streamid: Int, buff: ByteBuf): ChannelFuture = queue.synchronized {
+  def writeStreamBuffer(streamid: Int, buff: ByteBuf): ChannelFuture = connOutboundQueue.synchronized {
     logger.trace(s"Writing buffer: ${buff.readableBytes()}, windowsize: $outboundWindow")
     if (buff.readableBytes() > outboundWindow) {
       val p = ctx.newPromise()
@@ -72,27 +72,28 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
         buff.readBytes(b)
         writeBodyBuff(streamid, b, false, true)
       }
-      queue.addLast(StreamData(streamid, buff, p))
+      connOutboundQueue.addLast(StreamData(streamid, buff, p))
       p
     }
     else writeBodyBuff(streamid, buff, false, true)
   }
 
-  def updateOutboundWindow(delta: Int) = queue.synchronized {
-    logger.trace(s"Updating window, delta: $delta")
+  def updateOutboundWindow(delta: Int): Unit = connOutboundQueue.synchronized {
+    logger.trace(s"Updating connection window, delta: $delta, new: ${outboundWindow + delta}")
     outboundWindow += delta
-    if (!queue.isEmpty && outboundWindow > 0) {   // Send more chunks
-      val next = queue.poll()
+    while (!connOutboundQueue.isEmpty && outboundWindow > 0) {   // Send more chunks
+      val next = connOutboundQueue.poll()
       if (next.buff.readableBytes() > outboundWindow) { // Can only send part
         val b = ctx.alloc().buffer(outboundWindow, outboundWindow)
         next.buff.readBytes(b)
         writeBodyBuff(next.streamid, b, false, true)
-        queue.addFirst(next)  // prepend to the queue
+        connOutboundQueue.addFirst(next)  // prepend to the queue
+        return
       }
       else {   // write the whole thing and get another chunk
-        writeBodyBuff(next.streamid, next.buff, false, queue.isEmpty || outboundWindow >= 0)
+        writeBodyBuff(next.streamid, next.buff, false, connOutboundQueue.isEmpty || outboundWindow >= 0)
         next.p.setSuccess()
-        updateOutboundWindow(0)
+        // continue the loop
       }
     }
   }

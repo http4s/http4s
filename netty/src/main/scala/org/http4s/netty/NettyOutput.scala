@@ -20,45 +20,61 @@ trait NettyOutput { self: Logging =>
 
   type CBType = Throwable \/ Unit => Unit
 
+  /** If a request is canceled, this method should return a canceled future */
   protected def writeBodyBuffer(buff: ByteBuf): ChannelFuture
 
+  /** If a request is canceled, this method should return a canceled future */
   protected def writeEnd(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture
 
-  def writeStream(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, _))
+  def writeStream(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, halt, _))
 
-  final private def go(p: Process[Task, Chunk], cb: CBType): Unit = p match {
+  final private def go(p: Process[Task, Chunk], cleanup: Process[Task, Chunk], cb: CBType): Unit = p match {
     case Emit(seq, tail) =>
-      if (seq.isEmpty) go(tail, cb)
+      if (seq.isEmpty) go(tail, cleanup, cb)
       else {
         val buffandt = copyChunks(seq)
         val buff = buffandt._1
-        val t = buffandt._2
+        val trailer = buffandt._2
 
-        if (t == null) writeBodyBuffer(buff).addListener(new ChannelFutureListener {
-          def operationComplete(future: ChannelFuture) {
-            if (future.isSuccess) go(tail, cb)
-            else if (future.isCancelled)  cb(-\/((new Cancelled(future.channel))))
-            else                          cb(-\/((future.cause)))
+        if (trailer == null) {  // TODO: is it worth the complexity to try to predict the tail?
+          if (!tail.isInstanceOf[Halt]) writeBodyBuffer(buff).addListener(new ChannelFutureListener {
+            def operationComplete(future: ChannelFuture) {
+              if (future.isSuccess)         go(tail, cleanup, cb)
+              else if (future.isCancelled)  go(cleanup, halt, cb)
+              else                          go(cleanup.causedBy(future.cause), halt, cb)
+            }
+          })
+          else { // Tail is a Halt state
+            if (tail.asInstanceOf[Halt].cause eq End) {  // Tail is normal termination
+              writeEnd(buff, None).addListener(new CompletionListener(cb, cleanup))
+            } else {   // Tail is exception
+              val e = tail.asInstanceOf[Halt].cause
+              writeEnd(buff, None).addListener(new CompletionListener(cb, cleanup.causedBy(e)))
+            }
           }
-        })
+        }
 
         else {
           if (!tail.isInstanceOf[Halt] &&
             (tail.asInstanceOf[Halt].cause ne End))
-            logger.warn("Received trailer, but stream may not be empty.")
+            logger.warn("Received trailer, but stream may not be empty. Running cleanup.")
 
-          writeEnd(buff, Some(t)).addListener(new CompletionListener(cb))
+          writeEnd(buff, Some(trailer)).addListener(new CompletionListener(cb, cleanup))
         }
       }
 
     case Await(t, f, fb, c) => t.runAsync {  // Wait for it to finish, then continue to unwind
-      case \/-(r) => go(f(r), cb)
-      case -\/(t) => cb(-\/(t))
+      case \/-(r)   => go(f(r), c, cb)
+      case -\/(End) => go(fb, c, cb)
+      case -\/(t)   => go(c.causedBy(t), halt, cb)
     }
 
-    case Halt(End) => writeEnd(Unpooled.EMPTY_BUFFER, None).addListener(new CompletionListener(cb))
+    case Halt(End) => writeEnd(Unpooled.EMPTY_BUFFER, None).addListener(new CompletionListener(cb, cleanup))
 
-    case Halt(error) => cb(-\/(error))
+    case Halt(error) => cleanup match {
+      case Halt(_) =>  cb(-\/(error))  // if the cleanup is a halt, and if so, just pitch out the error
+      case _       =>  go(cleanup.causedBy(error), halt, cb)   // give cleanup a chance
+    }
   }
 
   // Must get a non-empty sequence
@@ -80,11 +96,11 @@ trait NettyOutput { self: Logging =>
     } else go(BodyChunk(), seq)
   }
 
-  private class CompletionListener(cb: CBType) extends ChannelFutureListener {
+  private class CompletionListener(cb: CBType, cleanup: Process[Task, Chunk]) extends ChannelFutureListener {
     def operationComplete(future: ChannelFuture) {
-      if (future.isSuccess) cb(\/-(()))
-      else if (future.isCancelled)  cb(-\/((new Cancelled(future.channel))))
-      else                          cb(-\/((future.cause)))
+      if (future.isSuccess)         cleanup.run.runAsync(cb)
+      else if (future.isCancelled)  cleanup.run.runAsync(cb)
+      else                          cleanup.causedBy(future.cause).run.runAsync(cb)
     }
   }
 }
