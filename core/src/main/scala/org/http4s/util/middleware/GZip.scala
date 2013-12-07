@@ -14,30 +14,29 @@ import com.typesafe.scalalogging.slf4j.Logging
  *         Created on 11/30/13
  */
 object GZip extends Logging {
-
-  // Used to 'flush' the process1 at the end of the stream
-  private [GZip] object FinalChunk extends TrailerChunk
-
   /** Streaming GZip Process1 */
   def streamingGZip(buffersize: Int): Process1[Chunk, Chunk] = {
-//    val bytes = new ByteArrayOutputStream(0)
-//    val gzip = new GZIPOutputStream(bytes, buffersize, false)
     val gzip = new Gzipper(buffersize)
 
     def getBodyChunk = BodyChunk(gzip.getBytes())
 
+    val fb = emitLazy {
+      gzip.finish()
+      getBodyChunk
+    }
+
     def folder(chunk: Chunk): Process1[Chunk, Chunk] = chunk match {
       case c: BodyChunk =>
         gzip.write(c.toArray)
-        if (gzip.size() < 0.8*buffersize) await(Get[Chunk])(folder) // Wait for ~80% buffer capacity
-        else Emit(getBodyChunk::Nil, await(Get[Chunk])(folder))      // Emit a chunk
+        if (gzip.size() < 0.8*buffersize) await(Get[Chunk])(folder, fb, fb) // Wait for ~80% buffer capacity
+        else Emit(getBodyChunk::Nil, await(Get[Chunk])(folder, fb ,fb))      // Emit a chunk
 
       case t: TrailerChunk =>
         gzip.finish()
         val c = getBodyChunk
-        if (t eq FinalChunk) emit(c) else emitAll(c::t::Nil)
+        emitAll(c::t::Nil)
     }
-    await(Get[Chunk])(folder)
+    await(Get[Chunk])(folder, fb, fb)
   }
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
@@ -52,7 +51,7 @@ object GZip extends Logging {
           // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
           if (resp.headers.get(`Content-Encoding`).isEmpty) {
             logger.trace("GZip middleware encoding content")
-            val b = (resp.body ||| emit(FinalChunk)).pipe(streamingGZip(buffersize))
+            val b = resp.body.pipe(streamingGZip(buffersize))
             resp.removeHeader(`Content-Length`)
               .addHeader(`Content-Encoding`(ContentCoding.gzip))
               .copy(body = b)
