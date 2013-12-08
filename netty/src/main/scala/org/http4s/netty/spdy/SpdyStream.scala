@@ -62,7 +62,7 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
     val id = parent.newServerStreamID()
 
     if (id == -1) {    // We have exceeded the maximum stream ID value
-      logger.warn("Exceeded the maximum stream ID pool. Need to spool down connection.")
+      logger.warn("Exceeded maximum streams or maximum stream ID. Need to spool down connection.")
       ctx.writeAndFlush(new DefaultSpdyGoAwayFrame(parent.lastOpenedStream))
       return Task.now()
     }

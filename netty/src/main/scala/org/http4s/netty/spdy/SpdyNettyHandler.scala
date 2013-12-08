@@ -38,13 +38,13 @@ final class SpdyNettyHandler(srvc: HttpService,
     * If a stream is canceled, it get removed from the map. The allows the client to reject
     * data that it knows is already cached and this backend abort the outgoing stream
     */
-  private val activeStreams = new ConcurrentHashMap[Int, SpdyStream]
+  private val runningStreams = new ConcurrentHashMap[Int, SpdyStream]
   private var _ctx: ChannelHandlerContext = null
 
   def ctx = _ctx
 
   def registerStream(stream: SpdyStream): Boolean = {
-    activeStreams.put(stream.streamid, stream) == null
+    runningStreams.put(stream.streamid, stream) == null
   }
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
@@ -74,7 +74,7 @@ final class SpdyNettyHandler(srvc: HttpService,
 
   def streamFinished(id: Int) {
     logger.trace(s"Stream $id finished. Closing.")
-    if (activeStreams.remove(id) == null) logger.warn(s"Stream id $id for address $remoteAddress was empty.")
+    if (runningStreams.remove(id) == null) logger.warn(s"Stream id $id for address $remoteAddress was empty.")
   }
 
   def closeSpdyWindow(): Unit = {
@@ -95,7 +95,7 @@ final class SpdyNettyHandler(srvc: HttpService,
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
     val replyStream = new SpdyReplyStream(req.getStreamId, ctx, this, initialWindow)
-    assert(activeStreams.put(req.getStreamId, replyStream) == null)
+    assert(runningStreams.put(req.getStreamId, replyStream) == null)
     Request(
       requestMethod = Method(SpdyHeaders.getMethod(spdyversion, req).name),
       //scriptName = contextPath,
@@ -113,7 +113,7 @@ final class SpdyNettyHandler(srvc: HttpService,
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
-    val handler = activeStreams.get(req.getStreamId)
+    val handler = runningStreams.get(req.getStreamId)
     if (handler != null)  {
       assert(handler.isInstanceOf[SpdyReplyStream])   // Should only get requests to ReplyStreams
       handler.asInstanceOf[SpdyReplyStream].handleRequest(req, response)
@@ -125,7 +125,7 @@ final class SpdyNettyHandler(srvc: HttpService,
     try {
       logger.error(s"Exception on connection with $remoteAddress", cause)
       foreachStream(_.kill(cause))
-      activeStreams.clear()
+      runningStreams.clear()
       if (ctx.channel().isOpen) {  // Send GOAWAY frame to signal disconnect if we are still connected
         val goaway = new DefaultSpdyGoAwayFrame(lastOpenedStream, 2) // Internal Error
         allCatch(ctx.writeAndFlush(goaway).addListener(ChannelFutureListener.CLOSE))
@@ -142,7 +142,7 @@ final class SpdyNettyHandler(srvc: HttpService,
     * @param msg SpdyStreamFrame to be forwarded
     */
   private def forwardMsg(msg: SpdyStreamFrame) {
-    val handler = activeStreams.get(msg.getStreamId)
+    val handler = runningStreams.get(msg.getStreamId)
 
     // Deal with data windows
     if (msg.isInstanceOf[SpdyDataFrame]) {
@@ -175,7 +175,7 @@ final class SpdyNettyHandler(srvc: HttpService,
     case msg: SpdyWindowUpdateFrame =>
       if (msg.getStreamId == 0) updateOutboundWindow(msg.getDeltaWindowSize)  // Global window size
       else {
-        val handler = activeStreams.get(msg.getStreamId)
+        val handler = runningStreams.get(msg.getStreamId)
         if (handler != null) handler.handle(msg)
         else  {
           logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
@@ -195,6 +195,8 @@ final class SpdyNettyHandler(srvc: HttpService,
 
     case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")
   }
+
+  protected def activeStreams(): Int = runningStreams.size()
 
   protected def submitDeltaInboundWindow(n: Int): Unit = {
     logger.trace(s"Updating Connection inbound window by $n bytes")
@@ -225,7 +227,7 @@ final class SpdyNettyHandler(srvc: HttpService,
   }
 
   private def foreachStream(f: SpdyStream => Any) {
-    val it = activeStreams.values().iterator()
+    val it = runningStreams.values().iterator()
     while(it.hasNext) f(it.next())
   }
 

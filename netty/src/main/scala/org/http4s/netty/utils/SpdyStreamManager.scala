@@ -16,6 +16,8 @@ trait SpdyStreamManager { self: Logging =>
   private var maxStreams = Integer.MAX_VALUE    // 2^31
   private var initialStreamSize = 64*1024       // 64KB
 
+  protected def activeStreams(): Int
+
   /** Get a new stream ID for a new server initiated stream
     * @return ID to assign to the stream
     */
@@ -70,7 +72,9 @@ trait SpdyStreamManager { self: Logging =>
   }
 
   private def newStreamID(isServer: Boolean): Int = {  // Need an odd integer
-  val modulo = if (isServer) 0 else 1
+    if (activeStreams() + 1 > maxStreams) return -1
+
+    val modulo = if (isServer) 0 else 1
     def go(): Int = {
       val current = currentStreamID.get()
       val inc = if (current % 2 == modulo) 2 else 1
