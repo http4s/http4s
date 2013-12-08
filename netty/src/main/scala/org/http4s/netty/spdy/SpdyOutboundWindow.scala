@@ -10,7 +10,7 @@ import org.http4s.TrailerChunk
  */
 trait SpdyOutboundWindow {
 
-  def initialOutboundWindow: Int
+  def initialWindow: Int
 
   def closeSpdyWindow(): Unit
 

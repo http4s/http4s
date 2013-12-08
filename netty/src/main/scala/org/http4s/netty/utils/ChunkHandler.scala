@@ -31,6 +31,8 @@ class ChunkHandler(val highWater: Int) {
 
   def onQueueFull(): Unit = {}
 
+  def isClosed(): Boolean = closed
+
   /** Called when a chunk is sent out. This method will be called synchronously AFTER the cb is fired */
   def onBytesSent(n: Int): Unit = {}
 
@@ -95,8 +97,11 @@ class ChunkHandler(val highWater: Int) {
       val cb = this.cb
       this.cb = null
       queuesize = 0   // No chunks, no callbacks.
-      cb(\/-(chunk))
-      onBytesSent(chunk.length)
+
+      try cb(\/-(chunk))
+      catch { case t: Throwable => cbException(t, cb) }
+      finally onBytesSent(chunk.length)
+
     } else {
       queue.add(chunk)
       queuesize += chunk.length

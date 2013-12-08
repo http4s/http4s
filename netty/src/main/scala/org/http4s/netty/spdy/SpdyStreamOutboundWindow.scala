@@ -19,7 +19,7 @@ trait SpdyStreamOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
   private var isclosed = false
   private val outboundLock = new AnyRef
-  private var outboundWindow: Int = initialOutboundWindow
+  private var outboundWindow: Int = initialWindow
   private var guard: WindowGuard = null
 
   def streamid: Int

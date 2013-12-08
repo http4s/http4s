@@ -59,7 +59,7 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
   /** Submits the head of the resource, and returns the execution of the submission of the body as a Task */
   protected def pushResource(push: PushResponse, req: SpdySynStreamFrame): Task[Unit] = {
 
-    val id = parent.newPushStreamID()
+    val id = parent.newServerStreamID()
 
     if (id == -1) {    // We have exceeded the maximum stream ID value
       logger.warn("Exceeded the maximum stream ID pool. Need to spool down connection.")
@@ -73,7 +73,7 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
     val response = push.resp
     logger.trace(s"Pushing content on stream $id associated with stream $parentid, url ${push.location}")
 
-    val pushedStream = new SpdyPushStream(id, ctx, parent, initialOutboundWindow)
+    val pushedStream = new SpdyPushStream(id, ctx, parent, initialWindow)
     assert(parent.registerStream(pushedStream)) // Add a dummy Handler to signal that the stream is active
 
     // TODO: Default to priority 2. What should we really have?

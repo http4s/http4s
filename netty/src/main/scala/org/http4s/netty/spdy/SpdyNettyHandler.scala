@@ -7,6 +7,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import io.netty.handler.codec.spdy._
 import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelHandlerContext}
+import io.netty.buffer.ByteBuf
 
 import scalaz.concurrent.Task
 
@@ -15,20 +16,21 @@ import org.http4s._
 import org.http4s.netty.NettySupport
 import org.http4s.Response
 import org.http4s.netty.utils.SpdyStreamManager
-import io.netty.buffer.ByteBuf
 
 
 /**
 * @author Bryce Anderson
 *         Created on 11/28/13
 */
-class SpdyNettyHandler(srvc: HttpService,
+final class SpdyNettyHandler(srvc: HttpService,
                   val spdyversion: Int,
                   val localAddress: InetSocketAddress,
                   val remoteAddress: InetSocketAddress)
+
           extends NettySupport[SpdyFrame, SpdySynStreamFrame]
           with SpdyStreamManager
-          with SpdyConnectionOutboundWindow  {
+          with SpdyInboundWindow
+          with SpdyConnectionOutboundWindow {
 
   import NettySupport._
 
@@ -38,11 +40,8 @@ class SpdyNettyHandler(srvc: HttpService,
     */
   private val activeStreams = new ConcurrentHashMap[Int, SpdyStream]
   private var _ctx: ChannelHandlerContext = null
-  private var inboundBytesReceivedSenseUpdate = 0
 
   def ctx = _ctx
-
-  def initialOutboundWindow = initialWindow
 
   def registerStream(stream: SpdyStream): Boolean = {
     activeStreams.put(stream.streamid, stream) == null
@@ -88,6 +87,7 @@ class SpdyNettyHandler(srvc: HttpService,
 
   override protected def toRequest(ctx: ChannelHandlerContext, req: SpdySynStreamFrame): Request = {
     val uri = new URI(SpdyHeaders.getUrl(spdyversion, req))
+    logger.error(s"Got the uri: $uri")
     val scheme = Option(SpdyHeaders.getScheme(spdyversion, req)).getOrElse{
       logger.warn(s"${remoteAddress}: Request doesn't have scheme header")
       "https"
@@ -138,14 +138,23 @@ class SpdyNettyHandler(srvc: HttpService,
   }
 
   /** Forwards messages to the appropriate SpdyStreamContext
-    * @param ctx ChannelHandlerContext of this channel
+    *
     * @param msg SpdyStreamFrame to be forwarded
     */
-  private def forwardMsg(ctx: ChannelHandlerContext, msg: SpdyStreamFrame) {
+  private def forwardMsg(msg: SpdyStreamFrame) {
     val handler = activeStreams.get(msg.getStreamId)
+
+    // Deal with data windows
+    if (msg.isInstanceOf[SpdyDataFrame]) {
+      val m = msg.asInstanceOf[SpdyDataFrame]
+      decrementWindow(m.content().readableBytes())
+
+      if (handler == null) incrementWindow(m.content().readableBytes())
+    }
+
     if (handler!= null) handler.handle(msg)
-    else  {
-      logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
+    else {
+      logger.debug(s"Received chunk on unknown stream ${msg.getStreamId}")
       val rst = new DefaultSpdyRstStreamFrame(msg.getStreamId, 5)  // 5: Cancel the stream
       ctx.writeAndFlush(rst)
     }
@@ -158,26 +167,10 @@ class SpdyNettyHandler(srvc: HttpService,
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: SpdySynStreamFrame =>
       logger.trace(s"Received Request frame with id ${req.getStreamId}")
-      setRequestStreamID(req.getStreamId)
+      setCurrentStreamID(req.getStreamId)
       runHttpRequest(ctx, req)
 
-    case p: SpdyPingFrame =>
-      if (p.getId % 2 == 1) {   // Must ignore Pings with even number id
-        logger.trace(s"Sending ping reply frame with id ${p.getId}")
-        val ping = new DefaultSpdyPingFrame(p.getId)
-        ctx.writeAndFlush(ping)
-      }
-
-    case msg: SpdyDataFrame =>
-      val bytes = msg.content().readableBytes()
-      inboundBytesReceivedSenseUpdate += bytes
-      if (inboundBytesReceivedSenseUpdate > initialWindow / 2) {
-        ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(0, inboundBytesReceivedSenseUpdate))
-        inboundBytesReceivedSenseUpdate = 0
-      }
-      forwardMsg(ctx, msg)
-
-    case msg: SpdyStreamFrame => forwardMsg(ctx, msg)
+    case msg: SpdyStreamFrame => forwardMsg(msg)
 
     case msg: SpdyWindowUpdateFrame =>
       if (msg.getStreamId == 0) updateOutboundWindow(msg.getDeltaWindowSize)  // Global window size
@@ -191,9 +184,21 @@ class SpdyNettyHandler(srvc: HttpService,
         }
       }
 
+    case p: SpdyPingFrame =>
+      if (p.getId % 2 == 1) {   // Must ignore Pings with even number id
+        logger.trace(s"Sending ping reply frame with id ${p.getId}")
+        val ping = new DefaultSpdyPingFrame(p.getId)
+        ctx.writeAndFlush(ping)
+      }
+
     case s: SpdySettingsFrame => handleSpdySettings(s)
 
     case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")
+  }
+
+  protected def submitDeltaInboundWindow(n: Int): Unit = {
+    logger.trace(s"Updating Connection inbound window by $n bytes")
+    ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(0, n))
   }
 
   private def handleSpdySettings(settings: SpdySettingsFrame) {
@@ -203,12 +208,19 @@ class SpdyNettyHandler(srvc: HttpService,
     val maxStreams = settings.getValue(SETTINGS_MAX_CONCURRENT_STREAMS)
     if (maxStreams > 0) setMaxStreams(maxStreams)
 
-    val initWindow = settings.getValue(SETTINGS_INITIAL_WINDOW_SIZE)
+    val newWindow = settings.getValue(SETTINGS_INITIAL_WINDOW_SIZE)
     // TODO: Deal with window sizes and buffering. http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3#TOC-2.6.8-WINDOW_UPDATE
-    if (initWindow > 0) {
-      val diff = initWindow - this.initialWindow
-      setInitialWindow(initWindow)
-      foreachStream(_.updateOutboundWindow(diff))
+    if (newWindow > 0) {
+      // Update the connection window sizes
+      setInitialWindow(newWindow)
+      changeMaxInboundWindow(newWindow)
+
+      // Update the connection windows of any streams
+      val diff = newWindow - initialWindow
+      foreachStream{ s =>
+        s.updateOutboundWindow(diff)
+          s.asInstanceOf[SpdyInboundWindow].changeMaxInboundWindow(diff)
+      }
     }
   }
 

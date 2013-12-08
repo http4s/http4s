@@ -21,32 +21,32 @@ import org.http4s.netty.NettySupport._
   * @param streamid this streams id
   * @param ctx ChannelHandlerContext
   * @param parent SpdyNettyHandler with which to route messages back too
-  * @param initialOutboundWindow flow control window size
+  * @param initialWindow flow control window size
   */
-class SpdyReplyStream(val streamid: Int,
+final class SpdyReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
                       protected val parent: SpdyNettyHandler,
-                      val initialOutboundWindow: Int)
+                      val initialWindow: Int)
           extends SpdyStream
           with Logging
           with SpdyInboundWindow {
 
   //////   SpdyInboundWindow methods   ////////////////////////////////
 
-  def initialInboundWindowSize: Int = initialOutboundWindow
-
-  def submitDeltaWindow(n: Int): Unit = {
+  protected def submitDeltaInboundWindow(n: Int): Unit = {
     ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(streamid, n))
   }
 
-  val chunkHandler = new ChunkHandler(initialOutboundWindow) {
-    
-    override def enque(chunk: Chunk): Int = {
-      decrementWindow(chunk.length)
-      super.enque(chunk)
+  val chunkHandler = new ChunkHandler(initialWindow) {
+    override def onBytesSent(n: Int): Unit = {
+      incrementWindow(n)
+      parent.incrementWindow(n)
     }
 
-    override def onBytesSent(n: Int): Unit = incrementWindow(n)
+    override def kill(t: Throwable): Unit = {
+      if (queueSize() > 0) parent.incrementWindow(queueSize())
+      super.kill(t)
+    }
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -66,13 +66,24 @@ class SpdyReplyStream(val streamid: Int,
     t.flatMap { pushes =>
       ctx.write(resp)
       val t = writeStream(response.body).flatMap(_ => close() )
+
+      if (chunkHandler.queueSize() > 0)   // If we didn't use the bytes, account for them in parent window
+        parent.incrementWindow(chunkHandler.queueSize())
+
       Task.gatherUnordered(pushes :+ t, true)
     }
   }
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
 
-    case msg: SpdyDataFrame => chunkHandler.enque(buffToBodyChunk(msg.content))
+    case msg: SpdyDataFrame =>
+      val len = msg.content().readableBytes()
+      decrementWindow(len)
+
+    // Don't increment the stream window, don't want any more bytes
+      if (chunkHandler.enque(buffToBodyChunk(msg.content)) == -1)
+        parent.incrementWindow(len)
+
     case msg: SpdyHeadersFrame => chunkHandler.close(TrailerChunk(toHeaders(msg.headers)))
     case msg: SpdyRstStreamFrame => handleRstFrame(msg)
 

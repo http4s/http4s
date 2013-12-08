@@ -17,7 +17,7 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
-  private var outboundWindow: Int = initialOutboundWindow
+  private var outboundWindow: Int = initialWindow
   private var connOutboundQueue = new LinkedList[StreamData]()
 
   def ctx: ChannelHandlerContext
@@ -52,14 +52,14 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
     else {
       if (t.isDefined) {
         if (buff.readableBytes() > 0) {
-          writeBodyBuff(streamid, buff, false, true) // Don't flush
+          writeOutboundBodyBuff(streamid, buff, false, true) // Don't flush
         }
         val msg = new DefaultSpdyHeadersFrame(streamid)
         msg.setLast(true)
         t.get.headers.foreach( h => msg.headers().add(h.name.toString, h.value) )
         ctx.writeAndFlush(msg)
       }
-      else writeBodyBuff(streamid, buff, true, true)
+      else writeOutboundBodyBuff(streamid, buff, true, true)
     }
   }
 
@@ -70,12 +70,12 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
       if (outboundWindow > 0) {
         val b = ctx.alloc().buffer(outboundWindow, outboundWindow)
         buff.readBytes(b)
-        writeBodyBuff(streamid, b, false, true)
+        writeOutboundBodyBuff(streamid, b, false, true)
       }
       connOutboundQueue.addLast(StreamData(streamid, buff, p))
       p
     }
-    else writeBodyBuff(streamid, buff, false, true)
+    else writeOutboundBodyBuff(streamid, buff, false, true)
   }
 
   def updateOutboundWindow(delta: Int): Unit = connOutboundQueue.synchronized {
@@ -86,12 +86,12 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
       if (next.buff.readableBytes() > outboundWindow) { // Can only send part
         val b = ctx.alloc().buffer(outboundWindow, outboundWindow)
         next.buff.readBytes(b)
-        writeBodyBuff(next.streamid, b, false, true)
+        writeOutboundBodyBuff(next.streamid, b, false, true)
         connOutboundQueue.addFirst(next)  // prepend to the queue
         return
       }
       else {   // write the whole thing and get another chunk
-        writeBodyBuff(next.streamid, next.buff, false, connOutboundQueue.isEmpty || outboundWindow >= 0)
+        writeOutboundBodyBuff(next.streamid, next.buff, false, connOutboundQueue.isEmpty || outboundWindow >= 0)
         next.p.setSuccess()
         // continue the loop
       }
@@ -99,7 +99,7 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
   }
 
   // Should only be called from inside the synchronized methods
-  private def writeBodyBuff(streamid: Int, buff: ByteBuf, islast: Boolean, flush: Boolean): ChannelFuture = {
+  private def writeOutboundBodyBuff(streamid: Int, buff: ByteBuf, islast: Boolean, flush: Boolean): ChannelFuture = {
     outboundWindow -= buff.readableBytes()
 
     // Don't exceed maximum frame size

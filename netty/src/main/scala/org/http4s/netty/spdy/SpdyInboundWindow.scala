@@ -7,17 +7,17 @@ package org.http4s.netty.spdy
 trait SpdyInboundWindow {
 
   private val inboundLock = new AnyRef
-  private var inboundWindowSize = initialInboundWindowSize
-  private var inboundMaxWindow = initialInboundWindowSize
+  private var inboundWindowSize = initialWindow
+  private var inboundMaxWindow = initialWindow
   private var inboundUpdateBuffer = 0
 
-  def initialInboundWindowSize: Int
+  def initialWindow: Int
 
-  def submitDeltaWindow(n: Int): Unit
+  protected def submitDeltaInboundWindow(n: Int): Unit
 
   def getInboundWindow(): Int = inboundWindowSize
 
-  def changeMaxWindow(newValue: Int): Int = inboundLock.synchronized {
+  def changeMaxInboundWindow(newValue: Int): Int = inboundLock.synchronized {
     val old = inboundMaxWindow
     inboundMaxWindow = newValue
     inboundWindowSize += newValue - old
@@ -33,7 +33,7 @@ trait SpdyInboundWindow {
     inboundUpdateBuffer += n
 
     if (inboundUpdateBuffer > inboundMaxWindow / 2) {
-      submitDeltaWindow(inboundUpdateBuffer)
+      submitDeltaInboundWindow(inboundUpdateBuffer)
       inboundUpdateBuffer = 0
     }
 
