@@ -4,6 +4,9 @@ import java.util.concurrent.atomic.AtomicInteger
 import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.ConcurrentHashMap
 import org.http4s.netty.spdy.SpdyStream
+import org.http4s.netty.NettySupport.InvalidStateException
+import scala.util.{Failure, Success, Try}
+import org.http4s.netty.utils.SpdyStreamManager.{StreamIndexException, StreamExistsException, MaxStreamsException}
 
 /**
  * @author Bryce Anderson
@@ -110,10 +113,22 @@ trait SpdyStreamManager { self: Logging =>
   /** Add the stream to the active streams
     *
     * @param stream stream to add
-    * @return any stream that already existed with the same stream ID
+    * @return true if the stream was placed successfully, otherwise false
     */
-  def putStream(stream: SpdyStream): Option[SpdyStream] = {
-    Option(_managerRunningStreams.put(stream.streamid, stream))
+  def putStream(stream: SpdyStream): Boolean = {
+
+    // Make sure we are indexing streams right
+    val current = _managerCurrentStreamID.get()
+    if (current > stream.streamid)
+      _managerCurrentStreamID.compareAndSet(current, stream.streamid)
+
+    // Add the stream
+    val old = _managerRunningStreams.put(stream.streamid, stream)
+    if (old == null) true
+    else { // Put it back and return false
+      _managerRunningStreams.put(old.streamid, old)
+      false
+    }
   }
 
   /** Make the stream by generating a new streamID
@@ -121,26 +136,28 @@ trait SpdyStreamManager { self: Logging =>
     * @param f method to make the stream once given an id
     * @return the created stream, if adding the stream was successful
     */
-  def makeStream(f: Int => SpdyStream): Option[SpdyStream] = {
+  def makeStream(f: Int => SpdyStream): Try[SpdyStream] = {
+
+    if (activeStreams() + 1 > _managerMaxStreams)
+      return Failure(MaxStreamsException(_managerMaxStreams))
+
     val id = newStreamID()
     if (id > 0) {
       val newStream = f(id)
       val old = _managerRunningStreams.put(id, newStream)
-      if (old == null) Some(newStream)
+      if (old == null) Success(newStream)
       else {
         _managerRunningStreams.put(id, old)  // Put it back
-        None
+        Failure(new InvalidStateException(s"Generated an invalid stream id: $id"))
       }
     }
-    else None
+    else Failure(StreamIndexException())
   }
 
   /** Create a new stream ID for creating a new SPDY stream
     * @return ID to assign to the stream
     */
   private def newStreamID(): Int = {  // Need an odd integer
-    if (activeStreams() + 1 > _managerMaxStreams) return -1
-
     val modulo = if (isServer) 0 else 1
     def go(): Int = {
       val current = _managerCurrentStreamID.get()
@@ -153,3 +170,15 @@ trait SpdyStreamManager { self: Logging =>
     go()
   }
 }
+
+object SpdyStreamManager {
+  case class MaxStreamsException(maxStreams: Int)
+          extends InvalidStateException(s"Maximum streams exceeded: $maxStreams")
+
+  case class StreamExistsException(id: Int)
+          extends InvalidStateException(s"Stream with id $id already exists.")
+
+  case class StreamIndexException()
+          extends InvalidStateException(s"Streams reached maximum index of ${Integer.MAX_VALUE}")
+}
+

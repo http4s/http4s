@@ -82,7 +82,7 @@ final class SpdyNettyServerHandler(srvc: HttpService,
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
     val replyStream = new SpdyServerReplyStream(req.getStreamId, ctx, this, initialWindow)
 
-    if (putStream(replyStream).isDefined) {
+    if (!putStream(replyStream)) {
       throw new InvalidStateException("Received two SpdySynStreamFrames " +
                                      s"with same id: ${replyStream.streamid}")
     }
