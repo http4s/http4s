@@ -23,11 +23,11 @@ import org.http4s.netty.NettySupport._
   * @param parent SpdyNettyHandler with which to route messages back too
   * @param initialWindow flow control window size
   */
-final class SpdyReplyStream(val streamid: Int,
+final class SpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
-                      protected val parent: SpdyNettyHandler,
+                      protected val parent: SpdyNettyServerHandler,
                       val initialWindow: Int)
-          extends SpdyStream
+          extends SpdyServerStream
           with Logging
           with SpdyInboundWindow {
 
@@ -65,7 +65,7 @@ final class SpdyReplyStream(val streamid: Int,
 
     t.flatMap { pushes =>
       ctx.write(resp)
-      val t = writeStream(response.body).flatMap(_ => close() )
+      val t = writeProcess(response.body).flatMap(_ => close() )
 
       if (chunkHandler.queueSize() > 0)   // If we didn't use the bytes, account for them in parent window
         parent.incrementWindow(chunkHandler.queueSize())

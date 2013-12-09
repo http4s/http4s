@@ -71,7 +71,7 @@ class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
             ch.pipeline()
               .addLast("sslEngine", new SslHandler( newssl(ch)))
               .addLast("spdyframecodec", new SpdyFrameCodec(3))    // TODO: Don't hard code SPDY version
-              .addLast("http4s", new SpdyNettyHandler(service, 3, ch.localAddress(), ch.remoteAddress()))
+              .addLast("http4s", new SpdyNettyServerHandler(service, 3, ch.localAddress(), ch.remoteAddress()))
           }
         })
           .option(ChannelOption.SO_LINGER, new Integer(0))

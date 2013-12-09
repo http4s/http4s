@@ -3,8 +3,6 @@ package org.http4s.netty.spdy
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.spdy.{SpdyDataFrame, SpdyRstStreamFrame, SpdyStreamFrame}
-import scalaz.concurrent.Task
-import org.http4s.netty.utils.SpdyConstants._
 
 /**
  * @author Bryce Anderson
@@ -12,8 +10,8 @@ import org.http4s.netty.utils.SpdyConstants._
  */
 class SpdyPushStream(val streamid: Int,
                      protected val ctx: ChannelHandlerContext,
-                     protected val parent: SpdyNettyHandler,
-                     val initialWindow: Int) extends SpdyStream with Logging {
+                     protected val parent: SpdyNettyServerHandler,
+                     val initialWindow: Int) extends SpdyServerStream with Logging {
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
 

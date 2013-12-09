@@ -14,16 +14,19 @@ import org.http4s.util.middleware.PushSupport.PushResponse
 import io.netty.handler.codec.http.HttpResponseStatus
 
 import org.http4s.netty.utils.SpdyConstants._
+import org.http4s.netty.utils.SpdyStreamManager
 
 /**
 * @author Bryce Anderson
 *         Created on 12/4/13
 */
 trait SpdyStream extends SpdyStreamOutput { self: Logging =>
+
+  type Parent <: SpdyOutboundWindow with SpdyStreamManager
   
   private var _streamIsOpen = true
 
-  protected def parent: SpdyNettyHandler
+  protected def parent: Parent
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit
 
@@ -33,13 +36,12 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
 
   def close(): Task[Unit] = {
     _streamIsOpen = false
-    closeSpdyWindow()
+    closeSpdyOutboundWindow()
     parent.streamFinished(streamid)
     Task.now()
   }
 
   def kill(t: Throwable): Task[Unit] = {
-    closeSpdyWindow()
     close()
   }
 
@@ -54,39 +56,6 @@ trait SpdyStream extends SpdyStreamOutput { self: Logging =>
     case msg: SpdyWindowUpdateFrame =>
       assert(msg.getStreamId == streamid)
       updateOutboundWindow(msg.getDeltaWindowSize)
-  }
-
-  /** Submits the head of the resource, and returns the execution of the submission of the body as a Task */
-  protected def pushResource(push: PushResponse, req: SpdySynStreamFrame): Task[Unit] = {
-
-    val id = parent.newServerStreamID()
-
-    if (id == -1) {    // We have exceeded the maximum stream ID value
-      logger.warn("Exceeded maximum streams or maximum stream ID. Need to spool down connection.")
-      ctx.writeAndFlush(new DefaultSpdyGoAwayFrame(parent.lastOpenedStream))
-      return Task.now()
-    }
-
-    val parentid = req.getStreamId
-    val host = SpdyHeaders.getHost(req)
-    val scheme = SpdyHeaders.getScheme(parent.spdyversion, req)
-    val response = push.resp
-    logger.trace(s"Pushing content on stream $id associated with stream $parentid, url ${push.location}")
-
-    val pushedStream = new SpdyPushStream(id, ctx, parent, initialWindow)
-    assert(parent.registerStream(pushedStream)) // Add a dummy Handler to signal that the stream is active
-
-    // TODO: Default to priority 2. What should we really have?
-    val msg = new DefaultSpdySynStreamFrame(id, parentid, 2.toByte)
-    SpdyHeaders.setUrl(spdyversion, msg, push.location)
-    SpdyHeaders.setScheme(spdyversion, msg, scheme)
-    SpdyHeaders.setHost(msg, host)
-    copyResponse(msg, response)
-
-    ctx.write(msg)
-
-    // Differ writing of the body until the main resource can go as well. This might be cached or unneeded
-    Task.suspend(pushedStream.writeStream(response.body).flatMap(_ => pushedStream.close() ))
   }
 
   protected def copyResponse(spdyresp: SpdyHeadersFrame, response: Response): Int = {

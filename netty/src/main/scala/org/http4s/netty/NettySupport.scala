@@ -107,8 +107,6 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
       case \/-(_) =>  if (ctx.channel.isOpen) enableRead(ctx)
     }
   }
-
-
 }
 
 object NettySupport {
@@ -134,7 +132,7 @@ object NettySupport {
     BodyChunk(arr)
   }
 
-  def getStream(manager: ChunkHandler): Process[Task, Chunk] = {
+  def makeProcess(manager: ChunkHandler): Process[Task, Chunk] = {
     val t = Task.async[Chunk](cb => manager.request(cb))
     repeatEval(t)
   }

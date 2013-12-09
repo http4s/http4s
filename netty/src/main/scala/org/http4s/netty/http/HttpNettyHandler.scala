@@ -123,7 +123,7 @@ class HttpNettyHandler(val service: HttpService,
     if (length.isEmpty) ctx.writeAndFlush(msg)
     else ctx.write(msg)
 
-    writeStream(response.body).map { _ =>
+    writeProcess(response.body).map { _ =>
       val next = requestQueue.getAndSet(Idle)
       if (closeOnFinish) {
         if (next.isInstanceOf[Pending])
@@ -160,7 +160,7 @@ class HttpNettyHandler(val service: HttpService,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
       remote = remoteAddress.getAddress,
-      body = getStream(new ChannelManager(ctx))
+      body = makeProcess(new ChannelManager(ctx))
     )
   }
 

@@ -26,7 +26,7 @@ trait NettyOutput { self: Logging =>
   /** If a request is canceled, this method should return a canceled future */
   protected def writeEnd(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture
 
-  def writeStream(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, halt, _))
+  def writeProcess(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, halt, _))
 
   final private def go(p: Process[Task, Chunk], cleanup: Process[Task, Chunk], cb: CBType): Unit = p match {
     case Emit(seq, tail) =>
@@ -40,8 +40,8 @@ trait NettyOutput { self: Logging =>
           if (!tail.isInstanceOf[Halt]) writeBodyBuffer(buff).addListener(new ChannelFutureListener {
             def operationComplete(future: ChannelFuture) {
               if (future.isSuccess)         go(tail, cleanup, cb)
-              else if (future.isCancelled)  go(cleanup, halt, cb)
-              else                          go(cleanup.causedBy(future.cause), halt, cb)
+              else if (future.isCancelled)  cleanup.run.runAsync(cb)
+              else                          cleanup.causedBy(future.cause).run.runAsync(cb)
             }
           })
           else { // Tail is a Halt state

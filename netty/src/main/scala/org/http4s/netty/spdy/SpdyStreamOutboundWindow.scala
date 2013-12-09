@@ -28,7 +28,8 @@ trait SpdyStreamOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
   def getOutboundWindow(): Int = outboundWindow
 
-  def closeSpdyWindow(): Unit = outboundLock.synchronized {
+  /** Close this SPDY window canceling any waiting promises */
+  def closeSpdyOutboundWindow(): Unit = outboundLock.synchronized {
     if (!isclosed) {
       isclosed = true
       if (guard != null) {
@@ -45,14 +46,18 @@ trait SpdyStreamOutboundWindow extends SpdyOutboundWindow { self: Logging =>
     */
   protected def writeBodyBytes(buff: ByteBuf): ChannelFuture
 
+  /** Called to write a final buffer and optional TrailerChunk
+    *
+    * @param buff The netty ByteBuff to be written as a body message
+    * @param t optional trailer
+    * @return Future fulfilled upon completion
+    */
   protected def writeEndBytes(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture
 
   def awaitingWindowUpdate: Boolean = guard != null
 
   @inline
-  final def outboundWindowSize(): Int = {
-    outboundWindow
-  }
+  final def outboundWindowSize(): Int = outboundWindow
 
   // Kind of windy method
   def writeStreamEnd(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = outboundLock.synchronized {
@@ -158,7 +163,7 @@ trait SpdyStreamOutboundWindow extends SpdyOutboundWindow { self: Logging =>
   private class WindowGuard(val streamid: Int, val remaining: ByteBuf, val p: ChannelPromise) extends ChannelFutureListener {
     def operationComplete(future: ChannelFuture) {
       if (future.isSuccess) outboundLock.synchronized {
-        logger.trace(s"Stream $streamid is contining! ${outboundWindowSize()} ----------------------------------------------------------")
+        logger.trace(s"Stream $streamid is continuing")
         if (outboundWindowSize() > 0) writeExcess(streamid, remaining, p)
         else guard = this
       }
@@ -167,7 +172,7 @@ trait SpdyStreamOutboundWindow extends SpdyOutboundWindow { self: Logging =>
     }
 
     override def toString: String = {
-      s"WindowGuard($streamid, ByteBuf(${remaining.readableBytes()}), p)"
+      s"WindowGuard($streamid, ByteBuf(${remaining.readableBytes()}), $p)"
     }
   }
 

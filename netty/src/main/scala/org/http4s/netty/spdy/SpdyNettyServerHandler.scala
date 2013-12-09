@@ -22,11 +22,10 @@ import org.http4s.netty.utils.SpdyStreamManager
 * @author Bryce Anderson
 *         Created on 11/28/13
 */
-final class SpdyNettyHandler(srvc: HttpService,
+final class SpdyNettyServerHandler(srvc: HttpService,
                   val spdyversion: Int,
                   val localAddress: InetSocketAddress,
                   val remoteAddress: InetSocketAddress)
-
           extends NettySupport[SpdyFrame, SpdySynStreamFrame]
           with SpdyStreamManager
           with SpdyInboundWindow
@@ -34,22 +33,15 @@ final class SpdyNettyHandler(srvc: HttpService,
 
   import NettySupport._
 
-  /** Serves as a repository for active streams
-    * If a stream is canceled, it get removed from the map. The allows the client to reject
-    * data that it knows is already cached and this backend abort the outgoing stream
-    */
-  private val runningStreams = new ConcurrentHashMap[Int, SpdyStream]
   private var _ctx: ChannelHandlerContext = null
 
   def ctx = _ctx
 
-  def registerStream(stream: SpdyStream): Boolean = {
-    runningStreams.put(stream.streamid, stream) == null
-  }
-
   val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
 
   val service = PushSupport(srvc)
+
+  def isServer = true
 
   protected def writeBodyBytes(streamid: Int, buff: ByteBuf): ChannelFuture = {
     ctx.writeAndFlush(new DefaultSpdyDataFrame(streamid, buff))
@@ -72,14 +64,9 @@ final class SpdyNettyHandler(srvc: HttpService,
     _ctx = ctx
   }
 
-  def streamFinished(id: Int) {
-    logger.trace(s"Stream $id finished. Closing.")
-    if (runningStreams.remove(id) == null) logger.warn(s"Stream id $id for address $remoteAddress was empty.")
-  }
-
-  def closeSpdyWindow(): Unit = {
+  def closeSpdyOutboundWindow(): Unit = {
     foreachStream { s =>
-      s.closeSpdyWindow()
+      s.closeSpdyOutboundWindow()
       s.close()
     }
     ctx.close()
@@ -87,15 +74,19 @@ final class SpdyNettyHandler(srvc: HttpService,
 
   override protected def toRequest(ctx: ChannelHandlerContext, req: SpdySynStreamFrame): Request = {
     val uri = new URI(SpdyHeaders.getUrl(spdyversion, req))
-    logger.error(s"Got the uri: $uri")
     val scheme = Option(SpdyHeaders.getScheme(spdyversion, req)).getOrElse{
       logger.warn(s"${remoteAddress}: Request doesn't have scheme header")
       "https"
     }
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    val replyStream = new SpdyReplyStream(req.getStreamId, ctx, this, initialWindow)
-    assert(runningStreams.put(req.getStreamId, replyStream) == null)
+    val replyStream = new SpdyServerReplyStream(req.getStreamId, ctx, this, initialWindow)
+
+    if (putStream(replyStream).isDefined) {
+      throw new InvalidStateException("Received two SpdySynStreamFrames " +
+                                     s"with same id: ${replyStream.streamid}")
+    }
+
     Request(
       requestMethod = Method(SpdyHeaders.getMethod(spdyversion, req).name),
       //scriptName = contextPath,
@@ -108,24 +99,23 @@ final class SpdyNettyHandler(srvc: HttpService,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
       remote = remoteAddress.getAddress, // TODO using remoteName would trigger a lookup
-      body = getStream(replyStream.chunkHandler)
+      body = makeProcess(replyStream.chunkHandler)
     )
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
-    val handler = runningStreams.get(req.getStreamId)
+    val handler = getStream(req.getStreamId)
     if (handler != null)  {
-      assert(handler.isInstanceOf[SpdyReplyStream])   // Should only get requests to ReplyStreams
-      handler.asInstanceOf[SpdyReplyStream].handleRequest(req, response)
+      assert(handler.isInstanceOf[SpdyServerReplyStream])   // Should only get requests to ReplyStreams
+      handler.asInstanceOf[SpdyServerReplyStream].handleRequest(req, response)
     }
-    else sys.error("Newly created stream doesn't exist!")
+    else sys.error("Newly created stream doesn't exist! How can this be?")
   }
 
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
     try {
       logger.error(s"Exception on connection with $remoteAddress", cause)
-      foreachStream(_.kill(cause))
-      runningStreams.clear()
+      killStreams(cause)
       if (ctx.channel().isOpen) {  // Send GOAWAY frame to signal disconnect if we are still connected
         val goaway = new DefaultSpdyGoAwayFrame(lastOpenedStream, 2) // Internal Error
         allCatch(ctx.writeAndFlush(goaway).addListener(ChannelFutureListener.CLOSE))
@@ -142,7 +132,7 @@ final class SpdyNettyHandler(srvc: HttpService,
     * @param msg SpdyStreamFrame to be forwarded
     */
   private def forwardMsg(msg: SpdyStreamFrame) {
-    val handler = runningStreams.get(msg.getStreamId)
+    val handler = getStream(msg.getStreamId)
 
     // Deal with data windows
     if (msg.isInstanceOf[SpdyDataFrame]) {
@@ -175,7 +165,7 @@ final class SpdyNettyHandler(srvc: HttpService,
     case msg: SpdyWindowUpdateFrame =>
       if (msg.getStreamId == 0) updateOutboundWindow(msg.getDeltaWindowSize)  // Global window size
       else {
-        val handler = runningStreams.get(msg.getStreamId)
+        val handler = getStream(msg.getStreamId)
         if (handler != null) handler.handle(msg)
         else  {
           logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
@@ -195,8 +185,6 @@ final class SpdyNettyHandler(srvc: HttpService,
 
     case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")
   }
-
-  protected def activeStreams(): Int = runningStreams.size()
 
   protected def submitDeltaInboundWindow(n: Int): Unit = {
     logger.trace(s"Updating Connection inbound window by $n bytes")
@@ -224,11 +212,6 @@ final class SpdyNettyHandler(srvc: HttpService,
           s.asInstanceOf[SpdyInboundWindow].changeMaxInboundWindow(diff)
       }
     }
-  }
-
-  private def foreachStream(f: SpdyStream => Any) {
-    val it = runningStreams.values().iterator()
-    while(it.hasNext) f(it.next())
   }
 
   // TODO: Need to implement a Spdy HttpVersion
