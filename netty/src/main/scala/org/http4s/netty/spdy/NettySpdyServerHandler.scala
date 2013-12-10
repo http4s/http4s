@@ -1,4 +1,6 @@
-package org.http4s.netty.spdy
+package org.http4s
+package netty
+package spdy
 
 import scala.util.control.Exception.allCatch
 
@@ -6,7 +8,7 @@ import java.net.{URI, InetSocketAddress}
 import java.util.concurrent.ConcurrentHashMap
 
 import io.netty.handler.codec.spdy._
-import io.netty.channel.{ChannelFuture, ChannelFutureListener, ChannelHandlerContext}
+import io.netty.channel.{Channel, ChannelFutureListener, ChannelHandlerContext}
 import io.netty.buffer.ByteBuf
 
 import scalaz.concurrent.Task
@@ -16,18 +18,20 @@ import org.http4s._
 import org.http4s.netty.NettySupport
 import org.http4s.Response
 import org.http4s.netty.utils.SpdyStreamManager
+import scala.concurrent.{ExecutionContext, Future}
 
 
 /**
 * @author Bryce Anderson
 *         Created on 11/28/13
 */
-final class SpdyNettyServerHandler(srvc: HttpService,
+final class NettySpdyServerHandler(srvc: HttpService,
                   val spdyversion: Int,
                   val localAddress: InetSocketAddress,
-                  val remoteAddress: InetSocketAddress)
+                  val remoteAddress: InetSocketAddress,
+                  val ec: ExecutionContext)
           extends NettySupport[SpdyFrame, SpdySynStreamFrame]
-          with SpdyStreamManager
+          with SpdyStreamManager[NettySpdyStream]
           with SpdyInboundWindow
           with SpdyConnectionOutboundWindow {
 
@@ -43,16 +47,18 @@ final class SpdyNettyServerHandler(srvc: HttpService,
 
   def isServer = true
 
-  protected def writeBodyBytes(streamid: Int, buff: ByteBuf): ChannelFuture = {
-    ctx.writeAndFlush(new DefaultSpdyDataFrame(streamid, buff))
+  def connectionWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Channel] = {
+    if (flush) ctx.writeAndFlush(new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk)))
+    else ctx.write(new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk)))
   }
 
-  protected def writeEndBytes(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = {
+  def connectWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Channel] = {
     t.fold{
-      val msg = new DefaultSpdyDataFrame(streamid, buff)
+      val msg = new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk))
       msg.setLast(true)
       ctx.writeAndFlush(msg)
     }{ t =>
+      val buff = chunkToBuff(chunk)
       if (buff.readableBytes() > 0) ctx.write(new DefaultSpdyDataFrame(streamid, buff))
       val msg = new DefaultSpdyHeadersFrame(streamid)
       t.headers.foreach( h => msg.headers().add(h.name.toString, h.value) )
@@ -80,7 +86,7 @@ final class SpdyNettyServerHandler(srvc: HttpService,
     }
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    val replyStream = new SpdyServerReplyStream(req.getStreamId, ctx, this, initialWindow)
+    val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, this, initialWindow)
 
     if (!putStream(replyStream)) {
       throw new InvalidStateException("Received two SpdySynStreamFrames " +
@@ -106,8 +112,8 @@ final class SpdyNettyServerHandler(srvc: HttpService,
   override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
     val handler = getStream(req.getStreamId)
     if (handler != null)  {
-      assert(handler.isInstanceOf[SpdyServerReplyStream])   // Should only get requests to ReplyStreams
-      handler.asInstanceOf[SpdyServerReplyStream].handleRequest(req, response)
+      assert(handler.isInstanceOf[NettySpdyServerReplyStream])   // Should only get requests to ReplyStreams
+      handler.asInstanceOf[NettySpdyServerReplyStream].handleRequest(req, response)
     }
     else sys.error("Newly created stream doesn't exist! How can this be?")
   }

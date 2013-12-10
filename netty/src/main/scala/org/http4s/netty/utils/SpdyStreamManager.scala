@@ -6,7 +6,7 @@ import java.util.concurrent.ConcurrentHashMap
 import org.http4s.netty.spdy.SpdyStream
 import org.http4s.netty.NettySupport.InvalidStateException
 import scala.util.{Failure, Success, Try}
-import org.http4s.netty.utils.SpdyStreamManager.{StreamIndexException, StreamExistsException, MaxStreamsException}
+import org.http4s.netty.utils.SpdyStreamManager.{StreamIndexException, MaxStreamsException}
 
 /**
  * @author Bryce Anderson
@@ -16,12 +16,12 @@ import org.http4s.netty.utils.SpdyStreamManager.{StreamIndexException, StreamExi
 /** Manages the stream ID's for the SPDY protocol
   * In a separate trait to clean up the SpdyNettyHandler class
   */
-trait SpdyStreamManager { self: Logging =>
+trait SpdyStreamManager[S <: SpdyStream] { self: Logging =>
   /** Serves as a repository for active streams
     * If a stream is canceled, it get removed from the map. The allows the client to reject
     * data that it knows is already cached and this backend abort the outgoing stream
     */
-  private val _managerRunningStreams = new ConcurrentHashMap[Int, SpdyStream]
+  private val _managerRunningStreams = new ConcurrentHashMap[Int, S]
   private val _managerCurrentStreamID = new AtomicInteger(0)
   private var _managerMaxStreams = Integer.MAX_VALUE    // 2^31
   private var _managerInitialStreamSize = 64*1024       // 64KB
@@ -56,7 +56,7 @@ trait SpdyStreamManager { self: Logging =>
     *
     * @param id streamid to be removed
     */
-  def streamFinished(id: Int): Option[SpdyStream] =  {
+  def streamFinished(id: Int): Option[S] =  {
     logger.trace(s"Stream $id finished. Closing.")
     Option(_managerRunningStreams.remove(id))
   }
@@ -75,9 +75,9 @@ trait SpdyStreamManager { self: Logging =>
     go()
   }
 
-  def getStream(id: Int): SpdyStream = _managerRunningStreams.get(id)
+  def getStream(id: Int): S = _managerRunningStreams.get(id)
 
-  def foreachStream(f: SpdyStream => Any) {
+  def foreachStream(f: S => Any) {
     val it = _managerRunningStreams.values().iterator()
     while(it.hasNext) f(it.next())
   }
@@ -115,7 +115,7 @@ trait SpdyStreamManager { self: Logging =>
     * @param stream stream to add
     * @return true if the stream was placed successfully, otherwise false
     */
-  def putStream(stream: SpdyStream): Boolean = {
+  def putStream(stream: S): Boolean = {
 
     // Make sure we are indexing streams right
     val current = _managerCurrentStreamID.get()
@@ -136,7 +136,7 @@ trait SpdyStreamManager { self: Logging =>
     * @param f method to make the stream once given an id
     * @return the created stream, if adding the stream was successful
     */
-  def makeStream(f: Int => SpdyStream): Try[SpdyStream] = {
+  def makeStream(f: Int => S): Try[S] = {
 
     if (activeStreams() + 1 > _managerMaxStreams)
       return Failure(MaxStreamsException(_managerMaxStreams))

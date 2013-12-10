@@ -1,8 +1,10 @@
-package org.http4s.netty.http
+package org.http4s
+package netty
+package http
 
 import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
-import io.netty.channel.{ChannelFuture, ChannelOption, ChannelFutureListener, ChannelHandlerContext}
+import io.netty.channel._
 import io.netty.handler.ssl.SslHandler
 import io.netty.buffer.{ByteBuf, Unpooled}
 
@@ -14,11 +16,14 @@ import java.net.{InetSocketAddress, URI}
 import org.http4s._
 import io.netty.util.ReferenceCountUtil
 import org.http4s.netty.utils.ChunkHandler
-import org.http4s.netty.{NettyOutput, NettySupport}
+import org.http4s.netty.{ProcessWriter, NettySupport}
 import org.http4s.netty.NettySupport._
 import org.http4s.Response
 import org.http4s.TrailerChunk
 import java.util.concurrent.atomic.AtomicReference
+import org.http4s.Response
+import org.http4s.TrailerChunk
+import scala.concurrent.{ExecutionContext, Future}
 
 
 /**
@@ -28,12 +33,16 @@ import java.util.concurrent.atomic.AtomicReference
 class HttpNettyHandler(val service: HttpService,
                        val localAddress: InetSocketAddress,
                        val remoteAddress: InetSocketAddress)
-              extends NettySupport[HttpObject, HttpRequest] with NettyOutput {
+              extends NettySupport[HttpObject, HttpRequest] with ProcessWriter {
 
   import NettySupport._
   import HttpNettyHandler._
 
+  type A = Channel
+
   private var ctx: ChannelHandlerContext = null
+
+  protected var ec: ExecutionContext = null
 
   private var manager: ChannelManager = null
 
@@ -77,18 +86,20 @@ class HttpNettyHandler(val service: HttpService,
 
   final override def channelRegistered(ctx: ChannelHandlerContext) {
     this.ctx = ctx
+    this.ec = ExecutionContext.fromExecutor(ctx.channel().eventLoop())
   }
 
-  override protected def writeBodyBuffer(buff: ByteBuf): ChannelFuture = {
-    if (buff.readableBytes() > 0) {
-      val msg =  new DefaultHttpContent(buff)
-      ctx.writeAndFlush(msg)
+  override protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Channel] = {
+    if (chunk.length > 0) {
+      val msg =  new DefaultHttpContent(chunkToBuff(chunk))
+      if (flush) ctx.writeAndFlush(msg)
+      else ctx.write(msg)
     }
-    else ctx.newSucceededFuture()
+    else Future.successful(ctx.channel())
   }
 
-  override protected def writeEnd(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = {
-    val msg = new DefaultLastHttpContent(buff)
+  override protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Channel] = {
+    val msg = new DefaultLastHttpContent(chunkToBuff(chunk))
     if (t.isDefined) for ( h <- t.get.headers ) msg.trailingHeaders().set(h.name.toString, h.value)
     ctx.writeAndFlush(msg)
   }

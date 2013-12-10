@@ -16,18 +16,18 @@ import org.http4s.netty.NettySupport._
  *         Created on 12/5/13
  */
 
-/** Representation of a Server reply to a Spdy request
+/** Representation of a Server reply to a SPDY request
   * 
   * @param streamid this streams id
   * @param ctx ChannelHandlerContext
   * @param parent SpdyNettyHandler with which to route messages back too
   * @param initialWindow flow control window size
   */
-final class SpdyServerReplyStream(val streamid: Int,
+final class NettySpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
-                      protected val parent: SpdyNettyServerHandler,
+                      protected val parent: NettySpdyServerHandler,
                       val initialWindow: Int)
-          extends SpdyServerStream
+          extends NettySpdyServerStream
           with Logging
           with SpdyInboundWindow {
 

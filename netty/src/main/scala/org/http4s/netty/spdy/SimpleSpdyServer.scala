@@ -67,11 +67,11 @@ class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
           .childHandler(new ChannelInitializer[SocketChannel] {
           def initChannel(ch: SocketChannel) {
             logger.trace(s"Creating new channel. Local: ${ch.localAddress()}, remote: ${ch.remoteAddress()}")
-
+            val ec = ExecutionContext.fromExecutor(ch.eventLoop())
             ch.pipeline()
               .addLast("sslEngine", new SslHandler( newssl(ch)))
               .addLast("spdyframecodec", new SpdyFrameCodec(3))    // TODO: Don't hard code SPDY version
-              .addLast("http4s", new SpdyNettyServerHandler(service, 3, ch.localAddress(), ch.remoteAddress()))
+              .addLast("http4s", new NettySpdyServerHandler(service, 3, ch.localAddress(), ch.remoteAddress(), ec))
           }
         })
           .option(ChannelOption.SO_LINGER, new Integer(0))

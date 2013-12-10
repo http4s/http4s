@@ -5,11 +5,49 @@ import io.netty.handler.codec.{http => n}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-}
 import org.http4s.ServerProtocol.HttpVersion
+import scala.concurrent.{CanAwait, ExecutionContext, Future}
+import scala.util.{Failure, Success, Try}
+import scala.concurrent.duration.Duration
+import scala.util.control.NoStackTrace
 
 package object netty {
 
-  case class Cancelled(val channel: Channel) extends Throwable
+  case object Cancelled extends Throwable with NoStackTrace
   case class ChannelError(val channel: Channel, val reason: Throwable) extends Throwable
+
+
+  implicit class ImplChannelFuture(val cf: ChannelFuture) extends AnyRef with Future[Channel] {
+
+    def ready(atMost: Duration)(implicit permit: CanAwait): this.type = {
+      cf.await(atMost.toMillis)
+      this
+    }
+
+    def result(atMost: Duration)(implicit permit: CanAwait): Channel = {
+      ready(atMost).cf.channel()
+    }
+
+    def onComplete[U](func: (Try[Channel]) => U)(implicit executor: ExecutionContext): Unit = {
+      cf.addListener(new ChannelFutureListener {
+        def operationComplete(future: ChannelFuture) {
+          if (future.isSuccess)         func(Success(future.channel()))
+          else if (future.isCancelled)  func(Failure(Cancelled))
+          else                          func(Failure(future.cause()))
+        }
+      })
+    }
+
+    def isCompleted: Boolean = cf.isDone
+
+    def value: Option[Try[Channel]] = {
+      if (isCompleted) {
+        if (cf.isSuccess) Some(Success(cf.channel()))
+        else Some(Failure(cf.cause()))
+      }
+      else if (cf.isCancelled) Some(Failure(Cancelled))
+      else None
+    }
+  }
 
   implicit class TaskSyntax[+A](t: Task[A]) {
     def handleWith[B>:A](f: PartialFunction[Throwable,Task[B]]): Task[B] = {
@@ -25,13 +63,13 @@ package object netty {
     else Task.async{ cb =>
       if(cf.isDone) {
         if (cf.isSuccess) cb(\/-(cf.channel()))
-        else if (cf.isCancelled) cb(-\/((new Cancelled(cf.channel))))
+        else if (cf.isCancelled) cb(-\/((Cancelled)))
         else cb(-\/((cf.cause)))
       }
       else cf.addListener(new ChannelFutureListener {
         def operationComplete(future: ChannelFuture) {
           if (future.isSuccess) cb(\/-((future.channel)))
-          else if (future.isCancelled) cb(-\/((new Cancelled(future.channel))))
+          else if (future.isCancelled) cb(-\/((Cancelled)))
           else cb(-\/((future.cause)))
         }
       })

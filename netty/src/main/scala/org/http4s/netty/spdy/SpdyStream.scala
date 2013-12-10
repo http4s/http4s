@@ -1,91 +1,146 @@
 package org.http4s.netty.spdy
 
 import scalaz.concurrent.Task
-import io.netty.handler.codec.spdy._
-import com.typesafe.scalalogging.slf4j.Logging
-
-import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
-import io.netty.buffer.ByteBuf
-import io.netty.channel.ChannelFuture
-import org.http4s.Response
-import org.http4s.TrailerChunk
-import org.http4s.Header.`Content-Length`
-import org.http4s.util.middleware.PushSupport.PushResponse
-import io.netty.handler.codec.http.HttpResponseStatus
-
-import org.http4s.netty.utils.SpdyConstants._
 import org.http4s.netty.utils.SpdyStreamManager
+import com.typesafe.scalalogging.slf4j.Logging
+import scala.concurrent.{Promise, Future, ExecutionContext}
+import org.http4s.netty.{ProcessWriter, Cancelled}
+import org.http4s.{TrailerChunk, BodyChunk}
+import scala.util.{Try, Failure, Success}
 
 /**
-* @author Bryce Anderson
-*         Created on 12/4/13
-*/
-trait SpdyStream extends SpdyStreamOutput { self: Logging =>
+ * @author Bryce Anderson
+ *         Created on 12/10/13
+ */
+trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =>
 
-  type Parent <: SpdyOutboundWindow with SpdyStreamManager
-  
-  private var _streamIsOpen = true
+  private var isclosed = false
+  private val outboundLock = new AnyRef
+  private var outboundWindow: Int = initialWindow
+  private var guard: WindowGuard = null
 
-  protected def parent: Parent
+  type Repr <: SpdyStream
 
-  def handleStreamFrame(msg: SpdyStreamFrame): Unit
+  protected def parent: SpdyOutput with SpdyStreamManager[Repr]
+
+  def close(): Task[_]
+
+  def kill(cause: Throwable): Task[_]
 
   def streamid: Int
 
-  def spdyversion: Int = parent.spdyversion  // TODO: this is temporary
+  implicit protected def ec: ExecutionContext
 
-  def close(): Task[Unit] = {
-    _streamIsOpen = false
-    closeSpdyOutboundWindow()
-    parent.streamFinished(streamid)
-    Task.now()
-  }
+  def getOutboundWindow(): Int = outboundWindow
 
-  def kill(t: Throwable): Task[Unit] = {
-    close()
-  }
-
-  def handleRstFrame(msg: SpdyRstStreamFrame) = msg.getStatus match {
-    case i if i == REFUSED_STREAM  || i == CANCEL => close()
-    case i => kill(new Exception(s"Push stream $streamid received RST frame with code $i"))
-  }
-
-  def handle(msg: SpdyFrame): Unit = msg match {
-    case msg: SpdyStreamFrame => handleStreamFrame(msg)
-
-    case msg: SpdyWindowUpdateFrame =>
-      assert(msg.getStreamId == streamid)
-      updateOutboundWindow(msg.getDeltaWindowSize)
-  }
-
-  protected def copyResponse(spdyresp: SpdyHeadersFrame, response: Response): Int = {
-    SpdyHeaders.setStatus(parent.spdyversion, spdyresp, getStatus(response))
-    SpdyHeaders.setVersion(spdyversion, spdyresp, HTTP_1_1)
-
-    var size = -1
-    response.headers.foreach { header =>
-      if (header.is(`Content-Length`)) size = header.parsed.asInstanceOf[`Content-Length`].length
-      spdyresp.headers.set(header.name.toString, header.value)
+  /** Close this SPDY window canceling any waiting promises */
+  def closeSpdyOutboundWindow(): Unit = outboundLock.synchronized {
+    if (!isclosed) {
+      isclosed = true
+      if (guard != null) {
+        guard.p.failure(Cancelled)
+        guard = null
+      }
     }
-    size
   }
 
-  protected def canceledFuture(): ChannelFuture = {
-    val p = ctx.newPromise()
-    p.cancel(true)
-    p
+  /** If a request is canceled, this method should return a canceled future */
+  protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] =
+    writeStreamChunk(streamid, chunk, flush)
+
+  /** If a request is canceled, this method should return a canceled future */
+  protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] =
+    writeStreamEnd(streamid, chunk, t)
+
+  def awaitingWindowUpdate: Boolean = guard != null
+
+  @inline
+  final def outboundWindowSize(): Int = outboundWindow
+
+  // Kind of windy method
+  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = outboundLock.synchronized {
+    assert(guard == null)
+
+    if (isclosed) return Future.failed(Cancelled)
+
+    if (chunk.length > outboundWindowSize()) { // Need to break it up
+    val p = Promise[Any]
+      writeStreamChunk(streamid, chunk, true).onComplete {
+        case Success(a) => p.completeWith(parent.writeStreamEnd(streamid, BodyChunk(), t))
+        case Failure(t) => p.failure(t)
+      }
+      p.future
+    }
+    else parent.writeStreamEnd(streamid, chunk, t)
   }
 
-  protected def writeBodyBytes(buff: ByteBuf): ChannelFuture = {
-    if (_streamIsOpen) parent.writeStreamBuffer(streamid, buff)
-    else canceledFuture()
+  def writeStreamChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = outboundLock.synchronized {
+    assert(guard == null)
+
+    if (isclosed) return Future.failed(Cancelled)
+
+    logger.trace(s"Stream $streamid writing buffer of size ${chunk.length}")
+
+    if (chunk.length > outboundWindowSize()) { // Need to break it up
+    val (left, right) = chunk.splitAt(outboundWindowSize())
+      val p = Promise[Any]
+      sendDownstream(left).onComplete(new WindowGuard(streamid, right, p))
+      p.future
+    }
+    else sendDownstream(chunk)
   }
 
-  protected def writeEndBytes(buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = {
-    if (_streamIsOpen) parent.writeStreamEnd(streamid, buff, t)
-    else canceledFuture()
+  private def writeExcess(streamid: Int, chunk: BodyChunk, p: Promise[Any]): Unit = outboundLock.synchronized {
+    assert(guard == null)
+
+    if (isclosed) {
+      p.failure(Cancelled)
+      return
+    }
+
+    if (chunk.length > outboundWindowSize()) { // Need to break it up
+      if (outboundWindowSize() > 0) {
+        val (left, right) = chunk.splitAt(outboundWindowSize())
+        sendDownstream(left).onComplete(new WindowGuard(streamid, right, p))
+      }
+      else guard = new WindowGuard(streamid, chunk, p)  // Cannot write any bytes, set the window guard
+    }
+    // There is enough room so just write and chain the future to the promise
+    else p.completeWith(sendDownstream(chunk))
   }
 
-  private def getStatus(response: Response) =
-    new HttpResponseStatus(response.status.code, response.status.reason)
+  def updateOutboundWindow(delta: Int) = outboundLock.synchronized {
+    logger.trace(s"Stream $streamid updated window by $delta")
+    outboundWindow += delta
+    if (guard != null && outboundWindowSize() > 0) {   // Send more chunks
+    val g = guard
+      guard = null
+      writeExcess(g.streamid, g.remaining, g.p)
+    }
+  }
+
+  @inline
+  private def sendDownstream(chunk: BodyChunk): Future[Any] = {
+    outboundWindow -= chunk.length
+    parent.writeStreamChunk(streamid, chunk, true)
+  }
+
+  private class WindowGuard(val streamid: Int, val remaining: BodyChunk, val p: Promise[Any])
+    extends Function[Try[Any], Unit] {
+    def apply(t: Try[Any]): Unit = t match {
+      case Success(_) =>
+        outboundLock.synchronized {
+          logger.trace(s"Stream $streamid is continuing")
+          if (outboundWindowSize() > 0) writeExcess(streamid, remaining, p)
+          else guard = this
+        }
+
+      case Failure(t) => p.failure(t)
+    }
+
+    override def toString: String = {
+      s"WindowGuard($streamid, $remaining, $p)"
+    }
+  }
+
 }

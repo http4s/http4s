@@ -12,7 +12,7 @@ import scalaz.stream.Process
 import Process.{await, emit, repeatEval, End}
 import scalaz.{-\/, \/-}
 
-import io.netty.buffer.ByteBuf
+import io.netty.buffer.{Unpooled, ByteBuf}
 import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.util.ReferenceCountUtil
@@ -131,6 +131,8 @@ object NettySupport {
     buff.getBytes(0, arr)
     BodyChunk(arr)
   }
+
+  def chunkToBuff(chunk: BodyChunk): ByteBuf = Unpooled.wrappedBuffer(chunk.toArray)
 
   def makeProcess(manager: ChunkHandler): Process[Task, Chunk] = {
     val t = Task.async[Chunk](cb => manager.request(cb))

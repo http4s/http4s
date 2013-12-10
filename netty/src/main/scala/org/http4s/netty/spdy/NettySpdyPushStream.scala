@@ -8,10 +8,10 @@ import io.netty.handler.codec.spdy.{SpdyDataFrame, SpdyRstStreamFrame, SpdyStrea
  * @author Bryce Anderson
  *         Created on 12/5/13
  */
-class SpdyPushStream(val streamid: Int,
+class NettySpdyPushStream(val streamid: Int,
                      protected val ctx: ChannelHandlerContext,
-                     protected val parent: SpdyNettyServerHandler,
-                     val initialWindow: Int) extends SpdyServerStream with Logging {
+                     protected val parent: NettySpdyServerHandler,
+                     val initialWindow: Int) extends NettySpdyServerStream with Logging {
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
 

@@ -16,9 +16,7 @@ import scala.util.{Failure, Success}
  * @author Bryce Anderson
  *         Created on 12/8/13
  */
-trait SpdyServerStream extends SpdyStream { self: Logging =>
-
- type Parent = SpdyNettyServerHandler
+trait NettySpdyServerStream extends NettySpdyStream { self: SpdyOutput with Logging =>
 
   /** Submits the head of the resource, and returns the execution of the submission of the body as a Task */
 
@@ -35,7 +33,7 @@ trait SpdyServerStream extends SpdyStream { self: Logging =>
     val scheme = SpdyHeaders.getScheme(parent.spdyversion, req)
     val response = push.resp
 
-    parent.makeStream(id => new SpdyPushStream(id, ctx, parent, initialWindow)) match {
+    parent.makeStream(id => new NettySpdyPushStream(id, ctx, parent, initialWindow)) match {
       case Success(stream) =>
         logger.trace(s"Pushing content on stream ${stream.streamid} associated with stream $parentid, url ${push.location}")
         // TODO: Default to priority 2. What should we really have?

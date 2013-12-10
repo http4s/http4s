@@ -2,14 +2,12 @@ package org.http4s.netty.spdy
 
 import java.util.LinkedList
 
-import io.netty.channel.{ChannelFutureListener, ChannelHandlerContext, ChannelFuture, ChannelPromise}
-import io.netty.buffer.ByteBuf
-import org.http4s.TrailerChunk
-import io.netty.handler.codec.spdy.{DefaultSpdyHeadersFrame, DefaultSpdyDataFrame}
-import org.http4s.netty.Cancelled
+import org.http4s.{BodyChunk, TrailerChunk}
 import org.http4s.netty.utils.SpdyConstants
 
 import com.typesafe.scalalogging.slf4j.Logging
+import scala.concurrent.{ExecutionContext, Promise, Future}
+import scala.util.{Failure, Success}
 
 /**
  * @author Bryce Anderson
@@ -18,102 +16,84 @@ import com.typesafe.scalalogging.slf4j.Logging
 trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
   private var outboundWindow: Int = initialWindow
-  private var connOutboundQueue = new LinkedList[StreamData]()
+  private val connOutboundQueue = new LinkedList[StreamData]()
 
-  def ctx: ChannelHandlerContext
+  implicit protected def ec: ExecutionContext
 
   def getOutboundWindow(): Int = outboundWindow
 
-  def writeStreamEnd(streamid: Int, buff: ByteBuf, t: Option[TrailerChunk]): ChannelFuture = connOutboundQueue.synchronized {
-    if (buff.readableBytes() >= outboundWindow) {
-      val p = ctx.newPromise()
-      writeStreamBuffer(streamid, buff).addListener(new ChannelFutureListener {
-        def operationComplete(future: ChannelFuture) {
-          if (future.isSuccess) {
-            if (!t.isEmpty) {
-              val msg = new DefaultSpdyHeadersFrame(streamid)
-              msg.setLast(true)
-              t.get.headers.foreach( h => msg.headers().add(h.name.toString, h.value) )
-              ctx.writeAndFlush(msg)
-            }
-            else {
-              val msg = new DefaultSpdyDataFrame(streamid)
-              msg.setLast(true)
-              ctx.writeAndFlush(msg)
-            }
-            p.setSuccess()
-          }
-          else if (future.isCancelled) p.setFailure(new Cancelled(ctx.channel))
-          else p.setFailure(future.cause())
-        }
-      })
-      p
-    }
-    else {
-      if (t.isDefined) {
-        if (buff.readableBytes() > 0) {
-          writeOutboundBodyBuff(streamid, buff, false, true) // Don't flush
-        }
-        val msg = new DefaultSpdyHeadersFrame(streamid)
-        msg.setLast(true)
-        t.get.headers.foreach( h => msg.headers().add(h.name.toString, h.value) )
-        ctx.writeAndFlush(msg)
+  def connectWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
+
+  def connectionWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any]
+
+  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] =
+  connOutboundQueue.synchronized {
+    if (chunk.length >= outboundWindow) {
+      val p = Promise[Any]
+      writeStreamChunk(streamid, chunk, true).onComplete {
+        case Success(a) =>  p.completeWith(connectWriteStreamEnd(streamid, BodyChunk(), t))
+        case Failure(t) => p.failure(t)
       }
-      else writeOutboundBodyBuff(streamid, buff, true, true)
+      p.future
+    }
+    else connectWriteStreamEnd(streamid, chunk, t)
+  }
+
+  def writeStreamChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = {
+    connOutboundQueue.synchronized {
+      logger.trace(s"Writing chunk: $chunk, windowsize: $outboundWindow")
+      if (chunk.length > outboundWindow) {
+        val p = Promise[Any]
+        if (outboundWindow > 0) {
+          val (left, right) = chunk.splitAt(outboundWindow)
+          writeOutboundBodyBuff(streamid, left, true)
+          connOutboundQueue.addLast(StreamData(streamid, right, p))
+        }
+        else connOutboundQueue.addLast(StreamData(streamid, chunk, p))
+        p.future
+      }
+      else writeOutboundBodyBuff(streamid, chunk, flush)
     }
   }
 
-  def writeStreamBuffer(streamid: Int, buff: ByteBuf): ChannelFuture = connOutboundQueue.synchronized {
-    logger.trace(s"Writing buffer: ${buff.readableBytes()}, windowsize: $outboundWindow")
-    if (buff.readableBytes() > outboundWindow) {
-      val p = ctx.newPromise()
-      if (outboundWindow > 0) {
-        val b = ctx.alloc().buffer(outboundWindow, outboundWindow)
-        buff.readBytes(b)
-        writeOutboundBodyBuff(streamid, b, false, true)
-      }
-      connOutboundQueue.addLast(StreamData(streamid, buff, p))
-      p
-    }
-    else writeOutboundBodyBuff(streamid, buff, false, true)
-  }
-
+  // TODO: this method could cause problems on backends that require each future to resolve
+  // TODO  before sending another chunk
   def updateOutboundWindow(delta: Int): Unit = connOutboundQueue.synchronized {
     logger.trace(s"Updating connection window, delta: $delta, new: ${outboundWindow + delta}")
     outboundWindow += delta
     while (!connOutboundQueue.isEmpty && outboundWindow > 0) {   // Send more chunks
       val next = connOutboundQueue.poll()
-      if (next.buff.readableBytes() > outboundWindow) { // Can only send part
-        val b = ctx.alloc().buffer(outboundWindow, outboundWindow)
-        next.buff.readBytes(b)
-        writeOutboundBodyBuff(next.streamid, b, false, true)
-        connOutboundQueue.addFirst(next)  // prepend to the queue
+      if (next.chunk.length > outboundWindow) { // Can only send part
+        val (left, right) = next.chunk.splitAt(outboundWindow)
+        writeOutboundBodyBuff(next.streamid, left, false)
+        connOutboundQueue.addFirst(StreamData(next.streamid, right, next.p))  // prepend to the queue
         return
       }
       else {   // write the whole thing and get another chunk
-        writeOutboundBodyBuff(next.streamid, next.buff, false, connOutboundQueue.isEmpty || outboundWindow >= 0)
-        next.p.setSuccess()
+        next.p.completeWith(writeOutboundBodyBuff(
+                    next.streamid,
+                    next.chunk,
+                    connOutboundQueue.isEmpty || outboundWindow >= 0))
         // continue the loop
       }
     }
   }
 
   // Should only be called from inside the synchronized methods
-  private def writeOutboundBodyBuff(streamid: Int, buff: ByteBuf, islast: Boolean, flush: Boolean): ChannelFuture = {
-    outboundWindow -= buff.readableBytes()
+  private def writeOutboundBodyBuff(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = {
+    outboundWindow -= chunk.length
 
     // Don't exceed maximum frame size
-    while(buff.readableBytes() > SpdyConstants.SPDY_MAX_LENGTH) {
-      val b = ctx.alloc().buffer(SpdyConstants.SPDY_MAX_LENGTH, SpdyConstants.SPDY_MAX_LENGTH)
-      val msg = new DefaultSpdyDataFrame(streamid, b)
-      ctx.write(msg)
+    def go(chunk: BodyChunk): Future[Any] = {
+      if (chunk.length > SpdyConstants.SPDY_MAX_LENGTH) {
+        val (left, right) = chunk.splitAt(SpdyConstants.SPDY_MAX_LENGTH)
+        connectionWriteBodyChunk(streamid, left, false).flatMap(_ => go(right))
+      }
+      else connectionWriteBodyChunk(streamid, chunk, flush)
     }
 
-    val msg = new DefaultSpdyDataFrame(streamid, buff)
-    msg.setLast(islast)
-    if (flush) ctx.writeAndFlush(msg)
-    else ctx.write(msg)
+    go(chunk)
   }
 
-  private case class StreamData(streamid: Int, buff: ByteBuf, p: ChannelPromise)
+  private case class StreamData(streamid: Int, chunk: BodyChunk, p: Promise[Any])
 }

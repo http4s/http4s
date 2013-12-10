@@ -60,6 +60,21 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
   */
 
   def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
+
+  /** Split the chunk into two chunks at the given index
+   *
+   * @param index size of left Chunk
+   * @return two chunks, with the left of length size and right of the remaining length
+   */
+  override def splitAt(index: Int): (BodyChunk, BodyChunk) = {
+    val (leftSlice, middle, rightSlice) = self.self.split1(_ <= index)
+    val left = leftSlice :+ middle.slice(0, index - leftSlice.measure)
+    val right = middle.slice(index + 1, middle.length) +: rightSlice
+    
+    (BodyChunk(Rope(left)), BodyChunk(Rope(right)))
+  }
+
+  override def toString(): String = s"BodyChunk(${length} bytes)"
 }
 
 object BodyChunk {
