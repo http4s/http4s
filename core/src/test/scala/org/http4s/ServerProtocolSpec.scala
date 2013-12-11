@@ -7,11 +7,11 @@ class ServerProtocolSpec extends WordSpec with Matchers {
 
   "HTTP versions" should {
     "be registered if standard" in {
-      ServerProtocol.apply("HTTP/1.1") should be theSameInstanceAs `HTTP/1.1`
+      ServerProtocol.resolve("HTTP/1.1") should be theSameInstanceAs `HTTP/1.1`
     }
 
     "parse for future versions" in {
-      ServerProtocol.apply("HTTP/1.3") should equal (HttpVersion(1, 3))
+      ServerProtocol.resolve("HTTP/1.3") should equal (HttpVersion(1, 3))
     }
 
     "render with protocol and version" in {
@@ -21,7 +21,7 @@ class ServerProtocolSpec extends WordSpec with Matchers {
 
   "INCLUDED" should {
     "be registered" in {
-      ServerProtocol("INCLUDED") should be theSameInstanceAs INCLUDED
+      ServerProtocol.resolve("INCLUDED") should be theSameInstanceAs INCLUDED
     }
 
     "render as 'INCLUDED'" in {
@@ -31,19 +31,19 @@ class ServerProtocolSpec extends WordSpec with Matchers {
 
   "Extension versions" should {
     "parse with a version" in {
-      ServerProtocol.apply("FOO/2.10") should equal (ExtensionVersion("FOO".ci, Some(Version(2, 10))))
+      ServerProtocol.resolve("FOO/2.10") should equal (ExtensionVersion("FOO".ci, Some(Version(2, 10))))
     }
 
     "parse without a version" in {
-      ServerProtocol.apply("FOO") should equal (ExtensionVersion("FOO".ci, None))
+      ServerProtocol.resolve("FOO") should equal (ExtensionVersion("FOO".ci, None))
     }
 
     "render with a version" in {
-      ServerProtocol.apply("FOO/2.10").toString should equal ("FOO/2.10")
+      ServerProtocol.resolve("FOO/2.10").toString should equal ("FOO/2.10")
     }
 
     "render without a verison" in {
-      ServerProtocol.apply("FOO").toString should equal ("FOO")
+      ServerProtocol.resolve("FOO").toString should equal ("FOO")
     }
   }
 }
