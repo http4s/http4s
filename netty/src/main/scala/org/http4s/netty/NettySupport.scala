@@ -1,7 +1,7 @@
 package org.http4s
 package netty
 
-import io.netty.channel.{ChannelInboundHandlerAdapter, ChannelOption, ChannelHandlerContext}
+import io.netty.channel._
 
 import java.net.{InetSocketAddress}
 import java.util.Map.Entry
@@ -17,13 +17,16 @@ import scala.collection.mutable.ListBuffer
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.util.ReferenceCountUtil
 import org.http4s.netty.utils.ChunkHandler
+import scalaz.-\/
+import org.http4s.Response
+import scalaz.\/-
 
 /**
  * @author Bryce Anderson
  *         Created on 11/28/13
  */
 
-abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandlerAdapter with Logging {
+trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandler with Logging {
 
   import NettySupport.InvalidStateException
 
@@ -107,7 +110,47 @@ abstract class NettySupport[MsgType, RequestType <: MsgType] extends ChannelInbo
       case \/-(_) =>  if (ctx.channel.isOpen) enableRead(ctx)
     }
   }
+
+  ////////////////// Forwarding methods to satisfy the interface /////////////////////////
+
+  def channelRegistered(ctx: ChannelHandlerContext) {
+    ctx.fireChannelRegistered
+  }
+
+  def channelUnregistered(ctx: ChannelHandlerContext) {
+    ctx.fireChannelUnregistered
+  }
+
+  def channelActive(ctx: ChannelHandlerContext) {
+    ctx.fireChannelActive
+  }
+
+  def channelInactive(ctx: ChannelHandlerContext) {
+    ctx.fireChannelInactive
+  }
+
+  def channelReadComplete(ctx: ChannelHandlerContext) {
+    ctx.fireChannelReadComplete
+  }
+
+  def userEventTriggered(ctx: ChannelHandlerContext, evt: AnyRef) {
+    ctx.fireUserEventTriggered(evt)
+  }
+
+  def channelWritabilityChanged(ctx: ChannelHandlerContext) {
+    ctx.fireChannelWritabilityChanged
+  }
+
+  def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
+    ctx.fireExceptionCaught(cause)
+  }
+
+  def handlerAdded(ctx: ChannelHandlerContext) { }
+
+  def handlerRemoved(ctx: ChannelHandlerContext) { }
 }
+
+
 
 object NettySupport {
   /** Method for converting collections of headers to http4s HeaderCollection
@@ -141,4 +184,6 @@ object NettySupport {
 
   class InvalidStateException(msg: String) extends Exception(msg)
 }
+
+
 

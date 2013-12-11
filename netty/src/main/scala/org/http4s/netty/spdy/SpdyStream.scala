@@ -17,29 +17,33 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
   private var isclosed = false
   private val outboundLock = new AnyRef
   private var outboundWindow: Int = initialWindow
-  private var guard: WindowGuard = null
+  private var outboundGuard: WindowGuard = null
 
   type Repr <: SpdyStream
 
   protected def parent: SpdyOutput with SpdyStreamManager[Repr]
 
-  def close(): Task[_]
-
-  def kill(cause: Throwable): Task[_]
-
   def streamid: Int
 
   implicit protected def ec: ExecutionContext
 
+  def close(): Task[Unit] = kill(Cancelled)
+
+  def kill(cause: Throwable): Task[Unit] = {
+    parent.streamFinished(streamid)
+    closeSpdyOutboundWindow(cause)
+    Task.now()
+  }
+
   def getOutboundWindow(): Int = outboundWindow
 
   /** Close this SPDY window canceling any waiting promises */
-  def closeSpdyOutboundWindow(): Unit = outboundLock.synchronized {
+  def closeSpdyOutboundWindow(cause: Throwable): Unit = outboundLock.synchronized {
     if (!isclosed) {
       isclosed = true
-      if (guard != null) {
-        guard.p.failure(Cancelled)
-        guard = null
+      if (outboundGuard != null) {
+        outboundGuard.p.failure(cause)
+        outboundGuard = null
       }
     }
   }
@@ -52,14 +56,17 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
   protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] =
     writeStreamEnd(streamid, chunk, t)
 
-  def awaitingWindowUpdate: Boolean = guard != null
+  def awaitingWindowUpdate: Boolean = outboundGuard != null
 
   @inline
   final def outboundWindowSize(): Int = outboundWindow
 
   // Kind of windy method
-  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = outboundLock.synchronized {
-    assert(guard == null)
+  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] =
+  outboundLock.synchronized {
+    assert(outboundGuard == null)
+
+    logger.trace(s"Stream $streamid writing end of stream: $chunk, $t")
 
     if (isclosed) return Future.failed(Cancelled)
 
@@ -75,7 +82,7 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
   }
 
   def writeStreamChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = outboundLock.synchronized {
-    assert(guard == null)
+    assert(outboundGuard == null)
 
     if (isclosed) return Future.failed(Cancelled)
 
@@ -91,7 +98,7 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
   }
 
   private def writeExcess(streamid: Int, chunk: BodyChunk, p: Promise[Any]): Unit = outboundLock.synchronized {
-    assert(guard == null)
+    assert(outboundGuard == null)
 
     if (isclosed) {
       p.failure(Cancelled)
@@ -103,7 +110,7 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
         val (left, right) = chunk.splitAt(outboundWindowSize())
         sendDownstream(left).onComplete(new WindowGuard(streamid, right, p))
       }
-      else guard = new WindowGuard(streamid, chunk, p)  // Cannot write any bytes, set the window guard
+      else outboundGuard = new WindowGuard(streamid, chunk, p)  // Cannot write any bytes, set the window guard
     }
     // There is enough room so just write and chain the future to the promise
     else p.completeWith(sendDownstream(chunk))
@@ -112,9 +119,9 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
   def updateOutboundWindow(delta: Int) = outboundLock.synchronized {
     logger.trace(s"Stream $streamid updated window by $delta")
     outboundWindow += delta
-    if (guard != null && outboundWindowSize() > 0) {   // Send more chunks
-    val g = guard
-      guard = null
+    if (outboundGuard != null && outboundWindowSize() > 0) {   // Send more chunks
+    val g = outboundGuard
+      outboundGuard = null
       writeExcess(g.streamid, g.remaining, g.p)
     }
   }
@@ -132,7 +139,7 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
         outboundLock.synchronized {
           logger.trace(s"Stream $streamid is continuing")
           if (outboundWindowSize() > 0) writeExcess(streamid, remaining, p)
-          else guard = this
+          else outboundGuard = this
         }
 
       case Failure(t) => p.failure(t)

@@ -24,33 +24,23 @@ import io.netty.channel.ChannelHandlerContext
 */
 trait NettySpdyStream extends SpdyStream { self: Logging =>
 
-  type Repr = NettySpdyStream
-
-  type Parent = NettySpdyServerHandler
-  
   private var _streamIsOpen = true
 
-  protected def parent: NettySpdyServerHandler
+  type Repr = NettySpdyStream
 
-  def ec = parent.ec
+  protected def parent: NettySpdyServerHandler
 
   protected def ctx: ChannelHandlerContext
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit
 
-  def streamid: Int
+  protected def ec = parent.ec
 
   def spdyversion: Int = parent.spdyversion  // TODO: this is temporary
 
-  def close(): Task[Unit] = {
+  override def kill(t: Throwable): Task[Unit] = {
     _streamIsOpen = false
-    closeSpdyOutboundWindow()
-    parent.streamFinished(streamid)
-    Task.now()
-  }
-
-  def kill(t: Throwable): Task[Unit] = {
-    close()
+    super.kill(t)
   }
 
   def handleRstFrame(msg: SpdyRstStreamFrame) = msg.getStatus match {

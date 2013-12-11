@@ -16,7 +16,7 @@ import scala.util.{Failure, Success}
  * @author Bryce Anderson
  *         Created on 12/8/13
  */
-trait NettySpdyServerStream extends NettySpdyStream { self: SpdyOutput with Logging =>
+trait NettySpdyServerStream extends NettySpdyStream { self: Logging =>
 
   /** Submits the head of the resource, and returns the execution of the submission of the body as a Task */
 

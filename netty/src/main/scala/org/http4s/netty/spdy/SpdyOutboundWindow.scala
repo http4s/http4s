@@ -17,7 +17,7 @@ trait SpdyOutboundWindow extends SpdyOutput {
   def initialWindow: Int
 
   /** close the outbound window */
-  def closeSpdyOutboundWindow(): Unit
+  def closeSpdyOutboundWindow(cause: Throwable): Unit
 
   /** get the current window size
     *

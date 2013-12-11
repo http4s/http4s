@@ -27,8 +27,20 @@ package object netty {
       ready(atMost).cf.channel()
     }
 
+    /** Eagerly perform many of these operations to take pressure off the ec. May cause stack issues */
+    override def map[S](f: (Channel) => S)(implicit executor: ExecutionContext): Future[S] = {
+      if(cf.isDone && cf.isSuccess) Future.successful(f(cf.channel()))
+      else super.map(f)(executor)
+    }
+
+    override def flatMap[S](f: (Channel) => Future[S])(implicit executor: ExecutionContext): Future[S] = {
+      if(cf.isDone && cf.isSuccess) f(cf.channel)
+      else super.flatMap(f)
+    }
+
     def onComplete[U](func: (Try[Channel]) => U)(implicit executor: ExecutionContext): Unit = {
-      cf.addListener(new ChannelFutureListener {
+      if(cf.isDone && cf.isSuccess) func(Success(cf.channel()))
+      else cf.addListener(new ChannelFutureListener {
         def operationComplete(future: ChannelFuture) {
           if (future.isSuccess)         func(Success(future.channel()))
           else if (future.isCancelled)  func(Failure(Cancelled))

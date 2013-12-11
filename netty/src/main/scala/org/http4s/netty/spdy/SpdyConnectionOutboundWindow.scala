@@ -22,26 +22,13 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
   def getOutboundWindow(): Int = outboundWindow
 
-  def connectWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
-
-  def connectionWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any]
-
-  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] =
-  connOutboundQueue.synchronized {
-    if (chunk.length >= outboundWindow) {
-      val p = Promise[Any]
-      writeStreamChunk(streamid, chunk, true).onComplete {
-        case Success(a) =>  p.completeWith(connectWriteStreamEnd(streamid, BodyChunk(), t))
-        case Failure(t) => p.failure(t)
-      }
-      p.future
-    }
-    else connectWriteStreamEnd(streamid, chunk, t)
-  }
+  protected def outWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any]
+  
+  protected def outWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
 
   def writeStreamChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = {
     connOutboundQueue.synchronized {
-      logger.trace(s"Writing chunk: $chunk, windowsize: $outboundWindow")
+      logger.trace(s"Writing chunk: $chunk, window size: $outboundWindow")
       if (chunk.length > outboundWindow) {
         val p = Promise[Any]
         if (outboundWindow > 0) {
@@ -54,6 +41,19 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
       }
       else writeOutboundBodyBuff(streamid, chunk, flush)
     }
+  }
+  
+  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] =
+  connOutboundQueue.synchronized {
+    if (chunk.length >= outboundWindow) {
+      val p = Promise[Any]
+      writeStreamChunk(streamid, chunk, true).onComplete {
+        case Success(a) =>  p.completeWith(outWriteStreamEnd(streamid, BodyChunk(), t))
+        case Failure(t) => p.failure(t)
+      }
+      p.future
+    }
+    else outWriteStreamEnd(streamid, chunk, t)
   }
 
   // TODO: this method could cause problems on backends that require each future to resolve
@@ -87,11 +87,11 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
     def go(chunk: BodyChunk): Future[Any] = {
       if (chunk.length > SpdyConstants.SPDY_MAX_LENGTH) {
         val (left, right) = chunk.splitAt(SpdyConstants.SPDY_MAX_LENGTH)
-        connectionWriteBodyChunk(streamid, left, false).flatMap(_ => go(right))
+        outWriteBodyChunk(streamid, left, false).flatMap(_ => go(right))
       }
-      else connectionWriteBodyChunk(streamid, chunk, flush)
+      else outWriteBodyChunk(streamid, chunk, flush)
     }
-
+    
     go(chunk)
   }
 

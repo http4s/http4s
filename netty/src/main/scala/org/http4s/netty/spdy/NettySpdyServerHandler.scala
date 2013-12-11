@@ -5,7 +5,7 @@ package spdy
 import scala.util.control.Exception.allCatch
 
 import java.net.{URI, InetSocketAddress}
-import java.util.concurrent.ConcurrentHashMap
+import java.util.concurrent.{Executor, ConcurrentHashMap}
 
 import io.netty.handler.codec.spdy._
 import io.netty.channel.{Channel, ChannelFutureListener, ChannelHandlerContext}
@@ -29,7 +29,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
                   val spdyversion: Int,
                   val localAddress: InetSocketAddress,
                   val remoteAddress: InetSocketAddress,
-                  val ec: ExecutionContext)
+                  executor: Executor)
           extends NettySupport[SpdyFrame, SpdySynStreamFrame]
           with SpdyStreamManager[NettySpdyStream]
           with SpdyInboundWindow
@@ -43,16 +43,21 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
 
+  val ec = ExecutionContext.fromExecutor(executor)
+
   val service = PushSupport(srvc)
 
   def isServer = true
 
-  def connectionWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Channel] = {
+  protected def outWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Channel] = {
     if (flush) ctx.writeAndFlush(new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk)))
-    else ctx.write(new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk)))
+    else {
+      ctx.write(new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk)))
+      Future.successful(ctx.channel)
+    }
   }
 
-  def connectWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Channel] = {
+  protected def outWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Channel] = {
     t.fold{
       val msg = new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk))
       msg.setLast(true)
@@ -70,9 +75,9 @@ final class NettySpdyServerHandler(srvc: HttpService,
     _ctx = ctx
   }
 
-  def closeSpdyOutboundWindow(): Unit = {
+  def closeSpdyOutboundWindow(cause: Throwable): Unit = {
     foreachStream { s =>
-      s.closeSpdyOutboundWindow()
+      s.closeSpdyOutboundWindow(cause)
       s.close()
     }
     ctx.close()
