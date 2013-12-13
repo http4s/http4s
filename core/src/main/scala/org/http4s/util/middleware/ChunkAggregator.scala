@@ -35,10 +35,10 @@ object ChunkAggregator extends Logging {
     def go(req: Request): Task[Response] = {
       route(req).map { response =>
         val chunks = compact(response.body)
-        if (!chunks.isEmpty && chunks.head.isInstanceOf[BodyChunk]) {
-          response.putHeader(`Content-Length`(chunks.head.asInstanceOf[BodyChunk].length))
+        if (!chunks.isEmpty)
+          response.putHeader(`Content-Length`(chunks.head.length))
             .withBody(emitSeq(chunks))
-        }
+
         else response
       }
     }

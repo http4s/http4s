@@ -3,64 +3,43 @@ package org.http4s
 import java.io.InputStream
 import java.nio.ByteBuffer
 import scala.collection.generic.CanBuildFrom
-import scala.collection.{mutable, IndexedSeqLike}
+import scala.collection.{IndexedSeqLike, mutable, IndexedSeqOptimized}
 import scala.io.Codec
 import scalaz.{RopeBuilder, Rope}
 import java.nio.charset.Charset
 import scala.reflect.ClassTag
 
-sealed trait Chunk
+sealed trait Chunk extends IndexedSeq[Byte] {
+  def decodeString(charset: Charset): String = new String(toArray, charset)
 
-class BodyChunk private (private val self: Rope[Byte]) extends Chunk
-                with IndexedSeq[Byte]
-                with IndexedSeqLike[Byte, BodyChunk] {
+  def decodeString(charset: CharacterSet): String = decodeString(charset.charset)
+
+  /**
+   * Returns a ByteBuffer that wraps an array copy of this BodyChunk
+   */
+  def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray)
+}
+
+class BodyChunk private (private val self: Rope[Byte]) extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 
   override def iterator: Iterator[Byte] = self.iterator
 
   override def reverseIterator: Iterator[Byte] = self.reverseIterator
 
-  def apply(idx: Int): Byte = self.get(idx).getOrElse(throw new IndexOutOfBoundsException(idx.toString))
+  override def apply(idx: Int): Byte = self.get(idx).getOrElse(throw new IndexOutOfBoundsException(idx.toString))
 
   def length: Int = self.length
 
   override def toArray[B >: Byte : ClassTag]: Array[B] = self.toArray
 
-  /**
-   * Decodes this Chunk as a UTF-8 encoded String.
-   */
-  final def utf8String: String = decodeString(CharacterSet.`UTF-8`)
-
-  /**
-   * Decodes this Chunk using a charset to produce a String.
-   */
-  def decodeString(charset: Charset): String = new String(toArray, charset)
-
-  /**
-   * Decodes this Chunk using a charset to produce a String.
-   */
-  def decodeString(charset: CharacterSet): String = decodeString(charset.charset)
-
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
 
-  /**
-   * Returns a read-only ByteBuffer that directly wraps this ByteString
-   * if it is not fragmented.
-   */
-  def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray)
-
   def asInputStream: InputStream = new InputStream {
-    var pos = 0
-
-    def read(): Int = {
-      val result = if (pos < length) apply(pos) else -1
-      pos += 1
-      result
-    }
+    private val it = iterator
+    def read(): Int = if (it.hasNext) it.next() else -1
   }
 
   def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
-
-  override def foreach[U](f: (Byte) => U): Unit = iterator.foreach(f)
 
   /** Split the chunk into two chunks at the given index
    *
@@ -69,7 +48,6 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk
    */
   override def splitAt(index: Int): (BodyChunk, BodyChunk) = {
     val (leftSlice, middle, rightSlice) = self.self.split1(_ <= index)
-    leftSlice.isEmpty
     val left = leftSlice :+ middle.slice(0, index - leftSlice.measure)
     val right = middle.slice(index + 1, middle.length) +: rightSlice
     
@@ -113,4 +91,13 @@ object BodyChunk {
     }
 }
 
-case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends Chunk
+case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends Chunk {
+
+  override def iterator: Iterator[Byte] = Iterator.empty
+
+  override def toArray[B >: Byte : ClassTag]: Array[B] = Array.empty[B]
+
+  override def apply(idx: Int): Byte = throw new IndexOutOfBoundsException("Trailer chunk doesn't contain bytes.")
+
+  def length: Int = 0
+}

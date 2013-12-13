@@ -50,7 +50,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
             out.write(bytes.toArray)
             if (isChunked) servletResponse.flushBuffer()
 
-          case c => logger.trace(s"Unknown chunk: $c")
+          case c => logger.trace(s"Unsupported chunk: $c, discarding.")
         }.run
       }
     }.runAsync {

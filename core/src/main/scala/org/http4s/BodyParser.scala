@@ -54,17 +54,6 @@ object BodyParser {
       XML.loadXML(source, parser)
     }
 
-  /*
-  def ignoreBody: BodyParser[Unit] = BodyParser(whileBodyChunk &>> Iteratee.ignore[BodyChunk].map(Right(_))(oec))
-
-  def trailer: BodyParser[TrailerChunk] = BodyParser(
-    Enumeratee.dropWhile[Chunk](_.isInstanceOf[BodyChunk])(oec) &>>
-      (Iteratee.head[Chunk].map {
-        case Some(trailer: TrailerChunk) => Right(trailer)
-        case _ =>                           Right(TrailerChunk())
-      }(oec)))
-*/
-
   private def takeBytes(n: Int): Process1[Chunk, Chunk] = {
     def go(taken: Int, chunk: Chunk): Process1[Chunk, Chunk] = chunk match {
       case c: BodyChunk =>
