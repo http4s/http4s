@@ -38,7 +38,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpSer
           logger.trace(s"Started new connection to remote address ${ch.remoteAddress()}")
           ch.pipeline()
             .addLast("httpcodec", new http.HttpServerCodec())    // TODO: set max header sizes etc in the constructor
-            .addLast("http4s", new HttpNettyHandler(service, local, rem))
+            .addLast("http4s", new NettyHttpHandler(service, local, rem))
         }
       })
         .option(ChannelOption.SO_LINGER, new Integer(0))

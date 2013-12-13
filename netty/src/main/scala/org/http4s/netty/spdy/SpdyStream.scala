@@ -27,7 +27,11 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
 
   implicit protected def ec: ExecutionContext
 
-  def close(): Task[Unit] = kill(Cancelled)
+  def close(): Task[Unit] = {
+    parent.streamFinished(streamid)
+    closeSpdyOutboundWindow(Cancelled)
+    Task.now()
+  }
 
   def kill(cause: Throwable): Task[Unit] = {
     parent.streamFinished(streamid)

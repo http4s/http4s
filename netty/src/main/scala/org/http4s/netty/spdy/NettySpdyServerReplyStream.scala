@@ -26,27 +26,12 @@ import org.http4s.netty.NettySupport._
 final class NettySpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
                       protected val parent: NettySpdyServerHandler,
-                      val initialWindow: Int)
-          extends NettySpdyServerStream
-          with Logging
-          with SpdyInboundWindow {
+                      val initialWindow: Int) extends SpdyTwoWayStream with Logging {
 
   //////   SpdyInboundWindow methods   ////////////////////////////////
 
-  protected def submitDeltaInboundWindow(n: Int): Unit = {
+  override protected def submitDeltaInboundWindow(n: Int): Unit = {
     ctx.writeAndFlush(new DefaultSpdyWindowUpdateFrame(streamid, n))
-  }
-
-  val chunkHandler = new ChunkHandler(initialWindow) {
-    override def onBytesSent(n: Int): Unit = {
-      incrementWindow(n)
-      parent.incrementWindow(n)
-    }
-
-    override def kill(t: Throwable): Unit = {
-      if (queueSize() > 0) parent.incrementWindow(queueSize())
-      super.kill(t)
-    }
   }
 
   /////////////////////////////////////////////////////////////////////
@@ -67,8 +52,8 @@ final class NettySpdyServerReplyStream(val streamid: Int,
       ctx.write(resp)
       val t = writeProcess(response.body).flatMap(_ => close() )
 
-      if (chunkHandler.queueSize() > 0)   // If we didn't use the bytes, account for them in parent window
-        parent.incrementWindow(chunkHandler.queueSize())
+      if (queueSize() > 0)   // If we didn't use the bytes, account for them in parent window
+        parent.incrementWindow(queueSize())
 
       Task.gatherUnordered(pushes :+ t, true)
     }
@@ -81,10 +66,10 @@ final class NettySpdyServerReplyStream(val streamid: Int,
       decrementWindow(len)
 
     // Don't increment the stream window, don't want any more bytes
-      if (chunkHandler.enque(buffToBodyChunk(msg.content)) == -1)
+      if (enqueue(buffToBodyChunk(msg.content)) == -1)
         parent.incrementWindow(len)
 
-    case msg: SpdyHeadersFrame => chunkHandler.close(TrailerChunk(toHeaders(msg.headers)))
+    case msg: SpdyHeadersFrame => closeInbound(TrailerChunk(toHeaders(msg.headers)))
     case msg: SpdyRstStreamFrame => handleRstFrame(msg)
 
       // TODO: handle more types of messages correctly

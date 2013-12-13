@@ -122,7 +122,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
       remote = remoteAddress.getAddress, // TODO using remoteName would trigger a lookup
-      body = makeProcess(replyStream.chunkHandler)
+      body = replyStream.inboundProcess
     )
   }
 

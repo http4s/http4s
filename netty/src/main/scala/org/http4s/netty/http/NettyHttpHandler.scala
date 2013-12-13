@@ -30,13 +30,13 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Bryce Anderson
  *         Created on 11/28/13
  */
-class HttpNettyHandler(val service: HttpService,
+class NettyHttpHandler(val service: HttpService,
                        val localAddress: InetSocketAddress,
                        val remoteAddress: InetSocketAddress)
               extends NettySupport[HttpObject, HttpRequest] with ProcessWriter {
 
   import NettySupport._
-  import HttpNettyHandler._
+  import NettyHttpHandler._
 
   type A = Channel
 
@@ -209,7 +209,7 @@ class HttpNettyHandler(val service: HttpService,
   }
 }
 
-object HttpNettyHandler {
+object NettyHttpHandler {
   private sealed trait ReqState
   private case object Idle extends ReqState
   private case object Running extends ReqState
