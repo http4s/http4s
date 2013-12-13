@@ -102,12 +102,19 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
     Task.fork(task).handleWith {
       case End => Status.BadRequest("End of stream reached. Insufficient data.")
     }.flatMap(renderResponse(ctx, req, _)).runAsync {
+      // Make sure we are allowing reading at the end of the request
+      case \/-(_) =>
+        if (ctx.channel.isOpen) enableRead(ctx)
+
+        // Deal with Cancelled requests
+      case -\/(Cancelled) =>
+        logger.trace(s"Request cancelled on connection $remoteAddress.")
+        if (ctx.channel.isOpen) enableRead(ctx)
+
+        // If we have a genuine error, close the connection
       case -\/(t) =>
         logger.error("Final Task results in an Exception.", t)
         ctx.channel().close()
-
-      // Make sure we are allowing reading at the end of the request
-      case \/-(_) =>  if (ctx.channel.isOpen) enableRead(ctx)
     }
   }
 
@@ -145,6 +152,7 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
     ctx.fireExceptionCaught(cause)
   }
 
+  // NOOPS for now
   def handlerAdded(ctx: ChannelHandlerContext) { }
 
   def handlerRemoved(ctx: ChannelHandlerContext) { }

@@ -23,12 +23,31 @@ trait ProcessWriter { self: Logging =>
 
   type CBType = Throwable \/ Unit => Unit
 
-  /** If a request is canceled, this method should return a canceled future */
+  /** write a BodyChunk to the wire
+    * If a request is cancelled, or the stream is closed this method should
+    * return a failed Future with Cancelled as the exception
+    *
+    * @param chunk BodyChunk to write to wire
+    * @return a future letting you know when its safe to continue
+    */
   protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any]
 
-  /** If a request is canceled, this method should return a canceled future */
+  /** write the ending BodyChunk and possibly a trailer to the wire
+    * If a request is cancelled, or the stream is closed this method should
+    * return a failed Future with Cancelled as the exception
+    *
+    * @param chunk BodyChunk to write to wire
+    * @param t optional TrailerChunk to write
+    * @return a future letting you know when its safe to continue
+    */
   protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
 
+  /** Creates a Task that writes the contents the Process to the output.
+    * Cancelled exceptions fall through to the Task cb
+    *
+    * @param p Process[Task, Chunk] to write out
+    * @return the Task which when run will unwind the Process
+    */
   def writeProcess(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, halt, _))
 
   final private def go(p: Process[Task, Chunk], cleanup: Process[Task, Chunk], cb: CBType): Unit = p match {
@@ -42,7 +61,6 @@ trait ProcessWriter { self: Logging =>
         if (trailer == null) {  // TODO: is it worth the complexity to try to predict the tail?
           if (!tail.isInstanceOf[Halt]) writeBodyChunk(buff, true).onComplete {
             case Success(_) =>             go(tail, cleanup, cb)
-            case Failure(Cancelled) =>  cleanup.run.runAsync(cb)
             case Failure(t) =>             cleanup.causedBy(t).run.runAsync(cb)
           }
 
@@ -73,10 +91,7 @@ trait ProcessWriter { self: Logging =>
 
     case Halt(End) => writeEnd(BodyChunk(), None).onComplete(completionListener(_, cb, cleanup))
 
-    case Halt(error) => cleanup match {
-      case Halt(_) =>  cb(-\/(error))  // if the cleanup is a halt, and if so, just pitch out the error
-      case _       =>  go(cleanup.causedBy(error), halt, cb)   // give cleanup a chance
-    }
+    case Halt(error) => cleanup.causedBy(error).run.runAsync(cb)
   }
 
   // Must get a non-empty sequence
@@ -100,7 +115,6 @@ trait ProcessWriter { self: Logging =>
 
   private def completionListener(t: Try[_], cb: CBType, cleanup: Process[Task, Chunk]): Unit = t match {
     case Success(_)        =>    cleanup.run.runAsync(cb)
-    case Failure(Cancelled) =>   cleanup.run.runAsync(cb)
     case Failure(t) =>           cleanup.causedBy(t).run.runAsync(cb)
   }
 }

@@ -90,6 +90,10 @@ class HttpNettyHandler(val service: HttpService,
   }
 
   override protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Channel] = {
+    if (!ctx.channel().isOpen) {
+      logger.trace(s"Channel closed. -- $chunk")
+      return Future.failed(Cancelled)
+    }
     if (chunk.length > 0) {
       val msg =  new DefaultHttpContent(chunkToBuff(chunk))
       if (flush) ctx.writeAndFlush(msg)
@@ -99,6 +103,10 @@ class HttpNettyHandler(val service: HttpService,
   }
 
   override protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Channel] = {
+    if (!ctx.channel().isOpen) {
+      logger.trace(s"Channel closed. -- $chunk $t")
+      return Future.failed(Cancelled)
+    }
     val msg = new DefaultLastHttpContent(chunkToBuff(chunk))
     if (t.isDefined) for ( h <- t.get.headers ) msg.trailingHeaders().set(h.name.toString, h.value)
     ctx.writeAndFlush(msg)

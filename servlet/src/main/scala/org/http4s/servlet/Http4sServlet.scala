@@ -45,10 +45,12 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
           servletResponse.addHeader(header.name.toString, header.value)
         val out = servletResponse.getOutputStream
         val isChunked = response.isChunked
-        response.body.map { bytes =>
-          out.write(bytes.toArray)
-          if (isChunked)
-            servletResponse.flushBuffer()
+        response.body.map {
+          case bytes: BodyChunk =>
+            out.write(bytes.toArray)
+            if (isChunked) servletResponse.flushBuffer()
+
+          case c => logger.trace(s"Unknown chunk: $c")
         }.run
       }
     }.runAsync {

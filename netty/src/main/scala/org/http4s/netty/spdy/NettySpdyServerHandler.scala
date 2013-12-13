@@ -50,14 +50,26 @@ final class NettySpdyServerHandler(srvc: HttpService,
   def isServer = true
 
   protected def outWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Channel] = {
+    if (!ctx.channel().isOpen) {
+      logger.trace(s"Channel closed. -- $chunk")
+      return Future.failed(Cancelled)
+    }
+
     if (flush) ctx.writeAndFlush(new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk)))
     else {
+      // The channel future won't resolve until the data actually makes it out the pipe
+      // so we provide our own to let the pipeline know its safe to continue writing
       ctx.write(new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk)))
       Future.successful(ctx.channel)
     }
   }
 
   protected def outWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Channel] = {
+    if (!ctx.channel().isOpen) {
+      logger.trace(s"Channel closed. -- $chunk")
+      return Future.failed(Cancelled)
+    }
+
     t.fold{
       val msg = new DefaultSpdyDataFrame(streamid, chunkToBuff(chunk))
       msg.setLast(true)

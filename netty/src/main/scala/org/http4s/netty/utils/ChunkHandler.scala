@@ -3,7 +3,7 @@ package org.http4s.netty.utils
 import scalaz.{\/-, -\/, \/}
 import scalaz.stream.Process.End
 
-import org.http4s.{TrailerChunk, Chunk}
+import org.http4s.{BodyChunk, TrailerChunk, Chunk}
 import java.util.{Queue, LinkedList}
 
 /**
@@ -73,13 +73,15 @@ class ChunkHandler(val highWater: Int) {
     else {
       val chunk = queue.poll()
       if (chunk == null) {
-        queuesize -= 1
+        queuesize = -1
         this.cb = cb
       } else {
-        queuesize -= chunk.length
         try cb(\/-(chunk))
         catch { case t: Throwable => cbException(t, cb) }
-        finally onBytesSent(chunk.length)
+        finally if (chunk.isInstanceOf[BodyChunk]) {
+          queuesize -= chunk.asInstanceOf[BodyChunk].length
+          onBytesSent(chunk.asInstanceOf[BodyChunk].length)
+        }
       }
       queuesize
     }
@@ -100,12 +102,16 @@ class ChunkHandler(val highWater: Int) {
 
       try cb(\/-(chunk))
       catch { case t: Throwable => cbException(t, cb) }
-      finally onBytesSent(chunk.length)
+      finally if (chunk.isInstanceOf[BodyChunk]) {
+        onBytesSent(chunk.asInstanceOf[BodyChunk].length)
+      }
 
     } else {
       queue.add(chunk)
-      queuesize += chunk.length
-      if (queuesize >= highWater) onQueueFull()
+      if (chunk.isInstanceOf[BodyChunk]) {
+        queuesize += chunk.asInstanceOf[BodyChunk].length
+        if (queuesize >= highWater) onQueueFull()
+      }
     }
     queuesize
   }
