@@ -3,31 +3,37 @@ package org.http4s.netty.utils
 import scalaz.{\/-, -\/, \/}
 import scalaz.stream.Process.End
 
-import org.http4s.{TrailerChunk, Chunk}
+import org.http4s.{BodyChunk, TrailerChunk, Chunk}
 import java.util.{Queue, LinkedList}
+import com.typesafe.scalalogging.slf4j.Logging
 
 /**
  * @author Bryce Anderson
  *         Created on 11/27/13
  */
-class ChunkHandler(val highWater: Int) {
+class ChunkHandler(val highWater: Int) extends Logging {
 
   type CB = Throwable \/ Chunk => Unit
-  private val queue: Queue[Chunk] = new LinkedList[Chunk]()
+  private val lock = new AnyRef
+  private var bodyChunk: BodyChunk = null
+  private var trailer: TrailerChunk = null
   private var cb: CB = null
   private var endThrowable: Throwable = null
   private var closed = false
-  private var queuesize = 0
+
+  def isEmpty: Boolean = bodyChunk == null && trailer == null
 
   override def toString() = {
-    val sb = new StringBuilder
-    sb.append(s"${this.getClass.getName}(")
-    val it = queue.iterator()
-    while(it.hasNext) sb.append(it.next().toString())
-    sb.result()
+    s"${this.getClass.getName}(" +
+      (if (bodyChunk != null) s"${bodyChunk.length}, " else "") +
+      (if (trailer != null) trailer.toString() else "") + ")"
   }
 
-  def queueSize(): Int = queuesize
+  def queueSize(): Int = {
+    if (bodyChunk != null) bodyChunk.length
+    else if (cb != null) -1
+    else 0
+  }
 
   def onQueueFull(): Unit = {}
 
@@ -36,56 +42,66 @@ class ChunkHandler(val highWater: Int) {
   /** Called when a chunk is sent out. This method will be called synchronously AFTER the cb is fired */
   def onBytesSent(n: Int): Unit = {}
 
-  def close(trailer: TrailerChunk): Unit = queue.synchronized {
+  def close(trailer: TrailerChunk): Unit = lock.synchronized {
     enque(trailer)
     close()
   }
 
-  def close(): Unit = queue.synchronized {
+  def close(): Unit = lock.synchronized {
+    logger.trace("Closing ChunkHandler")
     if (!isClosed) {
       closed = true
       endThrowable = End
       if (cb != null) {
         try cb(-\/(endThrowable))
-        catch { case t: Throwable => cbException(t, cb) }
         finally cb = null
       }
     }
   }
 
-  def kill(t: Throwable): Unit = queue.synchronized {
-    if (!isClosed || !queue.isEmpty) {
-      queuesize = 0
+  def kill(t: Throwable): Unit = lock.synchronized {
+    if (!isClosed || !isEmpty) {
       closed = true
       endThrowable = t
-      queue.clear()
+      trailer = null
+
+      if (bodyChunk != null) {
+        onBytesSent(bodyChunk.length)
+        bodyChunk = null
+      }
+
       if (cb != null) {
         try cb(-\/(t))
-        catch { case t: Throwable => cbException(t, cb) }
         finally cb = null
       }
     }
   }
 
-  def request(cb: CB): Int = queue.synchronized {
+  def request(cb: CB): Unit = lock.synchronized {
+    logger.trace("Requesting data.")
     assert(this.cb == null)
-    if (closed && queue.isEmpty) {
-      println("Sending the endThrowable.")
-      cb(-\/(endThrowable))
-      0
-    }
-    else {
-      val chunk = queue.poll()
-      if (chunk == null) {
-        queuesize -= 1
-        this.cb = cb
+    if (isEmpty) {
+      if (isClosed()) {
+        cb(-\/(endThrowable))
       } else {
-        queuesize -= chunk.length
-        try cb(\/-(chunk))
-        catch { case t: Throwable => cbException(t, cb) }
-        finally onBytesSent(chunk.length)
+        this.cb = cb
       }
-      queuesize
+
+    }
+
+    else {   // Not empty
+
+      if (bodyChunk != null) {
+        try cb(\/-(bodyChunk))
+        finally {
+          onBytesSent(bodyChunk.length)
+          bodyChunk = null
+        }
+      }
+      else {  // Must be the trailer
+        try cb(\/-(trailer))
+        finally trailer = null
+      }
     }
   }
 
@@ -94,27 +110,32 @@ class ChunkHandler(val highWater: Int) {
     * @param chunk Chunk to enqueue
     * @return -1 if the queue is closed, else the current queue size (may be 0 if a cb was present)
     */
-  def enque(chunk: Chunk): Int = queue.synchronized {
+  def enque(chunk: Chunk): Int = lock.synchronized {
+
+    logger.trace(s"Enqueing chunk: $chunk")
+
     if (closed) return -1
     if (this.cb != null) {
-      assert(queue.isEmpty)
+      assert(isEmpty)
       val cb = this.cb
       this.cb = null
-      queuesize = 0   // No chunks, no callbacks.
 
       try cb(\/-(chunk))
-      catch { case t: Throwable => cbException(t, cb) }
       finally onBytesSent(chunk.length)
 
-    } else {
-      queue.add(chunk)
-      queuesize += chunk.length
-      if (queuesize >= highWater) onQueueFull()
-    }
-    queuesize
-  }
+    } else chunk match {
+      case chunk: BodyChunk =>
+        if (bodyChunk == null) {
+          bodyChunk = chunk
+        }
+        else bodyChunk = bodyChunk ++ chunk   // Concat to the previous body chunk
 
-  private def cbException(t: Throwable, cb: CB) {
-    throw new Exception(s"Callback $cb threw and exception.", t)
+        if (queueSize() >= highWater) onQueueFull()
+
+      case chunk: TrailerChunk =>
+        assert(trailer == null)
+        trailer = chunk
+    }
+    queueSize()
   }
 }

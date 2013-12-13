@@ -162,6 +162,8 @@ class NettyHttpHandler(val service: HttpService,
 
     if(manager != null) invalidState(s"Chunk manager still present. Is a previous request still underway? $manager")
 
+    manager = new ChannelManager(ctx)
+
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
     logger.trace("Received request: " + req.getUri)
     val uri = new URI(req.getUri)
@@ -179,7 +181,7 @@ class NettyHttpHandler(val service: HttpService,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
       remote = remoteAddress.getAddress,
-      body = makeProcess(new ChannelManager(ctx))
+      body = makeProcess(manager)
     )
   }
 

@@ -55,20 +55,17 @@ class ChunkHandlerSpec extends WordSpec with Matchers {
     "dequeue a chunk and be ready" in {
       handler.request(cb)
       handler.queueFull should equal(false)
-      handler.queueSize() should equal(4)
+      handler.queueSize() should equal(0)
     }
 
-    "dequeue another chunk and be ready" in {
+    "dequeue another chunk and be waiting" in {
       handler.request(cb)
       handler.queueFull should equal(false)
-      handler.queueSize() should equal(2)
+      handler.queueSize() should equal(-1)
     }
 
-    "close and give a BodyChunk followed by a TrailerChunk" in {
+    "close with a TrailerChunk" in {
       handler.close(TrailerChunk())
-      handler.request(cb)
-      handler.queueFull should equal(false)
-      handler.request(cb)
       handler.queueFull should equal(false)
       lastRight.isInstanceOf[TrailerChunk] should equal(true)
       handler.queueSize() should equal(0)

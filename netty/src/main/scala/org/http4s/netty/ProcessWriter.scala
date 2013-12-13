@@ -44,6 +44,7 @@ trait ProcessWriter { self: Logging =>
 
   /** Creates a Task that writes the contents the Process to the output.
     * Cancelled exceptions fall through to the Task cb
+    * This method will halt writing the process once a trailer is encountered
     *
     * @param p Process[Task, Chunk] to write out
     * @return the Task which when run will unwind the Process
@@ -74,13 +75,7 @@ trait ProcessWriter { self: Logging =>
           }
         }
 
-        else {
-          if (!tail.isInstanceOf[Halt] &&
-            (tail.asInstanceOf[Halt].cause ne End))
-            logger.warn("Received trailer, but stream may not be empty. Running cleanup.")
-
-          writeEnd(buff, Some(trailer)).onComplete(completionListener(_, cb, cleanup))
-        }
+        else writeEnd(buff, Some(trailer)).onComplete(completionListener(_, cb, cleanup))
       }
 
     case Await(t, f, fb, c) => t.runAsync {  // Wait for it to finish, then continue to unwind

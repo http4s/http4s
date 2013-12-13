@@ -56,6 +56,9 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
     */
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit
 
+  /** Provides a way to do any cleanup duties after rendering a request */
+  def cleanup(): Unit = { }
+
   /** Shortcut for raising invalid state Exceptions
     * @param msg Message for the exception
     * @return Nothing
@@ -104,16 +107,19 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
     }.flatMap(renderResponse(ctx, req, _)).runAsync {
       // Make sure we are allowing reading at the end of the request
       case \/-(_) =>
+        cleanup()
         if (ctx.channel.isOpen) enableRead(ctx)
 
         // Deal with Cancelled requests
       case -\/(Cancelled) =>
         logger.trace(s"Request cancelled on connection $remoteAddress.")
+        cleanup()
         if (ctx.channel.isOpen) enableRead(ctx)
 
         // If we have a genuine error, close the connection
       case -\/(t) =>
         logger.error("Final Task results in an Exception.", t)
+        cleanup()
         ctx.channel().close()
     }
   }
