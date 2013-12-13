@@ -12,5 +12,7 @@ private[http4s] trait Registry[K, V <: AnyRef] {
   }
 
   def getForKey(key: K): Option[V] = registry.get(key)
+
+  protected def getOrElse(key: K, default: =>V): V = getForKey(key).getOrElse(default)
 }
 
