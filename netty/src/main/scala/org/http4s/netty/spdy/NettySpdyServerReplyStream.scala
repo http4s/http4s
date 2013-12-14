@@ -6,7 +6,7 @@ import scalaz.concurrent.Task
 
 import org.http4s.{TrailerChunk, Chunk, Response}
 import io.netty.channel.ChannelHandlerContext
-import org.http4s.netty.utils.ChunkHandler
+import org.http4s.netty.utils.{SpdyStreamContext, ChunkHandler}
 import org.http4s.util.middleware.PushSupport
 
 import org.http4s.netty.NettySupport._
@@ -24,7 +24,8 @@ import org.http4s.netty.NettySupport._
   */
 final class NettySpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
-                      protected val parent: NettySpdyServerHandler)
+                      protected val parent: NettySpdyServerHandler,
+                      protected val manager: SpdyStreamContext[NettySpdyStream])
                 extends NettySpdyServerStream
                 with SpdyTwoWayStream
                 with Logging {

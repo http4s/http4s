@@ -3,6 +3,7 @@ package org.http4s.netty.spdy
 import com.typesafe.scalalogging.slf4j.Logging
 import io.netty.channel.ChannelHandlerContext
 import io.netty.handler.codec.spdy.{SpdyDataFrame, SpdyRstStreamFrame, SpdyStreamFrame}
+import org.http4s.netty.utils.SpdyStreamContext
 
 /**
  * @author Bryce Anderson
@@ -11,7 +12,8 @@ import io.netty.handler.codec.spdy.{SpdyDataFrame, SpdyRstStreamFrame, SpdyStrea
 class NettySpdyPushStream(val streamid: Int,
                      protected val ctx: ChannelHandlerContext,
                      protected val parent: NettySpdyServerHandler,
-                     val initialOutboundWindow: Int) extends NettySpdyServerStream with Logging {
+                     protected val manager: SpdyStreamContext[NettySpdyStream])
+          extends NettySpdyServerStream with Logging {
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
 

@@ -15,7 +15,7 @@ import scala.util.{Failure, Success}
  */
 trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
-  private var connectionOutboundWindow: Int = initialOutboundWindow
+  private var connectionOutboundWindow: Int = manager.initialOutboundWindow
   private val connOutboundQueue = new LinkedList[StreamData]()
 
   implicit protected def ec: ExecutionContext

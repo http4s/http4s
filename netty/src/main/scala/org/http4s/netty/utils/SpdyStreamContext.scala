@@ -7,7 +7,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 import org.http4s.netty.spdy.SpdyStream
 import org.http4s.netty.NettySupport.InvalidStateException
-import org.http4s.netty.utils.SpdyStreamManager.{StreamIndexException, MaxStreamsException}
+import org.http4s.netty.utils.SpdyStreamContext.{StreamIndexException, MaxStreamsException}
 
 import scala.util.{Failure, Success, Try}
 
@@ -19,7 +19,7 @@ import scala.util.{Failure, Success, Try}
 /** Manages the stream ID's for the SPDY protocol
   * In a separate trait to clean up the SpdyNettyHandler class
   */
-trait SpdyStreamManager[S <: SpdyStream] { self: Logging =>
+class SpdyStreamContext[S <: SpdyStream](val spdyversion: Int, val isServer: Boolean) extends Logging {
   /** Serves as a repository for active streams
     * If a stream is canceled, it get removed from the map. The allows the client to reject
     * data that it knows is already cached and this backend abort the outgoing stream
@@ -30,14 +30,14 @@ trait SpdyStreamManager[S <: SpdyStream] { self: Logging =>
   private var _managerInitialOutboundStreamSize = 64*1024       // 64KB
   private var _managerInitialInboundStreamSize =  64*1024
 
-  /** Whether this is a server or client
-    *
-    * @return if this is a server manager
-    */
-  def isServer: Boolean
-
-  /** Version of SPDY employed */
-  def spdyversion: Int
+//  /** Whether this is a server or client
+//    *
+//    * @return if this is a server manager
+//    */
+//  def isServer: Boolean
+//
+//  /** Version of SPDY employed */
+//  def spdyversion: Int
 
   /** Number of registered streams
     *
@@ -116,11 +116,11 @@ trait SpdyStreamManager[S <: SpdyStream] { self: Logging =>
   /** Set the initial window size of the SPDY stream
     * @param n size in bytes of the initial window
     */
-  protected def setInitialOutboundWindow(n: Int): Unit = {
+  def setInitialOutboundWindow(n: Int): Unit = {
     _managerInitialOutboundStreamSize = n
   }
 
-  protected def setInitialInboundWindow(n: Int): Unit = {
+  def setInitialInboundWindow(n: Int): Unit = {
     _managerInitialInboundStreamSize = n
   }
 
@@ -185,7 +185,7 @@ trait SpdyStreamManager[S <: SpdyStream] { self: Logging =>
   }
 }
 
-object SpdyStreamManager {
+object SpdyStreamContext {
   case class MaxStreamsException(maxStreams: Int)
           extends InvalidStateException(s"Maximum streams exceeded: $maxStreams")
 

@@ -9,7 +9,7 @@ import org.http4s.Header.`Content-Length`
 import org.http4s.util.middleware.PushSupport.PushResponse
 
 import org.http4s.netty.utils.SpdyConstants._
-import org.http4s.netty.utils.SpdyStreamManager
+import org.http4s.netty.utils.SpdyStreamContext
 import scala.concurrent.Future
 import io.netty.handler.codec.spdy._
 import io.netty.handler.codec.http.HttpVersion.HTTP_1_1
@@ -38,8 +38,6 @@ trait NettySpdyStream extends SpdyStream { self: Logging =>
 
   protected def ec = parent.ec
 
-  def spdyversion: Int = parent.spdyversion  // TODO: this is temporary
-
   override def kill(t: Throwable): Task[Unit] = {
     _streamIsOpen = false
     super.kill(t)
@@ -59,8 +57,8 @@ trait NettySpdyStream extends SpdyStream { self: Logging =>
   }
 
   protected def copyResponse(spdyresp: SpdyHeadersFrame, response: Response): Int = {
-    SpdyHeaders.setStatus(parent.spdyversion, spdyresp, getStatus(response))
-    SpdyHeaders.setVersion(spdyversion, spdyresp, HTTP_1_1)
+    SpdyHeaders.setStatus(manager.spdyversion, spdyresp, getStatus(response))
+    SpdyHeaders.setVersion(manager.spdyversion, spdyresp, HTTP_1_1)
 
     var size = -1
     response.headers.foreach { header =>

@@ -1,7 +1,7 @@
 package org.http4s.netty.spdy
 
 import scalaz.concurrent.Task
-import org.http4s.netty.utils.SpdyStreamManager
+import org.http4s.netty.utils.SpdyStreamContext
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.concurrent.{Promise, Future, ExecutionContext}
 import org.http4s.netty.{ProcessWriter, Cancelled}
@@ -16,25 +16,27 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
 
   private var isclosed = false
   private val outboundLock = new AnyRef
-  private var outboundWindow: Int = initialOutboundWindow
+  private var outboundWindow: Int = manager.initialOutboundWindow
   private var outboundGuard: WindowGuard = null
 
   type Repr <: SpdyStream
 
-  protected def parent: SpdyOutboundWindow with SpdyInboundWindow with SpdyStreamManager[Repr]
+  protected def manager: SpdyStreamContext[Repr]
+
+  protected def parent: SpdyOutboundWindow with SpdyInboundWindow
 
   def streamid: Int
 
   implicit protected def ec: ExecutionContext
 
   def close(): Task[Unit] = {
-    parent.streamFinished(streamid)
+    manager.streamFinished(streamid)
     closeSpdyOutboundWindow(Cancelled)
     Task.now()
   }
 
   def kill(cause: Throwable): Task[Unit] = {
-    parent.streamFinished(streamid)
+    manager.streamFinished(streamid)
     closeSpdyOutboundWindow(cause)
     Task.now()
   }

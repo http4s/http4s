@@ -17,6 +17,7 @@ import io.netty.handler.codec.spdy.SpdyFrameCodec
 import java.net.InetSocketAddress
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s._
+import org.http4s.netty.utils.SpdyStreamContext
 
 /**
 * @author Bryce Anderson
@@ -70,7 +71,12 @@ class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
             ch.pipeline()
               .addLast("sslEngine", new SslHandler( newssl(ch)))
               .addLast("spdyframecodec", new SpdyFrameCodec(3))    // TODO: Don't hard code SPDY version
-              .addLast("http4s", new NettySpdyServerHandler(service, 3, ch.localAddress, ch.remoteAddress, ch.eventLoop))
+              .addLast("http4s", new NettySpdyServerHandler(
+                    service,
+                    ch.localAddress,
+                    ch.remoteAddress,
+                    new SpdyStreamContext[NettySpdyStream](3, true),
+                    ch.eventLoop))
           }
         })
           .option(ChannelOption.SO_LINGER, new Integer(0))

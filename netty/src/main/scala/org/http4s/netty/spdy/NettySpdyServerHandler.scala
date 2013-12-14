@@ -17,7 +17,7 @@ import org.http4s.util.middleware.PushSupport
 import org.http4s._
 import org.http4s.netty.NettySupport
 import org.http4s.Response
-import org.http4s.netty.utils.SpdyStreamManager
+import org.http4s.netty.utils.SpdyStreamContext
 import scala.concurrent.{ExecutionContext, Future}
 
 
@@ -26,12 +26,11 @@ import scala.concurrent.{ExecutionContext, Future}
 *         Created on 11/28/13
 */
 final class NettySpdyServerHandler(srvc: HttpService,
-                  val spdyversion: Int,
                   val localAddress: InetSocketAddress,
                   val remoteAddress: InetSocketAddress,
+                  protected val manager: SpdyStreamContext[NettySpdyStream],
                   executor: Executor)
           extends NettySupport[SpdyFrame, SpdySynStreamFrame]
-          with SpdyStreamManager[NettySpdyStream]
           with SpdyInboundWindow
           with SpdyConnectionOutboundWindow {
 
@@ -46,8 +45,6 @@ final class NettySpdyServerHandler(srvc: HttpService,
   val ec = ExecutionContext.fromExecutor(executor)
 
   val service = PushSupport(srvc)
-
-  def isServer = true
 
   protected def outWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Channel] = {
     if (!ctx.channel().isOpen) {
@@ -88,7 +85,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
   }
 
   def closeSpdyOutboundWindow(cause: Throwable): Unit = {
-    foreachStream { s =>
+    manager.foreachStream { s =>
       s.closeSpdyOutboundWindow(cause)
       s.close()
     }
@@ -96,22 +93,22 @@ final class NettySpdyServerHandler(srvc: HttpService,
   }
 
   override protected def toRequest(ctx: ChannelHandlerContext, req: SpdySynStreamFrame): Request = {
-    val uri = new URI(SpdyHeaders.getUrl(spdyversion, req))
-    val scheme = Option(SpdyHeaders.getScheme(spdyversion, req)).getOrElse{
+    val uri = new URI(SpdyHeaders.getUrl(manager.spdyversion, req))
+    val scheme = Option(SpdyHeaders.getScheme(manager.spdyversion, req)).getOrElse{
       logger.warn(s"${remoteAddress}: Request doesn't have scheme header")
       "https"
     }
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, this)
+    val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, this, manager)
 
-    if (!putStream(replyStream)) {
+    if (!manager.putStream(replyStream)) {
       throw new InvalidStateException("Received two SpdySynStreamFrames " +
                                      s"with same id: ${replyStream.streamid}")
     }
 
     Request(
-      requestMethod = Method(SpdyHeaders.getMethod(spdyversion, req).name),
+      requestMethod = Method(SpdyHeaders.getMethod(manager.spdyversion, req).name),
       //scriptName = contextPath,
       pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,
@@ -127,7 +124,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: SpdySynStreamFrame, response: Response): Task[List[_]] = {
-    val handler = getStream(req.getStreamId)
+    val handler = manager.getStream(req.getStreamId)
     if (handler != null)  {
       assert(handler.isInstanceOf[NettySpdyServerReplyStream])   // Should only get requests to ReplyStreams
       handler.asInstanceOf[NettySpdyServerReplyStream].handleRequest(req, response)
@@ -138,9 +135,9 @@ final class NettySpdyServerHandler(srvc: HttpService,
   override def exceptionCaught(ctx: ChannelHandlerContext, cause: Throwable) {
     try {
       logger.error(s"Exception on connection with $remoteAddress", cause)
-      killStreams(cause)
+      manager.killStreams(cause)
       if (ctx.channel().isOpen) {  // Send GOAWAY frame to signal disconnect if we are still connected
-        val goaway = new DefaultSpdyGoAwayFrame(lastOpenedStream, 2) // Internal Error
+        val goaway = new DefaultSpdyGoAwayFrame(manager.lastOpenedStream, 2) // Internal Error
         allCatch(ctx.writeAndFlush(goaway).addListener(ChannelFutureListener.CLOSE))
       }
     } catch {    // Don't end up in an infinite loop of exceptions
@@ -155,7 +152,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
     * @param msg SpdyStreamFrame to be forwarded
     */
   private def forwardMsg(msg: SpdyStreamFrame) {
-    val handler = getStream(msg.getStreamId)
+    val handler = manager.getStream(msg.getStreamId)
 
     // Deal with data windows
     if (msg.isInstanceOf[SpdyDataFrame]) {
@@ -180,7 +177,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: SpdySynStreamFrame =>
       logger.trace(s"Received Request frame with id ${req.getStreamId}")
-      setCurrentStreamID(req.getStreamId)
+      manager.setCurrentStreamID(req.getStreamId)
       runHttpRequest(ctx, req)
 
     case msg: SpdyStreamFrame => forwardMsg(msg)
@@ -188,7 +185,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
     case msg: SpdyWindowUpdateFrame =>
       if (msg.getStreamId == 0) updateOutboundWindow(msg.getDeltaWindowSize)  // Global window size
       else {
-        val handler = getStream(msg.getStreamId)
+        val handler = manager.getStream(msg.getStreamId)
         if (handler != null) handler.handle(msg)
         else  {
           logger.debug(s"Received chunk on stream ${msg.getStreamId}: no handler.")
@@ -219,17 +216,17 @@ final class NettySpdyServerHandler(srvc: HttpService,
     logger.trace(s"Received SPDY settings frame: $settings")
 
     val maxStreams = settings.getValue(SETTINGS_MAX_CONCURRENT_STREAMS)
-    if (maxStreams > 0) setMaxStreams(maxStreams)
+    if (maxStreams > 0) manager.setMaxStreams(maxStreams)
 
     val newWindow = settings.getValue(SETTINGS_INITIAL_WINDOW_SIZE)
     // TODO: Deal with window sizes and buffering. http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3#TOC-2.6.8-WINDOW_UPDATE
     if (newWindow > 0) {
       // Update the connection window size
-      setInitialOutboundWindow(newWindow)
+      manager.setInitialOutboundWindow(newWindow)
 
       // Update the connection windows of any streams
-      val diff = newWindow - initialOutboundWindow
-      foreachStream(_.updateOutboundWindow(diff))
+      val diff = newWindow - manager.initialOutboundWindow
+      manager.foreachStream(_.updateOutboundWindow(diff))
     }
   }
 

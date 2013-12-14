@@ -1,5 +1,7 @@
 package org.http4s.netty.spdy
 
+import org.http4s.netty.utils.SpdyStreamContext
+
 /**
  * @author Bryce Anderson
  *         Created on 12/6/13
@@ -7,11 +9,11 @@ package org.http4s.netty.spdy
 trait SpdyInboundWindow {
 
   private val inboundLock = new AnyRef
-  private var inboundWindowSize = initialInboundWindow
-  private var inboundMaxWindow = initialInboundWindow
+  private var inboundWindowSize = manager.initialInboundWindow
+  private var inboundMaxWindow = manager.initialInboundWindow
   private var inboundUpdateBuffer = 0
 
-  def initialInboundWindow: Int
+  protected def manager: SpdyStreamContext[_]
 
   protected def submitDeltaInboundWindow(n: Int): Unit
 
