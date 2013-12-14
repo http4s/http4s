@@ -11,7 +11,7 @@ import io.netty.handler.codec.spdy.{SpdyDataFrame, SpdyRstStreamFrame, SpdyStrea
 class NettySpdyPushStream(val streamid: Int,
                      protected val ctx: ChannelHandlerContext,
                      protected val parent: NettySpdyServerHandler,
-                     val initialWindow: Int) extends NettySpdyServerStream with Logging {
+                     val initialOutboundWindow: Int) extends NettySpdyServerStream with Logging {
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
 

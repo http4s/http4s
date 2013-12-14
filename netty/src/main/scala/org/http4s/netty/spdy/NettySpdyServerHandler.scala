@@ -103,7 +103,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
     }
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, this, initialWindow)
+    val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, this)
 
     if (!putStream(replyStream)) {
       throw new InvalidStateException("Received two SpdySynStreamFrames " +
@@ -224,16 +224,12 @@ final class NettySpdyServerHandler(srvc: HttpService,
     val newWindow = settings.getValue(SETTINGS_INITIAL_WINDOW_SIZE)
     // TODO: Deal with window sizes and buffering. http://dev.chromium.org/spdy/spdy-protocol/spdy-protocol-draft3#TOC-2.6.8-WINDOW_UPDATE
     if (newWindow > 0) {
-      // Update the connection window sizes
-      setInitialWindow(newWindow)
-      changeMaxInboundWindow(newWindow)
+      // Update the connection window size
+      setInitialOutboundWindow(newWindow)
 
       // Update the connection windows of any streams
-      val diff = newWindow - initialWindow
-      foreachStream{ s =>
-        s.updateOutboundWindow(diff)
-          s.asInstanceOf[SpdyInboundWindow].changeMaxInboundWindow(diff)
-      }
+      val diff = newWindow - initialOutboundWindow
+      foreachStream(_.updateOutboundWindow(diff))
     }
   }
 

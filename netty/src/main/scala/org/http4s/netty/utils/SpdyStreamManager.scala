@@ -1,12 +1,15 @@
 package org.http4s.netty.utils
 
 import java.util.concurrent.atomic.AtomicInteger
-import com.typesafe.scalalogging.slf4j.Logging
 import java.util.concurrent.ConcurrentHashMap
+
+import com.typesafe.scalalogging.slf4j.Logging
+
 import org.http4s.netty.spdy.SpdyStream
 import org.http4s.netty.NettySupport.InvalidStateException
-import scala.util.{Failure, Success, Try}
 import org.http4s.netty.utils.SpdyStreamManager.{StreamIndexException, MaxStreamsException}
+
+import scala.util.{Failure, Success, Try}
 
 /**
  * @author Bryce Anderson
@@ -24,7 +27,8 @@ trait SpdyStreamManager[S <: SpdyStream] { self: Logging =>
   private val _managerRunningStreams = new ConcurrentHashMap[Int, S]
   private val _managerCurrentStreamID = new AtomicInteger(0)
   private var _managerMaxStreams = Integer.MAX_VALUE    // 2^31
-  private var _managerInitialStreamSize = 64*1024       // 64KB
+  private var _managerInitialOutboundStreamSize = 64*1024       // 64KB
+  private var _managerInitialInboundStreamSize =  64*1024
 
   /** Whether this is a server or client
     *
@@ -97,17 +101,27 @@ trait SpdyStreamManager[S <: SpdyStream] { self: Logging =>
     _managerMaxStreams
   }
 
-  /** The initial size of SPDY stream windows
+  /** The initial size of SPDY outbound stream windows
     *
     * @return the initial window size
     */
-  def initialWindow: Int = _managerInitialStreamSize
+  def initialOutboundWindow: Int = _managerInitialOutboundStreamSize
+
+  /** The initial size of SPDY inbound stream windows
+    *
+    * @return the initial window size
+    */
+  def initialInboundWindow: Int = _managerInitialInboundStreamSize
 
   /** Set the initial window size of the SPDY stream
     * @param n size in bytes of the initial window
     */
-  protected def setInitialWindow(n: Int): Unit = {
-    _managerInitialStreamSize = n
+  protected def setInitialOutboundWindow(n: Int): Unit = {
+    _managerInitialOutboundStreamSize = n
+  }
+
+  protected def setInitialInboundWindow(n: Int): Unit = {
+    _managerInitialInboundStreamSize = n
   }
 
   /** Add the stream to the active streams

@@ -11,10 +11,12 @@ import com.typesafe.scalalogging.slf4j.Logging
  * @author Bryce Anderson
  *         Created on 11/27/13
  */
-class ChunkHandler(val highWater: Int) extends Logging {
+class ChunkHandler(val highWater: Int) {
 
   type CB = Throwable \/ Chunk => Unit
+
   private val lock = new AnyRef
+
   private var bodyChunk: BodyChunk = null
   private var trailer: TrailerChunk = null
   private var cb: CB = null
@@ -48,7 +50,6 @@ class ChunkHandler(val highWater: Int) extends Logging {
   }
 
   def close(): Unit = lock.synchronized {
-    logger.trace("Closing ChunkHandler")
     if (!isClosed) {
       closed = true
       endThrowable = End
@@ -78,7 +79,6 @@ class ChunkHandler(val highWater: Int) extends Logging {
   }
 
   def request(cb: CB): Unit = lock.synchronized {
-    logger.trace("Requesting data.")
     assert(this.cb == null)
     if (isEmpty) {
       if (isClosed()) {
@@ -111,8 +111,6 @@ class ChunkHandler(val highWater: Int) extends Logging {
     * @return -1 if the queue is closed, else the current queue size (may be 0 if a cb was present)
     */
   def enque(chunk: Chunk): Int = lock.synchronized {
-
-    logger.trace(s"Enqueing chunk: $chunk")
 
     if (closed) return -1
     if (this.cb != null) {

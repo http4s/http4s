@@ -33,7 +33,7 @@ trait NettySpdyServerStream extends NettySpdyStream { self: Logging =>
     val scheme = SpdyHeaders.getScheme(parent.spdyversion, req)
     val response = push.resp
 
-    parent.makeStream(id => new NettySpdyPushStream(id, ctx, parent, initialWindow)) match {
+    parent.makeStream(id => new NettySpdyPushStream(id, ctx, parent, initialOutboundWindow)) match {
       case Success(stream) =>
         logger.trace(s"Pushing content on stream ${stream.streamid} associated with stream $parentid, url ${push.location}")
         // TODO: Default to priority 2. What should we really have?

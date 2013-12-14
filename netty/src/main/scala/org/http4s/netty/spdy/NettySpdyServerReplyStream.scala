@@ -21,12 +21,10 @@ import org.http4s.netty.NettySupport._
   * @param streamid this streams id
   * @param ctx ChannelHandlerContext
   * @param parent SpdyNettyHandler with which to route messages back too
-  * @param initialWindow flow control window size
   */
 final class NettySpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
-                      protected val parent: NettySpdyServerHandler,
-                      val initialWindow: Int) extends SpdyTwoWayStream with Logging {
+                      protected val parent: NettySpdyServerHandler) extends SpdyTwoWayStream with Logging {
 
   //////   SpdyInboundWindow methods   ////////////////////////////////
 

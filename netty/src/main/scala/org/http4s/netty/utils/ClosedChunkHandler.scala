@@ -14,8 +14,5 @@ class ClosedChunkHandler extends ChunkHandler(1) {
 
   override def enque(chunk: Chunk) = 0
 
-  override def request(cb: CB) =  {
-    cb(-\/(End))
-    0
-  }
+  override def request(cb: CB): Unit =  cb(-\/(End))
 }

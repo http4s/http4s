@@ -15,7 +15,7 @@ import org.http4s.netty.{Cancelled, NettySupport}
  */
 trait SpdyTwoWayStream extends NettySpdyServerStream with SpdyInboundWindow { self: Logging =>
 
-  private val inboundChunkHandler = new ChunkHandler(initialWindow) {
+  private val inboundChunkHandler = new ChunkHandler(initialOutboundWindow) {
     override def onBytesSent(n: Int): Unit = {
       incrementWindow(n)
       parent.incrementWindow(n)
@@ -44,4 +44,9 @@ trait SpdyTwoWayStream extends NettySpdyServerStream with SpdyInboundWindow { se
 
   def enqueue(chunk: Chunk): Int = inboundChunkHandler.enque(chunk)
 
+  /** Window management methods */
+  def initialInboundWindow = parent.initialInboundWindow
+
+  /** the initial size of the outbout window */
+  def initialOutboundWindow = parent.initialOutboundWindow
 }

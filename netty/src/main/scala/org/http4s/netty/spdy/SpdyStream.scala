@@ -16,7 +16,7 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
 
   private var isclosed = false
   private val outboundLock = new AnyRef
-  private var outboundWindow: Int = initialWindow
+  private var outboundWindow: Int = initialOutboundWindow
   private var outboundGuard: WindowGuard = null
 
   type Repr <: SpdyStream

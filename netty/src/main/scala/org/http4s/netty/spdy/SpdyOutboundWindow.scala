@@ -14,7 +14,7 @@ import scala.concurrent.Future
 trait SpdyOutboundWindow extends SpdyOutput {
 
   /** the initial size of the outbout window */
-  def initialWindow: Int
+  def initialOutboundWindow: Int
 
   /** close the outbound window */
   def closeSpdyOutboundWindow(cause: Throwable): Unit

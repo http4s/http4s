@@ -7,11 +7,11 @@ package org.http4s.netty.spdy
 trait SpdyInboundWindow {
 
   private val inboundLock = new AnyRef
-  private var inboundWindowSize = initialWindow
-  private var inboundMaxWindow = initialWindow
+  private var inboundWindowSize = initialInboundWindow
+  private var inboundMaxWindow = initialInboundWindow
   private var inboundUpdateBuffer = 0
 
-  def initialWindow: Int
+  def initialInboundWindow: Int
 
   protected def submitDeltaInboundWindow(n: Int): Unit
 
