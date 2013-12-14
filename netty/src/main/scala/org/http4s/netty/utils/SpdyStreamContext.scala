@@ -5,7 +5,7 @@ import java.util.concurrent.ConcurrentHashMap
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-import org.http4s.netty.spdy.SpdyStream
+import org.http4s.netty.spdy.{SpdyInboundWindow, SpdyConnectionOutboundWindow, SpdyStream}
 import org.http4s.netty.NettySupport.InvalidStateException
 import org.http4s.netty.utils.SpdyStreamContext.{StreamIndexException, MaxStreamsException}
 
@@ -19,7 +19,10 @@ import scala.util.{Failure, Success, Try}
 /** Manages the stream ID's for the SPDY protocol
   * In a separate trait to clean up the SpdyNettyHandler class
   */
-class SpdyStreamContext[S <: SpdyStream](val spdyversion: Int, val isServer: Boolean) extends Logging {
+abstract class SpdyStreamContext[S <: SpdyStream](val spdyversion: Int, val isServer: Boolean)
+                  extends SpdyInboundWindow
+                  with SpdyConnectionOutboundWindow
+                  with Logging {
   /** Serves as a repository for active streams
     * If a stream is canceled, it get removed from the map. The allows the client to reject
     * data that it knows is already cached and this backend abort the outgoing stream
@@ -30,14 +33,7 @@ class SpdyStreamContext[S <: SpdyStream](val spdyversion: Int, val isServer: Boo
   private var _managerInitialOutboundStreamSize = 64*1024       // 64KB
   private var _managerInitialInboundStreamSize =  64*1024
 
-//  /** Whether this is a server or client
-//    *
-//    * @return if this is a server manager
-//    */
-//  def isServer: Boolean
-//
-//  /** Version of SPDY employed */
-//  def spdyversion: Int
+  protected def manager: this.type = this
 
   /** Number of registered streams
     *

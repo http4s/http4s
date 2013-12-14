@@ -20,12 +20,11 @@ import org.http4s.netty.NettySupport._
   * 
   * @param streamid this streams id
   * @param ctx ChannelHandlerContext
-  * @param parent SpdyNettyHandler with which to route messages back too
+  * @param manager SpdyStreamContext[NettySpdyStream] with which to route messages back too
   */
 final class NettySpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
-                      protected val parent: NettySpdyServerHandler,
-                      protected val manager: SpdyStreamContext[NettySpdyStream])
+                      protected val manager: NettySpdyServerHandler)
                 extends NettySpdyServerStream
                 with SpdyTwoWayStream
                 with Logging {
@@ -55,7 +54,7 @@ final class NettySpdyServerReplyStream(val streamid: Int,
       val t = writeProcess(response.body).flatMap(_ => close() )
 
       if (queueSize() > 0)   // If we didn't use the bytes, account for them in parent window
-        parent.incrementWindow(queueSize())
+        manager.incrementWindow(queueSize())
 
       Task.gatherUnordered(pushes :+ t, true)
     }
@@ -69,7 +68,7 @@ final class NettySpdyServerReplyStream(val streamid: Int,
 
     // Don't increment the stream window, don't want any more bytes
       if (enqueue(buffToBodyChunk(msg.content)) == -1)
-        parent.incrementWindow(len)
+        manager.incrementWindow(len)
 
     case msg: SpdyHeadersFrame => closeInbound(TrailerChunk(toHeaders(msg.headers)))
     case msg: SpdyRstStreamFrame => handleRstFrame(msg)

@@ -75,7 +75,7 @@ class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
                     service,
                     ch.localAddress,
                     ch.remoteAddress,
-                    new SpdyStreamContext[NettySpdyStream](3, true),
+                    3,
                     ch.eventLoop))
           }
         })

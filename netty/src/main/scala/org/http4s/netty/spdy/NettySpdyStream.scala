@@ -30,13 +30,13 @@ trait NettySpdyStream extends SpdyStream { self: Logging =>
 
   type Repr = NettySpdyStream
 
-  protected def parent: NettySpdyServerHandler
+  protected def manager: NettySpdyServerHandler
 
   protected def ctx: ChannelHandlerContext
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit
 
-  protected def ec = parent.ec
+  protected def ec = manager.ec
 
   override def kill(t: Throwable): Task[Unit] = {
     _streamIsOpen = false

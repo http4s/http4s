@@ -11,8 +11,7 @@ import org.http4s.netty.utils.SpdyStreamContext
  */
 class NettySpdyPushStream(val streamid: Int,
                      protected val ctx: ChannelHandlerContext,
-                     protected val parent: NettySpdyServerHandler,
-                     protected val manager: SpdyStreamContext[NettySpdyStream])
+                     protected val manager: NettySpdyServerHandler)
           extends NettySpdyServerStream with Logging {
 
   def handleStreamFrame(msg: SpdyStreamFrame): Unit = msg match {
@@ -21,7 +20,7 @@ class NettySpdyPushStream(val streamid: Int,
 
     case msg: SpdyDataFrame =>
       logger.warn(s"Spdy Push stream received a data frame. Discarding. $msg")
-      parent.incrementWindow(msg.content().readableBytes())
+      manager.incrementWindow(msg.content().readableBytes())
 
     case msg => sys.error(s"Push Stream received invalid reply frame: $msg")
   }

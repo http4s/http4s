@@ -18,18 +18,18 @@ trait SpdyTwoWayStream extends SpdyInboundWindow with SpdyStream { self: Logging
   private val inboundChunkHandler = new ChunkHandler(initialOutboundWindow) {
     override def onBytesSent(n: Int): Unit = {
       incrementWindow(n)
-      parent.incrementWindow(n)
+      manager.incrementWindow(n)
     }
   }
 
   override def close(): Task[Unit] = {
-    if (queueSize() > 0) parent.incrementWindow(queueSize())
+    if (queueSize() > 0) manager.incrementWindow(queueSize())
     inboundChunkHandler.kill(Cancelled)
     super.close()
   }
 
   override def kill(t: Throwable): Task[Unit] = {
-    if (queueSize() > 0) parent.incrementWindow(queueSize())
+    if (queueSize() > 0) manager.incrementWindow(queueSize())
     inboundChunkHandler.kill(t)
     super.kill(t)
   }

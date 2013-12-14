@@ -23,8 +23,6 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
 
   protected def manager: SpdyStreamContext[Repr]
 
-  protected def parent: SpdyOutboundWindow with SpdyInboundWindow
-
   def streamid: Int
 
   implicit protected def ec: ExecutionContext
@@ -79,12 +77,12 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
     if (chunk.length > outboundWindowSize()) { // Need to break it up
     val p = Promise[Any]
       writeStreamChunk(streamid, chunk, true).onComplete {
-        case Success(a) => p.completeWith(parent.writeStreamEnd(streamid, BodyChunk(), t))
+        case Success(a) => p.completeWith(manager.writeStreamEnd(streamid, BodyChunk(), t))
         case Failure(t) => p.failure(t)
       }
       p.future
     }
-    else parent.writeStreamEnd(streamid, chunk, t)
+    else manager.writeStreamEnd(streamid, chunk, t)
   }
 
   def writeStreamChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = outboundLock.synchronized {
@@ -135,7 +133,7 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
   @inline
   private def sendDownstream(chunk: BodyChunk): Future[Any] = {
     outboundWindow -= chunk.length
-    parent.writeStreamChunk(streamid, chunk, true)
+    manager.writeStreamChunk(streamid, chunk, true)
   }
 
   private class WindowGuard(val streamid: Int, val remaining: BodyChunk, val p: Promise[Any])

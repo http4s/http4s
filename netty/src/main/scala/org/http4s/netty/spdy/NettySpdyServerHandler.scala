@@ -28,11 +28,10 @@ import scala.concurrent.{ExecutionContext, Future}
 final class NettySpdyServerHandler(srvc: HttpService,
                   val localAddress: InetSocketAddress,
                   val remoteAddress: InetSocketAddress,
-                  protected val manager: SpdyStreamContext[NettySpdyStream],
+                  spdyversion: Int,
                   executor: Executor)
-          extends NettySupport[SpdyFrame, SpdySynStreamFrame]
-          with SpdyInboundWindow
-          with SpdyConnectionOutboundWindow {
+          extends SpdyStreamContext[NettySpdyStream](spdyversion, true)
+          with NettySupport[SpdyFrame, SpdySynStreamFrame] {
 
   import NettySupport._
 
@@ -100,7 +99,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
     }
 
     val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
-    val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, this, manager)
+    val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, manager)
 
     if (!manager.putStream(replyStream)) {
       throw new InvalidStateException("Received two SpdySynStreamFrames " +
