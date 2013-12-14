@@ -22,6 +22,8 @@ import io.netty.channel.ChannelHandlerContext
 * @author Bryce Anderson
 *         Created on 12/4/13
 */
+
+/** Netty specific implementation of a SpdyStream */
 trait NettySpdyStream extends SpdyStream { self: Logging =>
 
   private var _streamIsOpen = true

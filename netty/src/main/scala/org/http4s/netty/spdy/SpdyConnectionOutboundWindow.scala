@@ -15,24 +15,24 @@ import scala.util.{Failure, Success}
  */
 trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
-  private var outboundWindow: Int = initialOutboundWindow
+  private var connectionOutboundWindow: Int = initialOutboundWindow
   private val connOutboundQueue = new LinkedList[StreamData]()
 
   implicit protected def ec: ExecutionContext
-
-  def getOutboundWindow(): Int = outboundWindow
 
   protected def outWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any]
   
   protected def outWriteStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
 
+  def getOutboundWindow(): Int = connectionOutboundWindow
+
   def writeStreamChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = {
     connOutboundQueue.synchronized {
-      logger.trace(s"Writing chunk: $chunk, window size: $outboundWindow")
-      if (chunk.length > outboundWindow) {
+      logger.trace(s"Writing chunk: $chunk, window size: $connectionOutboundWindow")
+      if (chunk.length > connectionOutboundWindow) {
         val p = Promise[Any]
-        if (outboundWindow > 0) {
-          val (left, right) = chunk.splitAt(outboundWindow)
+        if (connectionOutboundWindow > 0) {
+          val (left, right) = chunk.splitAt(connectionOutboundWindow)
           writeOutboundBodyBuff(streamid, left, true)
           connOutboundQueue.addLast(StreamData(streamid, right, p))
         }
@@ -43,28 +43,29 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
     }
   }
   
-  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] =
-  connOutboundQueue.synchronized {
-    if (chunk.length >= outboundWindow) {
-      val p = Promise[Any]
-      writeStreamChunk(streamid, chunk, true).onComplete {
-        case Success(a) =>  p.completeWith(outWriteStreamEnd(streamid, BodyChunk(), t))
-        case Failure(t) => p.failure(t)
+  def writeStreamEnd(streamid: Int, chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = {
+    connOutboundQueue.synchronized {
+      if (chunk.length >= connectionOutboundWindow) {
+        val p = Promise[Any]
+        writeStreamChunk(streamid, chunk, true).onComplete {
+          case Success(a) =>  p.completeWith(outWriteStreamEnd(streamid, BodyChunk(), t))
+          case Failure(t) => p.failure(t)
+        }
+        p.future
       }
-      p.future
+      else outWriteStreamEnd(streamid, chunk, t)
     }
-    else outWriteStreamEnd(streamid, chunk, t)
   }
 
   // TODO: this method could cause problems on backends that require each future to resolve
   // TODO  before sending another chunk
   def updateOutboundWindow(delta: Int): Unit = connOutboundQueue.synchronized {
-    logger.trace(s"Updating connection window, delta: $delta, new: ${outboundWindow + delta}")
-    outboundWindow += delta
-    while (!connOutboundQueue.isEmpty && outboundWindow > 0) {   // Send more chunks
+    logger.trace(s"Updating connection window, delta: $delta, new: ${connectionOutboundWindow + delta}")
+    connectionOutboundWindow += delta
+    while (!connOutboundQueue.isEmpty && connectionOutboundWindow > 0) {   // Send more chunks
       val next = connOutboundQueue.poll()
-      if (next.chunk.length > outboundWindow) { // Can only send part
-        val (left, right) = next.chunk.splitAt(outboundWindow)
+      if (next.chunk.length > connectionOutboundWindow) { // Can only send part
+        val (left, right) = next.chunk.splitAt(connectionOutboundWindow)
         writeOutboundBodyBuff(next.streamid, left, false)
         connOutboundQueue.addFirst(StreamData(next.streamid, right, next.p))  // prepend to the queue
         return
@@ -73,7 +74,7 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
         next.p.completeWith(writeOutboundBodyBuff(
                     next.streamid,
                     next.chunk,
-                    connOutboundQueue.isEmpty || outboundWindow >= 0))
+                    connOutboundQueue.isEmpty || connectionOutboundWindow >= 0))
         // continue the loop
       }
     }
@@ -81,7 +82,7 @@ trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
 
   // Should only be called from inside the synchronized methods
   private def writeOutboundBodyBuff(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Any] = {
-    outboundWindow -= chunk.length
+    connectionOutboundWindow -= chunk.length
 
     // Don't exceed maximum frame size
     def go(chunk: BodyChunk): Future[Any] = {

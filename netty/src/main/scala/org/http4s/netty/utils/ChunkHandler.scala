@@ -37,7 +37,7 @@ class ChunkHandler(val highWater: Int) {
     else 0
   }
 
-  def onQueueFull(): Unit = {}
+  def onQueueFull(): Unit = { }
 
   def isClosed(): Boolean = closed
 
@@ -83,14 +83,10 @@ class ChunkHandler(val highWater: Int) {
     if (isEmpty) {
       if (isClosed()) {
         cb(-\/(endThrowable))
-      } else {
-        this.cb = cb
-      }
-
+      } else this.cb = cb
     }
 
     else {   // Not empty
-
       if (bodyChunk != null) {
         try cb(\/-(bodyChunk))
         finally {
@@ -111,8 +107,8 @@ class ChunkHandler(val highWater: Int) {
     * @return -1 if the queue is closed, else the current queue size (may be 0 if a cb was present)
     */
   def enque(chunk: Chunk): Int = lock.synchronized {
-
     if (closed) return -1
+
     if (this.cb != null) {
       assert(isEmpty)
       val cb = this.cb
@@ -128,12 +124,13 @@ class ChunkHandler(val highWater: Int) {
         }
         else bodyChunk = bodyChunk ++ chunk   // Concat to the previous body chunk
 
-        if (queueSize() >= highWater) onQueueFull()
-
       case chunk: TrailerChunk =>
         assert(trailer == null)
         trailer = chunk
     }
-    queueSize()
+
+    val size = queueSize()
+    if (size >= highWater) onQueueFull()
+    size
   }
 }

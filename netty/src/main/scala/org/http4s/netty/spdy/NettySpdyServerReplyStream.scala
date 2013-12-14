@@ -24,7 +24,10 @@ import org.http4s.netty.NettySupport._
   */
 final class NettySpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
-                      protected val parent: NettySpdyServerHandler) extends SpdyTwoWayStream with Logging {
+                      protected val parent: NettySpdyServerHandler)
+                extends NettySpdyServerStream
+                with SpdyTwoWayStream
+                with Logging {
 
   //////   SpdyInboundWindow methods   ////////////////////////////////
 

@@ -21,7 +21,7 @@ trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =
 
   type Repr <: SpdyStream
 
-  protected def parent: SpdyOutput with SpdyStreamManager[Repr]
+  protected def parent: SpdyOutboundWindow with SpdyInboundWindow with SpdyStreamManager[Repr]
 
   def streamid: Int
 

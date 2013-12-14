@@ -13,7 +13,7 @@ import org.http4s.netty.{Cancelled, NettySupport}
  * @author Bryce Anderson
  *         Created on 12/13/13
  */
-trait SpdyTwoWayStream extends NettySpdyServerStream with SpdyInboundWindow { self: Logging =>
+trait SpdyTwoWayStream extends SpdyStream with SpdyInboundWindow { self: Logging =>
 
   private val inboundChunkHandler = new ChunkHandler(initialOutboundWindow) {
     override def onBytesSent(n: Int): Unit = {
