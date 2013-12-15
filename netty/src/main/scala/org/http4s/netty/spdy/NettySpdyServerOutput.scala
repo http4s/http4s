@@ -12,7 +12,7 @@ import io.netty.buffer.Unpooled
  * @author Bryce Anderson
  *         Created on 12/10/13
  */
-trait NettySpdyServerOutput extends StreamOutput {
+trait NettySpdyServerOutput {
 
   type A = Channel
 

@@ -8,7 +8,7 @@ import org.http4s.netty.utils.StreamContext
  */
 
 /** Interface for maintaining an outbound window */
-trait OutboundWindow extends StreamOutput {
+trait OutboundWindow {
 
   protected def manager: StreamContext[_]
 
