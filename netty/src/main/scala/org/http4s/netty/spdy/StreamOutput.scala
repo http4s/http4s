@@ -7,7 +7,7 @@ import scala.concurrent.Future
 * @author Bryce Anderson
 *         Created on 12/10/13
 */
-trait SpdyOutput {
+trait StreamOutput {
 
   /** Write data to the stream
     *

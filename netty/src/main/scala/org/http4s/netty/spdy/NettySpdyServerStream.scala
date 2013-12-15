@@ -3,7 +3,7 @@ package org.http4s.netty.spdy
 import com.typesafe.scalalogging.slf4j.Logging
 
 import org.http4s.util.middleware.PushSupport.PushResponse
-import org.http4s.netty.utils.SpdyStreamContext.{StreamIndexException, MaxStreamsException}
+import org.http4s.netty.utils.StreamContext.{StreamIndexException, MaxStreamsException}
 
 import io.netty.channel.ChannelFutureListener
 import io.netty.handler.codec.spdy.{DefaultSpdyGoAwayFrame, DefaultSpdySynStreamFrame, SpdyHeaders, SpdySynStreamFrame}

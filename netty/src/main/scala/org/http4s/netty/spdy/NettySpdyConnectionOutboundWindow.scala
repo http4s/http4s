@@ -12,7 +12,7 @@ import io.netty.buffer.Unpooled
  * @author Bryce Anderson
  *         Created on 12/10/13
  */
-trait NettySpdyConnectionOutboundWindow extends SpdyOutboundWindow {
+trait NettySpdyConnectionOutboundWindow extends OutboundWindow {
 
   protected def ctx: ChannelHandlerContext
 

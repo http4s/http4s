@@ -13,7 +13,7 @@ import scala.util.{Failure, Success}
  * @author Bryce Anderson
  *         Created on 12/5/13
  */
-trait SpdyConnectionOutboundWindow extends SpdyOutboundWindow { self: Logging =>
+trait ConnectionOutboundWindow extends OutboundWindow { self: Logging =>
 
   private var connectionOutboundWindow: Int = manager.initialOutboundWindow
   private val connOutboundQueue = new LinkedList[StreamData]()

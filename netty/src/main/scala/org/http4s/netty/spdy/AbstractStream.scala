@@ -12,14 +12,14 @@ import scala.util.{Try, Failure, Success}
  * @author Bryce Anderson
  *         Created on 12/10/13
  */
-trait SpdyStream extends SpdyOutboundWindow with ProcessWriter { self: Logging =>
+trait AbstractStream extends OutboundWindow with ProcessWriter { self: Logging =>
 
   private var isclosed = false
   private val outboundLock = new AnyRef
   private var outboundWindow: Int = manager.initialOutboundWindow
   private var outboundGuard: WindowGuard = null
 
-  type Repr <: SpdyStream
+  type Repr <: AbstractStream
 
   protected def manager: SpdyStreamContext[Repr]
 

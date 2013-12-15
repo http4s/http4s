@@ -26,7 +26,7 @@ final class NettySpdyServerReplyStream(val streamid: Int,
                       protected val ctx: ChannelHandlerContext,
                       protected val manager: NettySpdyServerHandler)
                 extends NettySpdyServerStream
-                with SpdyTwoWayStream
+                with TwoWayStream
                 with Logging {
 
   //////   SpdyInboundWindow methods   ////////////////////////////////

@@ -1,19 +1,19 @@
 package org.http4s.netty.spdy
 
-import org.http4s.netty.utils.SpdyStreamContext
+import org.http4s.netty.utils.StreamContext
 
 /**
  * @author Bryce Anderson
  *         Created on 12/6/13
  */
-trait SpdyInboundWindow {
+trait InboundWindow {
 
   private val inboundLock = new AnyRef
   private var inboundWindowSize = manager.initialInboundWindow
   private var inboundMaxWindow = manager.initialInboundWindow
   private var inboundUpdateBuffer = 0
 
-  protected def manager: SpdyStreamContext[_]
+  protected def manager: StreamContext[_]
 
   protected def submitDeltaInboundWindow(n: Int): Unit
 

@@ -1,10 +1,6 @@
 package org.http4s.netty.spdy
 
-import io.netty.buffer.ByteBuf
-import io.netty.channel.ChannelFuture
-import org.http4s.{BodyChunk, TrailerChunk}
-import scala.concurrent.Future
-import org.http4s.netty.utils.SpdyStreamContext
+import org.http4s.netty.utils.StreamContext
 
 /**
  * @author Bryce Anderson
@@ -12,9 +8,9 @@ import org.http4s.netty.utils.SpdyStreamContext
  */
 
 /** Interface for maintaining an outbound window */
-trait SpdyOutboundWindow extends SpdyOutput {
+trait OutboundWindow extends StreamOutput {
 
-  protected def manager: SpdyStreamContext[_]
+  protected def manager: StreamContext[_]
 
   /** close the outbound window */
   def closeSpdyOutboundWindow(cause: Throwable): Unit

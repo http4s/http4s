@@ -4,16 +4,18 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 import org.http4s.netty.utils.ChunkHandler
 import org.http4s.{TrailerChunk, Chunk}
+import org.http4s.netty.{Cancelled, NettySupport}
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
-import org.http4s.netty.{Cancelled, NettySupport}
+
 
 /**
  * @author Bryce Anderson
  *         Created on 12/13/13
  */
-trait SpdyTwoWayStream extends SpdyInboundWindow with SpdyStream { self: Logging =>
+
+trait TwoWayStream extends InboundWindow with AbstractStream { self: Logging =>
 
   private val inboundChunkHandler = new ChunkHandler(initialOutboundWindow) {
     override def onBytesSent(n: Int): Unit = {
