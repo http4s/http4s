@@ -19,6 +19,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s._
 import org.http4s.netty.utils.SpdyStreamContext
 import org.http4s.netty.NPNProvider
+import java.util.concurrent.ExecutorService
+import scalaz.concurrent.Strategy
 
 /**
 * @author Bryce Anderson
@@ -27,20 +29,20 @@ import org.http4s.netty.NPNProvider
 
 object SimpleSpdyServer {
   def apply(sslContext: SSLContext, port: Int = 443)
-           (service: HttpService)(implicit executionContext: ExecutionContext = ExecutionContext.global) =
+           (service: HttpService)(implicit es: ExecutorService = Strategy.DefaultExecutorService) =
     new SimpleSpdyServer(sslContext, port, service)
 }
 
 class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
-                      (implicit executionContext: ExecutionContext = ExecutionContext.global) extends Logging {
+                      (implicit es: ExecutorService) extends Logging {
 
     private val bossThreadPool = new NioEventLoopGroup()
     private val workerThreadPool = new NioEventLoopGroup()
 
-    private def newssl(channel: Channel) = {
+    private def newssl() = {
       val eng = sslContext.createSSLEngine()
       eng.setUseClientMode(false)
-      val p = new NPNProvider(channel)
+      val p = new NPNProvider
       NextProtoNego.put(eng, p)
       eng
     }
@@ -54,7 +56,7 @@ class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
           def initChannel(ch: SocketChannel) {
             logger.trace(s"Creating new channel. Local: ${ch.localAddress}, remote: ${ch.remoteAddress}")
             ch.pipeline()
-              .addLast("sslEngine", new SslHandler( newssl(ch)))
+              .addLast("sslEngine", new SslHandler( newssl))
               .addLast("chooser", new NettySpdyChooser(service))
           }
         })

@@ -6,7 +6,6 @@ import io.netty.handler.codec.http
 import java.net.InetSocketAddress
 import java.lang.Boolean
 
-import concurrent.ExecutionContext
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.nio.NioEventLoopGroup
 import io.netty.channel.socket.nio.NioServerSocketChannel
@@ -15,13 +14,19 @@ import io.netty.channel.socket.SocketChannel
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s._
 
+import java.util.concurrent.ExecutorService
+
+import scalaz.concurrent.Strategy
+
 object SimpleNettyServer {
-  def apply(port: Int = 8080, staticFiles: String = "src/main/webapp")(service: HttpService) =
-    new SimpleNettyServer(port, staticFiles, service)
+  def apply(port: Int = 8080)
+           (service: HttpService)
+           (implicit es: ExecutorService = Strategy.DefaultExecutorService) =
+    new SimpleNettyServer(port, service)
 }
 
-class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpService)
-                (implicit executionContext: ExecutionContext = ExecutionContext.global) extends Logging {
+class SimpleNettyServer private(port: Int, service: HttpService)
+                          (implicit es: ExecutorService) extends Logging {
 
   private val bossThreadPool = new NioEventLoopGroup()
   private val workerThreadPool = new NioEventLoopGroup()
@@ -38,7 +43,7 @@ class SimpleNettyServer private(port: Int, staticFiles: String, service: HttpSer
           logger.trace(s"Started new connection to remote address ${ch.remoteAddress()}")
           ch.pipeline()
             .addLast("httpcodec", new http.HttpServerCodec())    // TODO: set max header sizes etc in the constructor
-            .addLast("http4s", new NettyHttpHandler(service, local, rem, ch.eventLoop))
+            .addLast("http4s", new NettyHttpHandler(service, local, rem, es))
         }
       })
         .option(ChannelOption.SO_LINGER, new Integer(0))

@@ -5,11 +5,10 @@ package spdy
 import scala.util.control.Exception.allCatch
 
 import java.net.{URI, InetSocketAddress}
-import java.util.concurrent.{Executor, ConcurrentHashMap}
+import java.util.concurrent.ExecutorService
 
 import io.netty.handler.codec.spdy._
 import io.netty.channel.{Channel, ChannelFutureListener, ChannelHandlerContext}
-import io.netty.buffer.ByteBuf
 
 import scalaz.concurrent.Task
 
@@ -29,7 +28,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
                   val localAddress: InetSocketAddress,
                   val remoteAddress: InetSocketAddress,
                   spdyversion: Int,
-                  executor: Executor)
+                  val executorService: ExecutorService)
           extends SpdyStreamContext[NettySpdyStream](spdyversion, true)
           with NettySupport[SpdyFrame, SpdySynStreamFrame] {
 
@@ -39,7 +38,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
   private def ctx = _ctx
 
-  val ec = ExecutionContext.fromExecutor(executor)
+  val ec = ExecutionContext.fromExecutorService(executorService)
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
 

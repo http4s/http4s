@@ -1,6 +1,5 @@
 package org.http4s.netty
 
-import io.netty.channel.Channel
 import org.eclipse.jetty.npn.NextProtoNego
 import com.typesafe.scalalogging.slf4j.Logging
 import java.util.List
@@ -11,7 +10,7 @@ import java.util.List
  */
 
 
-class NPNProvider(channel: Channel) extends NextProtoNego.ServerProvider with Logging {
+class NPNProvider extends NextProtoNego.ServerProvider with Logging {
   private var selected = ""
   def protocolSelected(protocol: String) {
     logger.trace("NPN selected protocol: " + protocol)

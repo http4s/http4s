@@ -6,10 +6,8 @@ import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
 import io.netty.channel._
 import io.netty.handler.ssl.SslHandler
-import io.netty.buffer.{ByteBuf, Unpooled}
 
 import scalaz.concurrent.Task
-import Process._
 
 import scala.collection.mutable.ListBuffer
 import java.net.{InetSocketAddress, URI}
@@ -17,14 +15,11 @@ import org.http4s._
 import io.netty.util.ReferenceCountUtil
 import org.http4s.netty.utils.ChunkHandler
 import org.http4s.netty.{ProcessWriter, NettySupport}
-import org.http4s.netty.NettySupport._
-import org.http4s.Response
-import org.http4s.TrailerChunk
 import java.util.concurrent.atomic.AtomicReference
 import org.http4s.Response
 import org.http4s.TrailerChunk
 import scala.concurrent.{ExecutionContext, Future}
-import java.util.concurrent.Executor
+import java.util.concurrent.ExecutorService
 
 
 /**
@@ -34,8 +29,8 @@ import java.util.concurrent.Executor
 class NettyHttpHandler(val service: HttpService,
                        val localAddress: InetSocketAddress,
                        val remoteAddress: InetSocketAddress,
-                       executor: Executor)
-              extends NettySupport[HttpObject, HttpRequest] with ProcessWriter {
+                       val executorService: ExecutorService)
+              extends NettySupport[HttpObject, (ChunkHandler, HttpRequest)] with ProcessWriter {
 
   import NettySupport._
   import NettyHttpHandler._
@@ -44,7 +39,7 @@ class NettyHttpHandler(val service: HttpService,
 
   private def ctx = _ctx
 
-  protected val ec = ExecutionContext.fromExecutor(executor)
+  protected def ec: ExecutionContext = ExecutionContext.fromExecutorService(executorService)
 
   private var manager: ChannelManager = null
 
@@ -54,27 +49,32 @@ class NettyHttpHandler(val service: HttpService,
 
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
     case req: HttpRequest =>
-      logger.trace("Netty request received")
-      requestQueue.getAndSet(Pending(req)) match {
+      logger.trace("NettyHttp request received")
+      assert(manager == null)
+      val m = new ChannelManager(ctx)
+      manager = m
+      requestQueue.getAndSet(Pending(m, req)) match {
         case Idle =>
           requestQueue.set(Running)
-          runHttpRequest(ctx, req)
+          runHttpRequest(ctx, (m, req))
 
         case Running => // Nothing to do
 
-        case Pending(_) => // This is an invalid state
+        case Pending(_, _) => // This is an invalid state
           ctx.fireExceptionCaught(new InvalidStateException(s"Received request with a pending request in queue"))
       }
 
     case c: LastHttpContent =>
-      if (manager != null) {
-        if (c.content().readableBytes() > 0)
-          manager.enque(buffToBodyChunk(c.content))
+      logger.trace("Last message received. Cleaning up.")
 
-        manager.close(TrailerChunk(toHeaders(c.trailingHeaders())))
-        manager = null
-      }
-      else logger.trace("Received LastHttpContent but manager is null. Discarding.")
+      if (manager == null) invalidState("ChannelManager is null")
+
+      if (c.content().readableBytes() > 0)
+        manager.enque(buffToBodyChunk(c.content))
+
+      manager.close(TrailerChunk(toHeaders(c.trailingHeaders())))
+      manager = null
+
 
     case chunk: HttpContent =>
       logger.trace("Netty content received.")
@@ -116,8 +116,10 @@ class NettyHttpHandler(val service: HttpService,
     ctx.writeAndFlush(msg)
   }
 
-  override protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, response: Response): Task[Unit] = {
+  override protected def renderResponse(ctx: ChannelHandlerContext, _req: (ChunkHandler,HttpRequest), response: Response): Task[Unit] = {
     logger.trace("Rendering response.")
+
+    val req = _req._2
 
     val stat = new HttpResponseStatus(response.status.code, response.status.reason)
 
@@ -153,21 +155,22 @@ class NettyHttpHandler(val service: HttpService,
         if (next.isInstanceOf[Pending])
           logger.warn(s"Received pending request, but channel set to close. Request: $next")
         ctx.close()
-      } else next match {
-        case Pending(req) =>
-          requestQueue.set(Running)
-          runHttpRequest(ctx, req)
+      } else {
+        enableRead(ctx)
+        next match {
+          case Pending(m, req) =>
+            requestQueue.set(Running)
+            runHttpRequest(ctx, (m, req))
 
-        case _ => // Nothing to do
+          case _ => // Nothing to do
+        }
       }
     }
   }
 
-  override def toRequest(ctx: ChannelHandlerContext, req: HttpRequest): Request = {
+  override def toRequest(ctx: ChannelHandlerContext, _req: (ChunkHandler, HttpRequest)): Request = {
 
-    if(manager != null) invalidState(s"Chunk manager still present. Is a previous request still underway? $manager")
-
-    manager = new ChannelManager(ctx)
+    val req = _req._2
 
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
     logger.trace("Received request: " + req.getUri)
@@ -186,14 +189,14 @@ class NettyHttpHandler(val service: HttpService,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
       remote = remoteAddress.getAddress,
-      body = makeProcess(manager)
+      body = makeProcess(_req._1)
     )
   }
 
   /** Manages the input stream providing back pressure
     * @param ctx ChannelHandlerContext of the channel
     */          // TODO: allow control of buffer size and use bytes, not chunks as limit
-  protected class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10*1024*1024) { // 10MB
+  class ChannelManager(ctx: ChannelHandlerContext) extends ChunkHandler(10*1024*1024) { // 10MB
     override def onQueueFull() {
       logger.trace("Queue full.")
       assert(ctx != null)
@@ -220,5 +223,5 @@ object NettyHttpHandler {
   private sealed trait ReqState
   private case object Idle extends ReqState
   private case object Running extends ReqState
-  private case class Pending(req: HttpRequest) extends ReqState
+  private case class Pending(handler: ChunkHandler, req: HttpRequest) extends ReqState
 }

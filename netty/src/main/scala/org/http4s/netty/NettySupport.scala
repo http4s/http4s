@@ -20,13 +20,14 @@ import org.http4s.netty.utils.ChunkHandler
 import scalaz.-\/
 import org.http4s.Response
 import scalaz.\/-
+import java.util.concurrent.ExecutorService
 
 /**
  * @author Bryce Anderson
  *         Created on 11/28/13
  */
 
-trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandler with Logging {
+trait NettySupport[MsgType, RequestType] extends ChannelInboundHandler with Logging {
 
   import NettySupport.InvalidStateException
 
@@ -37,6 +38,8 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
   def localAddress: InetSocketAddress
 
   def remoteAddress: InetSocketAddress
+
+  def executorService: ExecutorService
 
   /** Method that turns a netty request into a Http4s request
     *
@@ -100,7 +103,7 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
         Status.InternalServerError()
     }
 
-    Task.fork(task).handleWith {
+    Task.fork(task)(executorService).handleWith {
       case End => Status.BadRequest("End of stream reached. Insufficient data.")
     }.flatMap(renderResponse(ctx, req, _)).runAsync {
       // Make sure we are allowing reading at the end of the request
