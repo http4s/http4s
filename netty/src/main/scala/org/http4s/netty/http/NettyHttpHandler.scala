@@ -38,8 +38,6 @@ class NettyHttpHandler(val service: HttpService,
   import NettySupport._
   import NettyHttpHandler._
 
-  type A = Channel
-
   private var ctx: ChannelHandlerContext = null
 
   protected var ec: ExecutionContext = null
