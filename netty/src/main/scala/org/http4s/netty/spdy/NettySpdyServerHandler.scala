@@ -37,11 +37,11 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
   private var _ctx: ChannelHandlerContext = null
 
-  def ctx = _ctx
-
-  val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
+  private def ctx = _ctx
 
   val ec = ExecutionContext.fromExecutor(executor)
+
+  val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
 
   val service = PushSupport(srvc)
 

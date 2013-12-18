@@ -1,8 +1,9 @@
 package org.http4s.netty.spdy
 
-import java.util
 import org.http4s.netty.http.NettyHttpHandler
 import org.http4s.HttpService
+
+import java.util.List
 
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.HttpServerCodec
@@ -20,12 +21,11 @@ import org.http4s.netty.NPNProvider
  *         Created on 12/16/13
  */
 class NettySpdyChooser(service: HttpService) extends ByteToMessageDecoder {
-  def decode(ctx: ChannelHandlerContext, in: ByteBuf, out: util.List[AnyRef]): Unit = {
-    getProtocol(ctx) match {
-      case "spdy/3.1" =>
-        insertSpdy(ctx)
+  def decode(ctx: ChannelHandlerContext, in: ByteBuf, out: List[AnyRef]): Unit = {
 
-      case _ => insertHttp1(ctx)
+    getProtocol(ctx) match {
+      case "spdy/3.1" => insertSpdy(ctx)
+      case _          => insertHttp1(ctx)
     }
 
     // remove ourselves from the pipeline
@@ -48,7 +48,7 @@ class NettySpdyChooser(service: HttpService) extends ByteToMessageDecoder {
     val p = ctx.pipeline()
     val ch = ctx.channel().asInstanceOf[SocketChannel]
     p.addLast("httpcodec", new HttpServerCodec())
-    p.addLast("http4s", new NettyHttpHandler(service, ch.localAddress(), ch.remoteAddress()))
+    p.addLast("http4s", new NettyHttpHandler(service, ch.localAddress, ch.remoteAddress, ch.eventLoop))
   }
 
   private def getProtocol(ctx: ChannelHandlerContext): String = {

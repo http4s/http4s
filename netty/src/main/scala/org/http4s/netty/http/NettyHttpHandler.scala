@@ -24,6 +24,7 @@ import java.util.concurrent.atomic.AtomicReference
 import org.http4s.Response
 import org.http4s.TrailerChunk
 import scala.concurrent.{ExecutionContext, Future}
+import java.util.concurrent.Executor
 
 
 /**
@@ -32,15 +33,18 @@ import scala.concurrent.{ExecutionContext, Future}
  */
 class NettyHttpHandler(val service: HttpService,
                        val localAddress: InetSocketAddress,
-                       val remoteAddress: InetSocketAddress)
+                       val remoteAddress: InetSocketAddress,
+                       executor: Executor)
               extends NettySupport[HttpObject, HttpRequest] with ProcessWriter {
 
   import NettySupport._
   import NettyHttpHandler._
 
-  private var ctx: ChannelHandlerContext = null
+  private var _ctx: ChannelHandlerContext = null
 
-  protected var ec: ExecutionContext = null
+  private def ctx = _ctx
+
+  protected val ec = ExecutionContext.fromExecutor(executor)
 
   private var manager: ChannelManager = null
 
@@ -83,8 +87,7 @@ class NettyHttpHandler(val service: HttpService,
   }
 
   final override def handlerAdded(ctx: ChannelHandlerContext) {
-    this.ctx = ctx
-    this.ec = ExecutionContext.fromExecutor(ctx.channel().eventLoop())
+    this._ctx = ctx
   }
 
   override protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Channel] = {
