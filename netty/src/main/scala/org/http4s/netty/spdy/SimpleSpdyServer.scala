@@ -18,6 +18,7 @@ import java.net.InetSocketAddress
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s._
 import org.http4s.netty.utils.SpdyStreamContext
+import org.http4s.netty.NPNProvider
 
 /**
 * @author Bryce Anderson
@@ -30,22 +31,6 @@ object SimpleSpdyServer {
     new SimpleSpdyServer(sslContext, port, service)
 }
 
-class NPNProvider(channel: Channel) extends NextProtoNego.ServerProvider with Logging {
-  private var selected = ""
-  def protocolSelected(protocol: String) {
-    logger.debug("DEBUG: Selected protocol: " + protocol)
-    selected = protocol
-  }
-
-  def unsupported() {
-    channel.close()
-  }
-
-  def protocols(): List[String] = {
-    import collection.JavaConversions._
-    "spdy/3.1"::Nil
-  }
-}
 class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
                       (implicit executionContext: ExecutionContext = ExecutionContext.global) extends Logging {
 
@@ -70,13 +55,7 @@ class SimpleSpdyServer(sslContext: SSLContext, port: Int, service: HttpService)
             logger.trace(s"Creating new channel. Local: ${ch.localAddress}, remote: ${ch.remoteAddress}")
             ch.pipeline()
               .addLast("sslEngine", new SslHandler( newssl(ch)))
-              .addLast("spdyframecodec", new SpdyFrameCodec(3))    // TODO: Don't hard code SPDY version
-              .addLast("http4s", new NettySpdyServerHandler(
-                    service,
-                    ch.localAddress,
-                    ch.remoteAddress,
-                    3,
-                    ch.eventLoop))
+              .addLast("chooser", new NettySpdyChooser(service))
           }
         })
           .option(ChannelOption.SO_LINGER, new Integer(0))

@@ -91,8 +91,6 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
   }
 
   protected def runHttpRequest(ctx: ChannelHandlerContext, req: RequestType) {
-    logger.trace("Starting http request.")
-
     val request = toRequest(ctx, req)
     val task = try service(request)
     catch { // TODO: don't rely on exceptions for bad requests?
@@ -107,6 +105,7 @@ trait NettySupport[MsgType, RequestType <: MsgType] extends ChannelInboundHandle
     }.flatMap(renderResponse(ctx, req, _)).runAsync {
       // Make sure we are allowing reading at the end of the request
       case \/-(_) =>
+        logger.trace(s"Finished request: ${request.requestMethod}:${request.pathInfo}")
         cleanup()
         if (ctx.channel.isOpen) enableRead(ctx)
 

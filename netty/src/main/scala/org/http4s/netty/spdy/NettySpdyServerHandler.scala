@@ -79,7 +79,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
     }
   }
 
-  override def channelRegistered(ctx: ChannelHandlerContext) {
+  override def handlerAdded(ctx: ChannelHandlerContext) {
     _ctx = ctx
   }
 

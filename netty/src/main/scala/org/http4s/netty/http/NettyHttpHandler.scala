@@ -84,7 +84,7 @@ class NettyHttpHandler(val service: HttpService,
       ctx.fireChannelRead(msg)
   }
 
-  final override def channelRegistered(ctx: ChannelHandlerContext) {
+  final override def handlerAdded(ctx: ChannelHandlerContext) {
     this.ctx = ctx
     this.ec = ExecutionContext.fromExecutor(ctx.channel().eventLoop())
   }
@@ -107,12 +107,16 @@ class NettyHttpHandler(val service: HttpService,
       logger.trace(s"Channel closed. -- $chunk $t")
       return Future.failed(Cancelled)
     }
+
     val msg = new DefaultLastHttpContent(chunkToBuff(chunk))
-    if (t.isDefined) for ( h <- t.get.headers ) msg.trailingHeaders().set(h.name.toString, h.value)
+    if (t.isDefined)
+      for ( h <- t.get.headers ) msg.trailingHeaders().set(h.name.toString, h.value)
+
     ctx.writeAndFlush(msg)
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext, req: HttpRequest, response: Response): Task[Unit] = {
+    logger.trace("Rendering response.")
 
     val stat = new HttpResponseStatus(response.status.code, response.status.reason)
 

@@ -109,7 +109,7 @@ trait ProcessWriter { self: Logging =>
   }
 
   private def completionListener(t: Try[_], cb: CBType, cleanup: Process[Task, Chunk]): Unit = t match {
-    case Success(_)        =>    cleanup.run.runAsync(cb)
-    case Failure(t) =>           cleanup.causedBy(t).run.runAsync(cb)
+    case Success(_) =>  cleanup.run.runAsync(cb)
+    case Failure(t) =>  cleanup.causedBy(t).run.runAsync(cb)
   }
 }
