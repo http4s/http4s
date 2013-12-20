@@ -4,6 +4,7 @@ import scalaz.stream.Process
 import java.io.File
 import java.net.{URI, InetAddress}
 import org.http4s.util.CaseInsensitiveString
+import scalaz.concurrent.Task
 
 abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
@@ -92,4 +93,8 @@ case class Response(
     addHeader(Header.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
 
   def withStatus[T <% Status](status: T) = copy(status = status)
+}
+
+object Response {
+  implicit def toTask(resp: Response): Task[Response] = Task.now(resp)
 }

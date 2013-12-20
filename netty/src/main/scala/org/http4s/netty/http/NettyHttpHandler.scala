@@ -6,20 +6,24 @@ import io.netty.handler.codec.http._
 import io.netty.handler.codec.http.HttpHeaders._
 import io.netty.channel._
 import io.netty.handler.ssl.SslHandler
+import io.netty.util.ReferenceCountUtil
 
 import scalaz.concurrent.Task
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.{ExecutionContext, Future}
+
 import java.net.{InetSocketAddress, URI}
+import java.util.concurrent.atomic.AtomicReference
+import java.util.concurrent.ExecutorService
+
 import org.http4s._
-import io.netty.util.ReferenceCountUtil
 import org.http4s.netty.utils.ChunkHandler
 import org.http4s.netty.{ProcessWriter, NettySupport}
-import java.util.concurrent.atomic.AtomicReference
 import org.http4s.Response
 import org.http4s.TrailerChunk
-import scala.concurrent.{ExecutionContext, Future}
-import java.util.concurrent.ExecutorService
+
+
 
 
 /**
@@ -67,7 +71,7 @@ class NettyHttpHandler(val service: HttpService,
     case c: LastHttpContent =>
       logger.trace("Last message received. Cleaning up.")
 
-      if (manager == null) invalidState("ChannelManager is null")
+      if (manager == null) invalidState("LastHttpContent: ChannelManager is null")
 
       if (c.content().readableBytes() > 0)
         manager.enque(buffToBodyChunk(c.content))
@@ -78,8 +82,11 @@ class NettyHttpHandler(val service: HttpService,
 
     case chunk: HttpContent =>
       logger.trace("Netty content received.")
-      if (manager != null) manager.enque(buffToBodyChunk(chunk.content))
-      else logger.trace("Received HttpContent but manager is null. Discarding.")
+    
+      if (manager == null) invalidState("HttpChunk: ChannelManager is null") 
+    
+      manager.enque(buffToBodyChunk(chunk.content))
+      
 
     case msg =>
       ReferenceCountUtil.retain(msg)   // Done know what it is, fire upstream
@@ -116,10 +123,13 @@ class NettyHttpHandler(val service: HttpService,
     ctx.writeAndFlush(msg)
   }
 
-  override protected def renderResponse(ctx: ChannelHandlerContext, _req: (ChunkHandler,HttpRequest), response: Response): Task[Unit] = {
-    logger.trace("Rendering response.")
+  override protected def renderResponse(ctx: ChannelHandlerContext,
+                                        reqpair: (ChunkHandler,HttpRequest),
+                                        response: Response): Task[Unit] = {
 
-    val req = _req._2
+    logger.trace("NettyHttpHandler Rendering response.")
+
+    val req = reqpair._2
 
     val stat = new HttpResponseStatus(response.status.code, response.status.reason)
 
@@ -168,9 +178,9 @@ class NettyHttpHandler(val service: HttpService,
     }
   }
 
-  override def toRequest(ctx: ChannelHandlerContext, _req: (ChunkHandler, HttpRequest)): Request = {
+  override def toRequest(ctx: ChannelHandlerContext, reqpair: (ChunkHandler, HttpRequest)): Request = {
 
-    val req = _req._2
+    val req = reqpair._2
 
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
     logger.trace("Received request: " + req.getUri)
@@ -189,7 +199,7 @@ class NettyHttpHandler(val service: HttpService,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
       remote = remoteAddress.getAddress,
-      body = makeProcess(_req._1)
+      body = makeProcess(reqpair._1)
     )
   }
 

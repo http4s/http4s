@@ -8,6 +8,8 @@ import scala.concurrent.Future
 import org.http4s.dsl._
 import scala.util.{Failure, Success}
 import org.http4s.util.middleware.PushSupport
+import org.http4s.util.StaticFile
+import java.io.File
 
 class ExampleRoute {
   import Status._
@@ -30,21 +32,12 @@ class ExampleRoute {
       val data = <html><body><img src="image.jpg"/></body></html>
       Ok(data).push("/http4s/image.jpg")
 
-    case Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
-      val bytes = {
-        val is = getClass.getResourceAsStream("/nasa_blackhole_image.jpg")
-        assert(is != null)
-        val buff = new Array[Byte](5000)
-        def go(acc: Vector[Array[Byte]]): Array[Byte] = {
-          if (is.available() > 0) {
-            go(acc :+ buff.slice(0, is.read(buff)))
-          }
-          else acc.flatten.toArray
-        }
-        go(Vector.empty)
+    case req @ Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
+      val url = getClass.getResource("/nasa_blackhole_image.jpg")
+      StaticFile.fromURL(url) match {
+        case Some(r) => r
+        case None    => NotFound(req)
       }
-      Ok(bytes)
-
 
     case req @ Post -> Root / "echo" =>
       Task.now(Response(body = req.body))

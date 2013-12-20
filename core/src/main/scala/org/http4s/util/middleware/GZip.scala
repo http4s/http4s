@@ -4,7 +4,7 @@ package util.middleware
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
 
-import Header.{`Content-Length`, `Content-Encoding`, `Accept-Encoding`}
+import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
 import util.Gzipper
 
 import com.typesafe.scalalogging.slf4j.Logging
@@ -49,7 +49,11 @@ object GZip extends Logging {
       req.headers.get(`Accept-Encoding`).fold(t){ h =>
         if (h.acceptsEncoding(ContentCoding.gzip) || h.acceptsEncoding(ContentCoding.`x-gzip`)) t.map { resp =>
           // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
-          if (resp.headers.get(`Content-Encoding`).isEmpty) {
+          val mediatype = resp.headers.get(`Content-Type`)
+          if (resp.headers.get(`Content-Encoding`).isEmpty &&
+              (mediatype.isEmpty ||
+               mediatype.get.contentType.mediaType.compressible ||
+              (mediatype.get.contentType.mediaType eq MediaType.`application/octet-stream`))) {
             logger.trace("GZip middleware encoding content")
             val b = resp.body.pipe(streamingGZip(buffersize))
             resp.removeHeader(`Content-Length`)
