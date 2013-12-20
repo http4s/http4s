@@ -33,8 +33,8 @@ class ExampleRoute {
       Ok(data).push("/http4s/image.jpg")
 
     case req @ Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
-      Option(getClass.getResource("/nasa_blackhole_image.jpg"))
-        .flatMap(StaticFile.fromURL(_).map(Task.now))
+      StaticFile.fromResource("/nasa_blackhole_image.jpg")
+        .map(Task.now)
         .getOrElse(NotFound(req))
 
     case req @ Post -> Root / "echo" =>

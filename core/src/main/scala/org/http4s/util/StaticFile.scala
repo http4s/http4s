@@ -35,6 +35,13 @@ object StaticFile extends Logging {
     fromFile(new File(url))
   }
 
+  def fromResource(name: String)
+             (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+    val url = getClass.getResource(name)
+    if (url != null) StaticFile.fromURL(url)(es)
+    else None
+  }
+
   def fromURL(url: URL)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
     if (url == null)
