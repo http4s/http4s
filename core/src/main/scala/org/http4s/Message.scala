@@ -95,6 +95,3 @@ case class Response(
   def withStatus[T <% Status](status: T) = copy(status = status)
 }
 
-object Response {
-  implicit def toTask(resp: Response): Task[Response] = Task.now(resp)
-}

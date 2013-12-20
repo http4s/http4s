@@ -37,6 +37,9 @@ object StaticFile extends Logging {
 
   def fromURL(url: URL)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+    if (url == null)
+      throw new NullPointerException("url")
+
     fromFile(new File(url.toURI))(es)
   }
 
@@ -53,6 +56,9 @@ object StaticFile extends Logging {
 
   def fromFile(f: File, start: Long, end: Long, buffsize: Int)
                         (implicit es: ExecutorService): Option[Response] = {
+
+    if (f == null)
+      throw new NullPointerException("File")
 
     if (start < 0 || end < start || buffsize <= 0)
       throw new Exception(s"start: $start, end: $end, buffsize: $buffsize")

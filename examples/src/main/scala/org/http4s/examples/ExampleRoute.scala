@@ -33,11 +33,9 @@ class ExampleRoute {
       Ok(data).push("/http4s/image.jpg")
 
     case req @ Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
-      val url = getClass.getResource("/nasa_blackhole_image.jpg")
-      StaticFile.fromURL(url) match {
-        case Some(r) => r
-        case None    => NotFound(req)
-      }
+      Option(getClass.getResource("/nasa_blackhole_image.jpg"))
+        .flatMap(StaticFile.fromURL(_).map(Task.now))
+        .getOrElse(NotFound(req))
 
     case req @ Post -> Root / "echo" =>
       Task.now(Response(body = req.body))
