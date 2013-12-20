@@ -64,7 +64,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
 
   protected def toRequest(req: HttpServletRequest): Request =
     Request(
-      requestMethod = Method(req.getMethod),
+      requestMethod = Method.resolve(req.getMethod),
       scriptName = req.getContextPath + req.getServletPath,
       pathInfo = Option(req.getPathInfo).getOrElse(""),
       queryString = Option(req.getQueryString).getOrElse(""),

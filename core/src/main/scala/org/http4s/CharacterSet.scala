@@ -1,9 +1,8 @@
 package org.http4s
 
 import java.nio.charset.Charset
-import org.http4s.util.{CaseInsensitiveString, Registry}
+import org.http4s.util.CaseInsensitiveString
 import scala.collection.JavaConverters._
-import scala.util.{Success, Try}
 
 sealed abstract class CharacterSetRange extends HttpValue[CaseInsensitiveString] {
   def matches(characterSet: CharacterSet): Boolean
@@ -15,8 +14,10 @@ sealed case class CharacterSet private (value: CaseInsensitiveString) extends Ch
   def matches(characterSet: CharacterSet) = this == characterSet
 }
 
-object CharacterSet extends Registry[CaseInsensitiveString, CharacterSet] {
-  def apply(name: String): Try[CharacterSet] = getForKey(name.ci).fold(Try(new CharacterSet(name.ci)))(Success.apply)
+object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
+  protected def stringToRegistryKey(s: String): CaseInsensitiveString = s.ci
+
+  protected def fromKey(k: CaseInsensitiveString): CharacterSet = new CharacterSet(k)
 
   private def register(name: String): CharacterSet = {
     val characterSet = new CharacterSet(name.ci)

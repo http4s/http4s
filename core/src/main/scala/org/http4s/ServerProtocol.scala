@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.{CaseInsensitiveString, Registry}
+import org.http4s.util.CaseInsensitiveString
 import org.http4s.parser.ServerProtocolParser
 
 /**
@@ -12,11 +12,12 @@ sealed trait ServerProtocol extends HttpValue[CaseInsensitiveString] {
   def value: CaseInsensitiveString
 }
 
-object ServerProtocol extends Registry[CaseInsensitiveString, ServerProtocol] {
-  def resolve(s: String): ServerProtocol = getOrElse(s.ci, parse(s))
+object ServerProtocol extends Resolvable[CaseInsensitiveString, ServerProtocol] {
+  protected def stringToRegistryKey(s: String): CaseInsensitiveString = s.ci
 
-  private def parse(s: String): ServerProtocol = ServerProtocolParser(s)
-    .fold(e => sys.error(e.toString), identity)
+  // TODO throw a nicer exception
+  protected def fromKey(k: CaseInsensitiveString): ServerProtocol =
+    ServerProtocolParser(k.toString).fold(e => sys.error(e.toString), identity)
 
   def register[A <: ServerProtocol](serverProtocol: A): serverProtocol.type =
     register(serverProtocol.value, serverProtocol)

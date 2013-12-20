@@ -1,7 +1,5 @@
 package org.http4s
 
-import org.http4s.util.Registry
-
 /**
  * An HTTP method.
  *
@@ -17,15 +15,19 @@ sealed abstract case class Method (name: String) {
 //  def /(path: String): Path = new /(this, Path(path))
 }
 
-object Method extends Registry[String, Method] {
-  def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
-  def idempotent(name: String): Method = new MethodImpl(name, false, true)
-  def safe(name: String): Method = new MethodImpl(name, true, true)
+object Method extends Resolvable[String, Method] {
+  protected def stringToRegistryKey(s: String): String = s
+
+  protected def fromKey(k: String): Method = notIdempotent(k)
+
+  private def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
+  private def idempotent(name: String): Method = new MethodImpl(name, false, true)
+  private def safe(name: String): Method = new MethodImpl(name, true, true)
 
   private class MethodImpl(name: String, val isSafe: Boolean, val isIdempotent: Boolean) extends Method(name)
 
   private def register(method: Method): method.type = {
-    registry.update(method.name, method)
+    register(method.name, method)
     method
   }
 
@@ -43,22 +45,4 @@ object Method extends Registry[String, Method] {
    * Returns a set of all registered methods.
    */
   def methods: Iterable[Method] = registry.values
-
-  /**
-   * Retrieves a method from the registry.
-   *
-   * @param name the name, case insensitive
-   * @return the method, if registered
-   */
-  def get(name: String): Option[Method] = registry.get(name)
-
-  /**
-   * Retrieves a method from the registry, or creates an extension method otherwise.
-   * The extension method is not registered, and assumed to be neither safe nor
-   * idempotent.
-   *
-   * @param name the name, case insensitive
-   * @return the method, if registered; otherwise, an extension method
-   */
-  def apply(name: String): Method = get(name).getOrElse(notIdempotent(name))
 }

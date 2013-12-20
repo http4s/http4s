@@ -7,23 +7,23 @@ class CharacterSetSpec extends WordSpec with Matchers {
 
   "CharacterSet.apply" should {
     "check the registry" in {
-      CharacterSet.apply("UTF-8").get should be theSameInstanceAs `UTF-8`
+      CharacterSet.resolve("UTF-8") should be theSameInstanceAs `UTF-8`
     }
 
     "be case-insensitive" in {
-      CharacterSet.apply("utf-8").get should be theSameInstanceAs `UTF-8`
+      CharacterSet.resolve("utf-8") should be theSameInstanceAs `UTF-8`
     }
 
     "check common aliases" in {
-      CharacterSet.apply("UTF8").get should be theSameInstanceAs `UTF-8`
+      CharacterSet.resolve("UTF8") should be theSameInstanceAs `UTF-8`
     }
 
     "create new charsets if supported by the JVM" in {
-      CharacterSet.apply("ISO-8859-2").get.name should equal ("ISO-8859-2")
+      CharacterSet.resolve("ISO-8859-2").name should equal ("ISO-8859-2")
     }
 
     "fail for unknown charsets" in {
-      CharacterSet.apply("derp").isFailure should be (true)
+      an [IllegalArgumentException] should be thrownBy CharacterSet.resolve("derp")
     }
   }
 

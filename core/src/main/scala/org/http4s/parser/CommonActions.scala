@@ -18,12 +18,9 @@ private[parser] trait CommonActions {
         case custom        => new MultipartMediaType(custom, boundary)
       }
       case mainLower =>
-        MediaType.getForKey((mainLower, subType.toLowerCase)).getOrElse(new CustomMediaType(mainType, subType))
+        MediaType.lookupOrElse((mainLower, subType.toLowerCase), new CustomMediaType(mainType, subType))
     }
   }
 
-  val getCharset: String => CharacterSet = { charsetName =>
-    CharacterSet(charsetName)
-      .getOrElse(throw new ParsingException("Unsupported charset: " + charsetName))
-  }
+  val getCharset: String => CharacterSet = CharacterSet.resolve
 }

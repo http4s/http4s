@@ -188,7 +188,7 @@ class NettyHttpHandler(val service: HttpService,
 
     val servAddr = localAddress
     Request(
-      requestMethod = Method(req.getMethod.name),
+      requestMethod = Method.resolve(req.getMethod.name),
       //scriptName = contextPath,
       pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,

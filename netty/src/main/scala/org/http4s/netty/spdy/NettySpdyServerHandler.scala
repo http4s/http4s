@@ -106,7 +106,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
     }
 
     Request(
-      requestMethod = Method(SpdyHeaders.getMethod(manager.spdyversion, req).name),
+      requestMethod = Method.resolve(SpdyHeaders.getMethod(manager.spdyversion, req).name),
       //scriptName = contextPath,
       pathInfo = uri.getRawPath,
       queryString = uri.getRawQuery,

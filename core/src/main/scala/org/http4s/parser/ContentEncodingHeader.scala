@@ -13,7 +13,7 @@ private[parser] trait ContentEncodingHeader {
   )
 
   def ContentEncoding = rule {
-    ContentCoding ~~> (x => org.http4s.ContentCoding(x))
+    ContentCoding ~~> (org.http4s.ContentCoding.resolve _)
   }
 
 }

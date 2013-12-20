@@ -2,8 +2,6 @@ package org.http4s
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
-import org.http4s.util.Registry
-
 
 sealed abstract class MediaRange {
   val value = mainType + "/*"
@@ -22,7 +20,10 @@ sealed abstract class MediaRange {
   override def toString = "MediaRange(" + value + ')'
 }
 
-object MediaRange extends Registry[String, MediaRange] {
+object MediaRange extends Resolvable[String, MediaRange] {
+  protected def stringToRegistryKey(s: String): String = s
+
+  protected def fromKey(k: String): MediaRange = CustomMediaRange(k)
 
   def register(mediaRange: MediaRange): MediaRange = {
     register(mediaRange.mainType.toLowerCase, mediaRange)
@@ -116,7 +117,18 @@ sealed abstract class MediaType extends MediaRange {
   override def toString = "MediaType(" + value + ')'
 }
 
-object MediaType extends Registry[(String, String), MediaType] {
+object MediaType extends Resolvable[(String, String), MediaType] {
+  // TODO error handling
+  protected def stringToRegistryKey(s: String): (String, String) = s.split("/", 2) match {
+    case Array(main, sub) => (main, sub)
+  }
+
+  protected def fromKey(k: (String, String)): MediaType = CustomMediaType(k._1, k._2)
+
+  override def lookup(key: (String, String)): Option[MediaType] = super.lookup(key)
+
+  override def lookupOrElse(key: (String, String), default: => MediaType): MediaType = super.lookupOrElse(key, default)
+
   def unapply(mimeType: MediaType): Option[(String, String)] = Some((mimeType.mainType, mimeType.subType))
 
   private[this] val extensionMap = new AtomicReference(Map.empty[String, MediaType])
