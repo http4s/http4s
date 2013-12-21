@@ -24,10 +24,18 @@ object ServerProtocol extends Resolvable[CaseInsensitiveString, ServerProtocol] 
   final case class HttpVersion(major: Int, minor: Int) extends ServerProtocol {
     val value: CaseInsensitiveString = s"HTTP/${major}.${minor}".ci
   }
+  object HttpVersion {
+    def unapply(serverProtocol: ServerProtocol): Option[(Int, Int)] = serverProtocol match {
+      case http: HttpVersion => unapply(http)
+      case INCLUDED => Some(1, 0)
+      case _ => None
+    }
+  }
+
   val `HTTP/1.1`: HttpVersion = register(new HttpVersion(1, 1))
   val `HTTP/1.0`: HttpVersion = register(new HttpVersion(1, 0))
 
-  object INCLUDED extends ServerProtocol {
+  case object INCLUDED extends ServerProtocol {
     val value = "INCLUDED".ci
   }
   register(INCLUDED)

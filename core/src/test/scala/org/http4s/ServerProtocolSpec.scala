@@ -46,4 +46,18 @@ class ServerProtocolSpec extends WordSpec with Matchers {
       ServerProtocol.resolve("FOO").toString should equal ("FOO")
     }
   }
+
+  "HttpVersion extractor" should {
+    "recognize HttpVersions" in {
+      HttpVersion.unapply(`HTTP/1.1`: ServerProtocol) should equal (Some(1, 1))
+    }
+
+    "treat INCLUDED as HTTP/1.0" in {
+      HttpVersion.unapply(INCLUDED) should equal (Some(1, 0))
+    }
+
+    "treat extension versions as not HTTP" in {
+      HttpVersion.unapply(ExtensionVersion("Foo".ci, Some(Version(1, 1)))) should be (None)
+    }
+  }
 }
