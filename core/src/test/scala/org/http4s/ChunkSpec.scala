@@ -44,15 +44,65 @@ class ChunkSpec extends WordSpec with Matchers {
     }
 
     "Copy to a short array" in {
-      val a = new Array[Byte](3)
+      var a = new Array[Byte](3)
       c.copyToArray(a)
       a should equal(data1)
+
+      a = new Array[Byte](2)
+      c.copyToArray(a)
+      a should equal(data.slice(0, 2))
+
+      a = new Array[Byte](2)
+      c.copyToArray(a, 1)
+      a should equal(new Array[Byte](1) ++ data.slice(0, 1))
+
+      a = new Array[Byte](3)
+      c.copyToArray(a, 1, 1)
+      a should equal(new Array[Byte](1) ++ data.slice(0, 1) ++ new Array[Byte](1))
+
+      a = new Array[Byte](3)
+      c.copyToArray(a, 1, 10)
+      a should equal(new Array[Byte](1) ++ data.slice(0, 2))
     }
 
     "Copy to a long array" in {
-      val a = new Array[Byte](10)
+      var a = new Array[Byte](10)
       c.copyToArray(a)
       a should equal(data ++ new Array[Byte](10 - data.length))
+
+      a = new Array[Byte](10)
+      c.copyToArray(a, a.length - c.length)
+      a should equal(new Array[Byte](10 - data.length) ++ data)
+
+      a = new Array[Byte](10)
+      c.copyToArray(a, 0, 3)
+      a should equal(data.slice(0,3) ++ new Array[Byte](a.length - 3))
+
+      a = new Array[Byte](10)
+      c.copyToArray(a, 4, 3)
+      a should equal(new Array[Byte](4) ++ data.slice(0, 3) ++ new Array[Byte](3))
+
+      a = new Array[Byte](10)
+      c.copyToArray(a, 7, 30)
+      a should equal(new Array[Byte](7) ++ data.slice(0, 3))
+    }
+
+    "split properly" in {
+      {
+        val (a,b) = c.splitAt(2)
+        compareBodyChunk(a, data.slice(0, 2))
+        compareBodyChunk(b, data.slice(2, data.length))
+      }
+      {
+        val (a,b) = c.splitAt(3)
+        compareBodyChunk(a, data.slice(0, 3))
+        compareBodyChunk(b, data.slice(3, data.length))
+      }
+      {
+        val (a,b) = c.splitAt(4)
+        compareBodyChunk(a, data.slice(0, 4))
+        compareBodyChunk(b, data.slice(4, data.length))
+      }
     }
 
   }

@@ -1,6 +1,6 @@
 package org.http4s
 
-import java.io.InputStream
+import java.io.{ByteArrayInputStream, InputStream}
 import java.nio.ByteBuffer
 import java.nio.charset.Charset
 
@@ -35,7 +35,6 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
   def length: Int = self.length
 
   override def copyToArray[B >: Byte](xs: Array[B], start: Int, len: Int): Unit = {
-
     val end = if (start + len > xs.length) xs.length else start + len
 
     @tailrec
@@ -55,10 +54,7 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
 
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
 
-  def asInputStream: InputStream = new InputStream {
-    private val it = iterator
-    def read(): Int = if (it.hasNext) it.next() else -1
-  }
+  def asInputStream: InputStream = new ByteArrayInputStream(toArray)
 
   def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
 
@@ -68,10 +64,15 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
    * @return two chunks, with the left of length size and right of the remaining length
    */
   override def splitAt(index: Int): (BodyChunk, BodyChunk) = {
-    val (leftSlice, middle, rightSlice) = self.self.split1(_ <= index)
-    val left = leftSlice :+ middle.slice(0, index - leftSlice.measure)
-    val right = middle.slice(index + 1, middle.length) +: rightSlice
-    
+    val _t = self.self.split1(_ >= index)
+    val leftSlice = _t._1
+    val middle = _t._2
+    val rightSlice = _t._3
+    val llength = leftSlice.measure
+
+    val left = leftSlice :+ middle.slice(0, index - llength)
+    val right = middle.slice(index - llength, middle.length) +: rightSlice
+
     (BodyChunk(Rope(left)), BodyChunk(Rope(right)))
   }
 
@@ -115,7 +116,7 @@ object BodyChunk {
 case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends Chunk {
 
   def ++(chunk: TrailerChunk): TrailerChunk = {
-    TrailerChunk(chunk.headers.foldLeft(headers)((other, h) => other.put(h)))
+    TrailerChunk(chunk.headers.foldLeft(headers)((headers, h) => headers.put(h)))
   }
 
   override def iterator: Iterator[Byte] = Iterator.empty
