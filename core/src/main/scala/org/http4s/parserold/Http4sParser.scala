@@ -1,4 +1,4 @@
-package org.http4s.parser
+package org.http4s.parserold
 
 import org.parboiled.scala._
 import org.parboiled.errors.{ParsingException, ParserRuntimeException, ErrorUtils}

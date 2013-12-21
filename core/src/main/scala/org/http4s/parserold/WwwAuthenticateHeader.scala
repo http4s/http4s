@@ -1,10 +1,10 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
 
-private[parser] trait WwwAuthenticateHeader {
+private[parserold] trait WwwAuthenticateHeader {
   this: Parser with AdditionalRules =>
 
   def WWW_AUTHENTICATE = rule {

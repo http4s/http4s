@@ -1,5 +1,5 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
@@ -7,7 +7,7 @@ import org.joda.time.DateTime
 
 // http://tools.ietf.org/html/draft-ietf-httpstate-cookie-23#section-4
 // with one exception: we are more lenient on additional or missing whitespace
-private[parser] trait CookieHeaders {
+private[parserold] trait CookieHeaders {
   this: Parser with ProtocolParameterRules =>
 
   def SET_COOKIE = rule {

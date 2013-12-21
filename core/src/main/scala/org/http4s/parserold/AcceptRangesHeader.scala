@@ -1,10 +1,10 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
 
-private[parser] trait AcceptRangesHeader {
+private[parserold] trait AcceptRangesHeader {
   this: Parser with ProtocolParameterRules =>
 
   def ACCEPT_RANGES = rule (

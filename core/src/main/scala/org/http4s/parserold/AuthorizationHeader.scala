@@ -1,11 +1,11 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import org.parboiled.common.Base64
 import BasicRules._
 
-private[parser] trait AuthorizationHeader {
+private[parserold] trait AuthorizationHeader {
   this: Parser with ProtocolParameterRules with AdditionalRules =>
 
   def AUTHORIZATION = rule {

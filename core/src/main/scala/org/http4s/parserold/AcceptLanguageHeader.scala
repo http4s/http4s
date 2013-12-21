@@ -1,11 +1,11 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
 import LanguageTag._
 
-private[parser] trait AcceptLanguageHeader {
+private[parserold] trait AcceptLanguageHeader {
   this: Parser with ProtocolParameterRules =>
 
   def ACCEPT_LANGUAGE = rule (

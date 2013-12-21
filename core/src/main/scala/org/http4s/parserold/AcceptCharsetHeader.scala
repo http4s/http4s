@@ -1,11 +1,11 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
 import CharacterSet._
 
-private[parser] trait AcceptCharsetHeader {
+private[parserold] trait AcceptCharsetHeader {
   this: Parser with ProtocolParameterRules with CommonActions =>
 
   def ACCEPT_CHARSET = rule (

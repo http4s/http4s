@@ -1,10 +1,10 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import Header._
 
-private[parser] trait ContentTypeHeader {
+private[parserold] trait ContentTypeHeader {
   this: Parser with ProtocolParameterRules with CommonActions =>
 
   def CONTENT_TYPE = rule {

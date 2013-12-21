@@ -1,12 +1,12 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
 import java.net.InetAddress
 
 // implementation of additional parsing rules required for extensions that are not in the core HTTP standard
-private[parser] trait AdditionalRules {
+private[parserold] trait AdditionalRules {
   this: Parser =>
 
   def Ip: Rule1[InetAddress] = rule (

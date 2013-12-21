@@ -1,6 +1,6 @@
 package org.http4s
 
-import parser.HttpParser
+import parserold.HttpParser
 import org.joda.time.DateTime
 import java.net.InetAddress
 import scala.reflect.ClassTag

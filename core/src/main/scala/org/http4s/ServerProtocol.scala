@@ -1,7 +1,7 @@
 package org.http4s
 
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.parser.ServerProtocolParser
+import org.http4s.parserold.ServerProtocolParser
 
 /**
  * The Server Protocol of a request.
