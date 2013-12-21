@@ -1,5 +1,5 @@
 package org.http4s
-package parser
+package parserold
 
 /*
  * Copyright (C) 2011-2012 spray.io
@@ -20,7 +20,7 @@ package parser
 import org.parboiled.scala._
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
-private[parser] object BasicRules extends Parser {
+private[parserold] object BasicRules extends Parser {
 
   def Octet = rule { "\u0000" - "\u00FF" }
 

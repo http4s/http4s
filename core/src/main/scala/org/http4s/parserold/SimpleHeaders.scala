@@ -1,5 +1,5 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
@@ -8,7 +8,7 @@ import Header._
 /**
  * parser rules for all headers that can be parsed with one simple rule
  */
-private[parser] trait SimpleHeaders {
+private[parserold] trait SimpleHeaders {
   this: Parser with ProtocolParameterRules with AdditionalRules =>
 
   def CONNECTION = rule (

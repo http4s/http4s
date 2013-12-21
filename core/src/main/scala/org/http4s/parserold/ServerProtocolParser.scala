@@ -1,5 +1,5 @@
 package org.http4s
-package parser
+package parserold
 
 import BasicRules._
 import org.http4s.{ServerProtocol => SP}

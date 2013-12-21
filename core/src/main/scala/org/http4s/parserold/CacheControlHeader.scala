@@ -1,11 +1,11 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import BasicRules._
 import CacheDirective._
 
-private[parser] trait CacheControlHeader {
+private[parserold] trait CacheControlHeader {
   this: Parser with ProtocolParameterRules =>
 
   def CACHE_CONTROL = rule (

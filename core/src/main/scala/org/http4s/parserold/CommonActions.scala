@@ -1,10 +1,10 @@
 package org.http4s
-package parser
+package parserold
 
 import MediaType._
 import org.parboiled.errors.ParsingException
 
-private[parser] trait CommonActions {
+private[parserold] trait CommonActions {
 
   def getMediaType(mainType: String, subType: String, boundary: Option[String] = None): MediaType = {
     mainType.toLowerCase match {

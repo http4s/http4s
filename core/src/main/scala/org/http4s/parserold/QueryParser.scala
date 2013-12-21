@@ -1,5 +1,5 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import java.io.UnsupportedEncodingException

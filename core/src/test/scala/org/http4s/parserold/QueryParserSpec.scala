@@ -1,7 +1,7 @@
 package org.http4s
-package parser
+package parserold
 
-import org.http4s.parser.QueryParser._
+import org.http4s.parserold.QueryParser._
 import org.scalatest.{Matchers, WordSpec}
 
 class QueryParserSpec extends WordSpec with Matchers {

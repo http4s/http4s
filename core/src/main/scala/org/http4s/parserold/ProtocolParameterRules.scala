@@ -1,5 +1,5 @@
 package org.http4s
-package parser
+package parserold
 
 /*
  * Copyright (C) 2011-2012 spray.io
@@ -24,7 +24,7 @@ import org.joda.time.DateTime
 import scala.util.Try
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html
-private[parser] trait ProtocolParameterRules {
+private[parserold] trait ProtocolParameterRules {
   this: Parser =>
   import BasicRules._
 

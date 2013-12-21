@@ -1,11 +1,11 @@
 package org.http4s
-package parser
+package parserold
 
 import org.parboiled.scala._
 import ContentCoding._
 import java.util.Locale
 
-private[parser] trait ContentEncodingHeader {
+private[parserold] trait ContentEncodingHeader {
   this: Parser with ProtocolParameterRules =>
 
   def CONTENT_ENCODING = rule (
