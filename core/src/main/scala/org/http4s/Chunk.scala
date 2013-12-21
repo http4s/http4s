@@ -2,12 +2,16 @@ package org.http4s
 
 import java.io.InputStream
 import java.nio.ByteBuffer
-import scala.collection.generic.CanBuildFrom
-import scala.collection.{IndexedSeqLike, mutable, IndexedSeqOptimized}
-import scala.io.Codec
-import scalaz.{RopeBuilder, Rope}
 import java.nio.charset.Charset
+
+import scala.collection.generic.CanBuildFrom
+import scala.collection.{mutable, IndexedSeqLike}
 import scala.reflect.ClassTag
+import scala.annotation.tailrec
+import scala.io.Codec
+
+import scalaz.{ImmutableArray, RopeBuilder, Rope}
+
 
 sealed trait Chunk extends IndexedSeq[Byte] {
   def decodeString(charset: Charset): String = new String(toArray, charset)
@@ -30,7 +34,24 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
 
   def length: Int = self.length
 
-  override def toArray[B >: Byte : ClassTag]: Array[B] = self.toArray
+  override def copyToArray[B >: Byte](xs: Array[B], start: Int, len: Int): Unit = {
+
+    val end = if (start + len > xs.length) xs.length else start + len
+
+    @tailrec
+    def go(s: Stream[ImmutableArray[Byte]], pos: Int): Unit = if (!s.isEmpty) {
+      val i = s.head
+      if (i.length > end - pos) {  // To long for Array
+        i.copyToArray(xs, pos, end - pos)
+      }
+      else {
+        i.copyToArray(xs, pos, i.length)
+        go(s.tail, pos + i.length)
+      }
+    }
+
+    if (start < xs.length) go(self.chunks, start)
+  }
 
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
 
@@ -92,6 +113,10 @@ object BodyChunk {
 }
 
 case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends Chunk {
+
+  def ++(chunk: TrailerChunk): TrailerChunk = {
+    TrailerChunk(chunk.headers.foldLeft(headers)((other, h) => other.put(h)))
+  }
 
   override def iterator: Iterator[Byte] = Iterator.empty
 
