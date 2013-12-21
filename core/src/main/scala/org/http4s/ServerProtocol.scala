@@ -15,9 +15,8 @@ sealed trait ServerProtocol extends HttpValue[CaseInsensitiveString] {
 object ServerProtocol extends Resolvable[CaseInsensitiveString, ServerProtocol] {
   protected def stringToRegistryKey(s: String): CaseInsensitiveString = s.ci
 
-  // TODO throw a nicer exception
   protected def fromKey(k: CaseInsensitiveString): ServerProtocol =
-    ServerProtocolParser(k.toString).fold(e => sys.error(e.toString), identity)
+    ServerProtocolParser(k.toString).fold(e => throw new ParseException(e), identity)
 
   def register[A <: ServerProtocol](serverProtocol: A): serverProtocol.type =
     register(serverProtocol.value, serverProtocol)
