@@ -182,19 +182,13 @@ class NettyHttpHandler(val service: HttpService,
 
     val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
     logger.trace("Received request: " + req.getUri)
-    val uri = new URI(req.getUri)
 
     val servAddr = localAddress
     Request(
       requestMethod = Method.resolve(req.getMethod.name),
-      //scriptName = contextPath,
-      pathInfo = uri.getRawPath,
-      queryString = uri.getRawQuery,
+      requestUri = RequestUri.fromString(req.getUri),
       protocol = ServerProtocol.resolve(req.getProtocolVersion.protocolName),
       headers = toHeaders(req.headers),
-      urlScheme = HttpUrlScheme(scheme),
-      serverName = servAddr.getHostName,
-      serverPort = servAddr.getPort,
       body = makeProcess(reqpair._1),
       attributes = AttributeMap(
         Request.Keys.Remote(remoteAddress.getAddress),
