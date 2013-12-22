@@ -40,14 +40,9 @@ abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: At
 
 case class Request(
   requestMethod: Method = Method.Get,
-  scriptName: String = "",
-  pathInfo: String = "",
-  queryString: String = "",
+  requestUri: RequestUri = RequestUri.OriginForm.empty,
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: HeaderCollection = HeaderCollection.empty,
-  urlScheme: UrlScheme = HttpUrlScheme.Http,
-  serverName: String = InetAddress.getLocalHost.getHostName,
-  serverPort: Int = 80,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message(headers, body, attributes) {
@@ -57,11 +52,17 @@ case class Request(
   def withHeaders(headers: HeaderCollection): Request = copy(headers = headers)
   def withBody(body: HttpBody): Request = copy(body = body)
 
-  val uri: URI = new URI(urlScheme.toString, null, serverName, serverPort, scriptName+pathInfo, queryString, null)
-
   lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
 
+  lazy val (scriptName, pathInfo) = {
+    val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
+    requestUri.pathString.splitAt(caret)
+  }
+  def withPathInfo(pi: String) = copy(requestUri = requestUri.withPath(scriptName + pi))
+
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
+
+  def queryString = requestUri.queryString
 
   lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)
   lazy val remoteAddr: Option[String] = remote.map(_.getHostAddress)
@@ -69,11 +70,15 @@ case class Request(
 
   lazy val remoteUser: Option[String] = None
 
+  lazy val serverName = (requestUri.hostOption orElse headers.get(Header.Host).map(_.host) getOrElse InetAddress.getLocalHost.getHostName)
+  lazy val serverPort = (requestUri.portOption orElse headers.get(Header.Host).map(_.port) getOrElse 80)
+
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 }
 
 object Request {
   object Keys {
+    val PathInfoCaret = AttributeKey.http4s[Int]("request.pathInfoCaret")
     val PathTranslated = AttributeKey.http4s[File]("request.pathTranslated")
     val Remote = AttributeKey.http4s[InetAddress]("request.remote")
     val ServerSoftware = AttributeKey.http4s[ServerSoftware]("request.serverSoftware")

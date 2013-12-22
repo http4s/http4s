@@ -13,7 +13,7 @@ object URITranslation {
 
     {
       case req: Request if req.pathInfo.startsWith(newPrefix) =>
-        service(req.copy(pathInfo = req.pathInfo.substring(newPrefix.length)))
+        service(req.withPathInfo(req.pathInfo.substring(newPrefix.length)))
 
       case _ =>
         throw new MatchError(s"Missing Context: '$newPrefix'")
@@ -21,6 +21,6 @@ object URITranslation {
   }
 
   def translatePath(trans: String => String)(service: HttpService): HttpService = { req: Request =>
-    service(req.copy(pathInfo = trans(req.pathInfo)))
+    service(req.withPathInfo(trans(req.pathInfo)))
   }
 }

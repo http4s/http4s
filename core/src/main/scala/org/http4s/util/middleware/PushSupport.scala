@@ -34,7 +34,7 @@ object PushSupport extends Logging {
   }
 
   private def locToRequest(push: PushLocation, req: Request): Request =
-    Request(pathInfo = push.location, headers = req.headers)
+    req.withPathInfo(push.location)
 
   private def collectResponse(r: Vector[PushLocation], req: Request, route: HttpService): Task[Vector[PushResponse]] =
     r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>

@@ -92,13 +92,6 @@ final class NettySpdyServerHandler(srvc: HttpService,
   }
 
   override protected def toRequest(ctx: ChannelHandlerContext, req: SpdySynStreamFrame): Request = {
-    val uri = new URI(SpdyHeaders.getUrl(manager.spdyversion, req))
-    val scheme = Option(SpdyHeaders.getScheme(manager.spdyversion, req)).getOrElse{
-      logger.warn(s"${remoteAddress}: Request doesn't have scheme header")
-      "https"
-    }
-
-    val servAddr = ctx.channel.remoteAddress.asInstanceOf[InetSocketAddress]
     val replyStream = new NettySpdyServerReplyStream(req.getStreamId, ctx, manager)
 
     if (!manager.putStream(replyStream)) {
@@ -108,14 +101,9 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
     Request(
       requestMethod = Method.resolve(SpdyHeaders.getMethod(manager.spdyversion, req).name),
-      //scriptName = contextPath,
-      pathInfo = uri.getRawPath,
-      queryString = uri.getRawQuery,
+      requestUri = RequestUri.fromString(SpdyHeaders.getUrl(manager.spdyversion, req)),
       protocol = getProtocol(req),
       headers = toHeaders(req.headers),
-      urlScheme = HttpUrlScheme(scheme),
-      serverName = servAddr.getHostName,
-      serverPort = servAddr.getPort,
       body = replyStream.inboundProcess,
       attributes = AttributeMap(
         Request.Keys.Remote(remoteAddress.getAddress),
@@ -204,7 +192,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
     case s: SpdySettingsFrame => handleSpdySettings(s)
 
-    case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")
+     case msg => logger.warn("Received unknown message type: " + msg + ". Dropping.")
   }
 
   protected def submitDeltaInboundWindow(n: Int): Unit = {
