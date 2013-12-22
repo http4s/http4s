@@ -32,6 +32,11 @@ object RequestUri {
   case object EmptyPath extends Path
   type Segment = String
 
+  /**
+   * Term from http://tools.ietf.org/html/draft-ietf-httpbis-p1-messaging-25.
+   */
+  case class OriginForm(path: AbsolutePath, query: Option[Query]) extends RequestUri
+
   type Query = String
   type Fragment = String
 }
