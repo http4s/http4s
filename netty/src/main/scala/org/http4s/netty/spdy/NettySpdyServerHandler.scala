@@ -18,6 +18,7 @@ import org.http4s.netty.NettySupport
 import org.http4s.Response
 import org.http4s.netty.utils.SpdyStreamContext
 import scala.concurrent.{ExecutionContext, Future}
+import java.rmi.Remote
 
 
 /**
@@ -116,8 +117,10 @@ final class NettySpdyServerHandler(srvc: HttpService,
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
-      remote = remoteAddress.getAddress, // TODO using remoteName would trigger a lookup
-      body = replyStream.inboundProcess
+      body = replyStream.inboundProcess,
+      attributes = AttributeMap(
+        Request.Keys.Remote(remoteAddress.getAddress)
+      )
     )
   }
 

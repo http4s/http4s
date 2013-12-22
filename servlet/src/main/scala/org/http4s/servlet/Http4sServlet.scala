@@ -74,8 +74,10 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
       serverName = req.getServerName,
       serverPort = req.getServerPort,
       serverSoftware = serverSoftware,
-      remote = InetAddress.getByName(req.getRemoteAddr), // TODO using remoteName would trigger a lookup
-      body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval
+      body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,
+      attributes = AttributeMap(
+        Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr))
+      )
     )
 
   protected def toHeaders(req: HttpServletRequest): HeaderCollection = {

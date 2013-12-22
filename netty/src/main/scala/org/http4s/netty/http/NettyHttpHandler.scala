@@ -198,8 +198,10 @@ class NettyHttpHandler(val service: HttpService,
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
       serverSoftware = serverSoftware,
-      remote = remoteAddress.getAddress,
-      body = makeProcess(reqpair._1)
+      body = makeProcess(reqpair._1),
+      attributes = AttributeMap(
+        Request.Keys.Remote(remoteAddress.getAddress)
+      )
     )
   }
 

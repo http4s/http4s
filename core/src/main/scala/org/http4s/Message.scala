@@ -49,7 +49,6 @@ case class Request(
   serverName: String = InetAddress.getLocalHost.getHostName,
   serverPort: Int = 80,
   serverSoftware: ServerSoftware = ServerSoftware.Unknown,
-  remote: InetAddress = InetAddress.getLocalHost,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message(headers, body, attributes) {
@@ -65,8 +64,9 @@ case class Request(
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  lazy val remoteAddr = remote.getHostAddress
-  lazy val remoteHost = remote.getHostName
+  lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)
+  lazy val remoteAddr: Option[String] = remote.map(_.getHostAddress)
+  lazy val remoteHost: Option[String] = remote.map(_.getHostName)
 
   lazy val remoteUser: Option[String] = None
 }
@@ -74,6 +74,7 @@ case class Request(
 object Request {
   object Keys {
     val PathTranslated = AttributeKey.http4s[File]("request.pathTranslated")
+    val Remote = AttributeKey.http4s[InetAddress]("request.remote")
   }
 }
 
