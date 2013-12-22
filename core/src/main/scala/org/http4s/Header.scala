@@ -199,7 +199,11 @@ object Header {
     def value = date.formatRfc1123
   }
 
-  object ETag extends DefaultHeaderKey
+  object ETag extends InternalHeaderKey[ETag] with SingletonHeaderKey
+  case class ETag(tag: String) extends ParsedHeader {
+    def key: HeaderKey = ETag
+    def value: String = tag
+  }
 
   object Expect extends DefaultHeaderKey
 
@@ -219,9 +223,17 @@ object Header {
 
   object `If-Match` extends DefaultHeaderKey
 
-  object `If-Modified-Since` extends DefaultHeaderKey
+  object `If-Modified-Since` extends InternalHeaderKey[`If-Modified-Since`] with SingletonHeaderKey
+  final case class `If-Modified-Since`(date: DateTime) extends ParsedHeader {
+    def key: HeaderKey = `Last-Modified`
+    def value: String = date.formatRfc1123
+  }
 
-  object `If-None-Match` extends DefaultHeaderKey
+  object `If-None-Match` extends InternalHeaderKey[`If-None-Match`] with SingletonHeaderKey
+  case class `If-None-Match`(tag: String) extends ParsedHeader {
+    def key: HeaderKey = `If-None-Match`
+    def value: String = tag
+  }
 
   object `If-Range` extends DefaultHeaderKey
 

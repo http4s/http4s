@@ -2,7 +2,6 @@ package org.http4s
 package parserold
 
 import MediaType._
-import org.parboiled.errors.ParsingException
 
 private[parserold] trait CommonActions {
 

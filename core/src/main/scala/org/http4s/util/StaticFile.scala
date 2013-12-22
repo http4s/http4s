@@ -18,7 +18,8 @@ import org.joda.time.DateTime
 
 import com.typesafe.scalalogging.slf4j.Logging
 
-import org.http4s.Header.{`Last-Modified`, `Content-Length`, `Content-Type`}
+import org.http4s.Header._
+import org.http4s.Status.NotModified
 
 
 /**
@@ -30,38 +31,38 @@ object StaticFile extends Logging {
 
   val DEFAULT_BUFFSIZE = 10*1024    // 10KB
 
-  def fromString(url: String)
+  def fromString(url: String, req: Option[Request] = None)
                 (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
-    fromFile(new File(url))
+    fromFile(new File(url), req)
   }
 
-  def fromResource(name: String)
+  def fromResource(name: String, req: Option[Request] = None)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
     val url = getClass.getResource(name)
-    if (url != null) StaticFile.fromURL(url)(es)
+    if (url != null) StaticFile.fromURL(url, req)(es)
     else None
   }
 
-  def fromURL(url: URL)
+  def fromURL(url: URL, req: Option[Request] = None)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
     if (url == null)
       throw new NullPointerException("url")
 
-    fromFile(new File(url.toURI))(es)
+    fromFile(new File(url.toURI), req)(es)
   }
 
-  def fromFile(f: File)(implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] =
-    fromFile(f, DEFAULT_BUFFSIZE)
+  def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] =
+    fromFile(f, DEFAULT_BUFFSIZE, req)
 
-  def fromFile(f: File, buffsize: Int)
+  def fromFile(f: File, buffsize: Int, req: Option[Request])
            (implicit es: ExecutorService): Option[Response] = {
     if (f.isFile) {
-      StaticFile.fromFile(f, 0, f.length(), buffsize)(es)
+      StaticFile.fromFile(f, 0, f.length(), buffsize, req)(es)
     }
     else None
   }
 
-  def fromFile(f: File, start: Long, end: Long, buffsize: Int)
+  def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request])
                         (implicit es: ExecutorService): Option[Response] = {
 
     if (f == null)
@@ -72,6 +73,42 @@ object StaticFile extends Logging {
 
     if (!f.isFile) return None
 
+    val lastModified = f.lastModified()
+
+//    // See if we need to actually resend the file
+    if (req.isDefined) {
+      req.get.headers.get(`If-Modified-Since`) match {
+        case Some(h) =>
+          val mod = new DateTime(lastModified).millisOfSecond().setCopy(0)
+          val expired = h.date.compareTo(mod) < 0
+          logger.trace(s"Expired: ${expired}. Request age: ${h.date}, Modified: $mod")
+          if (!expired) {
+            return Some(Response(NotModified))
+          }
+
+        case _ =>  // Cant tell. Just send it
+      }
+    }
+
+    val lastmodified = `Last-Modified`(new DateTime(lastModified))
+
+    // See if we need to actually resend the file
+//    if (req.isDefined) {
+//      req.get.headers.get(`If-None-Match`) match {
+//        case Some(h) =>
+//          val mod = f.lastModified()
+//          val valid = h.tag == mod.toString
+//          logger.error(s"Valid: $valid. Request Tag: ${h.tag} mod: $mod")
+//          if (valid) {
+//            logger.trace("Cached version still valid. Sending 304 Not-Modified")
+//            return Some(Response(NotModified))
+//          }
+//        case _ =>  // Old version. Need to update.
+//      }
+//    }
+//
+//    val etag = ETag(f.lastModified().toString)
+
     val mimeheader = Option(Files.probeContentType(f.toPath)).flatMap { mime =>
       val parts = mime.split('/')
       if (parts.length == 2) {
@@ -80,11 +117,8 @@ object StaticFile extends Logging {
     }
 
     val len = f.length()
-
     val body = if (len < end) halt else fileToBody(f, start, end, buffsize)
-
     val lengthheader = `Content-Length`(if (len < end) 0 else (end - start).toInt)
-    val lastmodified = `Last-Modified`(new DateTime(f.lastModified()))
 
     // See if we have a mime type or not
     val headers = HeaderCollection.apply(mimeheader match {

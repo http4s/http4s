@@ -17,7 +17,7 @@ package parserold
  * limitations under the License.
  */
 
-import org.parboiled.scala._
+import org.parboiled2._//.scala._
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[parserold] object BasicRules extends Parser {

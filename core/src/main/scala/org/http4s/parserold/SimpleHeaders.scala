@@ -38,6 +38,18 @@ private[parserold] trait SimpleHeaders {
     HttpDate ~ EOI ~~> (`Last-Modified`(_))
   }
 
+  def IF_MODIFIED_SINCE = rule {
+    HttpDate ~ EOI ~~> (`If-Modified-Since`(_))
+  }
+
+  def ETAG = rule {
+    zeroOrMore(AlphaNum) ~> (s => ETag(s))
+  }
+
+  def IF_NONE_MATCH = rule {
+    zeroOrMore(AlphaNum) ~> (s => `If-None-Match`(s))
+  }
+
   def X_FORWARDED_FOR = rule {
     oneOrMore(Ip ~~> (Some(_)) | "unknown" ~ push(None), separator = ListSep) ~ EOI ~~> (xs => `X-Forwarded-For`(xs.head, xs.tail: _*))
   }
