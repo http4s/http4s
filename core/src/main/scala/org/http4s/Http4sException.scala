@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.parserold.ParseErrorInfo
+import org.http4s.parser.ParseErrorInfo
 
 class Http4sException(val message: String, val cause: Option[Throwable] = None)
   extends RuntimeException(message, cause.orNull)

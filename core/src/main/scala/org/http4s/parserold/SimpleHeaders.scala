@@ -11,21 +11,21 @@ import Header._
 private[parserold] trait SimpleHeaders {
   this: Parser with ProtocolParameterRules with AdditionalRules =>
 
-  def CONNECTION = rule (
-    oneOrMore(Token, separator = ListSep) ~ EOI ~~> (xs => Header.Connection(xs.head, xs.tail: _*))
-  )
-
-  def CONTENT_LENGTH = rule {
-    oneOrMore(Digit) ~> (s => `Content-Length`(s.toInt)) ~ EOI
-  }
-
-  def CONTENT_DISPOSITION = rule {
-    Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~~> (_.toMap) ~~> (`Content-Disposition`(_, _))
-  }
-
-  def DATE = rule {
-    HttpDate ~ EOI ~~> (Date(_))
-  }
+//  def CONNECTION = rule (
+//    oneOrMore(Token, separator = ListSep) ~ EOI ~~> (xs => Header.Connection(xs.head, xs.tail: _*))
+//  )
+//
+//  def CONTENT_LENGTH = rule {
+//    oneOrMore(Digit) ~> (s => `Content-Length`(s.toInt)) ~ EOI
+//  }
+//
+//  def CONTENT_DISPOSITION = rule {
+//    Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~~> (_.toMap) ~~> (`Content-Disposition`(_, _))
+//  }
+//
+//  def DATE = rule {
+//    HttpDate ~ EOI ~~> (Date(_))
+//  }
 
   // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
   // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and

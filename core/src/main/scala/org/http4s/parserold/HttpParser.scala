@@ -5,6 +5,8 @@ import org.parboiled.scala._
 import org.http4s.Header
 import org.http4s.util.CaseInsensitiveString
 
+import org.http4s.parser.ParseErrorInfo
+
 /**
  * Parser for all HTTP headers as defined by
  *  [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html]]

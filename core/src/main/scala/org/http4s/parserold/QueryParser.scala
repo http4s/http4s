@@ -7,6 +7,8 @@ import org.parboiled.errors.ParsingException
 import scala.io.Codec
 import java.net.URLDecoder
 
+import org.http4s.parser.ParseErrorInfo
+
 
 object QueryParser extends Http4sParser {
 

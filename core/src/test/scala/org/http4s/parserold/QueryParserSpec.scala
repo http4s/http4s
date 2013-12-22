@@ -3,6 +3,7 @@ package parserold
 
 import org.http4s.parserold.QueryParser._
 import org.scalatest.{Matchers, WordSpec}
+import org.http4s.parser.ParseErrorInfo
 
 class QueryParserSpec extends WordSpec with Matchers {
 

@@ -200,6 +200,13 @@ object Header {
   final case class Date(date: DateTime) extends ParsedHeader {
     def key = `Date`
     def value = date.formatRfc1123
+
+    override def equals(that: Any): Boolean = {
+      that match {
+        case d: Date => d.date.compareTo(this.date) == 0
+        case _ => false
+      }
+    }
   }
 
   object ETag extends InternalHeaderKey[ETag] with SingletonHeaderKey

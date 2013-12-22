@@ -25,18 +25,18 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
     }
   }.parse
 
-//    def CONTENT_DISPOSITION = rule {
-//      Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~~> (_.toMap) ~~> (`Content-Disposition`(_, _))
-//    }
-//
-//
-//  def CONTENT_DISPOSITION = rule {
-//    Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~~> (_.toMap) ~~> (`Content-Disposition`(_, _))
-//  }
-//
-//  def DATE = rule {
-//    HttpDate ~ EOI ~~> (Date(_))
-//  }
+  def CONTENT_DISPOSITION(value: String) = new Http4sHeaderParser[`Content-Disposition`](value) {
+    def entry = rule {
+     Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~> { (token:String, params: Seq[(String, String)]) =>
+      `Content-Disposition`(token, params.toMap)}
+    }
+  }.parse
+
+  def DATE(value: String) = new Http4sHeaderParser[Date](value) {
+    def entry = rule {
+      HttpDate ~ EOI ~> (Date(_))
+    }
+  }.parse
 //
 //  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and

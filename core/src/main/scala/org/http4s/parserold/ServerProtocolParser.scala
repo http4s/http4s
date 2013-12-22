@@ -5,6 +5,8 @@ import BasicRules._
 import org.http4s.{ServerProtocol => SP}
 import scalaz.Validation
 
+import org.http4s.parser.ParseErrorInfo
+
 private[http4s] object ServerProtocolParser extends Http4sParser {
   def apply(s: String): Validation[ParseErrorInfo, ServerProtocol] = Validation.fromEither(parse(ServerProtocol, s))
 

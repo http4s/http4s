@@ -25,10 +25,20 @@ trait HttpParser extends SimpleHeaders {
       .getMethods
       .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
       .map { method =>
-      method.getName.replace('_', '-').ci -> { value: String =>
-        method.invoke(this, value)
-      }.asInstanceOf[HeaderParser]
-    } (collection.breakOut)
+        method.getName.replace('_', '-').ci -> { value: String =>
+          method.invoke(this, value)
+        }.asInstanceOf[HeaderParser]
+      }.toMap ++ {      // TODO: remove all the older parsers and replace with parboiled2 parsers!
+      parserold.HttpParser.rules.map { pair =>
+        val ci = pair._1
+        val rule1 = pair._2
+
+        def go(input: String): HeaderValidation = {
+          Validation.fromEither(parserold.HttpParser.parse(rule1, input))
+        }
+        (ci, go(_))
+      }
+    }
 
   def parseHeader(header: Header): HeaderValidation = {
     header match {
