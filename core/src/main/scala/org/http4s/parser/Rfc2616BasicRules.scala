@@ -17,6 +17,7 @@ package org.http4s.parser
 
 import scala.reflect.ClassTag
 import org.parboiled2._
+import shapeless._
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {
@@ -50,7 +51,9 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
   def Token: Rule1[String] = rule { capture(oneOrMore(!CTL ~ !Separator ~ ANY)) }
 
   // TODO What's the replacement for DROP?
-  def Comment: Rule0 = rule { "(" ~ zeroOrMore(CText | QuotedPair ~> (_ => ()) | Comment) ~ ")" }
+  def Comment: Rule0 = rule { "(" ~ zeroOrMore(CText | QuotedPair ~> DROP | Comment) ~ ")" }
+
+  def DROP: Any => Unit = { _ => () }
 
   def CText = rule { !anyOf("()") ~ Text }
 

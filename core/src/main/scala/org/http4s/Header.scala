@@ -9,6 +9,7 @@ import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.Header.RawHeader
 
 sealed trait Header extends Logging with Product {
 
@@ -16,13 +17,15 @@ sealed trait Header extends Logging with Product {
 
   def value: String
 
+  def parsed: Header
+
   def is(key: HeaderKey): Boolean = key.matchHeader(this).isDefined
 
   def isNot(key: HeaderKey): Boolean = !is(key)
 
   override def toString = name + ": " + value
 
-  def parsed: Header
+  def raw: RawHeader = RawHeader(name, value)
 
   final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
