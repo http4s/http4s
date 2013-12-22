@@ -19,7 +19,7 @@ import scala.reflect.ClassTag
 import org.parboiled2._
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
-private[parser] trait Rfc2616BasicRules extends Parser {
+private[http4s] trait Rfc2616BasicRules extends Parser {
 
   def Octet = rule { "\u0000" - "\u00FF" }
 
