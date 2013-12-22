@@ -73,10 +73,10 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
       urlScheme = HttpUrlScheme(req.getScheme),
       serverName = req.getServerName,
       serverPort = req.getServerPort,
-      serverSoftware = serverSoftware,
       body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,
       attributes = AttributeMap(
-        Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr))
+        Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr)),
+        Request.Keys.ServerSoftware(serverSoftware)
       )
     )
 

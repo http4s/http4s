@@ -116,10 +116,10 @@ final class NettySpdyServerHandler(srvc: HttpService,
       urlScheme = HttpUrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
-      serverSoftware = serverSoftware,
       body = replyStream.inboundProcess,
       attributes = AttributeMap(
-        Request.Keys.Remote(remoteAddress.getAddress)
+        Request.Keys.Remote(remoteAddress.getAddress),
+        Request.Keys.ServerSoftware(serverSoftware)
       )
     )
   }
