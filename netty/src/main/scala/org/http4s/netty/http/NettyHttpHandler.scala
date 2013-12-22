@@ -20,10 +20,8 @@ import java.util.concurrent.ExecutorService
 import org.http4s._
 import org.http4s.netty.utils.ChunkHandler
 import org.http4s.netty.{ProcessWriter, NettySupport}
-import org.http4s.Response
 import org.http4s.TrailerChunk
-
-
+import org.http4s.Response
 
 
 /**
@@ -197,9 +195,11 @@ class NettyHttpHandler(val service: HttpService,
       urlScheme = HttpUrlScheme(scheme),
       serverName = servAddr.getHostName,
       serverPort = servAddr.getPort,
-      serverSoftware = serverSoftware,
-      remote = remoteAddress.getAddress,
-      body = makeProcess(reqpair._1)
+      body = makeProcess(reqpair._1),
+      attributes = AttributeMap(
+        Request.Keys.Remote(remoteAddress.getAddress),
+        Request.Keys.ServerSoftware(serverSoftware)
+      )
     )
   }
 
