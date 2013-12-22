@@ -23,6 +23,8 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     try {
       val request = toRequest(servletRequest)
+      println(s"PATH INFO=${request.pathInfo}")
+      println(s"SCRIPT NAME=${request.scriptName}")
       val ctx = servletRequest.startAsync()
       handle(request, ctx)
     } catch {
@@ -65,16 +67,12 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   protected def toRequest(req: HttpServletRequest): Request =
     Request(
       requestMethod = Method.resolve(req.getMethod),
-      scriptName = req.getContextPath + req.getServletPath,
-      pathInfo = Option(req.getPathInfo).getOrElse(""),
-      queryString = Option(req.getQueryString).getOrElse(""),
+      requestUri = RequestUri.fromString(req.getRequestURI),
       protocol = ServerProtocol.resolve(req.getProtocol),
       headers = toHeaders(req),
-      urlScheme = HttpUrlScheme(req.getScheme),
-      serverName = req.getServerName,
-      serverPort = req.getServerPort,
       body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,
       attributes = AttributeMap(
+        Request.Keys.PathInfoCaret(req.getServletPath.length),
         Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr)),
         Request.Keys.ServerSoftware(serverSoftware)
       )
