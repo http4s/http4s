@@ -37,8 +37,13 @@ object Http4sHeaderParser {
     type Result = Validation[ParseErrorInfo, H]
 
     def success(result: H::HNil) = Success(result.head)
-    def parseError(error: ParseError) = Failure(new ParseErrorInfo(detail = error.traces.mkString("\n")))
-    def failure(error: Throwable): Result = throw error
+
+    def parseError(error: ParseError) =
+      Failure(new ParseErrorInfo(detail = error.traces.mkString("\n")))
+
+    def failure(error: Throwable) =
+      Failure(new ParseErrorInfo("Exception raised during parsing", error.getMessage))
+
   }
 
 }
