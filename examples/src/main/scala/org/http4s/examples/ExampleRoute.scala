@@ -30,7 +30,7 @@ class ExampleRoute {
 
     case Get -> Root / "push" =>
       val data = <html><body><img src="image.jpg"/></body></html>
-      Ok(data)//.push("/http4s/image.jpg")
+      Ok(data).push("/http4s/image.jpg")
 
     case req @ Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
