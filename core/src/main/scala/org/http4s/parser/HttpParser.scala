@@ -5,6 +5,7 @@ import org.http4s.Header
 import org.http4s.util.CaseInsensitiveString
 
 import scalaz.{Failure, Validation, Success}
+import org.http4s.parserold.QueryParser
 
 /**
  * @author Bryce Anderson
@@ -29,7 +30,7 @@ trait HttpParser extends SimpleHeaders {
           method.invoke(this, value)
         }.asInstanceOf[HeaderParser]
       }.toMap ++ {      // TODO: remove all the older parsers and replace with parboiled2 parsers!
-      parserold.HttpParser.rules.map { pair =>
+      parserold.HttpParser.oldrules.map { pair =>
         val ci = pair._1
         val rule1 = pair._2
 
@@ -40,25 +41,54 @@ trait HttpParser extends SimpleHeaders {
       }
     }
 
-  def parseHeader(header: Header): HeaderValidation = {
-    header match {
-      case x@ Header.RawHeader(name, value) =>
-        rules.get(name) match {
-          case Some(parser) => parser(value)
-          case None => Success(x) // if we don't have a rule for the header we leave it unparsed
-        }
-      case x => Success(x) // already parsed
+  def parseHeader(header: Header.RawHeader): HeaderValidation = {
+    rules.get(header.name) match {
+      case Some(parser) => parser(header.value)
+      case None => Success(header) // if we don't have a rule for the header we leave it unparsed
     }
   }
 
   def parseHeaders(headers: List[Header]): (List[String], List[Header]) = {
     val errors = List.newBuilder[String]
-    val parsedHeaders = headers.map { header =>
-      parseHeader(header) match {
-        case Success(parsed) => parsed
-        case Failure(error: ParseErrorInfo) => errors += error.detail; header
-      }
+    val parsedHeaders = headers.map {   // Only attempt to parse the raw headers
+      case header: Header.RawHeader =>
+        parseHeader(header) match {
+          case Success(parsed) => parsed
+          case Failure(error: ParseErrorInfo) => errors += error.detail; header
+        }
+
+      case header => header
     }
     (errors.result(), parsedHeaders)
   }
+
+  /**
+   * Warms up the spray.http module by triggering the loading of most classes in this package,
+   * so as to increase the speed of the first usage.
+   */
+  def warmUp() {
+    QueryParser.parseQueryString("a=b&c=d")
+
+    val results = HttpParser.parseHeaders(List(
+      Header("Accept", "*/*,text/plain,custom/custom"),
+      Header("Accept-Charset", "*,UTF-8"),
+      Header("Accept-Encoding", "gzip,custom"),
+      Header("Accept-Language", "*,nl-be,custom"),
+      Header("Authorization", "Basic QWxhZGRpbjpvcGVuIHNlc2FtZQ=="),
+      Header("Cache-Control", "no-cache"),
+      Header("Connection", "close"),
+      Header("Content-Disposition", "form-data"),
+      Header("Content-Encoding", "deflate"),
+      Header("Content-Length", "42"),
+      Header("Content-Type", "application/json"),
+      Header("Cookie", "http4s=cool"),
+      Header("Host", "http4s.org"),
+      Header("X-Forwarded-For", "1.2.3.4"),
+      Header("Fancy-Custom-Header", "yeah")
+    ))
+
+    assert(results._1.isEmpty)
+  }
+
+  warmUp()
 }

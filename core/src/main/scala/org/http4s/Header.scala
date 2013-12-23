@@ -60,7 +60,7 @@ trait RecurringHeader extends ParsedHeader {
 object Header {
   def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
 
-  def apply(name: String, value: String): Header = RawHeader(name.ci, value)
+  def apply(name: String, value: String): RawHeader = RawHeader(name.ci, value)
 
   final case class RawHeader private[Header] (name: CaseInsensitiveString, value: String) extends Header {
     override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)

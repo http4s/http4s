@@ -36,7 +36,7 @@ object RequestUri {
   ) extends RequestUri {
     def pathString: String = path.toString
     def withPath(path: String): RequestUri = {
-      val segments = path.split('/')
+      val segments = (if (path.startsWith("/")) path.substring(1) else path).split('/')
       copy(path = AbsolutePath(NonEmptyList(segments.head, segments.tail: _*)))
     }
     def hostOption: Option[Host] = authority.map(_.host)
