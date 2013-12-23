@@ -2,24 +2,23 @@ package org.http4s.netty.spdy
 
 import javax.net.ssl.SSLContext
 import java.lang.Boolean
+import java.net.InetSocketAddress
+import java.util.concurrent.ExecutorService
 
-import scala.concurrent.ExecutionContext
-import io.netty.channel.{ChannelOption, ChannelInitializer, Channel}
-
-import java.util.List
+import io.netty.channel.{ChannelOption, ChannelInitializer}
 import io.netty.channel.nio.NioEventLoopGroup
-import org.eclipse.jetty.npn.NextProtoNego
 import io.netty.bootstrap.ServerBootstrap
 import io.netty.channel.socket.SocketChannel
 import io.netty.channel.socket.nio.NioServerSocketChannel
 import io.netty.handler.ssl.SslHandler
-import io.netty.handler.codec.spdy.SpdyFrameCodec
-import java.net.InetSocketAddress
+import org.eclipse.jetty.npn.NextProtoNego
+
+
 import com.typesafe.scalalogging.slf4j.Logging
+
 import org.http4s._
-import org.http4s.netty.utils.SpdyStreamContext
 import org.http4s.netty.NPNProvider
-import java.util.concurrent.ExecutorService
+
 import scalaz.concurrent.Strategy
 
 /**

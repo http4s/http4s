@@ -13,16 +13,13 @@ import org.http4s.AttributeKey
 
 object PushSupport extends Logging {
 
-  // TODO: choose the right ec
-  import concurrent.ExecutionContext.Implicits.global
-
   // An implicit conversion class
   implicit class PushSupportResponse(response: Task[Response]) extends AnyRef {
     def push(url: String, cascade: Boolean = true): Task[Response] = response.map { response =>
       val newPushResouces = response.attributes.get(pushLocationKey)
           .map(_ :+ PushLocation(url, cascade))
           .getOrElse(Vector(PushLocation(url,cascade)))
-
+        logger.trace(s"Adding push resource: $url")
       response.copy(
         body = response.body,
         attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))

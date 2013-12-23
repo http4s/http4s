@@ -15,8 +15,8 @@ object URITranslation {
       case req: Request if req.pathInfo.startsWith(newPrefix) =>
         service(req.withPathInfo(req.pathInfo.substring(newPrefix.length)))
 
-      case _ =>
-        throw new MatchError(s"Missing Context: '$newPrefix'")
+      case req =>
+        throw new MatchError(s"Missing Context: '$newPrefix' \nRequested: ${req.pathInfo}")
     }
   }
 
