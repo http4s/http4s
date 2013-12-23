@@ -25,25 +25,8 @@ class MiddlewareSpec extends WordSpec with Matchers {
                           requestUri = RequestUri.fromString("/rootPath/echo"),
                           body = echoBody)
 
-  val route: HttpService = {
-    case req: Request if req.requestUri.pathString ==  "/ping" =>
-      Ok("pong")
-
-    case req: Request if req.requestMethod == Method.Post && req.requestUri.pathString == "/echo" =>
-      Task.now(Response(body = req.body))
-
-    case req: Request if req.requestUri.pathString == "/checktranslate" =>
-      val newpath = req.attributes.get(translateRootKey)
-            .map(f => f("foo"))
-            .getOrElse("bar!")
-
-      Ok(newpath)
-  }
-
-
-
   "TranslateRoot" should {
-    val server = new MockServer(translateRoot("/rootPath")(route))
+    val server = new MockServer(translateRoot("/rootPath")(MockRoute.route()))
 
 
     "Translate address" in {

@@ -21,12 +21,6 @@ object BodyParser {
 
   val DefaultMaxEntitySize = Http4sConfig.getInt("org.http4s.default-max-entity-size")
 
-  //  private val BodyChunkConsumer: Process1[BodyChunk, BodyChunk] =
-  //    process1.scan[BodyChunk,StringBuilder](new StringBuilder)((b, c) => c.toArray)
-
-  //  implicit def bodyParserToResponderIteratee(bodyParser: BodyParser[Response]): Iteratee[Chunk, Response] =
-  //    bodyParser(identity)
-
   def text[A](req: Request, limit: Int = DefaultMaxEntitySize): Task[String] = {
     val buff = new StringBuilder
     (req.body |> takeBytes(limit) |> processes.fold(buff) { (b, c) => c match {
@@ -49,9 +43,10 @@ object BodyParser {
   def xml(req: Request,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser): Task[Elem] =
-    text(req, limit).map { s =>
+    text(req, limit).flatMap { s =>
       val source = new InputSource(new StringReader(s))
-      XML.loadXML(source, parser)
+      try Task.now(XML.loadXML(source, parser))
+      catch { case t: Throwable => Task.fail(t) }
     }
 
   private def takeBytes(n: Int): Process1[Chunk, Chunk] = {
@@ -82,17 +77,19 @@ object BodyParser {
     await(Get[Chunk])(go)
   }
 
-/*
-  // TODO: why are we using blocking file ops here!?!
   // File operations
-  def binFile(file: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[Chunk,Response] = {
+  // TODO: rewrite these using NIO non blocking FileChannels
+  def binFile(req: Request, file: java.io.File)(f: => Task[Response]) = {
     val out = new java.io.FileOutputStream(file)
-    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => out.write(d.toArray) }(ec).map{ _ => out.close(); f }(oec)
+    req.body.pipe(whileBodyChunk)
+      .map{c => out.write(c.toArray) }
+      .run.flatMap{_ => out.close(); f}
   }
 
-  def textFile(req: RequestPrelude, in: java.io.File)(f: => Response)(implicit ec: ExecutionContext): Iteratee[Chunk,Response] = {
+  def textFile(req: Request, in: java.io.File)(f: => Task[Response]): Task[Response] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
-    whileBodyChunk &>> Iteratee.foreach[BodyChunk]{ d => is.print(d.decodeString(req.charset)) }(ec).map{ _ => is.close(); f }(oec)
+    req.body.pipe(whileBodyChunk)
+      .map{ d => is.print(d.decodeString(req.charset)) }
+      .run.flatMap{_ => is.close(); f}
   }
-*/
 }

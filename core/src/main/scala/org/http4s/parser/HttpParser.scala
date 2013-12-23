@@ -89,6 +89,4 @@ trait HttpParser extends SimpleHeaders {
 
     assert(results._1.isEmpty)
   }
-
-  warmUp()
 }

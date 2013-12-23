@@ -1,16 +1,17 @@
-/*
+
 package org.http4s
 
-import scala.language.postfixOps  // the http4s team resents importing this.
+import scala.language.postfixOps
+import org.xml.sax.SAXParseException
 
-import play.api.libs.iteratee.Enumerator
+// the http4s team resents importing this.
+
 import Status._
 
-import scala.concurrent.duration._
-
 import java.io.{FileInputStream,File,InputStreamReader}
-import concurrent.Await
 import org.scalatest.{Matchers, WordSpec}
+
+import scalaz.stream.Process._
 
 /**
  * @author Bryce Anderson
@@ -19,22 +20,25 @@ import org.scalatest.{Matchers, WordSpec}
 
 class BodyParserSpec extends WordSpec with Matchers {
   import BodyParser._
-  import concurrent.ExecutionContext.Implicits.global
 
   "xml" should {
-    val server = new MockServer({
-      case req => xml(req.charset){ elem => Ok(elem.label) }
+
+    val server = new MockServer({req =>
+      xml(req).flatMap{ elem => Ok(elem.label) }
+        .handle{ case t: SAXParseException =>
+        Status.BadRequest().run }
     })
 
     "parse the XML" in {
-      val resp = Await.result(server(RequestPrelude(), Enumerator("<html><h1>h1</h1></html>").map(s => BodyChunk(s))), 2 seconds)
-      resp.statusLine.code should equal (200)
+      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => BodyChunk(s)))).run
+      resp.statusLine should equal(Status.Ok)
       resp.body should equal ("html".getBytes)
     }
 
     "handle a parse failure" in {
-      val resp = Await.result(server(RequestPrelude(), Enumerator("This is not XML.").map(s => BodyChunk(s))), 2 seconds)
-      resp.statusLine.code should equal (400)
+      val body = emit("This is not XML.").map(s => BodyChunk(s))
+      val resp = server(Request(body = body)).run
+      resp.statusLine should equal (Status.BadRequest)
     }
   }
 
@@ -55,19 +59,19 @@ class BodyParserSpec extends WordSpec with Matchers {
       data.foldLeft("")(_ + _)
     }
 
-    def mocServe(req: RequestPrelude, route: Route) = {
+    def mocServe(req: Request)(route: HttpService) = {
       val server = new MockServer(route)
-      Await.result(server(req, Enumerator(BodyChunk(binData))), 2 seconds)
+      server(req.copy(body = emit(binData).map(BodyChunk(_))))
     }
 
     "Write a text file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
-      val response = mocServe(RequestPrelude(), {
+      val response = mocServe(Request()) {
         case req =>
           BodyParser.textFile(req, tmpFile){
             Ok("Hello")
           }
-      })
+      }.run
 
       readTextFile(tmpFile) should equal (new String(binData))
       response.statusLine should equal (Status.Ok)
@@ -76,10 +80,9 @@ class BodyParserSpec extends WordSpec with Matchers {
 
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
-      val response = mocServe(RequestPrelude(), {
-        case req =>
-          BodyParser.binFile(tmpFile)(Ok("Hello"))
-      })
+      val response = mocServe(Request()) {
+        case req => BodyParser.binFile(req, tmpFile)(Ok("Hello"))
+      }.run
 
       response.statusLine should equal (Status.Ok)
       response.body should equal ("Hello".getBytes)
@@ -88,4 +91,4 @@ class BodyParserSpec extends WordSpec with Matchers {
   }
 
 }
-*/
+

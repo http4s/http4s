@@ -19,8 +19,8 @@ object PushSupport extends Logging {
     def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
 
       val newUrl = req.attributes.get(translateRootKey)
-                    .map(f => f(url))
-                    .getOrElse(url)
+          .map(f => f(url))
+          .getOrElse(url)
 
       val newPushResouces = response.attributes.get(pushLocationKey)
           .map(_ :+ PushLocation(newUrl, cascade))

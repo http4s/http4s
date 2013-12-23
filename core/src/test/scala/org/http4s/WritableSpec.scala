@@ -1,11 +1,12 @@
-/*
+
 package org.http4s
 
-import scala.language.postfixOps      // the http4s team resents importing this.
+import scala.language.postfixOps
+import scalaz.concurrent.Task
 
-import play.api.libs.iteratee.Enumerator
+// the http4s team resents importing this.
+
 import org.http4s.Status._
-import akka.util.ByteString
 import concurrent.Future
 import org.scalatest.{Matchers, WordSpec}
 
@@ -17,8 +18,10 @@ class WritableSpec extends WordSpec with Matchers {
   "Writable" should {
     import Writable._
 
-    def route(in: Route): String =
-      new String(new MockServer(in).response(RequestPrelude(), Enumerator.eof[Chunk]).body)
+    def route(in: HttpService) = {
+      val server = new MockServer(in)
+      new String(server.apply(Request()).run.body)
+    }
 
 
     "Get Strings" in {
@@ -39,25 +42,42 @@ class WritableSpec extends WordSpec with Matchers {
       route{ case _ => Ok(1)} should equal ("1")
     }
 
-    "Get ByteStrings" in {
-      val str = "Hello"
-      route{ case _ => Ok(ByteString(str.getBytes))} should equal(str)
-    }
-
     "Get Html" in {
       val myxml = <html><body>Hello</body></html>
       route { case _ => Ok(myxml) } should equal (myxml.buildString(false))
     }
 
+    "Get Array[Byte]" in {
+      val hello = "hello"
+      route { case _ => Ok(hello.getBytes) } should equal(hello)
+    }
+
     "Get Futures" in {
       import concurrent.ExecutionContext.Implicits.global
       val txt = "Hello"
-      val rt: Route = {
+      val rt: HttpService = {
         case _ => Ok(Future(txt))
+      }
+      route(rt) should equal (txt)
+    }
+
+    "Get Tasks" in {
+      val txt = "Hello"
+      val rt: HttpService = {
+        case _ => Ok(Task(txt))
+      }
+      route(rt) should equal (txt)
+    }
+
+    "Get Processes" in {
+      import scalaz.stream.Process.emit
+      val txt = "Hello"
+      val rt: HttpService = {
+        case _ => Ok(emit(txt))
       }
       route(rt) should equal (txt)
     }
 
   }
 }
-*/
+
