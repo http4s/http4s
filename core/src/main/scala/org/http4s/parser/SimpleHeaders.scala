@@ -25,7 +25,7 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
 
   def CONTENT_DISPOSITION(value: String) = new Http4sHeaderParser[`Content-Disposition`](value) {
     def entry = rule {
-     Token ~ zeroOrMore(";" ~ Parameter) ~ EOI ~> { (token:String, params: Seq[(String, String)]) =>
+     Token ~ zeroOrMore(";" ~ OptWS ~ Parameter) ~ EOI ~> { (token:String, params: Seq[(String, String)]) =>
       `Content-Disposition`(token, params.toMap)}
     }
   }.parse

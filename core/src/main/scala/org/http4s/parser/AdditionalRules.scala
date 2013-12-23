@@ -17,12 +17,12 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Value = rule { Token | QuotedString }
 
-  def Parameter: Rule1[(String,String)] = rule { OptWS ~ Token ~ "=" ~ Value ~> ((_: String, _: String)) }
+  def Parameter: Rule1[(String,String)] = rule { Token ~ "=" ~ OptWS ~ Value ~> ((_: String, _: String)) }
 
   def HttpDate: Rule1[DateTime] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) ~ OptWS }
 
   def RFC1123Date: Rule1[DateTime] = rule {
-  Wkday ~ str(", ") ~ Date1 ~ ch(' ') ~ Time ~ ch(' ') ~ (str("GMT") | str("UTC")) ~> {
+  Wkday ~ str(", ") ~ Date1 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
     (year: Int, hour: Int, min: Int, sec: Int) =>
             createDateTime(year, _:Int, _:Int, hour, min, sec, _:Int)
         } ~> {
@@ -32,7 +32,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   }
 
   def RFC850Date: Rule1[DateTime] = rule {
-    Weekday ~ str(", ") ~ Date2 ~ ch(' ') ~ Time ~ ch(' ') ~ (str("GMT") | str("UTC")) ~> {
+    Weekday ~ str(", ") ~ Date2 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
       (year: Int, hour: Int, min: Int, sec: Int) =>
         createDateTime(year, _:Int, _:Int, hour, min, sec, _:Int)
     } ~> {
@@ -110,20 +110,4 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       throw new Exception("Invalid date: "+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec )
     }
   }
-
-//  def Ip: Rule1[InetAddress] = rule (
-//    group(IpNumber ~ ch('.') ~ IpNumber ~ ch('.') ~ IpNumber ~ ch('.') ~ IpNumber) ~> (InetAddress.getByName(_)) ~ OptWS
-//  )
-//
-//  def IpNumber = rule {
-//    Digit ~ optional(Digit ~ optional(Digit))
-//  }
-//
-//  def AuthScheme = rule {
-//    Token ~ OptWS
-//  }
-//
-//  def AuthParam = rule {
-//    Token ~ "=" ~ (Token | QuotedString) ~~> ((_, _))
-//  }
 }
