@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.scalatest.{Matchers, WordSpec}
+import org.joda.time.DateTime
 
 /**
  * @author Bryce Anderson
@@ -25,11 +26,17 @@ class HeaderSpec extends WordSpec with Matchers {
     }
 
     "equal same raw headers" in {
-      val h1 = Header.`Content-Length`(4)
-      val h2 = Header("Content-Length", "4")
+      val h1 = Header.`Content-Length`(44)
+      val h2 = Header("Content-Length", "44")
 
       h1 == h2 should equal (true)
       h2 == h1 should equal (true)
+
+      val h3 = Header.Date(new DateTime()).raw.parsed
+      val h4 = h3.raw
+
+      h3 == h4 should equal (true)
+      h4 == h3 should equal (true)
     }
 
     "not equal same raw headers" in {

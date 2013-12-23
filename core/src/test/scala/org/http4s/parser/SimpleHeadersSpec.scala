@@ -3,8 +3,9 @@ package parser
 
 import org.scalatest.{Matchers, WordSpec}
 import Header._
-import scalaz.{Success}
+import scalaz.{NonEmptyList, Success}
 import org.joda.time.DateTime
+import java.net.InetAddress
 
 /**
  * @author Bryce Anderson
@@ -12,14 +13,14 @@ import org.joda.time.DateTime
  */
 class SimpleHeadersSpec extends WordSpec with Matchers {
 
-  "SimpleHeaders should parse" should {
+  "SimpleHeaders" should {
 
-    "Connection" in {
+    "parse Connection" in {
       val header = Connection("closed")
       HttpParser.parseHeader(header.raw) should equal(Success(header))
     }
 
-    "Content-Length" in {
+    "parse Content-Length" in {
       val header = `Content-Length`(4)
       HttpParser.parseHeader(header.raw) should equal(Success(header))
 
@@ -27,20 +28,68 @@ class SimpleHeadersSpec extends WordSpec with Matchers {
       HttpParser.parseHeader(bad).isFailure should equal(true)
     }
 
-    "Content-Disposition" in {
+    "parse Content-Disposition" in {
       val header = `Content-Disposition`("foo", Map("one" -> "two", "three" -> "four"))
-      println(s"Header: $header")
       HttpParser.parseHeader(header.raw) should equal(Success(header))
 
       val bad = Header(header.name.toString, "foo; bar")
       HttpParser.parseHeader(bad).isFailure should equal(true)
     }
 
-    "Date" in {       // mills are lost, get rid of them
-      val header = Date(new DateTime().millisOfSecond().setCopy(0))
+    "parse Date" in {       // mills are lost, get rid of them
+      val header = Date(new DateTime()).raw.parsed
       HttpParser.parseHeader(header.raw) should equal(Success(header))
 
       val bad = Header(header.name.toString, "foo")
+      HttpParser.parseHeader(bad).isFailure should equal(true)
+    }
+
+    "parse Host" in {
+      val header1 = Host("foo", Some(5))
+      HttpParser.parseHeader(header1.raw) should equal(Success(header1))
+
+      val header2 = Host("foo", None)
+      HttpParser.parseHeader(header2.raw) should equal(Success(header2))
+
+      val bad = Header(header1.name.toString, "foo:bar")
+      HttpParser.parseHeader(bad).isFailure should equal(true)
+    }
+
+    "parse Last-Modified" in {
+      val header = `Last-Modified`(new DateTime()).raw.parsed
+      HttpParser.parseHeader(header.raw) should equal(Success(header))
+
+      val bad = Header(header.name.toString, "foo")
+      HttpParser.parseHeader(bad).isFailure should equal(true)
+    }
+
+    "parse If-Modified-Since" in {
+      val header = `If-Modified-Since`(new DateTime()).raw.parsed
+      HttpParser.parseHeader(header.raw) should equal(Success(header))
+
+      val bad = Header(header.name.toString, "foo")
+      HttpParser.parseHeader(bad).isFailure should equal(true)
+    }
+
+    "parse ETag" in {
+      val header = ETag("hash")
+      HttpParser.parseHeader(header.raw) should equal(Success(header))
+    }
+
+    "parse If-None-Match" in {
+      val header = `If-None-Match`("hash")
+      HttpParser.parseHeader(header.raw) should equal(Success(header))
+    }
+
+    "parse X-Forward-Spec" in {
+      val header1 = `X-Forwarded-For`(NonEmptyList(Some(InetAddress.getLocalHost)))
+      HttpParser.parseHeader(header1.raw) should equal(Success(header1))
+
+      val header2 = `X-Forwarded-For`(NonEmptyList(Some(InetAddress.getLocalHost),
+                                Some(InetAddress.getLoopbackAddress)))
+      HttpParser.parseHeader(header2.raw) should equal(Success(header2))
+
+      val bad = Header(header1.name.toString, "foo")
       HttpParser.parseHeader(bad).isFailure should equal(true)
     }
   }

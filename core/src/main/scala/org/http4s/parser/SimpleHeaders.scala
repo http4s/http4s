@@ -1,9 +1,9 @@
 package org.http4s
 package parser
 
-import org.parboiled2._
+
 import Header._
-import scala.util.Try
+import java.net.InetAddress
 
 /**
  * parser rules for all headers that can be parsed with one simple rule
@@ -20,9 +20,7 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
   }
 
   def CONTENT_LENGTH(value: String) = new Http4sHeaderParser[`Content-Length`](value) {
-    def entry = rule {
-      Digits ~ EOI ~> {s: String => `Content-Length`(s.toInt)}
-    }
+    def entry = rule { Digits ~ EOI ~> {s: String => `Content-Length`(s.toInt)} }
   }.parse
 
   def CONTENT_DISPOSITION(value: String) = new Http4sHeaderParser[`Content-Disposition`](value) {
@@ -41,28 +39,44 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
 //  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
 //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
-//  def HOST = rule {
-//    (Token | IPv6Reference) ~ OptWS ~ optional(":" ~ oneOrMore(Digit) ~> (_.toInt)) ~ EOI ~~> (Host(_, _))
-//  }
-//
-//  def LAST_MODIFIED = rule {
-//    HttpDate ~ EOI ~~> (`Last-Modified`(_))
-//  }
-//
-//  def IF_MODIFIED_SINCE = rule {
-//    HttpDate ~ EOI ~~> (`If-Modified-Since`(_))
-//  }
-//
-//  def ETAG = rule {
-//    zeroOrMore(AlphaNum) ~> (s => ETag(s))
-//  }
-//
-//  def IF_NONE_MATCH = rule {
-//    zeroOrMore(AlphaNum) ~> (s => `If-None-Match`(s))
-//  }
-//
-//  def X_FORWARDED_FOR = rule {
-//    oneOrMore(Ip ~~> (Some(_)) | "unknown" ~ push(None), separator = ListSep) ~ EOI ~~> (xs => `X-Forwarded-For`(xs.head, xs.tail: _*))
-//  }
+  def HOST(value: String) = new Http4sHeaderParser[Host](value) {
+    def entry = rule {
+      (Token | IPv6Reference) ~ OptWS ~
+        optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOI ~> (Host(_:String, _:Option[Int]))
+    }
+  }.parse
+
+  def LAST_MODIFIED(value: String) = new Http4sHeaderParser[`Last-Modified`](value) {
+    def entry = rule {
+      HttpDate ~ EOI ~> (`Last-Modified`(_))
+    }
+  }.parse
+
+  def IF_MODIFIED_SINCE(value: String) = new Http4sHeaderParser[`If-Modified-Since`](value) {
+    def entry = rule {
+      HttpDate ~ EOI ~> (`If-Modified-Since`(_))
+    }
+  }.parse
+
+  def ETAG(value: String) = new Http4sHeaderParser[ETag](value) {
+    def entry = rule {
+      capture(zeroOrMore(AlphaNum)) ~> (ETag(_))
+    }
+  }.parse
+
+  def IF_NONE_MATCH(value: String) = new Http4sHeaderParser[`If-None-Match`](value) {
+    def entry = rule {
+      capture(zeroOrMore(AlphaNum)) ~> (`If-None-Match`(_))
+    }
+  }.parse
+
+  def X_FORWARDED_FOR(value: String) = new Http4sHeaderParser[`X-Forwarded-For`](value) {
+    def entry = rule {
+      oneOrMore((Ip ~> (Some(_)))  | ("unknown" ~ push(None))).separatedBy(ListSep) ~
+        EOI ~> { xs: Seq[Option[InetAddress]] =>
+        `X-Forwarded-For`(xs.head, xs.tail: _*)
+      }
+    }
+  }.parse
 
 }

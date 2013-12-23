@@ -5,6 +5,7 @@ import org.parboiled2._
 import scala.util.Try
 import org.joda.time.{DateTimeZone, DateTime}
 import shapeless.{HNil, ::}
+import java.net.InetAddress
 
 /**
  * @author Bryce Anderson
@@ -16,7 +17,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Value = rule { Token | QuotedString }
 
-  def Parameter: Rule1[(String,String)] = rule { Token ~ "=" ~ Value ~> ((_: String, _: String)) }
+  def Parameter: Rule1[(String,String)] = rule { OptWS ~ Token ~ "=" ~ Value ~> ((_: String, _: String)) }
 
   def HttpDate: Rule1[DateTime] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) ~ OptWS }
 
@@ -90,7 +91,18 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Digit2: Rule1[Int] = rule { capture(Digit ~ Digit) ~> {s: String => s.toInt} }
 
+  def Digit3: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
+
   def Digit4: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
+
+  def IpNumber = rule { Digit3 | Digit2 | Digit1 }
+
+  def Ip: Rule1[InetAddress] = rule (
+    IpNumber ~ ch('.') ~ IpNumber ~ ch('.') ~ IpNumber ~ ch('.') ~ IpNumber  ~ OptWS ~>
+      { (a:Int,b:Int,c:Int,d:Int) =>
+        InetAddress.getByAddress(Array(a.toByte, b.toByte, c.toByte, d.toByte))
+      }
+  )
 
   private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int) = {
     Try(new DateTime(year, month, day, hour, min, sec, DateTimeZone.UTC)).getOrElse {

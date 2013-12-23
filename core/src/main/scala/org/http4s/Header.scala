@@ -1,9 +1,7 @@
 package org.http4s
 
-import parserold.HttpParser
 import org.joda.time.DateTime
 import java.net.InetAddress
-import scala.reflect.ClassTag
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.NonEmptyList
 import scala.annotation.tailrec
@@ -31,7 +29,8 @@ sealed trait Header extends Logging with Product {
 
   override def equals(that: Any): Boolean = that match {
     case h: AnyRef if this eq h => true
-    case h: Header => (name == h.name) &&
+    case h: Header =>
+      (name == h.name) &&
       (parsed.productArity == h.parsed.productArity) &&
       (parsed.productIterator sameElements h.parsed.productIterator)
     case _ => false
@@ -64,7 +63,7 @@ object Header {
   def apply(name: String, value: String): Header = RawHeader(name.ci, value)
 
   final case class RawHeader private[Header] (name: CaseInsensitiveString, value: String) extends Header {
-    override lazy val parsed = HttpParser.parseHeader(this).fold(_ => this, identity)
+    override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
   }
 
   object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey
@@ -200,13 +199,6 @@ object Header {
   final case class Date(date: DateTime) extends ParsedHeader {
     def key = `Date`
     def value = date.formatRfc1123
-
-    override def equals(that: Any): Boolean = {
-      that match {
-        case d: Date => d.date.compareTo(this.date) == 0
-        case _ => false
-      }
-    }
   }
 
   object ETag extends InternalHeaderKey[ETag] with SingletonHeaderKey
@@ -235,7 +227,7 @@ object Header {
 
   object `If-Modified-Since` extends InternalHeaderKey[`If-Modified-Since`] with SingletonHeaderKey
   final case class `If-Modified-Since`(date: DateTime) extends ParsedHeader {
-    def key: HeaderKey = `Last-Modified`
+    def key: HeaderKey = `If-Modified-Since`
     def value: String = date.formatRfc1123
   }
 
