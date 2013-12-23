@@ -7,12 +7,12 @@ class MockServer(service: HttpService) {
 
   def apply(request: Request): Task[MockResponse] = {
     val task = for {
-      response <- service(request)
-      body <- response.body.scanSemigroup.toTask
+      response <- try service(request) catch { case m: MatchError => Status.NotFound() }
+      body <- response.body.collect{ case c: BodyChunk => c.toArray }.runLog
     } yield MockResponse(
       response.status,
       response.headers,
-      body.toArray,
+      body.flatten.toArray,
       response.attributes
     )
     task.handle {

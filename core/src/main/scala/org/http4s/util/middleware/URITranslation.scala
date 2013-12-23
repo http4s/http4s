@@ -11,16 +11,23 @@ object URITranslation {
   def translateRoot(prefix: String)(service: HttpService): HttpService = {
     val newPrefix = if (!prefix.startsWith("/")) "/" + prefix else prefix
 
+    def translate(path: String): String = newPrefix + (if (path.startsWith("/")) path else "/" + path)
+
     {
       case req: Request if req.pathInfo.startsWith(newPrefix) =>
-        service(req.withPathInfo(req.pathInfo.substring(newPrefix.length)))
+
+        val troot = req.attributes.get(translateRootKey)
+                    .map(_ compose translate)
+                    .getOrElse(translate(_))
+
+        service(req
+          .withAttribute(translateRootKey, troot)
+          .withPathInfo(req.pathInfo.substring(newPrefix.length)) )
 
       case req =>
         throw new MatchError(s"Missing Context: '$newPrefix' \nRequested: ${req.pathInfo}")
     }
   }
 
-  def translatePath(trans: String => String)(service: HttpService): HttpService = { req: Request =>
-    service(req.withPathInfo(trans(req.pathInfo)))
-  }
+  val translateRootKey = AttributeKey.http4s[String => String]("translateRoot")
 }

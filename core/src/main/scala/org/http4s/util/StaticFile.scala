@@ -196,5 +196,4 @@ object StaticFile extends Logging {
   }
 
   private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")
-
 }

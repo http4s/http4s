@@ -51,6 +51,7 @@ case class Request(
   type Self = Request
   def withHeaders(headers: HeaderCollection): Request = copy(headers = headers)
   def withBody(body: HttpBody): Request = copy(body = body)
+  def withAttribute[T](key: AttributeKey[T], value: T) = copy(attributes = attributes.put(key, value))
 
   lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
 
