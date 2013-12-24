@@ -4,7 +4,6 @@ package parser
 import org.parboiled2._
 import scalaz.Validation
 import org.http4s.Header.Accept
-import org.http4s.parser.MediaParser
 
 private[parser] trait AcceptHeader {
 
@@ -19,27 +18,24 @@ private[parser] trait AcceptHeader {
 
     def FullRange: Rule1[MediaRange] = rule {
       (MediaRangeDef ~ optional( QAndExtensions )) ~> {
-        (mr: MediaRange, params: Option[(Float, Seq[(String, Option[String])])]) =>
-          mr  // TODO: need to provide space for the q factor and extensions!
+        (mr: MediaRange, params: Option[(Float, Seq[(String, String)])]) =>
+          params.map{ case (q, extensions) => mr.withqextensions(q, extensions.toMap)}
+            .getOrElse(mr)
       }
     }
 
-    def QAndExtensions: Rule1[(Float, Seq[(String, Option[String])])] = rule {
-      AcceptParams | (oneOrMore(AcceptExtension) ~> {s: Seq[(String, Option[String])] => (1.0f, s) })
+    def QAndExtensions: Rule1[(Float, Seq[(String, String)])] = rule {
+      AcceptParams | (oneOrMore(AcceptExtension) ~> {s: Seq[(String, String)] => (1.0f, s) })
     }
 
-//    def MediaRangeDecl: Rule2[MediaRange, Seq[(String, String)]] = rule {
-//      MediaRangeDef ~ zeroOrMore(";" ~OptWS ~ Parameter) // TODO: support parameters
-//    }
-
-
-
-    def AcceptParams: Rule1[(Float, Seq[(String, Option[String])])] = rule {
-      (";" ~ "q" ~ "=" ~ QValue ~ zeroOrMore(AcceptExtension)) ~> ((_:Float,_:Seq[(String, Option[String])]))
+    def AcceptParams: Rule1[(Float, Seq[(String, String)])] = rule {
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(AcceptExtension)) ~> ((_:Float,_:Seq[(String, String)]))
     }
 
-    def AcceptExtension: Rule1[(String, Option[String])] = rule {
-      ";" ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> ((_: String, _: Option[String]))
+    def AcceptExtension: Rule1[(String, String)] = rule {
+      ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> { (s: String, s2: Option[String]) =>
+        (s, s2.getOrElse(""))
+      }
     }
 
     /* 3.9 Quality Values */

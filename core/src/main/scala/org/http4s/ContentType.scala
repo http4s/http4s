@@ -16,7 +16,7 @@ case class ContentTypeRange(mediaRange: MediaRange, charsetRange: CharacterSetRa
     case x: CharacterSet => mediaRange.value + "; charset=" + x.value
   }
   def matches(contentType: ContentType) = {
-    mediaRange.matches(contentType.mediaType) &&
+    mediaRange.satisfiedBy(contentType.mediaType) &&
             ((charsetRange eq `*`) || contentType.definedCharset.map(charsetRange.matches(_)).getOrElse(false))
   }
   override def toString = "ContentTypeRange(" + value + ')'

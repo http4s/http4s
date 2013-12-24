@@ -15,7 +15,7 @@ trait MediaParser extends CommonActions { self: Http4sHeaderParser[_] =>
       ("*" ~ push("*") ~ push("*"))) ~> (getMediaRange(_, _))
   }
 
-  def getMediaRange(mainType: String, subType: String): MediaRange = {
+  private def getMediaRange(mainType: String, subType: String): MediaRange = {
     if (subType == "*") {
       val mainTypeLower = mainType.toLowerCase
       MediaRange.resolve(mainTypeLower)

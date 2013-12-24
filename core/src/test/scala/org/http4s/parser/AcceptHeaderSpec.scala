@@ -13,6 +13,8 @@ import MediaType._
  */
 class AcceptHeaderSpec extends WordSpec with Matchers {
 
+  def ext = Map("foo" -> "bar")
+
   // Also checks to make sure whitespace doesn't effect the outcome
   private def parse(value: String): Accept = {
     val a = HttpParser.ACCEPT(value).fold(err => sys.error(err.detail), identity)
@@ -55,13 +57,30 @@ class AcceptHeaderSpec extends WordSpec with Matchers {
       val accept = Accept(`audio/*`, `video/*`)
       parse(accept.value) should equal(accept)
 
+      val accept2 = Accept(`audio/*`.withq(0.2f), `video/*`)
+      parse(accept2.value) should equal(accept2)
+
+
       // Go through all of them
-      val ranges = MediaRange.snapshot.values.toArray
-      0 until (ranges.length-1) foreach { i =>
-        val subrange = ranges.slice(i, i + 4)
-        val h = Accept(subrange.head, subrange.tail:_*)
-        parse(h.value) should equal(h)
+      {
+        val ranges = MediaRange.snapshot.values.toArray
+        0 until (ranges.length-1) foreach { i =>
+          val subrange = ranges.slice(i, i + 4)
+          val h = Accept(subrange.head, subrange.tail:_*)
+          parse(h.value) should equal(h)
+        }
       }
+
+      // Go through all of them with q and extensions
+      {
+        val ranges = MediaRange.snapshot.values.toArray
+        0 until (ranges.length-1) foreach { i =>
+          val subrange = ranges.slice(i, i + 4).map(_.withqextensions(0.2f, ext))
+          val h = Accept(subrange.head, subrange.tail:_*)
+          parse(h.value) should equal(h)
+        }
+      }
+
     }
 
     "Parse multiple Types" in {
@@ -81,7 +100,19 @@ class AcceptHeaderSpec extends WordSpec with Matchers {
     // TODO: Don't ignore q and extensions!
     "Deal with q and extensions TODO: allow implementation of them!" in {
       val value = "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
-      parse(value) should equal(Accept(`text/*`, `text/html`, `text/html`))
+      parse(value) should equal(Accept(
+        `text/*`.withq(0.3f),
+        `text/html`.withq(0.7f),
+        `text/html`.withextensions(Map("level" -> "1"))
+      ))
+
+      // Go through all of them
+      val ranges = MediaType.snapshot.values.toArray
+      0 until (ranges.length-1) foreach { i =>
+        val subrange = ranges.slice(i, i + 4).map(_.withqextensions(0.2f, ext))
+        val h = Accept(subrange.head, subrange.tail:_*)
+        parse(h.value) should equal(h)
+      }
     }
   }
 
