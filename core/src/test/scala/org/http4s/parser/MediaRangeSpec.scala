@@ -40,6 +40,11 @@ class MediaRangeSpec extends WordSpec with Matchers {
       `text/*`.withq(0.2f).satisfiedBy(`text/css`) should equal(false)
       `text/*`.satisfiedBy(`audio/aiff`) should equal(false)
     }
+
+    "be satisfied regardless of extensions" in {
+      `text/*`.withextensions(ext).satisfies(`text/*`) should equal(true)
+      `text/*`.withextensions(ext).satisfies(`text/*`) should equal(true)
+    }
   }
 
   "MediaTypes" should {
@@ -75,6 +80,14 @@ class MediaRangeSpec extends WordSpec with Matchers {
     "Satisfy MediaRanges" in {
       `text/html`.satisfies(`text/*`) should equal(true)
       `text/*`.satisfies(`text/html`) should equal(false)
+    }
+
+    "be satisfied regardless of extensions" in {
+      `text/html`.withextensions(ext).satisfies(`text/*`) should equal(true)
+      `text/*`.satisfies(`text/html`.withextensions(ext)) should equal(false)
+
+      `text/html`.satisfies(`text/*`.withextensions(ext)) should equal(true)
+      `text/*`.withextensions(ext).satisfies(`text/html`) should equal(false)
     }
   }
 

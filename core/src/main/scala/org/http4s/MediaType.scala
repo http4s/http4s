@@ -62,8 +62,7 @@ private class ExtendedMediaRange(val mainType: String,
                                  override val extensions: Map[String, String]) extends MediaRange {
   def satisfiedBy(mediaType: MediaRange): Boolean = {
     mainType == mediaType.mainType &&
-    qualityMatches(mediaType)      &&
-    extensions == mediaType.extensions
+    qualityMatches(mediaType)
   }
 }
 
@@ -162,9 +161,7 @@ sealed abstract class MediaType extends MediaRange {
     (this eq mediaType) ||
       mainType == mediaType.mainType        &&
         subType == mediaType.subType        &&
-        qualityMatches(mediaType)           &&
-        extensions == mediaType.extensions
-
+        qualityMatches(mediaType)
   }
 
   def satisfiedBy(mediaType: MediaRange) = false
