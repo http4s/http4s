@@ -25,7 +25,7 @@ object Http4sDependencies {
   lazy val scalaloggingSlf4j   = "com.typesafe"             %% "scalalogging-slf4j"      % "1.0.1"
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.4-M2"
   lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.0.RC3"
-  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.0.4"
+  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.0.5"
 //  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.2-SNAPSHOT"
   lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
 

@@ -14,7 +14,8 @@ import org.http4s.parserold.QueryParser
 
 object HttpParser extends HttpParser
 
-trait HttpParser extends SimpleHeaders {
+trait HttpParser extends SimpleHeaders
+                    with AcceptHeader {
 
   type HeaderValidation = Validation[ParseErrorInfo, Header]
 

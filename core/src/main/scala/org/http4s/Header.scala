@@ -70,6 +70,11 @@ object Header {
   final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringHeader {
     def key = Accept
     type Value = MediaRange
+    override def value = {
+      val b = new StringBuilder
+      b.append(values.head.value)
+      values.tail.foldLeft(b){ (b, v) => b.append(s", ${v.value}")}.result()
+    }
   }
 
   object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey

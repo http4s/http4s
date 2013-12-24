@@ -14,7 +14,7 @@ import org.http4s.parser.ParseErrorInfo
 object HttpParser extends Http4sParser with ProtocolParameterRules with AdditionalRules with CommonActions
   with AcceptCharsetHeader
   with AcceptEncodingHeader
-  with AcceptHeader
+//  with AcceptHeader
   with AcceptLanguageHeader
   with AcceptRangesHeader
   with AuthorizationHeader

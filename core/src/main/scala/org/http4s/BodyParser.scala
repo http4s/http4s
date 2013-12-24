@@ -43,10 +43,10 @@ object BodyParser {
   def xml(req: Request,
           limit: Int = DefaultMaxEntitySize,
           parser: SAXParser = XML.parser): Task[Elem] =
-    text(req, limit).flatMap { s =>
+    text(req, limit).map { s =>
+    // TODO: exceptions here should be handled by Task, but are not until 7.0.5+
       val source = new InputSource(new StringReader(s))
-      try Task.now(XML.loadXML(source, parser))
-      catch { case t: Throwable => Task.fail(t) }
+      XML.loadXML(source, parser)
     }
 
   private def takeBytes(n: Int): Process1[Chunk, Chunk] = {
