@@ -62,10 +62,35 @@ class MediaRangeSpec extends WordSpec with Matchers {
       `text/html`.satisfiedBy(`text/css`) should equal(false)
       `text/html`.withq(0.5f).satisfiedBy(`text/html`.withq(0.4f)) should equal(true)
       `text/html`.withq(0.3f).satisfiedBy(`text/html`.withq(0.4f)) should equal(false)
+
+      `text/html`.satisfies(`text/css`) should equal(false)
+      `text/html`.withq(0.5f).satisfies(`text/html`.withq(0.4f)) should equal(false)
+      `text/html`.withq(0.3f).satisfies(`text/html`.withq(0.4f)) should equal(true)
     }
 
     "Not be satisfied by MediaRanges" in {
       `text/html`.satisfiedBy(`text/*`) should equal(false)
+    }
+
+    "Satisfy MediaRanges" in {
+      `text/html`.satisfies(`text/*`) should equal(true)
+      `text/*`.satisfies(`text/html`) should equal(false)
+    }
+  }
+
+  "MediaRanges and MediaTyes" should {
+    "Do inequality amongst each other properly" in {
+      val r = `text/*`
+      val t = `text/asp`
+
+      r should not equal(t)
+      t should not equal(r)
+
+      r.withq(0.1f) should not equal(t.withq(0.1f))
+      t.withq(0.1f) should not equal(r.withq(0.1f))
+
+      r.withextensions(ext) should not equal(t.withextensions(ext))
+      t.withextensions(ext) should not equal(r.withextensions(ext))
     }
   }
 }

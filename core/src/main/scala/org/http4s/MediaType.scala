@@ -12,6 +12,7 @@ sealed abstract class MediaRange {
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaRange: MediaRange): Boolean
+  final def satisfies(mediaRange: MediaRange) = mediaRange.satisfiedBy(this)
 
   def isApplication = mainType == "application"
   def isAudio       = mainType == "audio"
@@ -33,6 +34,7 @@ sealed abstract class MediaRange {
   override def toString = "MediaRange(" + value + qvalue + extvalue + ')'
 
   override def equals(obj: Any) = obj match {
+    case _: MediaType => false
     case x: MediaRange =>
       (this eq x) ||
       mainType == x.mainType    &&
@@ -155,6 +157,7 @@ sealed abstract class MediaType extends MediaRange {
   override def withqextensions(q: Float, ext: Map[String, String]): MediaType =
     new ExtendedMediaType(mainType, subType, compressible,binary, fileExtensions, q, ext)
 
+  final def satisfies(mediaType: MediaType) = mediaType.satisfiedBy(this)
   def satisfiedBy(mediaType: MediaType) = {
     (this eq mediaType) ||
       mainType == mediaType.mainType        &&
