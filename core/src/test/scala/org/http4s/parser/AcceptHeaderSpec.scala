@@ -13,7 +13,7 @@ import MediaType._
  */
 class AcceptHeaderSpec extends WordSpec with Matchers {
 
-  def ext = Map("foo" -> "bar")
+  def ext = Map("foo" -> "bar", "baz" -> "whatever")
 
   // Also checks to make sure whitespace doesn't effect the outcome
   private def parse(value: String): Accept = {
