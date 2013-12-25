@@ -17,7 +17,7 @@ private[parser] trait CommonActions {
         case custom        => new MultipartMediaType(custom, boundary)
       }
       case mainLower =>
-        MediaType.lookupOrElse((mainLower, subType.toLowerCase), new CustomMediaType(mainType, subType))
+        MediaType.lookupOrElse((mainLower, subType.toLowerCase), new MediaType(mainType, subType))
     }
   }
 

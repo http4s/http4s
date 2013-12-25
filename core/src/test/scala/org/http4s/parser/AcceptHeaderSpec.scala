@@ -17,8 +17,8 @@ class AcceptHeaderSpec extends WordSpec with Matchers {
 
   // Also checks to make sure whitespace doesn't effect the outcome
   private def parse(value: String): Accept = {
-    val a = HttpParser.ACCEPT(value).fold(err => sys.error(err.detail), identity)
-    val b = HttpParser.ACCEPT(value.replace(" ", "")).fold(err => sys.error(err.detail), identity)
+    val a = HttpParser.ACCEPT(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
+    val b = HttpParser.ACCEPT(value.replace(" ", "")).fold(err => sys.error(s"Couldn't parse: $value"), identity)
     assert(a == b, "Whitespace resulted in different Accept headers")
     a
   }
@@ -31,7 +31,9 @@ class AcceptHeaderSpec extends WordSpec with Matchers {
 
       // Parse the rest
       MediaRange.snapshot.values.foreach { m =>
-        parse(m.value).values.head should equal(m)
+        val r = parse(m.value).values.head
+        r should equal(m)           // Structural equality
+        (r eq m) should equal(true) // Reference equality
       }
     }
 
@@ -48,7 +50,9 @@ class AcceptHeaderSpec extends WordSpec with Matchers {
 
       // Parse the rest
       MediaType.snapshot.values.foreach { m =>
-        parse(m.value).values.head should equal(m)
+        val r = parse(m.value).values.head
+        r should equal(m)           // Structural equality
+        (r eq m) should equal(true) // Reference equality
       }
     }
 
