@@ -48,11 +48,16 @@ sealed class MediaRange private[http4s](val mainType: String,
   @inline
   final def qualityMatches(that: MediaRange): Boolean = q >= that.q
 
-  protected def qvalue: String = if (q != 1.0f) s"; q=$q" else ""
+  final protected def qvalue: String = if (q != 1.0f) f"; q=$q%1.3f" else ""
+
   protected def extvalue: String = {
     if (extensions.nonEmpty) {
       val b = new StringBuilder
-      extensions.foreach{ case (k,v) => b.append(s"; $k=$v")}
+      extensions.foreach{ case (k,v) =>
+        // TODO: Determine if we need quotes or not in a more robust manner
+        if (v.contains(" ")) b.append(String.format("; %s=\"%s\"", k,v))
+        else b.append(s"; $k=$v")
+      }
       b.result()
     } else ""
   }
@@ -170,6 +175,23 @@ object MediaType extends Resolvable[(String, String), MediaType] {
   private def binary = true
   private def notBinary = false
 
+  object Multipart {
+    def apply(subType: String, boundry: Option[String] = None) = {
+      val ext = boundry.map(b => Map( "boundry" -> b)).getOrElse(Map.empty)
+      new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext)
+    }
+    def unapply(range: MediaRange): Option[(String, Option[String])] = {
+      if (range.isMultipart) {
+        val b = range.extensions.get("boundry")
+        range match {
+          case range: MediaType => Some(range.subType, b)
+          case _: MediaRange    => Some("*", b)
+        }
+      }
+      else None
+    }
+  }
+
   private[this] def app(subType: String, compressible: Boolean, binary: Boolean, fileExtensions: String*) =
     register (new MediaType("application", subType, compressible, binary, fileExtensions))
 
@@ -187,14 +209,6 @@ object MediaType extends Resolvable[(String, String), MediaType] {
 
   private[this] def vid(subType: String, fileExtensions: String*) =
     register (new MediaType("video", subType, uncompressible, binary, fileExtensions))
-
-  class MultipartMediaType(subType: String, val boundary: Option[String])
-    extends MediaType("multipart", subType, compressible, notBinary, Nil) {
-    override val value = boundary match {
-      case None       => mainType + '/' + subType
-      case _: Some[_] => mainType + '/' + subType + "; boundary=\"" + boundary.get + '"'
-    }
-  }
 
   val `application/atom+xml`                                                      = app("atom+xml", compressible, notBinary, "atom")
   val `application/base64`                                                        = app("base64", compressible, binary, "mm", "mme")
@@ -298,19 +312,12 @@ object MediaType extends Resolvable[(String, String), MediaType] {
   val `message/delivery-status` = msg("delivery-status")
   val `message/rfc822`          = msg("rfc822", "eml", "mht", "mhtml", "mime")
 
-  class `multipart/mixed`      (boundary: Option[String]) extends MultipartMediaType("mixed", boundary)
-  class `multipart/alternative`(boundary: Option[String]) extends MultipartMediaType("alternative", boundary)
-  class `multipart/related`    (boundary: Option[String]) extends MultipartMediaType("related", boundary)
-  class `multipart/form-data`  (boundary: Option[String]) extends MultipartMediaType("form-data", boundary)
-  class `multipart/signed`     (boundary: Option[String]) extends MultipartMediaType("signed", boundary)
-  class `multipart/encrypted`  (boundary: Option[String]) extends MultipartMediaType("encrypted", boundary)
-
-  val `multipart/mixed`       = new `multipart/mixed`(None)
-  val `multipart/alternative` = new `multipart/alternative`(None)
-  val `multipart/related`     = new `multipart/related`(None)
-  val `multipart/form-data`   = new `multipart/form-data`(None)
-  val `multipart/signed`      = new `multipart/signed`(None)
-  val `multipart/encrypted`   = new `multipart/encrypted`(None)
+  val `multipart/mixed`       = Multipart("mixed")
+  val `multipart/alternative` = Multipart("alternative")
+  val `multipart/related`     = Multipart("related")
+  val `multipart/form-data`   = Multipart("form-data")
+  val `multipart/signed`      = Multipart("signed")
+  val `multipart/encrypted`   = Multipart("encrypted")
 
   val `text/asp`                  = txt("asp", "asp")
   val `text/cache-manifest`       = txt("cache-manifest", "manifest")
