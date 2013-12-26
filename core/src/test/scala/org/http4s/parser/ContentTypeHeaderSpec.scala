@@ -15,7 +15,7 @@ class ContentTypeHeaderSpec  extends WordSpec with Matchers {
   private def parse(value: String): `Content-Type` = {
     val a = HttpParser.CONTENT_TYPE(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
     val b = HttpParser.CONTENT_TYPE(value.replace(" ", "")).fold(err => sys.error(s"Couldn't parse: $value"), identity)
-    assert(a == b, "Whitespace resulted in different Accept headers")
+    assert(a == b, "Whitespace resulted in different Content-Type headers")
     a
   }
 
