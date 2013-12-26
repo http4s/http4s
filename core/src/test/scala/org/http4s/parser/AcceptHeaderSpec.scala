@@ -6,22 +6,18 @@ import org.http4s.Header.Accept
 import org.http4s.{MediaType, MediaRange}
 import MediaRange._
 import MediaType._
+import scalaz.Validation
 
 /**
  * @author Bryce Anderson
  *         Created on 12/23/13
  */
-class AcceptHeaderSpec extends WordSpec with Matchers {
+class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Accept] {
+
+
+  def hparse(value: String): Validation[ParseErrorInfo, Accept] = HttpParser.ACCEPT(value)
 
   def ext = Map("foo" -> "bar", "baz" -> "whatever")
-
-  // Also checks to make sure whitespace doesn't effect the outcome
-  private def parse(value: String): Accept = {
-    val a = HttpParser.ACCEPT(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
-    val b = HttpParser.ACCEPT(value.replace(" ", "")).fold(err => sys.error(s"Couldn't parse: $value"), identity)
-    assert(a == b, "Whitespace resulted in different Accept headers")
-    a
-  }
 
   "Accept-Header parser" should {
 

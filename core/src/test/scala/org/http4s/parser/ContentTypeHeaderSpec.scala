@@ -4,20 +4,15 @@ import org.scalatest.{Matchers, WordSpec}
 import org.http4s.Header.`Content-Type`
 import org.http4s.MediaType._
 import org.http4s.CharacterSet
+import scalaz.Validation
 
 /**
  * @author Bryce Anderson
  *         Created on 12/26/13
  */
-class ContentTypeHeaderSpec  extends WordSpec with Matchers {
+class ContentTypeHeaderSpec  extends WordSpec with Matchers with HeaderParserHelper[`Content-Type`] {
 
-  // Also checks to make sure whitespace doesn't effect the outcome
-  private def parse(value: String): `Content-Type` = {
-    val a = HttpParser.CONTENT_TYPE(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
-    val b = HttpParser.CONTENT_TYPE(value.replace(" ", "")).fold(err => sys.error(s"Couldn't parse: $value"), identity)
-    assert(a == b, "Whitespace resulted in different Content-Type headers")
-    a
-  }
+  def hparse(value: String): Validation[ParseErrorInfo, `Content-Type`] = HttpParser.CONTENT_TYPE(value)
 
   def simple = `Content-Type`(`text/html`)
   def charset = `Content-Type`(`text/html`, CharacterSet.`UTF-8`)

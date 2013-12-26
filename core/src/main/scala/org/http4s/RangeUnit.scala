@@ -17,7 +17,7 @@ package org.http4s
  * limitations under the License.
  */
 
-sealed abstract class RangeUnit {
+sealed abstract class RangeUnit extends HttpValue[String] {
   def value: String
   override def toString = value
 }
@@ -26,6 +26,10 @@ object RangeUnit {
 
   val bytes = new RangeUnit {
     def value = "bytes"
+  }
+
+  val none = new RangeUnit {
+    def value = "none"
   }
 
   case class CustomRangeUnit(value: String) extends RangeUnit

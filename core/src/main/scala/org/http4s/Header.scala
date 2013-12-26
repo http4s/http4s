@@ -7,12 +7,8 @@ import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.Header.RawHeader
 import org.http4s.CharacterSet._
 import org.http4s.Header.RawHeader
-import scala.Some
-import org.http4s.Cookie
-import org.http4s.Challenge
 
 sealed trait Header extends Logging with Product {
 
@@ -113,6 +109,8 @@ object Header {
   // TODO Interpreting this as not a recurring header, because of "none".
   object `Accept-Ranges` extends InternalHeaderKey[`Accept-Ranges`] with SingletonHeaderKey {
     def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
+    def bytes = apply(RangeUnit.bytes)
+    def none = apply(Nil)
   }
   final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends ParsedHeader {
     def key = `Accept-Ranges`
