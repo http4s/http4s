@@ -49,11 +49,11 @@ object GZip extends Logging {
       req.headers.get(`Accept-Encoding`).fold(t){ h =>
         if (h.acceptsEncoding(ContentCoding.gzip) || h.acceptsEncoding(ContentCoding.`x-gzip`)) t.map { resp =>
           // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
-          val mediatype = resp.headers.get(`Content-Type`)
+          val contentType = resp.headers.get(`Content-Type`)
           if (resp.headers.get(`Content-Encoding`).isEmpty &&
-              (mediatype.isEmpty ||
-               mediatype.get.contentType.mediaType.compressible ||
-              (mediatype.get.contentType.mediaType eq MediaType.`application/octet-stream`))) {
+              (contentType.isEmpty ||
+               contentType.get.mediaType.compressible ||
+              (contentType.get.mediaType eq MediaType.`application/octet-stream`))) {
             logger.trace("GZip middleware encoding content")
             val b = resp.body.pipe(streamingGZip(buffersize))
             resp.removeHeader(`Content-Length`)

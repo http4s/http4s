@@ -6,6 +6,7 @@ import org.http4s.Header
 import org.http4s.util.CaseInsensitiveString
 
 import org.http4s.parser.ParseErrorInfo
+import org.http4s.Header.`Content-Type`
 
 /**
  * Parser for all HTTP headers as defined by
@@ -20,7 +21,7 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
   with AuthorizationHeader
   with CacheControlHeader
   with ContentEncodingHeader
-  with ContentTypeHeader
+//  with ContentTypeHeader
   with CookieHeaders
 //  with SimpleHeaders
   with WwwAuthenticateHeader
@@ -60,14 +61,14 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
 //    }
 //    (errors.result(), parsedHeaders)
 //  }
-
-  def parseContentType(contentType: String): Either[ParseErrorInfo, ContentType] =
-    parse(ContentTypeHeaderValue, contentType).left.map(_.withFallbackSummary("Illegal Content-Type"))
-
-  /**
-   * Warms up the spray.http module by triggering the loading of most classes in this package,
-   * so as to increase the speed of the first usage.
-   */
+//
+//  def parseContentType(contentType: String): Either[ParseErrorInfo, `Content-Type`] =
+//    parse(ContentTypeHeaderValue, contentType).left.map(_.withFallbackSummary("Illegal Content-Type"))
+//
+//  /**
+//   * Warms up the spray.http module by triggering the loading of most classes in this package,
+//   * so as to increase the speed of the first usage.
+//   */
 //  def warmUp() {
 //    HttpParser.parseHeaders(List(
 //      Header("Accept", "*/*,text/plain,custom/custom"),

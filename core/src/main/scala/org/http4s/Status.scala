@@ -2,6 +2,7 @@ package org.http4s
 
 import scalaz.concurrent.Task
 import java.net.{URL, URI}
+import org.http4s.Header.`Content-Type`
 
 case class Status(code: Int, reason: String) extends Ordered[Status] {
   def compare(that: Status) = code.compareTo(that.code)
@@ -25,10 +26,10 @@ object Status {
     def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
       apply(body, w.contentType)(w)
 
-    def apply[A](body: A, contentType: ContentType)(implicit w: Writable[A]): Task[Response] = {
+    def apply[A](body: A, contentType: `Content-Type`)(implicit w: Writable[A]): Task[Response] = {
       var headers: HeaderCollection = HeaderCollection.empty
       // tuple assignment runs afoul of https://issues.scala-lang.org/browse/SI-5301
-      headers :+= Header.`Content-Type`(contentType)
+      headers :+= contentType
       w.toBody(body).map { case (proc, len) =>
         len foreach { headers :+= Header.`Content-Length`(_) }
         Response(self, headers, proc)

@@ -25,18 +25,14 @@ private[parser] trait AcceptHeader {
     }
 
     def QAndExtensions: Rule1[(Float, Seq[(String, String)])] = rule {
-      AcceptParams | (oneOrMore(AcceptExtension) ~> {s: Seq[(String, String)] => (1.0f, s) })
+      AcceptParams | (oneOrMore(MediaTypeExtension) ~> {s: Seq[(String, String)] => (1.0f, s) })
     }
 
     def AcceptParams: Rule1[(Float, Seq[(String, String)])] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(AcceptExtension)) ~> ((_:Float,_:Seq[(String, String)]))
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> ((_:Float,_:Seq[(String, String)]))
     }
 
-    def AcceptExtension: Rule1[(String, String)] = rule {
-      ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> { (s: String, s2: Option[String]) =>
-        (s, s2.getOrElse(""))
-      }
-    }
+
 
     /* 3.9 Quality Values */
 

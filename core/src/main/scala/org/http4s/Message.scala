@@ -5,6 +5,7 @@ import java.io.File
 import java.net.{URI, InetAddress}
 import org.http4s.util.CaseInsensitiveString
 import scalaz.concurrent.Task
+import org.http4s.Header.`Content-Type`
 
 abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
@@ -13,10 +14,10 @@ abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: At
 
   def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
 
-  def contentType: Option[ContentType] = headers.get(Header.`Content-Type`).map(_.contentType)
-  def withContentType(contentType: Option[ContentType]): Self =
+  def contentType: Option[`Content-Type`] = headers.get(Header.`Content-Type`)
+  def withContentType(contentType: Option[`Content-Type`]): Self =
     withHeaders(contentType match {
-      case Some(ct) => headers.put(Header.`Content-Type`(ct))
+      case Some(ct) => headers.put(ct)
       case None => headers.filterNot(_.is(Header.`Content-Type`))
     })
 

@@ -15,6 +15,12 @@ trait MediaParser { self: Http4sHeaderParser[_] =>
       ("*" ~ push("*") ~ push("*"))) ~> (getMediaRange(_, _))
   }
 
+  def MediaTypeExtension: Rule1[(String, String)] = rule {
+    ";" ~ OptWS ~ Token ~ optional("=" ~ (Token | QuotedString)) ~> { (s: String, s2: Option[String]) =>
+      (s, s2.getOrElse(""))
+    }
+  }
+
   private def getMediaRange(mainType: String, subType: String): MediaRange = {
     if (subType == "*") {
       val mainTypeLower = mainType.toLowerCase

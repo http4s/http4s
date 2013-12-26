@@ -8,6 +8,11 @@ import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.Header.RawHeader
+import org.http4s.CharacterSet._
+import org.http4s.Header.RawHeader
+import scala.Some
+import org.http4s.Cookie
+import org.http4s.Challenge
 
 sealed trait Header extends Logging with Product {
 
@@ -187,10 +192,36 @@ object Header {
 
   object `Content-Range` extends DefaultHeaderKey
 
-  object `Content-Type` extends InternalHeaderKey[`Content-Type`] with SingletonHeaderKey
-  final case class `Content-Type`(contentType: ContentType) extends ParsedHeader {
+  object `Content-Type` extends InternalHeaderKey[`Content-Type`] with SingletonHeaderKey {
+    val `text/plain` = `Content-Type`(MediaType.`text/plain`)
+    val `application/octet-stream` = `Content-Type`(MediaType.`application/octet-stream`)
+
+    // RFC4627 defines JSON to always be UTF encoded, we always render JSON to UTF-8
+    val `application/json` = `Content-Type`(MediaType.`application/json`, `UTF-8`)
+
+    def apply(mediaType: MediaType, charset: CharacterSet): `Content-Type` = apply(mediaType, Some(charset))
+    implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
+  }
+
+  final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[CharacterSet]) extends ParsedHeader {
     def key = `Content-Type`
-    def value = contentType.value
+
+    def value: String = definedCharset match {
+      case Some(cs) => mediaType.value + "; charset=" + cs.value
+      case _ => mediaType.value
+    }
+
+    def withMediaType(mediaType: MediaType) =
+      if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
+    def withCharset(charset: CharacterSet) =
+      if (noCharsetDefined || charset != definedCharset.get) copy(definedCharset = Some(charset)) else this
+    def withoutDefinedCharset =
+      if (isCharsetDefined) copy(definedCharset = None) else this
+
+    def isCharsetDefined = definedCharset.isDefined
+    def noCharsetDefined = definedCharset.isEmpty
+
+    def charset: CharacterSet = definedCharset.getOrElse(`ISO-8859-1`)
   }
 
   object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderKey
