@@ -5,7 +5,8 @@ import scala.annotation.tailrec
 
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Float = 1.0f,
-                                        val extensions: Map[String, String] = Map.empty) {
+                                        val extensions: Map[String, String] = Map.empty)
+                                        extends HttpValue[String] {
 
   val value = mainType + "/*" + qvalue + extvalue
 
@@ -175,22 +176,10 @@ object MediaType extends Resolvable[(String, String), MediaType] {
   private def binary = true
   private def notBinary = false
 
-  object Multipart {
-    def apply(subType: String, boundry: Option[String] = None) = {
+    def multipart(subType: String, boundry: Option[String] = None) = {
       val ext = boundry.map(b => Map( "boundry" -> b)).getOrElse(Map.empty)
       new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext)
     }
-    def unapply(range: MediaRange): Option[(String, Option[String])] = {
-      if (range.isMultipart) {
-        val b = range.extensions.get("boundry")
-        range match {
-          case range: MediaType => Some(range.subType, b)
-          case _: MediaRange    => Some("*", b)
-        }
-      }
-      else None
-    }
-  }
 
   private[this] def app(subType: String, compressible: Boolean, binary: Boolean, fileExtensions: String*) =
     register (new MediaType("application", subType, compressible, binary, fileExtensions))
@@ -312,12 +301,12 @@ object MediaType extends Resolvable[(String, String), MediaType] {
   val `message/delivery-status` = msg("delivery-status")
   val `message/rfc822`          = msg("rfc822", "eml", "mht", "mhtml", "mime")
 
-  val `multipart/mixed`       = Multipart("mixed")
-  val `multipart/alternative` = Multipart("alternative")
-  val `multipart/related`     = Multipart("related")
-  val `multipart/form-data`   = Multipart("form-data")
-  val `multipart/signed`      = Multipart("signed")
-  val `multipart/encrypted`   = Multipart("encrypted")
+  val `multipart/mixed`       = multipart("mixed")
+  val `multipart/alternative` = multipart("alternative")
+  val `multipart/related`     = multipart("related")
+  val `multipart/form-data`   = multipart("form-data")
+  val `multipart/signed`      = multipart("signed")
+  val `multipart/encrypted`   = multipart("encrypted")
 
   val `text/asp`                  = txt("asp", "asp")
   val `text/cache-manifest`       = txt("cache-manifest", "manifest")

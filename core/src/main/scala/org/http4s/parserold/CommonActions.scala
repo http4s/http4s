@@ -8,13 +8,13 @@ private[parserold] trait CommonActions {
   def getMediaType(mainType: String, subType: String, boundary: Option[String] = None): MediaType = {
     mainType.toLowerCase match {
       case "multipart" => subType.toLowerCase match {
-        case "mixed"       => Multipart("mixed", boundary)
-        case "alternative" => Multipart("alternative", boundary)
-        case "related"     => Multipart("related", boundary)
-        case "form-data"   => Multipart("form-data", boundary)
-        case "signed"      => Multipart("signed", boundary)
-        case "encrypted"   => Multipart("encrypted", boundary)
-        case custom        => Multipart("custom", boundary)
+        case "mixed"       => multipart("mixed", boundary)
+        case "alternative" => multipart("alternative", boundary)
+        case "related"     => multipart("related", boundary)
+        case "form-data"   => multipart("form-data", boundary)
+        case "signed"      => multipart("signed", boundary)
+        case "encrypted"   => multipart("encrypted", boundary)
+        case custom        => multipart("custom", boundary)
       }
       case mainLower =>
         MediaType.lookupOrElse((mainLower, subType.toLowerCase), new MediaType(mainType, subType))
