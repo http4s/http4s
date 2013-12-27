@@ -47,7 +47,7 @@ object GZip extends Logging {
       //Header.`Accept-Encoding` req.prelude.headers
       val t = route(req)
       req.headers.get(`Accept-Encoding`).fold(t){ h =>
-        if (h.acceptsEncoding(ContentCoding.gzip) || h.acceptsEncoding(ContentCoding.`x-gzip`)) t.map { resp =>
+        if (h.satisfiedBy(ContentCoding.gzip) || h.satisfiedBy(ContentCoding.`x-gzip`)) t.map { resp =>
           // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
           val contentType = resp.headers.get(`Content-Type`)
           if (resp.headers.get(`Content-Encoding`).isEmpty &&

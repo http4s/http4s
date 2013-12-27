@@ -79,9 +79,11 @@ object Header {
   }
 
   object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey
-  final case class `Accept-Charset`(values: NonEmptyList[CharacterSetRange]) extends RecurringHeader {
+  final case class `Accept-Charset`(values: NonEmptyList[CharacterSet]) extends RecurringHeader {
     def key = `Accept-Charset`
-    type Value = CharacterSetRange
+    type Value = CharacterSet
+    def preferred: CharacterSet = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
+    def satisfiedBy(characterSet: CharacterSet) = values.list.find(_.satisfiedBy(characterSet)).isDefined
   }
 
   object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey
@@ -89,7 +91,7 @@ object Header {
     def key = `Accept-Encoding`
     type Value = ContentCodingRange
 
-    def acceptsEncoding(coding: ContentCoding): Boolean = {
+    def satisfiedBy(coding: ContentCoding): Boolean = {
       @tailrec
       def go(c: ContentCodingRange, rest: List[ContentCodingRange]): Boolean = {
         if (c.matches(coding)) true

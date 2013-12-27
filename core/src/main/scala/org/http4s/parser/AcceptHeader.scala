@@ -19,8 +19,10 @@ private[parser] trait AcceptHeader {
     def FullRange: Rule1[MediaRange] = rule {
       (MediaRangeDef ~ optional( QAndExtensions )) ~> {
         (mr: MediaRange, params: Option[(Float, Seq[(String, String)])]) =>
-          params.map{ case (q, extensions) => mr.withqextensions(q, extensions.toMap)}
-            .getOrElse(mr)
+          params.map{ case (q, extensions) =>
+            val m1 = if (q != 1.0f) mr.withQuality(q) else mr
+            if (extensions.isEmpty) m1 else m1.withExtensions(extensions.toMap)
+          }.getOrElse(mr)
       }
     }
 
@@ -30,16 +32,6 @@ private[parser] trait AcceptHeader {
 
     def AcceptParams: Rule1[(Float, Seq[(String, String)])] = rule {
       (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> ((_:Float,_:Seq[(String, String)]))
-    }
-
-
-
-    /* 3.9 Quality Values */
-
-    def QValue: Rule1[Float] = rule {
-      // more loose than the spec which only allows 1 to max. 3 digits/zeros
-      (capture(ch('0') ~ ch('.') ~ oneOrMore(Digit)) ~> (_.toFloat)) | (ch('1') ~
-        optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(1.0f)) ~ OptWS
     }
   }
 }

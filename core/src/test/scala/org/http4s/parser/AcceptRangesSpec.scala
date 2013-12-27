@@ -24,6 +24,11 @@ class AcceptRangesSpec  extends WordSpec with Matchers with HeaderParserHelper[`
       ranges.map(_.value) should equal (List("bytes", "none", "foo", "bytes, bar"))
     }
 
+//    "Do whitespace right" in {
+//      val value = " bytes"
+//      parse(value) should equal(`Accept-Ranges`.bytes)
+//    }
+
     "Parse correctly" in {
       ranges.foreach { r =>
         parse(r.value) should equal(r)

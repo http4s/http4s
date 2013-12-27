@@ -110,4 +110,12 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       throw new Exception("Invalid date: "+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec )
     }
   }
+
+  /* 3.9 Quality Values */
+
+  def QValue: Rule1[Float] = rule {
+    // more loose than the spec which only allows 1 to max. 3 digits/zeros
+    (capture(ch('0') ~ ch('.') ~ oneOrMore(Digit)) ~> (_.toFloat)) | (ch('1') ~
+      optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(1.0f)) ~ OptWS
+  }
 }

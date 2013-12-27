@@ -16,8 +16,8 @@ class ContentTypeHeaderSpec  extends WordSpec with Matchers with HeaderParserHel
 
   def simple = `Content-Type`(`text/html`)
   def charset = `Content-Type`(`text/html`, CharacterSet.`UTF-8`)
-  def extensions = `Content-Type`(`text/html`.withextensions(Map("foo" -> "bar")))
-  def extensionsandset = `Content-Type`(`text/html`.withextensions(Map("foo" -> "bar")), CharacterSet.`UTF-8`)
+  def extensions = `Content-Type`(`text/html`.withExtensions(Map("foo" -> "bar")))
+  def extensionsandset = `Content-Type`(`text/html`.withExtensions(Map("foo" -> "bar")), CharacterSet.`UTF-8`)
 
   "ContentType Header" should {
     "Generate the correct values" in {

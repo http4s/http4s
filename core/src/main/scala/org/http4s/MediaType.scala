@@ -6,7 +6,7 @@ import scala.annotation.tailrec
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Float = 1.0f,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends HttpValue[String] {
+                                        extends HttpValue[String] with QHelper {
 
   val value = mainType + "/*" + qvalue + extvalue
 
@@ -26,12 +26,13 @@ sealed class MediaRange private[http4s](val mainType: String,
   def isText        = mainType == "text"
   def isVideo       = mainType == "video"
 
-  def withq(q: Float): MediaRange =
+  def withQuality(q: Float): MediaRange = {
+    checkQuality(q)
     new MediaRange(mainType, q, Map.empty)
+  }
 
-  def withextensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
 
-  def withqextensions(q: Float, ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
+  def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
 
   override def toString = "MediaRange(" + value + qvalue + extvalue + ')'
 
@@ -49,7 +50,7 @@ sealed class MediaRange private[http4s](val mainType: String,
   @inline
   final def qualityMatches(that: MediaRange): Boolean = q >= that.q
 
-  final protected def qvalue: String = if (q != 1.0f) f"; q=$q%1.3f" else ""
+  final protected def qvalue: String = if (q != 1.0f) formatq(q) else ""
 
   protected def extvalue: String = {
     if (extensions.nonEmpty) {
@@ -102,13 +103,12 @@ sealed class MediaType(mainType: String,
 
   override val value = mainType + '/' + subType + qvalue + extvalue
 
-  override def withq(q: Float): MediaType =
+  override def withQuality(q: Float): MediaType = {
+    checkQuality(q)
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, Map.empty)
+  }
 
-  override def withextensions(ext: Map[String, String]): MediaType =
-    new MediaType(mainType, subType, compressible,binary, fileExtensions, q, ext)
-
-  override def withqextensions(q: Float, ext: Map[String, String]): MediaType =
+  override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, ext)
 
   final def satisfies(mediaType: MediaType) = mediaType.satisfiedBy(this)

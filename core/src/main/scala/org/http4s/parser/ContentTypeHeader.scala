@@ -26,7 +26,7 @@ private[parser] trait ContentTypeHeader {
           else ext += p
         })
 
-        `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withextensions(ext), charset)
+        `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
       }
     }
 
