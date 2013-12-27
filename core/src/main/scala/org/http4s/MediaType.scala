@@ -6,9 +6,9 @@ import scala.annotation.tailrec
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Float = 1.0f,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends HttpValue[String] with QHelper {
+                                        extends HttpValue[String] with QualityFactor {
 
-  val value = mainType + "/*" + qvalue + extvalue
+  val value = mainType + "/*" + qstring + extvalue
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean = {
@@ -34,7 +34,7 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
 
-  override def toString = "MediaRange(" + value + qvalue + extvalue + ')'
+  override def toString = "MediaRange(" + value + qstring + extvalue + ')'
 
   override def equals(obj: Any) = obj match {
     case _: MediaType => false
@@ -49,8 +49,6 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   @inline
   final def qualityMatches(that: MediaRange): Boolean = q >= that.q
-
-  final protected def qvalue: String = if (q != 1.0f) formatq(q) else ""
 
   protected def extvalue: String = {
     if (extensions.nonEmpty) {
@@ -101,7 +99,7 @@ sealed class MediaType(mainType: String,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override val value = mainType + '/' + subType + qvalue + extvalue
+  override val value = mainType + '/' + subType + qstring + extvalue
 
   override def withQuality(q: Float): MediaType = {
     checkQuality(q)

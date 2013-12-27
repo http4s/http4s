@@ -4,7 +4,8 @@ import java.nio.charset.Charset
 import scala.collection.JavaConverters._
 import org.http4s.util.CaseInsensitiveString
 
-sealed trait CharacterSet extends HttpValue[String] with QHelper {
+sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
+
   def name: CaseInsensitiveString
   def charset: Charset
   def q: Float
@@ -15,7 +16,7 @@ sealed trait CharacterSet extends HttpValue[String] with QHelper {
 
   def value: String = {
     if (q == 1.0f) name.toString
-    else name + formatq(q)
+    else name.toString + qstring
   }
 
   override def equals(that: Any): Boolean = that match {
@@ -77,12 +78,10 @@ object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
   val `UTF-16LE`     = register("UTF-16LE")
 
 
-
   // Charset are sorted by the quality value, from greatest to least
-  implicit def charactersetOrdering = new Ordering[CharacterSet] {
+  implicit def characterSetrOrdering = new Ordering[CharacterSet] {
     def compare(x: CharacterSet, y: CharacterSet): Int = {
-      val diff = y.q - x.q
-      (diff*1000).toInt       // Will ignore significance below the third decimal place
+      implicitly[Ordering[QualityFactor]].compare(x, y)
     }
   }
 }
