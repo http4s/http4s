@@ -8,7 +8,7 @@ import java.util.concurrent.ExecutorService
 
 import io.netty.channel.socket.SocketChannel
 import io.netty.handler.codec.http.HttpServerCodec
-import io.netty.handler.codec.spdy.SpdyFrameCodec
+import io.netty.handler.codec.spdy.{SpdyVersion, SpdyFrameCodec}
 import io.netty.handler.ssl.SslHandler
 import io.netty.handler.codec.ByteToMessageDecoder
 import io.netty.channel.ChannelHandlerContext
@@ -36,7 +36,7 @@ class NettySpdyChooser(service: HttpService)(implicit es: ExecutorService) exten
   private def insertSpdy(ctx: ChannelHandlerContext) {
     val p = ctx.pipeline()
     val ch = ctx.channel().asInstanceOf[SocketChannel]
-    p.addLast("spdyframecodec", new SpdyFrameCodec(3))    // TODO: Don't hard code SPDY version
+    p.addLast("spdyframecodec", new SpdyFrameCodec(SpdyVersion.SPDY_3_1))    // TODO: Don't hard code SPDY version
       .addLast("http4s", new NettySpdyServerHandler(
       service,
       ch.localAddress,
