@@ -15,7 +15,7 @@ object Http4sDependencies {
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
   lazy val junit               = "junit"                     % "junit"                   % "4.11"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
-  lazy val netty4              = "io.netty"                  % "netty-all"               % "4.0.13.Final"
+  lazy val netty4              = "io.netty"                  % "netty-all"               % "4.0.14.Final"
   lazy val npn_api             = "org.eclipse.jetty.npn"     % "npn-api"                 % npn_version
   lazy val npn_boot            = "org.mortbay.jetty.npn"     % "npn-boot"                % npn_version
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0-M1"
