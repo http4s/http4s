@@ -12,6 +12,8 @@ import java.net.InetAddress
  *         Created on 12/22/13
  */
 private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
+  
+  def EOL: Rule0 = rule { OptWS ~ EOI }  // Strip trailing whitespace
 
   def Digits: Rule1[String] = rule { capture(zeroOrMore( Digit )) }
 
@@ -19,9 +21,10 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Parameter: Rule1[(String,String)] = rule { Token ~ "=" ~ OptWS ~ Value ~> ((_: String, _: String)) }
 
-  def HttpDate: Rule1[DateTime] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) ~ OptWS }
+  def HttpDate: Rule1[DateTime] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) }
 
   def RFC1123Date: Rule1[DateTime] = rule {
+    // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
   Wkday ~ str(", ") ~ Date1 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
     (year: Int, hour: Int, min: Int, sec: Int) =>
             createDateTime(year, _:Int, _:Int, hour, min, sec, _:Int)
@@ -32,6 +35,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   }
 
   def RFC850Date: Rule1[DateTime] = rule {
+    // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
     Weekday ~ str(", ") ~ Date2 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
       (year: Int, hour: Int, min: Int, sec: Int) =>
         createDateTime(year, _:Int, _:Int, hour, min, sec, _:Int)
@@ -95,14 +99,12 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Digit4: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
 
-  def IpNumber = rule { Digit3 | Digit2 | Digit1 }
+  def Ip4Number = rule { Digit3 | Digit2 | Digit1 }
 
-  def Ip: Rule1[InetAddress] = rule (
-    IpNumber ~ ch('.') ~ IpNumber ~ ch('.') ~ IpNumber ~ ch('.') ~ IpNumber  ~ OptWS ~>
-      { (a:Int,b:Int,c:Int,d:Int) =>
-        InetAddress.getByAddress(Array(a.toByte, b.toByte, c.toByte, d.toByte))
-      }
-  )
+  def Ip: Rule1[InetAddress] = rule {
+    Ip4Number ~ ch('.') ~ Ip4Number ~ ch('.') ~ Ip4Number ~ ch('.') ~ Ip4Number  ~ OptWS ~>
+    { (a:Int,b:Int,c:Int,d:Int) => InetAddress.getByAddress(Array(a.toByte, b.toByte, c.toByte, d.toByte)) }
+  }
 
   private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int) = {
     Try(new DateTime(year, month, day, hour, min, sec, DateTimeZone.UTC)).getOrElse {
@@ -115,7 +117,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def QValue: Rule1[Float] = rule {
     // more loose than the spec which only allows 1 to max. 3 digits/zeros
-    (capture(ch('0') ~ ch('.') ~ oneOrMore(Digit)) ~> (_.toFloat)) | (ch('1') ~
-      optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(1.0f)) ~ OptWS
+    (capture(ch('0') ~ ch('.') ~ oneOrMore(Digit)) ~> (_.toFloat)) |
+    (ch('1') ~ optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(1.0f))
   }
 }

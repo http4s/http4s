@@ -10,7 +10,7 @@ private[parser] trait ContentTypeHeader {
 
   private class ContentTypeParser(input: ParserInput) extends Http4sHeaderParser[`Content-Type`](input) with MediaParser {
     def entry: _root_.org.parboiled2.Rule1[`Content-Type`] = rule {
-      (MediaRangeDef ~ optional(zeroOrMore(MediaTypeExtension))) ~> { (range: MediaRange, exts: Option[Seq[(String, String)]]) =>
+      (MediaRangeDef ~ optional(zeroOrMore(MediaTypeExtension)) ~ EOL) ~> { (range: MediaRange, exts: Option[Seq[(String, String)]]) =>
         val mediaType = range match {
           case m: MediaType => m
           case m =>

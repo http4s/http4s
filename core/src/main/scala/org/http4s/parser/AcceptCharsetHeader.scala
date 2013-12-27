@@ -11,7 +11,7 @@ private[parser] trait AcceptCharsetHeader {
 
   private class AcceptCharsetParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Charset`](input) {
     def entry: Rule1[`Accept-Charset`] = rule {
-      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOI ~> {xs: Seq[CharacterSet] =>
+      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> {xs: Seq[CharacterSet] =>
         Header.`Accept-Charset`(xs.head, xs.tail: _*)
       }
     }
