@@ -3,6 +3,7 @@ package org.http4s
 import java.nio.charset.Charset
 import scala.collection.JavaConverters._
 import org.http4s.util.CaseInsensitiveString
+import scala.util.hashing.MurmurHash3
 
 sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
 
@@ -23,6 +24,8 @@ sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
     case that: CharacterSet => that.name == this.name && that.q == this.q
     case _ => false
   }
+
+  final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, q.hashCode)
 }
 
 private class CharacterSetImpl(val name: CaseInsensitiveString, val q: Float = 1.0f)
