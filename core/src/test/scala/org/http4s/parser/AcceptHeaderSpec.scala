@@ -58,7 +58,7 @@ class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Ac
       val accept = Accept(`audio/*`, `video/*`)
       parse(accept.value) should equal(accept)
 
-      val accept2 = Accept(`audio/*`.withQuality(0.2f), `video/*`)
+      val accept2 = Accept(`audio/*`.withQuality(0.2), `video/*`)
       parse(accept2.value) should equal(accept2)
 
 
@@ -98,11 +98,10 @@ class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Ac
       }
     }
 
-    // TODO: Don't ignore q and extensions!
-    "Deal with q and extensions TODO: allow implementation of them!" in {
+    "Deal with q and extensions" in {
       val value = "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
       parse(value) should equal(Accept(
-        `text/*`.withQuality(0.3f),
+        `text/*`.withQuality(0.3),
         `text/html`.withQuality(0.7f),
         `text/html`.withExtensions(Map("level" -> "1"))
       ))

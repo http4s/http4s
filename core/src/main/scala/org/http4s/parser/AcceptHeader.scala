@@ -18,20 +18,20 @@ private[parser] trait AcceptHeader {
 
     def FullRange: Rule1[MediaRange] = rule {
       (MediaRangeDef ~ optional( QAndExtensions )) ~> {
-        (mr: MediaRange, params: Option[(Float, Seq[(String, String)])]) =>
+        (mr: MediaRange, params: Option[(Q, Seq[(String, String)])]) =>
           params.map{ case (q, extensions) =>
-            val m1 = if (q != 1.0f) mr.withQuality(q) else mr
+            val m1 = if (q.intValue != Q.MAX_VALUE) mr.withQuality(q) else mr
             if (extensions.isEmpty) m1 else m1.withExtensions(extensions.toMap)
           }.getOrElse(mr)
       }
     }
 
-    def QAndExtensions: Rule1[(Float, Seq[(String, String)])] = rule {
-      AcceptParams | (oneOrMore(MediaTypeExtension) ~> {s: Seq[(String, String)] => (1.0f, s) })
+    def QAndExtensions: Rule1[(Q, Seq[(String, String)])] = rule {
+      AcceptParams | (oneOrMore(MediaTypeExtension) ~> {s: Seq[(String, String)] => (Q.Unity, s) })
     }
 
-    def AcceptParams: Rule1[(Float, Seq[(String, String)])] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> ((_:Float,_:Seq[(String, String)]))
+    def AcceptParams: Rule1[(Q, Seq[(String, String)])] = rule {
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> ((_:Q,_:Seq[(String, String)]))
     }
   }
 }

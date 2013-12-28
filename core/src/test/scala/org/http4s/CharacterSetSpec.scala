@@ -37,8 +37,8 @@ class CharacterSetSpec extends WordSpec with Matchers {
     }
 
     "Be orderable" in {
-      val expected = List(`UTF-16BE`, `UTF-16`.withQuality(0.2f), `US-ASCII`.withQuality(0.1f))
-      val unordered = List(`UTF-16`.withQuality(0.2f), `US-ASCII`.withQuality(0.1f), `UTF-16BE`)
+      val expected = List(`UTF-16BE`, `UTF-16`.withQuality(0.2), `US-ASCII`.withQuality(0.1))
+      val unordered = List(`UTF-16`.withQuality(0.2), `US-ASCII`.withQuality(0.1), `UTF-16BE`)
 
       unordered.sorted should equal(expected)
     }
@@ -51,16 +51,16 @@ class CharacterSetSpec extends WordSpec with Matchers {
     }
 
     "not be satisfied if q=0.0" in {
-      `*` withQuality 0.0f satisfiedBy `UTF-8` should be (false)
-      `UTF-8` satisfies(`*` withQuality 0.0f) should be (false)
+      `*` withQuality 0.0 satisfiedBy `UTF-8` should be (false)
+      `UTF-8` satisfies(`*` withQuality 0.0) should be (false)
     }
   }
 
   "Not accept illegal q values" in {
-    an [IllegalArgumentException] should be thrownBy `*`.withQuality(2.0f)
-    an [IllegalArgumentException] should be thrownBy `*`.withQuality(-2.0f)
+    an [IllegalArgumentException] should be thrownBy `*`.withQuality(2.0)
+    an [IllegalArgumentException] should be thrownBy `*`.withQuality(-2.0)
 
-    an [IllegalArgumentException] should be thrownBy `UTF-8`.withQuality(2.0f)
-    an [IllegalArgumentException] should be thrownBy `UTF-8`.withQuality(-2.0f)
+    an [IllegalArgumentException] should be thrownBy `UTF-8`.withQuality(2.0)
+    an [IllegalArgumentException] should be thrownBy `UTF-8`.withQuality(-2.0)
   }
 }

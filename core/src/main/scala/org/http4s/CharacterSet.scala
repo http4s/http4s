@@ -7,18 +7,17 @@ import scala.util.hashing.MurmurHash3
 
 sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
 
+  type Repr = CharacterSet
+
   def name: CaseInsensitiveString
   def charset: Charset
-  def q: Float
+  def q: Q
   def satisfiedBy(characterSet: CharacterSet): Boolean
-  def withQuality(q: Float): CharacterSet
+  def withQuality(q: Q): CharacterSet
 
   final def satisfies(characterSet: CharacterSet): Boolean = characterSet.satisfiedBy(this)
 
-  def value: String = {
-    if (q == 1.0f) name.toString
-    else name.toString + qstring
-  }
+  def value: String = if (q.intValue == Q.MAX_VALUE) name.toString else name.toString + q.headerString
 
   override def equals(that: Any): Boolean = that match {
     case that: CharacterSet => that.name == this.name && that.q == this.q
@@ -28,20 +27,17 @@ sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
   final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, q.hashCode)
 }
 
-private class CharacterSetImpl(val name: CaseInsensitiveString, val q: Float = 1.0f)
+private class CharacterSetImpl(val name: CaseInsensitiveString, val q: Q = Q.Unity)
                                     extends CharacterSet {
 
   val charset: Charset = Charset.forName(name.toString)
 
   def satisfiedBy(characterSet: CharacterSet): Boolean = {
-    this.q != 0.0f  &&  // a q=0.0 means this charset is invalid
+    this.q.intValue != 0  &&  // a q=0.0 means this charset is invalid
     this.name == characterSet.name
   }
 
-  def withQuality(q: Float): CharacterSet = {
-    checkQuality(q)
-    new CharacterSetImpl(name, q)
-  }
+  def withQuality(q: Q): CharacterSet = new CharacterSetImpl(name, q)
 }
 
 object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
@@ -60,17 +56,14 @@ object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
     characterSet
   }
 
-  private class AnyCharset(val q: Float) extends CharacterSet {
+  private class AnyCharset(val q: Q) extends CharacterSet {
     def name: CaseInsensitiveString = "*".ci
-    def satisfiedBy(characterSet: CharacterSet): Boolean = q != 0.0f
+    def satisfiedBy(characterSet: CharacterSet): Boolean = q.intValue != 0
     def charset: Charset = Charset.defaultCharset() // Give the system default
-    override def withQuality(q: Float): CharacterSet = {
-      checkQuality(q)
-      new AnyCharset(q)
-    }
+    override def withQuality(q: Q): CharacterSet = new AnyCharset(q)
   }
 
-  val `*`: CharacterSet = new AnyCharset(1.0f)
+  val `*`: CharacterSet = new AnyCharset(Q.Unity)
 
   // These six are guaranteed to be on the Java platform. Others are your gamble.
   val `US-ASCII`     = register("US-ASCII")
@@ -84,7 +77,7 @@ object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
   // Charset are sorted by the quality value, from greatest to least
   implicit def characterSetrOrdering = new Ordering[CharacterSet] {
     def compare(x: CharacterSet, y: CharacterSet): Int = {
-      implicitly[Ordering[QualityFactor]].compare(x, y)
+      implicitly[Ordering[Q]].compare(y.q, x.q)
     }
   }
 }

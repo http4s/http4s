@@ -17,16 +17,15 @@ private[parser] trait AcceptCharsetHeader {
     }
 
     def CharsetRangeDecl: Rule1[CharacterSet] = rule {
-      ("*" ~ CharsetQuality) ~> { q => if (q != 1.0f) `*`.withQuality(q) else `*` } |
-        ((Token ~ CharsetQuality) ~> { (s: String, q: Float) =>
+      ("*" ~ CharsetQuality) ~> { q => if (q.intValue != Q.MAX_VALUE) `*`.withQuality(q) else `*` } |
+        ((Token ~ CharsetQuality) ~> { (s: String, q: Q) =>
         val c = CharacterSet.resolve(s)
-        if (q != 1.0f) c.withQuality(q)
-        else c
+        if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c
       })
     }
 
-    def CharsetQuality: Rule1[Float] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(1.0f)
+    def CharsetQuality: Rule1[Q] = rule {
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(Q.Unity)
     }
   }
 
