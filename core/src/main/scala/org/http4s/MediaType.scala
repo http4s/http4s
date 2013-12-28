@@ -9,8 +9,6 @@ sealed class MediaRange private[http4s](val mainType: String,
                                         val extensions: Map[String, String] = Map.empty)
                                         extends HttpValue[String] with QualityFactor {
 
-  type Repr = MediaRange
-
   val value = mainType + "/*" + q.headerString + extvalue
 
   /** Does that mediaRange satisfy this ranges requirements */
@@ -105,8 +103,6 @@ sealed class MediaType(mainType: String,
   override def withQuality(q: Q): MediaType = {
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, Map.empty)
   }
-
-  override def withQuality(q: Double): MediaType = withQuality(Q.fromDouble(q))
 
   override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, ext)

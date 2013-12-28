@@ -7,8 +7,6 @@ import scala.util.hashing.MurmurHash3
 
 sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
 
-  type Repr = CharacterSet
-
   def name: CaseInsensitiveString
   def charset: Charset
   def q: Q

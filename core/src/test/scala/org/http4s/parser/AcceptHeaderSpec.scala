@@ -102,7 +102,7 @@ class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Ac
       val value = "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
       parse(value) should equal(Accept(
         `text/*`.withQuality(0.3),
-        `text/html`.withQuality(0.7f),
+        `text/html`.withQuality(0.7),
         `text/html`.withExtensions(Map("level" -> "1"))
       ))
 

@@ -7,13 +7,9 @@ package org.http4s
 
 trait QualityFactor {
 
-  type Repr
-
   def q: Q
 
-  def withQuality(q: Q): Repr
-
-  def withQuality(q: Double): Repr = withQuality(Q.fromDouble(q))
+  def withQuality(q: Q): QualityFactor
 }
 
 final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] {
@@ -88,6 +84,8 @@ object Q {
   }
   
   implicit def toDouble(q: Q): Double = q.doubleValue
+
+  implicit def doubleToQ(d: Double): Q = Q.fromDouble(d)
 
   // Charset are sorted by the quality value, from greatest to least
   implicit def qfactorOrdering = new Ordering[Q] {
