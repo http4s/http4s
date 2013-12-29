@@ -39,36 +39,41 @@ object PushSupport extends Logging {
   private def locToRequest(push: PushLocation, req: Request): Request =
     req.withPathInfo(push.location)
 
-  private def collectResponse(r: Vector[PushLocation], req: Request, route: HttpService): Task[Vector[PushResponse]] =
+  private def collectResponse(r: Vector[PushLocation], req: Request, verify: String => Boolean, route: HttpService): Task[Vector[PushResponse]] =
     r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>
-      val newReq = locToRequest(v, req)
-      if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-        try route(newReq)
-          .flatMap { response =>                  // Inside the future result of this pushed resource
-            response.attributes.get(pushLocationKey)
-            .map { pushed =>
-              collectResponse(pushed, req, route)
-                .map(accumulated ++ _ :+ PushResponse(v.location, response))
-            }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
-          }
-        catch { case t: Throwable => handleException(t); facc }
-      } else {
-        try route(newReq)   // Need to make sure to catch exceptions
-          .flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
-        catch { case t: Throwable => handleException(t); facc }
+      if (verify(v.location)) {
+        val newReq = locToRequest(v, req)
+        if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
+          try route(newReq)
+            .flatMap { response =>                  // Inside the future result of this pushed resource
+              response.attributes.get(pushLocationKey)
+              .map { pushed =>
+                collectResponse(pushed, req, verify, route)
+                  .map(accumulated ++ _ :+ PushResponse(v.location, response))
+              }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
+            }
+          catch { case t: Throwable => handleException(t); facc }
+        } else {
+          try route(newReq)   // Need to make sure to catch exceptions
+            .flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
+          catch { case t: Throwable => handleException(t); facc }
+        }
       }
+
+      else facc
     }
   
 
   /** Transform the route such that requests will gather pushed resources
    *
    * @param route Route to transform
+   * @param verify method that determines if the location should be pushed
    * @return      Transformed route
    */
-  def apply(route: HttpService): HttpService = {
+  def apply(route: HttpService, verify: String => Boolean = _ => true): HttpService = {
     def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
       resp.attributes.get(pushLocationKey).map { fresource =>
-        val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, route)
+        val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, verify, route)
         resp.copy(
           body = resp.body,
           attributes = resp.attributes.put(pushResponsesKey, collected))

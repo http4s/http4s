@@ -19,6 +19,7 @@ import org.http4s.Response
 import org.http4s.netty.utils.SpdyStreamContext
 import scala.concurrent.{ExecutionContext, Future}
 import java.rmi.Remote
+import java.util.LinkedHashSet
 
 
 /**
@@ -43,7 +44,9 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
 
-  val service = PushSupport(srvc)
+  private val pushCounter = new SpdyPushCounter(100)
+
+  val service = PushSupport(srvc, pushCounter.shouldPush(_))
 
   protected def outWriteBodyChunk(streamid: Int, chunk: BodyChunk, flush: Boolean): Future[Channel] = {
     if (!ctx.channel().isOpen) {
