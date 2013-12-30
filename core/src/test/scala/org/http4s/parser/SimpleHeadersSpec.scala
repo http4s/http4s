@@ -28,6 +28,11 @@ class SimpleHeadersSpec extends WordSpec with Matchers {
       HttpParser.parseHeader(bad).isFailure should equal(true)
     }
 
+    "parse Content-Encoding" in {
+      val header = `Content-Encoding`(ContentCoding.`pack200-gzip`)
+      HttpParser.parseHeader(header.raw) should equal(Success(header))
+    }
+
     "parse Content-Disposition" in {
       val header = `Content-Disposition`("foo", Map("one" -> "two", "three" -> "four"))
       HttpParser.parseHeader(header.raw) should equal(Success(header))

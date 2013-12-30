@@ -20,7 +20,7 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
 //  with AcceptRangesHeader
   with AuthorizationHeader
   with CacheControlHeader
-  with ContentEncodingHeader
+//  with ContentEncodingHeader
 //  with ContentTypeHeader
   with CookieHeaders
 //  with SimpleHeaders

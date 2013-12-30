@@ -23,6 +23,10 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
     def entry = rule { Digits ~ EOL ~> {s: String => `Content-Length`(s.toInt)} }
   }.parse
 
+  def CONTENT_ENCODING(value: String) = new Http4sHeaderParser[`Content-Encoding`](value) {
+    def entry = rule { Token ~ EOL ~> {s: String => Header.`Content-Encoding`(ContentCoding.resolve(s))} }
+  }.parse
+
   def CONTENT_DISPOSITION(value: String) = new Http4sHeaderParser[`Content-Disposition`](value) {
     def entry = rule {
      Token ~ zeroOrMore(";" ~ OptWS ~ Parameter) ~ EOL ~> { (token:String, params: Seq[(String, String)]) =>

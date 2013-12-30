@@ -175,7 +175,7 @@ object Header {
   object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`] with SingletonHeaderKey
   final case class `Content-Encoding`(contentCoding: ContentCoding) extends ParsedHeader {
     def key = `Content-Encoding`
-    def value = contentCoding.value.toString
+    def value = contentCoding.value
   }
 
   object `Content-Language` extends DefaultHeaderKey
