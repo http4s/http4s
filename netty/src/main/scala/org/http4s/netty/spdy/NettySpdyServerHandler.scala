@@ -44,7 +44,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / SPDY")
 
-  private val pushCounter = new SpdyPushCounter(100)
+  private val pushCounter = new SpdyPushCounter(200)
 
   val service = PushSupport(srvc, pushCounter.shouldPush(_))
 
@@ -102,9 +102,14 @@ final class NettySpdyServerHandler(srvc: HttpService,
                                      s"with same id: ${replyStream.streamid}")
     }
 
+    val url = SpdyHeaders.getUrl(manager.spdyversion, req)
+
+    // Make sure we don't try and push this later
+    pushCounter.shouldPush(url)
+
     Request(
       requestMethod = Method.resolve(SpdyHeaders.getMethod(manager.spdyversion, req).name),
-      requestUri = RequestUri.fromString(SpdyHeaders.getUrl(manager.spdyversion, req)),
+      requestUri = RequestUri.fromString(url),
       protocol = getProtocol(req),
       headers = toHeaders(req.headers),
       body = replyStream.inboundProcess,
