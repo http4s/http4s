@@ -2,12 +2,22 @@ package org.http4s
 
 import org.http4s.util.CaseInsensitiveString
 
-sealed abstract class ContentCodingRange extends HttpValue[CaseInsensitiveString] {
-  def matches(encoding: ContentCoding): Boolean
-}
+final case class ContentCoding private (coding: CaseInsensitiveString, q: Q = Q.Unity) extends QualityFactor {
 
-sealed case class ContentCoding private (value: CaseInsensitiveString) extends ContentCodingRange {
-  def matches(encoding: ContentCoding) = this == encoding
+  def withQuality(q: Q): ContentCoding = copy(coding, q)
+  def satisfies(encoding: ContentCoding) = encoding.satisfiedBy(this)
+  def satisfiedBy(encoding: ContentCoding) = {
+    (this.coding.toString == "*" || this.coding == encoding.coding) &&
+    !(q.unacceptable || encoding.q.unacceptable)
+  }
+
+  def value: String = {
+    if (q.intValue == Q.MAX_VALUE) coding.toString
+    else coding.toString + q.headerString
+  }
+
+  // We want the normal case class generated methods except copy
+  private def copy(coding: CaseInsensitiveString = this.coding, q: Q = this.q) = new ContentCoding(coding, q)
 }
 
 object ContentCoding extends Resolvable[CaseInsensitiveString, ContentCoding] {
@@ -16,16 +26,13 @@ object ContentCoding extends Resolvable[CaseInsensitiveString, ContentCoding] {
   protected def fromKey(k: CaseInsensitiveString): ContentCoding = new ContentCoding(k)
 
   def register(encoding: ContentCoding): ContentCoding = {
-    register(encoding.value, encoding)
+    register(encoding.coding, encoding)
     encoding
   }
 
-  def register(value: String): ContentCoding = ContentCoding(value.ci)
+  def register(value: String): ContentCoding = register(ContentCoding(value.ci))
 
-  val `*`: ContentCodingRange = new ContentCodingRange {
-    def value = "*".ci
-    def matches(encoding: ContentCoding) = true
-  }
+  val `*`: ContentCoding = register("*")
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-1
   val compress       = register("compress")

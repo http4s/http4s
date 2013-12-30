@@ -18,6 +18,8 @@ final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] {
 
   def stringValue: String = formatq(new StringBuilder(5)).result()
 
+  def unacceptable: Boolean = intValue == Q.MIN_VALUE
+
   def headerString: String =  {
     if (intValue != 1000) formatq(new StringBuilder(10).append("; q=")).result()
     else ""

@@ -74,7 +74,7 @@ object Header {
     override def value = {
       val b = new StringBuilder
       b.append(values.head.value)
-      values.tail.foldLeft(b){ (b, v) => b.append(s", ${v.value}")}.result()
+      values.tail.foldLeft(b){ (b, v) => b.append(s", "); b.append(v.value)}.result()
     }
   }
 
@@ -84,21 +84,23 @@ object Header {
     type Value = CharacterSet
     def preferred: CharacterSet = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
     def satisfiedBy(characterSet: CharacterSet) = values.list.find(_.satisfiedBy(characterSet)).isDefined
+    override def value = {
+      val b = new StringBuilder
+      b.append(values.head.value)
+      values.tail.foldLeft(b){ (b, v) => b.append(s", "); b.append(v.value)}.result()
+    }
   }
 
   object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey
-  final case class `Accept-Encoding`(values: NonEmptyList[ContentCodingRange]) extends RecurringHeader {
+  final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) extends RecurringHeader {
     def key = `Accept-Encoding`
-    type Value = ContentCodingRange
-
-    def satisfiedBy(coding: ContentCoding): Boolean = {
-      @tailrec
-      def go(c: ContentCodingRange, rest: List[ContentCodingRange]): Boolean = {
-        if (c.matches(coding)) true
-        else if (rest.isEmpty) false
-        else go(rest.head, rest.tail)
-      }
-      go(values.head, values.tail)
+    type Value = ContentCoding
+    def preferred: ContentCoding = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
+    def satisfiedBy(coding: ContentCoding): Boolean = values.list.find(_.satisfiedBy(coding)).isDefined
+    override def value = {
+      val b = new StringBuilder
+      b.append(values.head.value)
+      values.tail.foldLeft(b){ (b, v) => b.append(s", "); b.append(v.value)}.result()
     }
   }
 

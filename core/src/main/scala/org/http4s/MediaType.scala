@@ -37,8 +37,8 @@ sealed class MediaRange private[http4s](val mainType: String,
     case _: MediaType => false
     case x: MediaRange =>
       (this eq x) ||
-      mainType == x.mainType    &&
-      q == x.q                  &&
+      mainType == x.mainType      &&
+      q == x.q                    &&
       extensions == x.extensions
     case _ =>
       false
@@ -47,7 +47,9 @@ sealed class MediaRange private[http4s](val mainType: String,
   override def hashCode(): Int = value.##
 
   @inline
-  final def qualityMatches(that: MediaRange): Boolean = q.intValue <= that.q.intValue
+  final def qualityMatches(that: MediaRange): Boolean = {
+    q.intValue <= that.q.intValue && !(q.unacceptable || that.q.unacceptable)
+  }
 
   protected def extvalue: String = {
     if (extensions.nonEmpty) {

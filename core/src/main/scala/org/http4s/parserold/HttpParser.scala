@@ -14,7 +14,7 @@ import org.http4s.Header.`Content-Type`
  */
 object HttpParser extends Http4sParser with ProtocolParameterRules with AdditionalRules with CommonActions
 //  with AcceptCharsetHeader
-  with AcceptEncodingHeader
+//  with AcceptEncodingHeader
 //  with AcceptHeader
   with AcceptLanguageHeader
 //  with AcceptRangesHeader

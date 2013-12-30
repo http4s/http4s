@@ -31,8 +31,8 @@ private class CharacterSetImpl(val name: CaseInsensitiveString, val q: Q = Q.Uni
   val charset: Charset = Charset.forName(name.toString)
 
   def satisfiedBy(characterSet: CharacterSet): Boolean = {
-    this.q.intValue != 0  &&  // a q=0.0 means this charset is invalid
-    this.name == characterSet.name
+    this.name == characterSet.name  &&
+    !(q.unacceptable || characterSet.q.unacceptable)
   }
 
   def withQuality(q: Q): CharacterSet = new CharacterSetImpl(name, q)
@@ -55,8 +55,8 @@ object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
   }
 
   private class AnyCharset(val q: Q) extends CharacterSet {
-    def name: CaseInsensitiveString = "*".ci
-    def satisfiedBy(characterSet: CharacterSet): Boolean = q.intValue != 0
+    val name: CaseInsensitiveString = "*".ci
+    def satisfiedBy(characterSet: CharacterSet): Boolean = !(q.unacceptable || characterSet.q.unacceptable)
     def charset: Charset = Charset.defaultCharset() // Give the system default
     override def withQuality(q: Q): CharacterSet = new AnyCharset(q)
   }
