@@ -13,7 +13,7 @@ import org.http4s.Header.`Content-Type`
  *  [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html]]
  */
 object HttpParser extends Http4sParser with ProtocolParameterRules with AdditionalRules with CommonActions
-  with AcceptCharsetHeader
+//  with AcceptCharsetHeader
   with AcceptEncodingHeader
 //  with AcceptHeader
   with AcceptLanguageHeader

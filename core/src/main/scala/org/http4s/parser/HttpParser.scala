@@ -17,7 +17,8 @@ object HttpParser extends HttpParser
 trait HttpParser extends SimpleHeaders
                     with AcceptHeader
                     with ContentTypeHeader
-                    with AcceptRangesHeader {
+                    with AcceptRangesHeader
+                    with AcceptCharsetHeader {
 
   type HeaderValidation = Validation[ParseErrorInfo, Header]
 

@@ -19,6 +19,7 @@ class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Ac
 
   def ext = Map("foo" -> "bar", "baz" -> "whatever")
 
+
   "Accept-Header parser" should {
 
     "Parse all registered MediaRanges" in {
@@ -57,7 +58,7 @@ class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Ac
       val accept = Accept(`audio/*`, `video/*`)
       parse(accept.value) should equal(accept)
 
-      val accept2 = Accept(`audio/*`.withq(0.2f), `video/*`)
+      val accept2 = Accept(`audio/*`.withQuality(0.2), `video/*`)
       parse(accept2.value) should equal(accept2)
 
 
@@ -75,7 +76,7 @@ class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Ac
       {
         val ranges = MediaRange.snapshot.values.toArray
         0 until (ranges.length-1) foreach { i =>
-          val subrange = ranges.slice(i, i + 4).map(_.withqextensions(0.2f, ext))
+          val subrange = ranges.slice(i, i + 4).map(_.withQuality(0.2f).withExtensions(ext))
           val h = Accept(subrange.head, subrange.tail:_*)
           parse(h.value) should equal(h)
         }
@@ -97,19 +98,18 @@ class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Ac
       }
     }
 
-    // TODO: Don't ignore q and extensions!
-    "Deal with q and extensions TODO: allow implementation of them!" in {
+    "Deal with q and extensions" in {
       val value = "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
       parse(value) should equal(Accept(
-        `text/*`.withq(0.3f),
-        `text/html`.withq(0.7f),
-        `text/html`.withextensions(Map("level" -> "1"))
+        `text/*`.withQuality(0.3),
+        `text/html`.withQuality(0.7),
+        `text/html`.withExtensions(Map("level" -> "1"))
       ))
 
       // Go through all of them
       val ranges = MediaType.snapshot.values.toArray
       0 until (ranges.length-1) foreach { i =>
-        val subrange = ranges.slice(i, i + 4).map(_.withqextensions(0.2f, ext))
+        val subrange = ranges.slice(i, i + 4).map(_.withQuality(0.2f).withExtensions(ext))
         val h = Accept(subrange.head, subrange.tail:_*)
         parse(h.value) should equal(h)
       }

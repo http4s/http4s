@@ -12,34 +12,26 @@ private[parser] trait AcceptHeader {
   private class AcceptParser(value: String) extends Http4sHeaderParser[Accept](value) with MediaParser {
 
     def entry: Rule1[Header.Accept] = rule {
-      oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOI ~> { xs: Seq[MediaRange] =>
+      oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { xs: Seq[MediaRange] =>
         Header.Accept(xs.head, xs.tail: _*)}
     }
 
     def FullRange: Rule1[MediaRange] = rule {
       (MediaRangeDef ~ optional( QAndExtensions )) ~> {
-        (mr: MediaRange, params: Option[(Float, Seq[(String, String)])]) =>
-          params.map{ case (q, extensions) => mr.withqextensions(q, extensions.toMap)}
-            .getOrElse(mr)
+        (mr: MediaRange, params: Option[(Q, Seq[(String, String)])]) =>
+          params.map{ case (q, extensions) =>
+            val m1 = if (q.intValue != Q.MAX_VALUE) mr.withQuality(q) else mr
+            if (extensions.isEmpty) m1 else m1.withExtensions(extensions.toMap)
+          }.getOrElse(mr)
       }
     }
 
-    def QAndExtensions: Rule1[(Float, Seq[(String, String)])] = rule {
-      AcceptParams | (oneOrMore(MediaTypeExtension) ~> {s: Seq[(String, String)] => (1.0f, s) })
+    def QAndExtensions: Rule1[(Q, Seq[(String, String)])] = rule {
+      AcceptParams | (oneOrMore(MediaTypeExtension) ~> {s: Seq[(String, String)] => (Q.Unity, s) })
     }
 
-    def AcceptParams: Rule1[(Float, Seq[(String, String)])] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> ((_:Float,_:Seq[(String, String)]))
-    }
-
-
-
-    /* 3.9 Quality Values */
-
-    def QValue: Rule1[Float] = rule {
-      // more loose than the spec which only allows 1 to max. 3 digits/zeros
-      (capture(ch('0') ~ ch('.') ~ oneOrMore(Digit)) ~> (_.toFloat)) | (ch('1') ~
-        optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(1.0f)) ~ OptWS
+    def AcceptParams: Rule1[(Q, Seq[(String, String)])] = rule {
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue ~ zeroOrMore(MediaTypeExtension)) ~> ((_:Q,_:Seq[(String, String)]))
     }
   }
 }

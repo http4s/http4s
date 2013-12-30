@@ -11,7 +11,7 @@ private[parser] trait AcceptRangesHeader {
   private class AcceptRangesParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Ranges`](input) {
 
     def entry: Rule1[`Accept-Ranges`] = rule {
-      RangeUnitsDef ~ EOI ~> (Header.`Accept-Ranges`(_: Seq[RangeUnit]))
+      RangeUnitsDef ~ EOL ~> (Header.`Accept-Ranges`(_: Seq[RangeUnit]))
     }
 
     def RangeUnitsDef: Rule1[Seq[RangeUnit]] = rule {

@@ -2,13 +2,14 @@ package org.http4s
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
+import scala.util.hashing.MurmurHash3
 
 sealed class MediaRange private[http4s](val mainType: String,
-                                        val q: Float = 1.0f,
+                                        val q: Q = Q.Unity,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends HttpValue[String] {
+                                        extends HttpValue[String] with QualityFactor {
 
-  val value = mainType + "/*" + qvalue + extvalue
+  val value = mainType + "/*" + q.headerString + extvalue
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean = {
@@ -26,14 +27,11 @@ sealed class MediaRange private[http4s](val mainType: String,
   def isText        = mainType == "text"
   def isVideo       = mainType == "video"
 
-  def withq(q: Float): MediaRange =
-    new MediaRange(mainType, q, Map.empty)
+  def withQuality(q: Q): MediaRange = new MediaRange(mainType, q, Map.empty)
 
-  def withextensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
+  def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
 
-  def withqextensions(q: Float, ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
-
-  override def toString = "MediaRange(" + value + qvalue + extvalue + ')'
+  override def toString = "MediaRange(" + value + extvalue + ')'
 
   override def equals(obj: Any) = obj match {
     case _: MediaType => false
@@ -46,10 +44,10 @@ sealed class MediaRange private[http4s](val mainType: String,
       false
   }
 
-  @inline
-  final def qualityMatches(that: MediaRange): Boolean = q >= that.q
+  override def hashCode(): Int = value.##
 
-  final protected def qvalue: String = if (q != 1.0f) f"; q=$q%1.3f" else ""
+  @inline
+  final def qualityMatches(that: MediaRange): Boolean = q.intValue <= that.q.intValue
 
   protected def extvalue: String = {
     if (extensions.nonEmpty) {
@@ -96,19 +94,17 @@ sealed class MediaType(mainType: String,
                        val compressible: Boolean = false,
                        val binary: Boolean = false,
                        val fileExtensions: Seq[String] = Nil,
-                       q: Float = 1.0f,
+                       q: Q = Q.Unity,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override val value = mainType + '/' + subType + qvalue + extvalue
+  override val value = mainType + '/' + subType + q.headerString + extvalue
 
-  override def withq(q: Float): MediaType =
+  override def withQuality(q: Q): MediaType = {
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, Map.empty)
+  }
 
-  override def withextensions(ext: Map[String, String]): MediaType =
-    new MediaType(mainType, subType, compressible,binary, fileExtensions, q, ext)
-
-  override def withqextensions(q: Float, ext: Map[String, String]): MediaType =
+  override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, ext)
 
   final def satisfies(mediaType: MediaType) = mediaType.satisfiedBy(this)
@@ -124,9 +120,9 @@ sealed class MediaType(mainType: String,
 
   override def equals(obj: Any) = obj match {
     case x: MediaType => (this eq x) ||
-                          mainType == x.mainType    &&
-                          subType == x.subType      &&
-                          q == x.q                  &&
+                          mainType == x.mainType      &&
+                          subType == x.subType        &&
+                          q.intValue == x.q.intValue  &&
                           extensions == x.extensions
     case _ => false
   }
