@@ -15,7 +15,6 @@ final case class ContentCoding private (coding: CaseInsensitiveString, q: Q = Q.
   def render(builder: StringBuilder): StringBuilder = {
     builder.append(coding.toString)
     q.render(builder)
-    builder
   }
 
   // We want the normal case class generated methods except copy

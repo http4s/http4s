@@ -112,14 +112,6 @@ case class Cookie(
   extension: Option[String] = None
 ) extends Renderable {
 
-//  def value: String = name + "=\"" + content + '"' +
-//                      expires.map("; Expires=" + _.formatRfc1123).getOrElse("") +
-//                      maxAge.map("; Max-Age=" + _).getOrElse("") +
-//                      domain.map("; Domain=" + _).getOrElse("") +
-//                      path.map("; Path=" + _).getOrElse("") +
-//                      (if (secure) "; Secure" else "") +
-//                      (if (httpOnly) "; HttpOnly" else "") +
-//                      extension.map("; " + _).getOrElse("")
   override lazy val value: String = super.value
 
   def render(builder: StringBuilder): StringBuilder = {

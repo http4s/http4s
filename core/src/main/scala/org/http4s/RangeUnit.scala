@@ -1,5 +1,7 @@
 package org.http4s
 
+import org.http4s.util.Renderable
+
 /*
  * Copyright (C) 2011-2012 spray.io
  * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
@@ -17,21 +19,22 @@ package org.http4s
  * limitations under the License.
  */
 
-sealed abstract class RangeUnit extends HttpValue[String] {
+sealed abstract class RangeUnit extends HttpValue[String] with Renderable {
   def value: String
   override def toString = value
+  def render(builder: StringBuilder): StringBuilder = builder.append(value)
 }
 
 object RangeUnit {
 
   val bytes = new RangeUnit {
-    def value = "bytes"
+    override def value = "bytes"
   }
 
   val none = new RangeUnit {
-    def value = "none"
+    override def value = "none"
   }
 
-  case class CustomRangeUnit(value: String) extends RangeUnit
+  case class CustomRangeUnit(override val value: String) extends RangeUnit
 }
 

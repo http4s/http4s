@@ -7,7 +7,7 @@ case class Challenge(scheme: String, realm: String, params: Map[String, String] 
 
   def render(builder: StringBuilder): StringBuilder = {
     builder.append(scheme).append(' ')
-    addPair(builder, "realm", realm)
+    builder.append("realm").append("=\"").append(realm).append('"')
     params.foreach{ case (k, v) => addPair(builder, k, v )}
     builder
   }

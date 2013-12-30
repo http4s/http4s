@@ -116,7 +116,7 @@ object Header {
     def key = `Accept-Ranges`
     def render(builder: StringBuilder): StringBuilder = {
       if (rangeUnits.isEmpty) builder.append("none")
-      else rangeUnits.addString(builder, ", ")
+      else rangeUnits.addString(builder, ", ")    // simpler trying to call render methods on each
     }
   }
 
@@ -145,7 +145,7 @@ object Header {
   object Authorization extends InternalHeaderKey[Authorization] with SingletonHeaderKey
   final case class Authorization(credentials: Credentials) extends ParsedHeader {
     def key = `Authorization`
-    def render(builder: StringBuilder) = builder.append(credentials.value)
+    def render(builder: StringBuilder) = credentials.render(builder)
   }
 
   object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey
@@ -214,7 +214,7 @@ object Header {
     def key = `Content-Type`
     def render(builder: StringBuilder): StringBuilder =  definedCharset match {
       case Some(cs) => cs.render(mediaType.render(builder).append("; charset="))
-      case _ => mediaType.render(builder)
+      case _        => mediaType.render(builder)
     }
 
     def withMediaType(mediaType: MediaType) =
@@ -249,7 +249,7 @@ object Header {
   }
 
   object ETag extends InternalHeaderKey[ETag] with SingletonHeaderKey
-  case class ETag(tag: String) extends ParsedHeader {
+  final case class ETag(tag: String) extends ParsedHeader {
     def key: HeaderKey = ETag
     override def value: String = tag
     def render(builder: StringBuilder) = builder.append(tag)
@@ -266,7 +266,7 @@ object Header {
   object Host extends InternalHeaderKey[Host] with SingletonHeaderKey {
     def apply(host: String, port: Int): Host = apply(host, Some(port))
   }
-  final case class Host (host: String, port: Option[Int] = None) extends ParsedHeader {
+  final case class Host(host: String, port: Option[Int] = None) extends ParsedHeader {
     def key = `Host`
     def render(builder: StringBuilder): StringBuilder = {
       builder.append(host)
@@ -349,8 +349,6 @@ object Header {
     def key = `Set-Cookie`
     def render(builder: StringBuilder): StringBuilder = cookie.render(builder)
   }
-
-  object `Set-Cookie2` extends DefaultHeaderKey
 
   object `TE` extends DefaultHeaderKey
 
