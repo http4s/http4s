@@ -1,8 +1,9 @@
 package org.http4s
 
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.util.{Renderable, CaseInsensitiveString}
 
-final case class ContentCoding private (coding: CaseInsensitiveString, q: Q = Q.Unity) extends QualityFactor {
+final case class ContentCoding private (coding: CaseInsensitiveString, q: Q = Q.Unity)
+                  extends QualityFactor with Renderable {
 
   def withQuality(q: Q): ContentCoding = copy(coding, q)
   def satisfies(encoding: ContentCoding) = encoding.satisfiedBy(this)
@@ -11,9 +12,10 @@ final case class ContentCoding private (coding: CaseInsensitiveString, q: Q = Q.
     !(q.unacceptable || encoding.q.unacceptable)
   }
 
-  def value: String = {
-    if (q.intValue == Q.MAX_VALUE) coding.toString
-    else coding.toString + q.headerString
+  def render(builder: StringBuilder): StringBuilder = {
+    builder.append(coding.toString)
+    q.render(builder)
+    builder
   }
 
   // We want the normal case class generated methods except copy

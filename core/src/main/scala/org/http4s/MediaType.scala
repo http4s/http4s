@@ -3,13 +3,19 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
+import org.http4s.util.Renderable
 
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Q = Q.Unity,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends HttpValue[String] with QualityFactor {
+                                        extends HttpValue[String] with QualityFactor with Renderable {
 
-  val value = mainType + "/*" + q.headerString + extvalue
+  def render(builder: StringBuilder): StringBuilder = {
+    builder.append(mainType).append("/*")
+    q.render(builder)
+    renderExtensions(builder)
+    builder
+  }
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean = {
@@ -31,7 +37,7 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
 
-  override def toString = "MediaRange(" + value + extvalue + ')'
+  override def toString = "MediaRange(" + value + ')'
 
   override def equals(obj: Any) = obj match {
     case _: MediaType => false
@@ -51,16 +57,12 @@ sealed class MediaRange private[http4s](val mainType: String,
     q.intValue <= that.q.intValue && !(q.unacceptable || that.q.unacceptable)
   }
 
-  protected def extvalue: String = {
-    if (extensions.nonEmpty) {
-      val b = new StringBuilder
-      extensions.foreach{ case (k,v) =>
-        // TODO: Determine if we need quotes or not in a more robust manner
-        if (v.contains(" ")) b.append(String.format("; %s=\"%s\"", k,v))
-        else b.append(s"; $k=$v")
-      }
-      b.result()
-    } else ""
+  protected def renderExtensions(sb: StringBuilder): Unit = if (extensions.nonEmpty) {
+    extensions.foreach{ case (k,v) =>
+      // TODO: Determine if we need quotes or not in a more robust manner
+      if (v.contains(" ")) sb.append(String.format("; %s=\"%s\"", k,v))
+      else sb.append(s"; $k=$v")
+    }
   }
 }
 
@@ -100,7 +102,12 @@ sealed class MediaType(mainType: String,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override val value = mainType + '/' + subType + q.headerString + extvalue
+  override def render(builder: StringBuilder): StringBuilder = {
+    builder.append(mainType).append('/').append(subType)
+    q.render(builder)
+    renderExtensions(builder)
+    builder
+  }
 
   override def withQuality(q: Q): MediaType = {
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, Map.empty)

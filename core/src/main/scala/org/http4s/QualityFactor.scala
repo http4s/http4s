@@ -1,5 +1,7 @@
 package org.http4s
 
+import org.http4s.util.Renderable
+
 /**
  * @author Bryce Anderson
  *         Created on 12/26/13
@@ -12,7 +14,7 @@ trait QualityFactor {
   def withQuality(q: Q): QualityFactor
 }
 
-final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] {
+final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] with Renderable {
 
   def doubleValue: Double = 0.001*(intValue.toDouble)
 
@@ -21,11 +23,19 @@ final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] {
   def unacceptable: Boolean = intValue == Q.MIN_VALUE
 
   def headerString: String =  {
-    if (intValue != 1000) formatq(new StringBuilder(10).append("; q=")).result()
+    if (intValue != Q.MAX_VALUE) formatq(new StringBuilder(10).append("; q=")).result()
     else ""
   }
 
   def compare(x: Q, y: Q): Int = Q.compare(x, y)
+
+  def render(builder: StringBuilder): StringBuilder = {
+    if (intValue == Q.MAX_VALUE) builder
+    else {
+      builder.append("; q=")
+      formatq(builder)
+    }
+  }
 
   // Assumes that q is in the proper bounds, otherwise you get an exception!
   private def formatq(b: StringBuilder): StringBuilder = {
@@ -66,7 +76,7 @@ object Q {
   def fromInt(i: Int): Q = { checkBounds((i)); Q(i) }
 
   //the 0.0005 is to round up else  0.7f -> 699
-  def fromDouble(d: Double): Q = fromInt((1000*d + 0.0005).toInt)
+  def fromDouble(d: Double): Q = fromInt((Q.MAX_VALUE*d + 0.0005).toInt)
   
   def fromString(s: String): Q = fromDouble(java.lang.Double.parseDouble(s))
 

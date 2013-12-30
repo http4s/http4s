@@ -3,6 +3,7 @@ package org.http4s
 import collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
 import org.joda.time.DateTime
+import org.http4s.util.Renderable
 
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)
@@ -109,15 +110,29 @@ case class Cookie(
   secure: Boolean = false,
   httpOnly: Boolean = false,
   extension: Option[String] = None
-) {
-  def value: String = name + "=\"" + content + '"' +
-                      expires.map("; Expires=" + _.formatRfc1123).getOrElse("") +
-                      maxAge.map("; Max-Age=" + _).getOrElse("") +
-                      domain.map("; Domain=" + _).getOrElse("") +
-                      path.map("; Path=" + _).getOrElse("") +
-                      (if (secure) "; Secure" else "") +
-                      (if (httpOnly) "; HttpOnly" else "") +
-                      extension.map("; " + _).getOrElse("")
+) extends Renderable {
+
+//  def value: String = name + "=\"" + content + '"' +
+//                      expires.map("; Expires=" + _.formatRfc1123).getOrElse("") +
+//                      maxAge.map("; Max-Age=" + _).getOrElse("") +
+//                      domain.map("; Domain=" + _).getOrElse("") +
+//                      path.map("; Path=" + _).getOrElse("") +
+//                      (if (secure) "; Secure" else "") +
+//                      (if (httpOnly) "; HttpOnly" else "") +
+//                      extension.map("; " + _).getOrElse("")
+  override lazy val value: String = super.value
+
+  def render(builder: StringBuilder): StringBuilder = {
+    builder.append(name).append("=\"").append(content).append('"')
+    expires.foreach{ e => builder.append("; Expires=").append(e.formatRfc1123) }
+    maxAge.foreach(builder.append("; Max-Age=").append(_))
+    domain.foreach(builder.append("; Domain=").append(_))
+    path.foreach(builder.append("; Path=").append(_))
+    if (secure) builder.append("; Secure")
+    if (httpOnly) builder.append("; HttpOnly")
+    extension.foreach(builder.append("; ").append(_))
+    builder
+  }
 
   override def toString = value
 }
