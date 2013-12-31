@@ -52,6 +52,8 @@ class NettyHttpHandler(val service: HttpService,
 
   val serverSoftware = ServerSoftware("HTTP4S / Netty / HTTP")
 
+  lazy val isSSL = ctx.pipeline().get(classOf[SslHandler]) != null
+
   private val requestQueue = new AtomicReference[ReqState](Idle)
 
   def onHttpMessage(ctx: ChannelHandlerContext, msg: AnyRef): Unit = msg match {
@@ -184,7 +186,7 @@ class NettyHttpHandler(val service: HttpService,
   // Write the body, and send files zero-copy so long as they haven't been encoded
   private def writeBody(response: Response): Task[Unit] = {
     val f = response.attributes.get(StaticFile.staticFileKey)
-    if (f.isDefined && response.headers.get(`Content-Encoding`).isEmpty) {
+    if (f.isDefined && response.headers.get(`Content-Encoding`).isEmpty && !isSSL) {
       val file = f.get
       val ch = FileChannel.open(file.toPath)//, StandardOpenOption.READ)
       val region = new DefaultFileRegion(ch, 0, file.length())
@@ -209,11 +211,8 @@ class NettyHttpHandler(val service: HttpService,
   override def toRequest(ctx: ChannelHandlerContext, reqpair: (ChunkHandler, HttpRequest)): Request = {
 
     val req = reqpair._2
-
-    val scheme = if (ctx.pipeline.get(classOf[SslHandler]) != null) "http" else "https"
     logger.trace("Received request: " + req.getUri)
 
-    val servAddr = localAddress
     Request(
       requestMethod = Method.resolve(req.getMethod.name),
       requestUri = RequestUri.fromString(req.getUri),
