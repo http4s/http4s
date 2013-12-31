@@ -86,28 +86,11 @@ object StaticFile extends Logging {
             return Some(Response(NotModified))
           }
 
-        case _ =>  // Cant tell. Just send it
+        case _ =>  // Just send it
       }
     }
 
     val lastmodified = `Last-Modified`(new DateTime(lastModified))
-
-    // See if we need to actually resend the file
-//    if (req.isDefined) {
-//      req.get.headers.get(`If-None-Match`) match {
-//        case Some(h) =>
-//          val mod = f.lastModified()
-//          val valid = h.tag == mod.toString
-//          logger.error(s"Valid: $valid. Request Tag: ${h.tag} mod: $mod")
-//          if (valid) {
-//            logger.trace("Cached version still valid. Sending 304 Not-Modified")
-//            return Some(Response(NotModified))
-//          }
-//        case _ =>  // Old version. Need to update.
-//      }
-//    }
-//
-//    val etag = ETag(f.lastModified().toString)
 
     val mimeheader = Option(Files.probeContentType(f.toPath)).flatMap { mime =>
       val parts = mime.split('/')

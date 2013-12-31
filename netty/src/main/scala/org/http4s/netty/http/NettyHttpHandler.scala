@@ -22,6 +22,11 @@ import org.http4s.netty.utils.ChunkHandler
 import org.http4s.netty.{ProcessWriter, NettySupport}
 import org.http4s.TrailerChunk
 import org.http4s.Response
+import org.http4s.util.StaticFile
+import java.nio.channels.FileChannel
+import java.nio.file.StandardOpenOption
+import scalaz.{-\/, \/-}
+import org.http4s.Header.`Content-Encoding`
 
 
 /**
@@ -80,11 +85,11 @@ class NettyHttpHandler(val service: HttpService,
 
     case chunk: HttpContent =>
       logger.trace("Netty content received.")
-    
-      if (manager == null) invalidState("HttpChunk: ChannelManager is null") 
-    
+
+      if (manager == null) invalidState("HttpChunk: ChannelManager is null")
+
       manager.enque(buffToBodyChunk(chunk.content))
-      
+
 
     case msg =>
       ReferenceCountUtil.retain(msg)   // Done know what it is, fire upstream
@@ -122,7 +127,7 @@ class NettyHttpHandler(val service: HttpService,
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext,
-                                        reqpair: (ChunkHandler,HttpRequest),
+                                        reqpair: (ChunkHandler, HttpRequest),
                                         response: Response): Task[Unit] = {
 
     logger.trace("NettyHttpHandler Rendering response.")
@@ -157,7 +162,7 @@ class NettyHttpHandler(val service: HttpService,
     if (length.isEmpty) ctx.writeAndFlush(msg)
     else ctx.write(msg)
 
-    writeProcess(response.body).map { _ =>
+    writeBody(response).map { _ =>
       val next = requestQueue.getAndSet(Idle)
       if (closeOnFinish) {
         if (next.isInstanceOf[Pending])
@@ -174,6 +179,31 @@ class NettyHttpHandler(val service: HttpService,
         }
       }
     }
+  }
+
+  // Write the body, and send files zero-copy so long as they haven't been encoded
+  private def writeBody(response: Response): Task[Unit] = {
+    val f = response.attributes.get(StaticFile.staticFileKey)
+    if (f.isDefined && response.headers.get(`Content-Encoding`).isEmpty) {
+      val file = f.get
+      val ch = FileChannel.open(file.toPath)//, StandardOpenOption.READ)
+      val region = new DefaultFileRegion(ch, 0, file.length())
+      ctx.write(region)
+      val p = ctx.writeAndFlush(new DefaultLastHttpContent())
+
+      Task.async(cb => {
+        if (p.isSuccess) cb(\/-())
+        else p.addListener(new ChannelFutureListener {
+          def operationComplete(future: ChannelFuture) {
+            if (future.isSuccess) cb(\/-())
+            else if (future.isCancelled) cb(-\/(Cancelled))
+            else cb(-\/(future.cause()))
+          }
+        })
+      })
+    }
+
+    else writeProcess(response.body)
   }
 
   override def toRequest(ctx: ChannelHandlerContext, reqpair: (ChunkHandler, HttpRequest)): Request = {
