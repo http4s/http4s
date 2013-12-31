@@ -22,10 +22,6 @@ import org.http4s.netty.utils.ChunkHandler
 import org.http4s.netty.{ProcessWriter, NettySupport}
 import org.http4s.TrailerChunk
 import org.http4s.Response
-import org.http4s.util.StaticFile
-import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption
-import scalaz.{-\/, \/-}
 
 
 /**
@@ -126,7 +122,7 @@ class NettyHttpHandler(val service: HttpService,
   }
 
   override protected def renderResponse(ctx: ChannelHandlerContext,
-                                        reqpair: (ChunkHandler, HttpRequest),
+                                        reqpair: (ChunkHandler,HttpRequest),
                                         response: Response): Task[Unit] = {
 
     logger.trace("NettyHttpHandler Rendering response.")
@@ -161,7 +157,7 @@ class NettyHttpHandler(val service: HttpService,
     if (length.isEmpty) ctx.writeAndFlush(msg)
     else ctx.write(msg)
 
-    writeBody(response).map { _ =>
+    writeProcess(response.body).map { _ =>
       val next = requestQueue.getAndSet(Idle)
       if (closeOnFinish) {
         if (next.isInstanceOf[Pending])
@@ -178,25 +174,6 @@ class NettyHttpHandler(val service: HttpService,
         }
       }
     }
-  }
-
-  private def writeBody(response: Response): Task[Unit] = response.attributes.get(StaticFile.staticFileKey) match {
-    case Some(file) =>
-      val ch = FileChannel.open(file.toPath, StandardOpenOption.READ)
-      val region = new DefaultFileRegion(ch, 0, file.length())
-      val p =ctx.writeAndFlush(region)
-      Task.async(cb => {
-        if (p.isSuccess) cb(\/-())
-        else p.addListener(new ChannelFutureListener {
-          def operationComplete(future: ChannelFuture) {
-            if (future.isSuccess) cb(\/-())
-            else if (future.isCancelled) cb(-\/(Cancelled))
-            else cb(-\/(future.cause()))
-          }
-        })
-      })
-
-    case None => writeProcess(response.body)
   }
 
   override def toRequest(ctx: ChannelHandlerContext, reqpair: (ChunkHandler, HttpRequest)): Request = {
