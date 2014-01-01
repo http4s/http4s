@@ -14,18 +14,18 @@ import scalaz.concurrent.Task
 object MockRoute {
 
   def route(): HttpService = {
-    case req: Request if req.requestUri.pathString ==  "/ping" =>
+    case req: Request if req.requestUri.path ==  "/ping" =>
       Ok("pong")
 
-    case req: Request if req.requestMethod == Method.Post && req.requestUri.pathString == "/echo" =>
+    case req: Request if req.requestMethod == Method.Post && req.requestUri.path == "/echo" =>
       Task.now(Response(body = req.body))
 
-    case req: Request if req.requestUri.pathString == "/fail" =>
+    case req: Request if req.requestUri.path == "/fail" =>
       sys.error("Problem!")
       Ok("No problem...")
 
     /** For testing the UrlTranslation middleware */
-    case req: Request if req.requestUri.pathString == "/checktranslate" =>
+    case req: Request if req.requestUri.path == "/checktranslate" =>
       import org.http4s.util.middleware.URITranslation._
       val newpath = req.attributes.get(translateRootKey)
         .map(f => f("foo"))
@@ -34,7 +34,7 @@ object MockRoute {
       Ok(newpath)
 
     /** For testing the PushSupport middleware */
-    case req: Request if req.requestUri.pathString == "/push" =>
+    case req: Request if req.requestUri.path == "/push" =>
       import org.http4s.util.middleware.PushSupport._
       Ok("Hello").push("/ping")(req)
   }

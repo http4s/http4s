@@ -109,7 +109,7 @@ final class NettySpdyServerHandler(srvc: HttpService,
 
     Request(
       requestMethod = Method.resolve(SpdyHeaders.getMethod(manager.spdyversion, req).name),
-      requestUri = RequestUri.fromString(url),
+      requestUri = Uri.fromString(url),
       protocol = getProtocol(req),
       headers = toHeaders(req.headers),
       body = replyStream.inboundProcess,
