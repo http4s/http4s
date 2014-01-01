@@ -29,7 +29,7 @@ import org.http4s.Status.NotModified
 
 object StaticFile extends Logging {
 
-  val DEFAULT_BUFFSIZE = 10*1024    // 10KB
+  val DEFAULT_BUFFSIZE = Http4sConfig.getInt("org.http4s.staticfile.default-buffersize")    // 10KB
 
   def fromString(url: String, req: Option[Request] = None)
                 (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
@@ -65,8 +65,7 @@ object StaticFile extends Logging {
   def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request])
                         (implicit es: ExecutorService): Option[Response] = {
 
-    if (f == null)
-      throw new NullPointerException("File")
+    if (f == null) throw new NullPointerException("File")
 
     if (start < 0 || end < start || buffsize <= 0)
       throw new Exception(s"start: $start, end: $end, buffsize: $buffsize")

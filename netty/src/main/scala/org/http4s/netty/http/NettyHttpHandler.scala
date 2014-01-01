@@ -13,7 +13,7 @@ import scalaz.concurrent.Task
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
 
-import java.net.{InetSocketAddress, URI}
+import java.net.InetSocketAddress
 import java.util.concurrent.atomic.AtomicReference
 import java.util.concurrent.ExecutorService
 
@@ -24,7 +24,6 @@ import org.http4s.TrailerChunk
 import org.http4s.Response
 import org.http4s.util.StaticFile
 import java.nio.channels.FileChannel
-import java.nio.file.StandardOpenOption
 import scalaz.{-\/, \/-}
 import org.http4s.Header.`Content-Encoding`
 
