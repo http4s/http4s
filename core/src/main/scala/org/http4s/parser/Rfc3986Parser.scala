@@ -15,33 +15,34 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def Uri = rule { Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }
 
-  def HierPart: Rule2[Option[RequestUri.Authority], RequestUri.Path] = rule {
-    "//" ~ Authority ~ PathAbempty ~> {(auth: RequestUri.Authority, path: RequestUri.Path) => auth.some :: path :: HNil} |
+  def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
+    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
       PathAbsolute ~> (None :: _ :: HNil) |
       PathRootless ~> (None :: _ :: HNil) |
-      PathEmpty ~> {e: RequestUri.EmptyPath.type => (None :: e :: HNil)}
+      PathEmpty ~> {(e: String) => None :: e :: HNil}
   }
 
   def UriReference = rule { Uri | RelativeRef }
 
-  def AbsoluteUri: Rule1[RequestUri.AbsoluteUri] = rule {
-    Scheme ~ HierPart ~ optional("?" ~ Query) ~> (RequestUri.AbsoluteUri.apply _)
+  def AbsoluteUri = rule {
+    Scheme ~ HierPart ~ optional("?" ~ Query) ~>
+      ((scheme, auth, path, query) => org.http4s.Uri(scheme = Some(scheme), authority = auth, path = path, query = query))
   }
 
   def RelativeRef = rule { RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }
 
-  def RelativePart = rule {
-    "//" ~ Authority ~ PathAbempty ~> {(auth: RequestUri.Authority, path: RequestUri.Path) => auth.some :: path :: HNil} |
+  def RelativePart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
+    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
       PathAbsolute ~> (None :: _ :: HNil) |
       PathNoscheme ~> (None :: _ :: HNil) |
-      PathEmpty ~> {e: RequestUri.EmptyPath.type => (None :: e :: HNil)}
+      PathEmpty ~> {(e: String) => None :: e :: HNil}
   }
 
   def Scheme = rule {
     capture(CharPredicate.Alpha | zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
   }
 
-  def Authority = rule { optional(UserInfo ~ "@") ~ Host ~ optional(":" ~ Port) ~> (RequestUri.Authority.apply _) }
+  def Authority = rule { optional(UserInfo ~ "@") ~ Host ~ optional(":" ~ Port) ~> (org.http4s.Uri.Authority.apply _) }
 
   def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
 
@@ -83,24 +84,15 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def Path = rule { PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty }
 
-  def PathAbempty: Rule1[RequestUri.Path]  = rule { zeroOrMore("/" ~ Segment) ~> { s: Seq[RequestUri.Segment] => s match {
-    case segments if segments.isEmpty => RequestUri.EmptyPath
-    case segments => RequestUri.AbsolutePath(NonEmptyList.nels(segments.head, segments.tail: _*))
-  }}}
+  def PathAbempty: Rule1[String] = rule { zeroOrMore("/" ~ Segment) ~> {(t: Seq[String]) => t.mkString("/", "/", "")} }
 
-  def PathAbsolute = rule { "/" ~ SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {
-    (h: RequestUri.Segment, t: Seq[RequestUri.Segment]) => RequestUri.AbsolutePath(NonEmptyList.nels(h, t: _*))
-  }}
+  def PathAbsolute: Rule1[String] = rule { "/" ~ SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) => "/" + h + t.mkString("/", "/", "")} }
 
-  def PathNoscheme = rule { SegmentNzNc ~ zeroOrMore("/" ~ Segment) ~> {
-    (h: RequestUri.Segment, t: Seq[RequestUri.Segment]) => RequestUri.RelativePath(NonEmptyList.nels(h, t: _*))
-  }}
+  def PathNoscheme: Rule1[String] = rule { SegmentNzNc ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) => h + t.mkString("/", "/", "")} }
 
-  def PathRootless = rule { SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {
-    (h: RequestUri.Segment, t: Seq[RequestUri.Segment]) => RequestUri.RelativePath(NonEmptyList.nels(h, t: _*))
-  }}
+  def PathRootless: Rule1[String] = rule { SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) => h + t.mkString("/", "/", "")} }
 
-  def PathEmpty = rule { push(RequestUri.EmptyPath) }
+  def PathEmpty: Rule1[String] = rule { push("") }
 
   def Segment = rule { capture(zeroOrMore(Pchar)) ~> (decode _) }
 

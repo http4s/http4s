@@ -215,7 +215,7 @@ class NettyHttpHandler(val service: HttpService,
 
     Request(
       requestMethod = Method.resolve(req.getMethod.name),
-      requestUri = RequestUri.fromString(req.getUri),
+      requestUri = Uri.fromString(req.getUri),
       protocol = ServerProtocol.resolve(req.getProtocolVersion.protocolName),
       headers = toHeaders(req.headers),
       body = makeProcess(reqpair._1),

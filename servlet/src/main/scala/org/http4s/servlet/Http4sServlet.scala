@@ -67,7 +67,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   protected def toRequest(req: HttpServletRequest): Request =
     Request(
       requestMethod = Method.resolve(req.getMethod),
-      requestUri = RequestUri.fromString(req.getRequestURI),
+      requestUri = Uri.fromString(req.getRequestURI),
       protocol = ServerProtocol.resolve(req.getProtocol),
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,

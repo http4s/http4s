@@ -41,7 +41,7 @@ abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: At
 
 case class Request(
   requestMethod: Method = Method.Get,
-  requestUri: RequestUri = RequestUri.OriginForm.empty,
+  requestUri: Uri = Uri(path = "/"),
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: HeaderCollection = HeaderCollection.empty,
   body: HttpBody = HttpBody.empty,
@@ -58,13 +58,13 @@ case class Request(
 
   lazy val (scriptName, pathInfo) = {
     val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
-    requestUri.pathString.splitAt(caret)
+    requestUri.path.splitAt(caret)
   }
   def withPathInfo(pi: String) = copy(requestUri = requestUri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  def queryString = requestUri.queryString
+  def queryString: String = requestUri.query.getOrElse("")
 
   lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)
   lazy val remoteAddr: Option[String] = remote.map(_.getHostAddress)
@@ -72,8 +72,8 @@ case class Request(
 
   lazy val remoteUser: Option[String] = None
 
-  lazy val serverName = (requestUri.hostOption orElse headers.get(Header.Host).map(_.host) getOrElse InetAddress.getLocalHost.getHostName)
-  lazy val serverPort = (requestUri.portOption orElse headers.get(Header.Host).map(_.port) getOrElse 80)
+  lazy val serverName = (requestUri.host orElse headers.get(Header.Host).map(_.host) getOrElse InetAddress.getLocalHost.getHostName)
+  lazy val serverPort = (requestUri.port orElse headers.get(Header.Host).map(_.port) getOrElse 80)
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 }
