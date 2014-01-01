@@ -23,8 +23,6 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     try {
       val request = toRequest(servletRequest)
-      println(s"PATH INFO=${request.pathInfo}")
-      println(s"SCRIPT NAME=${request.scriptName}")
       val ctx = servletRequest.startAsync()
       handle(request, ctx)
     } catch {
