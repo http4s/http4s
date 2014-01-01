@@ -86,11 +86,17 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def PathAbempty: Rule1[String] = rule { zeroOrMore("/" ~ Segment) ~> {(t: Seq[String]) => t.mkString("/", "/", "")} }
 
-  def PathAbsolute: Rule1[String] = rule { "/" ~ SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) => "/" + h + t.mkString("/", "/", "")} }
+  def PathAbsolute: Rule1[String] = rule { "/" ~ SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) =>
+    if (!t.isEmpty) "/" + h + t.mkString("/", "/", "")  else "/" + h
+  } }
 
-  def PathNoscheme: Rule1[String] = rule { SegmentNzNc ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) => h + t.mkString("/", "/", "")} }
+  def PathNoscheme: Rule1[String] = rule { SegmentNzNc ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) =>
+    if (!t.isEmpty) h + t.mkString("/", "/", "") else h
+  } }
 
-  def PathRootless: Rule1[String] = rule { SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) => h + t.mkString("/", "/", "")} }
+  def PathRootless: Rule1[String] = rule { SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) =>
+    if (!t.isEmpty) h + t.mkString("/", "/", "") else h
+  } }
 
   def PathEmpty: Rule1[String] = rule { push("") }
 

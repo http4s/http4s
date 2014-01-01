@@ -2,10 +2,10 @@ package org.http4s
 
 import java.nio.charset.Charset
 import scala.collection.JavaConverters._
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.util.{Renderable, CaseInsensitiveString}
 import scala.util.hashing.MurmurHash3
 
-sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
+sealed trait CharacterSet extends HttpValue[String] with QualityFactor with Renderable {
 
   def name: CaseInsensitiveString
   def charset: Charset
@@ -15,7 +15,11 @@ sealed trait CharacterSet extends HttpValue[String] with QualityFactor {
 
   final def satisfies(characterSet: CharacterSet): Boolean = characterSet.satisfiedBy(this)
 
-  def value: String = if (q.intValue == Q.MAX_VALUE) name.toString else name.toString + q.headerString
+  def render(builder: StringBuilder): StringBuilder = {
+    builder.append(name.toString)
+    q.render(builder)
+    builder
+  }
 
   override def equals(that: Any): Boolean = that match {
     case that: CharacterSet => that.name == this.name && that.q == this.q
@@ -43,7 +47,7 @@ object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
   protected def stringToRegistryKey(s: String): CaseInsensitiveString = s.ci
 
   protected def fromKey(k: CaseInsensitiveString): CharacterSet = {
-    if (k == `*`.value) `*`
+    if (k.toString == "*") `*`
     else new CharacterSetImpl(k)
   }
 

@@ -210,6 +210,7 @@ class NettyHttpHandler(val service: HttpService,
   override def toRequest(ctx: ChannelHandlerContext, reqpair: (ChunkHandler, HttpRequest)): Request = {
 
     val req = reqpair._2
+
     logger.trace("Received request: " + req.getUri)
 
     Request(

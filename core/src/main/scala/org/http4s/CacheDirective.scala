@@ -1,11 +1,13 @@
 package org.http4s
 
 import scala.Product
+import org.http4s.util.Renderable
 
-sealed trait CacheDirective extends Product {
+sealed trait CacheDirective extends Product with Renderable {
   val name = productPrefix.replace("$minus", "-")
-  def value: String = name
+  override def value: String = name
   override def toString = value
+  def render(builder: StringBuilder): StringBuilder = builder.append(name)
 }
 
 object CacheDirective {
