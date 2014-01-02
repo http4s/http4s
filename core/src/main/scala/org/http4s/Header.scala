@@ -5,9 +5,8 @@ import java.net.InetAddress
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.NonEmptyList
 
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.util.{Writer, CaseInsensitiveString, Renderable}
 import org.http4s.CharacterSet._
-import org.http4s.util.Renderable
 import scala.util.hashing.MurmurHash3
 
 
@@ -61,10 +60,10 @@ trait RecurringHeader extends ParsedHeader {
 
 trait RecurringRenderableHeader extends RecurringHeader {
   type Value <: Renderable
-  def render(builder: StringBuilder): StringBuilder = {
-    values.head.render(builder)
-    values.tail.foreach{ v => builder.append(", "); v.render(builder) }
-    builder
+  def render[W <: Writer](writer: W) = {
+    values.head.render(writer)
+    values.tail.foreach( writer ~ ", " ~ _ )
+    writer
   }
 }
 
@@ -75,7 +74,7 @@ object Header {
 
   final case class RawHeader private[Header] (name: CaseInsensitiveString, override val value: String) extends Header {
     override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
-    def render(builder: StringBuilder): StringBuilder = builder.append(value)
+    def render[W <: Writer](writer: W) = writer.append(value)
   }
 
   object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey
@@ -114,9 +113,13 @@ object Header {
   }
   final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends ParsedHeader {
     def key = `Accept-Ranges`
-    def render(builder: StringBuilder): StringBuilder = {
-      if (rangeUnits.isEmpty) builder.append("none")
-      else rangeUnits.addString(builder, ", ")    // simpler trying to call render methods on each
+    def render[W <: Writer](writer: W) = {
+      if (rangeUnits.isEmpty) writer.append("none")
+      else {
+        writer.append(rangeUnits.head)
+        rangeUnits.tail.foreach(r => writer.append(", ").append(r))
+        writer
+      }
     }
   }
 
@@ -145,7 +148,7 @@ object Header {
   object Authorization extends InternalHeaderKey[Authorization] with SingletonHeaderKey
   final case class Authorization(credentials: Credentials) extends ParsedHeader {
     def key = `Authorization`
-    def render(builder: StringBuilder) = credentials.render(builder)
+    def render[W <: Writer](writer: W) = credentials.render(writer)
   }
 
   object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey
@@ -160,7 +163,7 @@ object Header {
     type Value = String
     def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
     def hasKeepAlive = values.list.exists(_.equalsIgnoreCase("keep-alive"))
-    def render(builder: StringBuilder) = values.list.addString(builder, ", ")
+    def render[W <: Writer](writer: W) = writer.addStrings(values.list, ", ")
   }
 
   object `Content-Base` extends DefaultHeaderKey
@@ -170,17 +173,17 @@ object Header {
   final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends ParsedHeader {
     def key = `Content-Disposition`
     override lazy val value = super.value
-    def render(builder: StringBuilder): StringBuilder = {
-      builder.append(dispositionType)
-      parameters.foreach(p =>  builder.append("; ").append(p._1).append("=\"").append(p._2).append('"'))
-      builder
+    def render[W <: Writer](writer: W) = {
+      writer.append(dispositionType)
+      parameters.foreach(p =>  writer ~ "; "~ p._1~ "=\""~ p._2 ~ '"')
+      writer
     }
   }
 
   object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`] with SingletonHeaderKey
   final case class `Content-Encoding`(contentCoding: ContentCoding) extends ParsedHeader {
     def key = `Content-Encoding`
-    def render(builder: StringBuilder): StringBuilder = contentCoding.render(builder)
+    def render[W <: Writer](writer: W) = contentCoding.render(writer)
   }
 
   object `Content-Language` extends DefaultHeaderKey
@@ -188,7 +191,7 @@ object Header {
   object `Content-Length` extends InternalHeaderKey[`Content-Length`] with SingletonHeaderKey
   final case class `Content-Length`(length: Int) extends ParsedHeader {
     def key = `Content-Length`
-    def render(builder: StringBuilder): StringBuilder = builder.append(length)
+    def render[W <: Writer](writer: W) = writer.append(length)
   }
 
   object `Content-Location` extends DefaultHeaderKey
@@ -212,9 +215,9 @@ object Header {
 
   final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[CharacterSet]) extends ParsedHeader {
     def key = `Content-Type`
-    def render(builder: StringBuilder): StringBuilder =  definedCharset match {
-      case Some(cs) => cs.render(mediaType.render(builder).append("; charset="))
-      case _        => mediaType.render(builder)
+    def render[W <: Writer](writer: W) = definedCharset match {
+      case Some(cs) => writer ~ mediaType ~ "; charset=" ~ cs
+      case _        => mediaType.render(writer)
     }
 
     def withMediaType(mediaType: MediaType) =
@@ -234,10 +237,10 @@ object Header {
   final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringRenderableHeader {
     def key = Cookie
     type Value = org.http4s.Cookie
-    override def render(builder: StringBuilder) = {
-      values.head.render(builder)
-      values.tail.foreach{ c => builder.append("; "); c.render(builder) }
-      builder
+    override def render[W <: Writer](writer: W) = {
+      values.head.render(writer)
+      values.tail.foreach( writer ~ "; "~ _ )
+      writer
     }
   }
 
@@ -245,14 +248,14 @@ object Header {
   final case class Date(date: DateTime) extends ParsedHeader {
     def key = `Date`
     override def value = date.formatRfc1123
-    def render(builder: StringBuilder) = builder.append(value)
+    def render[W <: Writer](writer: W) = writer.append(value)
   }
 
   object ETag extends InternalHeaderKey[ETag] with SingletonHeaderKey
   final case class ETag(tag: String) extends ParsedHeader {
     def key: HeaderKey = ETag
     override def value: String = tag
-    def render(builder: StringBuilder) = builder.append(tag)
+    def render[W <: Writer](writer: W) = writer.append(tag)
   }
 
   object Expect extends DefaultHeaderKey
@@ -268,10 +271,10 @@ object Header {
   }
   final case class Host(host: String, port: Option[Int] = None) extends ParsedHeader {
     def key = `Host`
-    def render(builder: StringBuilder): StringBuilder = {
-      builder.append(host)
-      if (port.isDefined) builder.append(':').append(port.get)
-      builder
+    def render[W <: Writer](writer: W) = {
+      writer.append(host)
+      if (port.isDefined) writer ~ ':' ~ port.get
+      writer
     }
   }
 
@@ -281,14 +284,14 @@ object Header {
   final case class `If-Modified-Since`(date: DateTime) extends ParsedHeader {
     def key: HeaderKey = `If-Modified-Since`
     override def value: String = date.formatRfc1123
-    def render(builder: StringBuilder): StringBuilder = builder.append(value)
+    def render[W <: Writer](writer: W) = writer.append(value)
   }
 
   object `If-None-Match` extends InternalHeaderKey[`If-None-Match`] with SingletonHeaderKey
   case class `If-None-Match`(tag: String) extends ParsedHeader {
     def key: HeaderKey = `If-None-Match`
     override def value: String = tag
-    def render(builder: StringBuilder): StringBuilder = builder.append(tag)
+    def render[W <: Writer](writer: W) = writer.append(tag)
   }
 
   object `If-Range` extends DefaultHeaderKey
@@ -299,7 +302,7 @@ object Header {
   final case class `Last-Modified`(date: DateTime) extends ParsedHeader {
     def key = `Last-Modified`
     override def value = date.formatRfc1123
-    def render(builder: StringBuilder): StringBuilder = builder.append(value)
+    def render[W <: Writer](writer: W) = writer.append(value)
   }
 
   object Location extends InternalHeaderKey[Location] with SingletonHeaderKey
@@ -307,7 +310,7 @@ object Header {
   final case class Location(absoluteUri: String) extends ParsedHeader {
     def key = `Location`
     override def value = absoluteUri
-    def render(builder: StringBuilder): StringBuilder = builder.append(absoluteUri)
+    def render[W <: Writer](writer: W) = writer.append(absoluteUri)
   }
 
   object `Max-Forwards` extends DefaultHeaderKey
@@ -347,7 +350,7 @@ object Header {
   object `Set-Cookie` extends InternalHeaderKey[`Set-Cookie`] with SingletonHeaderKey
   final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends ParsedHeader {
     def key = `Set-Cookie`
-    def render(builder: StringBuilder): StringBuilder = cookie.render(builder)
+    def render[W <: Writer](writer: W) = writer.append(cookie)
   }
 
   object `TE` extends DefaultHeaderKey
@@ -388,14 +391,14 @@ object Header {
     type Value = Option[InetAddress]
     override lazy val value = super.value
 
-    def render(builder: StringBuilder) = {
-      values.head.fold(builder.append("unknown"))(i => builder.append(i.getHostAddress))
-      values.tail.foreach(append(builder, _))
-      builder
+    def render[W <: Writer](writer: W) = {
+      values.head.fold(writer.append("unknown"))(i => writer.append(i.getHostAddress))
+      values.tail.foreach(append(writer, _))
+      writer
     }
 
     @inline
-    private def append(sb: StringBuilder, add: Option[InetAddress]): Unit = {
+    private def append(sb: Writer, add: Option[InetAddress]): Unit = {
       sb.append(", ")
       if (add.isDefined) sb.append(add.get.getHostAddress)
       else sb.append("unknown")

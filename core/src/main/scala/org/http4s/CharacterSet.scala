@@ -2,7 +2,7 @@ package org.http4s
 
 import java.nio.charset.Charset
 import scala.collection.JavaConverters._
-import org.http4s.util.{Renderable, CaseInsensitiveString}
+import org.http4s.util.{Writer, Renderable, CaseInsensitiveString}
 import scala.util.hashing.MurmurHash3
 
 sealed trait CharacterSet extends HttpValue[String] with QualityFactor with Renderable {
@@ -15,10 +15,10 @@ sealed trait CharacterSet extends HttpValue[String] with QualityFactor with Rend
 
   final def satisfies(characterSet: CharacterSet): Boolean = characterSet.satisfiedBy(this)
 
-  def render(builder: StringBuilder): StringBuilder = {
-    builder.append(name.toString)
-    q.render(builder)
-    builder
+  def render[W <: Writer](writer: W) = {
+    writer.append(name.toString)
+    q.render(writer)
+    writer
   }
 
   override def equals(that: Any): Boolean = that match {

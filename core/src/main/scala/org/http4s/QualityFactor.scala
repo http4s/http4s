@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.Renderable
+import org.http4s.util.{StringWriter, Writer, Renderable}
 
 /**
  * @author Bryce Anderson
@@ -18,27 +18,27 @@ final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] with R
 
   def doubleValue: Double = 0.001*(intValue.toDouble)
 
-  def stringValue: String = formatq(new StringBuilder(5)).result()
+  def stringValue: String = value
 
   def unacceptable: Boolean = intValue == Q.MIN_VALUE
 
   def headerString: String =  {
-    if (intValue != Q.MAX_VALUE) formatq(new StringBuilder(10).append("; q=")).result()
+    if (intValue != Q.MAX_VALUE) formatq((new StringWriter).append("; q=")).result()
     else ""
   }
 
   def compare(x: Q, y: Q): Int = Q.compare(x, y)
 
-  def render(builder: StringBuilder): StringBuilder = {
-    if (intValue == Q.MAX_VALUE) builder
+  def render[W <: Writer](writer: W) = {
+    if (intValue == Q.MAX_VALUE) writer
     else {
-      builder.append("; q=")
-      formatq(builder)
+      writer.append("; q=")
+      formatq(writer)
     }
   }
 
   // Assumes that q is in the proper bounds, otherwise you get an exception!
-  private def formatq(b: StringBuilder): StringBuilder = {
+  private def formatq[W <: Writer](b: W): W = {
 
     // Skip the rest of the stuff if we are 1.0
     if (intValue == 1000) return b.append("1.0")

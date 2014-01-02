@@ -3,18 +3,17 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
-import org.http4s.util.Renderable
+import org.http4s.util.{Writer, Renderable}
 
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Q = Q.Unity,
                                         val extensions: Map[String, String] = Map.empty)
                                         extends HttpValue[String] with QualityFactor with Renderable {
 
-  def render(builder: StringBuilder): StringBuilder = {
-    builder.append(mainType).append("/*")
-    q.render(builder)
-    renderExtensions(builder)
-    builder
+  def render[W <: Writer](writer: W) = {
+    writer ~ mainType ~ "/*"~ q
+    renderExtensions(writer)
+    writer
   }
 
   /** Does that mediaRange satisfy this ranges requirements */
@@ -57,7 +56,7 @@ sealed class MediaRange private[http4s](val mainType: String,
     q.intValue <= that.q.intValue && !(q.unacceptable || that.q.unacceptable)
   }
 
-  protected def renderExtensions(sb: StringBuilder): Unit = if (extensions.nonEmpty) {
+  protected def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
     extensions.foreach{ case (k,v) =>
       // TODO: Determine if we need quotes or not in a more robust manner
       if (v.contains(" ")) sb.append(String.format("; %s=\"%s\"", k,v))
@@ -102,11 +101,10 @@ sealed class MediaType(mainType: String,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override def render(builder: StringBuilder): StringBuilder = {
-    builder.append(mainType).append('/').append(subType)
-    q.render(builder)
-    renderExtensions(builder)
-    builder
+  override def render[W <: Writer](writer: W) = {
+    writer ~ mainType ~ '/' ~ subType ~q
+    renderExtensions(writer)
+    writer
   }
 
   override def withQuality(q: Q): MediaType = {

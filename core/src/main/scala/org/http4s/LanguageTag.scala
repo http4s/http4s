@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.Renderable
+import org.http4s.util.{Writer, Renderable}
 
 sealed abstract class LanguageRange extends Renderable {
   def primaryTag: String
@@ -8,7 +8,11 @@ sealed abstract class LanguageRange extends Renderable {
   //val value = (primaryTag +: subTags).mkString("-")
   override def toString = "LanguageRange(" + value + ')'
 
-  def render(builder: StringBuilder): StringBuilder = (primaryTag +: subTags).addString(builder, "-")
+  def render[W <: Writer](writer: W) = {
+    writer.append(primaryTag)
+    subTags.foreach(s => writer.append('-').append(s))
+    writer
+  }
 }
 
 object LanguageTag {

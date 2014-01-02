@@ -2,7 +2,7 @@ package org.http4s
 
 import CharacterSet._
 import org.parboiled.common.Base64
-import org.http4s.util.{Renderable, CaseInsensitiveString}
+import org.http4s.util.{Writer, Renderable, CaseInsensitiveString}
 
 sealed abstract class Credentials extends Renderable {
   def authScheme: AuthScheme
@@ -19,7 +19,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
     "Basic " + cookie
   }
 
-  def render(builder: StringBuilder): StringBuilder = builder.append(value)
+  def render[W <: Writer](writer: W) = writer.append(value)
 }
 
 object BasicCredentials {
@@ -37,22 +37,22 @@ object BasicCredentials {
 case class OAuth2BearerToken(token: String) extends Credentials {
   val authScheme = AuthScheme.Bearer
 
-  def render(builder: StringBuilder): StringBuilder = builder.append("Bearer ").append(token)
+  def render[W <: Writer](writer: W) = writer.append("Bearer ").append(token)
 }
 
 
 case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
   override lazy val value = super.value
 
-  def render(builder: StringBuilder): StringBuilder = {
-    if (params.isEmpty) builder.append(authScheme.toString)
+  def render[W <: Writer](writer: W) = {
+    if (params.isEmpty) writer.append(authScheme.toString)
     else {
-      formatParams(builder)
-      builder
+      formatParams(writer)
+      writer
     }
   }
 
-  private def formatParams(sb: StringBuilder) = {
+  private def formatParams(sb: Writer) = {
     var first = true
     params.foreach {
       case (k, v) =>

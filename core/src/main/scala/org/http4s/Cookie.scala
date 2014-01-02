@@ -3,7 +3,7 @@ package org.http4s
 import collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
 import org.joda.time.DateTime
-import org.http4s.util.Renderable
+import org.http4s.util.{Writer, Renderable}
 
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)
@@ -114,16 +114,16 @@ case class Cookie(
 
   override lazy val value: String = super.value
 
-  def render(builder: StringBuilder): StringBuilder = {
-    builder.append(name).append("=\"").append(content).append('"')
-    expires.foreach{ e => builder.append("; Expires=").append(e.formatRfc1123) }
-    maxAge.foreach(builder.append("; Max-Age=").append(_))
-    domain.foreach(builder.append("; Domain=").append(_))
-    path.foreach(builder.append("; Path=").append(_))
-    if (secure) builder.append("; Secure")
-    if (httpOnly) builder.append("; HttpOnly")
-    extension.foreach(builder.append("; ").append(_))
-    builder
+  def render[W <: Writer](writer: W) = {
+    writer.append(name).append("=\"").append(content).append('"')
+    expires.foreach{ e => writer.append("; Expires=").append(e.formatRfc1123) }
+    maxAge.foreach(writer.append("; Max-Age=").append(_))
+    domain.foreach(writer.append("; Domain=").append(_))
+    path.foreach(writer.append("; Path=").append(_))
+    if (secure) writer.append("; Secure")
+    if (httpOnly) writer.append("; HttpOnly")
+    extension.foreach(writer.append("; ").append(_))
+    writer
   }
 
   override def toString = value

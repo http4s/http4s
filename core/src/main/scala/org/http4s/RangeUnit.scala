@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.Renderable
+import org.http4s.util.{Writer, Renderable}
 
 /*
  * Copyright (C) 2011-2012 spray.io
@@ -22,7 +22,7 @@ import org.http4s.util.Renderable
 sealed abstract class RangeUnit extends HttpValue[String] with Renderable {
   def value: String
   override def toString = value
-  def render(builder: StringBuilder): StringBuilder = builder.append(value)
+  def render[W <: Writer](writer: W) = writer.append(value)
 }
 
 object RangeUnit {
