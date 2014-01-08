@@ -100,9 +100,11 @@ object Header {
   }
 
   object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey
-  final case class `Accept-Language`(values: NonEmptyList[LanguageRange]) extends RecurringRenderableHeader {
+  final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) extends RecurringRenderableHeader {
     def key = `Accept-Language`
-    type Value = LanguageRange
+    type Value = LanguageTag
+    def preferred: LanguageTag = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
+    def satisfiedBy(languageTag: LanguageTag) = values.list.find(_.satisfiedBy(languageTag)).isDefined
   }
 
   // TODO Interpreting this as not a recurring header, because of "none".

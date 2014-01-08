@@ -14,11 +14,11 @@ class AcceptCharsetSpec  extends WordSpec with Matchers with HeaderParserHelper[
   def hparse(value: String): Validation[ParseErrorInfo, `Accept-Charset`] = HttpParser.ACCEPT_CHARSET(value)
 
   val utf = `Accept-Charset`(`UTF-8`)
-  val utfq5 = `Accept-Charset`(`UTF-8`.withQuality(0.5f))
-  val utfq55 = `Accept-Charset`(`UTF-8`.withQuality(0.55f))
-  val utfq555 = `Accept-Charset`(`UTF-8`.withQuality(0.555f))
+  val utfq5 = `Accept-Charset`(`UTF-8`.withQuality(0.5))
+  val utfq55 = `Accept-Charset`(`UTF-8`.withQuality(0.55))
+  val utfq555 = `Accept-Charset`(`UTF-8`.withQuality(0.555))
 
-  val utfq1 = `Accept-Charset`(`UTF-8`.withQuality(1.0f))
+  val utfq1 = `Accept-Charset`(`UTF-8`.withQuality(1.0))
 
   val all = `Accept-Charset`(`*`)
 
@@ -49,7 +49,7 @@ class AcceptCharsetSpec  extends WordSpec with Matchers with HeaderParserHelper[
 
     "Be satisfied correctly" in {
       `Accept-Charset`(`*`) satisfiedBy `UTF-8` should be (true)
-      `Accept-Charset`(`*` withQuality 0.0f) satisfiedBy `UTF-8` should be (false)
+      `Accept-Charset`(`*` withQuality 0.0) satisfiedBy `UTF-8` should be (false)
       `Accept-Charset`(`UTF-8`) satisfiedBy `UTF-8` should be (true)
       `Accept-Charset`(`UTF-8`) satisfiedBy `US-ASCII` should be (false)
     }
