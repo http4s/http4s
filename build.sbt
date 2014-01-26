@@ -1,9 +1,7 @@
 import Http4sDependencies._
 import UnidocKeys._
 
-lazy val scalazStream = ProjectRef(uri("git://github.com/scalaz/scalaz-stream.git"), "scalaz-stream")
-
-lazy val core = project.dependsOn(scalazStream)
+lazy val core = project
 
 lazy val grizzly = project.dependsOn(core)
 
@@ -65,7 +63,8 @@ javacOptions in ThisBuild ++= Seq("-Xlint:unchecked", "-Xlint:deprecation")
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("snapshots"),
-  "spray repo" at "http://repo.spray.io"
+  "spray repo" at "http://repo.spray.io",
+  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 )
 
 testOptions in ThisBuild += Tests.Argument(TestFrameworks.Specs2, "console", "junitxml")
@@ -77,7 +76,7 @@ traceLevel in ThisBuild := 5
 
 unidocSettings
 
-unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(scalazStream, examples)
+unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(examples)
 
 /* publishing */
 publishMavenStyle in ThisBuild := true
