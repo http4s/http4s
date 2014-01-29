@@ -57,8 +57,8 @@ trait Writer {
   final def ~(r: Renderable):  this.type = append(r)
 }
 
-class StringWriter extends Writer {
-  private val sb = new java.lang.StringBuilder()
+class StringWriter(size: Int = 64) extends Writer {
+  private val sb = new java.lang.StringBuilder(size)
 
   def append(s: String) = { sb.append(s); this }
   override def append(char: Char) = { sb.append(char); this }

@@ -17,6 +17,7 @@ object HttpParser extends HttpParser
 trait HttpParser extends SimpleHeaders
                     with AcceptHeader
                     with AcceptLanguageHeader
+                    with CacheControlHeader
                     with ContentTypeHeader
                     with AcceptRangesHeader
                     with AcceptCharsetHeader

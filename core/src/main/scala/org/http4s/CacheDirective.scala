@@ -7,7 +7,7 @@ sealed trait CacheDirective extends Product with Renderable {
   val name = productPrefix.replace("$minus", "-")
   override def value: String = name
   override def toString = value
-  def render[W <: Writer](writer: W) = writer.append(name)
+  def render[W <: Writer](writer: W) = writer.append(value)
 }
 
 object CacheDirective {
@@ -15,7 +15,7 @@ object CacheDirective {
   sealed trait ResponseDirective extends CacheDirective
 
   /* Requests and Responses */
-  case object `no-cache` extends RequestDirective with ResponseDirective
+//  case object `no-cache` extends RequestDirective with ResponseDirective
   case object `no-store` extends RequestDirective with ResponseDirective
   case object `no-transform` extends RequestDirective with ResponseDirective
   case class `max-age`(deltaSeconds: Long) extends RequestDirective with ResponseDirective {
