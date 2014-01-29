@@ -7,14 +7,14 @@ case class Challenge(scheme: String, realm: String, params: Map[String, String] 
 
   def render[W <: Writer](writer: W) = {
     writer.append(scheme).append(' ')
-    writer.append("realm").append("=\"").append(realm).append('"')
+    writer.append("realm=\"").append(realm).append('"')
     params.foreach{ case (k, v) => addPair(writer, k, v )}
     writer
   }
 
   @inline
   private def addPair(b: Writer, k: String, v: String) {
-    b.append(',').append(k).append("=\"").append(k).append('"')
+    b.append(',').append(k).append("=\"").append(v).append('"')
   }
 
   override def toString = value

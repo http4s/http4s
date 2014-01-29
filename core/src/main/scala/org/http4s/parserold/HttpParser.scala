@@ -24,7 +24,7 @@ object HttpParser extends Http4sParser with ProtocolParameterRules with Addition
 //  with ContentTypeHeader
   with CookieHeaders
 //  with SimpleHeaders
-  with WwwAuthenticateHeader
+//  with WwwAuthenticateHeader
   {
 
   // all string literals automatically receive a trailing optional whitespace
