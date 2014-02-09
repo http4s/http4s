@@ -120,4 +120,5 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
     (capture(ch('0') ~ ch('.') ~ oneOrMore(Digit)) ~> (Q.fromString(_))) |
     (ch('1') ~ optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(Q.Unity))
   }
+
 }

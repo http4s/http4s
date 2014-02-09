@@ -23,6 +23,7 @@ trait HttpParser extends SimpleHeaders
                     with AcceptRangesHeader
                     with AcceptCharsetHeader
                     with AcceptEncodingHeader
+                    with AuthorizationHeader
                     with WwwAuthenticateHeader {
 
   type HeaderValidation = Validation[ParseErrorInfo, Header]

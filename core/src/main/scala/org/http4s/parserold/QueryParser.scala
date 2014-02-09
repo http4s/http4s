@@ -37,7 +37,4 @@ object QueryParser extends Http4sParser {
 
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[(String, String)]] =
     parse(QueryString, queryString).left.map(_.withFallbackSummary("Illegal query string"))
-
-
-
 }
