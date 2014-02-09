@@ -19,6 +19,7 @@ trait HttpParser extends SimpleHeaders
                     with AcceptLanguageHeader
                     with CacheControlHeader
                     with ContentTypeHeader
+                    with CookieHeader
                     with AcceptRangesHeader
                     with AcceptCharsetHeader
                     with AcceptEncodingHeader

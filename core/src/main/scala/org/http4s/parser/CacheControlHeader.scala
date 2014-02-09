@@ -38,7 +38,7 @@ trait CacheControlHeader {
       (Token ~ optional("=" ~ (Token | QuotedString)) ~> (CustomCacheDirective(_, _)))
     }
 
-    def FieldNames = rule { oneOrMore(QuotedString).separatedBy(ListSep) }
+    def FieldNames: Rule1[Seq[String]] = rule { oneOrMore(QuotedString).separatedBy(ListSep) }
     def DeltaSeconds: Rule1[Long] = rule { capture(oneOrMore(Digit)) ~> {s: String => s.toLong} }
   }
 
