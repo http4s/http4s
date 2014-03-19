@@ -9,17 +9,17 @@ import shapeless.HNil
 import scalaz.syntax.std.option._
 
 private[parser] trait Rfc3986Parser { this: Parser =>
-  import CharPredicate.{Alpha, Digit, HexAlpha => Hexdig}
+  import CharPredicate.{Alpha, Digit, HexAlpha => HexDigit}
 
   def charset: Charset
 
   def Uri = rule { Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }
 
   def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
-      PathAbsolute ~> (None :: _ :: HNil) |
-      PathRootless ~> (None :: _ :: HNil) |
-      PathEmpty ~> {(e: String) => None :: e :: HNil}
+    "://" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} //|
+//      PathAbsolute ~> (None :: _ :: HNil) |
+//      PathRootless ~> (None :: _ :: HNil) |
+//      PathEmpty ~> {(e: String) => None :: e :: HNil}
   }
 
   def UriReference = rule { Uri | RelativeRef }
@@ -39,20 +39,20 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   }
 
   def Scheme = rule {
-    capture(CharPredicate.Alpha | zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
+    capture(zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
   }
 
   def Authority = rule { optional(UserInfo ~ "@") ~ Host ~ optional(":" ~ Port) ~> (org.http4s.Uri.Authority.apply _) }
 
   def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
 
-  def Host = rule { capture(IpLiteral | IpV4Address | IpV6Address) ~> (s => decode(s).ci) }
+  def Host = rule { capture(IpLiteral | IpV4Address | IpV6Address | RegName) ~> (s => decode(s).ci) }
 
   def Port = rule { capture(zeroOrMore(Digit)) ~> (_.toInt)}
 
   def IpLiteral = rule { "[" ~ (IpV6Address | IpVFuture) ~ "]" }
 
-  def IpVFuture = rule { "v" ~ oneOrMore(Hexdig) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":" ) }
+  def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":" ) }
 
   def IpV6Address = rule {
                                                        6.times(H16 ~ ":") ~ LS32 |
@@ -66,18 +66,18 @@ private[parser] trait Rfc3986Parser { this: Parser =>
     optional((0 to 6).times(H16 ~ ":") ~ H16) ~ "::"
   }
 
-  def H16 = rule { (1 to 4).times(Hexdig) }
+  def H16 = rule { (1 to 4).times(HexDigit) }
 
   def LS32 = rule { (H16 ~ ":" ~ H16) | IpV4Address }
 
   def IpV4Address = rule { 3.times(DecOctet ~ ".") ~ DecOctet }
 
   def DecOctet = rule {
-    Digit |
-      ("1" - "9") ~ Digit |
-      "1" ~ 2.times(Digit) |
+      "1" ~ 2.times(Digit)      |
+      ("1" - "9") ~ Digit       |
       "2" ~ ("0" - "4") ~ Digit |
-      "25" ~ ("0" - "5")
+      "25" ~ ("0" - "5")        |
+      Digit
   }
 
   def RegName = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
@@ -108,11 +108,11 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def Pchar = rule { Unreserved | PctEncoded | SubDelims | ":" | "@" }
 
-  def Query = rule { capture(zeroOrMore(Pchar | "/" | "?")) ~> (decode _) }
+  def Query = rule { capture(oneOrMore(Pchar | "/" | "?")) ~> (decode _) }
 
   def Fragment = rule { capture(zeroOrMore(Pchar | "/" | "?")) ~> (decode _) }
 
-  def PctEncoded = rule { "%" ~ 2.times(Hexdig) }
+  def PctEncoded = rule { "%" ~ 2.times(HexDigit) }
 
   def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }
 

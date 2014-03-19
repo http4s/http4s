@@ -19,8 +19,7 @@ case class ParseErrorInfo(summary: String = "", detail: String = "") {
   def formatPretty = summary + ": " + detail
 }
 
-abstract class Http4sHeaderParser[H <: Header](val input: ParserInput)
-  extends Parser with AdditionalRules  {
+abstract class Http4sHeaderParser[H <: Header](val input: ParserInput) extends Parser with AdditionalRules  {
 
   import Http4sHeaderParser.validationScheme
 

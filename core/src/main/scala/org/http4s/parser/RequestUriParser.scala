@@ -9,13 +9,13 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
   extends Parser with Rfc3986Parser
 {
   def RequestUri = rule { 
-    Asterisk | 
-    AbsoluteUri | 
-    OriginForm | 
+    Asterisk    |
+    AbsoluteUri |
+    OriginForm  |
     Authority ~> (auth => org.http4s.Uri(authority = Some(auth), path = ""))
   }
 
-  def OriginForm = rule { PathAbsolute ~ optional(Query) ~> ((path, query) => org.http4s.Uri(path = path, query = query)) }
+  def OriginForm = rule { PathAbsolute ~ optional("?" ~ Query) ~> ((path, query) => org.http4s.Uri(path = path, query = query)) }
 
-  def Asterisk = rule { "*" ~ push(org.http4s.Uri(authority = Some(org.http4s.Uri.Authority(host = "*".ci)), path = "")) }
+  def Asterisk: Rule1[Uri] = rule { "*" ~ push(org.http4s.Uri(authority = Some(org.http4s.Uri.Authority(host = "*".ci)), path = "")) }
 }
