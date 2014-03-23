@@ -38,7 +38,7 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   }
 
   def Scheme = rule {
-    capture(oneOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
+    capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
   }
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule { optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _) }

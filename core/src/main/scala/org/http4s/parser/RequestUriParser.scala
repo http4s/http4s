@@ -12,7 +12,7 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
     Asterisk    |
     AbsoluteUri |
     OriginForm  |
-    Authority ~> (auth => org.http4s.Uri(authority = Some(auth), path = ""))
+    Authority ~> (auth => org.http4s.Uri(authority = Some(auth)))
   }
 
   def OriginForm = rule { PathAbsolute ~ optional("?" ~ Query) ~> ((path, query) => org.http4s.Uri(path = path, query = query)) }
