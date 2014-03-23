@@ -20,7 +20,19 @@ class UriSpec extends WordSpec with Matchers {
 
 
     "Parse a ip6 address" in {
-      new RequestUriParser("2001:db8::", CharacterSet.`UTF-8`.charset).IpV6Address.run() should equal(Success())
+
+      val v = "01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab" +: (for {
+        h <- 0 to 7;
+        l <- 0 to 7 - h;
+        f = List.fill(h)("01ab").mkString(":")
+        b = List.fill(l)("32ba").mkString(":")
+      } yield (f + "::" + b))
+
+      v.foreach{ ip =>
+        println(ip)
+        new RequestUriParser(ip, CharacterSet.`UTF-8`.charset).IpV6Address.run() should equal(Success())
+      }
+
     }
 
     "handle port configurations" in {
