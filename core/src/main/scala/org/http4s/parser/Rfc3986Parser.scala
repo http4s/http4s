@@ -15,7 +15,7 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   def Uri = rule { Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }
 
   def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "://" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
+    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
       PathAbsolute ~> (None :: _ :: HNil) |
       PathRootless ~> (None :: _ :: HNil) |
       PathEmpty ~> {(e: String) => None :: e :: HNil}
@@ -24,7 +24,7 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   def UriReference = rule { Uri | RelativeRef }
 
   def AbsoluteUri = rule {
-    Scheme ~ HierPart ~ optional("?" ~ Query) ~>
+    Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~>
       ((scheme, auth, path, query) => org.http4s.Uri(scheme = Some(scheme), authority = auth, path = path, query = query))
   }
 
@@ -45,11 +45,11 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
 
-  def Host = rule { capture(IpLiteral | IpV4Address | IpV6Address | RegName) ~> (s => decode(s).ci) }
+  def Host = rule { (IpLiteral | capture(IpV4Address | IpV6Address | RegName)) ~> (s => decode(s).ci) }
 
   def Port = rule { ":" ~ (capture(oneOrMore(Digit)) ~> {s: String => (Some(s.toInt))} |  push(None)) |  push(None) }
 
-  def IpLiteral = rule { "[" ~ (IpV6Address | IpVFuture) ~ "]" }
+  def IpLiteral = rule { "[" ~ capture(IpV6Address | IpVFuture) ~ "]" }
 
   def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":" ) }
 

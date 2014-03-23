@@ -17,21 +17,17 @@ class UriSpec extends WordSpec with Matchers {
 
     // http://www.ietf.org/rfc/rfc2396.txt
 
-
-
     "Parse a ip6 address" in {
 
       val v = "01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab" +: (for {
-        h <- 0 to 7;
-        l <- 0 to 7 - h;
+        h <- 0 to 7
+        l <- 0 to 7 - h
         f = List.fill(h)("01ab").mkString(":")
         b = List.fill(l)("32ba").mkString(":")
       } yield (f + "::" + b))
 
-      v.foreach{ ip =>
-        println(ip)
-        new RequestUriParser(ip, CharacterSet.`UTF-8`.charset).IpV6Address.run() should equal(Success())
-      }
+      v.foreach(new RequestUriParser(_, CharacterSet.`UTF-8`.charset)
+                    .IpV6Address.run() should equal(Success()))
 
     }
 
@@ -47,17 +43,17 @@ class UriSpec extends WordSpec with Matchers {
 
     "Parse absolute URIs" in {
       val absoluteUris : Seq[(String, Uri)] = Seq(
-        ("http://www.google.com", Uri(Some("http".ci), Some(Authority(host = "www.google.com".ci)))),
-        ("http://www.google.com/foo?bar=baz",
-          Uri(Some("http".ci), Some(Authority(host = "www.google.com".ci)), "/foo", Some("bar=baz"))),
+        ("http://www.foo.com", Uri(Some("http".ci), Some(Authority(host = "www.foo.com".ci)))),
+        ("http://www.foo.com/foo?bar=baz",
+          Uri(Some("http".ci), Some(Authority(host = "www.foo.com".ci)), "/foo", Some("bar=baz"))),
         ("http://192.168.1.1",
           Uri(Some("http".ci), Some(Authority(host = "192.168.1.1".ci)))) ,
         ("http://192.168.1.1:80/c?GB=object&Class=one",
-          Uri(Some("http".ci), Some(Authority(host = "192.168.1.1".ci, port = Some(80))), "/c", Some("GB=object&Class=one"))) //,
-        //      ("http://[2001:db8::7]/c?GB=object&Class=one",
-        //        Uri(Some("http".ci), Some(Authority(host = "2001:db8::7".ci)), "/c", Some("GB=object&Class=one"))),
-        //      ("mailto:John.Doe@example.com",
-        //        Uri(Some("mailto".ci), Some(Authority(userInfo = Some("John.Doe"), host = "example.com".ci))))
+          Uri(Some("http".ci), Some(Authority(host = "192.168.1.1".ci, port = Some(80))), "/c", Some("GB=object&Class=one"))),
+        ("http://[2001:db8::7]/c?GB=object&Class=one",
+          Uri(Some("http".ci), Some(Authority(host = "2001:db8::7".ci)), "/c", Some("GB=object&Class=one"))),
+        ("mailto:John.Doe@example.com",
+          Uri(Some("mailto".ci), path = "John.Doe@example.com"))
       )
 
       check(absoluteUris)
