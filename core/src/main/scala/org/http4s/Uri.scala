@@ -4,7 +4,6 @@ import org.http4s.util.CaseInsensitiveString
 
 import Uri._
 import org.http4s.parser.RequestUriParser
-import java.nio.charset.Charset
 
 case class Uri (
   scheme: Option[CaseInsensitiveString] = None,
@@ -20,7 +19,7 @@ case class Uri (
 }
 
 object Uri {
-  def fromString(s: String): Uri = (new RequestUriParser(s, Charset.forName("UTF-8"))).RequestUri.run().get
+  def fromString(s: String): Uri = (new RequestUriParser(s, CharacterSet.`UTF-8`.charset)).RequestUri.run().get
 
   type Scheme = CaseInsensitiveString
 

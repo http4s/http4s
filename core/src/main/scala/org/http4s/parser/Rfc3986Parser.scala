@@ -4,7 +4,6 @@ package parser
 import org.parboiled2._
 import java.nio.charset.Charset
 import java.net.URLDecoder
-import scalaz.NonEmptyList
 import shapeless.HNil
 import scalaz.syntax.std.option._
 
@@ -16,10 +15,10 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   def Uri = rule { Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }
 
   def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "://" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} //|
-//      PathAbsolute ~> (None :: _ :: HNil) |
-//      PathRootless ~> (None :: _ :: HNil) |
-//      PathEmpty ~> {(e: String) => None :: e :: HNil}
+    "://" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
+      PathAbsolute ~> (None :: _ :: HNil) |
+      PathRootless ~> (None :: _ :: HNil) |
+      PathEmpty ~> {(e: String) => None :: e :: HNil}
   }
 
   def UriReference = rule { Uri | RelativeRef }
@@ -39,22 +38,22 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   }
 
   def Scheme = rule {
-    capture(zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
+    capture(oneOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
   }
 
-  def Authority = rule { optional(UserInfo ~ "@") ~ Host ~ optional(":" ~ Port) ~> (org.http4s.Uri.Authority.apply _) }
+  def Authority: Rule1[org.http4s.Uri.Authority] = rule { optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _) }
 
   def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
 
   def Host = rule { capture(IpLiteral | IpV4Address | IpV6Address | RegName) ~> (s => decode(s).ci) }
 
-  def Port = rule { capture(zeroOrMore(Digit)) ~> (_.toInt)}
+  def Port = rule { ":" ~ (capture(oneOrMore(Digit)) ~> {s: String => (Some(s.toInt))} |  push(None)) |  push(None) }
 
   def IpLiteral = rule { "[" ~ (IpV6Address | IpVFuture) ~ "]" }
 
   def IpVFuture = rule { "v" ~ oneOrMore(HexDigit) ~ "." ~ oneOrMore(Unreserved | SubDelims | ":" ) }
 
-  def IpV6Address = rule {
+  def IpV6Address: Rule0 = rule {
                                                        6.times(H16 ~ ":") ~ LS32 |
                                                 "::" ~ 5.times(H16 ~ ":") ~ LS32 |
     optional(                            H16) ~ "::" ~ 4.times(H16 ~ ":") ~ LS32 |
@@ -80,31 +79,25 @@ private[parser] trait Rfc3986Parser { this: Parser =>
       Digit
   }
 
-  def RegName = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
+  def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
 
-  def Path = rule { PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty }
+  def Path: Rule1[String] = rule { (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String => decode(s)} }
 
-  def PathAbempty: Rule1[String] = rule { zeroOrMore("/" ~ Segment) ~> {(t: Seq[String]) => t.mkString("/", "/", "")} }
+  def PathAbempty: Rule1[String] = rule { capture(oneOrMore("/" ~ Segment)) | push("/") }
 
-  def PathAbsolute: Rule1[String] = rule { "/" ~ SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) =>
-    if (!t.isEmpty) "/" + h + t.mkString("/", "/", "")  else "/" + h
-  } }
+  def PathAbsolute: Rule1[String] = rule { capture("/" ~ optional(SegmentNz ~ zeroOrMore("/" ~ Segment))) }
 
-  def PathNoscheme: Rule1[String] = rule { SegmentNzNc ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) =>
-    if (!t.isEmpty) h + t.mkString("/", "/", "") else h
-  } }
+  def PathNoscheme: Rule1[String] = rule { capture(SegmentNzNc ~ zeroOrMore("/" ~ Segment)) }
 
-  def PathRootless: Rule1[String] = rule { SegmentNz ~ zeroOrMore("/" ~ Segment) ~> {(h: String, t: Seq[String]) =>
-    if (!t.isEmpty) h + t.mkString("/", "/", "") else h
-  } }
+  def PathRootless: Rule1[String] = rule { capture(SegmentNz ~ zeroOrMore("/" ~ Segment)) }
 
-  def PathEmpty: Rule1[String] = rule { push("") }
+  def PathEmpty: Rule1[String] = rule { push("/") }
 
-  def Segment = rule { capture(zeroOrMore(Pchar)) ~> (decode _) }
+  def Segment = rule { zeroOrMore(Pchar) }
 
-  def SegmentNz = rule { capture(oneOrMore(Pchar)) ~> (decode _) }
+  def SegmentNz = rule { oneOrMore(Pchar) }
 
-  def SegmentNzNc = rule { capture(oneOrMore(Unreserved | PctEncoded | SubDelims | "@")) ~> (decode _) }
+  def SegmentNzNc = rule { oneOrMore(Unreserved | PctEncoded | SubDelims | "@") }
 
   def Pchar = rule { Unreserved | PctEncoded | SubDelims | ":" | "@" }
 
