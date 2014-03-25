@@ -3,6 +3,9 @@ package org.http4s
 import org.scalatest.{OptionValues, WordSpec, Matchers}
 
 class ResponderSpec extends WordSpec with Matchers with OptionValues {
+  
+  import ResponseSyntax._
+
   val resp = Response(Status.Ok)
 
   "Responder" should {

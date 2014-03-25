@@ -96,12 +96,5 @@ case class Response(
   type Self = Response
   def withHeaders(headers: HeaderCollection): Response = copy(headers = headers)
   def withBody(body: _root_.org.http4s.HttpBody): Response = copy(body = body)
-
-  def addCookie(cookie: Cookie): Response = addHeader(Header.Cookie(cookie))
-
-  def removeCookie(cookie: Cookie): Response =
-    addHeader(Header.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0))))
-
-  def withStatus[T <% Status](status: T) = copy(status = status)
 }
 
