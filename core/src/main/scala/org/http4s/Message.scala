@@ -1,11 +1,9 @@
 package org.http4s
 
-import scalaz.stream.Process
 import java.io.File
-import java.net.{URI, InetAddress}
-import org.http4s.util.CaseInsensitiveString
-import scalaz.concurrent.Task
+import java.net.InetAddress
 import org.http4s.Header.`Content-Type`
+import ResponseSyntax.ResponseSyntaxBase
 
 abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
@@ -92,9 +90,9 @@ case class Response(
   headers: HeaderCollection = HeaderCollection.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message(headers, body, attributes) {
+) extends Message(headers, body, attributes) with ResponseSyntaxBase[Response] {
   type Self = Response
-  def withHeaders(headers: HeaderCollection): Response = copy(headers = headers)
-  def withBody(body: _root_.org.http4s.HttpBody): Response = copy(body = body)
+  override protected def translateResponse(f: (Response) => Response): Response = f(this)
+  def withBody(body: HttpBody): Response = copy(body = body)
 }
 

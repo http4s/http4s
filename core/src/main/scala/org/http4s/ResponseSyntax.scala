@@ -14,40 +14,36 @@ object ResponseSyntax extends ResponseSyntax
 trait ResponseSyntax {
 
   implicit def addHelpers(r: Task[Response]) = new ResponseSyntaxBase[Task[Response]] {
-    override protected def map(f: Response => Response) = r.map(f)
+    override protected def translateResponse(f: Response => Response) = r.map(f)
   }
-
-  implicit def addHelpers(r: Response) = new ResponseSyntaxBase[Response] {
-    override protected def map(f: Response => Response): Response = f(r)
-  }
-
 
   trait ResponseSyntaxBase[T] {
 
-    protected def map(f: Response => Response): T
+    protected def translateResponse(f: Response => Response): T
 
     /** Extension methods */
 
-    def withType(t: MediaType): T = map{ r =>
+    def withType(t: MediaType): T = translateResponse{ r =>
       r.copy(headers = r.headers :+ `Content-Type`(t))
     }
 
-    def addCookie(cookie: Cookie): T = map(_.addHeader(Header.Cookie(cookie)))
+    def addCookie(cookie: Cookie): T = translateResponse(_.addHeader(Header.Cookie(cookie)))
 
     def addCookie(name: String,
                   content: String,
                   expires: Option[DateTime] = None): T = addCookie(Cookie(name, content, expires))
 
-    def withHeaders(headers: HeaderCollection): T = map(_.copy(headers = headers))
+    def withHeaders(headers: HeaderCollection): T = translateResponse(_.copy(headers = headers))
 
     def removeCookie(cookie: Cookie): T =
-      map(_.addHeader(Header.`Set-Cookie`(cookie.copy(content = "", expires = Some(UnixEpoch), maxAge = Some(0)))))
+      translateResponse(_.addHeader(Header.`Set-Cookie`(cookie.copy(content = "",
+        expires = Some(UnixEpoch), maxAge = Some(0)))))
 
-    def removeCookie(name: String): T = map(_.addHeader(Header.`Set-Cookie`(
+    def removeCookie(name: String): T = translateResponse(_.addHeader(Header.`Set-Cookie`(
       Cookie(name, "", expires = Some(UnixEpoch), maxAge = Some(0))
     )))
 
-    def withStatus[T <% Status](status: T) = map(_.copy(status = status))
+    def withStatus[T <% Status](status: T) = translateResponse(_.copy(status = status))
   }
 
 }
