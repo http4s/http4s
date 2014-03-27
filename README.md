@@ -1,3 +1,5 @@
+[![Build Status](https://travis-ci.org/http4s/http4s.svg?branch=develop)](https://travis-ci.org/http4s/http4s)
+
 # http4s — Common HTTP framework for Scala #
 
 ## Build & run ##
