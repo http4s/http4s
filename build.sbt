@@ -50,7 +50,7 @@ scmInfo in ThisBuild := Some(
 )
 
 /* scala versions and options */
-scalaVersion in ThisBuild := "2.10.3"
+scalaVersion in ThisBuild := "2.10.4"
 
 offline in ThisBuild := false
 
