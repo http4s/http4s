@@ -1,5 +1,5 @@
 language: scala
 env:
   global:
-    secure: Hs+jgLOuJhunuA2Xb/y+ISEI78FOAz3EagGSsoI/0/DRGZylFQUYmFQao8TqF+HIrqM+iRPwlrnLdgWOBP2dtVmmdZdF19hw6yVbn9rRpYlUVXCYGfd7Oo/sRtuipOo/nAQs0Oocok8ncNuObmlF7xGDprH8uoFRmY9terIaL9A=
-before_script: echo U=$SONATYPE_USER P=$SONATYPE_PASS
+  - secure: TLAhbTi61vlC8o0uXemlBnrZa5Ika5HSWlta5FOa1joV5aGRslSBdf2/W7tieBaJlBlS8EvUcL31KGFbrDfZ3XXC1ztRjCZiU9BNvPxQSvcoyDwgw3QFA9Ihy8+HNw3gs6pPeC3YxvtoQpMGKalHCswOnD+899/Mx+as9QdA2Mo=
+script: sbt publish
