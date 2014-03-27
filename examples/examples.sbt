@@ -15,7 +15,7 @@ libraryDependencies ++= Seq(
   parboiled // TODO Why aren't you inherited?
 )
 
-mainClass in Revolver.reStart := Some("org.http4s.examples.spdynetty.SpdyNettyExample")
+mainClass in Revolver.reStart := Some("org.http4s.examples.blaze.BlazeExample")
 
 fork := true
 

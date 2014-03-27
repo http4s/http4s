@@ -7,11 +7,15 @@ lazy val grizzly = project.dependsOn(core)
 
 lazy val netty = project.dependsOn(core)
 
+lazy val blaze = project.dependsOn(core, blazeRepo)
+
 lazy val servlet = project.dependsOn(core)
 
 lazy val dsl = project.dependsOn(core)
 
-lazy val examples = project.dependsOn(grizzly, netty, servlet, dsl)
+lazy val examples = project.dependsOn(grizzly, netty, servlet, dsl, blaze)
+
+lazy val blazeRepo = ProjectRef(uri("git://github.com/http4s/blaze.git"), "blaze")
 
 /* common dependencies */
 libraryDependencies in ThisBuild ++= Seq(
