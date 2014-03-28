@@ -29,6 +29,8 @@ object Http4sDependencies {
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.3.1"
   lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
 
+  lazy val http4sBlaze         = "org.http4s"               %% "blaze"                   % "0.1.0-SNAPSHOT"
+
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
 
   val npn_version = "8.1.2.v20120308"
