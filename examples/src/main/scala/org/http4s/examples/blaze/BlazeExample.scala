@@ -10,13 +10,16 @@ package org.http4s.examples.blaze
 */
 
 
-import java.net.InetSocketAddress
+
 import org.http4s.blaze.Http4sStage
-import org.http4s.examples.ExampleRoute
-import org.http4s.util.middleware.URITranslation
-import blaze.channel.nio1.SocketServerChannelFactory
+import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
+import org.http4s.blaze.pipeline.LeafBuilder
+
 import java.nio.ByteBuffer
-import blaze.pipeline.LeafBuilder
+import java.net.InetSocketAddress
+
+import org.http4s.util.middleware.URITranslation
+import org.http4s.examples.ExampleRoute
 
 /**
 * @author Bryce Anderson

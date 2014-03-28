@@ -1,7 +1,7 @@
 package org.http4s.blaze
 
 import java.nio.ByteBuffer
-import blaze.pipeline.TailStage
+import pipeline.TailStage
 import scala.concurrent.{Future, ExecutionContext}
 import org.http4s.{TrailerChunk, BodyChunk}
 import java.nio.charset.Charset

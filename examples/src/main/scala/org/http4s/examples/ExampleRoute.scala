@@ -142,9 +142,6 @@ class ExampleRoute {
     case req @ Get -> Root / "root-element-name" =>
       xml(req).flatMap(root => Ok(root.label))
 
-    case req @ Get -> Root / "fail" =>
-      sys.error("FAIL")
-
     case req => NotFound(req)
   }
 }

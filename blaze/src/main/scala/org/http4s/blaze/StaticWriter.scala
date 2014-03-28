@@ -1,7 +1,7 @@
 package org.http4s.blaze
 
 import java.nio.ByteBuffer
-import _root_.blaze.pipeline.TailStage
+import pipeline.TailStage
 import com.typesafe.scalalogging.slf4j.Logging
 import org.http4s.{TrailerChunk, BodyChunk}
 import scala.concurrent.{ExecutionContext, Future}
