@@ -362,6 +362,7 @@ object Header {
   object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`] with RecurringHeaderKey
   final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends RecurringRenderableHeader {
     def key = `Transfer-Encoding`
+    def hasChunked = values.list.exists(_.value.equalsIgnoreCase("chunked"))
     type Value = TransferCoding
   }
 

@@ -11,7 +11,7 @@ import org.http4s.util.StringWriter
  * @author Bryce Anderson
  *         Created on 1/10/14
  */
-final class ChunkProcessWriter(private var buffer: ByteBuffer, pipe: TailStage[ByteBuffer])
+final class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBuffer])
                               (implicit val ec: ExecutionContext) extends ProcessWriter {
 
   import ChunkProcessWriter._
@@ -40,7 +40,10 @@ final class ChunkProcessWriter(private var buffer: ByteBuffer, pipe: TailStage[B
       case None => ByteBuffer.wrap(ChunkEndBytes)
     }
 
-    val all = if (!chunk.isEmpty) encodeChunk(chunk, tailbuffer::Nil) else tailbuffer::Nil
+    val all = if (!chunk.isEmpty) encodeChunk(chunk, tailbuffer::Nil) 
+              else if (headers != null) headers::tailbuffer::Nil
+              else tailbuffer::Nil
+    
     pipe.channelWrite(all)
   }
 
@@ -57,9 +60,9 @@ final class ChunkProcessWriter(private var buffer: ByteBuffer, pipe: TailStage[B
 
     val list = lengthBuffer::c::CRLF::last
 
-    if (buffer != null) {
-      val i = buffer
-      buffer = null
+    if (headers != null) {
+      val i = headers
+      headers = null
       i::list
     } else list
   }

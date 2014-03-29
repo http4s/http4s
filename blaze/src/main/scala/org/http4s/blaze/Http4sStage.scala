@@ -17,9 +17,9 @@ import scala.collection.mutable.ListBuffer
 import scala.util.Success
 import scala.util.Failure
 
-import Status.{InternalServerError, NotFound}
+import org.http4s.Status.{BadRequest, InternalServerError, NotFound}
 import org.http4s.util.StringWriter
-import Header.`Content-Length`
+import org.http4s.Header.{Connection, `Content-Length`}
 import http_parser.BaseExceptions.ParserException
 import http_parser.Http1ServerParser
 
@@ -76,26 +76,29 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
           runRequest(buff)
         }
         catch {
-          case t: ParserException => parsingError(t, "Error parsing in requestLoop()")
+          case t: ParserException => badRequest("Error parsing status or headers in requestLoop()", t, Request())
           case t: Throwable       => fatalError(t, "error in requestLoop()")
         }
 
-      case Failure(Cmd.EOF)    => stageShutdown()
-      case Failure(t)          => fatalError(t, "Error in requestLoop()")
+      case Failure(Cmd.EOF) => stageShutdown()
+      case Failure(t)       => fatalError(t, "Error in requestLoop()")
     }(trampoline)
   }
 
-  private def runRequest(buffer: ByteBuffer): Unit = {
+  private def collectRequest(body: HttpBody) = {
     val h = HeaderCollection(headers.result())
     headers.clear()
 
-    // Do we expect a body?
-    val body = collectBodyFromParser(buffer)
+    Request(Method.resolve(this.method),
+      Uri.fromString(this.uri),
+      if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`,
+      h, body)
+  }
 
-    val req = Request(Method.resolve(this.method),
-                      Uri.fromString(this.uri),
-                      if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`,
-                      h, body)
+  private def runRequest(buffer: ByteBuffer): Unit = {
+    // TODO: Do we expect a body?
+    val body = collectBodyFromParser(buffer)
+    val req = collectRequest(body)
 
     val result = try route(req) catch {
       case _: MatchError => NotFound(req)
@@ -113,27 +116,33 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
   private def renderResponse(req: Request, resp: Response) {
     val rr = new StringWriter(512)
     rr ~ req.protocol.value.toString ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'
-
-    var closeOnFinish = minor == 0
-
     resp.headers.foreach( header => rr ~ header.name.toString ~ ": " ~ header ~ '\r' ~ '\n' )
 
-    val connectionHeader = Header.Connection.from(req.headers)
+    val respConn = Header.Connection.from(resp.headers)
+
     val lengthHeader = `Content-Length`.from(resp.headers)
+    var closeOnFinish = respConn.isDefined && respConn.get.hasClose || minor == 0
 
     // Should we add a keep-alive header?
-    connectionHeader.map { h =>
-      if (h.values.head.equalsIgnoreCase("Keep-Alive")) {
+    if (respConn.isEmpty) Header.Connection.from(req.headers).foreach { h =>
+      if (h.hasKeepAlive) {
         logger.trace("Found Keep-Alive header")
 
-        // Only add keep-alive header if we are http1.1 or we have a known length
+        // Only add keep-alive header if we are HTTP/1.1 or we have a known length
         if (minor != 0 || lengthHeader.isDefined) {
           closeOnFinish = false
           rr ~ Header.Connection.name.toString ~ ':' ~ "Keep-Alive" ~ '\r' ~ '\n'
         }
 
-      } else if (h.values.head.equalsIgnoreCase("close")) closeOnFinish = true
-      else sys.error("Unknown Connection header")
+      } else if (h.hasClose) {
+        closeOnFinish = true
+        rr ~ Header.Connection.name.toString ~ ':' ~ "Close" ~ '\r' ~ '\n'
+
+      } else {
+        logger.info(s"Unknown connection header: '${h.value}'. Closing connection upon completion.")
+        closeOnFinish = true
+        rr ~ Header.Connection.name.toString ~ ':' ~ "Close" ~ '\r' ~ '\n'
+      }
     }
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
@@ -154,35 +163,36 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
 
   }
 
-  private def chooseEncoder(rr: StringWriter, resp: Response, lengthHeader: Option[`Content-Length`]): ProcessWriter = {
-    if (minor == 0) {        // we are replying to a HTTP 1.0 request. Only do StaticWriters
-      val length = lengthHeader.map(_.length).getOrElse(-1)
+  /** Decide which body encoder to use
+    * If length is defined, default to a static writer, otherwise decide based on http version
+    */
+  private def chooseEncoder(rr: StringWriter, resp: Response, l: Option[`Content-Length`]): ProcessWriter = l match {
+    case Some(h) =>
       rr ~ '\r' ~ '\n'
       val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-      new StaticWriter(b, length, this)
-    }
-    else {                 // HTTP 1.1 request, can do chunked
-      Header.`Transfer-Encoding`.from(resp.headers) match {
-        case Some(h) =>
-          if (h.values.head != TransferCoding.chunked) sys.error("Unknown transfer encoding")
-          rr ~ '\r' ~ '\n'
-          val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-          new ChunkProcessWriter(b, this)
+      new StaticWriter(b, h.length, this)
 
-        case None =>     // Transfer-Encoding not set
-          lengthHeader match {
-            case Some(c) =>
-              rr ~ '\r' ~ '\n'
-              val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-              new StaticWriter(b, c.length, this)
-
-            case None =>    // Need to write the Transfer-Encoding Header and go
-              rr ~ "Transfer-Encoding: chunked\r\n\r\n"
-              val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-              new ChunkProcessWriter(b, this)
-          }
+    case None =>
+      if (minor == 0) {        // we are replying to a HTTP 1.0 request. Only do StaticWriters
+        rr ~ '\r' ~ '\n'
+        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+        new StaticWriter(b, -1, this)
+      } else {  // HTTP 1.1 request
+        Header.`Transfer-Encoding`.from(resp.headers) match {
+          case Some(h) =>
+            if (!h.hasChunked) {
+              logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
+              rr ~ "Transfer-Encoding: chunked\r\n"
+            }
+            rr ~ '\r' ~ '\n'
+  
+          case None =>     // Transfer-Encoding not set, default to chunked for HTTP/1.1
+            rr ~ "Transfer-Encoding: chunked\r\n\r\n"
+        }
+        
+        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+        new ChunkProcessWriter(b, this)
       }
-    }
   }
 
   // TODO: what should be the behavior for determining if we have some body coming?
@@ -205,7 +215,7 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
             case Failure(t) => cb(-\/(t))
           }(trampoline)
         } catch {
-          case t: ParserException => parsingError(t, "Error parsing request body")
+          case t: ParserException => badRequest("Error parsing request body", t, collectRequest(halt))
           case t: Throwable       => fatalError(t, "Error collecting body")
         }
         go()
@@ -216,7 +226,7 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
       drainBody(currentbuffer).onComplete {
         case Success(_) => cb(\/-())
         case Failure(t) => cb(-\/(t))
-    })
+      })
 
     await(t)(emit, cleanup = await(cleanup)(_ => halt)).repeat
   }
@@ -252,7 +262,13 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
   private def parsingError(t: ParserException, message: String) {
     logger.debug(s"Parsing error: $message", t)
     stageShutdown()
+    stageShutdown()
     sendOutboundCommand(Cmd.Disconnect)
+  }
+
+  private def badRequest(msg: String, t: ParserException, req: Request) {
+    renderResponse(req, Response(BadRequest).withHeaders(Connection("close"), `Content-Length`(0)))
+    logger.debug(s"Bad Request: $msg", t)
   }
 
   /////////////////// Stateful methods for the HTTP parser ///////////////////
