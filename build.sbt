@@ -1,5 +1,6 @@
 import Http4sDependencies._
 import UnidocKeys._
+import scala.util.Properties
 
 lazy val core = project
 
@@ -81,13 +82,21 @@ publishMavenStyle in ThisBuild := true
 
 publishTo in ThisBuild <<= version { (v: String) =>
   val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT")) Some(
-    "snapshots" at nexus + "content/repositories/snapshots"
-  )
+  if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
+Seq("SONATYPE_USER", "SONATYPE_PASS") map Properties.envOrNone match {
+  case Seq(Some(user), Some(pass)) =>
+    credentials in ThisBuild += Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)
+  case _ =>
+    credentials in ThisBuild ~= identity
+}
+
 publishArtifact in (ThisBuild, Test) := false
+
+// Don't publish root pom.  It's not needed.
+packagedArtifacts in file(".") := Map.empty
 
 pomIncludeRepository in ThisBuild := { _ => false }
 
