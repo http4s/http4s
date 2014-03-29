@@ -89,10 +89,8 @@ object BodyChunk {
   def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes.toArray)
 
   def apply(bytes: ByteBuffer): BodyChunk = {
-    val pos = bytes.position()
-    val rem = bytes.remaining()
-    val n = new Array[Byte](rem)
-    System.arraycopy(bytes.array(), pos, n, 0, rem)
+    val n = new Array[Byte](bytes.remaining())
+    bytes.get(n)
     BodyChunk(n)
   }
 

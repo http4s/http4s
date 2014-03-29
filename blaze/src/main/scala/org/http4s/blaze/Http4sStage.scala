@@ -1,29 +1,34 @@
-package org.http4s.blaze
-
-import http_parser.Http1ServerParser
-import pipeline.{Command => Cmd, TailStage}
-import util.Execution._
-
-import java.nio.ByteBuffer
-import scala.concurrent.Future
-import scala.collection.mutable.ListBuffer
-import scala.util.Success
-import scala.util.Failure
-import org.http4s._
-
-import scalaz.stream.Process
-import scalaz.concurrent.Task
-import Process._
-import scalaz.{\/-, -\/}
-import org.http4s.util.StringWriter
-import org.http4s.Status.{InternalServerError, NotFound}
-import java.nio.charset.StandardCharsets
-import org.http4s.Header.`Content-Length`
+package org.http4s
+package blaze
 
 /**
  * @author Bryce Anderson
  *         Created on 1/10/14
  */
+
+import pipeline.{Command => Cmd, TailStage}
+import util.Execution._
+
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets
+
+import scala.concurrent.Future
+import scala.collection.mutable.ListBuffer
+import scala.util.Success
+import scala.util.Failure
+
+import Status.{InternalServerError, NotFound}
+import org.http4s.util.StringWriter
+import Header.`Content-Length`
+import http_parser.BaseExceptions.ParserException
+import http_parser.Http1ServerParser
+
+import scalaz.stream.Process
+import Process._
+import scalaz.concurrent.Task
+import scalaz.{\/-, -\/}
+
+
 class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[ByteBuffer] {
 
   protected implicit def ec = directec
@@ -40,7 +45,7 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
 
   // Will act as our loop
   override def stageStartup() {
-    logger.info("Starting pipeline")
+    logger.info("Starting HTTP pipeline")
     requestLoop()
   }
 
@@ -70,12 +75,13 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
           // we have enough to start the request
           runRequest(buff)
         }
-        catch { case t: Throwable   => stageShutdown() }
+        catch {
+          case t: ParserException => parsingError(t, "Error parsing in requestLoop()")
+          case t: Throwable       => fatalError(t, "error in requestLoop()")
+        }
 
       case Failure(Cmd.EOF)    => stageShutdown()
-      case Failure(t)          =>
-        stageShutdown()
-        sendOutboundCommand(Cmd.Error(t))
+      case Failure(t)          => fatalError(t, "Error in requestLoop()")
     }(trampoline)
   }
 
@@ -94,15 +100,13 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
     val result = try route(req) catch {
       case _: MatchError => NotFound(req)
       case t: Throwable =>
-        logger.error("Error running route", t)
+        logger.error(s"Error running route: $req", t)
         InternalServerError("500 Internal Service Error\n" + t.getMessage)
     }
 
     result.runAsync {
       case \/-(resp) => renderResponse(req, resp)
-      case -\/(t) =>
-        logger.error("Error running route", t)
-        closeConnection() // TODO: We need to deal with these errors properly
+      case -\/(t)    => fatalError(t, "Error running route")
     }
   }
 
@@ -118,7 +122,7 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
     val lengthHeader = `Content-Length`.from(resp.headers)
 
     // Should we add a keep-alive header?
-    connectionHeader.map{ h =>
+    connectionHeader.map { h =>
       if (h.values.head.equalsIgnoreCase("Keep-Alive")) {
         logger.trace("Found Keep-Alive header")
 
@@ -145,7 +149,6 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
           requestLoop()
         }  // Serve another connection
 
-
       case -\/(t) => logger.error("Error writing body", t)
     }
 
@@ -161,10 +164,10 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
     else {                 // HTTP 1.1 request, can do chunked
       Header.`Transfer-Encoding`.from(resp.headers) match {
         case Some(h) =>
-        if (h.values.head != TransferCoding.chunked) sys.error("Unknown transfer encoding")
-        rr ~ '\r' ~ '\n'
-        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-        new ChunkProcessWriter(b, this)
+          if (h.values.head != TransferCoding.chunked) sys.error("Unknown transfer encoding")
+          rr ~ '\r' ~ '\n'
+          val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+          new ChunkProcessWriter(b, this)
 
         case None =>     // Transfer-Encoding not set
           lengthHeader match {
@@ -182,55 +185,54 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
     }
   }
 
-  private def closeConnection() {
-    stageShutdown()
-    sendOutboundCommand(Cmd.Disconnect)
-  }
-
   // TODO: what should be the behavior for determining if we have some body coming?
   private def collectBodyFromParser(buffer: ByteBuffer): HttpBody = {
     if (contentComplete()) return HttpBody.empty
 
-    var currentbuffer = buffer.asReadOnlyBuffer()
+    var currentbuffer = buffer
 
     // TODO: we need to work trailers into here somehow
     val t = Task.async[Chunk]{ cb =>
       if (!contentComplete()) {
-        def go(): Future[BodyChunk] = {
+        def go(): Unit = try {
           val result = parseContent(currentbuffer)
-          if (result != null) { // we have a chunk
-            Future.successful(BodyChunk.fromArray(result.array(), result.position, result.remaining))
-          }
-          else if (contentComplete()) Future.failed(End)
-          else channelRead().flatMap{ b =>       // Need more data...
-            currentbuffer = b
-            go()
+          if (result != null) cb(\/-(BodyChunk(result))) // we have a chunk
+          else if (contentComplete()) cb(-\/(End))
+          else channelRead().onComplete {
+            case Success(b) =>       // Need more data...
+              currentbuffer = b
+              go()
+            case Failure(t) => cb(-\/(t))
           }(trampoline)
+        } catch {
+          case t: ParserException => parsingError(t, "Error parsing request body")
+          case t: Throwable       => fatalError(t, "Error collecting body")
         }
-
-        go().onComplete{
-          case Success(b) => cb(\/-(b))
-          case Failure(t) => cb(-\/(t))
-        }(directec)
-
+        go()
       } else { cb(-\/(End))}
     }
 
     val cleanup = Task.async[Unit](cb =>
-      drainBody(currentbuffer).onComplete{
+      drainBody(currentbuffer).onComplete {
         case Success(_) => cb(\/-())
         case Failure(t) => cb(-\/(t))
     })
 
-    await(t)(emit, cleanup = await(cleanup)(_ => halt))
+    await(t)(emit, cleanup = await(cleanup)(_ => halt)).repeat
   }
 
   private def drainBody(buffer: ByteBuffer): Future[Unit] = {
     if (!contentComplete()) {
       parseContent(buffer)
-      channelRead().flatMap(drainBody)
+      channelRead().flatMap(drainBody)(trampoline)
     }
     else Future.successful()
+  }
+
+  private def closeConnection() {
+    logger.debug("closeConnection()")
+    stageShutdown()
+    sendOutboundCommand(Cmd.Disconnect)
   }
 
   override protected def stageShutdown(): Unit = {
@@ -239,14 +241,32 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
     super.stageShutdown()
   }
 
-  /////////////////// Methods for the HTTP parser ///////////////////
-  def headerComplete(name: String, value: String) = {
+  /////////////////// Error handling /////////////////////////////////////////
+
+  private def fatalError(t: Throwable, msg: String = "") {
+    logger.error(s"Fatal Error: $msg", t)
+    stageShutdown()
+    sendOutboundCommand(Cmd.Error(t))
+  }
+
+  private def parsingError(t: ParserException, message: String) {
+    logger.debug(s"Parsing error: $message", t)
+    stageShutdown()
+    sendOutboundCommand(Cmd.Disconnect)
+  }
+
+  /////////////////// Stateful methods for the HTTP parser ///////////////////
+  override protected def headerComplete(name: String, value: String) = {
     logger.trace(s"Received header '$name: $value'")
     headers += Header(name, value)
     false
   }
 
-  def submitRequestLine(methodString: String, uri: String, scheme: String, majorversion: Int, minorversion: Int) = {
+  override protected def submitRequestLine(methodString: String,
+                                           uri: String,
+                                           scheme: String,
+                                           majorversion: Int,
+                                           minorversion: Int) = {
     logger.trace(s"Received request($methodString $uri $scheme/$majorversion.$minorversion)")
     this.uri = uri
     this.method = methodString

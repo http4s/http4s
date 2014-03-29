@@ -49,7 +49,7 @@ class ExampleRoute {
 
     case req @ Post -> Root / "sum"  =>
       text(req).flatMap{ s =>
-        val sum = s.split('\n').map(_.toInt).sum
+        val sum = s.split('\n').filter(_.length > 0).map(_.trim.toInt).sum
         Ok(sum)
       }
 
