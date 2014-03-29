@@ -86,6 +86,23 @@ publishTo in ThisBuild <<= version { (v: String) =>
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
 
+// Travis publishing courtesy of http://stackoverflow.com/a/20672791
+val publishDevelopOnTravis = taskKey[Unit]("publish develop on travis")
+
+def publishDevelopOnTravisImpl = Def.taskDyn {
+  import scala.util.Try
+  val travis   = Try(sys.env("TRAVIS")).getOrElse("false") == "true"
+  val pr       = Try(sys.env("TRAVIS_PULL_REQUEST")).getOrElse("false") == "true"
+  val branch   = Try(sys.env("TRAVIS_BRANCH")).getOrElse("??")
+  val snapshot = version.value.trim.endsWith("SNAPSHOT")
+  (travis, pr, branch, snapshot) match {
+    case (true, false, "develop", true) => publish
+    case _ => Def.task ()
+  }
+}
+
+publishDevelopOnTravis := publishDevelopOnTravisImpl.value
+
 Seq("SONATYPE_USER", "SONATYPE_PASS") map Properties.envOrNone match {
   case Seq(Some(user), Some(pass)) =>
     credentials in ThisBuild += Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)
