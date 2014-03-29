@@ -97,6 +97,9 @@ Seq("SONATYPE_USER", "SONATYPE_PASS") map Properties.envOrNone match {
 
 publishArtifact in (ThisBuild, Test) := false
 
+// Don't publish root pom.  It's not needed.
+packagedArtifacts in file(".") := Map.empty
+
 pomIncludeRepository in ThisBuild := { _ => false }
 
 pomExtra in ThisBuild := (
