@@ -3,17 +3,13 @@ import UnidocKeys._
 
 lazy val core = project
 
-lazy val grizzly = project.dependsOn(core)
-
-lazy val netty = project.dependsOn(core)
-
 lazy val blaze = project.dependsOn(core)
 
 lazy val servlet = project.dependsOn(core)
 
 lazy val dsl = project.dependsOn(core)
 
-lazy val examples = project.dependsOn(grizzly, netty, servlet, dsl, blaze)
+lazy val examples = project.dependsOn(servlet, blaze, dsl)
 
 /* common dependencies */
 libraryDependencies in ThisBuild ++= Seq(
