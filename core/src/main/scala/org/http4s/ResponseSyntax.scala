@@ -5,7 +5,7 @@ import org.http4s.Header.`Content-Type`
 import org.joda.time.DateTime
 
 /**
- * Created by brycea on 3/25/14.
+ * Created by Bryce Anderson on 3/25/14.
  */
 
 object ResponseSyntax extends ResponseSyntax
@@ -44,6 +44,12 @@ trait ResponseSyntax {
     def removeCookie(name: String): T = translateResponse(_.addHeader(Header.`Set-Cookie`(
       Cookie(name, "", expires = Some(UnixEpoch), maxAge = Some(0))
     )))
+
+    def addAttribute[V](entry: AttributeEntry[V]): T = addAttribute(entry.key, entry.value)
+
+    def addAttribute[V](key: AttributeKey[V], value: V): T = translateResponse { r =>
+      r.copy(attributes = r.attributes.put(key, value))
+    }
 
     def withStatus[T <% Status](status: T) = translateResponse(_.copy(status = status))
   }

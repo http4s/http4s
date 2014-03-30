@@ -5,7 +5,7 @@ import org.http4s.blaze.pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import org.http4s.blaze.pipeline.stages.http.websocket.WebSocketDecoder._
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
-import org.http4s.blaze.util.Execution.directec
+import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.{websocket => ws4s}
 
 import scalaz.stream.Process
@@ -13,6 +13,7 @@ import scalaz.stream.Process._
 import scalaz.{\/, \/-, -\/}
 import scalaz.concurrent.Task
 import org.http4s.blaze.pipeline.stages.http.websocket.WebSocketDecoder
+import org.http4s.blaze.pipeline.Command.EOF
 
 /**
  * Created by Bryce Anderson on 3/30/14.
@@ -21,7 +22,9 @@ import org.http4s.blaze.pipeline.stages.http.websocket.WebSocketDecoder
 class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
 
-  /////////////////////////////////////////////////////////////
+  @volatile private var alive = true
+
+  //////////////////////// Translation functions ////////////////////////
 
   private def ws4sToBlaze(msg: ws4s.WSFrame): WebSocketFrame = msg match {
     case ws4s.Text(msg) => Text(msg)
@@ -36,7 +39,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
       sys.error(s"Frame type '$f' not understood")
   }
 
-  @volatile private var alive = true
+  //////////////////////// Source and Sink generators ////////////////////////
 
   def sink: Sink[Task, ws4s.WSFrame] = {
     def go(frame: ws4s.WSFrame): Task[Unit] = {
@@ -57,22 +60,36 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
 
   def inputstream: Process[Task, ws4s.WSFrame] = {
     val t = Task.async[ws4s.WSFrame] { cb =>
-      channelRead().onComplete {
+      def go(): Unit = channelRead().onComplete {
         case Success(ws) => ws match {
-            case Close(_)    => alive = false; cb(-\/(End))
-            case Ping(_)     => ???   // TODO: should we expect ping frames?
+            case Close(_)    =>
+              alive = false
+              sendOutboundCommand(Command.Disconnect)
+              cb(-\/(End))
+
+            // TODO: do we expect ping frames here?
+            case Ping(d)     =>  channelWrite(Pong(d)).onComplete{
+              case Success(_)   => go()
+              case Failure(EOF) => cb(-\/(End))
+              case Failure(t)   => cb(-\/(t))
+            }(trampoline)
+
+            case Pong(_)     => go()  // TODO: should we deal with these?
             case f           => cb(\/-(blazeTows4s(f)))
           }
 
         case Failure(Command.EOF) => cb(-\/(End))
         case Failure(e)           => cb(-\/(e))
       }(directec)
+
+      go()
     }
 
     repeatEval(t)
   }
 
 
+  //////////////////////// Startup and Shutdown ////////////////////////
 
   override protected def stageStartup(): Unit = {
     super.stageStartup()
@@ -86,6 +103,11 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
 
     ws.source.through(sink).run.runAsync(onFinish)
     inputstream.to(ws.sink).run.runAsync(onFinish)
+  }
+
+  override protected def stageShutdown(): Unit = {
+    alive = false
+    super.stageShutdown()
   }
 }
 

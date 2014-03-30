@@ -1,18 +1,16 @@
 package org.http4s.blaze.websocket
 
 import org.http4s._
-import org.http4s.blaze.pipeline.stages.http.websocket.{WebSocketDecoder, ServerHandshaker}
+import org.http4s.blaze.pipeline.stages.http.websocket.{WSFrameAggregator, WebSocketDecoder, ServerHandshaker}
 import org.http4s.Header.{`Content-Length`, Connection}
-import org.http4s.websocket
-import org.http4s.websocket.Websocket
-import org.http4s.blaze.{websocket, Http1Stage}
+import org.http4s.blaze.Http1Stage
 
 import scalaz.stream.Process
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 import org.http4s.Response
 import scala.util.{Failure, Success}
-import org.http4s.blaze.pipeline.{Command, LeafBuilder}
+import org.http4s.blaze.pipeline.LeafBuilder
 
 
 /**
@@ -46,7 +44,10 @@ trait WebSocketSupport extends Http1Stage {
               case Success(_) =>
                 logger.trace("Switching pipeline segments.")
 
-                val segment = LeafBuilder(new Http4sWSStage(ws.get)).prepend(new WebSocketDecoder(false))
+                val segment = LeafBuilder(new Http4sWSStage(ws.get))
+                              .prepend(new WSFrameAggregator)
+                              .prepend(new WebSocketDecoder(false))
+
                 this.replaceInline(segment)
 
               case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
