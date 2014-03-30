@@ -97,7 +97,13 @@ def publishDevelopOnTravisImpl = Def.taskDyn {
   val snapshot = version.value.trim.endsWith("SNAPSHOT")
   (travis, pr, branch, snapshot) match {
     case (true, false, "develop", true) => publish
-    case _ => Def.task ()
+    case _ => 
+      println("Travis publishing disabled.")
+      println("TRAVIS: " + travis)
+      println("TRAVIS_PULL_REQUEST: " + pr)
+      println("TRAVIS_BRANCH: " + branch)
+      println("Version: " + snapshot)
+      Def.task ()
   }
 }
 

@@ -1,15 +1,10 @@
 package org.http4s.examples.blaze
 
-/**
- * Created by brycea on 3/26/14.
- */
 
 /**
 * @author Bryce Anderson
-*         Created on 1/10/14
+*         Created on 3/26/14.
 */
-
-
 
 import org.http4s.blaze.Http4sStage
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
@@ -29,10 +24,7 @@ class BlazeExample(port: Int) {
 
   val route = new ExampleRoute().apply()
 
-  def f(): LeafBuilder[ByteBuffer] = {
-
-  new Http4sStage(URITranslation.translateRoot("/http4s")(route))
-  }
+  def f(): LeafBuilder[ByteBuffer] = new Http4sStage(URITranslation.translateRoot("/http4s")(route))
 
   private val factory = new SocketServerChannelFactory(f, 12, 8*1024)
 
