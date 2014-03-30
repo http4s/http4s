@@ -99,7 +99,6 @@ def publishDevelopOnTravisImpl = Def.taskDyn {
     case (true, false, "develop", true) => 
       println("Travis Snapshot detected. Publishing.")
       publish
-
     case _ => 
       println("Travis publishing disabled.")
       println("TRAVIS: " + travis)
