@@ -9,37 +9,22 @@ import Process._
  */
 package object websocket {
 
-  case class Websocket(source: Process[Task, BodyChunk], sink: Sink[Task, BodyChunk])
+  case class Websocket(source: Process[Task, WSFrame], sink: Sink[Task, WSFrame])
 
   val websocketKey = AttributeKey.http4s[Websocket]("websocket")
 
-  trait Decoder[D] {
-    def decode(d: BodyChunk): D
-  }
+
+  sealed trait WSFrame
+  case class Text(msg: String) extends WSFrame
+  case class Binary(msg: Array[Byte]) extends WSFrame
 
 
-  def WS[E,D](source: Process[Task, E], sink: Sink[Task, D])(implicit w: SimpleWritable[E], d: Decoder[D]): Task[Response] = {
+  def WS[E,D](source: Process[Task, WSFrame], sink: Sink[Task, WSFrame]): Task[Response] = {
     val r = Response(
       status = Status.NotImplemented,
-      attributes = AttributeMap(
-        AttributeEntry(
-          websocketKey,Websocket(source.map(w.asChunk(_)),
-            sink.map(s => c => s(d.decode(c))))
-        )
-      )
+      attributes = AttributeMap(AttributeEntry(websocketKey,Websocket(source, sink)))
     )
 
     Task.now(r)
   }
-
-  /////////////////// Decoders ///////////////////////////////////////
-
-  implicit val chunkDecoder = new Decoder[BodyChunk] {
-    override def decode(d: BodyChunk): BodyChunk = d
-  }
-
-  implicit def stringDecoder(implicit charset: CharacterSet = CharacterSet.`UTF-8`) = new Decoder[String] {
-    override def decode(d: BodyChunk): String = d.decodeString(charset)
-  }
-
 }

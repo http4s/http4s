@@ -46,11 +46,8 @@ trait WebSocketSupport extends Http1Stage {
               case Success(_) =>
                 logger.trace("Switching pipeline segments.")
 
-                val dec = new WebSocketDecoder(false)
-                val segment = LeafBuilder(new Http4sWSStage(ws.get)).prepend(dec)
+                val segment = LeafBuilder(new Http4sWSStage(ws.get)).prepend(new WebSocketDecoder(false))
                 this.replaceInline(segment)
-                dec.inboundCommand(Command.Connect)
-
 
               case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
             }

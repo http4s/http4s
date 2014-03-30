@@ -10,6 +10,7 @@ import java.net.InetSocketAddress
 
 import org.http4s.Status._
 import org.http4s.blaze.websocket.WebSocketSupport
+import scalaz.stream.actor.message
 
 
 /**
@@ -21,7 +22,9 @@ class BlazeWebSocketExample(port: Int) {
   import websocket._
   import scala.concurrent.duration._
   import scalaz.stream.Process
+  import Process.Sink
   import scalaz.concurrent.Task
+  import scalaz.stream.async.topic
 
   val route: HttpService = {
     case Get -> Root / "hello" =>
@@ -29,9 +32,25 @@ class BlazeWebSocketExample(port: Int) {
 
     case req@ Get -> Root / "ws" =>
       println("Running websocket.")
-      val src = Process.awakeEvery(1.seconds).map{ d => "Ping! " + d }
-      val sink = Process.constant{c: BodyChunk => Task.delay( println(c.decodeString(CharacterSet.`UTF-8`)))}
+      val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
+      val sink: Sink[Task, WSFrame] = Process.constant {
+        case Text(t) => Task.delay( println(t))
+        case f       => Task.delay(println(s"Unknown type: $f"))
+      }
       WS(src, sink)
+
+    case req@ Get -> Root / "wsecho" =>
+      println("Running echo websocket")
+
+      val t = topic[WSFrame]
+      val src = t.subscribe.map {
+        case Text(msg) => Text("You sent: " + msg)
+        case t => t
+      }
+
+      WS(src, t.publish)
+
+
 
   }
 
