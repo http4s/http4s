@@ -29,7 +29,7 @@ import scalaz.concurrent.Task
 import scalaz.{\/-, -\/}
 
 
-class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[ByteBuffer] {
+class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[ByteBuffer] {
 
   protected implicit def ec = directec
 
@@ -113,7 +113,7 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
     }
   }
 
-  private def renderResponse(req: Request, resp: Response) {
+  protected def renderResponse(req: Request, resp: Response) {
     val rr = new StringWriter(512)
     rr ~ req.protocol.value.toString ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'
     resp.headers.foreach( header => rr ~ header.name.toString ~ ": " ~ header ~ '\r' ~ '\n' )
@@ -253,7 +253,7 @@ class Http4sStage(route: HttpService) extends Http1ServerParser with TailStage[B
 
   /////////////////// Error handling /////////////////////////////////////////
 
-  private def fatalError(t: Throwable, msg: String = "") {
+  protected def fatalError(t: Throwable, msg: String = "") {
     logger.error(s"Fatal Error: $msg", t)
     stageShutdown()
     sendOutboundCommand(Cmd.Error(t))
