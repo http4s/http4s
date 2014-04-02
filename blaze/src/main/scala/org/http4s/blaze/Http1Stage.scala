@@ -225,7 +225,9 @@ class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[By
     val cleanup = Task.async[Unit](cb =>
       drainBody(currentbuffer).onComplete {
         case Success(_) => cb(\/-())
-        case Failure(t) => cb(-\/(t))
+        case Failure(t) =>
+          logger.warn("Error draining body", t)
+          cb(-\/(t))
       })
 
     await(t)(emit, cleanup = await(cleanup)(_ => halt)).repeat
