@@ -7,10 +7,8 @@ import java.nio.charset.Charset
 import scala.collection.generic.CanBuildFrom
 import scala.collection.{mutable, IndexedSeqLike}
 import scala.reflect.ClassTag
-import scala.annotation.tailrec
 import scala.io.Codec
 
-import scalaz.{ImmutableArray, RopeBuilder, Rope}
 
 
 sealed trait Chunk extends IndexedSeq[Byte] {
@@ -24,57 +22,32 @@ sealed trait Chunk extends IndexedSeq[Byte] {
   def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray)
 }
 
-class BodyChunk private (private val self: Rope[Byte]) extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
+trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 
-  override def iterator: Iterator[Byte] = self.iterator
+  def length: Int
 
-  override def reverseIterator: Iterator[Byte] = self.reverseIterator
+  override def iterator: Iterator[Byte]
 
-  override def apply(idx: Int): Byte = self.get(idx).getOrElse(throw new IndexOutOfBoundsException(idx.toString))
+  override def reverseIterator: Iterator[Byte]
 
-  def length: Int = self.length
+  override def apply(idx: Int): Byte
 
-  override def copyToArray[B >: Byte](xs: Array[B], start: Int, len: Int): Unit = {
-    val end = if (start + len > xs.length) xs.length else start + len
-
-    @tailrec
-    def go(s: Stream[ImmutableArray[Byte]], pos: Int): Unit = if (!s.isEmpty) {
-      val i = s.head
-      if (i.length > end - pos) {  // To long for Array
-        i.copyToArray(xs, pos, end - pos)
-      }
-      else {
-        i.copyToArray(xs, pos, i.length)
-        go(s.tail, pos + i.length)
-      }
-    }
-
-    if (start < xs.length) go(self.chunks, start)
-  }
+  override def copyToArray[B >: Byte](xs: Array[B], start: Int, len: Int): Unit
 
   override protected[this] def newBuilder: mutable.Builder[Byte, BodyChunk] = BodyChunk.newBuilder
 
   def asInputStream: InputStream = new ByteArrayInputStream(toArray)
 
-  def ++(b: BodyChunk): BodyChunk = BodyChunk(self ++ b.self)
+  final def append(b: BodyChunk): BodyChunk = util.MultiChunkImpl.concat(this, b)
+
+  final def ++ (b: BodyChunk): BodyChunk = append(b)
 
   /** Split the chunk into two chunks at the given index
    *
    * @param index size of left Chunk
    * @return two chunks, with the left of length size and right of the remaining length
    */
-  override def splitAt(index: Int): (BodyChunk, BodyChunk) = {
-    val _t = self.self.split1(_ >= index)
-    val leftSlice = _t._1
-    val middle = _t._2
-    val rightSlice = _t._3
-    val llength = leftSlice.measure
-
-    val left = leftSlice :+ middle.slice(0, index - llength)
-    val right = middle.slice(index - llength, middle.length) +: rightSlice
-
-    (BodyChunk(Rope(left)), BodyChunk(Rope(right)))
-  }
+  override def splitAt(index: Int): (BodyChunk, BodyChunk)
 
   override def toString(): String = s"BodyChunk(${length} bytes)"
 }
@@ -82,9 +55,15 @@ class BodyChunk private (private val self: Rope[Byte]) extends Chunk with Indexe
 object BodyChunk {
   type Builder = mutable.Builder[Byte, BodyChunk]
 
-  def apply(rope: Rope[Byte]): BodyChunk = new BodyChunk(rope)
+  def apply(bytes: Array[Byte]): BodyChunk = apply(bytes, 0, bytes.length)
 
-  def apply(bytes: Array[Byte]): BodyChunk = BodyChunk(Rope.fromArray(bytes))
+  def apply(bytes: Array[Byte], start: Int, length: Int) = {
+    if (start > bytes.length || length > bytes.length - start)
+      throw new IndexOutOfBoundsException("Invalid bounds for BodyChunk construction: " +
+                                          s"Array(${bytes.length}), Start: $start, Length: $length")
+
+    unsafe(bytes.clone(), start, length)
+  }
 
   def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes.toArray)
 
@@ -96,13 +75,19 @@ object BodyChunk {
 
   def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
 
-  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(Rope.fromArray(string.getBytes(charset)))
+  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(string.getBytes(charset))
 
   def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk = BodyChunk(array.slice(offset, length))
 
-  val empty: BodyChunk = BodyChunk(Rope.empty[Byte])
+  /** Construct and unsafe BodyChunk from the array
+    * The array is not copied, and therefor any changes will result in changes to the  resulting BodyChunk!
+    * If this is not the desired behavior, use BodyChunk.apply to safely copy the array first
+    */
+  def unsafe(arr: Array[Byte], start: Int, length: Int) = util.ChunkLeafImpl(arr, start, length)
 
-  private def newBuilder: Builder = (new RopeBuilder[Byte]).mapResult(BodyChunk.apply _)
+  val empty: BodyChunk = BodyChunk()
+
+  private def newBuilder: Builder = (mutable.ArrayBuilder.make[Byte]).mapResult(BodyChunk(_))
 
   implicit def canBuildFrom: CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] =
     new CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] {
