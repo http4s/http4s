@@ -103,6 +103,16 @@ class ChunkSpec extends WordSpec with Matchers {
         compareBodyChunk(a, data.slice(0, 4))
         compareBodyChunk(b, data.slice(4, data.length))
       }
+      {
+        val (a,b) = c.splitAt(0)
+        compareBodyChunk(a, Array[Byte]())
+        compareBodyChunk(b, data)
+      }
+      {
+        val (a,b) = c.splitAt(40)
+        compareBodyChunk(a, data)
+        compareBodyChunk(b, Array[Byte]())
+      }
     }
 
   }
