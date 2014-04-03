@@ -1,0 +1,1747 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>HttpParser - org.http4s.parserold.HttpParser</title>
+          <meta name="description" content="HttpParser - org.http4s.parserold.HttpParser" />
+          <meta name="keywords" content="HttpParser org.http4s.parserold.HttpParser" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'org.http4s.parserold.HttpParser$';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../lib/object_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.parserold">parserold</a></p>
+        <h1>HttpParser</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <span class="name">HttpParser</span><span class="result"> extends <a href="Http4sParser.html" class="extype" name="org.http4s.parserold.Http4sParser">Http4sParser</a> with <span class="extype" name="org.http4s.parserold.ProtocolParameterRules">ProtocolParameterRules</span> with <span class="extype" name="org.http4s.parserold.AdditionalRules">AdditionalRules</span> with <span class="extype" name="org.http4s.parserold.CommonActions">CommonActions</span></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Parser for all HTTP headers as defined by
+ <a href="http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html" target="_blank">http://www.w3.org/Protocols/rfc2616/rfc2616-sec14.html</a>
+</p></div><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.parserold.CommonActions">CommonActions</span>, <span class="extype" name="org.http4s.parserold.AdditionalRules">AdditionalRules</span>, <span class="extype" name="org.http4s.parserold.ProtocolParameterRules">ProtocolParameterRules</span>, <a href="Http4sParser.html" class="extype" name="org.http4s.parserold.Http4sParser">Http4sParser</a>, <span class="extype" name="org.parboiled.scala.Parser">Parser</span>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="org.http4s.parserold.HttpParser"><span>HttpParser</span></li><li class="in" name="org.http4s.parserold.CommonActions"><span>CommonActions</span></li><li class="in" name="org.http4s.parserold.AdditionalRules"><span>AdditionalRules</span></li><li class="in" name="org.http4s.parserold.ProtocolParameterRules"><span>ProtocolParameterRules</span></li><li class="in" name="org.http4s.parserold.Http4sParser"><span>Http4sParser</span></li><li class="in" name="org.parboiled.scala.Parser"><span>Parser</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:AnyRef):Boolean"></a>
+      <a id="!=(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.Any#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:AnyRef):Boolean"></a>
+      <a id="==(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.Any#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#ASCTimeDate" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ASCTimeDate:org.parboiled.scala.rules.Rule1[org.joda.time.DateTime]"></a>
+      <a id="ASCTimeDate:Rule1[DateTime]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ASCTimeDate</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="org.joda.time.DateTime">DateTime</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Attribute" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Attribute:org.parboiled.scala.Rule1[String]"></a>
+      <a id="Attribute:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Attribute</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.AdditionalRules#AuthParam" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AuthParam:org.parboiled.scala.rules.Rule1[(String,String)]"></a>
+      <a id="AuthParam:Rule1[(String,String)]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">AuthParam</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AdditionalRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.AdditionalRules#AuthScheme" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="AuthScheme:org.parboiled.scala.rules.Rule1[String]"></a>
+      <a id="AuthScheme:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">AuthScheme</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AdditionalRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#BytesUnit" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BytesUnit:org.parboiled.scala.rules.Rule1[org.http4s.RangeUnit]"></a>
+      <a id="BytesUnit:Rule1[RangeUnit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">BytesUnit</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<a href="../RangeUnit.html" class="extype" name="org.http4s.RangeUnit">RangeUnit</a>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Charset" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Charset:org.parboiled.scala.Rule1[String]"></a>
+      <a id="Charset:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Charset</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#ContentCoding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ContentCoding:org.parboiled.scala.Rule1[String]"></a>
+      <a id="ContentCoding:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ContentCoding</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Date1" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Date1:org.parboiled.scala.rules.Rule3[Int,Int,Int]"></a>
+      <a id="Date1:Rule3[Int,Int,Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Date1</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule3">Rule3</span>[<span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Date2" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Date2:org.parboiled.scala.rules.Rule3[Int,Int,Int]"></a>
+      <a id="Date2:Rule3[Int,Int,Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Date2</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule3">Rule3</span>[<span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Date3" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Date3:org.parboiled.scala.rules.Rule2[Int,Int]"></a>
+      <a id="Date3:Rule2[Int,Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Date3</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule2">Rule2</span>[<span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#DeltaSeconds" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DeltaSeconds:org.parboiled.scala.rules.Rule1[Long]"></a>
+      <a id="DeltaSeconds:Rule1[Long]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">DeltaSeconds</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Long">Long</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Digit2" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Digit2:org.parboiled.scala.rules.Rule1[Int]"></a>
+      <a id="Digit2:Rule1[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Digit2</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Digit4" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Digit4:org.parboiled.scala.rules.Rule1[Int]"></a>
+      <a id="Digit4:Rule1[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Digit4</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#EntityTag" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="EntityTag:org.parboiled.scala.rules.Rule1[String]"></a>
+      <a id="EntityTag:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">EntityTag</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#HttpDate" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpDate:org.parboiled.scala.Rule1[org.joda.time.DateTime]"></a>
+      <a id="HttpDate:Rule1[DateTime]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">HttpDate</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.joda.time.DateTime">DateTime</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#HttpVersion" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpVersion:org.parboiled.scala.rules.Rule0"></a>
+      <a id="HttpVersion:Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">HttpVersion</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.AdditionalRules#Ip" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Ip:org.parboiled.scala.Rule1[java.net.InetAddress]"></a>
+      <a id="Ip:Rule1[InetAddress]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Ip</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AdditionalRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.AdditionalRules#IpNumber" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="IpNumber:org.parboiled.scala.rules.Rule0"></a>
+      <a id="IpNumber:Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">IpNumber</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AdditionalRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#LanguageTag" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="LanguageTag:org.parboiled.scala.rules.Rule2[String,List[String]]"></a>
+      <a id="LanguageTag:Rule2[String,List[String]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">LanguageTag</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule2">Rule2</span>[<span class="extype" name="java.lang.String">String</span>, <span class="extype" name="scala.List">List</span>[<span class="extype" name="java.lang.String">String</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#MediaTypeDef" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MediaTypeDef:org.parboiled.scala.Rule3[String,String,Map[String,String]]"></a>
+      <a id="MediaTypeDef:Rule3[String,String,Map[String,String]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">MediaTypeDef</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule3">Rule3</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Month" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Month:org.parboiled.scala.rules.Rule1[Int]"></a>
+      <a id="Month:Rule1[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Month</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#OpaqueTag" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="OpaqueTag:org.parboiled.scala.Rule1[String]"></a>
+      <a id="OpaqueTag:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">OpaqueTag</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#OtherRangeUnit" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="OtherRangeUnit:org.parboiled.scala.rules.Rule1[org.http4s.RangeUnit.CustomRangeUnit]"></a>
+      <a id="OtherRangeUnit:Rule1[CustomRangeUnit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">OtherRangeUnit</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<a href="../RangeUnit$$CustomRangeUnit.html" class="extype" name="org.http4s.RangeUnit.CustomRangeUnit">CustomRangeUnit</a>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Parameter" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Parameter:org.parboiled.scala.rules.Rule1[(String,String)]"></a>
+      <a id="Parameter:Rule1[(String,String)]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Parameter</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#PrimaryTag" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PrimaryTag:org.parboiled.scala.rules.Rule1[String]"></a>
+      <a id="PrimaryTag:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">PrimaryTag</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="java.lang.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Product" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Product:org.parboiled.scala.rules.Rule2[String,Option[String]]"></a>
+      <a id="Product:Rule2[String,Option[String]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Product</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule2">Rule2</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#ProductVersion" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ProductVersion:org.parboiled.scala.Rule1[String]"></a>
+      <a id="ProductVersion:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ProductVersion</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#QValue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="QValue:org.parboiled.scala.rules.Rule0"></a>
+      <a id="QValue:Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">QValue</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#RFC1123Date" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RFC1123Date:org.parboiled.scala.rules.Rule1[org.joda.time.DateTime]"></a>
+      <a id="RFC1123Date:Rule1[DateTime]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RFC1123Date</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="org.joda.time.DateTime">DateTime</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#RFC850Date" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RFC850Date:org.parboiled.scala.rules.Rule1[org.joda.time.DateTime]"></a>
+      <a id="RFC850Date:Rule1[DateTime]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RFC850Date</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="org.joda.time.DateTime">DateTime</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#RangeUnit" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="RangeUnit:org.parboiled.scala.rules.Rule1[org.http4s.RangeUnit]"></a>
+      <a id="RangeUnit:Rule1[RangeUnit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">RangeUnit</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<a href="../RangeUnit.html" class="extype" name="org.http4s.RangeUnit">RangeUnit</a>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#SubTag" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SubTag:org.parboiled.scala.rules.Rule1[String]"></a>
+      <a id="SubTag:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">SubTag</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="java.lang.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Subtype" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Subtype:org.parboiled.scala.Rule1[String]"></a>
+      <a id="Subtype:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Subtype</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Time" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Time:org.parboiled.scala.rules.Rule3[Int,Int,Int]"></a>
+      <a id="Time:Rule3[Int,Int,Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Time</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule3">Rule3</span>[<span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>, <span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#TransferCoding" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="TransferCoding:org.parboiled.scala.rules.Rule0"></a>
+      <a id="TransferCoding:Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">TransferCoding</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#TransferExtension" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="TransferExtension:org.parboiled.scala.rules.Rule2[String,List[(String,String)]]"></a>
+      <a id="TransferExtension:Rule2[String,List[(String,String)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">TransferExtension</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule2">Rule2</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.List">List</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Type" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Type:org.parboiled.scala.Rule1[String]"></a>
+      <a id="Type:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Type</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Value" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Value:org.parboiled.scala.rules.Rule1[String]"></a>
+      <a id="Value:Rule1[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Value</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Weekday" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Weekday:org.parboiled.scala.rules.Rule1[Int]"></a>
+      <a id="Weekday:Rule1[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Weekday</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.http4s.parserold.ProtocolParameterRules#Wkday" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Wkday:org.parboiled.scala.rules.Rule1[Int]"></a>
+      <a id="Wkday:Rule1[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Wkday</span><span class="result">: <span class="extype" name="org.parboiled.scala.rules.Rule1">Rule1</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>ProtocolParameterRules</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#anyOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="anyOf(chars:org.parboiled.support.Characters):org.parboiled.scala.Rule0"></a>
+      <a id="anyOf(Characters):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">anyOf</span><span class="params">(<span name="chars">chars: <span class="extype" name="org.parboiled.support.Characters">Characters</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#anyOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="anyOf(chars:Array[Char]):org.parboiled.scala.Rule0"></a>
+      <a id="anyOf(Array[Char]):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">anyOf</span><span class="params">(<span name="chars">chars: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Char">Char</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#anyOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="anyOf(s:String):org.parboiled.scala.Rule0"></a>
+      <a id="anyOf(String):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">anyOf</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#buildParseTree" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="buildParseTree:Boolean"></a>
+      <a id="buildParseTree:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">buildParseTree</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#ch" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ch(c:Char):org.parboiled.scala.CharRule"></a>
+      <a id="ch(Char):CharRule"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ch</span><span class="params">(<span name="c">c: <span class="extype" name="scala.Char">Char</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.CharRule">CharRule</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.http4s.parserold.CommonActions#getCharset" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getCharset:String=&gt;org.http4s.CharacterSet"></a>
+      <a id="getCharset:(String)⇒CharacterSet"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getCharset</span><span class="result">: (<span class="extype" name="scala.Predef.String">String</span>) ⇒ <a href="../CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>CommonActions</dd></dl></div>
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.parserold.CommonActions#getMediaType" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getMediaType(mainType:String,subType:String,boundary:Option[String]):org.http4s.MediaType"></a>
+      <a id="getMediaType(String,String,Option[String]):MediaType"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getMediaType</span><span class="params">(<span name="mainType">mainType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="subType">subType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="boundary">boundary: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="../MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>CommonActions</dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#ignoreCase" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ignoreCase(chars:Array[Char]):org.parboiled.scala.Rule0"></a>
+      <a id="ignoreCase(Array[Char]):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ignoreCase</span><span class="params">(<span name="chars">chars: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Char">Char</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#ignoreCase" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ignoreCase(s:String):org.parboiled.scala.Rule0"></a>
+      <a id="ignoreCase(String):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ignoreCase</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#ignoreCase" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ignoreCase(c:Char):org.parboiled.scala.Rule0"></a>
+      <a id="ignoreCase(Char):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ignoreCase</span><span class="params">(<span name="c">c: <span class="extype" name="scala.Char">Char</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;](times:&lt;?&gt;,sub:&lt;?&gt;,separator:&lt;?&gt;):org.parboiled.scala.Rule1[List[(A,B)]]"></a>
+      <a id="nTimes[A,B](Int,Rule2[A,B],Rule0):Rule1[List[(A,B)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.B">B</span>]</span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[(<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.B">B</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;](times:&lt;?&gt;,sub:&lt;?&gt;):org.parboiled.scala.Rule1[List[(A,B)]]"></a>
+      <a id="nTimes[A,B](Int,Rule2[A,B]):Rule1[List[(A,B)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[(<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.B">B</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes[A&lt;:&lt;?&gt;](times:&lt;?&gt;,sub:&lt;?&gt;,separator:&lt;?&gt;):org.parboiled.scala.Rule1[List[A]]"></a>
+      <a id="nTimes[A](Int,Rule1[A],Rule0):Rule1[List[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>]</span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes[A&lt;:&lt;?&gt;](times:&lt;?&gt;,sub:&lt;?&gt;):org.parboiled.scala.Rule1[List[A]]"></a>
+      <a id="nTimes[A](Int,Rule1[A]):Rule1[List[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.A">A</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes[Z&lt;:&lt;?&gt;](times:&lt;?&gt;,sub:&lt;?&gt;,separator:&lt;?&gt;):org.parboiled.scala.ReductionRule1[Z,Z]"></a>
+      <a id="nTimes[Z](Int,ReductionRule1[Z,Z],Rule0):ReductionRule1[Z,Z]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="tparams">[<span name="Z">Z</span>]</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>]</span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes[Z&lt;:&lt;?&gt;](times:&lt;?&gt;,sub:&lt;?&gt;):org.parboiled.scala.ReductionRule1[Z,Z]"></a>
+      <a id="nTimes[Z](Int,ReductionRule1[Z,Z]):ReductionRule1[Z,Z]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="tparams">[<span name="Z">Z</span>]</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.nTimes.Z">Z</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes(times:&lt;?&gt;,sub:&lt;?&gt;,separator:&lt;?&gt;):org.parboiled.scala.Rule0"></a>
+      <a id="nTimes(Int,Rule0,Rule0):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#nTimes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="nTimes(times:&lt;?&gt;,sub:&lt;?&gt;):org.parboiled.scala.Rule0"></a>
+      <a id="nTimes(Int,Rule0):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nTimes</span><span class="params">(<span name="times">times: <span class="extype" name="scala.Int">Int</span></span>, <span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#noneOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="noneOf(chars:&lt;?&gt;):org.parboiled.scala.Rule0"></a>
+      <a id="noneOf(Array[Char]):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">noneOf</span><span class="params">(<span name="chars">chars: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Char">Char</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#noneOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="noneOf(s:&lt;?&gt;):org.parboiled.scala.Rule0"></a>
+      <a id="noneOf(String):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">noneOf</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.parserold.HttpParser#oldrules" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="oldrules:Map[org.http4s.util.CaseInsensitiveString,org.parboiled.scala.Rule1[org.http4s.Header]]"></a>
+      <a id="oldrules:Map[CaseInsensitiveString,Rule1[Header]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oldrules</span><span class="result">: <span class="extype" name="scala.Predef.Map">Map</span>[<a href="../util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>, <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>]]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.parboiled.scala.Parser#oneOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="oneOrMore[A,B](sub:org.parboiled.scala.Rule2[A,B],separator:org.parboiled.scala.Rule0):org.parboiled.scala.Rule1[List[(A,B)]]"></a>
+      <a id="oneOrMore[A,B](Rule2[A,B],Rule0):Rule1[List[(A,B)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oneOrMore</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.oneOrMore.B">B</span>]</span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[(<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.oneOrMore.B">B</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#oneOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="oneOrMore[A](sub:org.parboiled.scala.Rule1[A],separator:org.parboiled.scala.Rule0):org.parboiled.scala.Rule1[List[A]]"></a>
+      <a id="oneOrMore[A](Rule1[A],Rule0):Rule1[List[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oneOrMore</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>]</span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#oneOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="oneOrMore(sub:org.parboiled.scala.Rule0,separator:org.parboiled.scala.Rule0):org.parboiled.scala.Rule0"></a>
+      <a id="oneOrMore(Rule0,Rule0):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oneOrMore</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#oneOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="oneOrMore[A,B](sub:org.parboiled.scala.Rule2[A,B]):org.parboiled.scala.Rule1[List[(A,B)]]"></a>
+      <a id="oneOrMore[A,B](Rule2[A,B]):Rule1[List[(A,B)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oneOrMore</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.oneOrMore.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[(<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.oneOrMore.B">B</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#oneOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="oneOrMore[A](sub:org.parboiled.scala.Rule1[A]):org.parboiled.scala.Rule1[List[A]]"></a>
+      <a id="oneOrMore[A](Rule1[A]):Rule1[List[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oneOrMore</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.A">A</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#oneOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="oneOrMore[Z](sub:org.parboiled.scala.ReductionRule1[Z,Z]):org.parboiled.scala.ReductionRule1[Z,Z]"></a>
+      <a id="oneOrMore[Z](ReductionRule1[Z,Z]):ReductionRule1[Z,Z]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oneOrMore</span><span class="tparams">[<span name="Z">Z</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.oneOrMore.Z">Z</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.oneOrMore.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.oneOrMore.Z">Z</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#oneOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="oneOrMore(sub:org.parboiled.scala.Rule0):org.parboiled.scala.Rule0"></a>
+      <a id="oneOrMore(Rule0):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">oneOrMore</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#optional" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="optional[A,B](sub:org.parboiled.scala.Rule2[A,B]):org.parboiled.scala.Rule1[Option[(A,B)]]"></a>
+      <a id="optional[A,B](Rule2[A,B]):Rule1[Option[(A,B)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">optional</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.optional.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.optional.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Option">Option</span>[(<span class="extype" name="org.parboiled.scala.Parser.optional.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.optional.B">B</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#optional" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="optional[A](sub:org.parboiled.scala.Rule1[A]):org.parboiled.scala.Rule1[Option[A]]"></a>
+      <a id="optional[A](Rule1[A]):Rule1[Option[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">optional</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.optional.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.Option">Option</span>[<span class="extype" name="org.parboiled.scala.Parser.optional.A">A</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#optional" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="optional[Z](sub:org.parboiled.scala.ReductionRule1[Z,Z]):org.parboiled.scala.ReductionRule1[Z,Z]"></a>
+      <a id="optional[Z](ReductionRule1[Z,Z]):ReductionRule1[Z,Z]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">optional</span><span class="tparams">[<span name="Z">Z</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.optional.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.optional.Z">Z</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.optional.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.optional.Z">Z</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#optional" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="optional(sub:org.parboiled.scala.Rule0):org.parboiled.scala.Rule0"></a>
+      <a id="optional(Rule0):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">optional</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.http4s.parserold.Http4sParser#parse" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parse[A](rule:org.parboiled.scala.Rule1[A],input:String):Either[org.http4s.parser.ParseErrorInfo,A]"></a>
+      <a id="parse[A](Rule1[A],String):Either[ParseErrorInfo,A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parse</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="rule">rule: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.http4s.parserold.Http4sParser.parse.A">A</span>]</span>, <span name="input">input: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Either">Either</span>[<a href="../parser/ParseErrorInfo.html" class="extype" name="org.http4s.parser.ParseErrorInfo">ParseErrorInfo</a>, <span class="extype" name="org.http4s.parserold.Http4sParser.parse.A">A</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Http4sParser.html" class="extype" name="org.http4s.parserold.Http4sParser">Http4sParser</a></dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#push" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="push[A,B,C](a:=&gt;A,b:=&gt;B,c:=&gt;C):org.parboiled.scala.Rule3[A,B,C]"></a>
+      <a id="push[A,B,C](⇒A,⇒B,⇒C):Rule3[A,B,C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">push</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>]</span><span class="params">(<span name="a">a: ⇒ <span class="extype" name="org.parboiled.scala.Parser.push.A">A</span></span>, <span name="b">b: ⇒ <span class="extype" name="org.parboiled.scala.Parser.push.B">B</span></span>, <span name="c">c: ⇒ <span class="extype" name="org.parboiled.scala.Parser.push.C">C</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule3">Rule3</span>[<span class="extype" name="org.parboiled.scala.Parser.push.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.push.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.push.C">C</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#push" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="push[A,B](a:=&gt;A,b:=&gt;B):org.parboiled.scala.Rule2[A,B]"></a>
+      <a id="push[A,B](⇒A,⇒B):Rule2[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">push</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="a">a: ⇒ <span class="extype" name="org.parboiled.scala.Parser.push.A">A</span></span>, <span name="b">b: ⇒ <span class="extype" name="org.parboiled.scala.Parser.push.B">B</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.push.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.push.B">B</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#push" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="push[A](f:=&gt;A):org.parboiled.scala.Rule1[A]"></a>
+      <a id="push[A](⇒A):Rule1[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">push</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="org.parboiled.scala.Parser.push.A">A</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.push.A">A</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#pushFromContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="pushFromContext[A&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.Rule1[A]"></a>
+      <a id="pushFromContext[A]((Context[Any])⇒A):Rule1[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">pushFromContext</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.pushFromContext.A">A</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.pushFromContext.A">A</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#rule" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="rule[T&lt;:org.parboiled.scala.Rule](label:String,options:org.parboiled.scala.RuleOption*)(block:=&gt;T)(implicitcreator:org.parboiled.matchers.Matcher=&gt;T):T"></a>
+      <a id="rule[T&lt;:Rule](String,RuleOption*)(⇒T)((Matcher)⇒T):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rule</span><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="org.parboiled.scala.Rule">Rule</span></span>]</span><span class="params">(<span name="label">label: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="options">options: <span class="extype" name="org.parboiled.scala.RuleOption">RuleOption</span>*</span>)</span><span class="params">(<span name="block">block: ⇒ <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="creator">creator: (<span class="extype" name="org.parboiled.matchers.Matcher">Matcher</span>) ⇒ <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#rule" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="rule[T&lt;:org.parboiled.scala.Rule](firstOption:org.parboiled.scala.RuleOption,more:org.parboiled.scala.RuleOption*)(block:=&gt;T)(implicitcreator:org.parboiled.matchers.Matcher=&gt;T):T"></a>
+      <a id="rule[T&lt;:Rule](RuleOption,RuleOption*)(⇒T)((Matcher)⇒T):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rule</span><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="org.parboiled.scala.Rule">Rule</span></span>]</span><span class="params">(<span name="firstOption">firstOption: <span class="extype" name="org.parboiled.scala.RuleOption">RuleOption</span></span>, <span name="more">more: <span class="extype" name="org.parboiled.scala.RuleOption">RuleOption</span>*</span>)</span><span class="params">(<span name="block">block: ⇒ <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="creator">creator: (<span class="extype" name="org.parboiled.matchers.Matcher">Matcher</span>) ⇒ <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#rule" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="rule[T&lt;:org.parboiled.scala.Rule](block:=&gt;T)(implicitcreator:org.parboiled.matchers.Matcher=&gt;T):T"></a>
+      <a id="rule[T&lt;:Rule](⇒T)((Matcher)⇒T):T"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">rule</span><span class="tparams">[<span name="T">T &lt;: <span class="extype" name="org.parboiled.scala.Rule">Rule</span></span>]</span><span class="params">(<span name="block">block: ⇒ <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="creator">creator: (<span class="extype" name="org.parboiled.matchers.Matcher">Matcher</span>) ⇒ <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Parser.rule.T">T</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#run" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="run(f:&lt;?&gt;):org.parboiled.scala.Rule0"></a>
+      <a id="run(⇒Unit):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">run</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="scala.Unit">Unit</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#str" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="str(chars:Array[Char]):org.parboiled.scala.Rule0"></a>
+      <a id="str(Array[Char]):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">str</span><span class="params">(<span name="chars">chars: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Char">Char</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#str" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="str(s:String):org.parboiled.scala.Rule0"></a>
+      <a id="str(String):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">str</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#test" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="test(f:&lt;?&gt;):org.parboiled.scala.Rule0"></a>
+      <a id="test(⇒Boolean):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">test</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.http4s.parserold.HttpParser#toRule" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toRule(string:String):org.parboiled.scala.Rule0"></a>
+      <a id="toRule(String):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toRule</span><span class="params">(<span name="string">string: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.parserold.HttpParser">HttpParser</a> → Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#toRule" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toRule(symbol:Symbol):org.parboiled.scala.Rule0"></a>
+      <a id="toRule(Symbol):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toRule</span><span class="params">(<span name="symbol">symbol: <span class="extype" name="scala.Symbol">Symbol</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#toRule" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toRule(chars:Array[Char]):org.parboiled.scala.Rule0"></a>
+      <a id="toRule(Array[Char]):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toRule</span><span class="params">(<span name="chars">chars: <span class="extype" name="scala.Array">Array</span>[<span class="extype" name="scala.Char">Char</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#withContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContext[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;,C&lt;:&lt;?&gt;,D&lt;:&lt;?&gt;,E&lt;:&lt;?&gt;,F&lt;:&lt;?&gt;,G&lt;:&lt;?&gt;,R&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.WithContextAction7[A,B,C,D,E,F,G,R]"></a>
+      <a id="withContext[A,B,C,D,E,F,G,R]((A,B,C,D,E,F,G,Context[Any])⇒R):WithContextAction7[A,B,C,D,E,F,G,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContext</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>, <span name="D">D</span>, <span name="E">E</span>, <span name="F">F</span>, <span name="G">G</span>, <span name="R">R</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.E">E</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.F">F</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.G">G</span>, <span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.WithContextAction7">WithContextAction7</span>[<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.E">E</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.F">F</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.G">G</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#withContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContext[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;,C&lt;:&lt;?&gt;,D&lt;:&lt;?&gt;,E&lt;:&lt;?&gt;,F&lt;:&lt;?&gt;,R&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.WithContextAction6[A,B,C,D,E,F,R]"></a>
+      <a id="withContext[A,B,C,D,E,F,R]((A,B,C,D,E,F,Context[Any])⇒R):WithContextAction6[A,B,C,D,E,F,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContext</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>, <span name="D">D</span>, <span name="E">E</span>, <span name="F">F</span>, <span name="R">R</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.E">E</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.F">F</span>, <span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.WithContextAction6">WithContextAction6</span>[<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.E">E</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.F">F</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#withContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContext[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;,C&lt;:&lt;?&gt;,D&lt;:&lt;?&gt;,E&lt;:&lt;?&gt;,R&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.WithContextAction5[A,B,C,D,E,R]"></a>
+      <a id="withContext[A,B,C,D,E,R]((A,B,C,D,E,Context[Any])⇒R):WithContextAction5[A,B,C,D,E,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContext</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>, <span name="D">D</span>, <span name="E">E</span>, <span name="R">R</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.E">E</span>, <span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.WithContextAction5">WithContextAction5</span>[<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.E">E</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#withContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContext[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;,C&lt;:&lt;?&gt;,D&lt;:&lt;?&gt;,R&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.WithContextAction4[A,B,C,D,R]"></a>
+      <a id="withContext[A,B,C,D,R]((A,B,C,D,Context[Any])⇒R):WithContextAction4[A,B,C,D,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContext</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>, <span name="D">D</span>, <span name="R">R</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.WithContextAction4">WithContextAction4</span>[<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.D">D</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#withContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContext[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;,C&lt;:&lt;?&gt;,R&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.WithContextAction3[A,B,C,R]"></a>
+      <a id="withContext[A,B,C,R]((A,B,C,Context[Any])⇒R):WithContextAction3[A,B,C,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContext</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>, <span name="R">R</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.WithContextAction3">WithContextAction3</span>[<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.C">C</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#withContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContext[A&lt;:&lt;?&gt;,B&lt;:&lt;?&gt;,R&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.WithContextAction2[A,B,R]"></a>
+      <a id="withContext[A,B,R]((A,B,Context[Any])⇒R):WithContextAction2[A,B,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContext</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="R">R</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.WithContextAction2">WithContextAction2</span>[<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.B">B</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#withContext" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withContext[A&lt;:&lt;?&gt;,R&lt;:&lt;?&gt;](f:&lt;?&gt;):org.parboiled.scala.WithContextAction1[A,R]"></a>
+      <a id="withContext[A,R]((A,Context[Any])⇒R):WithContextAction1[A,R]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withContext</span><span class="tparams">[<span name="A">A</span>, <span name="R">R</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.Context">Context</span>[<span class="extype" name="scala.Any">Any</span>]) ⇒ <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.WithContextAction1">WithContextAction1</span>[<span class="extype" name="org.parboiled.scala.Parser.withContext.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.withContext.R">R</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#zeroOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zeroOrMore[A,B](sub:org.parboiled.scala.Rule2[A,B],separator:org.parboiled.scala.Rule0):org.parboiled.scala.Rule1[List[(A,B)]]"></a>
+      <a id="zeroOrMore[A,B](Rule2[A,B],Rule0):Rule1[List[(A,B)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zeroOrMore</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.B">B</span>]</span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[(<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.B">B</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#zeroOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zeroOrMore[A](sub:org.parboiled.scala.Rule1[A],separator:org.parboiled.scala.Rule0):org.parboiled.scala.Rule1[List[A]]"></a>
+      <a id="zeroOrMore[A](Rule1[A],Rule0):Rule1[List[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zeroOrMore</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>]</span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#zeroOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zeroOrMore(sub:org.parboiled.scala.Rule0,separator:org.parboiled.scala.Rule0):org.parboiled.scala.Rule0"></a>
+      <a id="zeroOrMore(Rule0,Rule0):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zeroOrMore</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>, <span name="separator">separator: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#zeroOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zeroOrMore[A,B](sub:org.parboiled.scala.Rule2[A,B]):org.parboiled.scala.Rule1[List[(A,B)]]"></a>
+      <a id="zeroOrMore[A,B](Rule2[A,B]):Rule1[List[(A,B)]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zeroOrMore</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule2">Rule2</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[(<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>, <span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.B">B</span>)]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#zeroOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zeroOrMore[A](sub:org.parboiled.scala.Rule1[A]):org.parboiled.scala.Rule1[List[A]]"></a>
+      <a id="zeroOrMore[A](Rule1[A]):Rule1[List[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zeroOrMore</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule1">Rule1</span>[<span class="extype" name="scala.List">List</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.A">A</span>]]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#zeroOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zeroOrMore[Z](sub:org.parboiled.scala.ReductionRule1[Z,Z]):org.parboiled.scala.ReductionRule1[Z,Z]"></a>
+      <a id="zeroOrMore[Z](ReductionRule1[Z,Z]):ReductionRule1[Z,Z]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zeroOrMore</span><span class="tparams">[<span name="Z">Z</span>]</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.Z">Z</span>]</span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.ReductionRule1">ReductionRule1</span>[<span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.Z">Z</span>, <span class="extype" name="org.parboiled.scala.Parser.zeroOrMore.Z">Z</span>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li><li name="org.parboiled.scala.Parser#zeroOrMore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="zeroOrMore(sub:org.parboiled.scala.Rule0):org.parboiled.scala.Rule0"></a>
+      <a id="zeroOrMore(Rule0):Rule0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">zeroOrMore</span><span class="params">(<span name="sub">sub: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>)</span><span class="result">: <span class="extype" name="org.parboiled.scala.Rule0">Rule0</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Parser</dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="org.http4s.parserold.CommonActions">
+              <h3>Inherited from <span class="extype" name="org.http4s.parserold.CommonActions">CommonActions</span></h3>
+            </div><div class="parent" name="org.http4s.parserold.AdditionalRules">
+              <h3>Inherited from <span class="extype" name="org.http4s.parserold.AdditionalRules">AdditionalRules</span></h3>
+            </div><div class="parent" name="org.http4s.parserold.ProtocolParameterRules">
+              <h3>Inherited from <span class="extype" name="org.http4s.parserold.ProtocolParameterRules">ProtocolParameterRules</span></h3>
+            </div><div class="parent" name="org.http4s.parserold.Http4sParser">
+              <h3>Inherited from <a href="Http4sParser.html" class="extype" name="org.http4s.parserold.Http4sParser">Http4sParser</a></h3>
+            </div><div class="parent" name="org.parboiled.scala.Parser">
+              <h3>Inherited from <span class="extype" name="org.parboiled.scala.Parser">Parser</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../../lib/template.js"></script>
+    </body>
+      </html>

@@ -1,0 +1,238 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>parser - org.http4s.parser</title>
+          <meta name="description" content="parser - org.http4s.parser" />
+          <meta name="keywords" content="parser org.http4s.parser" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../index.html';
+            var hash = 'org.http4s.parser.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../lib/package_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a></p>
+        <h1>parser</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parser</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.parser.AuthorizationHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="AuthorizationHeaderextendsAnyRef"></a>
+      <a id="AuthorizationHeader:AuthorizationHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="AuthorizationHeader.html"><span class="name">AuthorizationHeader</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li><li name="org.http4s.parser.CacheControlHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CacheControlHeaderextendsAnyRef"></a>
+      <a id="CacheControlHeader:CacheControlHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CacheControlHeader.html"><span class="name">CacheControlHeader</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li><li name="org.http4s.parser.CookieHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CookieHeaderextendsAnyRef"></a>
+      <a id="CookieHeader:CookieHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CookieHeader.html"><span class="name">CookieHeader</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li><li name="org.http4s.parser.Http4sHeaderParser" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Http4sHeaderParser[H&lt;:org.http4s.Header]extendsParserwithAdditionalRules"></a>
+      <a id="Http4sHeaderParser[H&lt;:Header]:Http4sHeaderParser[H]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Http4sHeaderParser.html"><span class="name">Http4sHeaderParser</span></a><span class="tparams">[<span name="H">H &lt;: <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a></span>]</span><span class="result"> extends <span class="extype" name="org.parboiled2.Parser">Parser</span> with <span class="extype" name="org.http4s.parser.AdditionalRules">AdditionalRules</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser.HttpParser" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HttpParserextendsSimpleHeaderswithAcceptHeaderwithAcceptLanguageHeaderwithCacheControlHeaderwithContentTypeHeaderwithCookieHeaderwithAcceptRangesHeaderwithAcceptCharsetHeaderwithAcceptEncodingHeaderwithAuthorizationHeaderwithWwwAuthenticateHeader"></a>
+      <a id="HttpParser:HttpParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpParser.html"><span class="name">HttpParser</span></a><span class="result"> extends <span class="extype" name="org.http4s.parser.SimpleHeaders">SimpleHeaders</span> with <span class="extype" name="org.http4s.parser.AcceptHeader">AcceptHeader</span> with <span class="extype" name="org.http4s.parser.AcceptLanguageHeader">AcceptLanguageHeader</span> with <a href="CacheControlHeader.html" class="extype" name="org.http4s.parser.CacheControlHeader">CacheControlHeader</a> with <span class="extype" name="org.http4s.parser.ContentTypeHeader">ContentTypeHeader</span> with <a href="CookieHeader.html" class="extype" name="org.http4s.parser.CookieHeader">CookieHeader</a> with <span class="extype" name="org.http4s.parser.AcceptRangesHeader">AcceptRangesHeader</span> with <span class="extype" name="org.http4s.parser.AcceptCharsetHeader">AcceptCharsetHeader</span> with <span class="extype" name="org.http4s.parser.AcceptEncodingHeader">AcceptEncodingHeader</span> with <a href="AuthorizationHeader.html" class="extype" name="org.http4s.parser.AuthorizationHeader">AuthorizationHeader</a> with <a href="WwwAuthenticateHeader.html" class="extype" name="org.http4s.parser.WwwAuthenticateHeader">WwwAuthenticateHeader</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser.MediaParser" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MediaParserextendsAnyRef"></a>
+      <a id="MediaParser:MediaParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MediaParser.html"><span class="name">MediaParser</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li><li name="org.http4s.parser.ParseErrorInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParseErrorInfoextendsProductwithSerializable"></a>
+      <a id="ParseErrorInfo:ParseErrorInfo"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParseErrorInfo.html"><span class="name">ParseErrorInfo</span></a><span class="params">(<span name="summary">summary: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="detail">detail: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser.WwwAuthenticateHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WwwAuthenticateHeaderextendsAnyRef"></a>
+      <a id="WwwAuthenticateHeader:WwwAuthenticateHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WwwAuthenticateHeader.html"><span class="name">WwwAuthenticateHeader</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="org.http4s.parser.Http4sHeaderParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http4sHeaderParser"></a>
+      <a id="Http4sHeaderParser:Http4sHeaderParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Http4sHeaderParser$.html"><span class="name">Http4sHeaderParser</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser.HttpParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpParser"></a>
+      <a id="HttpParser:HttpParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpParser$.html"><span class="name">HttpParser</span></a><span class="result"> extends <a href="HttpParser.html" class="extype" name="org.http4s.parser.HttpParser">HttpParser</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li><li name="org.http4s.parser.ParseErrorInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParseErrorInfo"></a>
+      <a id="ParseErrorInfo:ParseErrorInfo"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ParseErrorInfo$.html"><span class="name">ParseErrorInfo</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../../lib/template.js"></script>
+    </body>
+      </html>

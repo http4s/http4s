@@ -1,0 +1,1360 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>http4s - org.http4s</title>
+          <meta name="description" content="http4s - org.http4s" />
+          <meta name="keywords" content="http4s org.http4s" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../index.html';
+            var hash = 'org.http4s.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../lib/package_big.png" />
+        <p id="owner"><a href="../package.html" class="extype" name="org">org</a></p>
+        <h1>http4s</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">http4s</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="org.http4s"><span>http4s</span></li><li class="in" name="org.http4s.util.CaseInsensitiveStringSyntax"><span>CaseInsensitiveStringSyntax</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.AttributeEntry" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AttributeEntry[T]extendsProductwithSerializable"></a>
+      <a id="AttributeEntry[T]:AttributeEntry[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AttributeEntry.html"><span class="name">AttributeEntry</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.AttributeEntry.T">T</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.AttributeEntry.T">T</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A map entry where <code>key</code> is constrained to only be associated with a fixed value of type <code>T</code>.</p>
+    </li><li name="org.http4s.AttributeKey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AttributeKey[T]extendsProductwithSerializable"></a>
+      <a id="AttributeKey[T]:AttributeKey[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AttributeKey.html"><span class="name">AttributeKey</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="manifest">manifest: <span class="extype" name="scala.reflect.Manifest">Manifest</span>[<span class="extype" name="org.http4s.AttributeKey.T">T</span>]</span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A key in an <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> that constrains its associated value to be of type <code>T</code>.</p>
+    </li><li name="org.http4s.AttributeMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AttributeMapextendsAnyRef"></a>
+      <a id="AttributeMap:AttributeMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="AttributeMap.html"><span class="name">AttributeMap</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">An immutable map where a key is the tuple <code>(String,T)</code> for a fixed type <code>T</code> and can only be associated with values of type <code>T</code>.</p>
+    </li><li name="org.http4s.AuthScheme" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthSchemeextendsProductwithSerializable"></a>
+      <a id="AuthScheme:AuthScheme"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AuthScheme.html"><span class="name">AuthScheme</span></a><span class="params">(<span name="name">name: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.BasicCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BasicCredentialsextendsCredentialswithProductwithSerializable"></a>
+      <a id="BasicCredentials:BasicCredentials"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="BasicCredentials.html"><span class="name">BasicCredentials</span></a><span class="params">(<span name="username">username: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="password">password: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.BodyChunk" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BodyChunkextendsChunkwithIndexedSeqLike[Byte,org.http4s.BodyChunk]"></a>
+      <a id="BodyChunk:BodyChunk"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BodyChunk.html"><span class="name">BodyChunk</span></a><span class="result"> extends <a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a> with <span class="extype" name="scala.collection.IndexedSeqLike">IndexedSeqLike</span>[<span class="extype" name="scala.Byte">Byte</span>, <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.CacheDirective" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CacheDirectiveextendsProductwithRenderable"></a>
+      <a id="CacheDirective:CacheDirective"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CacheDirective.html"><span class="name">CacheDirective</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Challenge" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ChallengeextendsRenderablewithProductwithSerializable"></a>
+      <a id="Challenge:Challenge"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Challenge.html"><span class="name">Challenge</span></a><span class="params">(<span name="scheme">scheme: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="realm">realm: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="params">params: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>] = <span class="defval" name="scala.this.Predef.Map.empty[String, Nothing]">...</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.CharacterSet" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CharacterSetextendsHttpValue[String]withQualityFactorwithRenderable"></a>
+      <a id="CharacterSet:CharacterSet"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="CharacterSet.html"><span class="name">CharacterSet</span></a><span class="result"> extends <span class="extype" name="org.http4s.HttpValue">HttpValue</span>[<span class="extype" name="scala.Predef.String">String</span>] with <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Chunk" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ChunkextendsIndexedSeq[Byte]"></a>
+      <a id="Chunk:Chunk"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Chunk.html"><span class="name">Chunk</span></a><span class="result"> extends <span class="extype" name="scala.IndexedSeq">IndexedSeq</span>[<span class="extype" name="scala.Byte">Byte</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ContentCoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContentCodingextendsQualityFactorwithRenderablewithProductwithSerializable"></a>
+      <a id="ContentCoding:ContentCoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ContentCoding.html"><span class="name">ContentCoding</span></a><span class="result"> extends <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Cookie" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CookieextendsRenderablewithProductwithSerializable"></a>
+      <a id="Cookie:Cookie"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Cookie.html"><span class="name">Cookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="org.joda.time.DateTime">DateTime</span>] = <span class="symbol">scala.None</span></span>, <span name="maxAge">maxAge: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">scala.None</span></span>, <span name="domain">domain: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">scala.None</span></span>, <span name="path">path: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">scala.None</span></span>, <span name="secure">secure: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <span class="extype" name="scala.Boolean">Boolean</span> = <span class="symbol">false</span></span>, <span name="extension">extension: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">scala.None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Credentials" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="CredentialsextendsRenderable"></a>
+      <a id="Credentials:Credentials"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Credentials.html"><span class="name">Credentials</span></a><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ExtractableHeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ExtractableHeaderKeyextendsHeaderKey"></a>
+      <a id="ExtractableHeaderKey:ExtractableHeaderKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ExtractableHeaderKey.html"><span class="name">ExtractableHeaderKey</span></a><span class="result"> extends <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.GenericCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GenericCredentialsextendsCredentialswithProductwithSerializable"></a>
+      <a id="GenericCredentials:GenericCredentials"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="GenericCredentials.html"><span class="name">GenericCredentials</span></a><span class="params">(<span name="authScheme">authScheme: <a href="AuthScheme.html" class="extype" name="org.http4s.AuthScheme">AuthScheme</a></span>, <span name="params">params: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Header" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HeaderextendsLoggingwithRenderablewithProduct"></a>
+      <a id="Header:Header"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Header.html"><span class="name">Header</span></a><span class="result"> extends <span class="extype" name="com.typesafe.scalalogging.slf4j.Logging">Logging</span> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HeaderCollection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HeaderCollectionextendsSeq[org.http4s.Header]withSeqLike[org.http4s.Header,org.http4s.HeaderCollection]"></a>
+      <a id="HeaderCollection:HeaderCollection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="HeaderCollection.html"><span class="name">HeaderCollection</span></a><span class="result"> extends <span class="extype" name="scala.collection.immutable.Seq">Seq</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>] with <span class="extype" name="scala.collection.SeqLike">SeqLike</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="HeaderKeyextendsAnyRef"></a>
+      <a id="HeaderKey:HeaderKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="HeaderKey.html"><span class="name">HeaderKey</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li><li name="org.http4s.Http4sException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http4sExceptionextendsRuntimeException"></a>
+      <a id="Http4sException:Http4sException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Http4sException.html"><span class="name">Http4sException</span></a><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Http4sVersion" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http4sVersionextendsProductwithSerializable"></a>
+      <a id="Http4sVersion:Http4sVersion"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Http4sVersion.html"><span class="name">Http4sVersion</span></a><span class="params">(<span name="major">major: <span class="extype" name="scala.Int">Int</span></span>, <span name="minor">minor: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HttpBody" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]"></a>
+      <a id="HttpBody:HttpBody"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">HttpBody</span><span class="result"> = <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpService=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="HttpService:(Request)⇒Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">HttpService</span><span class="result"> = (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.LanguageTag" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LanguageTagextendsRenderablewithProductwithSerializable"></a>
+      <a id="LanguageTag:LanguageTag"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="LanguageTag.html"><span class="name">LanguageTag</span></a><span class="params">(<span name="primaryTag">primaryTag: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="q">q: <a href="Q.html" class="extype" name="org.http4s.Q">Q</a> = <span class="symbol">Q.Unity</span></span>, <span name="subTags">subTags: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">immutable.this.Nil</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.MediaRange" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MediaRangeextendsHttpValue[String]withQualityFactorwithRenderable"></a>
+      <a id="MediaRange:MediaRange"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MediaRange.html"><span class="name">MediaRange</span></a><span class="result"> extends <span class="extype" name="org.http4s.HttpValue">HttpValue</span>[<span class="extype" name="scala.Predef.String">String</span>] with <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.MediaType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MediaTypeextendsMediaRange"></a>
+      <a id="MediaType:MediaType"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MediaType.html"><span class="name">MediaType</span></a><span class="result"> extends <a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Message" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MessageextendsAnyRef"></a>
+      <a id="Message:Message"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Message.html"><span class="name">Message</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Method" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MethodextendsProductwithSerializable"></a>
+      <a id="Method:Method"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Method.html"><span class="name">Method</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt">An HTTP method.</p>
+    </li><li name="org.http4s.MockServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MockServerextendsAnyRef"></a>
+      <a id="MockServer:MockServer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MockServer.html"><span class="name">MockServer</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.OAuth2BearerToken" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="OAuth2BearerTokenextendsCredentialswithProductwithSerializable"></a>
+      <a id="OAuth2BearerToken:OAuth2BearerToken"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="OAuth2BearerToken.html"><span class="name">OAuth2BearerToken</span></a><span class="params">(<span name="token">token: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ParseException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParseExceptionextendsHttp4sException"></a>
+      <a id="ParseException:ParseException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParseException.html"><span class="name">ParseException</span></a><span class="result"> extends <a href="Http4sException.html" class="extype" name="org.http4s.Http4sException">Http4sException</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ParsedHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ParsedHeaderextendsHeader"></a>
+      <a id="ParsedHeader:ParsedHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ParsedHeader.html"><span class="name">ParsedHeader</span></a><span class="result"> extends <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Q" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QextendsOrdering[org.http4s.Q]withRenderablewithProductwithSerializable"></a>
+      <a id="Q:Q"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Q.html"><span class="name">Q</span></a><span class="result"> extends <span class="extype" name="scala.Ordering">Ordering</span>[<a href="Q.html" class="extype" name="org.http4s.Q">Q</a>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.QualityFactor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="QualityFactorextendsAnyRef"></a>
+      <a id="QualityFactor:QualityFactor"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="QualityFactor.html"><span class="name">QualityFactor</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      <p class="comment cmt"></p>
+    </li><li name="org.http4s.RangeUnit" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RangeUnitextendsHttpValue[String]withRenderable"></a>
+      <a id="RangeUnit:RangeUnit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RangeUnit.html"><span class="name">RangeUnit</span></a><span class="result"> extends <span class="extype" name="org.http4s.HttpValue">HttpValue</span>[<span class="extype" name="scala.Predef.String">String</span>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.RecurringHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RecurringHeaderextendsParsedHeader"></a>
+      <a id="RecurringHeader:RecurringHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RecurringHeader.html"><span class="name">RecurringHeader</span></a><span class="result"> extends <a href="ParsedHeader.html" class="extype" name="org.http4s.ParsedHeader">ParsedHeader</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">A recurring header that satisfies this clause of the Spec:</p>
+    </li><li name="org.http4s.RecurringHeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RecurringHeaderKeyextendsExtractableHeaderKey"></a>
+      <a id="RecurringHeaderKey:RecurringHeaderKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RecurringHeaderKey.html"><span class="name">RecurringHeaderKey</span></a><span class="result"> extends <a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Represents a header key whose multiple headers can be combined by joining
+their values with a comma.</p>
+    </li><li name="org.http4s.RecurringRenderableHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RecurringRenderableHeaderextendsRecurringHeader"></a>
+      <a id="RecurringRenderableHeader:RecurringRenderableHeader"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RecurringRenderableHeader.html"><span class="name">RecurringRenderableHeader</span></a><span class="result"> extends <a href="RecurringHeader.html" class="extype" name="org.http4s.RecurringHeader">RecurringHeader</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Request" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestextendsMessagewithProductwithSerializable"></a>
+      <a id="Request:Request"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Request.html"><span class="name">Request</span></a><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol">Method.Get</span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="defval" name="{<br/>&amp;nbsp;&amp;nbsp;  val x$13: String = &quot;/&quot;;<br/>&amp;nbsp;&amp;nbsp;  val x$14: Option[org.http4s.util.CaseInsensitiveString] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$1;<br/>&amp;nbsp;&amp;nbsp;  val x$15: Option[org.http4s.Uri.Authority] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$2;<br/>&amp;nbsp;&amp;nbsp;  val x$16: Option[org.http4s.Uri.Query] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$4;<br/>&amp;nbsp;&amp;nbsp;  val x$17: Option[org.http4s.Uri.Fragment] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$5;<br/>&amp;nbsp;&amp;nbsp;  Uri.apply(x$14, x$15, x$13, x$16, x$17)<br/>&amp;nbsp;&amp;nbsp;}">...</span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol">ServerProtocol.HTTP/1.1</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.RequestCookieJar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestCookieJarextendsIterable[org.http4s.Cookie]withIterableLike[org.http4s.Cookie,org.http4s.RequestCookieJar]"></a>
+      <a id="RequestCookieJar:RequestCookieJar"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestCookieJar.html"><span class="name">RequestCookieJar</span></a><span class="result"> extends <span class="extype" name="scala.Iterable">Iterable</span>[<a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>] with <span class="extype" name="scala.collection.IterableLike">IterableLike</span>[<a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>, <a href="RequestCookieJar.html" class="extype" name="org.http4s.RequestCookieJar">RequestCookieJar</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Response" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResponseextendsMessagewithResponseSyntax.ResponseSyntaxBase[org.http4s.Response]withProductwithSerializable"></a>
+      <a id="Response:Response"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Response.html"><span class="name">Response</span></a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol">Status.Ok</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">http4s.ResponseSyntax.ResponseSyntaxBase</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ResponseSyntax" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ResponseSyntaxextendsAnyRef"></a>
+      <a id="ResponseSyntax:ResponseSyntax"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ResponseSyntax.html"><span class="name">ResponseSyntax</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.RichReadableInstant" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RichReadableInstantextendsAnyRef"></a>
+      <a id="RichReadableInstant:RichReadableInstant"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$RichReadableInstant.html"><span class="name">RichReadableInstant</span></a><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ServerProtocol" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ServerProtocolextendsHttpValue[org.http4s.util.CaseInsensitiveString]"></a>
+      <a id="ServerProtocol:ServerProtocol"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerProtocol.html"><span class="name">ServerProtocol</span></a><span class="result"> extends <span class="extype" name="org.http4s.HttpValue">HttpValue</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</span>
+      </span>
+      </h4>
+      <p class="comment cmt">The Server Protocol of a request.</p>
+    </li><li name="org.http4s.ServerSoftware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServerSoftwareextendsProductwithSerializable"></a>
+      <a id="ServerSoftware:ServerSoftware"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerSoftware.html"><span class="name">ServerSoftware</span></a><span class="params">(<span name="product">product: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="productVersion">productVersion: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">scala.None</span></span>, <span name="comment">comment: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">scala.None</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.SimpleWritable" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SimpleWritable[-A]extendsWritable[A]"></a>
+      <a id="SimpleWritable[-A]:SimpleWritable[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="SimpleWritable.html"><span class="name">SimpleWritable</span></a><span class="tparams">[<span name="A">-A</span>]</span><span class="result"> extends <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.SimpleWritable.A">A</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.SingletonHeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SingletonHeaderKeyextendsExtractableHeaderKey"></a>
+      <a id="SingletonHeaderKey:SingletonHeaderKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="SingletonHeaderKey.html"><span class="name">SingletonHeaderKey</span></a><span class="result"> extends <a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Represents a Header that should not be repeated.</p>
+    </li><li name="org.http4s.Status" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="StatusextendsOrdered[org.http4s.Status]withProductwithSerializable"></a>
+      <a id="Status:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Status.html"><span class="name">Status</span></a><span class="params">(<span name="code">code: <span class="extype" name="scala.Int">Int</span></span>, <span name="reason">reason: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="Status.html" class="extype" name="org.http4s.Status">Status</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.TrailerChunk" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TrailerChunkextendsChunkwithProductwithSerializable"></a>
+      <a id="TrailerChunk:TrailerChunk"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="TrailerChunk.html"><span class="name">TrailerChunk</span></a><span class="params">(<span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>)</span><span class="result"> extends <a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.TransferCoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TransferCodingextendsRenderablewithProductwithSerializable"></a>
+      <a id="TransferCoding:TransferCoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="TransferCoding.html"><span class="name">TransferCoding</span></a><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Uri" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UriextendsProductwithSerializable"></a>
+      <a id="Uri:Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Uri.html"><span class="name">Uri</span></a><span class="params">(<span name="scheme">scheme: <span class="extype" name="scala.Option">Option</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] = <span class="symbol">scala.None</span></span>, <span name="authority">authority: <span class="extype" name="scala.Option">Option</span>[<a href="Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>] = <span class="symbol">scala.None</span></span>, <span name="path">path: <a href="Uri$.html#Path=String" class="extmbr" name="org.http4s.Uri.Path">Path</a> = <span class="symbol">&quot;/&quot;</span></span>, <span name="query">query: <span class="extype" name="scala.Option">Option</span>[<a href="Uri$.html#Query=String" class="extmbr" name="org.http4s.Uri.Query">Query</a>] = <span class="symbol">scala.None</span></span>, <span name="fragment">fragment: <span class="extype" name="scala.Option">Option</span>[<a href="Uri$.html#Fragment=String" class="extmbr" name="org.http4s.Uri.Fragment">Fragment</a>] = <span class="symbol">scala.None</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Writable" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Writable[-A]extendsAnyRef"></a>
+      <a id="Writable[-A]:Writable[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Writable.html"><span class="name">Writable</span></a><span class="tparams">[<span name="A">-A</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="org.http4s.AttributeKey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AttributeKey"></a>
+      <a id="AttributeKey:AttributeKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="AttributeKey$.html"><span class="name">AttributeKey</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.AttributeMap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AttributeMap"></a>
+      <a id="AttributeMap:AttributeMap"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="AttributeMap$.html"><span class="name">AttributeMap</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.AuthScheme" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthScheme"></a>
+      <a id="AuthScheme:AuthScheme"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="AuthScheme$.html"><span class="name">AuthScheme</span></a><span class="result"> extends <span class="extype" name="org.http4s.Registry">Registry</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>, <a href="AuthScheme.html" class="extype" name="org.http4s.AuthScheme">AuthScheme</a>] with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.BasicCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BasicCredentials"></a>
+      <a id="BasicCredentials:BasicCredentials"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BasicCredentials$.html"><span class="name">BasicCredentials</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.BodyChunk" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BodyChunk"></a>
+      <a id="BodyChunk:BodyChunk"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BodyChunk$.html"><span class="name">BodyChunk</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.BodyParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BodyParser"></a>
+      <a id="BodyParser:BodyParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BodyParser$.html"><span class="name">BodyParser</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.BuildInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BuildInfo"></a>
+      <a id="BuildInfo:BuildInfo"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BuildInfo$.html"><span class="name">BuildInfo</span></a><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.CacheDirective" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CacheDirective"></a>
+      <a id="CacheDirective:CacheDirective"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CacheDirective$.html"><span class="name">CacheDirective</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.CharacterSet" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CharacterSet"></a>
+      <a id="CharacterSet:CharacterSet"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CharacterSet$.html"><span class="name">CharacterSet</span></a><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>, <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.package#ChunkSemigroup" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ChunkSemigroup:scalaz.Semigroup[org.http4s.Chunk]"></a>
+      <a id="ChunkSemigroup:Semigroup[Chunk]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ChunkSemigroup</span><span class="result">: <span class="extype" name="scalaz.Semigroup">Semigroup</span>[<a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ContentCoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ContentCoding"></a>
+      <a id="ContentCoding:ContentCoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ContentCoding$.html"><span class="name">ContentCoding</span></a><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>, <a href="ContentCoding.html" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>] with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Header" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Header"></a>
+      <a id="Header:Header"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Header$.html"><span class="name">Header</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HeaderCollection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HeaderCollection"></a>
+      <a id="HeaderCollection:HeaderCollection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HeaderCollection$.html"><span class="name">HeaderCollection</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.package#Http4sConfig" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Http4sConfig:com.typesafe.config.Config"></a>
+      <a id="Http4sConfig:Config"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Http4sConfig</span><span class="result">: <span class="extype" name="com.typesafe.config.Config">Config</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="org.http4s.Http4sVersion" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http4sVersion"></a>
+      <a id="Http4sVersion:Http4sVersion"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Http4sVersion$.html"><span class="name">Http4sVersion</span></a><span class="result"> extends <a href="Http4sVersion.html" class="extype" name="org.http4s.Http4sVersion">Http4sVersion</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HttpBody" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpBody"></a>
+      <a id="HttpBody:HttpBody"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$HttpBody$.html"><span class="name">HttpBody</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.LanguageTag" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LanguageTag"></a>
+      <a id="LanguageTag:LanguageTag"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="LanguageTag$.html"><span class="name">LanguageTag</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.MediaRange" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MediaRange"></a>
+      <a id="MediaRange:MediaRange"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MediaRange$.html"><span class="name">MediaRange</span></a><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[<span class="extype" name="scala.Predef.String">String</span>, <a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.MediaType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MediaType"></a>
+      <a id="MediaType:MediaType"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MediaType$.html"><span class="name">MediaType</span></a><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Method" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Method"></a>
+      <a id="Method:Method"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Method$.html"><span class="name">Method</span></a><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[<span class="extype" name="scala.Predef.String">String</span>, <a href="Method.html" class="extype" name="org.http4s.Method">Method</a>] with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.MockServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MockServer"></a>
+      <a id="MockServer:MockServer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MockServer$.html"><span class="name">MockServer</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Q" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Q"></a>
+      <a id="Q:Q"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Q$.html"><span class="name">Q</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.RangeUnit" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RangeUnit"></a>
+      <a id="RangeUnit:RangeUnit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="RangeUnit$.html"><span class="name">RangeUnit</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Request" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Request"></a>
+      <a id="Request:Request"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Request$.html"><span class="name">Request</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.RequestCookieJar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestCookieJar"></a>
+      <a id="RequestCookieJar:RequestCookieJar"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestCookieJar$.html"><span class="name">RequestCookieJar</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ResponseSyntax" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResponseSyntax"></a>
+      <a id="ResponseSyntax:ResponseSyntax"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ResponseSyntax$.html"><span class="name">ResponseSyntax</span></a><span class="result"> extends <a href="ResponseSyntax.html" class="extype" name="org.http4s.ResponseSyntax">ResponseSyntax</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Created by Bryce Anderson on 3/25/14.</p>
+    </li><li name="org.http4s.ServerProtocol" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServerProtocol"></a>
+      <a id="ServerProtocol:ServerProtocol"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerProtocol$.html"><span class="name">ServerProtocol</span></a><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>, <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ServerSoftware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServerSoftware"></a>
+      <a id="ServerSoftware:ServerSoftware"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerSoftware$.html"><span class="name">ServerSoftware</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Status" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Status"></a>
+      <a id="Status:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Status$.html"><span class="name">Status</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.util.CaseInsensitiveStringSyntax#ToCaseInsensitiveStringSyntax" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ToCaseInsensitiveStringSyntax(cs:CharSequence):org.http4s.util.CaseInsensitiveStringOps"></a>
+      <a id="ToCaseInsensitiveStringSyntax(CharSequence):CaseInsensitiveStringOps"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ToCaseInsensitiveStringSyntax</span><span class="params">(<span name="cs">cs: <span class="extype" name="java.lang.CharSequence">CharSequence</span></span>)</span><span class="result">: <a href="util/CaseInsensitiveStringOps.html" class="extype" name="org.http4s.util.CaseInsensitiveStringOps">CaseInsensitiveStringOps</a></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></dd></dl></div>
+    </li><li name="org.http4s.TransferCoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TransferCoding"></a>
+      <a id="TransferCoding:TransferCoding"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="TransferCoding$.html"><span class="name">TransferCoding</span></a><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>, <a href="TransferCoding.html" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.package#UnixEpoch" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UnixEpoch:org.joda.time.DateTime"></a>
+      <a id="UnixEpoch:DateTime"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">UnixEpoch</span><span class="result">: <span class="extype" name="org.joda.time.DateTime">DateTime</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Uri" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Uri"></a>
+      <a id="Uri:Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Uri$.html"><span class="name">Uri</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Writable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Writable"></a>
+      <a id="Writable:Writable"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Writable$.html"><span class="name">Writable</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.blaze" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="blaze"></a>
+      <a id="blaze:blaze"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="blaze/package.html"><span class="name">blaze</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.dsl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="dsl"></a>
+      <a id="dsl:dsl"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="dsl/package.html"><span class="name">dsl</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.ext" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ext"></a>
+      <a id="ext:ext"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="ext/package.html"><span class="name">ext</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.package#futureToTask" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="futureToTask(implicitec:scala.concurrent.ExecutionContext):scalaz.~&gt;[scala.concurrent.Future,scalaz.concurrent.Task]"></a>
+      <a id="futureToTask(ExecutionContext):~&gt;[Future,Task]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">futureToTask</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <span class="extype" name="scala.concurrent.ExecutionContext">ExecutionContext</span></span>)</span><span class="result">: <a href="../../scalaz/package.html#~&gt;[-F[_],+G[_]]=scalaz.NaturalTransformation[F,G]" class="extmbr" name="scalaz.~&gt;">~&gt;</a>[<span class="extype" name="scala.concurrent.Future">Future</span>, <span class="extype" name="scalaz.concurrent.Task">Task</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="parser"></a>
+      <a id="parser:parser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="parser/package.html"><span class="name">parser</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parserold" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="parserold"></a>
+      <a id="parserold:parserold"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="parserold/package.html"><span class="name">parserold</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.servlet" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="servlet"></a>
+      <a id="servlet:servlet"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="servlet/package.html"><span class="name">servlet</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.package#taskToFuture" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="taskToFuture:scalaz.~&gt;[scalaz.concurrent.Task,scala.concurrent.Future]"></a>
+      <a id="taskToFuture:~&gt;[Task,Future]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">taskToFuture</span><span class="result">: <a href="../../scalaz/package.html#~&gt;[-F[_],+G[_]]=scalaz.NaturalTransformation[F,G]" class="extmbr" name="scalaz.~&gt;">~&gt;</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="scala.concurrent.Future">Future</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.util" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="util"></a>
+      <a id="util:util"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="util/package.html"><span class="name">util</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.websocket" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="websocket"></a>
+      <a id="websocket:websocket"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="websocket/package.html"><span class="name">websocket</span></a>
+      </span>
+      </h4>
+      <p class="comment cmt">Created by Bryce Anderson on 3/30/14.</p>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="org.http4s.util.CaseInsensitiveStringSyntax">
+              <h3>Inherited from <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+    </body>
+      </html>
