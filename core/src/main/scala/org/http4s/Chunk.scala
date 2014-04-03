@@ -38,9 +38,9 @@ trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 
   def asInputStream: InputStream = new ByteArrayInputStream(toArray)
 
-  def append(b: BodyChunk): BodyChunk = util.ChunkNodeImpl(this, b)
+  final def append(b: BodyChunk): BodyChunk = util.MultiChunkImpl.concat(this, b)
 
-  def ++ (b: BodyChunk): BodyChunk = append(b)
+  final def ++ (b: BodyChunk): BodyChunk = append(b)
 
   /** Split the chunk into two chunks at the given index
    *

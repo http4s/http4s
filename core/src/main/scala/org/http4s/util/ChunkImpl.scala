@@ -1,6 +1,8 @@
 package org.http4s
 package util
 
+import scala.annotation.tailrec
+
 /**
  * Created by brycea on 4/3/14.
  */
@@ -26,34 +28,55 @@ private[http4s] case class ChunkLeafImpl(arr: Array[Byte], strt: Int, val length
   } else (BodyChunk.empty, this)
 }
 
-private[http4s] case class ChunkNodeImpl(left: BodyChunk, right: BodyChunk) extends BodyChunk {
+private[http4s] object MultiChunkImpl {
+  def concat(left: BodyChunk, right: BodyChunk): BodyChunk = (left, right) match {
+    case (l: MultiChunkImpl, r: MultiChunkImpl) => MultiChunkImpl(l.chunks ++ r.chunks, l.length + r.length)
+    case (l: MultiChunkImpl, r: BodyChunk)      => MultiChunkImpl(l.chunks :+ r, l.length + r.length)
+    case (l: BodyChunk, r: MultiChunkImpl)      => MultiChunkImpl(l +: r.chunks, l.length + r.length)
+    case (l: BodyChunk, r: BodyChunk)           => MultiChunkImpl(Vector.empty :+ l :+ r, l.length + r.length)
+  }
+}
 
-  override def iterator: Iterator[Byte] = left.iterator ++ right.iterator
+private[http4s] case class MultiChunkImpl(chunks: Vector[BodyChunk], val length: Int) extends BodyChunk {
 
-  override def reverseIterator: Iterator[Byte] = right.reverseIterator ++ left.reverseIterator
+  override def iterator: Iterator[Byte] = chunks.iterator.flatMap(_.iterator)
 
-  override def apply(idx: Int): Byte = if (left.length > idx) left(idx) else (right(idx - left.length))
+  override def reverseIterator: Iterator[Byte] = chunks.reverseIterator.flatMap(_.reverseIterator)
 
-  val length = left.length + right.length
+  override def apply(idx: Int): Byte = {
+    @tailrec
+    def go(idx: Int, vecpos: Int): Byte = {
+      val c = chunks(vecpos)
+      if (c.length > idx) c.apply(idx)
+      else go(idx - c.length, vecpos + 1)
+    }
+    go(idx, 0)
+  }
 
   override def copyToArray[B >: Byte](xs: Array[B], start: Int, len: Int): Unit = {
-    left.copyToArray(xs, start, len)
-    val llen = left.length
-    val remaining = len - llen
-    if (remaining > 0 && xs.length - start - left.length > 0)
-      right.copyToArray(xs, start + left.length, remaining)
+    @tailrec
+    def go(pos: Int, len: Int, vecpos: Int) {
+      val c = chunks(vecpos)
+      val maxwrite = math.min(c.length, len)
+      c.copyToArray(xs, pos, maxwrite)
+      if (len - maxwrite > 0 && vecpos + 1 < chunks.length)
+        go(pos + maxwrite, len - maxwrite, vecpos + 1)
+
+    }
+    go(start, math.min(xs.length - start, len), 0)
   }
 
-  override def splitAt(index: Int): (BodyChunk, BodyChunk) = {
-    if (index < 1) (BodyChunk.empty, this)
-    else if (index < left.length) {
-      val (ll, lr) = left.splitAt(index)
-      (ll, lr ++ right)
-    }
-    else if (index == left.length) (left, right)
-    else {
-      val (rl, rr) = right.splitAt(index - left.length)
-      (left ++ rl, rr)
-    }
-  }
+  // TODO: it would be better to implement take(n) and drop(n)
+//  override def splitAt(index: Int): (BodyChunk, BodyChunk) = {
+//    if (index < 1) (BodyChunk.empty, this)
+//    else if (index < left.length) {
+//      val (ll, lr) = left.splitAt(index)
+//      (ll, lr ++ right)
+//    }
+//    else if (index == left.length) (left, right)
+//    else {
+//      val (rl, rr) = right.splitAt(index - left.length)
+//      (left ++ rl, rr)
+//    }
+//  }
 }
