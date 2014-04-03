@@ -1,6 +1,6 @@
 import Http4sDependencies._
 import UnidocKeys._
-import scala.util.Properties
+import scala.util.{Properties, Success, Try}
 
 lazy val core = project
 
@@ -82,34 +82,9 @@ publishMavenStyle in ThisBuild := true
 
 publishTo in ThisBuild <<= version { (v: String) =>
   val nexus = "https://oss.sonatype.org/"
-  if (v.trim.endsWith("SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
+  if (v.trim.endsWith("-SNAPSHOT")) Some("snapshots" at nexus + "content/repositories/snapshots")
   else Some("releases" at nexus + "service/local/staging/deploy/maven2")
 }
-
-// Travis publishing courtesy of http://stackoverflow.com/a/20672791
-val publishDevelopOnTravis = taskKey[Unit]("publish develop on travis")
-
-def publishDevelopOnTravisImpl = Def.taskDyn {
-  import scala.util.Try
-  val travis   = Try(sys.env("TRAVIS")).getOrElse("false") == "true"
-  val pr       = Try(sys.env("TRAVIS_PULL_REQUEST")).getOrElse("false") == "true"
-  val branch   = Try(sys.env("TRAVIS_BRANCH")).getOrElse("??")
-  val snapshot = version.value.trim.endsWith("SNAPSHOT")
-  (travis, pr, branch, snapshot) match {
-    case (true, false, "develop", true) => 
-      println("Travis Snapshot detected. Publishing.")
-      publish
-    case _ => 
-      println("Travis publishing disabled.")
-      println("TRAVIS: " + travis)
-      println("TRAVIS_PULL_REQUEST: " + pr)
-      println("TRAVIS_BRANCH: " + branch)
-      println("Version: " + snapshot)
-      Def.task ()
-  }
-}
-
-publishDevelopOnTravis := publishDevelopOnTravisImpl.value
 
 Seq("SONATYPE_USER", "SONATYPE_PASS") map Properties.envOrNone match {
   case Seq(Some(user), Some(pass)) =>
@@ -119,6 +94,15 @@ Seq("SONATYPE_USER", "SONATYPE_PASS") map Properties.envOrNone match {
 }
 
 publishArtifact in (ThisBuild, Test) := false
+
+// Travis: only publish from http4s' develop branch
+publishArtifact in Global <<= version { v => 
+  val isTravis = Try(sys.env("TRAVIS")).getOrElse("") == "true"
+  val isPull = Try(sys.env("TRAVIS_PULL_REQUEST")).getOrElse("") == "true"
+  val isDevelop = Try(sys.env("TRAVIS_BRANCH")).getOrElse("???") == "develop"
+  val isSnapshot = v.trim.endsWith("-SNAPSHOT")
+  !isTravis || (!isPull && isDevelop && isSnapshot)
+}
 
 // Don't publish root pom.  It's not needed.
 packagedArtifacts in file(".") := Map.empty
