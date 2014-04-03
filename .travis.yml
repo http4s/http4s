@@ -2,4 +2,4 @@ language: scala
 env:
   global:
   - secure: TLAhbTi61vlC8o0uXemlBnrZa5Ika5HSWlta5FOa1joV5aGRslSBdf2/W7tieBaJlBlS8EvUcL31KGFbrDfZ3XXC1ztRjCZiU9BNvPxQSvcoyDwgw3QFA9Ihy8+HNw3gs6pPeC3YxvtoQpMGKalHCswOnD+899/Mx+as9QdA2Mo=
-script: sbt test publishDevelopOnTravis
+script: sbt test publish
