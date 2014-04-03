@@ -7,10 +7,8 @@ import java.nio.charset.Charset
 import scala.collection.generic.CanBuildFrom
 import scala.collection.{mutable, IndexedSeqLike}
 import scala.reflect.ClassTag
-import scala.annotation.tailrec
 import scala.io.Codec
 
-import scalaz.{ImmutableArray, RopeBuilder, Rope}
 
 
 sealed trait Chunk extends IndexedSeq[Byte] {
@@ -40,7 +38,9 @@ trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 
   def asInputStream: InputStream = new ByteArrayInputStream(toArray)
 
-  def ++(b: BodyChunk): BodyChunk// = BodyChunk(self ++ b.self)
+  def append(b: BodyChunk): BodyChunk = util.ChunkNodeImpl(this, b)
+
+  def ++ (b: BodyChunk): BodyChunk = append(b)
 
   /** Split the chunk into two chunks at the given index
    *

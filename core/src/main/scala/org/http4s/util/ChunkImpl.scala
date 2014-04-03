@@ -6,7 +6,6 @@ package util
  */
 
 private[http4s] case class ChunkLeafImpl(arr: Array[Byte], strt: Int, val length: Int) extends BodyChunk {
-  override def ++(b: BodyChunk): BodyChunk = ChunkNodeImpl(this, b)
 
   override def apply(idx: Int): Byte = arr(idx + strt)
 
@@ -37,13 +36,10 @@ private[http4s] case class ChunkNodeImpl(left: BodyChunk, right: BodyChunk) exte
 
   val length = left.length + right.length
 
-  this.toArray
-
-  override def ++(b: BodyChunk): BodyChunk = ChunkNodeImpl(this, b)
-
   override def copyToArray[B >: Byte](xs: Array[B], start: Int, len: Int): Unit = {
     left.copyToArray(xs, start, len)
-    val remaining = len - left.length
+    val llen = left.length
+    val remaining = len - llen
     if (remaining > 0 && xs.length - start - left.length > 0)
       right.copyToArray(xs, start + left.length, remaining)
   }
