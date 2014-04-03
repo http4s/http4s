@@ -131,3 +131,7 @@ pomExtra in ThisBuild := (
     </developer>
   </developers>
 )
+
+site.settings
+
+site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/0.1")
