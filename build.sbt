@@ -135,3 +135,7 @@ pomExtra in ThisBuild := (
 site.settings
 
 site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/0.1")
+
+ghpages.settings
+
+git.remoteRepo in ThisBuild := "git@github.com:http4s/http4s.git"
