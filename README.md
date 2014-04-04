@@ -14,7 +14,7 @@ object ServletExample extends App {
   val context = new ServletContextHandler()
   context.setContextPath("/")
   server.setHandler(context);
-  context.addServlet(new ServletHolder(taskServlet), "/http4s/*")
+  context.addServlet(new ServletHolder(route), "/http4s/*")
   server.start()
   server.join()
 }
