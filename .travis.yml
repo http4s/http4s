@@ -4,8 +4,12 @@ env:
   - secure: TLAhbTi61vlC8o0uXemlBnrZa5Ika5HSWlta5FOa1joV5aGRslSBdf2/W7tieBaJlBlS8EvUcL31KGFbrDfZ3XXC1ztRjCZiU9BNvPxQSvcoyDwgw3QFA9Ihy8+HNw3gs6pPeC3YxvtoQpMGKalHCswOnD+899/Mx+as9QdA2Mo=
 # Work around https://github.com/travis-ci/travis-ci/issues/1588
 before_script: 
-  - echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-  - chmod 600 .travis/deploy_key.pem
-  - ssh-add .travis/deploy_key.pem
+  - opam install travis-senv
+  - mkdir -p ~/.ssh
+  - travis-senv decrypt > ~/.ssh/id_dsa
+  - chmod 600 ~/.ssh/id_dsa
+  - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+  - git config --global user.email "travis-ci@http4s.org"
+  - git config --global user.name "Travis CI"
 script: sbt test 
 after_success: sbt publish make-site ghpagesPushSite
