@@ -4,6 +4,11 @@ import scalaz.concurrent.Task
 import java.net.{URL, URI}
 import org.http4s.Header.`Content-Type`
 
+/** Representation of the HTTP response code and reason
+  *
+  * @param code HTTP status code
+  * @param reason reason for the response. eg, OK
+  */
 case class Status(code: Int, reason: String) extends Ordered[Status] {
   def compare(that: Status) = code.compareTo(that.code)
 
@@ -17,11 +22,34 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
 }
 
 object Status {
+
+  /** Helper for the generation of a [[org.http4s.Response]] which will not contain a body
+    *
+    * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
+    * offer shortcut syntax to make intention clear and concise.
+    *
+    * @example {{{
+    * val resp: Task[Response] = Status.Continue()
+    * }}}
+    *
+    * @see [[EntityResponseGenerator]]
+    */
   trait NoEntityResponseGenerator { self: Status =>
     private[this] val StatusResponder = Response(this)
     def apply(): Task[Response] = Task.now(StatusResponder)
   }
 
+  /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
+    *
+    * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
+    * offer shortcut syntax to make intention clear and concise.
+    *
+    * @example {{{
+    * val resp: Task[Response] = Ok("Hello world!")
+    * }}}
+    *
+    * @see [[NoEntityResponseGenerator]]
+    */
   trait EntityResponseGenerator extends NoEntityResponseGenerator { self: Status =>
     def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
       apply(body, w.contentType)(w)
@@ -37,6 +65,18 @@ object Status {
     }
   }
 
+  /** Helper for the generation of a [[org.http4s.Response]] which points to another HTTP location
+    *
+    * The RedirectResponseGenerator aids in adding the appropriate headers for Redirect actions.
+    * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
+    * offer shortcut syntax to make intention clear and concise.
+    *
+    * @example {{{
+    * val resp: Task[Response] = MovedPermanently("http://foo.com")
+    * }}}
+    *
+    * @see [[NoEntityResponseGenerator]]
+    */
   trait RedirectResponderGenerator { self: Status =>
     def apply(uri: String): Response = Response(self, HeaderCollection(Header.Location(uri)))
 

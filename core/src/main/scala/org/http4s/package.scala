@@ -14,8 +14,14 @@ import java.util.Locale
 import org.http4s.util.CaseInsensitiveStringSyntax
 
 package object http4s extends CaseInsensitiveStringSyntax {
+
+  /** A function which defines the transformation of [[Request]] to a scalaz.concurrent.Task[Response]
+    * containing the [[Response]]
+    */
   type HttpService = Request => Task[Response]
 
+  /** The scalaz.stream.Process[Task,Chunk] representing the body of the [[Response]]
+     */
   type HttpBody = Process[Task, Chunk]
   object HttpBody {
     val empty = Process.halt

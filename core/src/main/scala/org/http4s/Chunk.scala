@@ -16,8 +16,7 @@ sealed trait Chunk extends IndexedSeq[Byte] {
 
   def decodeString(charset: CharacterSet): String = decodeString(charset.charset)
 
-  /**
-   * Returns a ByteBuffer that wraps an array copy of this BodyChunk
+  /** Returns a ByteBuffer that wraps an array copy of this BodyChunk
    */
   def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray)
 }

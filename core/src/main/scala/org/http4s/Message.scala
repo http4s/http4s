@@ -37,6 +37,19 @@ abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: At
     .getOrElse(false)
 }
 
+/** Representation of an incoming HTTP message
+  *
+  * A Request encapsulates the entirety of the incoming HTTP request including the
+  * status line, headers, and a possible request body. A Request will be the only argument
+  * for a [[HttpService]].
+  *
+  * @param requestMethod [[Method.Get]], [[Method.Post]], etc.
+  * @param requestUri representation of the request URI
+  * @param protocol HTTP protocol, eg [[ServerProtocol.`HTTP/1.1`]]
+  * @param headers collection of [[Header]]s
+  * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
+  * @param attributes Immutable Map used for carrying additional information in a type safe fashion
+  */
 case class Request(
   requestMethod: Method = Method.Get,
   requestUri: Uri = Uri(path = "/"),
@@ -48,8 +61,28 @@ case class Request(
   import Request._
 
   type Self = Request
+
+  /** Replaces the [[org.http4s.Header]]s of the incoming Request object
+    *
+    * @param headers [[HeaderCollection]] containing the desired headers
+    * @return a new Request object
+    */
   def withHeaders(headers: HeaderCollection): Request = copy(headers = headers)
+
+  /** Replace the body of the incoming Request object
+    *
+    * @param body scalaz.stream.Process[Task,Chunk] representing the new body
+    * @return a new Request object
+    */
   def withBody(body: HttpBody): Request = copy(body = body)
+
+  /** Generates a new Request object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
+    *
+    * @param key [[AttributeKey]] with which to associate the value
+    * @param value value associated with the key
+    * @tparam T type of the value to store
+    * @return a new Request object with the key/value pair appended
+    */
   def withAttribute[T](key: AttributeKey[T], value: T) = copy(attributes = attributes.put(key, value))
 
   lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
@@ -85,6 +118,14 @@ object Request {
   }
 }
 
+/** Representation of the HTTP response to send back to the client
+ *
+ * @param status [[Status]] code and message
+ * @param headers [[HeaderCollection]] containing all response headers
+ * @param body scalaz.stream.Process[Task,Chunk] representing the possible body of the response
+ * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
+  *                  backend for additional processing such as WebSocket or File objects.
+ */
 case class Response(
   status: Status = Status.Ok,
   headers: HeaderCollection = HeaderCollection.empty,
@@ -93,6 +134,8 @@ case class Response(
 ) extends Message(headers, body, attributes) with ResponseSyntaxBase[Response] {
   type Self = Response
   override protected def translateResponse(f: (Response) => Response): Response = f(this)
+
+  /** Replace the body of this Response with a new scalaz.stream.Process[Task,Chunk] */
   def withBody(body: HttpBody): Response = copy(body = body)
 }
 
