@@ -138,4 +138,7 @@ site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/0.1")
 
 ghpages.settings
 
-git.remoteRepo in ThisBuild := "git@github.com:http4s/http4s.git"
+git.remoteRepo in ThisBuild := 
+  Try(sys.env("GH_TOKEN"))
+    .map(token => s"https://${token}@github.com/http4s/http4s.git")
+    .getOrElse("git@github.com:http4s/http4s.git")
