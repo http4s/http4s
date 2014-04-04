@@ -1,13 +1,13 @@
 language: scala
 env:
   global:
-  - secure: Zxyc+GYqIqWPLpfwTCmV04Rl0q0L+A1aoQN1i43+IXWPa30TjiGvlPSJPH2wk35Wo2rwASLh7RQsCSGQRURYS5WMWYaC4KjuCAfCXaN1h3yMKYMpghLAlWm9DnDt2of5Gwuu86r4OlO6ACDOsvWHV6f7UlxYryBo4HAIym5CU8w=
+  - secure: IgzqZjDGDiXkBrGoTdAdj/em5C+rO48QSdeA3K0FTzuti8VuC4U7RslqiqokF1QziOxA6GYjB0sfVdupAnDmyuYLUjDDvvEuQu73bt1fucQxho2xUHq678xjorV2xKrAKriiFG8i4HMFNVL+vKKtScGTkjyNI29bdLYJS7Bftgw=
 before_script:
-  - openssl aes-256-cbc -k $SECRET -in http4s/http4s/.travis.secrets.enc -d -a -out .travis.secrets
-  - source .travis.secrets
-  - rm .travis.secrets
-  - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
-  - git config --global user.email "travis-ci@http4s.org"
-  - git config --global user.name "Travis CI"
+- openssl aes-256-cbc -k $SECRET -in .travis.secrets.enc -d -a -out .travis.secrets
+- source .travis.secrets
+- rm .travis.secrets
+- echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+- git config --global user.email "travis-ci@http4s.org"
+- git config --global user.name "Travis CI"
 script: sbt test
 after_success: sbt publish make-site ghpagesPushSite
