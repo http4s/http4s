@@ -136,6 +136,8 @@ site.settings
 
 site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/0.1")
 
+includeFilter in SiteKeys.makeSite := "*" -- "*~"
+
 ghpages.settings
 
 git.remoteRepo in ThisBuild := 
