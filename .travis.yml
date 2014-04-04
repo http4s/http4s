@@ -10,4 +10,5 @@ before_script:
 - git config --global user.email "travis-ci@http4s.org"
 - git config --global user.name "Travis CI"
 script: sbt test
-after_success: sbt publish make-site ghpagesPushSite
+after_success: 
+- test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "develop" && sbt publish make-site ghpagesPushSite

@@ -95,15 +95,6 @@ Seq("SONATYPE_USER", "SONATYPE_PASS") map Properties.envOrNone match {
 
 publishArtifact in (ThisBuild, Test) := false
 
-// Travis: only publish from http4s' develop branch
-publishArtifact in Global <<= version { v => 
-  val isTravis = Try(sys.env("TRAVIS")).getOrElse("") == "true"
-  val isPull = Try(sys.env("TRAVIS_PULL_REQUEST")).getOrElse("") == "true"
-  val isDevelop = Try(sys.env("TRAVIS_BRANCH")).getOrElse("???") == "develop"
-  val isSnapshot = v.trim.endsWith("-SNAPSHOT")
-  !isTravis || (!isPull && isDevelop && isSnapshot)
-}
-
 // Don't publish root pom.  It's not needed.
 packagedArtifacts in file(".") := Map.empty
 
