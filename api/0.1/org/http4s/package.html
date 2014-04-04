@@ -341,7 +341,7 @@
       </span>
       </h4>
       
-    </li><li name="org.http4s.HttpBody" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.HttpBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]"></a>
       <a id="HttpBody:HttpBody"></a>
       <h4 class="signature">
@@ -353,8 +353,9 @@
         <span class="name">HttpBody</span><span class="result"> = <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>]</span>
       </span>
       </h4>
-      
-    </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">The scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>The scalaz.stream.Process[Task,Chunk] representing the body of the <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>
+</p></div></div>
+    </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpService=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.Response]"></a>
       <a id="HttpService:(Request)⇒Task[Response]"></a>
       <h4 class="signature">
@@ -366,7 +367,9 @@
         <span class="name">HttpService</span><span class="result"> = (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">A function which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>A function which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.concurrent.Task[Response]
+containing the <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>
+</p></div></div>
     </li><li name="org.http4s.LanguageTag" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="LanguageTagextendsRenderablewithProductwithSerializable"></a>
       <a id="LanguageTag:LanguageTag"></a>
@@ -575,7 +578,7 @@ their values with a comma.</p>
         <a href="Request.html"><span class="name">Request</span></a><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol">Method.Get</span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="defval" name="{<br/>&amp;nbsp;&amp;nbsp;  val x$13: String = &quot;/&quot;;<br/>&amp;nbsp;&amp;nbsp;  val x$14: Option[org.http4s.util.CaseInsensitiveString] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$1;<br/>&amp;nbsp;&amp;nbsp;  val x$15: Option[org.http4s.Uri.Authority] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$2;<br/>&amp;nbsp;&amp;nbsp;  val x$16: Option[org.http4s.Uri.Query] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$4;<br/>&amp;nbsp;&amp;nbsp;  val x$17: Option[org.http4s.Uri.Fragment] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$5;<br/>&amp;nbsp;&amp;nbsp;  Uri.apply(x$14, x$15, x$13, x$16, x$17)<br/>&amp;nbsp;&amp;nbsp;}">...</span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol">ServerProtocol.HTTP/1.1</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
-      
+      <p class="comment cmt">Representation of an incoming HTTP message</p>
     </li><li name="org.http4s.RequestCookieJar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RequestCookieJarextendsIterable[org.http4s.Cookie]withIterableLike[org.http4s.Cookie,org.http4s.RequestCookieJar]"></a>
       <a id="RequestCookieJar:RequestCookieJar"></a>
@@ -601,7 +604,8 @@ their values with a comma.</p>
         <a href="Response.html"><span class="name">Response</span></a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol">Status.Ok</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">http4s.ResponseSyntax.ResponseSyntaxBase</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
-      
+      <p class="comment cmt">Representation of the HTTP response to send back to the client
+</p>
     </li><li name="org.http4s.ResponseSyntax" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ResponseSyntaxextendsAnyRef"></a>
       <a id="ResponseSyntax:ResponseSyntax"></a>
@@ -692,7 +696,8 @@ their values with a comma.</p>
         <a href="Status.html"><span class="name">Status</span></a><span class="params">(<span name="code">code: <span class="extype" name="scala.Int">Int</span></span>, <span name="reason">reason: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="Status.html" class="extype" name="org.http4s.Status">Status</a>] with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4>
-      
+      <p class="comment cmt">Representation of the HTTP response code and reason
+</p>
     </li><li name="org.http4s.TrailerChunk" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="TrailerChunkextendsChunkwithProductwithSerializable"></a>
       <a id="TrailerChunk:TrailerChunk"></a>

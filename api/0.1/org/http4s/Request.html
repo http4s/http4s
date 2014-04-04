@@ -39,7 +39,11 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
+status line, headers, and a possible request body. A Request will be the only argument
+for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.
+</p></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">protocol</dt><dd class="cmt"><p>HTTP protocol, eg <span class="extype" name="ServerProtocol.`HTTP/1.1`">ServerProtocol.`HTTP/1.1`</span></p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
+</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -79,7 +83,7 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.Request#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.Request#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="&lt;init&gt;(requestMethod:org.http4s.Method,requestUri:org.http4s.Uri,protocol:org.http4s.ServerProtocol,headers:org.http4s.HeaderCollection,body:org.http4s.HttpBody,attributes:org.http4s.AttributeMap):org.http4s.Request"></a>
       <a id="&lt;init&gt;:Request"></a>
       <h4 class="signature">
@@ -91,7 +95,8 @@
         <span class="name">Request</span><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol">Method.Get</span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="defval" name="{<br/>&amp;nbsp;&amp;nbsp;  val x$13: String = &quot;/&quot;;<br/>&amp;nbsp;&amp;nbsp;  val x$14: Option[org.http4s.util.CaseInsensitiveString] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$1;<br/>&amp;nbsp;&amp;nbsp;  val x$15: Option[org.http4s.Uri.Authority] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$2;<br/>&amp;nbsp;&amp;nbsp;  val x$16: Option[org.http4s.Uri.Query] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$4;<br/>&amp;nbsp;&amp;nbsp;  val x$17: Option[org.http4s.Uri.Fragment] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$5;<br/>&amp;nbsp;&amp;nbsp;  Uri.apply(x$14, x$15, x$13, x$16, x$17)<br/>&amp;nbsp;&amp;nbsp;}">...</span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol">ServerProtocol.HTTP/1.1</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">protocol</dt><dd class="cmt"><p>HTTP protocol, eg <span class="extype" name="ServerProtocol.`HTTP/1.1`">ServerProtocol.`HTTP/1.1`</span></p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
+</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -220,7 +225,8 @@
         <span class="name">attributes</span><span class="result">: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Immutable Map used for carrying additional information in a type safe fashion
+</p>
     </li><li name="org.http4s.Request#authType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="authType:Option[org.http4s.AuthScheme]"></a>
       <a id="authType:Option[AuthScheme]"></a>
@@ -234,7 +240,7 @@
       </span>
       </h4>
       
-    </li><li name="org.http4s.Request#body" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.Request#body" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="body:org.http4s.HttpBody"></a>
       <a id="body:HttpBody"></a>
       <h4 class="signature">
@@ -246,7 +252,7 @@
         <span class="name">body</span><span class="result">: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></div></div>
     </li><li name="org.http4s.Message#charset" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="charset:org.http4s.CharacterSet"></a>
       <a id="charset:CharacterSet"></a>
@@ -375,7 +381,7 @@
         <span class="name">headers</span><span class="result">: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p>
     </li><li name="org.http4s.Message#isChunked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isChunked:Boolean"></a>
       <a id="isChunked:Boolean"></a>
@@ -479,7 +485,7 @@
         <span class="name">protocol</span><span class="result">: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">HTTP protocol, eg <span class="extype" name="ServerProtocol.`HTTP/1.1`">ServerProtocol.`HTTP/1.1`</span></p>
     </li><li name="org.http4s.Message#putHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="putHeader(header:org.http4s.Header):Message.this.Self"></a>
       <a id="putHeader(Header):Self"></a>
@@ -583,7 +589,7 @@
         <span class="name">requestMethod</span><span class="result">: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt"><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p>
     </li><li name="org.http4s.Request#requestUri" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="requestUri:org.http4s.Uri"></a>
       <a id="requestUri:Uri"></a>
@@ -596,7 +602,7 @@
         <span class="name">requestUri</span><span class="result">: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">representation of the request URI</p>
     </li><li name="org.http4s.Request#scriptName" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="scriptName:String"></a>
       <a id="scriptName:String"></a>
@@ -719,7 +725,7 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Request#withAttribute" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.Request#withAttribute" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withAttribute[T](key:org.http4s.AttributeKey[T],value:T):org.http4s.Request"></a>
       <a id="withAttribute[T](AttributeKey[T],T):Request"></a>
       <h4 class="signature">
@@ -731,7 +737,10 @@
         <span class="name">withAttribute</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.Request.withAttribute.T">T</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Request.withAttribute.T">T</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Generates a new Request object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
+</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new Request object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
+</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object with the key/value pair appended
+</p></dd></dl></div>
     </li><li name="org.http4s.Request#withBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withBody(body:org.http4s.HttpBody):org.http4s.Request"></a>
       <a id="withBody(HttpBody):Request"></a>
@@ -744,7 +753,10 @@
         <span class="name">withBody</span><span class="params">(<span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Replace the body of the incoming Request object
+</p><div class="fullcomment"><div class="comment cmt"><p>Replace the body of the incoming Request object
+</p></div><dl class="paramcmts block"><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the new body</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Message#withContentType" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withContentType(contentType:Option[org.http4s.Header.Content-Type]):Message.this.Self"></a>
       <a id="withContentType(Option[Content-Type]):Self"></a>
@@ -770,7 +782,10 @@
         <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">org.http4s.Header</a>s of the incoming Request object
+</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">org.http4s.Header</a>s of the incoming Request object
+</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Request#withPathInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withPathInfo(pi:String):org.http4s.Request"></a>
       <a id="withPathInfo(String):Request"></a>

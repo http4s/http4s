@@ -39,7 +39,13 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a> with <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which points to another HTTP location</p><p>The RedirectResponseGenerator aids in adding the appropriate headers for Redirect actions.
+While it is possible to for the <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
+offer shortcut syntax to make intention clear and concise.
+</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a> with <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></dd><div class="block">Example:
+               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = MovedPermanently(<span class="lit">"http://foo.com"</span>)</pre></li></ol>
+            </div><dt>See also</dt><dd><span class="cmt"><p><a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a>
+</p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">

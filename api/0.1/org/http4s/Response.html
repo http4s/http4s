@@ -39,9 +39,12 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
+</p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
+                 backend for additional processing such as WebSocket or File objects.
+</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <span class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</span>[<a href="" class="extype" name="org.http4s.Response">Response</a>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</a>[<a href="" class="extype" name="org.http4s.Response">Response</a>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -79,7 +82,7 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.Response#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.Response#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="&lt;init&gt;(status:org.http4s.Status,headers:org.http4s.HeaderCollection,body:org.http4s.HttpBody,attributes:org.http4s.AttributeMap):org.http4s.Response"></a>
       <a id="&lt;init&gt;:Response"></a>
       <h4 class="signature">
@@ -91,7 +94,9 @@
         <span class="name">Response</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol">Status.Ok</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
+                 backend for additional processing such as WebSocket or File objects.
+</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -272,8 +277,9 @@
         <span class="name">attributes</span><span class="result">: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>
       </span>
       </h4>
-      
-    </li><li name="org.http4s.Response#body" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt"><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
+                 backend for additional processing such as WebSocket or File objects.</p>
+    </li><li name="org.http4s.Response#body" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="body:org.http4s.HttpBody"></a>
       <a id="body:HttpBody"></a>
       <h4 class="signature">
@@ -285,7 +291,7 @@
         <span class="name">body</span><span class="result">: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></div></div>
     </li><li name="org.http4s.Message#charset" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="charset:org.http4s.CharacterSet"></a>
       <a id="charset:CharacterSet"></a>
@@ -414,7 +420,7 @@
         <span class="name">headers</span><span class="result">: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt"><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> containing all response headers</p>
     </li><li name="org.http4s.Message#isChunked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isChunked:Boolean"></a>
       <a id="isChunked:Boolean"></a>
@@ -544,7 +550,7 @@
         <span class="name">status</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt"><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -640,7 +646,7 @@
         <span class="name">withBody</span><span class="params">(<span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Replace the body of this Response with a new scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>Replace the body of this Response with a new scalaz.stream.Process[Task,Chunk]</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Message#withContentType" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withContentType(contentType:Option[org.http4s.Header.Content-Type]):Message.this.Self"></a>
       <a id="withContentType(Option[Content-Type]):Self"></a>
@@ -724,7 +730,7 @@
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
             </div><div class="parent" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">
-              <h3>Inherited from <span class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</span>[<a href="" class="extype" name="org.http4s.Response">Response</a>]</h3>
+              <h3>Inherited from <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</a>[<a href="" class="extype" name="org.http4s.Response">Response</a>]</h3>
             </div><div class="parent" name="org.http4s.Message">
               <h3>Inherited from <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></h3>
             </div><div class="parent" name="scala.AnyRef">
