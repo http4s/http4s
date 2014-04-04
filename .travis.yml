@@ -3,7 +3,7 @@ env:
   global:
   - secure: Zxyc+GYqIqWPLpfwTCmV04Rl0q0L+A1aoQN1i43+IXWPa30TjiGvlPSJPH2wk35Wo2rwASLh7RQsCSGQRURYS5WMWYaC4KjuCAfCXaN1h3yMKYMpghLAlWm9DnDt2of5Gwuu86r4OlO6ACDOsvWHV6f7UlxYryBo4HAIym5CU8w=
 before_script:
-        - openssl aes-256-cbc -k "$SECRET" -in .travis.secrets.enc -d -a -out http4s/http4s/.travis.secrets
+  - openssl aes-256-cbc -k "$SECRET" -in .travis.secrets.enc -d -a -out http4s/http4s/.travis.secrets
   - source .travis.secrets
   - rm .travis.secrets
   - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
