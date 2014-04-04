@@ -15,7 +15,7 @@ import java.net.InetSocketAddress
 /**
  * Created by Bryce Anderson on 3/30/14.
  */
-class BlazeWebSocketExample(port: Int) {
+object BlazeWebSocketExample extends App {
 
   import dsl._
   import websocket._
@@ -24,6 +24,7 @@ class BlazeWebSocketExample(port: Int) {
   import Process.Sink
   import scalaz.concurrent.Task
   import scalaz.stream.async.topic
+
 
   val route: HttpService = {
     case Get -> Root / "hello" =>
@@ -44,20 +45,12 @@ class BlazeWebSocketExample(port: Int) {
       }
 
       WS(src, t.publish)
-
-
-
   }
 
   def pipebuilder(): LeafBuilder[ByteBuffer] =
     new Http1Stage(URITranslation.translateRoot("/http4s")(route)) with WebSocketSupport
 
-  private val factory = new SocketServerChannelFactory(pipebuilder, 12, 8*1024)
-
-  def run(): Unit = factory.bind(new InetSocketAddress(port)).run()
-
-}
-
-object BlazeWebSocketExample {
-  def main(args: Array[String]): Unit = new BlazeWebSocketExample(8080).run()
+  new SocketServerChannelFactory(pipebuilder, 12, 8*1024)
+    .bind(new InetSocketAddress(8080))
+    .run()
 }
