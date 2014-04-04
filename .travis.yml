@@ -2,4 +2,6 @@ language: scala
 env:
   global:
   - secure: TLAhbTi61vlC8o0uXemlBnrZa5Ika5HSWlta5FOa1joV5aGRslSBdf2/W7tieBaJlBlS8EvUcL31KGFbrDfZ3XXC1ztRjCZiU9BNvPxQSvcoyDwgw3QFA9Ihy8+HNw3gs6pPeC3YxvtoQpMGKalHCswOnD+899/Mx+as9QdA2Mo=
+# Work around https://github.com/travis-ci/travis-ci/issues/1588
+before_script: echo -e "Host *\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 script: sbt test publish ghpagesPushSite
