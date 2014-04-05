@@ -4,7 +4,7 @@ package parserold
 import org.parboiled.scala._
 import org.http4s.Header
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.util.string._
 
 import org.http4s.parser.ParseErrorInfo
 import org.http4s.Header.`Content-Type`

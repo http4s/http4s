@@ -1,7 +1,7 @@
 package org.http4s
 
 import org.scalatest.{WordSpec, Matchers}
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.util.string._
 
 class CharacterSetSpec extends WordSpec with Matchers {
   import CharacterSet._

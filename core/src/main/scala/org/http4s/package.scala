@@ -1,6 +1,5 @@
 package org
 
-import http4s.ext.Http4sString
 import scala.concurrent.{ExecutionContext, Promise, Future}
 import com.typesafe.config.{ConfigFactory, Config}
 import scalaz.{-\/, \/-, Semigroup, ~>}
@@ -26,8 +25,5 @@ package object http4s {
     val empty = Process.halt
   }
 
-  private[http4s] implicit def string2Http4sString(s: String) = new Http4sString(s)
-
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
-
 }

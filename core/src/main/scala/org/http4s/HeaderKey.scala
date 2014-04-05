@@ -5,7 +5,7 @@ import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import org.http4s.Header.RawHeader
 import org.http4s.util.CaseInsensitiveString
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.util.string._
 
 /**
  * @author Bryce Anderson
