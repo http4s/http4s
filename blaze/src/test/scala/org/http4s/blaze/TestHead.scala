@@ -22,7 +22,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   override def writeRequest(data: ByteBuffer): Future[Any] = {
     val cpy = new Array[Byte](data.remaining())
-    Array.copy(data.array(), data.position(), cpy, 0, data.remaining())
+    data.get(cpy)
     acc :+= cpy
     Future.successful(())
   }

@@ -2,30 +2,43 @@ package org.http4s
 package util
 
 import scala.annotation.tailrec
+import java.nio.ByteBuffer
+import scala.collection.IndexedSeqOptimized
 
 /**
- * Created by brycea on 4/3/14.
+ * Created by Bryce Anderson on 4/3/14.
  */
 
-private[http4s] case class ChunkLeafImpl(arr: Array[Byte], strt: Int, val length: Int) extends BodyChunk {
+private[http4s] case class ChunkLeafImpl(arr: Array[Byte], first: Int, val length: Int)
+                              extends BodyChunk with IndexedSeqOptimized[Byte, BodyChunk] {
 
-  override def apply(idx: Int): Byte = arr(idx + strt)
+  if(length < 0 || arr.length - first < length)
+    throw new IndexOutOfBoundsException("Invalid dimensions for new ChunkLeafImpl: " +
+          s"$length, $first. Max length: ${arr.length - first }")
+
+  override def apply(idx: Int): Byte = arr(idx + first)
 
   override def copyToArray[B >: Byte](xs: Array[B], start: Int, len: Int): Unit = {
     if (start < 0 || len < 0)
       throw new IndexOutOfBoundsException(s"Invalid bounds for copyToArray: Start: $start, Length: $len")
 
-    val l = if (xs.length - start < len) xs.length - start else len
-    System.arraycopy(arr, strt, xs, start, math.min(length, l))
+    //val l = if (xs.length - start < len) xs.length - start else len
+    val l = math.min(length, math.min(xs.length - start, len))
+    System.arraycopy(arr, first, xs, start, l)
   }
 
-  override def splitAt(index: Int): (BodyChunk, BodyChunk) = if (index > 0) {
-    val left = ChunkLeafImpl(arr, strt, math.min(index, length))
-    val right = if (index < length) ChunkLeafImpl(arr, strt + index, length - index)
-                else BodyChunk.empty
+  override def asByteBuffer: ByteBuffer = ByteBuffer.wrap(arr, first, length).asReadOnlyBuffer()
 
-    (left, right)
-  } else (BodyChunk.empty, this)
+  // slice serves as the basis for many of the IndexSeqOptimized operations
+  override def slice(from: Int, until: Int): BodyChunk = {
+    if (from >= until) BodyChunk.empty
+    else if (until == length && from == 0) this
+    else {
+      val lo = math.max(0, from)
+      val hi = math.min(math.max(0, until), length)
+      ChunkLeafImpl(arr, first + lo, hi - lo)
+    }
+  }
 }
 
 private[http4s] object MultiChunkImpl {
@@ -66,17 +79,35 @@ private[http4s] case class MultiChunkImpl(chunks: Vector[BodyChunk], val length:
     go(start, math.min(xs.length - start, len), 0)
   }
 
-  // TODO: it would be better to implement take(n) and drop(n)
-//  override def splitAt(index: Int): (BodyChunk, BodyChunk) = {
-//    if (index < 1) (BodyChunk.empty, this)
-//    else if (index < left.length) {
-//      val (ll, lr) = left.splitAt(index)
-//      (ll, lr ++ right)
-//    }
-//    else if (index == left.length) (left, right)
-//    else {
-//      val (rl, rr) = right.splitAt(index - left.length)
-//      (left ++ rl, rr)
-//    }
-//  }
+  override def take(n: Int): BodyChunk = {
+    if (n >= length) this
+    else if (n <= 0) BodyChunk.empty
+    else {
+      @tailrec
+      def go(idx: Int, vecpos: Int): BodyChunk = {
+        val v = chunks(vecpos)
+        if (idx > v.length) go(idx - v.length, vecpos + 1)
+        else if (idx == v.length) MultiChunkImpl(chunks.take(vecpos + 1), n)
+        else MultiChunkImpl(chunks.take(vecpos):+ v.take(idx), n)
+      }
+      go(n, 0)
+    }
+  }
+
+  override def drop(n: Int): BodyChunk = {
+    if (n >= length) BodyChunk.empty
+    else if (n <= 0) this
+    else {
+      @tailrec
+      def go(idx: Int, vecpos: Int): BodyChunk = {
+        val v = chunks(vecpos)
+        if (idx > v.length) go(idx - v.length, vecpos + 1)
+        else if (idx == v.length) MultiChunkImpl(chunks.drop(vecpos + 1), length - n)
+        else MultiChunkImpl(v.drop(idx) +: chunks.drop(vecpos + 1), length - n)
+      }
+      go(n, 0)
+    }
+  }
+
+  override def splitAt(n: Int): (BodyChunk, BodyChunk) = (take(n), drop(n))
 }

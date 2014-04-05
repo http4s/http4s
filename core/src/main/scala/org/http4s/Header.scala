@@ -10,6 +10,9 @@ import org.http4s.CharacterSet._
 import scala.util.hashing.MurmurHash3
 
 
+/** Abstract representation o the HTTP header
+  * @see [[HeaderKey]]
+   */
 sealed trait Header extends Logging with Renderable with Product {
 
   import org.http4s.Header.RawHeader
@@ -38,6 +41,7 @@ sealed trait Header extends Logging with Renderable with Product {
   }
 }
 
+/** A Header that is already parsed from its String representation. */
 trait ParsedHeader extends Header {
   def key: HeaderKey
   def name = key.name

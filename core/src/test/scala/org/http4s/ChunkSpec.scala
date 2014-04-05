@@ -88,30 +88,15 @@ class ChunkSpec extends WordSpec with Matchers {
     }
 
     "split properly" in {
-      {
-        val (a,b) = c.splitAt(2)
-        compareBodyChunk(a, data.slice(0, 2))
-        compareBodyChunk(b, data.slice(2, data.length))
-      }
-      {
-        val (a,b) = c.splitAt(3)
-        compareBodyChunk(a, data.slice(0, 3))
-        compareBodyChunk(b, data.slice(3, data.length))
-      }
-      {
-        val (a,b) = c.splitAt(4)
-        compareBodyChunk(a, data.slice(0, 4))
-        compareBodyChunk(b, data.slice(4, data.length))
-      }
-      {
-        val (a,b) = c.splitAt(0)
-        compareBodyChunk(a, Array[Byte]())
-        compareBodyChunk(b, data)
-      }
-      {
-        val (a,b) = c.splitAt(40)
-        compareBodyChunk(a, data)
-        compareBodyChunk(b, Array[Byte]())
+      val dd = data ++ data
+      val d = c ++ c
+      val pairs = Seq((dd, d), (data, c), (data1, c1), (data2, c2))
+      pairs.foreach { case (bytes, chunk) =>
+        -10 until bytes.length + 10 foreach { i =>
+          val (a,b) = chunk.splitAt(i)
+          compareBodyChunk(a, bytes.slice(0, i))
+          compareBodyChunk(b, bytes.slice(i, d.length))
+        }
       }
     }
 

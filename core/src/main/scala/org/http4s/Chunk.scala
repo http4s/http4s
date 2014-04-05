@@ -5,22 +5,29 @@ import java.nio.ByteBuffer
 import java.nio.charset.Charset
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.{mutable, IndexedSeqLike}
+import scala.collection.{IndexedSeqOptimized, mutable, IndexedSeqLike}
 import scala.reflect.ClassTag
 import scala.io.Codec
 
 
-
+/** Chunks are the currency of the HTTP body
+  *
+  * Chunks come on two forms: [[BodyChunk]]s and [[TrailerChunk]]s.
+  */
 sealed trait Chunk extends IndexedSeq[Byte] {
+
+  /** Decode this Chunk into a String using the provided Charset */
   def decodeString(charset: Charset): String = new String(toArray, charset)
 
+  /** Decode this Chunk into a String using the provided [[CharacterSet]] */
   def decodeString(charset: CharacterSet): String = decodeString(charset.charset)
 
-  /** Returns a ByteBuffer that wraps an array copy of this BodyChunk
-   */
-  def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray)
+  /** Returns a read-only ByteBuffer representation of this BodyChunk
+    */
+  def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray).asReadOnlyBuffer()
 }
 
+/** Provides the container for Bytes on the [[org.http4s.Request]] and [[org.http4s.Response]] */
 trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 
   def length: Int
@@ -37,8 +44,11 @@ trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 
   def asInputStream: InputStream = new ByteArrayInputStream(toArray)
 
+  /** Append the BodyChunk to the end of this BodyChunk */
   final def append(b: BodyChunk): BodyChunk = util.MultiChunkImpl.concat(this, b)
 
+  /** Append the BodyChunk to the end of this BodyChunk
+   */
   final def ++ (b: BodyChunk): BodyChunk = append(b)
 
   /** Split the chunk into two chunks at the given index
@@ -54,18 +64,40 @@ trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 object BodyChunk {
   type Builder = mutable.Builder[Byte, BodyChunk]
 
+  /** Create a new BodyChunk with a copy of the provided Array[Byte]
+    *
+    * @param bytes array of bytes for the BodyChunk
+    */
   def apply(bytes: Array[Byte]): BodyChunk = apply(bytes, 0, bytes.length)
 
+  /** Create a new BodyChunk with a copy of the provided Array[Byte]
+    *
+    * @param bytes array of bytes to form the BodyChunk
+    * @param start starting position in the Array
+    * @param length number of Bytes desired
+    */
   def apply(bytes: Array[Byte], start: Int, length: Int) = {
     if (start > bytes.length || length > bytes.length - start)
       throw new IndexOutOfBoundsException("Invalid bounds for BodyChunk construction: " +
                                           s"Array(${bytes.length}), Start: $start, Length: $length")
 
-    unsafe(bytes.clone(), start, length)
+    val arr = new Array[Byte](length)
+    System.arraycopy(bytes, start, arr, 0, length)
+    unsafe(arr, 0, length)
   }
 
-  def apply(bytes: Byte*): BodyChunk = BodyChunk(bytes.toArray)
+  /** Create a new BodyChunk from the provided Bytes */
+  def apply(bytes: Byte*): BodyChunk = {
+    val arr = bytes.toArray
+    unsafe(arr, 0, arr.length)
+  }
 
+  /** Create a new BodyChunk from a ByteBuffer
+    *
+    * @param bytes ByteBuffer containing the Bytes to copy into a BodyChunk
+    *
+    *             ''The ByteBuffer position will be set to the end of the buffer''
+    */
   def apply(bytes: ByteBuffer): BodyChunk = {
     val n = new Array[Byte](bytes.remaining())
     bytes.get(n)
@@ -74,9 +106,10 @@ object BodyChunk {
 
   def apply(string: String): BodyChunk = apply(string, Codec.UTF8.charSet)
 
-  def apply(string: String, charset: Charset): BodyChunk = BodyChunk(string.getBytes(charset))
-
-  def fromArray(array: Array[Byte], offset: Int, length: Int): BodyChunk = BodyChunk(array.slice(offset, length))
+  def apply(string: String, charset: Charset): BodyChunk = {
+    val bytes = string.getBytes(charset)
+    unsafe(bytes, 0, bytes.length)
+  }
 
   /** Construct and unsafe BodyChunk from the array
     * The array is not copied, and therefor any changes will result in changes to the  resulting BodyChunk!
@@ -84,9 +117,10 @@ object BodyChunk {
     */
   def unsafe(arr: Array[Byte], start: Int, length: Int) = util.ChunkLeafImpl(arr, start, length)
 
+  /** Empty BodyChunk */
   val empty: BodyChunk = BodyChunk()
 
-  private def newBuilder: Builder = (mutable.ArrayBuilder.make[Byte]).mapResult(BodyChunk(_))
+  private def newBuilder: Builder = mutable.ArrayBuilder.make[Byte].mapResult{ arr => unsafe(arr, 0, arr.length) }
 
   implicit def canBuildFrom: CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] =
     new CanBuildFrom[TraversableOnce[Byte], Byte, BodyChunk] {
@@ -95,6 +129,13 @@ object BodyChunk {
     }
 }
 
+/** Representation of HTTP trailers
+  *
+  * If the HTTP stream has a TrailerChunk, it must come at the end of the stream. Other uses may
+  * case undefined behavior.
+  *
+  * @param headers [[HeaderCollection]] of trailers
+  */
 case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends Chunk {
 
   def ++(chunk: TrailerChunk): TrailerChunk = {

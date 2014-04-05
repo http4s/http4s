@@ -45,7 +45,7 @@ abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: At
   *
   * @param requestMethod [[Method.Get]], [[Method.Post]], etc.
   * @param requestUri representation of the request URI
-  * @param protocol HTTP protocol, eg [[ServerProtocol.`HTTP/1.1`]]
+  * @param protocol HTTP protocol, eg ServerProtocol.`HTTP/1.1`
   * @param headers collection of [[Header]]s
   * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
@@ -124,7 +124,7 @@ object Request {
  * @param headers [[HeaderCollection]] containing all response headers
  * @param body scalaz.stream.Process[Task,Chunk] representing the possible body of the response
  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
-  *                  backend for additional processing such as WebSocket or File objects.
+ *                   backend for additional processing such as [[websocket.websocketKey]] or java.io.File objects
  */
 case class Response(
   status: Status = Status.Ok,

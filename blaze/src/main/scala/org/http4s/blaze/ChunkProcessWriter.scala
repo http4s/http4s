@@ -56,7 +56,7 @@ final class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[
     writeLength(lengthBuffer, chunk.length)
     lengthBuffer.flip()
 
-    val c = ByteBuffer.wrap(chunk.toArray)
+    val c = chunk.asByteBuffer
 
     val list = lengthBuffer::c::CRLF::last
 

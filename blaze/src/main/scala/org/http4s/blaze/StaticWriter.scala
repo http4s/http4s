@@ -20,7 +20,7 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
   }
 
   protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = {
-    val b = ByteBuffer.wrap(chunk.toArray)
+    val b = chunk.asByteBuffer
     written += b.remaining()
     checkWritten()
 

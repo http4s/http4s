@@ -29,8 +29,8 @@ object AttributeKey {
 /** An immutable map where a key is the tuple `(String,T)` for a fixed type `T` and can only be associated with values of type `T`.
   * It is therefore possible for this map to contain mappings for keys with the same label but different types.
   * Excluding this possibility is the responsibility of the client if desired. */
-class AttributeMap private(private val backing: Map[AttributeKey[_], Any])
-{
+class AttributeMap private(private val backing: Map[AttributeKey[_], Any]) {
+
   /** Gets the value of type `T` associated with the key `k`.
     * If a key with the same label but different type is defined, this method will fail. */
   def apply[T](k: AttributeKey[T]): T = backing(k).asInstanceOf[T]
@@ -85,8 +85,7 @@ object AttributeMap
 
 // type inference required less generality
 /** A map entry where `key` is constrained to only be associated with a fixed value of type `T`. */
-final case class AttributeEntry[T](key: AttributeKey[T], value: T)
-{
+final case class AttributeEntry[T](key: AttributeKey[T], value: T) {
   override def toString = key.name + ": " + value
 }
 
