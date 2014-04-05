@@ -12,15 +12,14 @@ import java.io.{FileInputStream,File,InputStreamReader}
 import org.scalatest.{Matchers, WordSpec}
 
 import scalaz.stream.Process._
+import HttpBody._
 
 /**
  * @author Bryce Anderson
  * Created on 2/14/13 at 8:44 PM
  */
 
-class BodyParserSpec extends WordSpec with Matchers {
-  import BodyParser._
-
+class HttpBodySpec extends WordSpec with Matchers {
   "xml" should {
 
     val server = new MockServer({req =>
@@ -68,7 +67,7 @@ class BodyParserSpec extends WordSpec with Matchers {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
         case req =>
-          BodyParser.textFile(req, tmpFile){
+          textFile(req, tmpFile){
             Ok("Hello")
           }
       }.run
@@ -81,7 +80,7 @@ class BodyParserSpec extends WordSpec with Matchers {
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
-        case req => BodyParser.binFile(req, tmpFile)(Ok("Hello"))
+        case req => binFile(req, tmpFile)(Ok("Hello"))
       }.run
 
       response.statusLine should equal (Status.Ok)

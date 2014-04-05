@@ -8,7 +8,6 @@ import org.http4s.dsl._
 import org.http4s.middleware.PushSupport
 
 class ExampleRoute {
-  import BodyParser._
   import PushSupport._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
@@ -39,7 +38,6 @@ class ExampleRoute {
         case chunk: BodyChunk => chunk.slice(6, chunk.length)
         case chunk => chunk
       }))
-
 
     case req @ Post -> Root / "sum"  =>
       text(req).flatMap{ s =>

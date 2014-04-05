@@ -1,35 +1,29 @@
 package org.http4s
 
 import java.io._
-import xml.{Elem, XML, NodeSeq}
-import org.xml.sax.{SAXException, InputSource}
+
+import xml.{Elem, XML}
+import org.xml.sax.InputSource
 import javax.xml.parsers.SAXParser
-import scala.util.{Failure, Success, Try}
-import scalaz.{\/-, -\/, \/}
 import scalaz.stream.{processes, process1}
-import scalaz.syntax.id._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
-import scala.collection.mutable.ArrayBuffer
-import scala.util.control.{NonFatal, NoStackTrace}
-import com.typesafe.scalalogging.slf4j.Logging
-import scalaz.std.string._
+import scala.util.control.NoStackTrace
 
-object BodyParser {
-  case class EntityTooLarge(limit: Int) extends Exception with NoStackTrace
-  case object NoParseResult extends Exception with NoStackTrace
+object HttpBody extends HttpBodyFunctions {
+  val empty: HttpBody = halt
+  val DefaultMaxEntitySize: Int = Http4sConfig.getInt("org.http4s.default-max-entity-size")
+}
 
-  val DefaultMaxEntitySize = Http4sConfig.getInt("org.http4s.default-max-entity-size")
+trait HttpBodyFunctions {
 
-  def text[A](req: Request, limit: Int = DefaultMaxEntitySize): Task[String] = {
+  def text[A](req: Request, limit: Int = HttpBody.DefaultMaxEntitySize): Task[String] = {
     val buff = new StringBuilder
     (req.body |> takeBytes(limit) |> processes.fold(buff) { (b, c) => c match {
       case c: BodyChunk => b.append(c.decodeString(req.charset))
       case _ => b
     }}).map(_.result()).runLastOr("")
   }
-
-
 
   /**
    * Handles a request body as XML.
@@ -41,7 +35,7 @@ object BodyParser {
    * @return a request handler
    */
   def xml(req: Request,
-          limit: Int = DefaultMaxEntitySize,
+          limit: Int = HttpBody.DefaultMaxEntitySize,
           parser: SAXParser = XML.parser): Task[Elem] =
     text(req, limit).map { s =>
     // TODO: exceptions here should be handled by Task, but are not until 7.0.5+
@@ -93,3 +87,5 @@ object BodyParser {
       .run.flatMap{_ => is.close(); f}
   }
 }
+
+case class EntityTooLarge(limit: Int) extends Exception with NoStackTrace

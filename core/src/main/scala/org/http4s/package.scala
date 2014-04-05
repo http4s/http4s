@@ -21,9 +21,6 @@ package object http4s {
   /** The scalaz.stream.Process[Task,Chunk] representing the body of the [[Response]]
      */
   type HttpBody = Process[Task, Chunk]
-  object HttpBody {
-    val empty = Process.halt
-  }
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 }
