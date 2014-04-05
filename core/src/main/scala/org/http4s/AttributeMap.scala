@@ -14,11 +14,20 @@ import scala.reflect.Manifest
 
 /** A key in an [[AttributeMap]] that constrains its associated value to be of type `T`.
   * The key is uniquely defined by its [[name]] and type `T`, represented at runtime by [[manifest]]. */
-case class AttributeKey[T](name: String)(implicit manifest: Manifest[T]) {
+final class AttributeKey[T] private (val name: String)(implicit val manifest: Manifest[T]) {
   def apply(value: T): AttributeEntry[T] = AttributeEntry(this, value)
+
+  override final def toString = name
+  override final def hashCode = name.hashCode
+  override final def equals(o: Any) = (this eq o.asInstanceOf[AnyRef]) || (o match {
+    case a: AttributeKey[_] => a.name == this.name && a.manifest == this.manifest
+    case _ => false
+  })
 }
 
 object AttributeKey {
+  def apply[T](name: String)(implicit manifest: Manifest[T]): AttributeKey[T] = new AttributeKey(name)(manifest)
+
   /**
    * Encourage greater consistency in internal keys by imposing a universal prefix.
    */
