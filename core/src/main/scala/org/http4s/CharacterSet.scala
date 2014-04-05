@@ -2,7 +2,7 @@ package org.http4s
 
 import java.nio.charset.Charset
 import scala.collection.JavaConverters._
-import org.http4s.util.{Writer, Renderable, CaseInsensitiveString}
+import org.http4s.util.{Resolvable, Writer, Renderable, CaseInsensitiveString}
 import scala.util.hashing.MurmurHash3
 
 sealed trait CharacterSet extends HttpValue[String] with QualityFactor with Renderable {

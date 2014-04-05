@@ -1,6 +1,4 @@
-package org.http4s
-
-import scalaz.{Success, Validation}
+package org.http4s.util
 
 private[http4s] trait Resolvable[K, V <: AnyRef] extends Registry[K, V] {
   protected def stringToRegistryKey(s: String): K

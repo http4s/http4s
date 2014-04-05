@@ -1,5 +1,7 @@
 package org.http4s
 
+import org.http4s.util.Resolvable
+
 /**
  * An HTTP method.
  *

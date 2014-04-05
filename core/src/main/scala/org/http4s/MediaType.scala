@@ -3,7 +3,7 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
-import org.http4s.util.{Writer, Renderable}
+import org.http4s.util.{Resolvable, Writer, Renderable}
 
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Q = Q.Unity,

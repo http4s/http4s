@@ -1,4 +1,4 @@
-package org.http4s
+package org.http4s.util
 
 import scala.collection.concurrent
 import scala.collection.concurrent.TrieMap
