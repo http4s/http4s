@@ -35,13 +35,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">MediaType</span><span class="result"> extends <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
+        <span class="name">MediaType</span><span class="result"> extends <span class="extype" name="org.http4s.util.Resolvable">Resolvable</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.Resolvable">Resolvable</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>], <span class="extype" name="org.http4s.Registry">Registry</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.util.Resolvable">Resolvable</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>], <span class="extype" name="org.http4s.util.Registry">Registry</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -59,7 +59,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.MediaType"><span>MediaType</span></li><li class="in" name="org.http4s.Resolvable"><span>Resolvable</span></li><li class="in" name="org.http4s.Registry"><span>Registry</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.MediaType"><span>MediaType</span></li><li class="in" name="org.http4s.util.Resolvable"><span>Resolvable</span></li><li class="in" name="org.http4s.util.Registry"><span>Registry</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -1735,7 +1735,7 @@
       </span>
       </h4>
       
-    </li><li name="org.http4s.Registry#register" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.util.Registry#register" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="register(key:K,obj:V):obj.type"></a>
       <a id="register((String,String),MediaType):obj.type"></a>
       <h4 class="signature">
@@ -1744,11 +1744,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">register</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>, <span name="obj">obj: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.Registry.register.obj">obj</span>.type</span>
+        <span class="name">register</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>, <span name="obj">obj: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.Registry.register.obj">obj</span>.type</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Registry</dd></dl></div>
-    </li><li name="org.http4s.Registry#registry" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.util.Registry#registry" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="registry:scala.collection.concurrent.TrieMap[K,V]"></a>
       <a id="registry:TrieMap[(String,String),MediaType]"></a>
       <h4 class="signature">
@@ -1761,7 +1761,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Registry</dd></dl></div>
-    </li><li name="org.http4s.Resolvable#resolve" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.util.Resolvable#resolve" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="resolve(s:String):V"></a>
       <a id="resolve(String):MediaType"></a>
       <h4 class="signature">
@@ -1774,7 +1774,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Resolvable</dd></dl></div>
-    </li><li name="org.http4s.Registry#snapshot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.util.Registry#snapshot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="snapshot:scala.collection.Map[K,V]"></a>
       <a id="snapshot:Map[(String,String),MediaType]"></a>
       <h4 class="signature">
@@ -2607,10 +2607,10 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.Resolvable">
-              <h3>Inherited from <span class="extype" name="org.http4s.Resolvable">Resolvable</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</h3>
-            </div><div class="parent" name="org.http4s.Registry">
-              <h3>Inherited from <span class="extype" name="org.http4s.Registry">Registry</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</h3>
+        <div class="parent" name="org.http4s.util.Resolvable">
+              <h3>Inherited from <span class="extype" name="org.http4s.util.Resolvable">Resolvable</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</h3>
+            </div><div class="parent" name="org.http4s.util.Registry">
+              <h3>Inherited from <span class="extype" name="org.http4s.util.Registry">Registry</span>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
