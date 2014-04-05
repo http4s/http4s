@@ -35,13 +35,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Writable</span>
+        <span class="name">Writable</span><span class="result"> extends <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -59,7 +59,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.Writable"><span>Writable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.Writable"><span>Writable</span></li><li class="in" name="org.http4s.WritableInstances"><span>WritableInstances</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -163,7 +163,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.Writable#byteWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.WritableInstances#byteWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="byteWritable:org.http4s.SimpleWritable[Array[Byte]]"></a>
       <a id="byteWritable:SimpleWritable[Array[Byte]]"></a>
       <h4 class="signature">
@@ -175,7 +175,7 @@
         <span class="name">byteWritable</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]]</span>
       </span>
       </h4>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -240,7 +240,7 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Writable#futureWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.WritableInstances#futureWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="futureWritable[A](implicitec:scala.concurrent.ExecutionContext,implicitwritable:org.http4s.Writable[A]):org.http4s.Writable[scala.concurrent.Future[A]]"></a>
       <a id="futureWritable[A](ExecutionContext,Writable[A]):Writable[Future[A]]"></a>
       <h4 class="signature">
@@ -249,10 +249,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">futureWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>, <span name="writable">writable: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.Writable.futureWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="org.http4s.Writable.futureWritable.A">A</span>]]</span>
+        <span class="name">futureWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>, <span name="writable">writable: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances.futureWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="org.http4s.WritableInstances.futureWritable.A">A</span>]]</span>
       </span>
       </h4>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -279,7 +279,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Writable#htmlWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.WritableInstances#htmlWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="htmlWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[scala.xml.Elem]"></a>
       <a id="htmlWritable(CharacterSet):SimpleWritable[Elem]"></a>
       <h4 class="signature">
@@ -291,8 +291,8 @@
         <span class="name">htmlWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> = <span class="symbol"><span class="name"><a href="CharacterSet$.html">CharacterSet.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.xml.Elem" class="extype" target="_top">Elem</a>]</span>
       </span>
       </h4>
-      
-    </li><li name="org.http4s.Writable#intWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#intWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="intWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[Int]"></a>
       <a id="intWritable(CharacterSet):SimpleWritable[Int]"></a>
       <h4 class="signature">
@@ -304,7 +304,7 @@
         <span class="name">intWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> = <span class="symbol"><span class="name"><a href="CharacterSet$.html">CharacterSet.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
       </span>
       </h4>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -357,7 +357,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.Writable#processWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.WritableInstances#processWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="processWritable[A](implicitw:org.http4s.SimpleWritable[A]):org.http4s.Writable[scalaz.stream.Process[scalaz.concurrent.Task,A]]"></a>
       <a id="processWritable[A](SimpleWritable[A]):Writable[Process[Task,A]]"></a>
       <h4 class="signature">
@@ -366,11 +366,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="org.http4s.Writable.processWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.Writable.processWritable.A">A</span>]]</span>
+        <span class="name">processWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="org.http4s.WritableInstances.processWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.WritableInstances.processWritable.A">A</span>]]</span>
       </span>
       </h4>
-      
-    </li><li name="org.http4s.Writable#seqWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#seqWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="seqWritable[A](implicitw:org.http4s.SimpleWritable[A]):org.http4s.Writable[Seq[A]]"></a>
       <a id="seqWritable[A](SimpleWritable[A]):Writable[Seq[A]]"></a>
       <h4 class="signature">
@@ -379,11 +379,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">seqWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="org.http4s.Writable.seqWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="org.http4s.Writable.seqWritable.A">A</span>]]</span>
+        <span class="name">seqWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="org.http4s.WritableInstances.seqWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="org.http4s.WritableInstances.seqWritable.A">A</span>]]</span>
       </span>
       </h4>
-      
-    </li><li name="org.http4s.Writable#stringWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#stringWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="stringWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[String]"></a>
       <a id="stringWritable(CharacterSet):SimpleWritable[String]"></a>
       <h4 class="signature">
@@ -395,7 +395,7 @@
         <span class="name">stringWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> = <span class="symbol"><span class="name"><a href="CharacterSet$.html">CharacterSet.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -409,7 +409,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.Writable#taskWritable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.WritableInstances#taskWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="taskWritable[A](implicitwritable:org.http4s.Writable[A]):org.http4s.Writable[scalaz.concurrent.Task[A]]"></a>
       <a id="taskWritable[A](Writable[A]):Writable[Task[A]]"></a>
       <h4 class="signature">
@@ -418,10 +418,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">taskWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="writable">writable: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.Writable.taskWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.Writable.taskWritable.A">A</span>]]</span>
+        <span class="name">taskWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="writable">writable: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances.taskWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.WritableInstances.taskWritable.A">A</span>]]</span>
       </span>
       </h4>
-      
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
     </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
@@ -501,7 +501,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="scala.AnyRef">
+        <div class="parent" name="org.http4s.WritableInstances">
+              <h3>Inherited from <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></h3>
+            </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>

@@ -698,6 +698,19 @@ their values with a comma.</p>
       </h4>
       <p class="comment cmt">Representation of the HTTP response code and reason
 </p>
+    </li><li name="org.http4s.StatusInstances" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="StatusInstancesextendsAnyRef"></a>
+      <a id="StatusInstances:StatusInstances"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="StatusInstances.html"><span class="name">StatusInstances</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4>
+      
     </li><li name="org.http4s.TrailerChunk" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="TrailerChunkextendsChunkwithProductwithSerializable"></a>
       <a id="TrailerChunk:TrailerChunk"></a>
@@ -747,6 +760,19 @@ their values with a comma.</p>
       </span>
       <span class="symbol">
         <a href="Writable.html"><span class="name">Writable</span></a><span class="tparams">[<span name="A">-A</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.WritableInstances" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WritableInstancesextendsAnyRef"></a>
+      <a id="WritableInstances:WritableInstances"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WritableInstances.html"><span class="name">WritableInstances</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       
@@ -935,7 +961,7 @@ their values with a comma.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Http4s$.html"><span class="name">Http4s</span></a><span class="result"> extends <a href="ChunkInstances.html" class="extype" name="org.http4s.ChunkInstances">ChunkInstances</a> with <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="util/JodaTimeInstances.html" class="extype" name="org.http4s.util.JodaTimeInstances">JodaTimeInstances</a> with <a href="util/JodaTimeSyntax.html" class="extype" name="org.http4s.util.JodaTimeSyntax">JodaTimeSyntax</a> with <a href="util/TaskInstances.html" class="extype" name="org.http4s.util.TaskInstances">TaskInstances</a></span>
+        <a href="Http4s$.html"><span class="name">Http4s</span></a><span class="result"> extends <a href="ChunkInstances.html" class="extype" name="org.http4s.ChunkInstances">ChunkInstances</a> with <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a> with <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="util/JodaTimeInstances.html" class="extype" name="org.http4s.util.JodaTimeInstances">JodaTimeInstances</a> with <a href="util/JodaTimeSyntax.html" class="extype" name="org.http4s.util.JodaTimeSyntax">JodaTimeSyntax</a> with <a href="util/TaskInstances.html" class="extype" name="org.http4s.util.TaskInstances">TaskInstances</a></span>
       </span>
       </h4>
       
@@ -1156,7 +1182,7 @@ their values with a comma.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Status$.html"><span class="name">Status</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Status$.html"><span class="name">Status</span></a><span class="result"> extends <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -1195,7 +1221,7 @@ their values with a comma.</p>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Writable$.html"><span class="name">Writable</span></a>
+        <a href="Writable$.html"><span class="name">Writable</span></a><span class="result"> extends <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></span>
       </span>
       </h4>
       
