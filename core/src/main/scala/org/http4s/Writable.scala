@@ -12,6 +12,8 @@ trait Writable[-A] {
   def toBody(a: A): Task[(HttpBody, Option[Int])]
 }
 
+object Writable extends WritableInstances
+
 trait SimpleWritable[-A] extends Writable[A] {
   def asChunk(data: A): BodyChunk
   override def toBody(a: A): Task[(HttpBody, Option[Int])] = {
@@ -20,7 +22,7 @@ trait SimpleWritable[-A] extends Writable[A] {
   }
 }
 
-object Writable {
+trait WritableInstances {
   // Simple types defined
   implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {

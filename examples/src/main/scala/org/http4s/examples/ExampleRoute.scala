@@ -3,13 +3,12 @@ package org.http4s.examples
 import scalaz.concurrent.Task
 import scalaz.stream.Process, Process.{Get => PGet, _}
 import scala.concurrent.Future
-import org.http4s._
+import org.http4s._, Http4s._
 import org.http4s.dsl._
 import org.http4s.middleware.PushSupport
 
 class ExampleRoute {
   import Status._
-  import Writable._
   import BodyParser._
   import PushSupport._
 
