@@ -1,15 +1,12 @@
-package org.http4s
-package examples
+package org.http4s.examples
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process, Process.{Get => PGet, _}
-import scalaz.stream.process1
 import scala.concurrent.Future
+import org.http4s._
 import org.http4s.dsl._
-import scala.util.{Failure, Success}
 import org.http4s.util.middleware.PushSupport
 import org.http4s.util.StaticFile
-import java.io.File
 
 class ExampleRoute {
   import Status._

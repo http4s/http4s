@@ -1,14 +1,9 @@
-package org.http4s
-package examples
+package org.http4s.examples
 package servlet
 
 import org.eclipse.jetty.server.Server
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-import scala.concurrent.Future
-import scalaz.concurrent.Task
-import scalaz.effect.IO
-import scalaz.Free.Trampoline
 import org.http4s.servlet.Http4sServlet
 
 /**
