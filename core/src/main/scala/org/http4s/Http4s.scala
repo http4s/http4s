@@ -1,6 +1,6 @@
 package org.http4s
 
-object Http4s extends AnyRef
+trait Http4s extends AnyRef
   with ChunkInstances
   with HttpBodyFunctions
   with StatusInstances
@@ -9,3 +9,5 @@ object Http4s extends AnyRef
   with util.JodaTimeInstances
   with util.JodaTimeSyntax
   with util.TaskInstances
+
+object Http4s extends Http4s
