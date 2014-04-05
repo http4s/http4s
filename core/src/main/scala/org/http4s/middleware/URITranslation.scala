@@ -1,5 +1,4 @@
 package org.http4s
-package util
 package middleware
 
 /**

@@ -3,7 +3,7 @@ package examples.blaze
 
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.Http1Stage
-import org.http4s.util.middleware.URITranslation
+import org.http4s.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
 import org.http4s.Status._
 import org.http4s.blaze.websocket.WebSocketSupport

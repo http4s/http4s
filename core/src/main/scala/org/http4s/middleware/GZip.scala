@@ -1,5 +1,5 @@
 package org.http4s
-package util.middleware
+package middleware
 
 import scalaz.stream.Process._
 import scalaz.concurrent.Task

@@ -1,11 +1,9 @@
-package org.http4s.util.middleware
+package org.http4s
+package middleware
 
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.concurrent.Task
-import org.http4s._
-import org.http4s.Request
-import org.http4s.AttributeKey
-import org.http4s.util.middleware.URITranslation.translateRootKey
+import URITranslation.translateRootKey
 
 /**
  * @author Bryce Anderson

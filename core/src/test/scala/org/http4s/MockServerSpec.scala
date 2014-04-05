@@ -3,7 +3,7 @@ package org.http4s
 
 
 import org.scalatest.{WordSpec, Matchers}
-import org.http4s.util.middleware.PushSupport
+import org.http4s.middleware.PushSupport
 import scalaz.stream.Process._
 import org.http4s.MockServer.MockResponse
 import scalaz.concurrent.Task

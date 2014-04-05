@@ -13,7 +13,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import java.nio.ByteBuffer
 import java.net.InetSocketAddress
 
-import org.http4s.util.middleware.URITranslation
+import org.http4s.middleware.URITranslation
 import org.http4s.examples.ExampleRoute
 
 /**

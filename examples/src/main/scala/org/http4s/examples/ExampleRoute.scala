@@ -3,13 +3,9 @@ package examples
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process, Process.{Get => PGet, _}
-import scalaz.stream.process1
 import scala.concurrent.Future
 import org.http4s.dsl._
-import scala.util.{Failure, Success}
-import org.http4s.util.middleware.PushSupport
-import StaticFile
-import java.io.File
+import org.http4s.middleware.PushSupport
 
 class ExampleRoute {
   import Status._

@@ -26,7 +26,7 @@ object MockRoute {
 
     /** For testing the UrlTranslation middleware */
     case req: Request if req.requestUri.path == "/checktranslate" =>
-      import org.http4s.util.middleware.URITranslation._
+      import org.http4s.middleware.URITranslation._
       val newpath = req.attributes.get(translateRootKey)
         .map(f => f("foo"))
         .getOrElse("bar!")
@@ -35,7 +35,7 @@ object MockRoute {
 
     /** For testing the PushSupport middleware */
     case req: Request if req.requestUri.path == "/push" =>
-      import org.http4s.util.middleware.PushSupport._
+      import org.http4s.middleware.PushSupport._
       Ok("Hello").push("/ping")(req)
   }
 }

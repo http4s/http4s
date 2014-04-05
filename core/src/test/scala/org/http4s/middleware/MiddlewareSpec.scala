@@ -1,5 +1,4 @@
-
-package org.http4s.util.middleware
+package org.http4s.middleware
 
 import org.http4s._
 import org.scalatest.{Matchers, WordSpec}
@@ -14,7 +13,7 @@ import scalaz.concurrent.Task
 * Created on 3/9/13 at 11:10 AM
 */
 class MiddlewareSpec extends WordSpec with Matchers {
-  import util.middleware.URITranslation._
+  import middleware.URITranslation._
 
   val pingReq = Request(requestUri = Uri.fromString("/rootPath/ping"))
 
