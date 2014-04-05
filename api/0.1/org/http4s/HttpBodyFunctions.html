@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>HttpBody - org.http4s.HttpBody</title>
-          <meta name="description" content="HttpBody - org.http4s.HttpBody" />
-          <meta name="keywords" content="HttpBody org.http4s.HttpBody" />
+          <title>HttpBodyFunctions - org.http4s.HttpBodyFunctions</title>
+          <meta name="description" content="HttpBodyFunctions - org.http4s.HttpBodyFunctions" />
+          <meta name="keywords" content="HttpBodyFunctions org.http4s.HttpBodyFunctions" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -12,7 +12,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'org.http4s.package$$HttpBody$';
+            var hash = 'org.http4s.HttpBodyFunctions';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -22,26 +22,29 @@
    	  </script>
     
         </head>
-        <body class="value">
+        <body class="type">
       <div id="definition">
-        <img src="../../lib/object_big.png" />
+        <img src="../../lib/trait_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="org">org</a>.<a href="package.html" class="extype" name="org.http4s">http4s</a></p>
-        <h1>HttpBody</h1>
+        <h1>HttpBodyFunctions</h1>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpBody</span>
+        <span class="name">HttpBodyFunctions</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div><div class="toggleContainer block">
+          <span class="toggle">Known Subclasses</span>
+          <div class="subClasses hiddenContent"><a href="Http4s$.html" class="extype" name="org.http4s.Http4s">Http4s</a>, <a href="HttpBody$.html" class="extype" name="org.http4s.HttpBody">HttpBody</a></div>
         </div></div>
         
 
@@ -59,7 +62,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.HttpBody"><span>HttpBody</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.HttpBodyFunctions"><span>HttpBodyFunctions</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -163,6 +166,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.HttpBodyFunctions#binFile" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="binFile(req:org.http4s.Request,file:java.io.File)(f:=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="binFile(Request,File)(⇒Task[Response]):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">binFile</span><span class="params">(<span name="req">req: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="file">file: <span class="extype" name="java.io.File">File</span></span>)</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -182,16 +198,16 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.HttpBody#empty" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="empty:scalaz.stream.Process[Nothing,Nothing]"></a>
-      <a id="empty:Process[Nothing,Nothing]"></a>
+    </li><li name="org.http4s.HttpBodyFunctions#comsumeUpTo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="comsumeUpTo(n:Int):scalaz.stream.Process.Process1[org.http4s.Chunk,org.http4s.BodyChunk]"></a>
+      <a id="comsumeUpTo(Int):Process1[Chunk,BodyChunk]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">empty</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Nothing" class="extype" target="_top">Nothing</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Nothing" class="extype" target="_top">Nothing</a>]</span>
+        <span class="name">comsumeUpTo</span><span class="params">(<span name="n">n: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process.Process1">Process1</span>[<a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>, <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a>]</span>
       </span>
       </h4>
       
@@ -331,6 +347,32 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.HttpBodyFunctions#text" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="text[A](req:org.http4s.Request,limit:Int):scalaz.concurrent.Task[String]"></a>
+      <a id="text[A](Request,Int):Task[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">text</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="limit">limit: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="HttpBody$.html">HttpBody.DefaultMaxEntitySize</a></span></span></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HttpBodyFunctions#textFile" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="textFile(req:org.http4s.Request,in:java.io.File)(f:=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="textFile(Request,File)(⇒Task[Response]):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">textFile</span><span class="params">(<span name="req">req: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="in">in: <span class="extype" name="java.io.File">File</span></span>)</span><span class="params">(<span name="f">f: ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
@@ -401,6 +443,34 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.HttpBodyFunctions#whileBodyChunk" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="whileBodyChunk:scalaz.stream.Process.Process1[org.http4s.Chunk,org.http4s.BodyChunk]"></a>
+      <a id="whileBodyChunk:Process1[Chunk,BodyChunk]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">whileBodyChunk</span><span class="result">: <span class="extype" name="scalaz.stream.Process.Process1">Process1</span>[<a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>, <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HttpBodyFunctions#xml" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="xml(req:org.http4s.Request,limit:Int,parser:javax.xml.parsers.SAXParser):scalaz.concurrent.Task[scala.xml.Elem]"></a>
+      <a id="xml(Request,Int,SAXParser):Task[Elem]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">xml</span><span class="params">(<span name="req">req: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="limit">limit: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="HttpBody$.html">HttpBody.DefaultMaxEntitySize</a></span></span></span>, <span name="parser">parser: <span class="extype" name="javax.xml.parsers.SAXParser">SAXParser</span> = <span class="symbol">XML.parser</span></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.xml.Elem" class="extype" target="_top">Elem</a>]</span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Handles a request body as XML.</p><div class="fullcomment"><div class="comment cmt"><p>Handles a request body as XML.</p><p>TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
+</p></div><dl class="paramcmts block"><dt class="param">limit</dt><dd class="cmt"><p>the maximum size before an EntityTooLarge error is returned</p></dd><dt class="param">parser</dt><dd class="cmt"><p>the SAX parser to use to parse the XML</p></dd><dt>returns</dt><dd class="cmt"><p>a request handler
+</p></dd></dl></div>
     </li></ol>
             </div>
 
