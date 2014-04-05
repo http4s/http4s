@@ -17,7 +17,6 @@ object Http4sDependencies {
   lazy val npn_api             = "org.eclipse.jetty.npn"     % "npn-api"                 % npn_version
   lazy val npn_boot            = "org.mortbay.jetty.npn"     % "npn-boot"                % npn_version
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0-M1"
-  lazy val parboiledScala      = "org.parboiled"            %% "parboiled-scala"         % "1.1.4"
   lazy val playIteratees       = "com.typesafe.play"        %% "play-iteratees"          % "2.2.0"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.2"
   lazy val scalaloggingSlf4j   = "com.typesafe"             %% "scalalogging-slf4j"      % "1.0.1"

@@ -1,8 +1,8 @@
 package org.http4s
 
 import CharacterSet._
-import org.parboiled.common.Base64
-import org.http4s.util.{Writer, Renderable, CaseInsensitiveString}
+import org.http4s.util.{Writer, Renderable}
+import net.iharder.Base64
 
 sealed abstract class Credentials extends Renderable {
   def authScheme: AuthScheme
@@ -15,7 +15,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
   override lazy val value = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(`ISO-8859-1`.charset)
-    val cookie = Base64.rfc2045.encodeToString(bytes, false)
+    val cookie = Base64.encodeBytes(bytes)
     "Basic " + cookie
   }
 
@@ -24,7 +24,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
 
 object BasicCredentials {
   def apply(credentials: String): BasicCredentials = {
-    val bytes = Base64.rfc2045.decodeFast(credentials)
+    val bytes = Base64.decode(credentials)
     val userPass = new String(bytes, `ISO-8859-1`.charset)
     userPass.indexOf(':') match {
       case -1 => apply(userPass, "")

@@ -12,7 +12,7 @@ class ServerProtocolSpec extends WordSpec with Matchers {
     }
 
     "parse for future versions" in {
-      ServerProtocol.resolve("HTTP/1.3") should equal (HttpVersion(1, 3))
+      ServerProtocol.resolve("HTTP/1.3") should equal(HttpVersion(1, 3))
     }
 
     "render with protocol and version" in {

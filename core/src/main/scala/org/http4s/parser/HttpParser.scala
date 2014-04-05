@@ -5,7 +5,6 @@ import org.http4s.Header
 import org.http4s.util.CaseInsensitiveString
 
 import scalaz.{Failure, Validation, Success}
-import org.http4s.parserold.QueryParser
 import org.http4s.util.string._
 
 /**
@@ -40,17 +39,7 @@ trait HttpParser extends SimpleHeaders
         method.getName.replace('_', '-').ci -> { value: String =>
           method.invoke(this, value)
         }.asInstanceOf[HeaderParser]
-      }.toMap ++ {      // TODO: remove all the older parsers and replace with parboiled2 parsers!
-      parserold.HttpParser.oldrules.map { pair =>
-        val ci = pair._1
-        val rule1 = pair._2
-
-        def go(input: String): HeaderValidation = {
-          Validation.fromEither(parserold.HttpParser.parse(rule1, input))
-        }
-        (ci, go(_))
-      }
-    }
+      }.toMap
 
   def parseHeader(header: Header.RawHeader): HeaderValidation = {
     rules.get(header.name) match {
@@ -78,8 +67,6 @@ trait HttpParser extends SimpleHeaders
    * so as to increase the speed of the first usage.
    */
   def warmUp() {
-    QueryParser.parseQueryString("a=b&c=d")
-
     val results = HttpParser.parseHeaders(List(
       Header("Accept", "*/*,text/plain,custom/custom"),
       Header("Accept-Charset", "*,UTF-8"),

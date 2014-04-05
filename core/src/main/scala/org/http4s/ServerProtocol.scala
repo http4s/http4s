@@ -2,7 +2,7 @@ package org.http4s
 
 import org.http4s.util.{Resolvable, CaseInsensitiveString}
 import org.http4s.util.string._
-import org.http4s.parserold.ServerProtocolParser
+import org.http4s.parser.ServerProtocolParser
 
 /**
  * The Server Protocol of a request.
@@ -25,6 +25,7 @@ object ServerProtocol extends Resolvable[CaseInsensitiveString, ServerProtocol] 
   final case class HttpVersion(major: Int, minor: Int) extends ServerProtocol {
     val value: CaseInsensitiveString = s"HTTP/${major}.${minor}".ci
   }
+
   object HttpVersion {
     def unapply(serverProtocol: ServerProtocol): Option[(Int, Int)] = serverProtocol match {
       case http: HttpVersion => unapply(http)

@@ -1,11 +1,11 @@
-package org.http4s
-package parserold
+package org.http4s.parser
 
-import org.http4s.parserold.QueryParser._
 import org.scalatest.{Matchers, WordSpec}
-import org.http4s.parser.ParseErrorInfo
 
 class QueryParserSpec extends WordSpec with Matchers {
+
+  def parseQueryString(str: String): Either[ParseErrorInfo, Seq[(String, String)]] =
+    QueryParser.parseQueryString(str)
 
   "The QueryParser" should {
     "correctly extract complete key value pairs" in {
@@ -26,16 +26,14 @@ class QueryParserSpec extends WordSpec with Matchers {
       parseQueryString("&&b&") should equal (Right(Seq("" -> "", "" -> "", "b" -> "", "" -> "")))
     }
     "produce a proper error message on illegal query strings" in {
-      parseQueryString("a=b=c") should equal (Left {
-        ParseErrorInfo(
-          "Illegal query string",
-          "Invalid input '=', expected '&' or EOI (line 1, pos 4):\n" +
-          "a=b=c\n" +
-          "   ^\n"
-        )
-      })
+      parseQueryString("a=b=c").left.map(_.copy(detail = "")) should equal (
+        Left(ParseErrorInfo("Illegal query string: 'a=b=c'", ""))
+      )
     }
     "throw a proper HttpException on illegal URL encodings" in {
+
+      println(parseQueryString("a=b%G").left.map(_.copy(detail = "")).left.get.detail)
+      println(parseQueryString("a=b%G").left.map(_.copy(detail = "")).left.get.summary)
       parseQueryString("a=b%G") should equal (
         Left(ParseErrorInfo("Illegal query string", "URLDecoder: Incomplete trailing escape (%) pattern")))
     }
