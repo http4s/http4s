@@ -4,6 +4,7 @@ package middleware
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.concurrent.Task
 import URITranslation.translateRootKey
+import scalaz.syntax.Ops
 
 /**
  * @author Bryce Anderson
@@ -12,21 +13,21 @@ import URITranslation.translateRootKey
 
 object PushSupport extends Logging {
 
-  // An implicit conversion class
-  implicit class PushSupportResponse(response: Task[Response]) extends AnyRef {
-    def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
-
-      val newUrl = req.attributes.get(translateRootKey)
+  trait PushSyntax {
+    implicit class PushOps(response: Task[Response]) {
+      def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
+        val newUrl = req.attributes.get(translateRootKey)
           .map(f => f(url))
           .getOrElse(url)
 
-      val newPushResouces = response.attributes.get(pushLocationKey)
+        val newPushResouces = response.attributes.get(pushLocationKey)
           .map(_ :+ PushLocation(newUrl, cascade))
           .getOrElse(Vector(PushLocation(newUrl,cascade)))
         logger.trace(s"Adding push resource: $newUrl")
-      response.copy(
-        body = response.body,
-        attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
+        response.copy(
+          body = response.body,
+          attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
+      }
     }
   }
 
@@ -89,3 +90,4 @@ object PushSupport extends Logging {
   private[PushSupport] val pushLocationKey = AttributeKey.http4s[Vector[PushLocation]]("pushLocation")
   private[http4s] val pushResponsesKey = AttributeKey.http4s[Task[Vector[PushResponse]]]("pushResponses")
 }
+

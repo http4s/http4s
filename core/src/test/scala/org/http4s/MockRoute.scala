@@ -1,17 +1,12 @@
 package org.http4s
 
-import org.http4s.Status._
-
 import scalaz.concurrent.Task
-
-
-
 
 /**
  * @author Bryce Anderson
  *         Created on 12/23/13
  */
-object MockRoute {
+object MockRoute extends Http4s {
 
   def route(): HttpService = {
     case req: Request if req.requestUri.path ==  "/ping" =>

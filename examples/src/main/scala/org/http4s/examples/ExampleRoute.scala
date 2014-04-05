@@ -5,11 +5,8 @@ import scalaz.stream.Process, Process.{Get => PGet, _}
 import scala.concurrent.Future
 import org.http4s._
 import org.http4s.dsl._
-import org.http4s.middleware.PushSupport
 
 class ExampleRoute extends Http4s {
-  import PushSupport._
-
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
   import scala.concurrent.ExecutionContext.Implicits.global

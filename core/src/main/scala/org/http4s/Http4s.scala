@@ -5,6 +5,7 @@ trait Http4s extends AnyRef
   with HttpBodyFunctions
   with StatusInstances
   with WritableInstances
+  with middleware.PushSupport.PushSyntax
   with util.CaseInsensitiveStringSyntax
   with util.JodaTimeInstances
   with util.JodaTimeSyntax
