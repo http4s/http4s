@@ -8,7 +8,7 @@ import scala.concurrent.Future
 import org.http4s.dsl._
 import scala.util.{Failure, Success}
 import org.http4s.util.middleware.PushSupport
-import org.http4s.util.StaticFile
+import StaticFile
 import java.io.File
 
 class ExampleRoute {

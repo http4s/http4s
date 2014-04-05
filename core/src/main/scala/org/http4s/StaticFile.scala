@@ -1,5 +1,4 @@
 package org.http4s
-package util
 
 import java.io.File
 import java.util.Collections
