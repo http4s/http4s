@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>CaseInsensitiveString - org.http4s.util.CaseInsensitiveString</title>
-          <meta name="description" content="CaseInsensitiveString - org.http4s.util.CaseInsensitiveString" />
-          <meta name="keywords" content="CaseInsensitiveString org.http4s.util.CaseInsensitiveString" />
+          <title>StringOps - org.http4s.util.StringOps</title>
+          <meta name="description" content="StringOps - org.http4s.util.StringOps" />
+          <meta name="keywords" content="StringOps org.http4s.util.StringOps" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -12,7 +12,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../index.html';
-            var hash = 'org.http4s.util.CaseInsensitiveString$';
+            var hash = 'org.http4s.util.StringOps';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -22,26 +22,26 @@
    	  </script>
     
         </head>
-        <body class="value">
+        <body class="type">
       <div id="definition">
-        <a href="CaseInsensitiveString.html" title="Go to companion"><img src="../../../lib/object_to_class_big.png" /></a>
+        <img src="../../../lib/trait_big.png" />
         <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.util">util</a></p>
-        <h1><a href="CaseInsensitiveString.html" title="Go to companion">CaseInsensitiveString</a></h1>
+        <h1>StringOps</h1>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">CaseInsensitiveString</span><span class="result"> extends <a href="CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></span>
+        <span class="name">StringOps</span><span class="result"> extends <span class="extype" name="scalaz.syntax.Ops">Ops</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scalaz.syntax.Ops">Ops</span>[<span class="extype" name="scala.Predef.String">String</span>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -59,7 +59,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.util.CaseInsensitiveString"><span>CaseInsensitiveString</span></li><li class="in" name="org.http4s.util.CaseInsensitiveStringSyntax"><span>CaseInsensitiveStringSyntax</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.util.StringOps"><span>StringOps</span></li><li class="in" name="scalaz.syntax.Ops"><span>Ops</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -81,10 +81,26 @@
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="scalaz.syntax.Ops#self" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="self:A"></a>
+      <a id="self:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">self</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Ops</dd></dl></div>
+    </li></ol>
+            </div>
 
         <div id="values" class="values members">
-              <h3>Value Members</h3>
+              <h3>Concrete Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:AnyRef):Boolean"></a>
       <a id="!=(AnyRef):Boolean"></a>
@@ -124,6 +140,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.util.StringOps#/" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="/(path:String):String"></a>
+      <a id="/(String):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $div" class="name">/</span><span class="params">(<span name="path">path: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:AnyRef):Boolean"></a>
       <a id="==(AnyRef):Boolean"></a>
@@ -150,32 +179,6 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.util.CaseInsensitiveStringSyntax#ToCaseInsensitiveStringSyntax" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ToCaseInsensitiveStringSyntax(cs:CharSequence):org.http4s.util.CaseInsensitiveStringOps"></a>
-      <a id="ToCaseInsensitiveStringSyntax(CharSequence):CaseInsensitiveStringOps"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ToCaseInsensitiveStringSyntax</span><span class="params">(<span name="cs">cs: <span class="extype" name="java.lang.CharSequence">CharSequence</span></span>)</span><span class="result">: <a href="CaseInsensitiveStringOps.html" class="extype" name="org.http4s.util.CaseInsensitiveStringOps">CaseInsensitiveStringOps</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></dd></dl></div>
-    </li><li name="org.http4s.util.CaseInsensitiveString#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(cs:CharSequence):org.http4s.util.CaseInsensitiveString"></a>
-      <a id="apply(CharSequence):CaseInsensitiveString"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="cs">cs: <span class="extype" name="java.lang.CharSequence">CharSequence</span></span>)</span><span class="result">: <a href="CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -189,6 +192,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.util.StringOps#blankOption" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="blankOption:Option[String]"></a>
+      <a id="blankOption:Option[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">blankOption</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -253,6 +269,32 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.util.StringOps#formDecode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="formDecode(implicitcs:scala.io.Codec):String"></a>
+      <a id="formDecode(Codec):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">formDecode</span><span class="params">(<span class="implicit">implicit </span><span name="cs">cs: <span class="extype" name="scala.io.Codec">Codec</span> = <span class="symbol">Codec.UTF8</span></span>)</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.util.StringOps#formEncode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="formEncode(implicitcs:scala.io.Codec):String"></a>
+      <a id="formEncode(Codec):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">formEncode</span><span class="params">(<span class="implicit">implicit </span><span name="cs">cs: <span class="extype" name="scala.io.Codec">Codec</span> = <span class="symbol">Codec.UTF8</span></span>)</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -279,6 +321,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.util.StringOps#isBlank" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="isBlank:Boolean"></a>
+      <a id="isBlank:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isBlank</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -305,6 +360,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.util.StringOps#nonBlank" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="nonBlank:Boolean"></a>
+      <a id="nonBlank:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">nonBlank</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
       <a id="notify():Unit"></a>
@@ -331,6 +399,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.util.StringOps#regexEscape" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="regexEscape:String"></a>
+      <a id="regexEscape:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">regexEscape</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -357,6 +438,32 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.util.StringOps#urlDecode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="urlDecode(implicitcs:scala.io.Codec):String"></a>
+      <a id="urlDecode(Codec):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">urlDecode</span><span class="params">(<span class="implicit">implicit </span><span name="cs">cs: <span class="extype" name="scala.io.Codec">Codec</span> = <span class="symbol">Codec.UTF8</span></span>)</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.util.StringOps#urlEncode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="urlEncode(implicitcs:scala.io.Codec):String"></a>
+      <a id="urlEncode(Codec):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">urlEncode</span><span class="params">(<span class="implicit">implicit </span><span name="cs">cs: <span class="extype" name="scala.io.Codec">Codec</span> = <span class="symbol">Codec.UTF8</span></span>)</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4>
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -423,8 +530,8 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.util.CaseInsensitiveStringSyntax">
-              <h3>Inherited from <a href="CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></h3>
+        <div class="parent" name="scalaz.syntax.Ops">
+              <h3>Inherited from <span class="extype" name="scalaz.syntax.Ops">Ops</span>[<span class="extype" name="scala.Predef.String">String</span>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

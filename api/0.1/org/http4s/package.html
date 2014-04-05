@@ -41,7 +41,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -59,7 +59,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s"><span>http4s</span></li><li class="in" name="org.http4s.util.CaseInsensitiveStringSyntax"><span>CaseInsensitiveStringSyntax</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s"><span>http4s</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -211,6 +211,19 @@
       </span>
       </h4>
       <p class="comment cmt">Chunks are the currency of the HTTP body</p>
+    </li><li name="org.http4s.ChunkInstances" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ChunkInstancesextendsAnyRef"></a>
+      <a id="ChunkInstances:ChunkInstances"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ChunkInstances.html"><span class="name">ChunkInstances</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4>
+      
     </li><li name="org.http4s.ContentCoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ContentCodingextendsQualityFactorwithRenderablewithProductwithSerializable"></a>
       <a id="ContentCoding:ContentCoding"></a>
@@ -619,19 +632,6 @@ their values with a comma.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.RichReadableInstant" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="RichReadableInstantextendsAnyRef"></a>
-      <a id="RichReadableInstant:RichReadableInstant"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$RichReadableInstant.html"><span class="name">RichReadableInstant</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4>
-      
     </li><li name="org.http4s.ServerProtocol" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ServerProtocolextendsHttpValue[org.http4s.util.CaseInsensitiveString]"></a>
       <a id="ServerProtocol:ServerProtocol"></a>
@@ -874,16 +874,16 @@ their values with a comma.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.package#ChunkSemigroup" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ChunkSemigroup:scalaz.Semigroup[org.http4s.Chunk]"></a>
-      <a id="ChunkSemigroup:Semigroup[Chunk]"></a>
+    </li><li name="org.http4s.Chunk" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Chunk"></a>
+      <a id="Chunk:Chunk"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="modifier"></span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">ChunkSemigroup</span><span class="result">: <span class="extype" name="scalaz.Semigroup">Semigroup</span>[<a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>]</span>
+        <a href="Chunk$.html"><span class="name">Chunk</span></a><span class="result"> extends <a href="ChunkInstances.html" class="extype" name="org.http4s.ChunkInstances">ChunkInstances</a></span>
       </span>
       </h4>
       
@@ -923,6 +923,19 @@ their values with a comma.</p>
       </span>
       <span class="symbol">
         <a href="HeaderCollection$.html"><span class="name">HeaderCollection</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Http4s" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http4s"></a>
+      <a id="Http4s:Http4s"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Http4s$.html"><span class="name">Http4s</span></a><span class="result"> extends <a href="ChunkInstances.html" class="extype" name="org.http4s.ChunkInstances">ChunkInstances</a> with <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="util/JodaTimeInstances.html" class="extype" name="org.http4s.util.JodaTimeInstances">JodaTimeInstances</a> with <a href="util/JodaTimeSyntax.html" class="extype" name="org.http4s.util.JodaTimeSyntax">JodaTimeSyntax</a> with <a href="util/TaskInstances.html" class="extype" name="org.http4s.util.TaskInstances">TaskInstances</a></span>
       </span>
       </h4>
       
@@ -1147,19 +1160,6 @@ their values with a comma.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.util.CaseInsensitiveStringSyntax#ToCaseInsensitiveStringSyntax" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ToCaseInsensitiveStringSyntax(cs:CharSequence):org.http4s.util.CaseInsensitiveStringOps"></a>
-      <a id="ToCaseInsensitiveStringSyntax(CharSequence):CaseInsensitiveStringOps"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ToCaseInsensitiveStringSyntax</span><span class="params">(<span name="cs">cs: <span class="extype" name="java.lang.CharSequence">CharSequence</span></span>)</span><span class="result">: <a href="util/CaseInsensitiveStringOps.html" class="extype" name="org.http4s.util.CaseInsensitiveStringOps">CaseInsensitiveStringOps</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></dd></dl></div>
     </li><li name="org.http4s.TransferCoding" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="TransferCoding"></a>
       <a id="TransferCoding:TransferCoding"></a>
@@ -1170,19 +1170,6 @@ their values with a comma.</p>
       </span>
       <span class="symbol">
         <a href="TransferCoding$.html"><span class="name">TransferCoding</span></a><span class="result"> extends <span class="extype" name="org.http4s.util.Resolvable">Resolvable</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>, <a href="TransferCoding.html" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>] with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.package#UnixEpoch" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="UnixEpoch:org.joda.time.DateTime"></a>
-      <a id="UnixEpoch:DateTime"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">UnixEpoch</span><span class="result">: <span class="extype" name="org.joda.time.DateTime">DateTime</span></span>
       </span>
       </h4>
       
@@ -1238,32 +1225,6 @@ their values with a comma.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.ext" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ext"></a>
-      <a id="ext:ext"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a href="ext/package.html"><span class="name">ext</span></a>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.package#futureToTask" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="futureToTask(implicitec:scala.concurrent.ExecutionContext):scalaz.~&gt;[scala.concurrent.Future,scalaz.concurrent.Task]"></a>
-      <a id="futureToTask(ExecutionContext):~&gt;[Future,Task]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">futureToTask</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>)</span><span class="result">: <a href="../../scalaz/package.html#~&gt;[-F[_],+G[_]]=scalaz.NaturalTransformation[F,G]" class="extmbr" name="scalaz.~&gt;">~&gt;</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>, <span class="extype" name="scalaz.concurrent.Task">Task</span>]</span>
-      </span>
-      </h4>
-      
     </li><li name="org.http4s.middleware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="middleware"></a>
       <a id="middleware:middleware"></a>
@@ -1316,19 +1277,6 @@ their values with a comma.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.package#taskToFuture" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="taskToFuture:scalaz.~&gt;[scalaz.concurrent.Task,scala.concurrent.Future]"></a>
-      <a id="taskToFuture:~&gt;[Task,Future]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">taskToFuture</span><span class="result">: <a href="../../scalaz/package.html#~&gt;[-F[_],+G[_]]=scalaz.NaturalTransformation[F,G]" class="extmbr" name="scalaz.~&gt;">~&gt;</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>]</span>
-      </span>
-      </h4>
-      
     </li><li name="org.http4s.util" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="util"></a>
       <a id="util:util"></a>
@@ -1364,9 +1312,7 @@ their values with a comma.</p>
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.util.CaseInsensitiveStringSyntax">
-              <h3>Inherited from <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a></h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
