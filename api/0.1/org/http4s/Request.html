@@ -35,7 +35,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Request</span><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol">Method.Get</span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="defval" name="{<br/>&amp;nbsp;&amp;nbsp;  val x$13: String = &quot;/&quot;;<br/>&amp;nbsp;&amp;nbsp;  val x$14: Option[org.http4s.util.CaseInsensitiveString] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$1;<br/>&amp;nbsp;&amp;nbsp;  val x$15: Option[org.http4s.Uri.Authority] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$2;<br/>&amp;nbsp;&amp;nbsp;  val x$16: Option[org.http4s.Uri.Query] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$4;<br/>&amp;nbsp;&amp;nbsp;  val x$17: Option[org.http4s.Uri.Fragment] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$5;<br/>&amp;nbsp;&amp;nbsp;  Uri.apply(x$14, x$15, x$13, x$16, x$17)<br/>&amp;nbsp;&amp;nbsp;}">...</span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol">ServerProtocol.HTTP/1.1</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+        <span class="name">Request</span><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol">Method.Get</span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="defval" name="{<br/>&amp;nbsp;&amp;nbsp;  val x$13: String = &quot;/&quot;;<br/>&amp;nbsp;&amp;nbsp;  val x$14: Option[org.http4s.util.CaseInsensitiveString] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$1;<br/>&amp;nbsp;&amp;nbsp;  val x$15: Option[org.http4s.Uri.Authority] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$2;<br/>&amp;nbsp;&amp;nbsp;  val x$16: Option[org.http4s.Uri.Query] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$4;<br/>&amp;nbsp;&amp;nbsp;  val x$17: Option[org.http4s.Uri.Fragment] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$5;<br/>&amp;nbsp;&amp;nbsp;  Uri.apply(x$14, x$15, x$13, x$16, x$17)<br/>&amp;nbsp;&amp;nbsp;}">...</span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol">ServerProtocol.HTTP/1.1</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="defval" name="http4s.this.`package`.HttpBody.empty">...</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -45,7 +45,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
 </p></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">protocol</dt><dd class="cmt"><p>HTTP protocol, eg <span class="extype" name="ServerProtocol.`HTTP/1.1`">ServerProtocol.`HTTP/1.1`</span></p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
 </p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="scala.Serializable">Serializable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <span class="extype" name="scala.Product">Product</span>, <span class="extype" name="scala.Equals">Equals</span>, <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -131,7 +131,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -144,7 +144,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -157,7 +157,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -170,7 +170,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -183,7 +183,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -236,7 +236,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">authType</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="AuthScheme.html" class="extype" name="org.http4s.AuthScheme">AuthScheme</a>]</span>
+        <span class="name">authType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="AuthScheme.html" class="extype" name="org.http4s.AuthScheme">AuthScheme</a>]</span>
       </span>
       </h4>
       
@@ -275,7 +275,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -294,7 +294,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentLength</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Int">Int</span>]</span>
+        <span class="name">contentLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -307,7 +307,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentType</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>
+        <span class="name">contentType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -320,7 +320,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -333,7 +333,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -346,7 +346,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -391,7 +391,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isChunked</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">isChunked</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -404,7 +404,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -417,7 +417,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -430,7 +430,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -443,7 +443,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -469,7 +469,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">pathTranslated</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">pathTranslated</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.io.File">File</span>]</span>
       </span>
       </h4>
       
@@ -521,7 +521,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remote</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
+        <span class="name">remote</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
       </span>
       </h4>
       
@@ -534,7 +534,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteAddr</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteAddr</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       
@@ -547,7 +547,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteHost</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteHost</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       
@@ -560,7 +560,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteUser</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteUser</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4>
       
@@ -638,7 +638,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">serverPort</span><span class="result">: <span class="extype" name="scala.Any">Any</span></span>
+        <span class="name">serverPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>
       </span>
       </h4>
       
@@ -677,7 +677,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -696,7 +696,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -715,7 +715,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -766,7 +766,7 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <span class="extype" name="scala.Option">Option</span>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -809,19 +809,19 @@ for a <a href="package.html#HttpService=org.http4s.Request=&gt;scalaz.concurrent
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <span class="extype" name="scala.Serializable">Serializable</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <span class="extype" name="scala.Product">Product</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <span class="extype" name="scala.Equals">Equals</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
             </div><div class="parent" name="org.http4s.Message">
               <h3>Inherited from <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>
