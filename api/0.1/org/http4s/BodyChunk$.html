@@ -222,7 +222,7 @@
       </h4>
       <p class="shortcomment cmt">Create a new BodyChunk from the provided Bytes</p>
     </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(bytes:Array[Byte],start:Int,length:Int):org.http4s.util.ChunkLeafImpl"></a>
+      <a id="apply(bytes:Array[Byte],start:Int,length:Int):org.http4s.ChunkLeafImpl"></a>
       <a id="apply(Array[Byte],Int,Int):ChunkLeafImpl"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -230,7 +230,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="bytes">bytes: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>, <span name="start">start: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="length">length: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.ChunkLeafImpl">ChunkLeafImpl</span></span>
+        <span class="name">apply</span><span class="params">(<span name="bytes">bytes: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>, <span name="start">start: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="length">length: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.ChunkLeafImpl">ChunkLeafImpl</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Create a new BodyChunk with a copy of the provided Array[Byte]
@@ -298,6 +298,19 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.BodyChunk#concat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="concat(left:org.http4s.BodyChunk,right:org.http4s.BodyChunk):org.http4s.BodyChunk"></a>
+      <a id="concat(BodyChunk,BodyChunk):BodyChunk"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">concat</span><span class="params">(<span name="left">left: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>, <span name="right">right: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>)</span><span class="result">: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>
+      </span>
+      </h4>
+      
     </li><li name="org.http4s.BodyChunk#empty" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="empty:org.http4s.BodyChunk"></a>
       <a id="empty:BodyChunk"></a>
@@ -461,7 +474,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.BodyChunk#unsafe" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unsafe(arr:Array[Byte],start:Int,length:Int):org.http4s.util.ChunkLeafImpl"></a>
+      <a id="unsafe(arr:Array[Byte],start:Int,length:Int):org.http4s.ChunkLeafImpl"></a>
       <a id="unsafe(Array[Byte],Int,Int):ChunkLeafImpl"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -469,7 +482,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unsafe</span><span class="params">(<span name="arr">arr: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>, <span name="start">start: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="length">length: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.ChunkLeafImpl">ChunkLeafImpl</span></span>
+        <span class="name">unsafe</span><span class="params">(<span name="arr">arr: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>, <span name="start">start: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="length">length: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.ChunkLeafImpl">ChunkLeafImpl</span></span>
       </span>
       </h4>
       <p class="shortcomment cmt">Construct and unsafe BodyChunk from the array
