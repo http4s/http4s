@@ -8,7 +8,6 @@ import org.http4s.dsl._
 import org.http4s.middleware.PushSupport
 
 class ExampleRoute {
-  import Status._
   import BodyParser._
   import PushSupport._
 

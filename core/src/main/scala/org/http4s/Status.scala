@@ -21,7 +21,7 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
   }
 }
 
-object Status {
+object Status extends StatusInstances {
 
   /** Helper for the generation of a [[org.http4s.Response]] which will not contain a body
     *
@@ -85,106 +85,6 @@ object Status {
     def apply(url: URL): Response = apply(url.toString)
   }
 
-  /**
-   * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
-   */
-  object Continue extends Status(100, "Continue") with NoEntityResponseGenerator
-  object SwitchingProtocols extends Status(101, "Switching Protocols") {
-    // TODO type this header
-    def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Response =
-      Response(this, Header("Upgrade", protocols) +: headers, HttpBody.empty)
-  }
-  object Processing extends Status(102, "Processing") with NoEntityResponseGenerator
-
-  object Ok extends Status(200, "OK") with EntityResponseGenerator
-  object Created extends Status(201, "Created") with EntityResponseGenerator
-  object Accepted extends Status(202, "Accepted") with EntityResponseGenerator
-  object NonAuthoritativeInformation extends Status(203, "Non-Authoritative Information") with EntityResponseGenerator
-  object NoContent extends Status(204, "No Content") with NoEntityResponseGenerator
-  object ResetContent extends Status(205, "Reset Content") with NoEntityResponseGenerator
-  object PartialContent extends Status(206, "Partial Content") with EntityResponseGenerator {
-    // TODO type this header
-    def apply[A](range: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
-      apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("Range", range))) { _.addHeader(_) }
-      }
-  }
-  object MultiStatus extends Status(207, "Multi-Status") with EntityResponseGenerator
-  object AlreadyReported extends Status(208, "Already Reported") with EntityResponseGenerator
-  object IMUsed extends Status(226, "IM Used") with EntityResponseGenerator
-
-  object MultipleChoices extends Status(300, "Multiple Choices") with EntityResponseGenerator
-  object MovedPermanently extends Status(301, "Moved Permanently") with RedirectResponderGenerator
-  object Found extends Status(302, "Found") with RedirectResponderGenerator
-  object SeeOther extends Status(303, "See Other") with RedirectResponderGenerator
-  object NotModified extends Status(304, "Not Modified") with NoEntityResponseGenerator
-  object UseProxy extends Status(305, "Use Proxy") with RedirectResponderGenerator
-  object TemporaryRedirect extends Status(306, "Temporary Redirect") with RedirectResponderGenerator
-
-  object BadRequest extends Status(400, "Bad Request") with EntityResponseGenerator
-  object Unauthorized extends Status(401, "Unauthorized") with EntityResponseGenerator {
-    def apply[A](wwwAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
-    // TODO type this header
-      apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
-      }
-  }
-  object PaymentRequired extends Status(402, "Payment Required") with EntityResponseGenerator
-  object Forbidden extends Status(403, "Forbidden") with EntityResponseGenerator
-  object NotFound extends Status(404, "Not Found") with EntityResponseGenerator {
-    def apply(request: Request): Task[Response] = apply(s"${request.pathInfo} not found")
-  }
-  object MethodNotAllowed extends Status(405, "Method Not Allowed") with EntityResponseGenerator {
-    def apply[A](allowed: TraversableOnce[Method], body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
-      apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
-      }
-  }
-  object NotAcceptable extends Status(406, "Not Acceptable") with EntityResponseGenerator
-  object ProxyAuthenticationRequired extends Status(407, "Proxy Authentication Required") with EntityResponseGenerator {
-    // TODO type this header
-    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
-      apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
-      }
-  }
-  object RequestTimeOut extends Status(408, "Request Time-out") with EntityResponseGenerator
-  object Conflict extends Status(409, "Conflict") with EntityResponseGenerator
-  object Gone extends Status(410, "Gone") with EntityResponseGenerator
-  object LengthRequred extends Status(411, "Length Required") with EntityResponseGenerator
-  object PreconditionFailed extends Status(412, "Precondition Failed") with EntityResponseGenerator
-  object RequestEntityTooLarge extends Status(413, "Request Entity Too Large") with EntityResponseGenerator
-  object RequestUriTooLarge extends Status(414, "Request-URI Too Large") with EntityResponseGenerator
-  object UnsupportedMediaType extends Status(415, "Unsupported Media Type") with EntityResponseGenerator
-  object RequestedRangeNotSatisfiable extends Status(416, "Requested Range Not Satisfiable") with EntityResponseGenerator
-  object ExpectationFailed extends Status(417, "ExpectationFailed") with EntityResponseGenerator
-  object ImATeapot extends Status(418, "I'm a teapot") with EntityResponseGenerator
-  object UnprocessableEntity extends Status(422, "Unprocessable Entity") with EntityResponseGenerator
-  object Locked extends Status(423, "Locked") with EntityResponseGenerator
-  object FailedDependency extends Status(424, "Failed Dependency") with EntityResponseGenerator
-  object UnorderedCollection extends Status(425, "Unordered Collection") with EntityResponseGenerator
-  object UpgradeRequired extends Status(426, "Upgrade Required") with EntityResponseGenerator
-  object PreconditionRequired extends Status(428, "Precondition Required") with EntityResponseGenerator
-  object TooManyRequests extends Status(429, "Too Many Requests") with EntityResponseGenerator
-  object RequestHeaderFieldsTooLarge extends Status(431, "Request Header Fields Too Large") with EntityResponseGenerator
-
-  object InternalServerError extends Status(500, "Internal Server Error") with EntityResponseGenerator {
-    /*
-        // TODO Bad in production.  Development mode?  Implicit renderer?
-        def apply(t: Throwable): Response = apply(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
-    */
-  }
-  object NotImplemented extends Status(501, "Not Implemented") with EntityResponseGenerator
-  object BadGateway extends Status(502, "Bad Gateway") with EntityResponseGenerator
-  object ServiceUnavailable extends Status(503, "Service Unavailable") with EntityResponseGenerator
-  object GatewayTimeOut extends Status(504, "Gateway Time-out") with EntityResponseGenerator
-  object HttpVersionNotSupported extends Status(505, "HTTP Version not supported") with EntityResponseGenerator
-  object VariantAlsoNegotiates extends Status(506, "Variant Also Negotiates") with EntityResponseGenerator
-  object InsufficientStorage extends Status(507, "Insufficient Storage") with EntityResponseGenerator
-  object LoopDetected extends Status(508, "Loop Detected") with EntityResponseGenerator
-  object NotExtended extends Status(510, "Not Extended") with EntityResponseGenerator
-  object NetworkAuthenticationRequired extends Status(511, "Network Authentication Required") with EntityResponseGenerator
-
   private[this] val ReasonMap = Map(
     (for {
       line <- getClass.getMethods
@@ -200,3 +100,106 @@ object Status {
   implicit def tuple2statusCode(tup: (Int, String)) = apply(tup._1, tup._2)
 }
 
+trait StatusInstances {
+  import Status.{NoEntityResponseGenerator, EntityResponseGenerator, RedirectResponderGenerator}
+
+  /**
+   * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
+   */
+  val Continue = new Status(100, "Continue") with NoEntityResponseGenerator
+  val SwitchingProtocols = new Status(101, "Switching Protocols") {
+    // TODO type this header
+    def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Response =
+      Response(this, Header("Upgrade", protocols) +: headers, HttpBody.empty)
+  }
+  val Processing = new Status(102, "Processing") with NoEntityResponseGenerator
+
+  val Ok = new Status(200, "OK") with EntityResponseGenerator
+  val Created = new Status(201, "Created") with EntityResponseGenerator
+  val Accepted = new Status(202, "Accepted") with EntityResponseGenerator
+  val NonAuthoritativeInformation = new Status(203, "Non-Authoritative Information") with EntityResponseGenerator
+  val NoContent = new Status(204, "No Content") with NoEntityResponseGenerator
+  val ResetContent = new Status(205, "Reset Content") with NoEntityResponseGenerator
+  val PartialContent = new Status(206, "Partial Content") with EntityResponseGenerator {
+    // TODO type this header
+    def apply[A](range: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(Header("Range", range))) { _.addHeader(_) }
+      }
+  }
+  val MultiStatus = new Status(207, "Multi-Status") with EntityResponseGenerator
+  val AlreadyReported = new Status(208, "Already Reported") with EntityResponseGenerator
+  val IMUsed = new Status(226, "IM Used") with EntityResponseGenerator
+
+  val MultipleChoices = new Status(300, "Multiple Choices") with EntityResponseGenerator
+  val MovedPermanently = new Status(301, "Moved Permanently") with RedirectResponderGenerator
+  val Found = new Status(302, "Found") with RedirectResponderGenerator
+  val SeeOther = new Status(303, "See Other") with RedirectResponderGenerator
+  val NotModified = new Status(304, "Not Modified") with NoEntityResponseGenerator
+  val UseProxy = new Status(305, "Use Proxy") with RedirectResponderGenerator
+  val TemporaryRedirect = new Status(306, "Temporary Redirect") with RedirectResponderGenerator
+
+  val BadRequest = new Status(400, "Bad Request") with EntityResponseGenerator
+  val Unauthorized = new Status(401, "Unauthorized") with EntityResponseGenerator {
+    def apply[A](wwwAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+    // TODO type this header
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(Header("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
+      }
+  }
+  val PaymentRequired = new Status(402, "Payment Required") with EntityResponseGenerator
+  val Forbidden = new Status(403, "Forbidden") with EntityResponseGenerator
+  val NotFound = new Status(404, "Not Found") with EntityResponseGenerator {
+    def apply(request: Request): Task[Response] = apply(s"${request.pathInfo} not found")
+  }
+  val MethodNotAllowed = new Status(405, "Method Not Allowed") with EntityResponseGenerator {
+    def apply[A](allowed: TraversableOnce[Method], body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(Header("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
+      }
+  }
+  val NotAcceptable = new Status(406, "Not Acceptable") with EntityResponseGenerator
+  val ProxyAuthenticationRequired = new Status(407, "Proxy Authentication Required") with EntityResponseGenerator {
+    // TODO type this header
+    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+      apply(body).map { r =>
+        headers.foldLeft(r.addHeader(Header("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
+      }
+  }
+  val RequestTimeOut = new Status(408, "Request Time-out") with EntityResponseGenerator
+  val Conflict = new Status(409, "Conflict") with EntityResponseGenerator
+  val Gone = new Status(410, "Gone") with EntityResponseGenerator
+  val LengthRequred = new Status(411, "Length Required") with EntityResponseGenerator
+  val PreconditionFailed = new Status(412, "Precondition Failed") with EntityResponseGenerator
+  val RequestEntityTooLarge = new Status(413, "Request Entity Too Large") with EntityResponseGenerator
+  val RequestUriTooLarge = new Status(414, "Request-URI Too Large") with EntityResponseGenerator
+  val UnsupportedMediaType = new Status(415, "Unsupported Media Type") with EntityResponseGenerator
+  val RequestedRangeNotSatisfiable = new Status(416, "Requested Range Not Satisfiable") with EntityResponseGenerator
+  val ExpectationFailed = new Status(417, "ExpectationFailed") with EntityResponseGenerator
+  val ImATeapot = new Status(418, "I'm a teapot") with EntityResponseGenerator
+  val UnprocessableEntity = new Status(422, "Unprocessable Entity") with EntityResponseGenerator
+  val Locked = new Status(423, "Locked") with EntityResponseGenerator
+  val FailedDependency = new Status(424, "Failed Dependency") with EntityResponseGenerator
+  val UnorderedCollection = new Status(425, "Unordered Collection") with EntityResponseGenerator
+  val UpgradeRequired = new Status(426, "Upgrade Required") with EntityResponseGenerator
+  val PreconditionRequired = new Status(428, "Precondition Required") with EntityResponseGenerator
+  val TooManyRequests = new Status(429, "Too Many Requests") with EntityResponseGenerator
+  val RequestHeaderFieldsTooLarge = new Status(431, "Request Header Fields Too Large") with EntityResponseGenerator
+
+  val InternalServerError = new Status(500, "Internal Server Error") with EntityResponseGenerator {
+    /*
+        // TODO Bad in production.  Development mode?  Implicit renderer?
+        def apply(t: Throwable): Response = apply(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
+    */
+  }
+  val NotImplemented = new Status(501, "Not Implemented") with EntityResponseGenerator
+  val BadGateway = new Status(502, "Bad Gateway") with EntityResponseGenerator
+  val ServiceUnavailable = new Status(503, "Service Unavailable") with EntityResponseGenerator
+  val GatewayTimeOut = new Status(504, "Gateway Time-out") with EntityResponseGenerator
+  val HttpVersionNotSupported = new Status(505, "HTTP Version not supported") with EntityResponseGenerator
+  val VariantAlsoNegotiates = new Status(506, "Variant Also Negotiates") with EntityResponseGenerator
+  val InsufficientStorage = new Status(507, "Insufficient Storage") with EntityResponseGenerator
+  val LoopDetected = new Status(508, "Loop Detected") with EntityResponseGenerator
+  val NotExtended = new Status(510, "Not Extended") with EntityResponseGenerator
+  val NetworkAuthenticationRequired = new Status(511, "Network Authentication Required") with EntityResponseGenerator
+}
