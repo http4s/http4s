@@ -6,6 +6,7 @@ import java.io.UnsupportedEncodingException
 import org.parboiled.errors.ParsingException
 import scala.io.Codec
 import java.net.URLDecoder
+import util.string._
 
 import org.http4s.parser.ParseErrorInfo
 

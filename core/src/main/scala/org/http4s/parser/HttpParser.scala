@@ -6,6 +6,7 @@ import org.http4s.util.CaseInsensitiveString
 
 import scalaz.{Failure, Validation, Success}
 import org.http4s.parserold.QueryParser
+import org.http4s.util.string._
 
 /**
  * @author Bryce Anderson

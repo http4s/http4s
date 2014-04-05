@@ -9,7 +9,7 @@ import scala.collection.{IndexedSeqOptimized, mutable, IndexedSeqLike}
 import scala.reflect.ClassTag
 import scala.io.Codec
 import scala.annotation.tailrec
-
+import scalaz.Semigroup
 
 /** Chunks are the currency of the HTTP body
   *
@@ -27,6 +27,17 @@ sealed trait Chunk extends IndexedSeq[Byte] {
     */
   def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray).asReadOnlyBuffer()
 }
+
+trait ChunkInstances {
+  implicit val ChunkSemigroup: Semigroup[Chunk] = Semigroup.instance {
+    case (a: BodyChunk, b: BodyChunk) => a ++ b
+    case (a: BodyChunk, _) => a
+    case (_, b: BodyChunk) => b
+    case (_, _) => BodyChunk.empty
+  }
+}
+
+object Chunk extends ChunkInstances
 
 /** Provides the container for Bytes on the [[org.http4s.Request]] and [[org.http4s.Response]] */
 trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {

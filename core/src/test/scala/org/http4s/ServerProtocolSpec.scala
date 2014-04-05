@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.scalatest.{Matchers, WordSpec}
+import org.http4s.util.string._
 
 class ServerProtocolSpec extends WordSpec with Matchers {
   import ServerProtocol._

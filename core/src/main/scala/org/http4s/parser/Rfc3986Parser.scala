@@ -6,6 +6,7 @@ import java.nio.charset.Charset
 import java.net.URLDecoder
 import shapeless.HNil
 import scalaz.syntax.std.option._
+import util.CaseInsensitiveString._
 
 private[parser] trait Rfc3986Parser { this: Parser =>
   import CharPredicate.{Alpha, Digit, HexAlpha => HexDigit}

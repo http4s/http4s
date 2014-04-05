@@ -1,11 +1,12 @@
-package org.http4s
-package examples.blaze
+package org.http4s.examples
+package blaze
 
+import org.http4s._
+import org.http4s.Status._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.Http1Stage
 import org.http4s.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
-import org.http4s.Status._
 import org.http4s.blaze.websocket.WebSocketSupport
 
 import java.nio.ByteBuffer

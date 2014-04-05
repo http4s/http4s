@@ -1,9 +1,9 @@
-package org.http4s
-package examples
+package org.http4s.examples
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process, Process.{Get => PGet, _}
 import scala.concurrent.Future
+import org.http4s._
 import org.http4s.dsl._
 import org.http4s.middleware.PushSupport
 

@@ -4,6 +4,7 @@ import collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
 import org.joda.time.DateTime
 import org.http4s.util.{Writer, Renderable}
+import org.http4s.util.jodaTime._
 
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)

@@ -6,6 +6,8 @@ import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.NonEmptyList
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable}
+import org.http4s.util.string._
+import org.http4s.util.jodaTime._
 import org.http4s.CharacterSet._
 import scala.util.hashing.MurmurHash3
 

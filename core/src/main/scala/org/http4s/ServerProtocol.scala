@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.http4s.util.{Resolvable, CaseInsensitiveString}
+import org.http4s.util.string._
 import org.http4s.parserold.ServerProtocolParser
 
 /**

@@ -1,6 +1,7 @@
 package org.http4s
 
-import org.http4s.util.{Resolvable, Writer, Renderable, CaseInsensitiveString}
+import org.http4s.util.{Writer, Renderable, Resolvable, CaseInsensitiveString}
+import org.http4s.util.string._
 
 final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
   def render[W <: Writer](writer: W) = writer.append(coding.toString)
