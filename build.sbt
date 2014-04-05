@@ -77,6 +77,9 @@ unidocSettings
 
 unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject -- inProjects(examples)
 
+// autoAPIMappings is not respected by Unidoc
+apiMappings in ThisBuild += (scalaInstance.value.libraryJar -> url(s"http://www.scala-lang.org/api/${scalaVersion.value}/"))
+
 /* publishing */
 publishMavenStyle in ThisBuild := true
 
