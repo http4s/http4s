@@ -39,13 +39,37 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"></div>
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Created by Bryce Anderson on 4/5/14.
+</p></div><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div></div>
         
 
       <div id="mbrsel">
         <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
-        
-        
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="org.http4s.parser"><span>parser</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
         <div id="visbl">
             <span class="filtertype">Visibility</span>
             <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
@@ -137,7 +161,7 @@
       </h4>
       <p class="comment cmt"></p>
     </li><li name="org.http4s.parser.ParseErrorInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ParseErrorInfoextendsProductwithSerializable"></a>
+      <a id="ParseErrorInfoextendsExceptionwithNoStackTracewithProductwithSerializable"></a>
       <a id="ParseErrorInfo:ParseErrorInfo"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -145,7 +169,20 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ParseErrorInfo.html"><span class="name">ParseErrorInfo</span></a><span class="params">(<span name="summary">summary: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="detail">detail: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="package$$ParseErrorInfo.html"><span class="name">ParseErrorInfo</span></a><span class="params">(<span name="summary">summary: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>, <span name="detail">detail: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Exception">Exception</span> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.util.control.NoStackTrace" class="extype" target="_top">NoStackTrace</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser.QueryParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QueryParserextendsParser"></a>
+      <a id="QueryParser:QueryParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="QueryParser.html"><span class="name">QueryParser</span></a><span class="result"> extends <span class="extype" name="org.parboiled2.Parser">Parser</span></span>
       </span>
       </h4>
       
@@ -169,20 +206,7 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.parser.Http4sHeaderParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http4sHeaderParser"></a>
-      <a id="Http4sHeaderParser:Http4sHeaderParser"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="Http4sHeaderParser$.html"><span class="name">Http4sHeaderParser</span></a>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.parser.HttpParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.parser.HttpParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpParser"></a>
       <a id="HttpParser:HttpParser"></a>
       <h4 class="signature">
@@ -204,7 +228,33 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="ParseErrorInfo$.html"><span class="name">ParseErrorInfo</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="package$$ParseErrorInfo$.html"><span class="name">ParseErrorInfo</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser.QueryParser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="QueryParser"></a>
+      <a id="QueryParser:QueryParser"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="QueryParser$.html"><span class="name">QueryParser</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.parser.package#validationScheme" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="validationScheme[H]:org.parboiled2.Parser.DeliveryScheme[shapeless.::[H,shapeless.HNil]]{typeResult=scalaz.Validation[org.http4s.parser.package.ParseErrorInfo,H];defsuccess(result:shapeless.::[H,shapeless.HNil]):scalaz.Success[Nothing,H];defparseError(error:org.parboiled2.ParseError):scalaz.Failure[org.http4s.parser.package.ParseErrorInfo,Nothing];deffailure(error:Throwable):scalaz.Failure[org.http4s.parser.package.ParseErrorInfo,Nothing]}"></a>
+      <a id="validationScheme[H]:DeliveryScheme[::[H,HNil]]{.../*4definitionsintyperefinement*/}"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">validationScheme</span><span class="tparams">[<span name="H">H</span>]</span><span class="result">: <span class="extype" name="org.parboiled2.Parser.DeliveryScheme">DeliveryScheme</span>[<span class="extype" name="shapeless.::">::</span>[<span class="extype" name="org.http4s.parser.validationScheme.H">H</span>, <span class="extype" name="shapeless.HNil">HNil</span>]] { ... /* 4 definitions in type refinement */ }</span>
       </span>
       </h4>
       
@@ -217,7 +267,11 @@
         </div>
 
         <div id="inheritedMembers">
-        
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+            </div>
         
         </div>
 
