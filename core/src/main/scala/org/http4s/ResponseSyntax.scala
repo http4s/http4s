@@ -3,6 +3,7 @@ package org.http4s
 import scalaz.concurrent.Task
 import org.http4s.Header.`Content-Type`
 import org.joda.time.DateTime
+import org.http4s.util.jodaTime.UnixEpoch
 
 /**
  * Created by Bryce Anderson on 3/25/14.

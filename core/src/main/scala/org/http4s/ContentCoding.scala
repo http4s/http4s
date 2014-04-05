@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.http4s.util.{Writer, Renderable, CaseInsensitiveString}
+import CaseInsensitiveString._
 
 final case class ContentCoding private (coding: CaseInsensitiveString, q: Q = Q.Unity)
                   extends QualityFactor with Renderable {

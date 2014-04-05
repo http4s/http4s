@@ -4,6 +4,7 @@ package parserold
 import BasicRules._
 import org.http4s.{ServerProtocol => SP}
 import scalaz.Validation
+import org.http4s.util.CaseInsensitiveString._
 
 import org.http4s.parser.ParseErrorInfo
 

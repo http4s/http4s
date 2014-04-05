@@ -8,8 +8,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.{mutable, IndexedSeqLike}
 import scala.reflect.ClassTag
 import scala.io.Codec
-
-
+import scalaz.Semigroup
 
 sealed trait Chunk extends IndexedSeq[Byte] {
   def decodeString(charset: Charset): String = new String(toArray, charset)
@@ -20,6 +19,17 @@ sealed trait Chunk extends IndexedSeq[Byte] {
    */
   def asByteBuffer: ByteBuffer = ByteBuffer.wrap(toArray)
 }
+
+trait ChunkInstances {
+  implicit val ChunkSemigroup: Semigroup[Chunk] = Semigroup.instance {
+    case (a: BodyChunk, b: BodyChunk) => a ++ b
+    case (a: BodyChunk, _) => a
+    case (_, b: BodyChunk) => b
+    case (_, _) => BodyChunk.empty
+  }
+}
+
+object Chunk extends ChunkInstances
 
 trait BodyChunk extends Chunk with IndexedSeqLike[Byte, BodyChunk] {
 

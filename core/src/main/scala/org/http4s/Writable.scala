@@ -5,6 +5,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
 import scala.language.implicitConversions
 import org.http4s.Header.`Content-Type`
+import org.http4s.util.task._
 
 trait Writable[-A] {
   def contentType: `Content-Type`

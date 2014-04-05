@@ -4,6 +4,7 @@ import org.http4s.util.CaseInsensitiveString
 
 import Uri._
 import org.http4s.parser.RequestUriParser
+import org.http4s.util.CaseInsensitiveString._
 
 case class Uri (
   scheme: Option[CaseInsensitiveString] = None,

@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.http4s.util.CaseInsensitiveString
+import CaseInsensitiveString._
 
 sealed case class AuthScheme (name: CaseInsensitiveString)
 

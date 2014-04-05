@@ -4,6 +4,7 @@ import org.scalatest.{Matchers, WordSpec}
 import org.http4s.Uri.Authority
 import org.http4s.parser.RequestUriParser
 import scala.util.Success
+import org.http4s.util.CaseInsensitiveString._
 
 /**
  * Created by brycea on 3/18/14.

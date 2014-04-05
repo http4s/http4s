@@ -24,7 +24,7 @@ sealed class CaseInsensitiveString private (private val value: String) extends C
   def subSequence(start: Int, end: Int): CaseInsensitiveString = apply(folded.subSequence(start, end))
 }
 
-object CaseInsensitiveString {
+object CaseInsensitiveString extends CaseInsensitiveStringSyntax {
   def apply(cs: CharSequence) = new CaseInsensitiveString(cs.toString)
 }
 
