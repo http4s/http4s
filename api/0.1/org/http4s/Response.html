@@ -41,10 +41,10 @@
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
-                 backend for additional processing such as WebSocket or File objects.
+                  backend for additional processing such as <a href="websocket/package.html#websocketKey:org.http4s.AttributeKey[org.http4s.websocket.Websocket]" class="extmbr" name="org.http4s.websocket#websocketKey">websocket.websocketKey</a> or java.io.File objects
 </p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</a>[<a href="" class="extype" name="org.http4s.Response">Response</a>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <span class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</span>[<a href="" class="extype" name="org.http4s.Response">Response</a>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -95,7 +95,7 @@
       </span>
       </h4>
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
-                 backend for additional processing such as WebSocket or File objects.
+                  backend for additional processing such as <a href="websocket/package.html#websocketKey:org.http4s.AttributeKey[org.http4s.websocket.Websocket]" class="extmbr" name="org.http4s.websocket#websocketKey">websocket.websocketKey</a> or java.io.File objects
 </p></dd></dl></div>
     </li></ol>
             </div>
@@ -265,7 +265,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.Response#attributes" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.Response#attributes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="attributes:org.http4s.AttributeMap"></a>
       <a id="attributes:AttributeMap"></a>
       <h4 class="signature">
@@ -278,7 +278,9 @@
       </span>
       </h4>
       <p class="shortcomment cmt"><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
-                 backend for additional processing such as WebSocket or File objects.</p>
+                  backend for additional processing such as <a href="websocket/package.html#websocketKey:org.http4s.AttributeKey[org.http4s.websocket.Websocket]" class="extmbr" name="org.http4s.websocket#websocketKey">websocket.websocketKey</a> or java.</p><div class="fullcomment"><div class="comment cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
+                  backend for additional processing such as <a href="websocket/package.html#websocketKey:org.http4s.AttributeKey[org.http4s.websocket.Websocket]" class="extmbr" name="org.http4s.websocket#websocketKey">websocket.websocketKey</a> or java.io.File objects
+</p></div></div>
     </li><li name="org.http4s.Response#body" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="body:org.http4s.HttpBody"></a>
       <a id="body:HttpBody"></a>
@@ -730,7 +732,7 @@
             </div><div class="parent" name="scala.Equals">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
             </div><div class="parent" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">
-              <h3>Inherited from <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</a>[<a href="" class="extype" name="org.http4s.Response">Response</a>]</h3>
+              <h3>Inherited from <span class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntax.ResponseSyntaxBase</span>[<a href="" class="extype" name="org.http4s.Response">Response</a>]</h3>
             </div><div class="parent" name="org.http4s.Message">
               <h3>Inherited from <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></h3>
             </div><div class="parent" name="scala.AnyRef">

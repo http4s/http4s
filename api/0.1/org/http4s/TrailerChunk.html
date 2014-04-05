@@ -39,7 +39,10 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of HTTP trailers</p><p>If the HTTP stream has a TrailerChunk, it must come at the end of the stream. Other uses may
+case undefined behavior.
+</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> of trailers
+</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeqLike" class="extype" target="_top">IndexedSeqLike</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.Seq" class="extype" target="_top">Seq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.SeqLike" class="extype" target="_top">SeqLike</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.GenSeq" class="extype" target="_top">GenSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.GenSeqLike" class="extype" target="_top">GenSeqLike</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.Iterable" class="extype" target="_top">Iterable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IterableLike" class="extype" target="_top">IterableLike</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.GenIterable" class="extype" target="_top">GenIterable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.GenIterableLike" class="extype" target="_top">GenIterableLike</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.Traversable" class="extype" target="_top">Traversable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.GenTraversable" class="extype" target="_top">GenTraversable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.generic.GenericTraversableTemplate" class="extype" target="_top">GenericTraversableTemplate</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.TraversableLike" class="extype" target="_top">TraversableLike</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.GenTraversableLike" class="extype" target="_top">GenTraversableLike</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.Parallelizable" class="extype" target="_top">Parallelizable</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.parallel.ParSeq" class="extype" target="_top">ParSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.TraversableOnce" class="extype" target="_top">TraversableOnce</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.GenTraversableOnce" class="extype" target="_top">GenTraversableOnce</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.generic.FilterMonadic" class="extype" target="_top">FilterMonadic</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.generic.HasNewBuilder" class="extype" target="_top">HasNewBuilder</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.IndexedSeq" class="extype" target="_top">IndexedSeq</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.PartialFunction" class="extype" target="_top">PartialFunction</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>], (<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a>) ⇒ <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -79,7 +82,7 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.TrailerChunk#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.TrailerChunk#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="&lt;init&gt;(headers:org.http4s.HeaderCollection):org.http4s.TrailerChunk"></a>
       <a id="&lt;init&gt;:TrailerChunk"></a>
       <h4 class="signature">
@@ -91,7 +94,8 @@
         <span class="name">TrailerChunk</span><span class="params">(<span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>)</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> of trailers
+</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -421,8 +425,8 @@
         <span class="name">asByteBuffer</span><span class="result">: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Returns a ByteBuffer that wraps an array copy of this BodyChunk
-</p><div class="fullcomment"><div class="comment cmt"><p>Returns a ByteBuffer that wraps an array copy of this BodyChunk
+      <p class="shortcomment cmt">Returns a read-only ByteBuffer representation of this BodyChunk
+</p><div class="fullcomment"><div class="comment cmt"><p>Returns a read-only ByteBuffer representation of this BodyChunk
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
@@ -653,7 +657,7 @@
         <span class="name">decodeString</span><span class="params">(<span name="charset">charset: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a></dd></dl></div>
+      <p class="shortcomment cmt">Decode this Chunk into a String using the provided <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a></p><div class="fullcomment"><div class="comment cmt"><p>Decode this Chunk into a String using the provided <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a></p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a></dd></dl></div>
     </li><li name="org.http4s.Chunk#decodeString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="decodeString(charset:java.nio.charset.Charset):String"></a>
       <a id="decodeString(Charset):String"></a>
@@ -666,7 +670,7 @@
         <span class="name">decodeString</span><span class="params">(<span name="charset">charset: <span class="extype" name="java.nio.charset.Charset">Charset</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a></dd></dl></div>
+      <p class="shortcomment cmt">Decode this Chunk into a String using the provided Charset</p><div class="fullcomment"><div class="comment cmt"><p>Decode this Chunk into a String using the provided Charset</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a></dd></dl></div>
     </li><li name="scala.collection.SeqLike#diff" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="diff[B&gt;:A](that:scala.collection.GenSeq[B]):Repr"></a>
       <a id="diff[B&gt;:Byte](GenSeq[B]):IndexedSeq[Byte]"></a>
@@ -707,7 +711,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>IterableLike → TraversableLike → GenTraversableLike</dd></dl></div>
     </li><li name="scala.collection.IterableLike#dropRight" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="dropRight(n:&lt;?&gt;):Repr"></a>
+      <a id="dropRight(n:Int):Repr"></a>
       <a id="dropRight(Int):IndexedSeq[Byte]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -934,7 +938,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>IterableLike → TraversableLike → GenTraversableLike → TraversableOnce → GenTraversableOnce → FilterMonadic</dd></dl></div>
     </li><li name="scala.collection.generic.GenericTraversableTemplate#genericBuilder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="genericBuilder[B&lt;:&lt;?&gt;]:scala.collection.mutable.Builder[B,CC[B]]"></a>
+      <a id="genericBuilder[B]:scala.collection.mutable.Builder[B,CC[B]]"></a>
       <a id="genericBuilder[B]:Builder[B,IndexedSeq[B]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -973,7 +977,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TraversableLike → GenTraversableLike</dd></dl></div>
     </li><li name="scala.collection.IterableLike#grouped" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="grouped(size:&lt;?&gt;):Iterator[Repr]"></a>
+      <a id="grouped(size:Int):Iterator[Repr]"></a>
       <a id="grouped(Int):Iterator[IndexedSeq[Byte]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1049,7 +1053,8 @@
         <span class="name">headers</span><span class="result">: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt"><a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> of trailers
+</p>
     </li><li name="scala.collection.GenSeqLike#indexOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="indexOf[B&gt;:A](elem:B,from:Int):Int"></a>
       <a id="indexOf[B&gt;:Byte](B,Int):Int"></a>
@@ -1688,7 +1693,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TraversableOnce → GenTraversableOnce</dd></dl></div>
     </li><li name="scala.collection.TraversableOnce#reduceLeft" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="reduceLeft[B&lt;:&lt;?&gt;](op:&lt;?&gt;):B"></a>
+      <a id="reduceLeft[B&gt;:A](op:(B,A)=&gt;B):B"></a>
       <a id="reduceLeft[B&gt;:Byte]((B,Byte)⇒B):B"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -2133,7 +2138,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>IterableLike → TraversableLike → GenTraversableLike</dd></dl></div>
     </li><li name="scala.collection.IterableLike#takeRight" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="takeRight(n:&lt;?&gt;):Repr"></a>
+      <a id="takeRight(n:Int):Repr"></a>
       <a id="takeRight(Int):IndexedSeq[Byte]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -2367,7 +2372,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>TraversableOnce → GenTraversableOnce</dd></dl></div>
     </li><li name="scala.collection.generic.GenericTraversableTemplate#transpose" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="transpose[B&lt;:&lt;?&gt;](implicitasTraversable:&lt;?&gt;):CC[CC[B]@scala.annotation.unchecked.uncheckedVariance]"></a>
+      <a id="transpose[B](implicitasTraversable:A=&gt;scala.collection.GenTraversableOnce[B]):CC[CC[B]@scala.annotation.unchecked.uncheckedVariance]"></a>
       <a id="transpose[B]((Byte)⇒GenTraversableOnce[B]):IndexedSeq[IndexedSeq[B]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -2396,7 +2401,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>SeqLike → GenSeqLike</dd></dl></div>
     </li><li name="scala.collection.generic.GenericTraversableTemplate#unzip" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unzip[A1&lt;:&lt;?&gt;,A2&lt;:&lt;?&gt;](implicitasPair:&lt;?&gt;):(CC[A1],CC[A2])"></a>
+      <a id="unzip[A1,A2](implicitasPair:A=&gt;(A1,A2)):(CC[A1],CC[A2])"></a>
       <a id="unzip[A1,A2]((Byte)⇒(A1,A2)):(IndexedSeq[A1],IndexedSeq[A2])"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -2409,7 +2414,7 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>GenericTraversableTemplate</dd></dl></div>
     </li><li name="scala.collection.generic.GenericTraversableTemplate#unzip3" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unzip3[A1&lt;:&lt;?&gt;,A2&lt;:&lt;?&gt;,A3&lt;:&lt;?&gt;](implicitasTriple:&lt;?&gt;):(CC[A1],CC[A2],CC[A3])"></a>
+      <a id="unzip3[A1,A2,A3](implicitasTriple:A=&gt;(A1,A2,A3)):(CC[A1],CC[A2],CC[A3])"></a>
       <a id="unzip3[A1,A2,A3]((Byte)⇒(A1,A2,A3)):(IndexedSeq[A1],IndexedSeq[A2],IndexedSeq[A3])"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -2577,7 +2582,7 @@
         <div id="values" class="values members">
               <h3>Deprecated Value Members</h3>
               <ol><li name="scala.collection.GenTraversableOnce#/:\" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="/:\[A1&lt;:&lt;?&gt;](z:&lt;?&gt;)(op:&lt;?&gt;):A1"></a>
+      <a id="/:\[A1&gt;:A](z:A1)(op:(A1,A1)=&gt;A1):A1"></a>
       <a id="/:\[A1&gt;:Byte](A1)((A1,A1)⇒A1):A1"></a>
       <h4 class="signature">
       <span class="modifier_kind">

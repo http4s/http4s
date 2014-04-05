@@ -192,7 +192,7 @@
       </span>
       </h4>
       
-    </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(bytes:java.nio.ByteBuffer):org.http4s.BodyChunk"></a>
       <a id="apply(ByteBuffer):BodyChunk"></a>
       <h4 class="signature">
@@ -204,7 +204,10 @@
         <span class="name">apply</span><span class="params">(<span name="bytes">bytes: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result">: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Create a new BodyChunk from a ByteBuffer
+</p><div class="fullcomment"><div class="comment cmt"><p>Create a new BodyChunk from a ByteBuffer
+</p></div><dl class="paramcmts block"><dt class="param">bytes</dt><dd class="cmt"><p>ByteBuffer containing the Bytes to copy into a BodyChunk</p><p>            <i>The ByteBuffer position will be set to the end of the buffer</i>
+</p></dd></dl></div>
     </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="apply(bytes:Byte*):org.http4s.BodyChunk"></a>
       <a id="apply(Byte*):BodyChunk"></a>
@@ -217,8 +220,8 @@
         <span class="name">apply</span><span class="params">(<span name="bytes">bytes: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>*</span>)</span><span class="result">: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>
       </span>
       </h4>
-      
-    </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Create a new BodyChunk from the provided Bytes</p>
+    </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(bytes:Array[Byte],start:Int,length:Int):org.http4s.util.ChunkLeafImpl"></a>
       <a id="apply(Array[Byte],Int,Int):ChunkLeafImpl"></a>
       <h4 class="signature">
@@ -230,8 +233,11 @@
         <span class="name">apply</span><span class="params">(<span name="bytes">bytes: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>, <span name="start">start: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="length">length: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.ChunkLeafImpl">ChunkLeafImpl</span></span>
       </span>
       </h4>
-      
-    </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Create a new BodyChunk with a copy of the provided Array[Byte]
+</p><div class="fullcomment"><div class="comment cmt"><p>Create a new BodyChunk with a copy of the provided Array[Byte]
+</p></div><dl class="paramcmts block"><dt class="param">bytes</dt><dd class="cmt"><p>array of bytes to form the BodyChunk</p></dd><dt class="param">start</dt><dd class="cmt"><p>starting position in the Array</p></dd><dt class="param">length</dt><dd class="cmt"><p>number of Bytes desired
+</p></dd></dl></div>
+    </li><li name="org.http4s.BodyChunk#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(bytes:Array[Byte]):org.http4s.BodyChunk"></a>
       <a id="apply(Array[Byte]):BodyChunk"></a>
       <h4 class="signature">
@@ -243,7 +249,10 @@
         <span class="name">apply</span><span class="params">(<span name="bytes">bytes: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>)</span><span class="result">: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Create a new BodyChunk with a copy of the provided Array[Byte]
+</p><div class="fullcomment"><div class="comment cmt"><p>Create a new BodyChunk with a copy of the provided Array[Byte]
+</p></div><dl class="paramcmts block"><dt class="param">bytes</dt><dd class="cmt"><p>array of bytes for the BodyChunk
+</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -301,7 +310,7 @@
         <span class="name">empty</span><span class="result">: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Empty BodyChunk</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -347,19 +356,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.BodyChunk#fromArray" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="fromArray(array:Array[Byte],offset:Int,length:Int):org.http4s.BodyChunk"></a>
-      <a id="fromArray(Array[Byte],Int,Int):BodyChunk"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fromArray</span><span class="params">(<span name="array">array: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>, <span name="offset">offset: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="length">length: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
