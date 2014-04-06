@@ -4,7 +4,6 @@ package parser
 import org.parboiled2._
 import java.io.UnsupportedEncodingException
 import scala.io.Codec
-import java.net.URLDecoder
 import util.string._
 import org.parboiled2.CharPredicate._
 import org.parboiled2.ParseError
@@ -27,18 +26,16 @@ private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends 
     }
   }
 
-  private def decodeParam(str: String): String = {
-    try {
-      URLDecoder.decode(str, "UTF-8")  // TODO: Fix me don't decode twice for validaton purposes
-      str.urlDecode(codec) // rl has a bug where it hangs on invalid escaped values
-    } catch {
+  private def decodeParam(str: String): String =
+    try str.urlDecode(codec)
+    catch {
         case e: IllegalArgumentException     => ""
         case e: UnsupportedEncodingException => ""
     }
-  }
 
   def QChar = rule { !'&' ~ (Pchar | '/' | '?') }
 
+  // Different than the RFC 3986 in that it lacks % encoded requirements.
   def Pchar = rule { Unreserved | SubDelims | ":" | "@" | "%" }
 
   def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }

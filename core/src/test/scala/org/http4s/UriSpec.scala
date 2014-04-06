@@ -7,7 +7,7 @@ import scala.util.Success
 import org.http4s.util.string._
 
 /**
- * Created by brycea on 3/18/14.
+ * Created by Bryce Anderson on 3/18/14.
  */
 class UriSpec extends WordSpec with Matchers {
 
@@ -68,6 +68,30 @@ class UriSpec extends WordSpec with Matchers {
       )
 
       check(relativeUris)
+    }
+
+    {
+      val q = "param1=3&param2=2&param2=foo"
+      val u = Uri(query = Some(q))
+      "parse query and represent multiParams as a Map[String,Seq[String]]" in {
+        u.multiParams should equal(Map("param1" -> Seq("3"), "param2" -> Seq("2","foo")))
+      }
+
+      "parse query and represent params as a Map[String,String] taking the first param" in {
+        u.params should equal(Map("param1" -> "3", "param2" -> "2"))
+      }
+    }
+
+    "Deal with an invalid Query" in {
+      val u = Uri.fromString("/hello/world?bad=enc%ode").get
+      u.params should equal (Map("bad" -> "enc"))
+      u.fragment should equal (None)
+      u.path should equal("/hello/world")
+    }
+
+    "Deal with an invalid Uri" in {
+      val u = Uri.fromString("/hello/wo%2rld").get
+      u.path should equal("/hello/wo")
     }
 
     def check(items: Seq[(String, Uri)]) = items.foreach { case (str, uri) =>
