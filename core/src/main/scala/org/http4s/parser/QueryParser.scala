@@ -46,7 +46,7 @@ private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends 
   def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 }
 
-private[parser] object QueryParser {
+private[http4s] object QueryParser {
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[(String, String)]] = {
     try new QueryParser(queryString, codec)
       .QueryString
