@@ -20,7 +20,7 @@ object ServletExample extends App {
       if (req.getPathInfo == "/ping")
         resp.getWriter.write("pong")
       else if (req.getPathInfo == "/echo") {
-        val bytes = new Array[Byte](8 * 1024);
+        val bytes = new Array[Byte](8 * 1024)
         var in = 0
         while ({in = req.getInputStream.read(bytes); in >= 0}) {
           resp.getOutputStream.write(bytes, 0, in)
@@ -39,7 +39,7 @@ object ServletExample extends App {
   val server = new Server(8080)
   val context = new ServletContextHandler()
   context.setContextPath("/")
-  server.setHandler(context);
+  server.setHandler(context)
   context.addServlet(new ServletHolder(taskServlet), "/http4s/*")
   context.addServlet(new ServletHolder(rawServlet), "/raw/*")
   server.start()
