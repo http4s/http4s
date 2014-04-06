@@ -71,7 +71,7 @@ class UriSpec extends WordSpec with Matchers {
     }
 
     def check(items: Seq[(String, Uri)]) = items.foreach { case (str, uri) =>
-      Uri.fromString(str) should equal(uri)
+      Uri.fromString(str).get should equal(uri)
     }
 
   }

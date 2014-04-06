@@ -14,19 +14,19 @@ import java.nio.charset.StandardCharsets
 
 import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
-import scala.util.Success
-import scala.util.Failure
+import scala.util.{Success, Failure}
 
-import org.http4s.Status.{BadRequest, InternalServerError, NotFound}
-import org.http4s.util.StringWriter
+import org.http4s.Status.{InternalServerError, NotFound}
+import org.http4s.util.{CaseInsensitiveString, StringWriter}
 import org.http4s.Header.{Connection, `Content-Length`}
-import http_parser.BaseExceptions.ParserException
+import org.http4s.blaze.http_parser.BaseExceptions.{BadRequest, ParserException}
 import http_parser.Http1ServerParser
 
 import scalaz.stream.Process
 import Process._
 import scalaz.concurrent.Task
 import scalaz.{\/-, -\/}
+import org.parboiled2.ParseError
 
 
 class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[ByteBuffer] {
@@ -85,33 +85,49 @@ class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[By
     }(trampoline)
   }
 
-  private def collectRequest(body: HttpBody) = {
+  private def collectRequest(body: HttpBody): Request = {
     val h = Headers(headers.result())
     headers.clear()
 
-    Request(Method.resolve(this.method),
-      Uri.fromString(this.uri),
-      if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`,
-      h, body)
+    Uri.fromString(this.uri) match {
+      case Success(uri) =>
+        Request(Method.resolve(this.method),
+          uri,
+          if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`,
+          h, body)
+
+      case Failure(_: ParseError) =>
+        val req = Request(requestUri = Uri(Some(CaseInsensitiveString(this.uri))), headers = h)
+        badRequest("Error parsing Uri", new BadRequest(s"Bad request URI: ${this.uri}"), req)
+        null
+
+      case Failure(t) =>
+        fatalError(t, s"Failed to generate response during Uri parsing phase: ${this.uri}")
+        null
+    }
   }
 
   private def runRequest(buffer: ByteBuffer): Unit = {
     // TODO: Do we expect a body?
     val body = collectBodyFromParser(buffer)
+
     val req = collectRequest(body)
+    if (req != null) {
+      val resp = try route(req) catch {
+        case _: MatchError => NotFound(req)
+        case t: Throwable =>
+          logger.error(s"Error running route: $req", t)
+          InternalServerError("500 Internal Service Error\n" + t.getMessage)
+      }
 
-    val result = try route(req) catch {
-      case _: MatchError => NotFound(req)
-      case t: Throwable =>
-        logger.error(s"Error running route: $req", t)
-        InternalServerError("500 Internal Service Error\n" + t.getMessage)
-    }
-
-    result.runAsync {
-      case \/-(resp) => renderResponse(req, resp)
-      case -\/(t)    => fatalError(t, "Error running route")
+      resp.runAsync {
+        case \/-(resp) => renderResponse(req, resp)
+        case -\/(t)    => fatalError(t, "Error running route")
+      }
     }
   }
+
+
 
   protected def renderResponse(req: Request, resp: Response) {
     val rr = new StringWriter(512)
@@ -215,7 +231,9 @@ class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[By
             case Failure(t) => cb(-\/(t))
           }(trampoline)
         } catch {
-          case t: ParserException => badRequest("Error parsing request body", t, collectRequest(halt))
+          case t: ParserException =>
+            val req = collectRequest(halt)  // may be null, but thats ok.
+            badRequest("Error parsing request body", t, req)
           case t: Throwable       => fatalError(t, "Error collecting body")
         }
         go()
@@ -269,7 +287,7 @@ class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[By
   }
 
   private def badRequest(msg: String, t: ParserException, req: Request) {
-    renderResponse(req, Response(BadRequest).withHeaders(Connection("close"), `Content-Length`(0)))
+    renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close"), `Content-Length`(0)))
     logger.debug(s"Bad Request: $msg", t)
   }
 

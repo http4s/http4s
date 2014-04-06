@@ -7,6 +7,7 @@ import org.http4s.parser.{QueryParser, RequestUriParser}
 import org.http4s.util.string._
 import scala.collection.mutable.ListBuffer
 import scala.collection.{immutable, mutable}
+import scala.util.Try
 
 /** Representation of the [[Request]] URI  */
 case class Uri (
@@ -61,7 +62,7 @@ case class Uri (
 
 object Uri {
 
-  def fromString(s: String): Uri = (new RequestUriParser(s, CharacterSet.`UTF-8`.charset)).RequestUri.run().get
+  def fromString(s: String): Try[Uri] = (new RequestUriParser(s, CharacterSet.`UTF-8`.charset)).RequestUri.run()
 
   type Scheme = CaseInsensitiveString
 

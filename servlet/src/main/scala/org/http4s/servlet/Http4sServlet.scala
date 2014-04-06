@@ -12,6 +12,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.io._
 import scalaz.{-\/, \/-}
 import scala.util.control.NonFatal
+import org.parboiled2.ParseError
 
 class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) extends HttpServlet with Logging {
   private[this] var serverSoftware: ServerSoftware = _
@@ -31,9 +32,17 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   }
 
   private def handleError(t: Throwable, response: HttpServletResponse) {
-    logger.error("Error processing request", t)
-    if (!response.isCommitted)
-      response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+    if (!response.isCommitted) t match {
+      case ParseError(_, _) =>
+        logger.info("Error during processing phase of request", t)
+        response.sendError(HttpServletResponse.SC_BAD_REQUEST)
+
+      case _ =>
+        logger.error("Error processing request", t)
+        response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
+    }
+    else logger.error("Error processing request", t)
+
   }
 
   private def handle(request: Request, ctx: AsyncContext): Unit = {
@@ -65,7 +74,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   protected def toRequest(req: HttpServletRequest): Request =
     Request(
       requestMethod = Method.resolve(req.getMethod),
-      requestUri = Uri.fromString(req.getRequestURI),
+      requestUri = Uri.fromString(req.getRequestURI).get,
       protocol = ServerProtocol.resolve(req.getProtocol),
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,
