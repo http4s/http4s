@@ -12,9 +12,9 @@ import org.http4s.util.string._
  *         Created on 12/22/13
  */
 
-object HttpParser extends HttpParser
+private[http4s] object HttpParser extends HttpParser
 
-trait HttpParser extends SimpleHeaders
+private[parser] trait HttpParser extends SimpleHeaders
                     with AcceptHeader
                     with AcceptLanguageHeader
                     with CacheControlHeader

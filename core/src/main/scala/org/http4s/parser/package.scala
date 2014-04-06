@@ -11,7 +11,7 @@ import scala.util.control.NoStackTrace
  */
 package object parser {
 
-  def validationScheme[H] = new DeliveryScheme[H::HNil] {
+  private[parser] def validationScheme[H] = new DeliveryScheme[H::HNil] {
     type Result = Validation[ParseErrorInfo, H]
 
     def success(result: H::HNil) = Success(result.head)
@@ -21,17 +21,16 @@ package object parser {
     def failure(error: Throwable) = Failure(new ParseErrorInfo("Exception raised during parsing", error.getMessage))
   }
 
-  object ParseErrorInfo {
+  private[parser] object ParseErrorInfo {
     def apply(message: String): ParseErrorInfo  = message.split(": ", 2) match {
       case Array(summary, detail) => apply(summary, detail)
       case _ => ParseErrorInfo("", message)
     }
   }
 
-  case class ParseErrorInfo(summary: String = "", detail: String = "") extends Exception with NoStackTrace {
+  case class ParseErrorInfo (summary: String = "", detail: String = "") extends Exception with NoStackTrace {
     def withSummary(newSummary: String) = copy(summary = newSummary)
     def withFallbackSummary(fallbackSummary: String) = if (summary.isEmpty) withSummary(fallbackSummary) else this
     def formatPretty = summary + ": " + detail
   }
-
 }

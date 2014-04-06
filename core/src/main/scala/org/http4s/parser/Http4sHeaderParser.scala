@@ -5,7 +5,7 @@ import org.parboiled2._
 import scalaz.Validation
 
 
-abstract class Http4sHeaderParser[H <: Header](val input: ParserInput) extends Parser with AdditionalRules  {
+private[parser] abstract class Http4sHeaderParser[H <: Header](val input: ParserInput) extends Parser with AdditionalRules  {
 
   def entry: Rule1[H]
 

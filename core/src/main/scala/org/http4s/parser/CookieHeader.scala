@@ -10,7 +10,7 @@ import shapeless.{HNil, ::}
  * @author Bryce Anderson
  *         Created on 2/9/14
  */
-trait CookieHeader {
+private[parser] trait CookieHeader {
 
   def SET_COOKIE(value: String) = new SetCookieParser(value).parse
 
