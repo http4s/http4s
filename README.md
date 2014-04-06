@@ -16,7 +16,8 @@ of helpers to facilitate the creation of the Task[Response] from common results.
 val route: HttpService = {
   //  We use the micro DSL to match the path of the Request to the familiar uri form
   case Get -> Root / "hello" =>
-    // We could make a Task[Response] manually, but we use the EntityResponseGenerator 'Ok' for convenience
+    // We could make a Task[Response] manually, but we use the
+    // EntityResponseGenerator 'Ok' for convenience
     Ok("Hello, better world.")
 ```
 
@@ -36,7 +37,8 @@ object ServletExample extends App {
 ### Run your HttpService using the fast native backend, blaze ###
 ```scala
 object BlazeWebSocketExample extends App {
-  def pipebuilder(): LeafBuilder[ByteBuffer] =  // Provides a template for the blaze pipeline
+  // Provides a template for the blaze pipeline
+  def pipebuilder(): LeafBuilder[ByteBuffer] =
     new Http1Stage(URITranslation.translateRoot("/http4s")(route)) with WebSocketSupport
 
   // Bind the socket and begin serving
@@ -48,7 +50,7 @@ object BlazeWebSocketExample extends App {
 
 ## Simple and type safe streaming with scalaz-stream Processes ##
 
-In http4s any response can be, type safe, streamed, and completely asynchronous. http4s offers a variety
+In http4s any response can be type safe, streamed, and completely asynchronous. http4s offers a variety
 of helpers to help you get your data out the door in the fastest way possible.
 
 ```scala
@@ -71,7 +73,7 @@ http4s is a forward looking technology and HTTP/2.0 and WebSockets will play a c
 ```scala
 val route: HttpService = {
   case req@ Get -> Root / "ws" =>
-    // Send a text message with payload 'Ping! delay' every second
+    // Send a Text message with payload 'Ping! delay' every second
     val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
 
     // Print received Text frames, and, on completion, notify the console
