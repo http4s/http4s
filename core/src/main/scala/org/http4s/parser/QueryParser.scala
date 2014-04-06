@@ -8,7 +8,7 @@ import java.net.URLDecoder
 import util.string._
 
 
-class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
+private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
 
   def QueryString: Rule1[Seq[(String, String)]] = rule {
       EOI ~ push(Seq.empty[(String, String)]) |
@@ -34,7 +34,7 @@ class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
   }
 }
 
-object QueryParser {
+private[parser] object QueryParser {
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[(String, String)]] = {
     try new QueryParser(queryString, codec)
       .QueryString
