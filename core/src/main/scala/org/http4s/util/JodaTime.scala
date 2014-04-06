@@ -18,7 +18,7 @@ trait JodaTimeSyntax {
     val Rfc1123Format = DateTimeFormat
       .forPattern("EEE, dd MMM yyyy HH:mm:ss 'GMT'")
       .withLocale(Locale.US)
-      .withZone(DateTimeZone.UTC);
+      .withZone(DateTimeZone.UTC)
   }
 }
 
