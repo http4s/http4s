@@ -31,7 +31,7 @@ object MockServer {
 
   case class MockResponse(
     statusLine: Status = Status.Ok,
-    headers: HeaderCollection = HeaderCollection.empty,
+    headers: Headers = Headers.empty,
     body: Array[Byte] = emptyBody,
     attributes: AttributeMap = AttributeMap.empty
   )

@@ -6,7 +6,7 @@ import Header._
 class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
   "put" should {
     "replace duplicate headers" in {
-      val headers = HeaderCollection(
+      val headers = Headers(
         `Set-Cookie`(Cookie("foo", "bar")),
         `Set-Cookie`(Cookie("baz", "quux"))
       )
@@ -19,7 +19,7 @@ class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
 
   "get by header key" should {
     "also find headers created raw" in {
-      val headers = HeaderCollection(
+      val headers = Headers(
         Header.`Cookie`(Cookie("foo", "bar")),
         Header("Cookie", Cookie("baz", "quux").toString)
       )
@@ -29,7 +29,7 @@ class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
 
   "get with DefaultHeaderKeys" should {
     "Find the headers with DefaultHeaderKey keys" in {
-      val headers = HeaderCollection(
+      val headers = Headers(
         Header.`Set-Cookie`(Cookie("foo", "bar")),
         Header("Accept-Patch",""),
         Header("Access-Control-Allow-Credentials","")

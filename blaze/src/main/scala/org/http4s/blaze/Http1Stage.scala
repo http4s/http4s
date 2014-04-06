@@ -86,7 +86,7 @@ class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[By
   }
 
   private def collectRequest(body: HttpBody) = {
-    val h = HeaderCollection(headers.result())
+    val h = Headers(headers.result())
     headers.clear()
 
     Request(Method.resolve(this.method),

@@ -102,7 +102,7 @@ object StaticFile extends Logging {
     val lengthheader = `Content-Length`(if (len < end) 0 else (end - start).toInt)
 
     // See if we have a mime type or not
-    val headers = HeaderCollection.apply(mimeheader match {
+    val headers = Headers.apply(mimeheader match {
       case Some(h) =>  h::lastmodified::lengthheader::Nil
       case None    =>     lastmodified::lengthheader::Nil
     })

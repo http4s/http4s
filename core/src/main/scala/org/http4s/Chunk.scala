@@ -247,9 +247,9 @@ private[http4s] case class MultiChunkImpl(chunks: Vector[BodyChunk], val length:
   * If the HTTP stream has a TrailerChunk, it must come at the end of the stream. Other uses may
   * case undefined behavior.
   *
-  * @param headers [[HeaderCollection]] of trailers
+  * @param headers [[Headers]] of trailers
   */
-case class TrailerChunk(headers: HeaderCollection = HeaderCollection.empty) extends Chunk {
+case class TrailerChunk(headers: Headers = Headers.empty) extends Chunk {
 
   def ++(chunk: TrailerChunk): TrailerChunk = {
     TrailerChunk(chunk.headers.foldLeft(headers)((headers, h) => headers.put(h)))

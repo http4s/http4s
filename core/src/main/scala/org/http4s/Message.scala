@@ -5,10 +5,10 @@ import java.net.InetAddress
 import org.http4s.Header.`Content-Type`
 import ResponseSyntax.ResponseSyntaxBase
 
-abstract class Message(headers: HeaderCollection, body: HttpBody, attributes: AttributeMap) {
+abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
 
-  def withHeaders(headers: HeaderCollection): Self
+  def withHeaders(headers: Headers): Self
 
   def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
 
@@ -54,7 +54,7 @@ case class Request(
   requestMethod: Method = Method.Get,
   requestUri: Uri = Uri(path = "/"),
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
-  headers: HeaderCollection = HeaderCollection.empty,
+  headers: Headers = Headers.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message(headers, body, attributes) {
@@ -64,10 +64,10 @@ case class Request(
 
   /** Replaces the [[org.http4s.Header]]s of the incoming Request object
     *
-    * @param headers [[HeaderCollection]] containing the desired headers
+    * @param headers [[Headers]] containing the desired headers
     * @return a new Request object
     */
-  def withHeaders(headers: HeaderCollection): Request = copy(headers = headers)
+  def withHeaders(headers: Headers): Request = copy(headers = headers)
 
   /** Replace the body of the incoming Request object
     *
@@ -121,14 +121,14 @@ object Request {
 /** Representation of the HTTP response to send back to the client
  *
  * @param status [[Status]] code and message
- * @param headers [[HeaderCollection]] containing all response headers
+ * @param headers [[Headers]] containing all response headers
  * @param body scalaz.stream.Process[Task,Chunk] representing the possible body of the response
  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
  *                   backend for additional processing such as [[websocket.websocketKey]] or java.io.File objects
  */
 case class Response(
   status: Status = Status.Ok,
-  headers: HeaderCollection = HeaderCollection.empty,
+  headers: Headers = Headers.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message(headers, body, attributes) with ResponseSyntaxBase[Response] {

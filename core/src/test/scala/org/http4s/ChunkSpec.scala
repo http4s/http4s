@@ -106,8 +106,8 @@ class ChunkSpec extends WordSpec with Matchers {
     val e = TrailerChunk()
     val h1 = Header.`Content-Length`(1)
     val h5 = Header.`Content-Length`(5)
-    val c1 = TrailerChunk(HeaderCollection(h1))
-    val c5 = TrailerChunk(HeaderCollection(h5))
+    val c1 = TrailerChunk(Headers(h1))
+    val c5 = TrailerChunk(Headers(h5))
 
     "Have zero length" in {
       e.length should equal(0)
