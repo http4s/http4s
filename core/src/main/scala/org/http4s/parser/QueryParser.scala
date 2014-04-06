@@ -6,9 +6,15 @@ import java.io.UnsupportedEncodingException
 import scala.io.Codec
 import java.net.URLDecoder
 import util.string._
+import org.parboiled2.CharPredicate._
+import org.parboiled2.ParseError
 
+// TODO: this could be made more efficient. For a good example, look at the Jetty impl
+// https://github.com/eclipse/jetty.project/blob/release-9/jetty-util/src/main/java/org/eclipse/jetty/util/UrlEncoded.java
 
 class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
+
+  def charset = codec.charSet
 
   def QueryString: Rule1[Seq[(String, String)]] = rule {
       EOI ~ push(Seq.empty[(String, String)]) |
@@ -16,22 +22,28 @@ class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
   }
 
   def QueryParameter: Rule1[(String,String)] = rule {
-    QueryParameterComponent ~ optional("=") ~ (QueryParameterComponent | push("")) ~> {(_: String,_: String)}
-  }
-
-  def QueryParameterComponent = rule {
-    capture(zeroOrMore(!anyOf("&=") ~ ANY)) ~> { s: String =>
-      try {
-        URLDecoder.decode(s, "UTF-8")  // TODO: Fix me don't decode twice for validaton purposes
-        s.urlDecode(codec) // rl has a bug where it hangs on invalid escaped values
-      } catch {
-        case e: IllegalArgumentException =>
-          throw ParseErrorInfo(s"Illegal query string", e.getMessage)
-        case e: UnsupportedEncodingException =>
-          throw ParseErrorInfo("Unsupported character encoding in query string", e.getMessage)
-      }
+    capture(zeroOrMore(!anyOf("&=") ~ QChar)) ~ optional('=' ~ capture(zeroOrMore(!anyOf("&") ~ QChar))) ~> {
+      (k: String, v: Option[String]) => (decodeParam(k), v.map(decodeParam(_)).getOrElse(""))
     }
   }
+
+  private def decodeParam(str: String): String = {
+    try {
+      URLDecoder.decode(str, "UTF-8")  // TODO: Fix me don't decode twice for validaton purposes
+      str.urlDecode(codec) // rl has a bug where it hangs on invalid escaped values
+    } catch {
+        case e: IllegalArgumentException     => ""
+        case e: UnsupportedEncodingException => ""
+    }
+  }
+
+  def QChar = rule { !'&' ~ (Pchar | '/' | '?') }
+
+  def Pchar = rule { Unreserved | SubDelims | ":" | "@" | "%" }
+
+  def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }
+
+  def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 }
 
 object QueryParser {
@@ -44,7 +56,7 @@ object QueryParser {
         case e => ParseErrorInfo("Illegal query string", e.getMessage)
       }
     catch {
-      case e: ParseErrorInfo => Left(e)
+      case e: ParseErrorInfo => println("------------"); Left(e)
       case e: Throwable      => Left(ParseErrorInfo(s"Illegal query string: '$queryString'", e.getMessage))
     }
   }

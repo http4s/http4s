@@ -97,6 +97,18 @@ case class Request(
 
   def queryString: String = requestUri.query.getOrElse("")
 
+  /** Representation of the URI query as a Map[String, Seq[String]]
+    *
+    * The query string is lazily parsed. If an error occurs during parsing
+    * an empty Map is returned
+    */
+  def multiParams: Map[String, Seq[String]] = requestUri.multiParams
+
+  /** View of the head elements of the URI multiParams
+    * @see multiParams
+    */
+  def params: Map[String, String] = requestUri.params
+
   lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)
   lazy val remoteAddr: Option[String] = remote.map(_.getHostAddress)
   lazy val remoteHost: Option[String] = remote.map(_.getHostName)
