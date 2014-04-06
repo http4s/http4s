@@ -12,7 +12,7 @@ import org.parboiled2.ParseError
 // TODO: this could be made more efficient. For a good example, look at the Jetty impl
 // https://github.com/eclipse/jetty.project/blob/release-9/jetty-util/src/main/java/org/eclipse/jetty/util/UrlEncoded.java
 
-class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
+private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
 
   def charset = codec.charSet
 
@@ -46,7 +46,7 @@ class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
   def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 }
 
-object QueryParser {
+private[parser] object QueryParser {
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[(String, String)]] = {
     try new QueryParser(queryString, codec)
       .QueryString

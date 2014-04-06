@@ -55,7 +55,7 @@ object Status extends StatusInstances {
       apply(body, w.contentType)(w)
 
     def apply[A](body: A, contentType: `Content-Type`)(implicit w: Writable[A]): Task[Response] = {
-      var headers: HeaderCollection = HeaderCollection.empty
+      var headers: Headers = Headers.empty
       // tuple assignment runs afoul of https://issues.scala-lang.org/browse/SI-5301
       headers :+= contentType
       w.toBody(body).map { case (proc, len) =>
@@ -78,7 +78,7 @@ object Status extends StatusInstances {
     * @see [[NoEntityResponseGenerator]]
     */
   trait RedirectResponderGenerator { self: Status =>
-    def apply(uri: String): Response = Response(self, HeaderCollection(Header.Location(uri)))
+    def apply(uri: String): Response = Response(self, Headers(Header.Location(uri)))
 
     def apply(uri: URI): Response = apply(uri.toString)
 
@@ -109,7 +109,7 @@ trait StatusInstances {
   val Continue = new Status(100, "Continue") with NoEntityResponseGenerator
   val SwitchingProtocols = new Status(101, "Switching Protocols") {
     // TODO type this header
-    def apply(protocols: String, headers: HeaderCollection = HeaderCollection.empty): Response =
+    def apply(protocols: String, headers: Headers = Headers.empty): Response =
       Response(this, Header("Upgrade", protocols) +: headers, HttpBody.empty)
   }
   val Processing = new Status(102, "Processing") with NoEntityResponseGenerator
@@ -122,7 +122,7 @@ trait StatusInstances {
   val ResetContent = new Status(205, "Reset Content") with NoEntityResponseGenerator
   val PartialContent = new Status(206, "Partial Content") with EntityResponseGenerator {
     // TODO type this header
-    def apply[A](range: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+    def apply[A](range: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
         headers.foldLeft(r.addHeader(Header("Range", range))) { _.addHeader(_) }
       }
@@ -141,7 +141,7 @@ trait StatusInstances {
 
   val BadRequest = new Status(400, "Bad Request") with EntityResponseGenerator
   val Unauthorized = new Status(401, "Unauthorized") with EntityResponseGenerator {
-    def apply[A](wwwAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+    def apply[A](wwwAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
     // TODO type this header
       apply(body).map { r =>
         headers.foldLeft(r.addHeader(Header("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
@@ -153,7 +153,7 @@ trait StatusInstances {
     def apply(request: Request): Task[Response] = apply(s"${request.pathInfo} not found")
   }
   val MethodNotAllowed = new Status(405, "Method Not Allowed") with EntityResponseGenerator {
-    def apply[A](allowed: TraversableOnce[Method], body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+    def apply[A](allowed: TraversableOnce[Method], body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
         headers.foldLeft(r.addHeader(Header("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
       }
@@ -161,7 +161,7 @@ trait StatusInstances {
   val NotAcceptable = new Status(406, "Not Acceptable") with EntityResponseGenerator
   val ProxyAuthenticationRequired = new Status(407, "Proxy Authentication Required") with EntityResponseGenerator {
     // TODO type this header
-    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: HeaderCollection = HeaderCollection.empty)(implicit w: Writable[A]): Task[Response] =
+    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
         headers.foldLeft(r.addHeader(Header("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
       }

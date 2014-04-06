@@ -8,7 +8,7 @@ import org.http4s.Challenge
  * @author Bryce Anderson
  *         Created on 1/29/14
  */
-trait WwwAuthenticateHeader {
+private[parser] trait WwwAuthenticateHeader {
 
   def WWW_AUTHENTICATE(value: String) = new AuthenticateParser(value).parse
 

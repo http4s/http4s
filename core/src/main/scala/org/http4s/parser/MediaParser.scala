@@ -7,7 +7,7 @@ import org.parboiled2._
  * @author Bryce Anderson
  *         Created on 12/23/13
  */
-trait MediaParser { self: Http4sHeaderParser[_] =>
+private[parser] trait MediaParser { self: Http4sHeaderParser[_] =>
 
   def MediaRangeDef: Rule1[MediaRange] = rule {
     (("*/*" ~ push("*") ~ push("*"))              |

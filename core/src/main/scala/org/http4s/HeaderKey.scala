@@ -23,15 +23,15 @@ sealed trait HeaderKey {
 }
 
 sealed trait ExtractableHeaderKey extends HeaderKey {
-  def from(headers: HeaderCollection): Option[HeaderT]
-  def unapply(headers: HeaderCollection): Option[HeaderT] = from(headers)
+  def from(headers: Headers): Option[HeaderT]
+  def unapply(headers: Headers): Option[HeaderT] = from(headers)
 }
 
 /**
  * Represents a Header that should not be repeated.
  */
 trait SingletonHeaderKey extends ExtractableHeaderKey {
-  def from(headers: HeaderCollection): Option[HeaderT] = headers.collectFirst(Function.unlift(matchHeader))
+  def from(headers: Headers): Option[HeaderT] = headers.collectFirst(Function.unlift(matchHeader))
 }
 
 /**
@@ -44,14 +44,14 @@ trait RecurringHeaderKey extends ExtractableHeaderKey { self =>
   type GetT = Option[HeaderT]
   def apply(values: NonEmptyList[HeaderT#Value]): HeaderT
   def apply(first: HeaderT#Value, more: HeaderT#Value*): HeaderT = apply(NonEmptyList.apply(first, more: _*))
-  def from(headers: HeaderCollection): Option[HeaderT] = {
-    @tailrec def loop(hs: HeaderCollection, acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
+  def from(headers: Headers): Option[HeaderT] = {
+    @tailrec def loop(hs: Headers, acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
       if (hs.nonEmpty) matchHeader(hs.head) match {
         case Some(header) => loop(hs.tail, acc append header.values)
         case None => loop(hs.tail, acc)
       }
       else acc
-    @tailrec def start(hs: HeaderCollection): Option[HeaderT] =
+    @tailrec def start(hs: Headers): Option[HeaderT] =
       if (hs.nonEmpty) matchHeader(hs.head) match {
         case Some(header) => Some(apply(loop(hs.tail, header.values)))
         case None => start(hs.tail)
@@ -84,7 +84,7 @@ private[http4s] trait StringHeaderKey extends SingletonHeaderKey {
     else None
   }
 
-  override def from(headers: HeaderCollection): Option[HeaderT] = headers.find(_ is this)
+  override def from(headers: Headers): Option[HeaderT] = headers.find(_ is this)
 }
 
 private[http4s] trait DefaultHeaderKey extends InternalHeaderKey[Header] with StringHeaderKey {

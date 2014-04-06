@@ -12,3 +12,5 @@ before_script:
 script: sbt test
 after_success: 
 - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "develop" && sbt publish make-site ghpagesPushSite
+notifications:
+  irc: "chat.freenode.net#http4s"

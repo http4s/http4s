@@ -29,7 +29,7 @@ trait WebSocketSupport extends Http1Stage {
             val body = Process.emit(BodyChunk(msg))
             val rsp = Response(status = Status.BadRequest,
                                body = body,
-                               headers = HeaderCollection(`Content-Length`(msg.length), Connection("close")))
+                               headers = Headers(`Content-Length`(msg.length), Connection("close")))
             super.renderResponse(req, rsp)
 
           case Right(hdrs) =>

@@ -76,12 +76,12 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
       )
     )
 
-  protected def toHeaders(req: HttpServletRequest): HeaderCollection = {
+  protected def toHeaders(req: HttpServletRequest): Headers = {
     val headers = for {
       name <- req.getHeaderNames.asScala
       value <- req.getHeaders(name).asScala
     } yield Header(name, value)
-    HeaderCollection(headers.toSeq : _*)
+    Headers(headers.toSeq : _*)
   }
 }
 

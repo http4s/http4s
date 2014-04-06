@@ -10,7 +10,7 @@ import org.http4s.CacheDirective._
  * @author Bryce Anderson
  *         Created on 1/29/14
  */
-trait CacheControlHeader {
+private[parser] trait CacheControlHeader {
 
   def CACHE_CONTROL(value: String) = new CacheControlParser(value).parse
 

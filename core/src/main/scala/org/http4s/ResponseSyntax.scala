@@ -34,9 +34,9 @@ trait ResponseSyntax {
                   content: String,
                   expires: Option[DateTime] = None): T = addCookie(Cookie(name, content, expires))
 
-    def withHeaders(headers: HeaderCollection): T = translateResponse(_.copy(headers = headers))
+    def withHeaders(headers: Headers): T = translateResponse(_.copy(headers = headers))
 
-    def withHeaders(headers: Header*): T = withHeaders(HeaderCollection(headers.toList))
+    def withHeaders(headers: Header*): T = withHeaders(Headers(headers.toList))
 
     def removeCookie(cookie: Cookie): T =
       translateResponse(_.addHeader(Header.`Set-Cookie`(cookie.copy(content = "",
