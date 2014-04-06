@@ -315,19 +315,6 @@
       </span>
       </h4>
       <p class="comment cmt">Abstract representation o the HTTP header</p>
-    </li><li name="org.http4s.HeaderCollection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="HeaderCollectionextendsSeq[org.http4s.Header]withSeqLike[org.http4s.Header,org.http4s.HeaderCollection]"></a>
-      <a id="HeaderCollection:HeaderCollection"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="HeaderCollection.html"><span class="name">HeaderCollection</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.immutable.Seq" class="extype" target="_top">Seq</a>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>] with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.SeqLike" class="extype" target="_top">SeqLike</a>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a>]</span>
-      </span>
-      </h4>
-      
     </li><li name="org.http4s.HeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="HeaderKeyextendsAnyRef"></a>
       <a id="HeaderKey:HeaderKey"></a>
@@ -341,6 +328,19 @@
       </span>
       </h4>
       <p class="comment cmt"></p>
+    </li><li name="org.http4s.Headers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HeadersextendsSeq[org.http4s.Header]withSeqLike[org.http4s.Header,org.http4s.Headers]"></a>
+      <a id="Headers:Headers"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Headers.html"><span class="name">Headers</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.immutable.Seq" class="extype" target="_top">Seq</a>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>] with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.SeqLike" class="extype" target="_top">SeqLike</a>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>
+      </span>
+      </h4>
+      
     </li><li name="org.http4s.Http4s" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Http4sextendsChunkInstanceswithHttpBodyFunctionswithStatusInstanceswithWritableInstanceswithPushSupport.PushSyntaxwithCaseInsensitiveStringSyntaxwithJodaTimeInstanceswithJodaTimeSyntaxwithTaskInstances"></a>
       <a id="Http4s:Http4s"></a>
@@ -627,7 +627,7 @@ their values with a comma.</p>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Request.html"><span class="name">Request</span></a><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol">Method.Get</span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="defval" name="{<br/>&amp;nbsp;&amp;nbsp;  val x$13: String = &quot;/&quot;;<br/>&amp;nbsp;&amp;nbsp;  val x$14: Option[org.http4s.util.CaseInsensitiveString] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$1;<br/>&amp;nbsp;&amp;nbsp;  val x$15: Option[org.http4s.Uri.Authority] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$2;<br/>&amp;nbsp;&amp;nbsp;  val x$16: Option[org.http4s.Uri.Query] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$4;<br/>&amp;nbsp;&amp;nbsp;  val x$17: Option[org.http4s.Uri.Fragment] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$5;<br/>&amp;nbsp;&amp;nbsp;  Uri.apply(x$14, x$15, x$13, x$16, x$17)<br/>&amp;nbsp;&amp;nbsp;}">...</span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol">ServerProtocol.HTTP/1.1</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol">HttpBody.empty</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Request.html"><span class="name">Request</span></a><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol">Method.Get</span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="defval" name="{<br/>&amp;nbsp;&amp;nbsp;  val x$13: String = &quot;/&quot;;<br/>&amp;nbsp;&amp;nbsp;  val x$14: Option[org.http4s.util.CaseInsensitiveString] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$1;<br/>&amp;nbsp;&amp;nbsp;  val x$15: Option[org.http4s.Uri.Authority] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$2;<br/>&amp;nbsp;&amp;nbsp;  val x$16: Option[org.http4s.Uri.Query] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$4;<br/>&amp;nbsp;&amp;nbsp;  val x$17: Option[org.http4s.Uri.Fragment] @scala.reflect.internal.annotations.uncheckedBounds = Uri.apply$default$5;<br/>&amp;nbsp;&amp;nbsp;  Uri.apply(x$14, x$15, x$13, x$16, x$17)<br/>&amp;nbsp;&amp;nbsp;}">...</span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol">ServerProtocol.HTTP/1.1</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">Headers.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol">HttpBody.empty</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       <p class="comment cmt">Representation of an incoming HTTP message</p>
@@ -653,7 +653,7 @@ their values with a comma.</p>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Response.html"><span class="name">Response</span></a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol">Status.Ok</span></span>, <span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol">HttpBody.empty</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">http4s.ResponseSyntax.ResponseSyntaxBase</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>] with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Response.html"><span class="name">Response</span></a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol">Status.Ok</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">Headers.empty</span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol">HttpBody.empty</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">AttributeMap.empty</span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">http4s.ResponseSyntax.ResponseSyntaxBase</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>] with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       <p class="comment cmt">Representation of the HTTP response to send back to the client
@@ -759,7 +759,7 @@ their values with a comma.</p>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="TrailerChunk.html"><span class="name">TrailerChunk</span></a><span class="params">(<span name="headers">headers: <a href="HeaderCollection.html" class="extype" name="org.http4s.HeaderCollection">HeaderCollection</a> = <span class="symbol">HeaderCollection.empty</span></span>)</span><span class="result"> extends <a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="TrailerChunk.html"><span class="name">TrailerChunk</span></a><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">Headers.empty</span></span>)</span><span class="result"> extends <a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       <p class="comment cmt">Representation of HTTP trailers</p>
@@ -965,16 +965,16 @@ their values with a comma.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.HeaderCollection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="HeaderCollection"></a>
-      <a id="HeaderCollection:HeaderCollection"></a>
+    </li><li name="org.http4s.Headers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Headers"></a>
+      <a id="Headers:Headers"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="HeaderCollection$.html"><span class="name">HeaderCollection</span></a>
+        <a href="Headers$.html"><span class="name">Headers</span></a>
       </span>
       </h4>
       
