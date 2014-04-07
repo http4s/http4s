@@ -50,11 +50,11 @@ trait ProcessWriter {
     * @param p Process[Task, Chunk] to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeProcess(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, halt, _))
+  def writeProcess(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, _))
 
-  final private def go(p: Process[Task, Chunk], cleanup: Process[Task, Chunk], cb: CBType): Unit = p match {
+  final private def go(p: Process[Task, Chunk], cb: CBType): Unit = p match {
     case Emit(seq, tail) =>
-      if (seq.isEmpty) go(tail, cleanup, cb)
+      if (seq.isEmpty) go(tail, cb)
       else {
         val buffandt = copyChunks(seq)
         val buff = buffandt._1
@@ -62,32 +62,36 @@ trait ProcessWriter {
 
         if (trailer == null) {  // TODO: is it worth the complexity to try to predict the tail?
           if (!tail.isInstanceOf[Halt]) writeBodyChunk(buff, true).onComplete {
-            case Success(_) =>             go(tail, cleanup, cb)
-            case Failure(t) =>             cleanup.causedBy(t).run.runAsync(cb)
+            case Success(_) => go(tail, cb)
+            case Failure(t) => tail.killBy(t).run.runAsync(cb)
           }
-
           else { // Tail is a Halt state
             if (tail.asInstanceOf[Halt].cause eq End) {  // Tail is normal termination
-              writeEnd(buff, None).onComplete(completionListener(_, cb, cleanup))
+              writeEnd(buff, None).onComplete(completionListener(_, cb))
             } else {   // Tail is exception
-            val e = tail.asInstanceOf[Halt].cause
-              writeEnd(buff, None).onComplete(completionListener(_, cb, cleanup.causedBy(e)))
+              val e = tail.asInstanceOf[Halt].cause
+              writeEnd(buff, None).onComplete {
+                case Success(_) => cb(-\/(e))
+                case Failure(t) => cb(-\/(new CausedBy(t, e)))
+              }
             }
           }
         }
-
-        else writeEnd(buff, Some(trailer)).onComplete(completionListener(_, cb, cleanup))
+        else writeEnd(buff, Some(trailer)).onComplete {
+          case Success(_) => tail.kill.run.runAsync(cb)
+          case Failure(t) => tail.killBy(t).run.runAsync(cb)
+        }
       }
 
     case Await(t, f, fb, c) => t.runAsync {  // Wait for it to finish, then continue to unwind
-      case \/-(r)   => go(f(r), c, cb)
-      case -\/(End) => go(fb, c, cb)
-      case -\/(t)   => go(c.causedBy(t), halt, cb)
+      case \/-(r)   => go(f(r), cb)
+      case -\/(End) => go(fb, cb)
+      case -\/(t)   => c.drain.causedBy(t).run.runAsync(cb)
     }
 
-    case Halt(End) => writeEnd(BodyChunk(), None).onComplete(completionListener(_, cb, cleanup))
+    case Halt(End) => writeEnd(BodyChunk(), None).onComplete(completionListener(_, cb))
 
-    case Halt(error) => cleanup.causedBy(error).run.runAsync(cb)
+    case Halt(error) => cb(-\/(error))
   }
 
   // Must get a non-empty sequence
@@ -109,8 +113,8 @@ trait ProcessWriter {
     } else go(BodyChunk(), seq)
   }
 
-  private def completionListener(t: Try[_], cb: CBType, cleanup: Process[Task, Chunk]): Unit = t match {
-    case Success(_) =>  cleanup.run.runAsync(cb)
-    case Failure(t) =>  cleanup.causedBy(t).run.runAsync(cb)
+  private def completionListener(t: Try[_], cb: CBType): Unit = t match {
+    case Success(_) =>  cb(\/-())
+    case Failure(t) =>  cb(-\/(t))
   }
 }
