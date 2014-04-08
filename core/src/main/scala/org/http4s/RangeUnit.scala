@@ -19,7 +19,7 @@ import org.http4s.util.{Writer, Renderable}
  * limitations under the License.
  */
 
-sealed abstract class RangeUnit extends HttpValue[String] with Renderable {
+sealed abstract class RangeUnit extends Renderable {
   def value: String
   override def toString = value
   def render[W <: Writer](writer: W) = writer.append(value)

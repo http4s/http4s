@@ -2,11 +2,11 @@ package org.http4s
 
 import java.nio.charset.Charset
 import scala.collection.JavaConverters._
-import org.http4s.util.{Resolvable, Writer, Renderable, CaseInsensitiveString}
+import org.http4s.util._
 import scala.util.hashing.MurmurHash3
 import org.http4s.util.string._
 
-sealed trait CharacterSet extends HttpValue[String] with QualityFactor with Renderable {
+sealed trait CharacterSet extends QualityFactor with Renderable {
 
   def name: CaseInsensitiveString
   def charset: Charset
@@ -43,17 +43,22 @@ private class CharacterSetImpl(val name: CaseInsensitiveString, val q: Q = Q.Uni
   def withQuality(q: Q): CharacterSet = new CharacterSetImpl(name, q)
 }
 
-object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
+// TODO: not finished!
+object CharacterSet extends Registry {
 
-  protected def stringToRegistryKey(s: String): CaseInsensitiveString = s.ci
+  type Key = CaseInsensitiveString
+  type Value = CharacterSet
 
-  protected def fromKey(k: CaseInsensitiveString): CharacterSet = {
+  implicit def fromKey(k: CaseInsensitiveString): CharacterSet = {
     if (k.toString == "*") `*`
     else new CharacterSetImpl(k)
   }
 
-  private def register(name: String): CharacterSet = {
-    val characterSet = new CharacterSetImpl(name.ci)
+  implicit def fromValue(v: CharacterSet): CaseInsensitiveString = v.name
+
+
+  override protected def registerKey(key: CaseInsensitiveString)(implicit ev: (CaseInsensitiveString) => CharacterSet): CharacterSet = {
+    val characterSet = ev(key.ci)
     register(characterSet.name, characterSet)
     for (alias <- characterSet.charset.aliases.asScala) register(alias.ci, characterSet)
     characterSet
@@ -69,12 +74,12 @@ object CharacterSet extends Resolvable[CaseInsensitiveString, CharacterSet] {
   val `*`: CharacterSet = new AnyCharset(Q.Unity)
 
   // These six are guaranteed to be on the Java platform. Others are your gamble.
-  val `US-ASCII`     = register("US-ASCII")
-  val `ISO-8859-1`   = register("ISO-8859-1")
-  val `UTF-8`        = register("UTF-8")
-  val `UTF-16`       = register("UTF-16")
-  val `UTF-16BE`     = register("UTF-16BE")
-  val `UTF-16LE`     = register("UTF-16LE")
+  val `US-ASCII`     = registerKey("US-ASCII".ci)
+  val `ISO-8859-1`   = registerKey("ISO-8859-1".ci)
+  val `UTF-8`        = registerKey("UTF-8".ci)
+  val `UTF-16`       = registerKey("UTF-16".ci)
+  val `UTF-16BE`     = registerKey("UTF-16BE".ci)
+  val `UTF-16LE`     = registerKey("UTF-16LE".ci)
 
 
   // Charset are sorted by the quality value, from greatest to least

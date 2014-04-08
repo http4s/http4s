@@ -93,7 +93,7 @@ object StaticFile extends Logging {
     val mimeheader = Option(Files.probeContentType(f.toPath)).flatMap { mime =>
       val parts = mime.split('/')
       if (parts.length == 2) {
-        MediaType.lookup( (parts(0), parts(1)) ).map(`Content-Type`(_))
+        MediaType.get( (parts(0), parts(1)) ).map(`Content-Type`(_))
       } else None
     }
 

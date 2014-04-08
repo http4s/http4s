@@ -22,12 +22,7 @@ private[parser] trait MediaParser { self: Http4sHeaderParser[_] =>
   }
 
   private def getMediaRange(mainType: String, subType: String): MediaRange = {
-    if (subType == "*") {
-      val mainTypeLower = mainType.toLowerCase
-      MediaRange.resolve(mainTypeLower)
-    } else {
-      MediaType.lookupOrElse((mainType.toLowerCase, subType.toLowerCase),
-        new MediaType(mainType, subType))
-    }
+    if (subType == "*") MediaRange.getOrElseCreate(mainType.toLowerCase)
+    else MediaType.getOrElseCreate((mainType.toLowerCase, subType.toLowerCase))
   }
 }

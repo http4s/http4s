@@ -4,6 +4,7 @@ package parser
 import org.parboiled2._
 import ContentCoding._
 import org.http4s.Header.`Accept-Encoding`
+import org.http4s.util.CaseInsensitiveString
 
 private[parser] trait AcceptEncodingHeader {
 
@@ -26,7 +27,10 @@ private[parser] trait AcceptEncodingHeader {
     }
 
     def EncodingRangeDef: Rule1[ContentCoding] = rule {
-      "*" ~ push(`*`) | Token ~> (org.http4s.ContentCoding.resolve(_))
+      "*" ~ push(`*`) | Token ~> { s: String =>
+        val cis = CaseInsensitiveString(s)
+        org.http4s.ContentCoding.getOrElseCreate(cis)
+      }
     }
 
     def EncodingQuality: Rule1[Q] = rule {

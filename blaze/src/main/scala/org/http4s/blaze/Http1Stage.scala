@@ -17,7 +17,8 @@ import scala.collection.mutable.ListBuffer
 import scala.util.{Success, Failure}
 
 import org.http4s.Status.{InternalServerError, NotFound}
-import org.http4s.util.{CaseInsensitiveString, StringWriter}
+import org.http4s.util.StringWriter
+import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{Connection, `Content-Length`}
 import org.http4s.blaze.http_parser.BaseExceptions.{BadRequest, ParserException}
 import http_parser.Http1ServerParser
@@ -91,13 +92,13 @@ class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[By
 
     Uri.fromString(this.uri) match {
       case Success(uri) =>
-        Request(Method.resolve(this.method),
+        Request(Method.getOrElse(this.method, Method.fromKey(this.method)),
           uri,
           if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`,
           h, body)
 
       case Failure(_: ParseError) =>
-        val req = Request(requestUri = Uri(Some(CaseInsensitiveString(this.uri))), headers = h)
+        val req = Request(requestUri = Uri(Some(this.uri.ci)), headers = h)
         badRequest("Error parsing Uri", new BadRequest(s"Bad request URI: ${this.uri}"), req)
         null
 

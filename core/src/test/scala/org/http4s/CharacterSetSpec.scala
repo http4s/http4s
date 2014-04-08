@@ -6,25 +6,27 @@ import org.http4s.util.string._
 class CharacterSetSpec extends WordSpec with Matchers {
   import CharacterSet._
 
+  def resolve(str: String) = CharacterSet.getOrElseCreate(str.ci)
+
   "CharacterSet.apply" should {
     "check the registry" in {
-      CharacterSet.resolve("UTF-8") should be theSameInstanceAs `UTF-8`
+      resolve("UTF-8") should be theSameInstanceAs `UTF-8`
     }
 
     "be case-insensitive" in {
-      CharacterSet.resolve("utf-8") should be theSameInstanceAs `UTF-8`
+      resolve("utf-8") should be theSameInstanceAs `UTF-8`
     }
 
     "check common aliases" in {
-      CharacterSet.resolve("UTF8") should be theSameInstanceAs `UTF-8`
+      resolve("UTF8") should be theSameInstanceAs `UTF-8`
     }
 
     "create new charsets if supported by the JVM" in {
-      CharacterSet.resolve("ISO-8859-2").name should equal ("ISO-8859-2".ci)
+      resolve("ISO-8859-2").name should equal ("ISO-8859-2".ci)
     }
 
     "fail for unknown charsets" in {
-      an [IllegalArgumentException] should be thrownBy CharacterSet.resolve("derp")
+      an [IllegalArgumentException] should be thrownBy resolve("derp")
     }
   }
 

@@ -3,7 +3,9 @@ package parser
 
 import org.parboiled2._
 import CharacterSet._
-import org.http4s.Header.`Accept-Charset`
+import Header.`Accept-Charset`
+import util.CaseInsensitiveString._
+
 
 private[parser] trait AcceptCharsetHeader {
 
@@ -19,7 +21,7 @@ private[parser] trait AcceptCharsetHeader {
     def CharsetRangeDecl: Rule1[CharacterSet] = rule {
       ("*" ~ CharsetQuality) ~> { q => if (q.intValue != Q.MAX_VALUE) `*`.withQuality(q) else `*` } |
         ((Token ~ CharsetQuality) ~> { (s: String, q: Q) =>
-        val c = CharacterSet.resolve(s)
+        val c = CharacterSet.getOrElseCreate(s.ci)
         if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c
       })
     }

@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.{Resolvable, CaseInsensitiveString}
+import org.http4s.util.{Registry, CaseInsensitiveString}
 import org.http4s.util.string._
 import org.http4s.parser.ServerProtocolParser
 
@@ -9,18 +9,20 @@ import org.http4s.parser.ServerProtocolParser
  *
  * http://www.ietf.org/rfc/rfc3875, section 4.1.16
  */
-sealed trait ServerProtocol extends HttpValue[CaseInsensitiveString] {
+sealed trait ServerProtocol {
   def value: CaseInsensitiveString
+  override def toString() = value.toString
 }
 
-object ServerProtocol extends Resolvable[CaseInsensitiveString, ServerProtocol] {
-  protected def stringToRegistryKey(s: String): CaseInsensitiveString = s.ci
+object ServerProtocol extends Registry {
 
-  protected def fromKey(k: CaseInsensitiveString): ServerProtocol =
+  type Key = CaseInsensitiveString
+  type Value = ServerProtocol
+
+  implicit def fromValue(v: ServerProtocol): Key = v.value
+
+  implicit def fromKey(k: CaseInsensitiveString): ServerProtocol =
     ServerProtocolParser(k.toString).fold(e => throw new ParseException(e), identity)
-
-  def register[A <: ServerProtocol](serverProtocol: A): serverProtocol.type =
-    register(serverProtocol.value, serverProtocol)
 
   final case class HttpVersion(major: Int, minor: Int) extends ServerProtocol {
     val value: CaseInsensitiveString = s"HTTP/${major}.${minor}".ci
@@ -34,13 +36,14 @@ object ServerProtocol extends Resolvable[CaseInsensitiveString, ServerProtocol] 
     }
   }
 
-  val `HTTP/1.1`: HttpVersion = register(new HttpVersion(1, 1))
-  val `HTTP/1.0`: HttpVersion = register(new HttpVersion(1, 0))
+  val `HTTP/1.1` = registerValue(new HttpVersion(1, 1))
+  val `HTTP/1.0` = registerValue(new HttpVersion(1, 0))
 
   case object INCLUDED extends ServerProtocol {
     val value = "INCLUDED".ci
   }
-  register(INCLUDED)
+
+  registerValue(INCLUDED)
 
   case class ExtensionVersion(protocol: CaseInsensitiveString, version: Option[Version] = None) extends ServerProtocol
   {

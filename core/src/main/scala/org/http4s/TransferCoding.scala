@@ -1,28 +1,22 @@
 package org.http4s
 
-import org.http4s.util.{Writer, Renderable, Resolvable, CaseInsensitiveString}
+import org.http4s.util._
 import org.http4s.util.string._
 
 final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
   def render[W <: Writer](writer: W) = writer.append(coding.toString)
 }
 
-object TransferCoding extends Resolvable[CaseInsensitiveString, TransferCoding] {
-  protected def stringToRegistryKey(s: String): CaseInsensitiveString = s.ci
+object TransferCoding extends Registry {
+  type Key = CaseInsensitiveString
+  type Value = TransferCoding
 
-  protected def fromKey(k: CaseInsensitiveString): TransferCoding = new TransferCoding(k)
-
-  def register(encoding: TransferCoding): TransferCoding = {
-    register(encoding.coding, encoding)
-    encoding
-  }
-
-  def register(value: String): TransferCoding = TransferCoding(value.ci)
+  implicit def fromKey(k: CaseInsensitiveString): TransferCoding = new TransferCoding(k)
 
   // http://www.iana.org/assignments/http-parameters/http-parameters.xml#http-parameters-2
-  val chunked        = register("chunked")
-  val compress       = register("compress")
-  val deflate        = register("deflate")
-  val gzip           = register("gzip")
-  val identity       = register("identity")
+  val chunked        = registerKey("chunked".ci)
+  val compress       = registerKey("compress".ci)
+  val deflate        = registerKey("deflate".ci)
+  val gzip           = registerKey("gzip".ci)
+  val identity       = registerKey("identity".ci)
 }
