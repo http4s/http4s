@@ -35,14 +35,14 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerProtocol</span><span class="result"> extends <span class="extype" name="org.http4s.HttpValue">HttpValue</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</span>
+        <span class="name">ServerProtocol</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>The Server Protocol of a request.</p><p>http://www.ietf.org/rfc/rfc3875, section 4.1.16
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.HttpValue">HttpValue</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>], <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
           <span class="toggle">Known Subclasses</span>
           <div class="subClasses hiddenContent"><a href="ServerProtocol$$ExtensionVersion.html" class="extype" name="org.http4s.ServerProtocol.ExtensionVersion">ExtensionVersion</a>, <a href="ServerProtocol$$HttpVersion.html" class="extype" name="org.http4s.ServerProtocol.HttpVersion">HttpVersion</a>, <a href="ServerProtocol$$INCLUDED$.html" class="extype" name="org.http4s.ServerProtocol.INCLUDED">INCLUDED</a></div>
@@ -63,7 +63,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.ServerProtocol"><span>ServerProtocol</span></li><li class="in" name="org.http4s.HttpValue"><span>HttpValue</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.ServerProtocol"><span>ServerProtocol</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -87,7 +87,7 @@
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.ServerProtocol#value" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.ServerProtocol#value" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="value:org.http4s.util.CaseInsensitiveString"></a>
       <a id="value:CaseInsensitiveString"></a>
       <h4 class="signature">
@@ -99,7 +99,7 @@
         <span class="name">value</span><span class="result">: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> → HttpValue</dd></dl></div>
+      
     </li></ol>
             </div>
 
@@ -338,7 +338,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.HttpValue#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.ServerProtocol#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
       <h4 class="signature">
@@ -347,10 +347,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>HttpValue → AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -417,9 +417,7 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.HttpValue">
-              <h3>Inherited from <span class="extype" name="org.http4s.HttpValue">HttpValue</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>]</h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
