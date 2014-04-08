@@ -30,8 +30,6 @@ class AcceptLanguageSpec  extends WordSpec with Matchers with HeaderParserHelper
     "Parse properly" in {
       parse(en.value) should equal(en)
       parse(enq5.value) should equal(enq5)
-      println(en_cool.values)
-      println(parse(en_cool.value).values)
       parse(en_cool.value) should equal(en_cool)
     }
 

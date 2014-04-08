@@ -7,6 +7,8 @@ import scala.collection.JavaConverters._
 import javax.servlet.{ServletConfig, AsyncContext}
 
 import Http4sServlet._
+import util.CaseInsensitiveString._
+
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.concurrent.Task
 import scalaz.stream.io._
@@ -73,9 +75,9 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
 
   protected def toRequest(req: HttpServletRequest): Request =
     Request(
-      requestMethod = Method.resolve(req.getMethod),
+      requestMethod = Method.getOrElse(req.getMethod, Method.fromKey(req.getMethod)),
       requestUri = Uri.fromString(req.getRequestURI).get,
-      protocol = ServerProtocol.resolve(req.getProtocol),
+      protocol = ServerProtocol.getOrElse(req.getProtocol.ci, ServerProtocol.fromKey(req.getProtocol.ci)),
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,
       attributes = AttributeMap(

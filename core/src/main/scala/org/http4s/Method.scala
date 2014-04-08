@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.Resolvable
+import org.http4s.util.Registry
 
 /**
  * An HTTP method.
@@ -17,10 +17,12 @@ sealed abstract case class Method (name: String) {
 //  def /(path: String): Path = new /(this, Path(path))
 }
 
-object Method extends Resolvable[String, Method] {
-  protected def stringToRegistryKey(s: String): String = s
+object Method extends Registry {
+  type Key = String
+  type Value = Method
 
-  protected def fromKey(k: String): Method = notIdempotent(k)
+  implicit def fromKey(k: String): Method = notIdempotent(k)
+  implicit def fromValue(m: Method): String = m.name
 
   private def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
   private def idempotent(name: String): Method = new MethodImpl(name, false, true)
@@ -28,20 +30,15 @@ object Method extends Resolvable[String, Method] {
 
   private class MethodImpl(name: String, val isSafe: Boolean, val isIdempotent: Boolean) extends Method(name)
 
-  private def register(method: Method): method.type = {
-    register(method.name, method)
-    method
-  }
-
-  val Options = register(idempotent("OPTIONS"))
-  val Get = register(safe("GET"))
-  val Head = register(safe("HEAD"))
-  val Post = register(notIdempotent("POST"))
-  val Put = register(idempotent("PUT"))
-  val Delete = register(idempotent("DELETE"))
-  val Trace = register(idempotent("TRACE"))
-  val Connect = register(notIdempotent("CONNECT"))
-  val Patch = register(notIdempotent("PATCH"))
+  val Options = registerValue(idempotent("OPTIONS"))
+  val Get = registerValue(safe("GET"))
+  val Head = registerValue(safe("HEAD"))
+  val Post = registerValue(notIdempotent("POST"))
+  val Put = registerValue(idempotent("PUT"))
+  val Delete = registerValue(idempotent("DELETE"))
+  val Trace = registerValue(idempotent("TRACE"))
+  val Connect = registerValue(notIdempotent("CONNECT"))
+  val Patch = registerValue(notIdempotent("PATCH"))
 
   /**
    * Returns a set of all registered methods.

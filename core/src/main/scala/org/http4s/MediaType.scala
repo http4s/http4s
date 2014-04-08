@@ -3,12 +3,12 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
-import org.http4s.util.{Resolvable, Writer, Renderable}
+import org.http4s.util.{Registry, Writer, Renderable}
 
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Q = Q.Unity,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends HttpValue[String] with QualityFactor with Renderable {
+                                        extends QualityFactor with Renderable {
 
   def render[W <: Writer](writer: W) = {
     writer ~ mainType ~ "/*"~ q
@@ -65,31 +65,27 @@ sealed class MediaRange private[http4s](val mainType: String,
   }
 }
 
-object MediaRange extends Resolvable[String, MediaRange] {
-  protected def stringToRegistryKey(s: String): String = s
+object MediaRange extends Registry {
+  type Key = String
+  type Value = MediaRange
 
-  protected def fromKey(k: String): MediaRange = {
-        val parts = k.split('/')
-        if (parts.length < 2 || parts(1) != "*")
-          throw new IllegalArgumentException(k + " is not a valid media-type")
-        new MediaRange(parts(0))
-      }
-
-  def register(mediaRange: MediaRange): MediaRange = {
-    register(mediaRange.mainType.toLowerCase, mediaRange)
-    mediaRange
+  implicit def fromKey(k: String): MediaRange = {
+    val parts = k.split('/')
+    if (parts.length < 2) new MediaRange(parts(0))
+    else if (parts(1) != "*") throw new IllegalArgumentException(k + " is not a valid media-type")
+    else new MediaRange(parts(0))
   }
 
-  def register(range: String): MediaRange = register(fromKey(range))
+  implicit def fromValue(v: MediaRange): String = v.mainType.toLowerCase
 
-  val `*/*`           = register ("*/*")
-  val `application/*` = register("application/*")
-  val `audio/*`       = register("audio/*")
-  val `image/*`       = register("image/*")
-  val `message/*`     = register("message/*")
-  val `multipart/*`   = register("multipart/*")
-  val `text/*`        = register("text/*")
-  val `video/*`       = register("video/*")
+  val `*/*`           = registerKey("*")
+  val `application/*` = registerKey("application")
+  val `audio/*`       = registerKey("audio")
+  val `image/*`       = registerKey("image")
+  val `message/*`     = registerKey("message")
+  val `multipart/*`   = registerKey("multipart")
+  val `text/*`        = registerKey("text")
+  val `video/*`       = registerKey("video")
 }
 
 sealed class MediaType(mainType: String,
@@ -138,23 +134,21 @@ sealed class MediaType(mainType: String,
   override def toString = "MediaType(" + value + ')'
 }
 
-object MediaType extends Resolvable[(String, String), MediaType] {
+
+object MediaType extends Registry {
+  type Key = (String, String)
+  type Value = MediaType
+
   // TODO error handling
-  protected def stringToRegistryKey(s: String): (String, String) = s.split("/", 2) match {
-    case Array(main, sub) => (main, sub)
-  }
+//  protected def stringToRegistryKey(s: String): (String, String) = s.split("/", 2) match {
+//    case Array(main, sub) => (main, sub)
+//  }
 
-  protected def fromKey(k: (String, String)): MediaType = new MediaType(k._1, k._2)
-
-  override def lookup(key: (String, String)): Option[MediaType] = super.lookup(key)
-
-  override def lookupOrElse(key: (String, String), default: => MediaType): MediaType = super.lookupOrElse(key, default)
+  implicit def fromKey(k: (String, String)): MediaType = new MediaType(k._1, k._2)
 
   def unapply(mimeType: MediaType): Option[(String, String)] = Some((mimeType.mainType, mimeType.subType))
 
   private[this] val extensionMap = new AtomicReference(Map.empty[String, MediaType])
-
-
 
   @tailrec
   private def registerFileExtension(ext: String, mediaType: MediaType) {

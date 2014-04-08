@@ -3,6 +3,7 @@ package parser
 
 import org.parboiled2._
 import Header._
+import org.http4s.util.CaseInsensitiveString
 
 private[parser] trait ContentTypeHeader {
 
@@ -22,7 +23,8 @@ private[parser] trait ContentTypeHeader {
         var ext = Map.empty[String, String]
 
         exts.foreach(_.foreach { case p @ (k, v) =>
-          if (k == "charset") charset = Some(CharacterSet.resolve(v))
+          val civalue = CaseInsensitiveString(v)
+          if (k == "charset") charset = Some(CharacterSet.getOrElseCreate(civalue))
           else ext += p
         })
 

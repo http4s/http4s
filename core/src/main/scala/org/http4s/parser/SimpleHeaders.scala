@@ -4,6 +4,7 @@ package parser
 
 import Header._
 import java.net.InetAddress
+import org.http4s.util.CaseInsensitiveString._
 
 /**
  * parser rules for all headers that can be parsed with one simple rule
@@ -24,7 +25,9 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
   }.parse
 
   def CONTENT_ENCODING(value: String) = new Http4sHeaderParser[`Content-Encoding`](value) {
-    def entry = rule { Token ~ EOL ~> {s: String => Header.`Content-Encoding`(ContentCoding.resolve(s))} }
+    def entry = rule { Token ~ EOL ~> {s: String =>
+      Header.`Content-Encoding`(ContentCoding.getOrElseCreate(s.ci))}
+    }
   }.parse
 
   def CONTENT_DISPOSITION(value: String) = new Http4sHeaderParser[`Content-Disposition`](value) {

@@ -1,8 +1,9 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.parboiled2.{Rule0, Rule1, ParserInput}
 import org.http4s.Header.Authorization
-import org.http4s.{GenericCredentials, OAuth2BearerToken, BasicCredentials, Header}
+import org.http4s.util.CaseInsensitiveString._
 
 /**
  * @author Bryce Anderson
@@ -35,7 +36,8 @@ private[parser] trait AuthorizationHeader {
 
     def GenericHttpCredentialsDef = rule {
       Token ~ OptWS ~ CredentialParams ~> { (scheme: String, params: Map[String, String]) =>
-        GenericCredentials(org.http4s.AuthScheme.getOrCreate(scheme), params) }
+        val s = scheme.ci
+        GenericCredentials(AuthScheme.getOrElseCreate(s), params) }
     }
 
     def CredentialParams: Rule1[Map[String, String]] = rule {

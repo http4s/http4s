@@ -5,15 +5,14 @@ import util.string._
 
 sealed case class AuthScheme (name: CaseInsensitiveString)
 
-object AuthScheme extends Registry[CaseInsensitiveString, AuthScheme] {
-  def getOrCreate(name: String): AuthScheme = {
-    val key = name.ci
-    lookup(key).getOrElse(new AuthScheme(key))
-  }
+object AuthScheme extends Registry{
+  type Key = CaseInsensitiveString
+  type Value = AuthScheme
 
-  def register(authScheme: AuthScheme): AuthScheme = register(authScheme.name, authScheme)
+  implicit def fromValue(v: AuthScheme) = v.name
+  implicit def fromKey(k: Key) = AuthScheme(k)
 
-  val Basic = register(AuthScheme("Basic".ci))
-  val Digest = register(AuthScheme("Digest".ci))
-  val Bearer = register(AuthScheme("Bearer".ci))
+  val Basic = registerKey("Basic".ci)
+  val Digest = registerKey("Digest".ci)
+  val Bearer = registerKey("Bearer".ci)
 }
