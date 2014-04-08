@@ -8,6 +8,9 @@ import org.http4s.util.string._
 
 sealed trait CharacterSet extends QualityFactor with Renderable {
 
+  override def value = name.toString
+  override def toString = value
+
   def name: CaseInsensitiveString
   def charset: Charset
   def q: Q

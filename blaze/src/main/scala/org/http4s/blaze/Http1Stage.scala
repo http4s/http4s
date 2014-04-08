@@ -92,7 +92,7 @@ class Http1Stage(service: HttpService) extends Http1ServerParser with TailStage[
 
     Uri.fromString(this.uri) match {
       case Success(uri) =>
-        Request(Method.getOrElse(this.method, Method.fromKey(this.method)),
+        Request(Method.getOrElseCreate(this.method),
           uri,
           if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`,
           h, body)
