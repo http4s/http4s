@@ -29,7 +29,7 @@ import scalaz.{\/-, -\/}
 import org.parboiled2.ParseError
 
 
-class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[ByteBuffer] {
+class Http1Stage(service: HttpService) extends Http1ServerParser with TailStage[ByteBuffer] {
 
   protected implicit def ec = directec
 
@@ -113,8 +113,7 @@ class Http1Stage(route: HttpService) extends Http1ServerParser with TailStage[By
 
     val req = collectRequest(body)
     if (req != null) {
-      val resp = try route(req) catch {
-        case _: MatchError => NotFound(req)
+      val resp = try service.applyOrElse(req, NotFound(_: Request)) catch {
         case t: Throwable =>
           logger.error(s"Error running route: $req", t)
           InternalServerError("500 Internal Service Error\n" + t.getMessage)

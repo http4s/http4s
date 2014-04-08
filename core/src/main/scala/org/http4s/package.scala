@@ -13,10 +13,10 @@ import java.util.Locale
 
 package object http4s {
 
-  /** A function which defines the transformation of [[Request]] to a scalaz.concurrent.Task[Response]
+  /** A PartialFunction which defines the transformation of [[Request]] to a scalaz.concurrent.Task[Response]
     * containing the [[Response]]
     */
-  type HttpService = Request => Task[Response]
+  type HttpService = PartialFunction[Request,Task[Response]]
 
   /** The scalaz.stream.Process[Task,Chunk] representing the body of the [[Response]]
      */

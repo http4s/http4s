@@ -22,10 +22,9 @@ import HttpBody._
 class HttpBodySpec extends WordSpec with Matchers {
   "xml" should {
 
-    val server = new MockServer({req =>
-      xml(req).flatMap{ elem => Ok(elem.label) }
-        .handle{ case t: SAXParseException =>
-        Status.BadRequest().run }
+    val server = new MockServer({
+      case req => xml(req).flatMap{ elem => Ok(elem.label) }
+                    .handle{ case t: SAXParseException => Status.BadRequest().run }
     })
 
     "parse the XML" in {

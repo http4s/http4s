@@ -22,9 +22,9 @@ import org.http4s.examples.ExampleRoute
 */
 class BlazeExample(port: Int) {
 
-  val route = new ExampleRoute().apply()
+  val route = URITranslation.translateRoot("/http4s")(new ExampleRoute().apply())
 
-  def f(): LeafBuilder[ByteBuffer] = new Http1Stage(URITranslation.translateRoot("/http4s")(route))
+  def f(): LeafBuilder[ByteBuffer] = new Http1Stage(route)
 
   private val factory = new SocketServerChannelFactory(f, 12, 8*1024)
 

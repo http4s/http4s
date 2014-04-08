@@ -43,30 +43,31 @@ object GZip extends Logging {
   // TODO      zipping and buffering all the input. Just a thought.
   def apply(route: HttpService, buffersize: Int = 512): HttpService = {
 
-    def request(req: Request): Task[Response] = {
-      //Header.`Accept-Encoding` req.prelude.headers
-      val t = route(req)
-      req.headers.get(`Accept-Encoding`).fold(t){ h =>
-        if (h.satisfiedBy(ContentCoding.gzip) || h.satisfiedBy(ContentCoding.`x-gzip`)) t.map { resp =>
+    new HttpService {
+      override def isDefinedAt(x: Request): Boolean = route.isDefinedAt(x)
+
+      override def apply(req: Request): Task[Response] = {
+        //Header.`Accept-Encoding` req.prelude.headers
+        val t = route(req)
+        req.headers.get(`Accept-Encoding`).fold(t){ h =>
+          if (h.satisfiedBy(ContentCoding.gzip) || h.satisfiedBy(ContentCoding.`x-gzip`)) t.map { resp =>
           // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
-          val contentType = resp.headers.get(`Content-Type`)
-          if (resp.headers.get(`Content-Encoding`).isEmpty &&
+            val contentType = resp.headers.get(`Content-Type`)
+            if (resp.headers.get(`Content-Encoding`).isEmpty &&
               (contentType.isEmpty ||
-               contentType.get.mediaType.compressible ||
-              (contentType.get.mediaType eq MediaType.`application/octet-stream`))) {
-            logger.trace("GZip middleware encoding content")
-            val b = resp.body.pipe(streamingGZip(buffersize))
-            resp.removeHeader(`Content-Length`)
-              .addHeader(`Content-Encoding`(ContentCoding.gzip))
-              .copy(body = b)
-          }
-          else resp  // Don't touch it, Content-Encoding already set
-        } else t
+                contentType.get.mediaType.compressible ||
+                (contentType.get.mediaType eq MediaType.`application/octet-stream`))) {
+              logger.trace("GZip middleware encoding content")
+              val b = resp.body.pipe(streamingGZip(buffersize))
+              resp.removeHeader(`Content-Length`)
+                .addHeader(`Content-Encoding`(ContentCoding.gzip))
+                .copy(body = b)
+            }
+            else resp  // Don't touch it, Content-Encoding already set
+          } else t
+        }
       }
-
     }
-
-    request
   }
 
 }

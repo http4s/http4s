@@ -69,18 +69,19 @@ object PushSupport extends Logging {
    * @param verify method that determines if the location should be pushed
    * @return      Transformed route
    */
-  def apply(route: HttpService, verify: String => Boolean = _ => true): HttpService = {
-    def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
+  def apply(route: HttpService, verify: String => Boolean = _ => true): HttpService = new HttpService {
+
+    def apply(v1: Request): Task[Response] = gather(v1, route(v1))
+
+    def isDefinedAt(x: Request): Boolean = route.isDefinedAt(x)
+
+    private def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
       resp.attributes.get(pushLocationKey).map { fresource =>
         val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, verify, route)
         resp.copy(
           body = resp.body,
           attributes = resp.attributes.put(pushResponsesKey, collected))
       }.getOrElse(resp)
-    }
-
-    new HttpService {
-      def apply(v1: Request): Task[Response] = gather(v1, route(v1))
     }
   }
 

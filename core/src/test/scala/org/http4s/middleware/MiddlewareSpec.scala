@@ -15,7 +15,7 @@ import scalaz.concurrent.Task
 class MiddlewareSpec extends WordSpec with Matchers {
   import middleware.URITranslation._
 
-  val pingReq = Request(requestUri = Uri.fromString("/rootPath/ping").get)
+  val pingReq     = Request(requestUri = Uri.fromString("/rootPath/ping").get)
 
   val awareReq = Request(requestUri = Uri.fromString("/rootPath/checktranslate").get)
 
@@ -39,7 +39,12 @@ class MiddlewareSpec extends WordSpec with Matchers {
 
     "Be undefined at non-matching address" in {
       val req = Request(requestMethod = Method.Post,requestUri = Uri.fromString("/foo/echo").get)
+      val badpingReq1 = Request(requestUri = Uri.fromString("/rootPat/ping").get)
+      val badpingReq2 = Request(requestUri = Uri.fromString("/rootPathh/ping").get)
+
       server.apply(req).run.statusLine should equal (Status.NotFound)
+      server.apply(badpingReq1).run.statusLine should equal (Status.NotFound)
+      server.apply(badpingReq2).run.statusLine should equal (Status.NotFound)
     }
 
 

@@ -8,7 +8,7 @@ Future versions will also include a HTTP client, and a basic one can be found in
 ### Make a HttpService ###
 
 If you want to use http4s standalone, all you need to do is define a HttpService, and fire up a backend.
-A HttpService is just a function transforming a Request into a Task[Response]. http4s provides a variety
+A HttpService is just a PartialFunction[Request,Task[Response]]. http4s provides a variety
 of helpers to facilitate the creation of the Task[Response] from common results.
 
 ```scala
@@ -19,6 +19,15 @@ val route: HttpService = {
     // We could make a Task[Response] manually, but we use the
     // EntityResponseGenerator 'Ok' for convenience
     Ok("Hello, better world.")
+```
+
+Not only does making a HttpService a PartialFunction make it simple to define a service,
+it also makes it easy to compose them. Adding Gzip compression or translating the path is
+as simple as applying a middleware to a HttpService.
+
+```scala
+val wcompression = middleware.GZip(route)
+val translated   = middleware.URITranslation.translateRoot("/http4s")(route)
 ```
 
 ### Run your HttpService using Jetty ###

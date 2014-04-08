@@ -48,7 +48,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
   private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
-      service(request).flatMap { response =>
+      service.applyOrElse(request, Status.NotFound(_: Request)).flatMap { response =>
         servletResponse.setStatus(response.status.code, response.status.reason)
         for (header <- response.headers)
           servletResponse.addHeader(header.name.toString, header.value)
