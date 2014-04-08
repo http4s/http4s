@@ -408,18 +408,18 @@
       </h4>
       
     </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpService=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="HttpService:(Request)⇒Task[Response]"></a>
+      <a id="HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]"></a>
+      <a id="HttpService:HttpService"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpService</span><span class="result"> = (<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">HttpService</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.PartialFunction" class="extype" target="_top">PartialFunction</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>
       </span>
       </h4>
-      <p class="shortcomment cmt">A function which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>A function which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.concurrent.Task[Response]
+      <p class="shortcomment cmt">A PartialFunction which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>A PartialFunction which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.concurrent.Task[Response]
 containing the <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>
 </p></div></div>
     </li><li name="org.http4s.LanguageTag" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
