@@ -36,7 +36,7 @@ sealed trait CharacterSet extends QualityFactor with Renderable {
 private class CharacterSetImpl(val name: CaseInsensitiveString, val q: Q = Q.Unity)
                                     extends CharacterSet {
 
-  val charset: Charset = Charset.forName(name.toString)
+  lazy val charset: Charset = Charset.forName(name.toString)
 
   def satisfiedBy(characterSet: CharacterSet): Boolean = {
     this.name == characterSet.name  &&
@@ -83,7 +83,6 @@ object CharacterSet extends Registry {
   val `UTF-16`       = registerKey("UTF-16".ci)
   val `UTF-16BE`     = registerKey("UTF-16BE".ci)
   val `UTF-16LE`     = registerKey("UTF-16LE".ci)
-
 
   // Charset are sorted by the quality value, from greatest to least
   implicit def characterSetrOrdering = new Ordering[CharacterSet] {

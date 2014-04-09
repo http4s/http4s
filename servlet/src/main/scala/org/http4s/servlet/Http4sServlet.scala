@@ -77,7 +77,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
     Request(
       requestMethod = Method.getOrElse(req.getMethod, Method.fromKey(req.getMethod)),
       requestUri = Uri.fromString(req.getRequestURI).get,
-      protocol = ServerProtocol.getOrElse(req.getProtocol.ci, ServerProtocol.fromKey(req.getProtocol.ci)),
+      protocol = ServerProtocol.getOrElseCreate(req.getProtocol.ci),
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,
       attributes = AttributeMap(

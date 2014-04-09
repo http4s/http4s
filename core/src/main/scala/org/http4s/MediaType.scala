@@ -140,11 +140,8 @@ object MediaType extends Registry {
   type Value = MediaType
 
   // TODO error handling
-//  protected def stringToRegistryKey(s: String): (String, String) = s.split("/", 2) match {
-//    case Array(main, sub) => (main, sub)
-//  }
-
   implicit def fromKey(k: (String, String)): MediaType = new MediaType(k._1, k._2)
+  implicit def fromValue(v: MediaType): (String, String) = (v.mainType.toLowerCase, v.subType.toLowerCase)
 
   def unapply(mimeType: MediaType): Option[(String, String)] = Some((mimeType.mainType, mimeType.subType))
 
@@ -159,8 +156,8 @@ object MediaType extends Registry {
     if (!extensionMap.compareAndSet(current, updated)) registerFileExtension(ext, mediaType)
   }
 
-  def register(mediaType: MediaType): MediaType = {
-    register(mediaType.mainType.toLowerCase -> mediaType.subType.toLowerCase, mediaType)
+  override protected def register(key: MediaType.Key, mediaType: MediaType.Value): mediaType.type = {
+    super.register(key, mediaType)
     mediaType.fileExtensions.foreach(registerFileExtension(_, mediaType))
     mediaType
   }
@@ -179,22 +176,22 @@ object MediaType extends Registry {
     }
 
   private[this] def app(subType: String, compressible: Boolean, binary: Boolean, fileExtensions: String*) =
-    register (new MediaType("application", subType, compressible, binary, fileExtensions))
+    registerValue(new MediaType("application", subType, compressible, binary, fileExtensions))
 
   private[this] def aud(subType: String, compressible: Boolean, fileExtensions: String*) =
-    register (new MediaType("audio", subType, compressible, binary, fileExtensions))
+    registerValue(new MediaType("audio", subType, compressible, binary, fileExtensions))
 
   private[this] def img(subType: String, compressible: Boolean, binary: Boolean, fileExtensions: String*) =
-    register (new MediaType("image", subType, compressible, binary, fileExtensions))
+    registerValue(new MediaType("image", subType, compressible, binary, fileExtensions))
 
   private[this] def msg(subType: String, fileExtensions: String*) =
-    register (new MediaType("message", subType, compressible, notBinary, fileExtensions))
+    registerValue(new MediaType("message", subType, compressible, notBinary, fileExtensions))
 
   private[this] def txt(subType: String, fileExtensions: String*) =
-    register (new MediaType("text", subType, compressible, notBinary, fileExtensions))
+    registerValue(new MediaType("text", subType, compressible, notBinary, fileExtensions))
 
   private[this] def vid(subType: String, fileExtensions: String*) =
-    register (new MediaType("video", subType, uncompressible, binary, fileExtensions))
+    registerValue(new MediaType("video", subType, uncompressible, binary, fileExtensions))
 
   val `application/atom+xml`                                                      = app("atom+xml", compressible, notBinary, "atom")
   val `application/base64`                                                        = app("base64", compressible, binary, "mm", "mme")

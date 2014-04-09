@@ -40,8 +40,6 @@ object Method extends Registry {
   val Connect = registerValue(notIdempotent("CONNECT"))
   val Patch = registerValue(notIdempotent("PATCH"))
 
-  /**
-   * Returns a set of all registered methods.
-   */
+  /** Returns a set of all registered methods. */
   def methods: Iterable[Method] = registry.values
 }

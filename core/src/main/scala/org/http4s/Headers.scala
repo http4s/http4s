@@ -3,6 +3,7 @@ package org.http4s
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 
+/** A collection of HTTP Headers */
 final class Headers private (private val headers: List[Header])
   extends AnyRef with immutable.Seq[Header]
   with collection.SeqLike[Header, Headers]
@@ -34,8 +35,10 @@ final class Headers private (private val headers: List[Header])
 object Headers {
   val empty = apply()
 
+  /** Create a new Headers collection from the headers */
   def apply(headers: Header*): Headers = Headers(headers.toList)
 
+  /** Create a new Headers collection from the headers */
   def apply(headers: List[Header]): Headers = new Headers(headers)
 
   implicit def canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =

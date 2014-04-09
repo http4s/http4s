@@ -2,6 +2,7 @@ package org.http4s
 
 import org.scalatest.{WordSpec, Matchers}
 import org.http4s.util.string._
+import java.nio.charset.UnsupportedCharsetException
 
 class CharacterSetSpec extends WordSpec with Matchers {
   import CharacterSet._
@@ -26,7 +27,8 @@ class CharacterSetSpec extends WordSpec with Matchers {
     }
 
     "fail for unknown charsets" in {
-      an [IllegalArgumentException] should be thrownBy resolve("derp")
+      val cs = resolve("derp")
+      an [UnsupportedCharsetException] should be thrownBy cs.charset
     }
   }
 

@@ -11,7 +11,7 @@ import org.http4s.parser.ServerProtocolParser
  */
 sealed trait ServerProtocol {
   def value: CaseInsensitiveString
-  override def toString() = value.toString
+  override def toString = value.toString
 }
 
 object ServerProtocol extends Registry {

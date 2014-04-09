@@ -21,9 +21,9 @@ private[parser] trait AcceptCharsetHeader {
     def CharsetRangeDecl: Rule1[CharacterSet] = rule {
       ("*" ~ CharsetQuality) ~> { q => if (q.intValue != Q.MAX_VALUE) `*`.withQuality(q) else `*` } |
         ((Token ~ CharsetQuality) ~> { (s: String, q: Q) =>
-        val c = CharacterSet.getOrElseCreate(s.ci)
-        if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c
-      })
+          val c = CharacterSet.getOrElseCreate(s.ci)
+          if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c
+        })
     }
 
     def CharsetQuality: Rule1[Q] = rule {
