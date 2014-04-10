@@ -12,6 +12,10 @@ sealed trait CacheDirective extends Product with Renderable {
   def render[W <: Writer](writer: W) = writer.append(value)
 }
 
+/**
+ * A registry of cache-directives, as listed in
+ * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
+ */
 object CacheDirective {
   trait RequestDirective extends CacheDirective
   trait ResponseDirective extends CacheDirective
@@ -20,7 +24,7 @@ object CacheDirective {
     override def value = name + "=" + deltaSeconds.toSeconds
   }
 
-  case class `max-stale`(deltaSeconds: Option[Duration]) extends RequestDirective {
+  case class `max-stale`(deltaSeconds: Option[Duration] = None) extends RequestDirective {
     override def value = name + deltaSeconds.fold("")("=" + _.toSeconds)
   }
 
@@ -32,7 +36,7 @@ object CacheDirective {
 
   case object `no-cache` extends RequestDirective
 
-  case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Nil) extends ResponseDirective {
+  case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty) extends ResponseDirective {
     override def value = name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
@@ -51,6 +55,14 @@ object CacheDirective {
   case object public extends ResponseDirective
 
   case class `s-maxage`(deltaSeconds: Duration) extends ResponseDirective {
+    override def value = name + "=" + deltaSeconds.toSeconds
+  }
+
+  case class `stale-if-error`(deltaSeconds: Duration) extends ResponseDirective {
+    override def value = name + "=" + deltaSeconds.toSeconds
+  }
+
+  case class `stale-while-revalidate`(deltaSeconds: Duration) extends ResponseDirective {
     override def value = name + "=" + deltaSeconds.toSeconds
   }
 
