@@ -24,7 +24,8 @@ class CacheControlSpec extends WordSpec with Matchers with HeaderParserHelper[`C
   val valueless = List(`no-store`, `no-transform`, `only-if-cached`,
                        `public`, `must-revalidate`, `proxy-revalidate`)
 
-  val numberdirectives = List(`max-age`(0.seconds), `min-fresh`(1.second), `s-maxage`(2.seconds))
+  val numberdirectives = List(`max-age`(0.seconds), `min-fresh`(1.second), `s-maxage`(2.seconds),
+                              `stale-if-error`(3.seconds), `stale-while-revalidate`(4.seconds))
 
   val strdirectives = List(`private`("Foo".ci::Nil), `private`(Nil), `no-cache`("Foo".ci::Nil), `no-cache`())
 
