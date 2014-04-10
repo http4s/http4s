@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.{StringWriter, Writer, Renderable}
+import org.http4s.util.{StringWriter, Writer, ValueRenderable}
 
 /**
  * @author Bryce Anderson
@@ -14,7 +14,7 @@ trait QualityFactor {
   def withQuality(q: Q): QualityFactor
 }
 
-final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] with Renderable {
+final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] with ValueRenderable {
 
   def doubleValue: Double = 0.001*(intValue.toDouble)
 
@@ -29,7 +29,7 @@ final case class Q private(intValue: Int) extends AnyRef with Ordering[Q] with R
 
   def compare(x: Q, y: Q): Int = Q.compare(x, y)
 
-  def render[W <: Writer](writer: W) = {
+  def renderValue[W <: Writer](writer: W) = {
     if (intValue == Q.MAX_VALUE) writer
     else {
       writer.append("; q=")

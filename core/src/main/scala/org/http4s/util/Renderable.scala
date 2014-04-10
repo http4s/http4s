@@ -6,8 +6,15 @@ package org.http4s.util
  */
 trait Renderable {
   def render[W <: Writer](writer: W): W
+}
 
-  def value: String = render(new StringWriter).result()
+trait ValueRenderable extends Renderable {
+
+  def renderValue[W <: Writer](writer: W): W
+
+  def render[W <: Writer](writer: W) = renderValue(writer)
+
+  def value: String = renderValue(new StringWriter).result()
 }
 
 trait Writer {

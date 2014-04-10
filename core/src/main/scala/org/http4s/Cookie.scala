@@ -3,7 +3,7 @@ package org.http4s
 import collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
 import org.joda.time.DateTime
-import org.http4s.util.{Writer, Renderable}
+import org.http4s.util.{Writer, ValueRenderable}
 import org.http4s.util.jodaTime._
 
 object RequestCookieJar {
@@ -111,11 +111,11 @@ case class Cookie(
   secure: Boolean = false,
   httpOnly: Boolean = false,
   extension: Option[String] = None
-) extends Renderable {
+) extends ValueRenderable {
 
   override lazy val value: String = super.value
 
-  def render[W <: Writer](writer: W) = {
+  def renderValue[W <: Writer](writer: W) = {
     writer.append(name).append("=\"").append(content).append('"')
     expires.foreach{ e => writer.append("; Expires=").append(e.formatRfc1123) }
     maxAge.foreach(writer.append("; Max-Age=").append(_))

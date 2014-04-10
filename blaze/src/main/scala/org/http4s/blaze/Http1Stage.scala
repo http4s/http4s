@@ -137,7 +137,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
   protected def renderResponse(req: Request, resp: Response) {
     val rr = new StringWriter(512)
     rr ~ req.protocol.value.toString ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'
-    resp.headers.foreach( header => rr ~ header.name.toString ~ ": " ~ header ~ '\r' ~ '\n' )
+    resp.headers.foreach( header => rr ~ header ~ '\r' ~ '\n' )
 
     val respConn = Header.Connection.from(resp.headers)
 

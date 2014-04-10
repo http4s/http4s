@@ -8,7 +8,7 @@ import org.http4s.util.string._
 
 sealed trait CharacterSet extends QualityFactor with Renderable {
 
-  override def value = name.toString
+  def value = name.toString
   override def toString = value
 
   def name: CaseInsensitiveString
@@ -19,11 +19,7 @@ sealed trait CharacterSet extends QualityFactor with Renderable {
 
   final def satisfies(characterSet: CharacterSet): Boolean = characterSet.satisfiedBy(this)
 
-  def render[W <: Writer](writer: W) = {
-    writer.append(name.toString)
-    q.render(writer)
-    writer
-  }
+  def render[W <: Writer](writer: W): W = writer ~ name ~ q
 
   override def equals(that: Any): Boolean = that match {
     case that: CharacterSet => that.name == this.name && that.q == this.q

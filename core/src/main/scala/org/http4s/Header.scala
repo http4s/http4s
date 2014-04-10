@@ -5,7 +5,7 @@ import java.net.InetAddress
 import com.typesafe.scalalogging.slf4j.Logging
 import scalaz.NonEmptyList
 
-import org.http4s.util.{Writer, CaseInsensitiveString, Renderable}
+import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, ValueRenderable, StringWriter}
 import org.http4s.util.string._
 import org.http4s.util.jodaTime._
 import org.http4s.CharacterSet._
@@ -15,7 +15,7 @@ import scala.util.hashing.MurmurHash3
 /** Abstract representation o the HTTP header
   * @see [[HeaderKey]]
    */
-sealed trait Header extends Logging with Renderable with Product {
+sealed trait Header extends Logging with ValueRenderable with Product {
 
   import org.http4s.Header.RawHeader
 
@@ -30,6 +30,11 @@ sealed trait Header extends Logging with Renderable with Product {
   override def toString = name + ": " + value
 
   def raw: RawHeader = RawHeader(name, value)
+
+  override def render[W <: Writer](writer: W): W = {
+    writer ~ name ~ ':' ~ ' '
+    renderValue(writer)
+  }
 
   final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
@@ -66,7 +71,7 @@ trait RecurringHeader extends ParsedHeader {
 
 trait RecurringRenderableHeader extends RecurringHeader {
   type Value <: Renderable
-  def render[W <: Writer](writer: W) = {
+  def renderValue[W <: Writer](writer: W) = {
     values.head.render(writer)
     values.tail.foreach( writer ~ ", " ~ _ )
     writer
@@ -80,7 +85,7 @@ object Header {
 
   final case class RawHeader private[Header] (name: CaseInsensitiveString, override val value: String) extends Header {
     override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
-    def render[W <: Writer](writer: W) = writer.append(value)
+    def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
   object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey
@@ -121,7 +126,7 @@ object Header {
   }
   final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends ParsedHeader {
     def key = `Accept-Ranges`
-    def render[W <: Writer](writer: W) = {
+    def renderValue[W <: Writer](writer: W) = {
       if (rangeUnits.isEmpty) writer.append("none")
       else {
         writer.append(rangeUnits.head)
@@ -156,7 +161,7 @@ object Header {
   object Authorization extends InternalHeaderKey[Authorization] with SingletonHeaderKey
   final case class Authorization(credentials: Credentials) extends ParsedHeader {
     def key = `Authorization`
-    def render[W <: Writer](writer: W) = credentials.render(writer)
+    def renderValue[W <: Writer](writer: W) = credentials.render(writer)
   }
 
   object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey
@@ -171,7 +176,7 @@ object Header {
     type Value = String
     def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
     def hasKeepAlive = values.list.exists(_.equalsIgnoreCase("keep-alive"))
-    def render[W <: Writer](writer: W) = writer.addStrings(values.list, ", ")
+    def renderValue[W <: Writer](writer: W) = writer.addStrings(values.list, ", ")
   }
 
   object `Content-Base` extends DefaultHeaderKey
@@ -181,7 +186,7 @@ object Header {
   final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends ParsedHeader {
     def key = `Content-Disposition`
     override lazy val value = super.value
-    def render[W <: Writer](writer: W) = {
+    def renderValue[W <: Writer](writer: W) = {
       writer.append(dispositionType)
       parameters.foreach(p =>  writer ~ "; "~ p._1~ "=\""~ p._2 ~ '"')
       writer
@@ -191,7 +196,7 @@ object Header {
   object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`] with SingletonHeaderKey
   final case class `Content-Encoding`(contentCoding: ContentCoding) extends ParsedHeader {
     def key = `Content-Encoding`
-    def render[W <: Writer](writer: W) = contentCoding.render(writer)
+    def renderValue[W <: Writer](writer: W) = contentCoding.render(writer)
   }
 
   object `Content-Language` extends DefaultHeaderKey
@@ -199,7 +204,7 @@ object Header {
   object `Content-Length` extends InternalHeaderKey[`Content-Length`] with SingletonHeaderKey
   final case class `Content-Length`(length: Int) extends ParsedHeader {
     def key = `Content-Length`
-    def render[W <: Writer](writer: W) = writer.append(length)
+    def renderValue[W <: Writer](writer: W) = writer.append(length)
   }
 
   object `Content-Location` extends DefaultHeaderKey
@@ -223,7 +228,7 @@ object Header {
 
   final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[CharacterSet]) extends ParsedHeader {
     def key = `Content-Type`
-    def render[W <: Writer](writer: W) = definedCharset match {
+    def renderValue[W <: Writer](writer: W) = definedCharset match {
       case Some(cs) => writer ~ mediaType ~ "; charset=" ~ cs
       case _        => mediaType.render(writer)
     }
@@ -245,9 +250,9 @@ object Header {
   final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringRenderableHeader {
     def key = Cookie
     type Value = org.http4s.Cookie
-    override def render[W <: Writer](writer: W) = {
+    override def renderValue[W <: Writer](writer: W) = {
       values.head.render(writer)
-      values.tail.foreach( writer ~ "; "~ _ )
+      values.tail.foreach( writer ~ "; " ~ _ )
       writer
     }
   }
@@ -256,14 +261,14 @@ object Header {
   final case class Date(date: DateTime) extends ParsedHeader {
     def key = `Date`
     override def value = date.formatRfc1123
-    def render[W <: Writer](writer: W) = writer.append(value)
+    def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
   object ETag extends InternalHeaderKey[ETag] with SingletonHeaderKey
   final case class ETag(tag: String) extends ParsedHeader {
     def key: HeaderKey = ETag
     override def value: String = tag
-    def render[W <: Writer](writer: W) = writer.append(tag)
+    def renderValue[W <: Writer](writer: W) = writer.append(tag)
   }
 
   object Expect extends DefaultHeaderKey
@@ -279,7 +284,7 @@ object Header {
   }
   final case class Host(host: String, port: Option[Int] = None) extends ParsedHeader {
     def key = `Host`
-    def render[W <: Writer](writer: W) = {
+    def renderValue[W <: Writer](writer: W) = {
       writer.append(host)
       if (port.isDefined) writer ~ ':' ~ port.get
       writer
@@ -292,14 +297,14 @@ object Header {
   final case class `If-Modified-Since`(date: DateTime) extends ParsedHeader {
     def key: HeaderKey = `If-Modified-Since`
     override def value: String = date.formatRfc1123
-    def render[W <: Writer](writer: W) = writer.append(value)
+    def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
   object `If-None-Match` extends InternalHeaderKey[`If-None-Match`] with SingletonHeaderKey
   case class `If-None-Match`(tag: String) extends ParsedHeader {
     def key: HeaderKey = `If-None-Match`
     override def value: String = tag
-    def render[W <: Writer](writer: W) = writer.append(tag)
+    def renderValue[W <: Writer](writer: W) = writer.append(tag)
   }
 
   object `If-Range` extends DefaultHeaderKey
@@ -310,7 +315,7 @@ object Header {
   final case class `Last-Modified`(date: DateTime) extends ParsedHeader {
     def key = `Last-Modified`
     override def value = date.formatRfc1123
-    def render[W <: Writer](writer: W) = writer.append(value)
+    def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
   object Location extends InternalHeaderKey[Location] with SingletonHeaderKey
@@ -318,7 +323,7 @@ object Header {
   final case class Location(absoluteUri: String) extends ParsedHeader {
     def key = `Location`
     override def value = absoluteUri
-    def render[W <: Writer](writer: W) = writer.append(absoluteUri)
+    def renderValue[W <: Writer](writer: W) = writer.append(absoluteUri)
   }
 
   object `Max-Forwards` extends DefaultHeaderKey
@@ -358,7 +363,7 @@ object Header {
   object `Set-Cookie` extends InternalHeaderKey[`Set-Cookie`] with SingletonHeaderKey
   final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends ParsedHeader {
     def key = `Set-Cookie`
-    def render[W <: Writer](writer: W) = writer.append(cookie)
+    def renderValue[W <: Writer](writer: W) = cookie.render(writer)
   }
 
   object `TE` extends DefaultHeaderKey
@@ -400,7 +405,7 @@ object Header {
     type Value = Option[InetAddress]
     override lazy val value = super.value
 
-    def render[W <: Writer](writer: W) = {
+    def renderValue[W <: Writer](writer: W) = {
       values.head.fold(writer.append("unknown"))(i => writer.append(i.getHostAddress))
       values.tail.foreach(append(writer, _))
       writer

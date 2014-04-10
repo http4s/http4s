@@ -1,10 +1,10 @@
 package org.http4s
 
 import CharacterSet._
-import org.http4s.util.{Writer, Renderable}
+import org.http4s.util.{Writer, ValueRenderable}
 import net.iharder.Base64
 
-sealed abstract class Credentials extends Renderable {
+sealed abstract class Credentials extends ValueRenderable {
   def authScheme: AuthScheme
   override def toString = value
 }
@@ -19,7 +19,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
     "Basic " + cookie
   }
 
-  def render[W <: Writer](writer: W) = writer.append(value)
+  def renderValue[W <: Writer](writer: W) = writer.append(value)
 }
 
 object BasicCredentials {
@@ -37,14 +37,14 @@ object BasicCredentials {
 case class OAuth2BearerToken(token: String) extends Credentials {
   val authScheme = AuthScheme.Bearer
 
-  def render[W <: Writer](writer: W) = writer.append("Bearer ").append(token)
+  def renderValue[W <: Writer](writer: W) = writer.append("Bearer ").append(token)
 }
 
 
 case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
   override lazy val value = super.value
 
-  def render[W <: Writer](writer: W) = {
+  def renderValue[W <: Writer](writer: W) = {
     if (params.isEmpty) writer.append(authScheme.toString)
     else {
       formatParams(writer)

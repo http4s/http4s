@@ -3,8 +3,8 @@ package org.http4s
 import org.http4s.util._
 import org.http4s.util.string._
 
-final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
-  def render[W <: Writer](writer: W) = writer.append(coding.toString)
+final case class TransferCoding private (coding: CaseInsensitiveString) extends ValueRenderable {
+  def renderValue[W <: Writer](writer: W) = writer.append(coding.toString)
 }
 
 object TransferCoding extends Registry {

@@ -3,14 +3,14 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
 import scala.util.hashing.MurmurHash3
-import org.http4s.util.{Registry, Writer, Renderable}
+import org.http4s.util.{Registry, Writer, ValueRenderable}
 
 sealed class MediaRange private[http4s](val mainType: String,
                                         val q: Q = Q.Unity,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends QualityFactor with Renderable {
+                                        extends QualityFactor with ValueRenderable {
 
-  def render[W <: Writer](writer: W) = {
+  def renderValue[W <: Writer](writer: W) = {
     writer ~ mainType ~ "/*"~ q
     renderExtensions(writer)
     writer
@@ -97,8 +97,8 @@ sealed class MediaType(mainType: String,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override def render[W <: Writer](writer: W) = {
-    writer ~ mainType ~ '/' ~ subType ~q
+  override def renderValue[W <: Writer](writer: W) = {
+    writer ~ mainType ~ '/' ~ subType ~ q
     renderExtensions(writer)
     writer
   }
