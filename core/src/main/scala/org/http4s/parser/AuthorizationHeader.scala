@@ -36,8 +36,7 @@ private[parser] trait AuthorizationHeader {
 
     def GenericHttpCredentialsDef = rule {
       Token ~ OptWS ~ CredentialParams ~> { (scheme: String, params: Map[String, String]) =>
-        val s = scheme.ci
-        GenericCredentials(AuthScheme.getOrElseCreate(s), params) }
+        GenericCredentials(scheme.ci, params) }
     }
 
     def CredentialParams: Rule1[Map[String, String]] = rule {

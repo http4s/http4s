@@ -1,15 +1,9 @@
 package org
 
-import scala.concurrent.{ExecutionContext, Promise, Future}
 import com.typesafe.config.{ConfigFactory, Config}
-import scalaz.{-\/, \/-, Semigroup, ~>}
 import scalaz.concurrent.Task
-import scalaz.syntax.id._
 import scalaz.stream.Process
-import scala.util.{Failure, Success}
-import org.joda.time.{DateTime, DateTimeZone, ReadableInstant}
-import org.joda.time.format.DateTimeFormat
-import java.util.Locale
+import org.http4s.util.CaseInsensitiveString
 
 package object http4s {
 
@@ -17,6 +11,8 @@ package object http4s {
     * containing the [[Response]]
     */
   type HttpService = PartialFunction[Request,Task[Response]]
+
+  type AuthScheme = CaseInsensitiveString
 
   /** The scalaz.stream.Process[Task,Chunk] representing the body of the [[Response]]
      */

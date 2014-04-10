@@ -20,16 +20,6 @@ trait Writer {
 
   def append(r: Renderable): this.type = r.render(this)
 
-
-  def addRenderables(s: Seq[Renderable], sep: String = "", start: String = "", end: String = ""): this.type = {
-    append(start)
-    if (!s.isEmpty) {
-      append(s.head)
-      s.tail.foreach(s => append(s).append(sep))
-    }
-    append(end)
-  }
-
   def addStrings(s: Seq[String], sep: String = "", start: String = "", end: String = ""): this.type = {
     append(start)
     if (!s.isEmpty) {
