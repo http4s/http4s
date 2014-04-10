@@ -83,7 +83,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.blaze.Http1Stage#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(service:org.http4s.HttpService):org.http4s.blaze.Http1Stage"></a>
+      <a id="&lt;init&gt;(service:org.http4s.HttpService)(implicitpool:java.util.concurrent.ExecutorService):org.http4s.blaze.Http1Stage"></a>
       <a id="&lt;init&gt;:Http1Stage"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -91,7 +91,7 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Http1Stage</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span>
+        <span class="name">Http1Stage</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="pool">pool: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span> = <span class="defval" name="scalaz.concurrent.Strategy.DefaultExecutorService">...</span></span>)</span>
       </span>
       </h4>
       
