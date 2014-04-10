@@ -39,7 +39,9 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A registry of cache-directives, as listed in
+http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -81,34 +83,8 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.CacheDirective.RequestDirective" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="RequestDirectiveextendsCacheDirective"></a>
-      <a id="RequestDirective:RequestDirective"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="CacheDirective$$RequestDirective.html"><span class="name">RequestDirective</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.CacheDirective.ResponseDirective" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ResponseDirectiveextendsCacheDirective"></a>
-      <a id="ResponseDirective:ResponseDirective"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="CacheDirective$$ResponseDirective.html"><span class="name">ResponseDirective</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.CacheDirective.max-age" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="max-ageextendsCacheDirective.RequestDirectivewithCacheDirective.ResponseDirectivewithProductwithSerializable"></a>
+              <ol><li name="org.http4s.CacheDirective.max-age" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="max-ageextendsCacheDirectivewithProductwithSerializable"></a>
       <a id="max-age:max-age"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -116,12 +92,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$max$minusage.html"><span title="gt4s: max$minusage" class="name">max-age</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$max$minusage.html"><span title="gt4s: max$minusage" class="name">max-age</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.CacheDirective.max-stale" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="max-staleextendsCacheDirective.RequestDirectivewithProductwithSerializable"></a>
+      <a id="max-staleextendsCacheDirectivewithProductwithSerializable"></a>
       <a id="max-stale:max-stale"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -129,12 +105,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$max$minusstale.html"><span title="gt4s: max$minusstale" class="name">max-stale</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a>]</span>)</span><span class="result"> extends <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$max$minusstale.html"><span title="gt4s: max$minusstale" class="name">max-stale</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a>] = <span class="symbol">scala.None</span></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.CacheDirective.min-fresh" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="min-freshextendsCacheDirective.RequestDirectivewithProductwithSerializable"></a>
+      <a id="min-freshextendsCacheDirectivewithProductwithSerializable"></a>
       <a id="min-fresh:min-fresh"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -142,12 +118,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$min$minusfresh.html"><span title="gt4s: min$minusfresh" class="name">min-fresh</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$min$minusfresh.html"><span title="gt4s: min$minusfresh" class="name">min-fresh</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.CacheDirective.no-cache" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="no-cacheextendsCacheDirective.ResponseDirectivewithProductwithSerializable"></a>
+      <a id="no-cacheextendsCacheDirectivewithProductwithSerializable"></a>
       <a id="no-cache:no-cache"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -155,12 +131,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$no$minuscache.html"><span title="gt4s: no$minuscache" class="name">no-cache</span></a><span class="params">(<span name="fieldNames">fieldNames: <span class="extype" name="scala.Seq">Seq</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] = <span class="symbol">immutable.this.Nil</span></span>)</span><span class="result"> extends <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$no$minuscache.html"><span title="gt4s: no$minuscache" class="name">no-cache</span></a><span class="params">(<span name="fieldNames">fieldNames: <span class="extype" name="scala.Seq">Seq</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] = <span class="symbol">collection.this.Seq.empty[Nothing]</span></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.CacheDirective.private" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="privateextendsCacheDirective.ResponseDirectivewithProductwithSerializable"></a>
+      <a id="privateextendsCacheDirectivewithProductwithSerializable"></a>
       <a id="private:private"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -168,12 +144,12 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$private.html"><span class="name">private</span></a><span class="params">(<span name="fieldNames">fieldNames: <span class="extype" name="scala.Seq">Seq</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] = <span class="symbol">immutable.this.Nil</span></span>)</span><span class="result"> extends <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$private.html"><span class="name">private</span></a><span class="params">(<span name="fieldNames">fieldNames: <span class="extype" name="scala.Seq">Seq</span>[<a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a>] = <span class="symbol">immutable.this.Nil</span></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.CacheDirective.s-maxage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="s-maxageextendsCacheDirective.ResponseDirectivewithProductwithSerializable"></a>
+      <a id="s-maxageextendsCacheDirectivewithProductwithSerializable"></a>
       <a id="s-maxage:s-maxage"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -181,7 +157,33 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$s$minusmaxage.html"><span title="gt4s: s$minusmaxage" class="name">s-maxage</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$s$minusmaxage.html"><span title="gt4s: s$minusmaxage" class="name">s-maxage</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.CacheDirective.stale-if-error" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="stale-if-errorextendsCacheDirectivewithProductwithSerializable"></a>
+      <a id="stale-if-error:stale-if-error"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CacheDirective$$stale$minusif$minuserror.html"><span title="gt4s: stale$minusif$minuserror" class="name">stale-if-error</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.CacheDirective.stale-while-revalidate" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="stale-while-revalidateextendsCacheDirectivewithProductwithSerializable"></a>
+      <a id="stale-while-revalidate:stale-while-revalidate"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="CacheDirective$$stale$minuswhile$minusrevalidate.html"><span title="gt4s: stale$minuswhile$minusrevalidate" class="name">stale-while-revalidate</span></a><span class="params">(<span name="deltaSeconds">deltaSeconds: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -258,41 +260,41 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.CacheDirective#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(name:String):org.http4s.CacheDirectivewithorg.http4s.CacheDirective.RequestDirectivewithorg.http4s.CacheDirective.ResponseDirective"></a>
-      <a id="apply(String):CacheDirectivewithRequestDirectivewithResponseDirective"></a>
+      <a id="apply(name:String):org.http4s.CacheDirective"></a>
+      <a id="apply(String):CacheDirective"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a></span>
+        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.CacheDirective#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(name:String,argument:Option[String]):org.http4s.CacheDirectivewithorg.http4s.CacheDirective.RequestDirectivewithorg.http4s.CacheDirective.ResponseDirective"></a>
-      <a id="apply(String,Option[String]):CacheDirectivewithRequestDirectivewithResponseDirective"></a>
+      <a id="apply(name:String,argument:Option[String]):org.http4s.CacheDirective"></a>
+      <a id="apply(String,Option[String]):CacheDirective"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="argument">argument: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a></span>
+        <span class="name">apply</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="argument">argument: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.CacheDirective#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(name:org.http4s.util.CaseInsensitiveString,argument:Option[String]):org.http4s.CacheDirectivewithorg.http4s.CacheDirective.RequestDirectivewithorg.http4s.CacheDirective.ResponseDirective"></a>
-      <a id="apply(CaseInsensitiveString,Option[String]):CacheDirectivewithRequestDirectivewithResponseDirective"></a>
+      <a id="apply(name:org.http4s.util.CaseInsensitiveString,argument:Option[String]):org.http4s.CacheDirective"></a>
+      <a id="apply(CaseInsensitiveString,Option[String]):CacheDirective"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="name">name: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="argument">argument: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a></span>
+        <span class="name">apply</span><span class="params">(<span name="name">name: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="argument">argument: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a></span>
       </span>
       </h4>
       
@@ -421,7 +423,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$must$minusrevalidate$.html"><span title="gt4s: must$minusrevalidate" class="name">must-revalidate</span></a><span class="result"> extends <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$must$minusrevalidate$.html"><span title="gt4s: must$minusrevalidate" class="name">must-revalidate</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -438,19 +440,6 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.CacheDirective.no-cache" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="no-cache"></a>
-      <a id="no-cache:no-cache"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="CacheDirective$$no$minuscache$.html"><span title="gt4s: no$minuscache" class="name">no-cache</span></a><span class="result"> extends <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4>
-      
     </li><li name="org.http4s.CacheDirective.no-store" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="no-store"></a>
       <a id="no-store:no-store"></a>
@@ -460,7 +449,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$no$minusstore$.html"><span title="gt4s: no$minusstore" class="name">no-store</span></a><span class="result"> extends <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$no$minusstore$.html"><span title="gt4s: no$minusstore" class="name">no-store</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -473,7 +462,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$no$minustransform$.html"><span title="gt4s: no$minustransform" class="name">no-transform</span></a><span class="result"> extends <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$no$minustransform$.html"><span title="gt4s: no$minustransform" class="name">no-transform</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -512,7 +501,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$only$minusif$minuscached$.html"><span title="gt4s: only$minusif$minuscached" class="name">only-if-cached</span></a><span class="result"> extends <a href="CacheDirective$$RequestDirective.html" class="extype" name="org.http4s.CacheDirective.RequestDirective">RequestDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$only$minusif$minuscached$.html"><span title="gt4s: only$minusif$minuscached" class="name">only-if-cached</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -525,7 +514,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$proxy$minusrevalidate$.html"><span title="gt4s: proxy$minusrevalidate" class="name">proxy-revalidate</span></a><span class="result"> extends <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$proxy$minusrevalidate$.html"><span title="gt4s: proxy$minusrevalidate" class="name">proxy-revalidate</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -538,7 +527,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="CacheDirective$$public$.html"><span class="name">public</span></a><span class="result"> extends <a href="CacheDirective$$ResponseDirective.html" class="extype" name="org.http4s.CacheDirective.ResponseDirective">ResponseDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="CacheDirective$$public$.html"><span class="name">public</span></a><span class="result"> extends <a href="CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
