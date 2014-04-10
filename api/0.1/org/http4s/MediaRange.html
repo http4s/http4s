@@ -35,13 +35,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">MediaRange</span><span class="result"> extends <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <span class="name">MediaRange</span><span class="result"> extends <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a> with <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
           <span class="toggle">Known Subclasses</span>
           <div class="subClasses hiddenContent"><a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></div>
@@ -62,7 +62,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.MediaRange"><span>MediaRange</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="org.http4s.QualityFactor"><span>QualityFactor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.MediaRange"><span>MediaRange</span></li><li class="in" name="org.http4s.util.ValueRenderable"><span>ValueRenderable</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="org.http4s.QualityFactor"><span>QualityFactor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -454,7 +454,7 @@
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.MediaRange#render" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.util.ValueRenderable#render" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="render[W&lt;:org.http4s.util.Writer](writer:W):W"></a>
       <a id="render[W&lt;:Writer](W):W"></a>
       <h4 class="signature">
@@ -463,10 +463,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">render</span><span class="tparams">[<span name="W">W &lt;: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.MediaRange.render.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MediaRange.render.W">W</span></span>
+        <span class="name">render</span><span class="tparams">[<span name="W">W &lt;: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.util.ValueRenderable.render.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.ValueRenderable.render.W">W</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.MediaRange">MediaRange</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
     </li><li name="org.http4s.MediaRange#renderExtensions" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="renderExtensions(sb:org.http4s.util.Writer):Unit"></a>
       <a id="renderExtensions(Writer):Unit"></a>
@@ -480,6 +480,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="org.http4s.MediaRange#renderValue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="renderValue[W&lt;:org.http4s.util.Writer](writer:W):W"></a>
+      <a id="renderValue[W&lt;:Writer](W):W"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">renderValue</span><span class="tparams">[<span name="W">W &lt;: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.MediaRange.renderValue.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.MediaRange.renderValue.W">W</span></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.MediaRange">MediaRange</a> → <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a></dd></dl></div>
     </li><li name="org.http4s.MediaRange#satisfiedBy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="satisfiedBy(mediaType:org.http4s.MediaRange):Boolean"></a>
       <a id="satisfiedBy(MediaRange):Boolean"></a>
@@ -532,7 +545,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.MediaRange">MediaRange</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.util.Renderable#value" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.util.ValueRenderable#value" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="value:String"></a>
       <a id="value:String"></a>
       <h4 class="signature">
@@ -544,7 +557,7 @@
         <span class="name">value</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -637,7 +650,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.util.Renderable">
+        <div class="parent" name="org.http4s.util.ValueRenderable">
+              <h3>Inherited from <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a></h3>
+            </div><div class="parent" name="org.http4s.util.Renderable">
               <h3>Inherited from <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
             </div><div class="parent" name="org.http4s.QualityFactor">
               <h3>Inherited from <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a></h3>
