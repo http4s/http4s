@@ -11,12 +11,13 @@ trait Renderable {
 }
 
 trait Writer {
-  def append(s: String):       this.type
-  def append(char: Char):      this.type = append(char.toString)
-  def append(float: Float):    this.type = append(float.toString)
-  def append(double: Double):  this.type = append(double.toString)
-  def append(int: Int):        this.type = append(int.toString)
-  def append(long: Long):      this.type = append(long.toString)
+  def append(s: String):                 this.type
+  def append(ci: CaseInsensitiveString): this.type = append(ci.toString)
+  def append(char: Char):                this.type = append(char.toString)
+  def append(float: Float):              this.type = append(float.toString)
+  def append(double: Double):            this.type = append(double.toString)
+  def append(int: Int):                  this.type = append(int.toString)
+  def append(long: Long):                this.type = append(long.toString)
 
   def append(r: Renderable): this.type = r.render(this)
 
@@ -38,13 +39,14 @@ trait Writer {
     append(end)
   }
 
-  final def ~(s: String):      this.type = append(s)
-  final def ~(char: Char):     this.type = append(char)
-  final def ~(float: Float):   this.type = append(float)
-  final def ~(double: Double): this.type = append(double)
-  final def ~(int: Int):       this.type = append(int)
-  final def ~(long: Long):     this.type = append(long)
-  final def ~(r: Renderable):  this.type = append(r)
+  final def ~(s: String):                this.type = append(s)
+  final def ~(s: CaseInsensitiveString): this.type = append(s)
+  final def ~(char: Char):               this.type = append(char)
+  final def ~(float: Float):             this.type = append(float)
+  final def ~(double: Double):           this.type = append(double)
+  final def ~(int: Int):                 this.type = append(int)
+  final def ~(long: Long):               this.type = append(long)
+  final def ~(r: Renderable):            this.type = append(r)
 }
 
 class StringWriter(size: Int = 64) extends Writer {

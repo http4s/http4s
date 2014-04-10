@@ -25,12 +25,14 @@ import http_parser.Http1ServerParser
 
 import scalaz.stream.Process
 import Process._
-import scalaz.concurrent.Task
+import scalaz.concurrent.{Strategy, Task}
 import scalaz.{\/-, -\/}
 import org.parboiled2.ParseError
+import java.util.concurrent.ExecutorService
 
 
-class Http1Stage(service: HttpService) extends Http1ServerParser with TailStage[ByteBuffer] {
+class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy.DefaultExecutorService)
+              extends Http1ServerParser with TailStage[ByteBuffer] {
 
   protected implicit def ec = directec
 
@@ -109,15 +111,18 @@ class Http1Stage(service: HttpService) extends Http1ServerParser with TailStage[
   }
 
   private def runRequest(buffer: ByteBuffer): Unit = {
-    // TODO: Do we expect a body?
     val body = collectBodyFromParser(buffer)
-
     val req = collectRequest(body)
+
+    // if we get a non-null response, process the route. Else, error has already been dealt with.
     if (req != null) {
-      val resp = try service.applyOrElse(req, NotFound(_: Request)) catch {
-        case t: Throwable =>
-          logger.error(s"Error running route: $req", t)
-          InternalServerError("500 Internal Service Error\n" + t.getMessage)
+      val resp = Task.fork {
+        try service.applyOrElse(req, NotFound(_: Request)) catch {
+          case t: Throwable =>
+            logger.error(s"Error running route: $req", t)
+            InternalServerError("500 Internal Service Error\n" + t.getMessage)
+              .withHeaders(Connection("close"))
+        }
       }
 
       resp.runAsync {

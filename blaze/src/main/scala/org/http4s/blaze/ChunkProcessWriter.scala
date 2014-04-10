@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 import pipeline.TailStage
 import scala.concurrent.{Future, ExecutionContext}
 import org.http4s.{TrailerChunk, BodyChunk}
-import java.nio.charset.Charset
+import java.nio.charset.StandardCharsets
 import org.http4s.util.StringWriter
 
 /**
@@ -35,7 +35,7 @@ final class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[
         rr ~ '0' ~ '\r' ~ '\n'             // Last chunk
         t.headers.foreach( h =>  rr ~ h.name.toString ~ ": " ~ h ~ '\r' ~ '\n')   // trailers
         rr ~ '\r' ~ '\n'          // end of chunks
-        ByteBuffer.wrap(rr.result().getBytes(ASCII))
+        ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
 
       case None => ByteBuffer.wrap(ChunkEndBytes)
     }
@@ -48,7 +48,7 @@ final class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[
   }
 
   private def writeLength(buffer: ByteBuffer, length: Int) {
-    buffer.put(Integer.toHexString(length).getBytes(ASCII)).put(CRLFBytes)
+    buffer.put(Integer.toHexString(length).getBytes(StandardCharsets.US_ASCII)).put(CRLFBytes)
   }
 
   private def encodeChunk(chunk: BodyChunk, last: List[ByteBuffer]): List[ByteBuffer] = {
@@ -69,7 +69,6 @@ final class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[
 }
 
 object ChunkProcessWriter {
-  val ASCII = Charset.forName("US-ASCII")
-  private val CRLFBytes = "\r\n".getBytes(ASCII)
-  private val ChunkEndBytes = "0\r\n\r\n".getBytes(ASCII)
+  private val CRLFBytes = "\r\n".getBytes(StandardCharsets.US_ASCII)
+  private val ChunkEndBytes = "0\r\n\r\n".getBytes(StandardCharsets.US_ASCII)
 }
