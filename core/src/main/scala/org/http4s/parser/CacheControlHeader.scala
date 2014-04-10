@@ -4,6 +4,8 @@ import org.parboiled2.{Rule1, ParserInput}
 import org.http4s.Header.`Cache-Control`
 import org.http4s.CacheDirective
 import org.http4s.CacheDirective._
+import org.http4s.util.string._
+import scala.concurrent.duration._
 
 
 /**
@@ -23,19 +25,19 @@ private[parser] trait CacheControlHeader {
     }
 
     def CacheDirective: Rule1[CacheDirective] = rule {
-     ("no-cache" ~ optional("=" ~ FieldNames)) ~> (fn => `no-cache`(fn.getOrElse(Nil))) |
+     ("no-cache" ~ optional("=" ~ FieldNames)) ~> (fn => `no-cache`(fn.map(_.map(_.ci)).getOrElse(Nil))) |
       "no-store" ~ push(`no-store`) |
       "no-transform" ~ push(`no-transform`) |
-      "max-age=" ~ DeltaSeconds ~> (`max-age`(_)) |
-      "max-stale" ~ optional("=" ~ DeltaSeconds) ~> (`max-stale`(_)) |
-      "min-fresh=" ~ DeltaSeconds ~> (`min-fresh`(_)) |
+      "max-age=" ~ DeltaSeconds ~> (s => `max-age`(s.seconds)) |
+      "max-stale" ~ optional("=" ~ DeltaSeconds) ~> (s => `max-stale`(s.map(_.seconds))) |
+      "min-fresh=" ~ DeltaSeconds ~> (s => `min-fresh`(s.seconds)) |
       "only-if-cached" ~ push(`only-if-cached`) |
       "public" ~ push(`public`) |
-      "private" ~ optional("=" ~ FieldNames) ~> (fn => `private`(fn.getOrElse(Nil))) |
+      "private" ~ optional("=" ~ FieldNames) ~> (fn => `private`(fn.map(_.map(_.ci)).getOrElse(Nil))) |
       "must-revalidate" ~ push(`must-revalidate`) |
       "proxy-revalidate" ~ push(`proxy-revalidate`) |
-      "s-maxage=" ~ DeltaSeconds ~> (`s-maxage`(_)) |
-      (Token ~ optional("=" ~ (Token | QuotedString)) ~> (CustomCacheDirective(_, _)))
+      "s-maxage=" ~ DeltaSeconds ~> (s => `s-maxage`(s.seconds)) |
+      (Token ~ optional("=" ~ (Token | QuotedString)) ~> { (name: String, arg: Option[String]) => org.http4s.CacheDirective(name.ci, arg) })
     }
 
     def FieldNames: Rule1[Seq[String]] = rule { oneOrMore(QuotedString).separatedBy(ListSep) }
