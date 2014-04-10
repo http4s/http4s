@@ -36,6 +36,7 @@ private[parser] trait CacheControlHeader {
       "private" ~ optional("=" ~ FieldNames) ~> (fn => `private`(fn.map(_.map(_.ci)).getOrElse(Nil))) |
       "must-revalidate" ~ push(`must-revalidate`) |
       "proxy-revalidate" ~ push(`proxy-revalidate`) |
+      "s-maxage=" ~ DeltaSeconds ~> (s => `s-maxage`(s)) |
       "stale-if-error=" ~ DeltaSeconds ~> (s => `stale-if-error`(s)) |
       "stale-while-revalidate=" ~ DeltaSeconds ~> (s => `stale-while-revalidate`(s)) |
       (Token ~ optional("=" ~ (Token | QuotedString)) ~> { (name: String, arg: Option[String]) => org.http4s.CacheDirective(name.ci, arg) })
