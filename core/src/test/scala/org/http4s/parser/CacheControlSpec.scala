@@ -9,6 +9,9 @@ import org.http4s.CacheDirective.`max-stale`
 import org.http4s.CacheDirective.`min-fresh`
 import org.http4s.CacheDirective.`max-age`
 import org.http4s.CacheDirective.`private`
+import scala.concurrent.duration._
+import org.http4s.util.string._
+import org.http4s.CacheDirective
 
 /**
  * @author Bryce Anderson
@@ -21,21 +24,21 @@ class CacheControlSpec extends WordSpec with Matchers with HeaderParserHelper[`C
   val valueless = List(`no-store`, `no-transform`, `only-if-cached`,
                        `public`, `must-revalidate`, `proxy-revalidate`)
 
-  val numberdirectives = List(`max-age`(0), `min-fresh`(1), `s-maxage`(2))
+  val numberdirectives = List(`max-age`(0.seconds), `min-fresh`(1.second), `s-maxage`(2.seconds))
 
-  val strdirectives = List(`private`("Foo"::Nil), `private`(Nil), `no-cache`("Foo"::Nil), `no-cache`())
+  val strdirectives = List(`private`("Foo".ci::Nil), `private`(Nil), `no-cache`("Foo".ci::Nil), `no-cache`())
 
   val others = List(`max-stale`(None),
-                    `max-stale`(Some(2)),
-                    CustomCacheDirective("Foo", None),
-                    CustomCacheDirective("Foo", Some("Bar")))
+                    `max-stale`(Some(2.seconds)),
+                    CacheDirective("Foo", None),
+                    CacheDirective("Foo", Some("Bar")))
 
 
   "CacheControl parser" should {
 
     "Generate correct directive values" in {
       valueless.foreach { v =>
-        v.value should equal(v.name)
+        v.value should equal(v.name.toString)
       }
 
       numberdirectives.zipWithIndex.foreach{ case (v, i) =>
@@ -43,11 +46,10 @@ class CacheControlSpec extends WordSpec with Matchers with HeaderParserHelper[`C
       }
 
       `max-stale`(None).value should equal("max-stale")
-      `max-stale`(Some(2)).value should equal("max-stale=2")
+      `max-stale`(Some(2.seconds)).value should equal("max-stale=2")
 
-      CustomCacheDirective("Foo", Some("Bar")).value should equal("Foo=\"Bar\"")
-      CustomCacheDirective("Foo", None).value should equal("Foo")
-
+      CacheDirective("Foo", Some("Bar")).value should equal("Foo=\"Bar\"")
+      CacheDirective("Foo", None).value should equal("Foo")
     }
 
     "Parse cache headers" in {
