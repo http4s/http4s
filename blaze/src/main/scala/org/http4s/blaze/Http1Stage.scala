@@ -191,7 +191,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
     case Some(h) =>
       rr ~ '\r' ~ '\n'
       val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-      new StaticWriter(b, h.length, this)
+      new StaticWriter(b, h.length, this)(trampoline)
 
     case None =>
       if (minor == 0) {        // we are replying to a HTTP 1.0 request. Only do StaticWriters
@@ -212,7 +212,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
         }
         
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-        new ChunkProcessWriter(b, this)
+        new ChunkProcessWriter(b, this)(trampoline)
       }
   }
 
