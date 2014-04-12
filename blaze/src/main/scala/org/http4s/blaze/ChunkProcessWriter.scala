@@ -11,7 +11,7 @@ import org.http4s.util.StringWriter
  * @author Bryce Anderson
  *         Created on 1/10/14
  */
-final class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBuffer])
+class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBuffer])
                               (implicit val ec: ExecutionContext) extends ProcessWriter {
 
   import ChunkProcessWriter._

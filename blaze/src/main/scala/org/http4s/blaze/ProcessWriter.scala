@@ -43,6 +43,9 @@ trait ProcessWriter {
     */
   protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
 
+  /** Called in the event of an Await failure to alert the pipeline to cleanup */
+  protected def exceptionFlush(): Future[Any] = Future.successful()
+
   /** Creates a Task that writes the contents the Process to the output.
     * Cancelled exceptions fall through to the Task cb
     * This method will halt writing the process once a trailer is encountered
@@ -61,7 +64,7 @@ trait ProcessWriter {
         val trailer = buffandt._2
 
         if (trailer == null) {  // TODO: is it worth the complexity to try to predict the tail?
-          if (!tail.isInstanceOf[Halt]) writeBodyChunk(buff, true).onComplete {
+          if (!tail.isInstanceOf[Halt]) writeBodyChunk(buff, false).onComplete {
             case Success(_) => go(tail, cb)
             case Failure(t) => tail.killBy(t).run.runAsync(cb)
           }
@@ -86,7 +89,10 @@ trait ProcessWriter {
     case Await(t, f, fb, c) => t.runAsync {  // Wait for it to finish, then continue to unwind
       case \/-(r)   => go(f(r), cb)
       case -\/(End) => go(fb, cb)
-      case -\/(t)   => c.drain.causedBy(t).run.runAsync(cb)
+      case -\/(t)   => exceptionFlush().onComplete {
+        case Success(_) => c.drain.causedBy(t).run.runAsync(cb)
+        case Failure(t2) => c.drain.causedBy(t).causedBy(t2).run.runAsync(cb)
+      }
     }
 
     case Halt(End) => writeEnd(BodyChunk(), None).onComplete(completionListener(_, cb))

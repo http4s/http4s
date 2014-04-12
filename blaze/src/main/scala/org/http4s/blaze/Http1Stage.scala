@@ -34,7 +34,7 @@ import java.util.concurrent.ExecutorService
 class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy.DefaultExecutorService)
               extends Http1ServerParser with TailStage[ByteBuffer] {
 
-  protected implicit def ec = directec
+  protected implicit def ec = trampoline
 
   val name = "Http4sStage"
 
@@ -85,7 +85,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
 
       case Failure(Cmd.EOF) => stageShutdown()
       case Failure(t)       => fatalError(t, "Error in requestLoop()")
-    }(trampoline)
+    }
   }
 
   private def collectRequest(body: HttpBody): Request = {
@@ -123,7 +123,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
             InternalServerError("500 Internal Service Error\n" + t.getMessage)
               .withHeaders(Connection("close"))
         }
-      }
+      }(pool)
 
       resp.runAsync {
         case \/-(resp) => renderResponse(req, resp)
@@ -191,28 +191,30 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
     case Some(h) =>
       rr ~ '\r' ~ '\n'
       val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-      new StaticWriter(b, h.length, this)(trampoline)
+      new StaticWriter(b, h.length, this)
 
     case None =>
       if (minor == 0) {        // we are replying to a HTTP 1.0 request. Only do StaticWriters
         rr ~ '\r' ~ '\n'
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
         new StaticWriter(b, -1, this)
-      } else {  // HTTP 1.1 request
+      }
+      else {  // HTTP 1.1 request, its going to be a chunked encoder, but what kind?
         Header.`Transfer-Encoding`.from(resp.headers) match {
-          case Some(h) =>
+          case Some(h) => // flushing chunk encoder
             if (!h.hasChunked) {
               logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
               rr ~ "Transfer-Encoding: chunked\r\n"
             }
             rr ~ '\r' ~ '\n'
+            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+            new ChunkProcessWriter(b, this)
   
-          case None =>     // Transfer-Encoding not set, default to chunked for HTTP/1.1
+          case None =>     // Transfer-Encoding not set, default to cached chunked for HTTP/1.1
             rr ~ "Transfer-Encoding: chunked\r\n\r\n"
+            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+            new CachingChunkWriter(b, this)
         }
-        
-        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-        new ChunkProcessWriter(b, this)(trampoline)
       }
   }
 
@@ -234,7 +236,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
               currentbuffer = b
               go()
             case Failure(t) => cb(-\/(t))
-          }(trampoline)
+          }
         } catch {
           case t: ParserException =>
             val req = collectRequest(halt)  // may be null, but thats ok.
@@ -251,7 +253,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
         case Failure(t) =>
           logger.warn("Error draining body", t)
           cb(-\/(t))
-      })
+      }(directec))
 
     await(t)(emit, cleanup = await(cleanup)(_ => halt)).repeat
   }
@@ -259,7 +261,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
   private def drainBody(buffer: ByteBuffer): Future[Unit] = {
     if (!contentComplete()) {
       parseContent(buffer)
-      channelRead().flatMap(drainBody)(trampoline)
+      channelRead().flatMap(drainBody)
     }
     else Future.successful()
   }
