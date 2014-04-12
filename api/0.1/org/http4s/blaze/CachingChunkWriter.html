@@ -2,9 +2,9 @@
 <!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
 <html>
         <head>
-          <title>ChunkProcessWriter - org.http4s.blaze.ChunkProcessWriter</title>
-          <meta name="description" content="ChunkProcessWriter - org.http4s.blaze.ChunkProcessWriter" />
-          <meta name="keywords" content="ChunkProcessWriter org.http4s.blaze.ChunkProcessWriter" />
+          <title>CachingChunkWriter - org.http4s.blaze.CachingChunkWriter</title>
+          <meta name="description" content="CachingChunkWriter - org.http4s.blaze.CachingChunkWriter" />
+          <meta name="keywords" content="CachingChunkWriter org.http4s.blaze.CachingChunkWriter" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -12,7 +12,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../index.html';
-            var hash = 'org.http4s.blaze.ChunkProcessWriter';
+            var hash = 'org.http4s.blaze.CachingChunkWriter';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -24,9 +24,9 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="ChunkProcessWriter$.html" title="Go to companion"><img src="../../../lib/class_to_object_big.png" /></a>
+        <img src="../../../lib/class_big.png" />
         <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.blaze">blaze</a></p>
-        <h1><a href="ChunkProcessWriter$.html" title="Go to companion">ChunkProcessWriter</a></h1>
+        <h1>CachingChunkWriter</h1>
       </div>
 
       <h4 id="signature" class="signature">
@@ -35,16 +35,14 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ChunkProcessWriter</span><span class="result"> extends <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></span>
+        <span class="name">CachingChunkWriter</span><span class="result"> extends <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Created by Bryce Anderson on 4/12/14.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
-        </div><div class="toggleContainer block">
-          <span class="toggle">Known Subclasses</span>
-          <div class="subClasses hiddenContent"><a href="CachingChunkWriter.html" class="extype" name="org.http4s.blaze.CachingChunkWriter">CachingChunkWriter</a></div>
+          <div class="superTypes hiddenContent"><a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a>, <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -62,7 +60,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.blaze.ChunkProcessWriter"><span>ChunkProcessWriter</span></li><li class="in" name="org.http4s.blaze.ProcessWriter"><span>ProcessWriter</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.blaze.CachingChunkWriter"><span>CachingChunkWriter</span></li><li class="in" name="org.http4s.blaze.ChunkProcessWriter"><span>ChunkProcessWriter</span></li><li class="in" name="org.http4s.blaze.ProcessWriter"><span>ProcessWriter</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -82,16 +80,16 @@
         <div id="allMembers">
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.blaze.ChunkProcessWriter#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(headers:java.nio.ByteBuffer,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer])(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.ChunkProcessWriter"></a>
-      <a id="&lt;init&gt;:ChunkProcessWriter"></a>
+              <ol><li name="org.http4s.blaze.CachingChunkWriter#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(headers:java.nio.ByteBuffer,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer],bufferSize:Int)(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.CachingChunkWriter"></a>
+      <a id="&lt;init&gt;:CachingChunkWriter"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ChunkProcessWriter</span><span class="params">(<span name="headers">headers: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>, <span name="pipe">pipe: <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>)</span>
+        <span class="name">CachingChunkWriter</span><span class="params">(<span name="headers">headers: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>, <span name="pipe">pipe: <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">10.*(1024)</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>)</span>
       </span>
       </h4>
       
@@ -217,19 +215,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.blaze.ChunkProcessWriter#ec" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ec:scala.concurrent.ExecutionContext"></a>
-      <a id="ec:ExecutionContext"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ec</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -256,7 +241,7 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.blaze.ProcessWriter#exceptionFlush" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.blaze.CachingChunkWriter#exceptionFlush" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="exceptionFlush():scala.concurrent.Future[Any]"></a>
       <a id="exceptionFlush():Future[Any]"></a>
       <h4 class="signature">
@@ -268,7 +253,7 @@
         <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Called in the event of an Await failure to alert the pipeline to cleanup</p><div class="fullcomment"><div class="comment cmt"><p>Called in the event of an Await failure to alert the pipeline to cleanup</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
+      <p class="shortcomment cmt">Called in the event of an Await failure to alert the pipeline to cleanup</p><div class="fullcomment"><div class="comment cmt"><p>Called in the event of an Await failure to alert the pipeline to cleanup</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.CachingChunkWriter">CachingChunkWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -449,7 +434,7 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.blaze.ChunkProcessWriter#writeBodyChunk" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.blaze.CachingChunkWriter#writeBodyChunk" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="writeBodyChunk(chunk:org.http4s.BodyChunk,flush:Boolean):scala.concurrent.Future[Any]"></a>
       <a id="writeBodyChunk(BodyChunk,Boolean):Future[Any]"></a>
       <h4 class="signature">
@@ -468,8 +453,8 @@ return a failed Future with Cancelled as the exception
 If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue
-</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
-    </li><li name="org.http4s.blaze.ChunkProcessWriter#writeEnd" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.CachingChunkWriter">CachingChunkWriter</a> → <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
+    </li><li name="org.http4s.blaze.CachingChunkWriter#writeEnd" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="writeEnd(chunk:org.http4s.BodyChunk,t:Option[org.http4s.TrailerChunk]):scala.concurrent.Future[Any]"></a>
       <a id="writeEnd(BodyChunk,Option[TrailerChunk]):Future[Any]"></a>
       <h4 class="signature">
@@ -488,7 +473,7 @@ return a failed Future with Cancelled as the exception
 If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt class="param">t</dt><dd class="cmt"><p>optional TrailerChunk to write</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue
-</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
+</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.CachingChunkWriter">CachingChunkWriter</a> → <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="org.http4s.blaze.ProcessWriter#writeProcess" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]):scalaz.concurrent.Task[Unit]"></a>
       <a id="writeProcess(Process[Task,Chunk]):Task[Unit]"></a>
@@ -515,7 +500,9 @@ This method will halt writing the process once a trailer is encountered
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.blaze.ProcessWriter">
+        <div class="parent" name="org.http4s.blaze.ChunkProcessWriter">
+              <h3>Inherited from <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a></h3>
+            </div><div class="parent" name="org.http4s.blaze.ProcessWriter">
               <h3>Inherited from <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
