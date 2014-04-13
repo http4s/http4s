@@ -1,4 +1,5 @@
-package org.http4s.blaze
+package org.http4s
+package blaze
 
 /**
  * Created by Bryce Anderson on 3/28/14.
@@ -10,7 +11,7 @@ import org.http4s._
 import java.nio.ByteBuffer
 import org.http4s.Response
 
-import scalaz.stream.Process.emit
+
 import java.nio.charset.StandardCharsets
 
 class ResponseParser extends Http1ClientParser {
@@ -23,7 +24,7 @@ class ResponseParser extends Http1ClientParser {
   var majorversion = -1
   var minorversion = -1
 
-  def parseResponse(buff: Seq[ByteBuffer]): (Status, Set[(String,String)], String) = {
+  def parseResponse(buff: Seq[ByteBuffer]): (Status, Set[Header], String) = {
     val b = ByteBuffer.wrap(buff.map(b => BodyChunk(b).toArray).toArray.flatten)
 
     parseResponseLine(b)
@@ -37,7 +38,7 @@ class ResponseParser extends Http1ClientParser {
     val bp = new String(body.map(BodyChunk(_)).foldLeft(BodyChunk())((c1,c2) => c1 ++ c2).toArray,
                                 StandardCharsets.US_ASCII)
 
-    val headers = this.headers.result.toSet
+    val headers = this.headers.result.map{case (k,v) => Header(k,v): Header}.toSet
 
     (Status.apply(this.code, this.reason), headers, bp)
   }

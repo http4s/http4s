@@ -15,7 +15,7 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
     new Http4sHeaderParser[Connection](value) {
       def entry = rule (
             oneOrMore(Token).separatedBy(ListSep) ~ EOL ~>
-              {xs: Seq[String] => Header.Connection(xs.head, xs.tail: _*)}
+              {xs: Seq[String] => Header.Connection(xs.head.ci, xs.tail.map(_.ci): _*)}
         )
     }.parse
   }
@@ -74,6 +74,15 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
   def IF_NONE_MATCH(value: String) = new Http4sHeaderParser[`If-None-Match`](value) {
     def entry = rule {
       capture(zeroOrMore(AlphaNum)) ~> (`If-None-Match`(_))
+    }
+  }.parse
+
+  def TRANSFER_ENCODING(value: String) = new Http4sHeaderParser[`Transfer-Encoding`](value) {
+    def entry = rule {
+      oneOrMore(Token).separatedBy(ListSep) ~> { vals: Seq[String] =>
+        if (vals.tail.isEmpty) `Transfer-Encoding`(TransferCoding.fromKey(vals.head.ci))
+        else `Transfer-Encoding`(TransferCoding.fromKey(vals.head.ci), vals.tail.map(s => TransferCoding.fromKey(s.ci)): _*)
+      }
     }
   }.parse
 

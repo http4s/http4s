@@ -1,9 +1,11 @@
-package org.http4s.blaze.websocket
+package org.http4s
+package blaze.websocket
 
 import org.http4s._
 import org.http4s.blaze.pipeline.stages.http.websocket.{WSFrameAggregator, WebSocketDecoder, ServerHandshaker}
 import org.http4s.Header.{`Content-Length`, Connection}
 import org.http4s.blaze.Http1Stage
+import org.http4s.util.CaseInsensitiveString._
 
 import scalaz.stream.Process
 import java.nio.ByteBuffer
@@ -29,7 +31,7 @@ trait WebSocketSupport extends Http1Stage {
             val body = Process.emit(BodyChunk(msg))
             val rsp = Response(status = Status.BadRequest,
                                body = body,
-                               headers = Headers(`Content-Length`(msg.length), Connection("close")))
+                               headers = Headers(`Content-Length`(msg.length), Connection("close".ci)))
             super.renderResponse(req, rsp)
 
           case Right(hdrs) =>

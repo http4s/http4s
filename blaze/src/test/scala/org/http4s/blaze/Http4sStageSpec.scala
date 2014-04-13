@@ -25,11 +25,10 @@ class Http4sStageSpec extends WordSpec with Matchers {
     Await.result(head.result, 100.milliseconds)
   }
 
-
   "Http4sStage" should {
-    "Run requests" in {
 
-      TestRoutes.testRequestResults.foreach{ case (req, (status,headers,resp)) =>
+    TestRoutes.testRequestResults.zipWithIndex.foreach { case ((req, (status,headers,resp)), i) =>
+      s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
 
         val result = runRequest(Seq(req))
 
@@ -40,8 +39,6 @@ class Http4sStageSpec extends WordSpec with Matchers {
         headers should equal(hresult)
 
       }
-
-
     }
   }
 

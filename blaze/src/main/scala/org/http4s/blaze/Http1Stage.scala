@@ -123,7 +123,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
           case t: Throwable =>
             logger.error(s"Error running route: $req", t)
             InternalServerError("500 Internal Service Error\n" + t.getMessage)
-              .withHeaders(Connection("close"))
+              .withHeaders(Connection("close".ci))
         }
       }(pool)
 
@@ -152,12 +152,12 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
       }
       else if (h.hasClose) {
         logger.trace("Found Connection:Close header")
-        rr ~ "Connection:Close\r\n"
+        rr ~ "Connection:close\r\n"
         true
       }
       else {
         logger.info(s"Unknown connection header: '${h.value}'. Closing connection upon completion.")
-        rr ~ "Connection:Close\r\n"
+        rr ~ "Connection:close\r\n"
         true
       }
     } getOrElse(minor == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
@@ -170,7 +170,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
         logger.trace("Using static encoder")
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
-        if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr ~ "Connection:Keep-Alive\r\n\r\n"
+        if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr ~ "Connection:keep-alive\r\n\r\n"
         else rr ~ '\r' ~ '\n'
 
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
@@ -337,7 +337,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
   }
 
   private def badRequest(msg: String, t: ParserException, req: Request) {
-    renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close"), `Content-Length`(0)))
+    renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close".ci), `Content-Length`(0)))
     logger.debug(s"Bad Request: $msg", t)
   }
 

@@ -167,13 +167,15 @@ object Header {
     type Value = CacheDirective
   }
 
+  // values should be case insensitive
+  //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
   object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring
-  final case class Connection(values: NonEmptyList[String]) extends Recurring {
+  final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends Recurring {
     def key = Connection
-    type Value = String
-    def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
-    def hasKeepAlive = values.list.exists(_.equalsIgnoreCase("keep-alive"))
-    def renderValue[W <: Writer](writer: W) = writer.addStrings(values.list, ", ")
+    type Value = CaseInsensitiveString
+    def hasClose = values.list.exists(_ == "close".ci)
+    def hasKeepAlive = values.list.exists(_ == "keep-alive".ci)
+    def renderValue[W <: Writer](writer: W) = writer.addStrings(values.list.map(_.toString), ", ")
   }
 
   object `Content-Base` extends HeaderKey.Default
