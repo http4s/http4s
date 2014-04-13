@@ -15,8 +15,7 @@ import scala.util.hashing.MurmurHash3
 /** Abstract representation o the HTTP header
   * @see [[HeaderKey]]
    */
-sealed trait Header extends Logging with ValueRenderable with Product {
-
+sealed trait Header extends ValueRenderable with Product {
   import org.http4s.Header.RawHeader
 
   def name: CaseInsensitiveString
