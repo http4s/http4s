@@ -16,8 +16,6 @@ import scala.util.hashing.MurmurHash3
   * @see [[HeaderKey]]
    */
 sealed trait Header extends ValueRenderable with Product {
-  import org.http4s.Header.RawHeader
-
   def name: CaseInsensitiveString
 
   def parsed: Header
@@ -28,7 +26,7 @@ sealed trait Header extends ValueRenderable with Product {
 
   override def toString = name + ": " + value
 
-  def toRaw: RawHeader = RawHeader(name, value)
+  def toRaw: Header.Raw = Header.Raw(name, value)
 
   override def render[W <: Writer](writer: W): W = {
     writer ~ name ~ ':' ~ ' '
@@ -47,70 +45,70 @@ sealed trait Header extends ValueRenderable with Product {
   }
 }
 
-/** A Header that is already parsed from its String representation. */
-trait ParsedHeader extends Header {
-  def key: HeaderKey
-  def name = key.name
-  def parsed: this.type = this
-}
-
-/**
- * A recurring header that satisfies this clause of the Spec:
- *
- * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
- * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
- * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
- * of the message, by appending each subsequent field-value to the first, each separated by a comma.
- */
-trait RecurringHeader extends ParsedHeader {
-  type Value
-  def values: NonEmptyList[Value]
-
-}
-
-trait RecurringRenderableHeader extends RecurringHeader {
-  type Value <: Renderable
-  def renderValue[W <: Writer](writer: W) = {
-    values.head.render(writer)
-    values.tail.foreach( writer ~ ", " ~ _ )
-    writer
-  }
-}
-
 object Header {
   def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
 
-  def apply(name: String, value: String): RawHeader = RawHeader(name.ci, value)
+  def apply(name: String, value: String): Raw = Raw(name.ci, value)
 
-  final case class RawHeader private[Header] (name: CaseInsensitiveString, override val value: String) extends Header {
+  final case class Raw (name: CaseInsensitiveString, override val value: String) extends Header {
     override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
     def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
-  object Accept extends InternalHeaderKey[Accept] with RecurringHeaderKey
-  final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringRenderableHeader {
+  /** A Header that is already parsed from its String representation. */
+  trait Parsed extends Header {
+    def key: HeaderKey
+    def name = key.name
+    def parsed: this.type = this
+  }
+
+  /**
+   * A recurring header that satisfies this clause of the Spec:
+   *
+   * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
+   * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
+   * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
+   * of the message, by appending each subsequent field-value to the first, each separated by a comma.
+   */
+  trait Recurring extends Parsed {
+    type Value
+    def key: HeaderKey.Recurring
+    def values: NonEmptyList[Value]
+  }
+
+  trait RecurringRenderable extends Recurring {
+    type Value <: Renderable
+    def renderValue[W <: Writer](writer: W) = {
+      values.head.render(writer)
+      values.tail.foreach( writer ~ ", " ~ _ )
+      writer
+    }
+  }
+
+  object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring
+  final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringRenderable {
     def key = Accept
     type Value = MediaRange
   }
 
-  object `Accept-Charset` extends InternalHeaderKey[`Accept-Charset`] with RecurringHeaderKey
-  final case class `Accept-Charset`(values: NonEmptyList[CharacterSet]) extends RecurringRenderableHeader {
+  object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring
+  final case class `Accept-Charset`(values: NonEmptyList[CharacterSet]) extends RecurringRenderable {
     def key = `Accept-Charset`
     type Value = CharacterSet
     def preferred: CharacterSet = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
     def satisfiedBy(characterSet: CharacterSet) = values.list.find(_.satisfiedBy(characterSet)).isDefined
   }
 
-  object `Accept-Encoding` extends InternalHeaderKey[`Accept-Encoding`] with RecurringHeaderKey
-  final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) extends RecurringRenderableHeader {
+  object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring
+  final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) extends RecurringRenderable {
     def key = `Accept-Encoding`
     type Value = ContentCoding
     def preferred: ContentCoding = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
     def satisfiedBy(coding: ContentCoding): Boolean = values.list.find(_.satisfiedBy(coding)).isDefined
   }
 
-  object `Accept-Language` extends InternalHeaderKey[`Accept-Language`] with RecurringHeaderKey
-  final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) extends RecurringRenderableHeader {
+  object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring
+  final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) extends RecurringRenderable {
     def key = `Accept-Language`
     type Value = LanguageTag
     def preferred: LanguageTag = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
@@ -118,12 +116,12 @@ object Header {
   }
 
   // TODO Interpreting this as not a recurring header, because of "none".
-  object `Accept-Ranges` extends InternalHeaderKey[`Accept-Ranges`] with SingletonHeaderKey {
+  object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
     def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
     def bytes = apply(RangeUnit.bytes)
     def none = apply(Nil)
   }
-  final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends ParsedHeader {
+  final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends Parsed {
     def key = `Accept-Ranges`
     def renderValue[W <: Writer](writer: W) = {
       if (rangeUnits.isEmpty) writer.append("none")
@@ -135,42 +133,42 @@ object Header {
     }
   }
 
-  object `Accept-Patch` extends DefaultHeaderKey
+  object `Accept-Patch` extends HeaderKey.Default
 
-  object `Access-Control-Allow-Credentials` extends DefaultHeaderKey
+  object `Access-Control-Allow-Credentials` extends HeaderKey.Default
 
-  object `Access-Control-Allow-Headers` extends DefaultHeaderKey
+  object `Access-Control-Allow-Headers` extends HeaderKey.Default
 
-  object `Access-Control-Allow-Methods` extends DefaultHeaderKey
+  object `Access-Control-Allow-Methods` extends HeaderKey.Default
 
-  object `Access-Control-Allow-Origin` extends DefaultHeaderKey
+  object `Access-Control-Allow-Origin` extends HeaderKey.Default
 
-  object `Access-Control-Expose-Headers` extends DefaultHeaderKey
+  object `Access-Control-Expose-Headers` extends HeaderKey.Default
 
-  object `Access-Control-Max-Age` extends DefaultHeaderKey
+  object `Access-Control-Max-Age` extends HeaderKey.Default
 
-  object `Access-Control-Request-Headers` extends DefaultHeaderKey
+  object `Access-Control-Request-Headers` extends HeaderKey.Default
 
-  object `Access-Control-Request-Method` extends DefaultHeaderKey
+  object `Access-Control-Request-Method` extends HeaderKey.Default
 
-  object Age extends DefaultHeaderKey
+  object Age extends HeaderKey.Default
 
-  object Allow extends DefaultHeaderKey
+  object Allow extends HeaderKey.Default
 
-  object Authorization extends InternalHeaderKey[Authorization] with SingletonHeaderKey
-  final case class Authorization(credentials: Credentials) extends ParsedHeader {
+  object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton
+  final case class Authorization(credentials: Credentials) extends Parsed {
     def key = `Authorization`
     def renderValue[W <: Writer](writer: W) = credentials.render(writer)
   }
 
-  object `Cache-Control` extends InternalHeaderKey[`Cache-Control`] with RecurringHeaderKey
-  final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringRenderableHeader {
+  object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKey.Recurring
+  final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringRenderable {
     def key = `Cache-Control`
     type Value = CacheDirective
   }
 
-  object Connection extends InternalHeaderKey[Connection] with RecurringHeaderKey
-  final case class Connection(values: NonEmptyList[String]) extends RecurringHeader {
+  object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring
+  final case class Connection(values: NonEmptyList[String]) extends Recurring {
     def key = Connection
     type Value = String
     def hasClose = values.list.exists(_.equalsIgnoreCase("close"))
@@ -178,11 +176,11 @@ object Header {
     def renderValue[W <: Writer](writer: W) = writer.addStrings(values.list, ", ")
   }
 
-  object `Content-Base` extends DefaultHeaderKey
+  object `Content-Base` extends HeaderKey.Default
 
-  object `Content-Disposition` extends InternalHeaderKey[`Content-Disposition`] with SingletonHeaderKey
+  object `Content-Disposition` extends HeaderKey.Internal[`Content-Disposition`] with HeaderKey.Singleton
   // see http://tools.ietf.org/html/rfc2183
-  final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends ParsedHeader {
+  final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Parsed {
     def key = `Content-Disposition`
     override lazy val value = super.value
     def renderValue[W <: Writer](writer: W) = {
@@ -192,29 +190,29 @@ object Header {
     }
   }
 
-  object `Content-Encoding` extends InternalHeaderKey[`Content-Encoding`] with SingletonHeaderKey
-  final case class `Content-Encoding`(contentCoding: ContentCoding) extends ParsedHeader {
+  object `Content-Encoding` extends HeaderKey.Internal[`Content-Encoding`] with HeaderKey.Singleton
+  final case class `Content-Encoding`(contentCoding: ContentCoding) extends Parsed {
     def key = `Content-Encoding`
     def renderValue[W <: Writer](writer: W) = contentCoding.render(writer)
   }
 
-  object `Content-Language` extends DefaultHeaderKey
+  object `Content-Language` extends HeaderKey.Default
 
-  object `Content-Length` extends InternalHeaderKey[`Content-Length`] with SingletonHeaderKey
-  final case class `Content-Length`(length: Int) extends ParsedHeader {
+  object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton
+  final case class `Content-Length`(length: Int) extends Parsed {
     def key = `Content-Length`
     def renderValue[W <: Writer](writer: W) = writer.append(length)
   }
 
-  object `Content-Location` extends DefaultHeaderKey
+  object `Content-Location` extends HeaderKey.Default
 
-  object `Content-Transfer-Encoding` extends DefaultHeaderKey
+  object `Content-Transfer-Encoding` extends HeaderKey.Default
 
-  object `Content-MD5` extends DefaultHeaderKey
+  object `Content-MD5` extends HeaderKey.Default
 
-  object `Content-Range` extends DefaultHeaderKey
+  object `Content-Range` extends HeaderKey.Default
 
-  object `Content-Type` extends InternalHeaderKey[`Content-Type`] with SingletonHeaderKey {
+  object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
     val `text/plain` = `Content-Type`(MediaType.`text/plain`)
     val `application/octet-stream` = `Content-Type`(MediaType.`application/octet-stream`)
 
@@ -225,7 +223,7 @@ object Header {
     implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
   }
 
-  final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[CharacterSet]) extends ParsedHeader {
+  final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[CharacterSet]) extends Parsed {
     def key = `Content-Type`
     def renderValue[W <: Writer](writer: W) = definedCharset match {
       case Some(cs) => writer ~ mediaType ~ "; charset=" ~ cs
@@ -245,8 +243,8 @@ object Header {
     def charset: CharacterSet = definedCharset.getOrElse(`ISO-8859-1`)
   }
 
-  object Cookie extends InternalHeaderKey[Cookie] with RecurringHeaderKey
-  final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringRenderableHeader {
+  object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring
+  final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringRenderable {
     def key = Cookie
     type Value = org.http4s.Cookie
     override def renderValue[W <: Writer](writer: W) = {
@@ -256,32 +254,32 @@ object Header {
     }
   }
 
-  object Date extends InternalHeaderKey[Date] with SingletonHeaderKey
-  final case class Date(date: DateTime) extends ParsedHeader {
+  object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton
+  final case class Date(date: DateTime) extends Parsed {
     def key = `Date`
     override def value = date.formatRfc1123
     def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
-  object ETag extends InternalHeaderKey[ETag] with SingletonHeaderKey
-  final case class ETag(tag: String) extends ParsedHeader {
+  object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton
+  final case class ETag(tag: String) extends Parsed {
     def key: HeaderKey = ETag
     override def value: String = tag
     def renderValue[W <: Writer](writer: W) = writer.append(tag)
   }
 
-  object Expect extends DefaultHeaderKey
+  object Expect extends HeaderKey.Default
 
-  object Expires extends DefaultHeaderKey
+  object Expires extends HeaderKey.Default
 
-  object From extends DefaultHeaderKey
+  object From extends HeaderKey.Default
 
-  object `Front-End-Https` extends DefaultHeaderKey
+  object `Front-End-Https` extends HeaderKey.Default
 
-  object Host extends InternalHeaderKey[Host] with SingletonHeaderKey {
+  object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
     def apply(host: String, port: Int): Host = apply(host, Some(port))
   }
-  final case class Host(host: String, port: Option[Int] = None) extends ParsedHeader {
+  final case class Host(host: String, port: Option[Int] = None) extends Parsed {
     def key = `Host`
     def renderValue[W <: Writer](writer: W) = {
       writer.append(host)
@@ -290,116 +288,116 @@ object Header {
     }
   }
 
-  object `If-Match` extends DefaultHeaderKey
+  object `If-Match` extends HeaderKey.Default
 
-  object `If-Modified-Since` extends InternalHeaderKey[`If-Modified-Since`] with SingletonHeaderKey
-  final case class `If-Modified-Since`(date: DateTime) extends ParsedHeader {
+  object `If-Modified-Since` extends HeaderKey.Internal[`If-Modified-Since`] with HeaderKey.Singleton
+  final case class `If-Modified-Since`(date: DateTime) extends Parsed {
     def key: HeaderKey = `If-Modified-Since`
     override def value: String = date.formatRfc1123
     def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
-  object `If-None-Match` extends InternalHeaderKey[`If-None-Match`] with SingletonHeaderKey
-  case class `If-None-Match`(tag: String) extends ParsedHeader {
+  object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKey.Singleton
+  case class `If-None-Match`(tag: String) extends Parsed {
     def key: HeaderKey = `If-None-Match`
     override def value: String = tag
     def renderValue[W <: Writer](writer: W) = writer.append(tag)
   }
 
-  object `If-Range` extends DefaultHeaderKey
+  object `If-Range` extends HeaderKey.Default
 
-  object `If-Unmodified-Since` extends DefaultHeaderKey
+  object `If-Unmodified-Since` extends HeaderKey.Default
 
-  object `Last-Modified` extends InternalHeaderKey[`Last-Modified`] with SingletonHeaderKey
-  final case class `Last-Modified`(date: DateTime) extends ParsedHeader {
+  object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton
+  final case class `Last-Modified`(date: DateTime) extends Parsed {
     def key = `Last-Modified`
     override def value = date.formatRfc1123
     def renderValue[W <: Writer](writer: W) = writer.append(value)
   }
 
-  object Location extends InternalHeaderKey[Location] with SingletonHeaderKey
+  object Location extends HeaderKey.Internal[Location] with HeaderKey.Singleton
 
-  final case class Location(absoluteUri: String) extends ParsedHeader {
+  final case class Location(absoluteUri: String) extends Parsed {
     def key = `Location`
     override def value = absoluteUri
     def renderValue[W <: Writer](writer: W) = writer.append(absoluteUri)
   }
 
-  object `Max-Forwards` extends DefaultHeaderKey
+  object `Max-Forwards` extends HeaderKey.Default
 
-  object Origin extends DefaultHeaderKey
+  object Origin extends HeaderKey.Default
 
-  object Pragma extends DefaultHeaderKey
+  object Pragma extends HeaderKey.Default
 
-  object `Proxy-Authenticate` extends DefaultHeaderKey
+  object `Proxy-Authenticate` extends HeaderKey.Default
 
-  object `Proxy-Authorization` extends DefaultHeaderKey
+  object `Proxy-Authorization` extends HeaderKey.Default
 
-  object Range extends DefaultHeaderKey
+  object Range extends HeaderKey.Default
 
-  object Referer extends DefaultHeaderKey
+  object Referer extends HeaderKey.Default
 
-  object `Retry-After` extends DefaultHeaderKey
+  object `Retry-After` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Key` extends DefaultHeaderKey
+  object `Sec-WebSocket-Key` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Key1` extends DefaultHeaderKey
+  object `Sec-WebSocket-Key1` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Key2` extends DefaultHeaderKey
+  object `Sec-WebSocket-Key2` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Location` extends DefaultHeaderKey
+  object `Sec-WebSocket-Location` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Origin` extends DefaultHeaderKey
+  object `Sec-WebSocket-Origin` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Protocol` extends DefaultHeaderKey
+  object `Sec-WebSocket-Protocol` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Version` extends DefaultHeaderKey
+  object `Sec-WebSocket-Version` extends HeaderKey.Default
 
-  object `Sec-WebSocket-Accept` extends DefaultHeaderKey
+  object `Sec-WebSocket-Accept` extends HeaderKey.Default
 
-  object Server extends DefaultHeaderKey
+  object Server extends HeaderKey.Default
 
-  object `Set-Cookie` extends InternalHeaderKey[`Set-Cookie`] with SingletonHeaderKey
-  final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends ParsedHeader {
+  object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] with HeaderKey.Singleton
+  final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends Parsed {
     def key = `Set-Cookie`
     def renderValue[W <: Writer](writer: W) = cookie.render(writer)
   }
 
-  object `TE` extends DefaultHeaderKey
+  object `TE` extends HeaderKey.Default
 
-  object `Trailer` extends DefaultHeaderKey
+  object `Trailer` extends HeaderKey.Default
 
-  object `Transfer-Encoding` extends InternalHeaderKey[`Transfer-Encoding`] with RecurringHeaderKey
-  final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends RecurringRenderableHeader {
+  object `Transfer-Encoding` extends HeaderKey.Internal[`Transfer-Encoding`] with HeaderKey.Recurring
+  final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends RecurringRenderable {
     def key = `Transfer-Encoding`
     def hasChunked = values.list.exists(_.value.equalsIgnoreCase("chunked"))
     type Value = TransferCoding
   }
 
-  object Upgrade extends DefaultHeaderKey
+  object Upgrade extends HeaderKey.Default
 
-  object `User-Agent` extends DefaultHeaderKey
+  object `User-Agent` extends HeaderKey.Default
 
-  object Vary extends DefaultHeaderKey
+  object Vary extends HeaderKey.Default
 
-  object Via extends DefaultHeaderKey
+  object Via extends HeaderKey.Default
 
-  object Warning extends DefaultHeaderKey
+  object Warning extends HeaderKey.Default
 
-  object `WebSocket-Location` extends DefaultHeaderKey
+  object `WebSocket-Location` extends HeaderKey.Default
 
-  object `WebSocket-Origin` extends DefaultHeaderKey
+  object `WebSocket-Origin` extends HeaderKey.Default
 
-  object `WebSocket-Protocol` extends DefaultHeaderKey
+  object `WebSocket-Protocol` extends HeaderKey.Default
 
-  object `WWW-Authenticate` extends InternalHeaderKey[`WWW-Authenticate`] with RecurringHeaderKey
-  final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringRenderableHeader {
+  object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with HeaderKey.Recurring
+  final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringRenderable {
     def key = `WWW-Authenticate`
     type Value = Challenge
   }
 
-  object `X-Forwarded-For` extends InternalHeaderKey[`X-Forwarded-For`] with RecurringHeaderKey
-  final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends RecurringHeader {
+  object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring
+  final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends Recurring {
     def key = `X-Forwarded-For`
     type Value = Option[InetAddress]
     override lazy val value = super.value
@@ -418,7 +416,7 @@ object Header {
     }
   }
 
-  object `X-Forwarded-Proto` extends DefaultHeaderKey
+  object `X-Forwarded-Proto` extends HeaderKey.Default
 
-  object `X-Powered-By` extends DefaultHeaderKey
+  object `X-Powered-By` extends HeaderKey.Default
 }

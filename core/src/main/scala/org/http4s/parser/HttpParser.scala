@@ -41,7 +41,7 @@ private[parser] trait HttpParser extends SimpleHeaders
         }.asInstanceOf[HeaderParser]
       }.toMap
 
-  def parseHeader(header: Header.RawHeader): HeaderValidation = {
+  def parseHeader(header: Header.Raw): HeaderValidation = {
     rules.get(header.name) match {
       case Some(parser) => parser(header.value)
       case None => Success(header) // if we don't have a rule for the header we leave it unparsed
@@ -51,7 +51,7 @@ private[parser] trait HttpParser extends SimpleHeaders
   def parseHeaders(headers: List[Header]): (List[String], List[Header]) = {
     val errors = List.newBuilder[String]
     val parsedHeaders = headers.map {   // Only attempt to parse the raw headers
-      case header: Header.RawHeader =>
+      case header: Header.Raw =>
         parseHeader(header) match {
           case Success(parsed) => parsed
           case Failure(error: ParseErrorInfo) => errors += error.detail; header
