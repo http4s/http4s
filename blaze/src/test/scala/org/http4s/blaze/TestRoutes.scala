@@ -63,7 +63,7 @@ object TestRoutes {
       "chunk")),
     ///////////////////////////////// TODO: blaze parser doesn't support a response without content-length
 //    ("GET /chunked HTTP/1.0\r\n\r\n", (Status.Ok,
-//      Set(textPlain, length(5))),
+//      Set(textPlain, length(5)),
 //      "chunk")),
 //    /////////////////////////////////
 //    ("GET /chunked HTTP/1.0\r\nConnection:Close\r\n\r\n", (Status.Ok,
@@ -99,13 +99,19 @@ object TestRoutes {
     /////////////////////////////////
     ("POST /post HTTP/1.1\r\nConnection:Close\r\nTransfer-Encoding:chunked\r\n\r\n3\r\nfoo\r\n0\r\n\r\n", (Status.Ok,
       Set(textPlain, length(4), connClose),
-      "post"))
+      "post")),
+    ///////////////////////////////// Check corner cases //////////////////
+    ("GET /twocodings HTTP/1.0\r\nConnection:Close\r\n\r\n",
+      (Status.Ok, Set(textPlain, length(3), connClose), "Foo"))
   )
 
   def apply(): HttpService = {
     case req if req.requestMethod == Method.Get && req.pathInfo == "/get" => Ok("get")
     case req if req.requestMethod == Method.Get && req.pathInfo == "/chunked" => Ok(await(Task("chunk"))(emit))
     case req if req.requestMethod == Method.Post && req.pathInfo == "/post" => Ok("post")
+
+    case req if req.requestMethod == Method.Get && req.pathInfo == "/twocodings" =>
+      Ok("Foo").addHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Ok(emit("post") ++ req.body.map(_.decodeString(StandardCharsets.UTF_8)))

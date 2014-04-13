@@ -38,6 +38,10 @@ trait ResponseSyntax {
 
     def withHeaders(headers: Header*): T = withHeaders(Headers(headers.toList))
 
+    def addHeaders(headers: Headers): T = translateResponse(r => r.copy(headers = r.headers ++ headers))
+
+    def addHeaders(headers: Header*): T = translateResponse(r => r.copy(headers = r.headers ++ headers))
+
     def removeCookie(cookie: Cookie): T =
       translateResponse(_.addHeader(Header.`Set-Cookie`(cookie.copy(content = "",
         expires = Some(UnixEpoch), maxAge = Some(0)))))

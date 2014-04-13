@@ -87,6 +87,14 @@ class SimpleHeadersSpec extends WordSpec with Matchers {
       HttpParser.parseHeader(header.toRaw) should equal(Success(header))
     }
 
+    "parse Transfer-Encoding" in {
+      val header = `Transfer-Encoding`(TransferCoding.chunked)
+      HttpParser.parseHeader(header.toRaw) should equal(Success(header))
+
+      val header2 = `Transfer-Encoding`(TransferCoding.compress)
+      HttpParser.parseHeader(header2.toRaw) should equal(Success(header2))
+    }
+
     "parse X-Forward-Spec" in {
       val header1 = `X-Forwarded-For`(NonEmptyList(Some(InetAddress.getLocalHost)))
       HttpParser.parseHeader(header1.toRaw) should equal(Success(header1))
