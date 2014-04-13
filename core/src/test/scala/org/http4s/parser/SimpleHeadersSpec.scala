@@ -1,6 +1,7 @@
 package org.http4s
 package parser
 
+import Http4s._
 import org.scalatest.{Matchers, WordSpec}
 import Header._
 import scalaz.{NonEmptyList, Success}
@@ -16,7 +17,7 @@ class SimpleHeadersSpec extends WordSpec with Matchers {
   "SimpleHeaders" should {
 
     "parse Connection" in {
-      val header = Connection("closed")
+      val header = Connection("closed".ci)
       HttpParser.parseHeader(header.toRaw) should equal(Success(header))
     }
 

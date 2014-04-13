@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.scalatest.{OptionValues, WordSpec, Matchers}
+import Http4s._
 
 class ResponderSpec extends WordSpec with Matchers with OptionValues {
 
@@ -36,8 +37,8 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
     }
 
     "Replace headers" in {
-      val wHeader = resp.addHeader(Header.Connection("close"))
-      wHeader.headers.get(Header.Connection).value should equal (Header.Connection("close"))
+      val wHeader = resp.addHeader(Header.Connection("close".ci))
+      wHeader.headers.get(Header.Connection).value should equal (Header.Connection("close".ci))
 
       val newHeaders = wHeader.removeHeader(Header.Connection)
       newHeaders.headers.get(Header.Connection) should be (None)
