@@ -35,13 +35,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Expires</span><span class="result"> extends <span class="extype" name="org.http4s.InternalHeaderKey">InternalHeaderKey</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>] with <span class="extype" name="org.http4s.DefaultHeaderKey">DefaultHeaderKey</span></span>
+        <span class="name">Expires</span><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>] with <span class="extype" name="org.http4s.HeaderKey.Default">Default</span></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.DefaultHeaderKey">DefaultHeaderKey</span>, <span class="extype" name="org.http4s.StringHeaderKey">StringHeaderKey</span>, <a href="SingletonHeaderKey.html" class="extype" name="org.http4s.SingletonHeaderKey">SingletonHeaderKey</a>, <a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a>, <span class="extype" name="org.http4s.InternalHeaderKey">InternalHeaderKey</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>], <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.HeaderKey.Default">Default</span>, <span class="extype" name="org.http4s.HeaderKey.String">String</span>, <a href="HeaderKey$$Singleton.html" class="extype" name="org.http4s.HeaderKey.Singleton">Singleton</a>, <a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a>, <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>], <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -59,7 +59,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.Header.Expires"><span>Expires</span></li><li class="in" name="org.http4s.DefaultHeaderKey"><span>DefaultHeaderKey</span></li><li class="in" name="org.http4s.StringHeaderKey"><span>StringHeaderKey</span></li><li class="in" name="org.http4s.SingletonHeaderKey"><span>SingletonHeaderKey</span></li><li class="in" name="org.http4s.ExtractableHeaderKey"><span>ExtractableHeaderKey</span></li><li class="in" name="org.http4s.InternalHeaderKey"><span>InternalHeaderKey</span></li><li class="in" name="org.http4s.HeaderKey"><span>HeaderKey</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.Header.Expires"><span>Expires</span></li><li class="in" name="org.http4s.HeaderKey.Default"><span>Default</span></li><li class="in" name="org.http4s.HeaderKey.String"><span>String</span></li><li class="in" name="org.http4s.HeaderKey.Singleton"><span>Singleton</span></li><li class="in" name="org.http4s.HeaderKey.Extractable"><span>Extractable</span></li><li class="in" name="org.http4s.HeaderKey.Internal"><span>Internal</span></li><li class="in" name="org.http4s.HeaderKey"><span>HeaderKey</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -81,7 +81,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.DefaultHeaderKey.HeaderT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.HeaderKey.Default.HeaderT" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HeaderT=org.http4s.Header"></a>
       <a id="HeaderT:HeaderT"></a>
       <h4 class="signature">
@@ -93,7 +93,7 @@
         <span class="name">HeaderT</span><span class="result"> = <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>DefaultHeaderKey → StringHeaderKey → InternalHeaderKey → <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Default → String → Internal → <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -243,8 +243,8 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.StringHeaderKey#from" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="from(headers:org.http4s.Headers):Option[StringHeaderKey.this.HeaderT]"></a>
+    </li><li name="org.http4s.HeaderKey.String#from" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="from(headers:org.http4s.Headers):Option[String.this.HeaderT]"></a>
       <a id="from(Headers):Option[Expires.HeaderT]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -252,10 +252,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">from</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="org.http4s.StringHeaderKey.HeaderT">Expires.HeaderT</span>]</span>
+        <span class="name">from</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="org.http4s.HeaderKey.String.HeaderT">Expires.HeaderT</span>]</span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>StringHeaderKey → <a href="SingletonHeaderKey.html" class="extype" name="org.http4s.SingletonHeaderKey">SingletonHeaderKey</a> → <a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>String → <a href="HeaderKey$$Singleton.html" class="extype" name="org.http4s.HeaderKey.Singleton">Singleton</a> → <a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -295,8 +295,8 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.StringHeaderKey#matchHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="matchHeader(header:org.http4s.Header):Option[StringHeaderKey.this.HeaderT]"></a>
+    </li><li name="org.http4s.HeaderKey.String#matchHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="matchHeader(header:org.http4s.Header):Option[String.this.HeaderT]"></a>
       <a id="matchHeader(Header):Option[Expires.HeaderT]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -304,11 +304,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">matchHeader</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="org.http4s.StringHeaderKey.HeaderT">Expires.HeaderT</span>]</span>
+        <span class="name">matchHeader</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="org.http4s.HeaderKey.String.HeaderT">Expires.HeaderT</span>]</span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>StringHeaderKey → <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
-    </li><li name="org.http4s.InternalHeaderKey#name" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>String → <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
+    </li><li name="org.http4s.HeaderKey.Internal#name" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="name:org.http4s.util.CaseInsensitiveString"></a>
       <a id="name:CaseInsensitiveString"></a>
       <h4 class="signature">
@@ -320,7 +320,7 @@
         <span class="name">name</span><span class="result">: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>InternalHeaderKey → <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Internal → <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -386,8 +386,8 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a> → AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.ExtractableHeaderKey#unapply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="unapply(headers:org.http4s.Headers):Option[ExtractableHeaderKey.this.HeaderT]"></a>
+    </li><li name="org.http4s.HeaderKey.Extractable#unapply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="unapply(headers:org.http4s.Headers):Option[Extractable.this.HeaderT]"></a>
       <a id="unapply(Headers):Option[HeaderT]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -398,7 +398,7 @@
         <span class="name">unapply</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT=org.http4s.Header" class="extmbr" name="org.http4s.Header.Expires.HeaderT">HeaderT</a>]</span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></dd></dl></div>
     </li><li name="org.http4s.HeaderKey#unapply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="unapply(header:org.http4s.Header):Option[HeaderKey.this.HeaderT]"></a>
       <a id="unapply(Header):Option[HeaderT]"></a>
@@ -478,16 +478,16 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.DefaultHeaderKey">
-              <h3>Inherited from <span class="extype" name="org.http4s.DefaultHeaderKey">DefaultHeaderKey</span></h3>
-            </div><div class="parent" name="org.http4s.StringHeaderKey">
-              <h3>Inherited from <span class="extype" name="org.http4s.StringHeaderKey">StringHeaderKey</span></h3>
-            </div><div class="parent" name="org.http4s.SingletonHeaderKey">
-              <h3>Inherited from <a href="SingletonHeaderKey.html" class="extype" name="org.http4s.SingletonHeaderKey">SingletonHeaderKey</a></h3>
-            </div><div class="parent" name="org.http4s.ExtractableHeaderKey">
-              <h3>Inherited from <a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a></h3>
-            </div><div class="parent" name="org.http4s.InternalHeaderKey">
-              <h3>Inherited from <span class="extype" name="org.http4s.InternalHeaderKey">InternalHeaderKey</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>]</h3>
+        <div class="parent" name="org.http4s.HeaderKey.Default">
+              <h3>Inherited from <span class="extype" name="org.http4s.HeaderKey.Default">Default</span></h3>
+            </div><div class="parent" name="org.http4s.HeaderKey.String">
+              <h3>Inherited from <span class="extype" name="org.http4s.HeaderKey.String">String</span></h3>
+            </div><div class="parent" name="org.http4s.HeaderKey.Singleton">
+              <h3>Inherited from <a href="HeaderKey$$Singleton.html" class="extype" name="org.http4s.HeaderKey.Singleton">Singleton</a></h3>
+            </div><div class="parent" name="org.http4s.HeaderKey.Extractable">
+              <h3>Inherited from <a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></h3>
+            </div><div class="parent" name="org.http4s.HeaderKey.Internal">
+              <h3>Inherited from <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>]</h3>
             </div><div class="parent" name="org.http4s.HeaderKey">
               <h3>Inherited from <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></h3>
             </div><div class="parent" name="scala.AnyRef">

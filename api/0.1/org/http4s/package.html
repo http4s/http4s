@@ -276,19 +276,6 @@
       </span>
       </h4>
       
-    </li><li name="org.http4s.ExtractableHeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ExtractableHeaderKeyextendsHeaderKey"></a>
-      <a id="ExtractableHeaderKey:ExtractableHeaderKey"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ExtractableHeaderKey.html"><span class="name">ExtractableHeaderKey</span></a><span class="result"> extends <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>
-      </span>
-      </h4>
-      
     </li><li name="org.http4s.GenericCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="GenericCredentialsextendsCredentialswithProductwithSerializable"></a>
       <a id="GenericCredentials:GenericCredentials"></a>
@@ -303,7 +290,7 @@
       </h4>
       
     </li><li name="org.http4s.Header" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="HeaderextendsLoggingwithValueRenderablewithProduct"></a>
+      <a id="HeaderextendsValueRenderablewithProduct"></a>
       <a id="Header:Header"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -311,7 +298,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Header.html"><span class="name">Header</span></a><span class="result"> extends <span class="extype" name="com.typesafe.scalalogging.slf4j.Logging">Logging</span> with <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a></span>
+        <a href="Header.html"><span class="name">Header</span></a><span class="result"> extends <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a></span>
       </span>
       </h4>
       <p class="comment cmt">Abstract representation o the HTTP header</p>
@@ -526,19 +513,6 @@ containing the <a href="Response.html" class="extype" name="org.http4s.Response"
       </span>
       </h4>
       
-    </li><li name="org.http4s.ParsedHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ParsedHeaderextendsHeader"></a>
-      <a id="ParsedHeader:ParsedHeader"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ParsedHeader.html"><span class="name">ParsedHeader</span></a><span class="result"> extends <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>
-      </span>
-      </h4>
-      <p class="comment cmt">A Header that is already parsed from its String representation.</p>
     </li><li name="org.http4s.Q" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="QextendsOrdering[org.http4s.Q]withValueRenderablewithProductwithSerializable"></a>
       <a id="Q:Q"></a>
@@ -575,46 +549,6 @@ containing the <a href="Response.html" class="extype" name="org.http4s.Response"
       </span>
       <span class="symbol">
         <a href="RangeUnit.html"><span class="name">RangeUnit</span></a><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.RecurringHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="RecurringHeaderextendsParsedHeader"></a>
-      <a id="RecurringHeader:RecurringHeader"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="RecurringHeader.html"><span class="name">RecurringHeader</span></a><span class="result"> extends <a href="ParsedHeader.html" class="extype" name="org.http4s.ParsedHeader">ParsedHeader</a></span>
-      </span>
-      </h4>
-      <p class="comment cmt">A recurring header that satisfies this clause of the Spec:</p>
-    </li><li name="org.http4s.RecurringHeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="RecurringHeaderKeyextendsExtractableHeaderKey"></a>
-      <a id="RecurringHeaderKey:RecurringHeaderKey"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="RecurringHeaderKey.html"><span class="name">RecurringHeaderKey</span></a><span class="result"> extends <a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a></span>
-      </span>
-      </h4>
-      <p class="comment cmt">Represents a header key whose multiple headers can be combined by joining
-their values with a comma.</p>
-    </li><li name="org.http4s.RecurringRenderableHeader" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="RecurringRenderableHeaderextendsRecurringHeader"></a>
-      <a id="RecurringRenderableHeader:RecurringRenderableHeader"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="RecurringRenderableHeader.html"><span class="name">RecurringRenderableHeader</span></a><span class="result"> extends <a href="RecurringHeader.html" class="extype" name="org.http4s.RecurringHeader">RecurringHeader</a></span>
       </span>
       </h4>
       
@@ -710,19 +644,6 @@ their values with a comma.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.SingletonHeaderKey" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="SingletonHeaderKeyextendsExtractableHeaderKey"></a>
-      <a id="SingletonHeaderKey:SingletonHeaderKey"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="SingletonHeaderKey.html"><span class="name">SingletonHeaderKey</span></a><span class="result"> extends <a href="ExtractableHeaderKey.html" class="extype" name="org.http4s.ExtractableHeaderKey">ExtractableHeaderKey</a></span>
-      </span>
-      </h4>
-      <p class="comment cmt">Represents a Header that should not be repeated.</p>
     </li><li name="org.http4s.Status" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="StatusextendsOrdered[org.http4s.Status]withProductwithSerializable"></a>
       <a id="Status:Status"></a>
@@ -963,6 +884,19 @@ http://www.</p>
       </span>
       <span class="symbol">
         <a href="Header$.html"><span class="name">Header</span></a>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.HeaderKey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HeaderKey"></a>
+      <a id="HeaderKey:HeaderKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HeaderKey$.html"><span class="name">HeaderKey</span></a>
       </span>
       </h4>
       
