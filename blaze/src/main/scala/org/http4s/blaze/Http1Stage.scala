@@ -52,6 +52,8 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
     requestLoop()
   }
 
+  this.channelWrite(Nil)
+
   private def requestLoop(): Unit = {
     channelRead().onComplete {
       case Success(buff) =>
@@ -141,37 +143,75 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
 
     val respConn = Header.Connection.from(resp.headers)
 
-    val lengthHeader = `Content-Length`.from(resp.headers)
-    var closeOnFinish = respConn.isDefined && respConn.get.hasClose || minor == 0
-
-    // Should we add a keep-alive header?
-    if (respConn.isEmpty) Header.Connection.from(req.headers).foreach { h =>
-      if (h.hasKeepAlive) {
+    // Need to decide which encoder and if to close on finish
+    val closeOnFinish = respConn.map(_.hasClose) orElse
+      Header.Connection.from(req.headers).map { h => // If the response doesn't designate a
+      if (h.hasKeepAlive) {                          // connection, look to the request
         logger.trace("Found Keep-Alive header")
-
-        // Only add keep-alive header if we are HTTP/1.1 or we have a known length
-        if (minor != 0 || lengthHeader.isDefined) {
-          closeOnFinish = false
-          rr ~ Header.Connection.name.toString ~ ':' ~ "Keep-Alive" ~ '\r' ~ '\n'
-        }
-
-      } else if (h.hasClose) {
-        closeOnFinish = true
-        rr ~ Header.Connection.name.toString ~ ':' ~ "Close" ~ '\r' ~ '\n'
-
-      } else {
-        logger.info(s"Unknown connection header: '${h.value}'. Closing connection upon completion.")
-        closeOnFinish = true
-        rr ~ Header.Connection.name.toString ~ ':' ~ "Close" ~ '\r' ~ '\n'
+        false
       }
-    }
+      else if (h.hasClose) {
+        logger.trace("Found Connection:Close header")
+        rr ~ "Connection:Close\r\n"
+        true
+      }
+      else {
+        logger.info(s"Unknown connection header: '${h.value}'. Closing connection upon completion.")
+        rr ~ "Connection:Close\r\n"
+        true
+      }
+    } getOrElse(minor == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
-    val bodyEncoder = chooseEncoder(rr, resp, lengthHeader)
+    val lengthHeader = `Content-Length`.from(resp.headers)
+
+    val bodyEncoder = lengthHeader match {
+      case Some(h) =>
+        logger.trace("Using static encoder")
+
+        // add KeepAlive to Http 1.0 responses if the header isn't already present
+        if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr ~ "Connection:Keep-Alive\r\n\r\n"
+        else rr ~ '\r' ~ '\n'
+
+        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+        new StaticWriter(b, h.length, this)
+
+      case None =>  // No Length designated for body
+        if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
+          if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
+            logger.trace("Using static encoder")
+            rr ~ '\r' ~ '\n'
+            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+            new StaticWriter(b, -1, this)
+          }
+          else {  // HTTP 1.0, but request was Keep-Alive.
+            logger.trace("Using static encoder without length")
+            new CachingStaticWriter(rr, this) // will cache for a bit, then signal close if the body is long
+          }
+        }
+        else {  // HTTP >= 1.1 request without length. Will use a chunked encoder
+          Header.`Transfer-Encoding`.from(resp.headers) match {
+            case Some(h) => // Signaling chunked may mean flush every chunk
+              if (!h.hasChunked) {
+                logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
+                rr ~ "Transfer-Encoding: chunked\r\n"
+              }
+              rr ~ '\r' ~ '\n'
+              val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+              new ChunkProcessWriter(b, this)
+
+            case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
+              logger.trace("Using Caching Chunk Encoder")
+              rr ~ "Transfer-Encoding: chunked\r\n\r\n"
+              val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+              new CachingChunkWriter(b, this)
+          }
+        }
+    }
 
     bodyEncoder.writeProcess(resp.body).runAsync {
       case \/-(_) =>
-        if (closeOnFinish) {
+        if (closeOnFinish || bodyEncoder.requireClose()) {
           closeConnection()
           logger.trace("Request/route requested closing connection.")
         } else {
@@ -187,36 +227,39 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
   /** Decide which body encoder to use
     * If length is defined, default to a static writer, otherwise decide based on http version
     */
-  private def chooseEncoder(rr: StringWriter, resp: Response, l: Option[`Content-Length`]): ProcessWriter = l match {
-    case Some(h) =>
-      rr ~ '\r' ~ '\n'
-      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-      new StaticWriter(b, h.length, this)
-
-    case None =>
-      if (minor == 0) {        // we are replying to a HTTP 1.0 request. Only do StaticWriters
-        rr ~ '\r' ~ '\n'
-        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-        new StaticWriter(b, -1, this)
-      }
-      else {  // HTTP 1.1 request, its going to be a chunked encoder, but what kind?
-        Header.`Transfer-Encoding`.from(resp.headers) match {
-          case Some(h) => // flushing chunk encoder
-            if (!h.hasChunked) {
-              logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
-              rr ~ "Transfer-Encoding: chunked\r\n"
-            }
-            rr ~ '\r' ~ '\n'
-            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-            new ChunkProcessWriter(b, this)
-  
-          case None =>     // Transfer-Encoding not set, default to cached chunked for HTTP/1.1
-            rr ~ "Transfer-Encoding: chunked\r\n\r\n"
-            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-            new CachingChunkWriter(b, this)
-        }
-      }
-  }
+//  private def chooseEncoder(rr: StringWriter, resp: Response, l: Option[`Content-Length`]): ProcessWriter = l match {
+//    case Some(h) =>
+//      logger.trace("Using static encoder")
+//      rr ~ '\r' ~ '\n'
+//      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+//      new StaticWriter(b, h.length, this)
+//
+//    case None =>
+//      if (minor == 0) {        // we are replying to a HTTP 1.0 request. Only do StaticWriters
+//        rr ~ '\r' ~ '\n'
+//        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+//        logger.trace("Using static encoder without length")
+//        new StaticWriter(b, -1, this)
+//      }
+//      else {  // HTTP 1.1 request, its going to be a chunked encoder, but what kind?
+//        Header.`Transfer-Encoding`.from(resp.headers) match {
+//          case Some(h) => // flushing chunk encoder
+//            if (!h.hasChunked) {
+//              logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
+//              rr ~ "Transfer-Encoding: chunked\r\n"
+//            }
+//            rr ~ '\r' ~ '\n'
+//            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+//            new ChunkProcessWriter(b, this)
+//
+//          case None =>     // Transfer-Encoding not set, default to cached chunked for HTTP/1.1
+//            logger.trace("Using Caching Chunk Encoder")
+//            rr ~ "Transfer-Encoding: chunked\r\n\r\n"
+//            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+//            new CachingChunkWriter(b, this)
+//        }
+//      }
+//  }
 
   // TODO: what should be the behavior for determining if we have some body coming?
   private def collectBodyFromParser(buffer: ByteBuffer): HttpBody = {

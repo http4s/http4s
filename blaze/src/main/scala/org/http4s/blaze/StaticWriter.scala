@@ -10,7 +10,8 @@ import scala.concurrent.{ExecutionContext, Future}
  * @author Bryce Anderson
  *         Created on 1/10/14
  */
-class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[ByteBuffer])(implicit val ec: ExecutionContext)
+class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[ByteBuffer])
+                  (implicit val ec: ExecutionContext)
                               extends ProcessWriter with Logging {
 
   private var written = 0
