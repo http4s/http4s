@@ -28,7 +28,7 @@ sealed trait Header extends ValueRenderable with Product {
 
   override def toString = name + ": " + value
 
-  def raw: RawHeader = RawHeader(name, value)
+  def toRaw: RawHeader = RawHeader(name, value)
 
   override def render[W <: Writer](writer: W): W = {
     writer ~ name ~ ':' ~ ' '

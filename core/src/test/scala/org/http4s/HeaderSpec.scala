@@ -32,8 +32,8 @@ class HeaderSpec extends WordSpec with Matchers {
       h1 == h2 should equal (true)
       h2 == h1 should equal (true)
 
-      val h3 = Header.Date(new DateTime()).raw.parsed
-      val h4 = h3.raw
+      val h3 = Header.Date(new DateTime()).toRaw.parsed
+      val h4 = h3.toRaw
 
       h3 == h4 should equal (true)
       h4 == h3 should equal (true)
