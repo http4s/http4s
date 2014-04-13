@@ -14,22 +14,32 @@ import org.http4s.Header.`Content-Length`
  */
 class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], bufferSize: Int = 8*1024)
                               (implicit val ec: ExecutionContext)
-        extends ProcessWriter with Logging {
+                          extends ProcessWriter with Logging {
 
-  private var bodyBuffer: BodyChunk = null
-
+  @volatile
   private var _forceClose = false
+  private var bodyBuffer: BodyChunk = null
+  private var innerWriter: InnerWriter = null
 
-  override def forceClose(): Boolean = _forceClose
+  override def requireClose(): Boolean = _forceClose
 
   private def addChunk(b: BodyChunk): BodyChunk = {
     if (bodyBuffer == null) bodyBuffer = b
     else bodyBuffer = bodyBuffer ++ b
-
     bodyBuffer
   }
 
-  private var innerWriter: InnerWriter = null
+  override protected def exceptionFlush(): Future[Any] = {
+    val c = bodyBuffer
+    bodyBuffer = null
+
+    if (innerWriter == null) {  // We haven't written anything yet
+      writer ~ '\r' ~ '\n'
+      val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.US_ASCII))
+      new InnerWriter(b).writeBodyChunk(c, true)
+    }
+    else writeBodyChunk(c, true)    // we are already proceeding
+  }
 
   override protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = {
     if (innerWriter != null) innerWriter.writeEnd(chunk, t)
@@ -43,9 +53,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     }
   }
 
-
   override protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = {
-
     if (innerWriter != null) innerWriter.writeBodyChunk(chunk, flush)
     else {
       val c = addChunk(chunk)
@@ -58,14 +66,11 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
       }
       else Future.successful()
     }
-
   }
 
   // Make the write stuff public
   private class InnerWriter(buffer: ByteBuffer) extends StaticWriter(buffer, -1, out) {
-
     override def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = super.writeEnd(chunk, t)
-
     override def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = super.writeBodyChunk(chunk, flush)
   }
 }

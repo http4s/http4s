@@ -43,7 +43,7 @@ trait ProcessWriter {
     */
   protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
 
-  def forceClose(): Boolean = false
+  def requireClose(): Boolean = false
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
   protected def exceptionFlush(): Future[Any] = Future.successful()

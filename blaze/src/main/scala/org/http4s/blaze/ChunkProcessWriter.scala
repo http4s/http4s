@@ -18,10 +18,6 @@ class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBu
 
   private def CRLF = ByteBuffer.wrap(CRLFBytes).asReadOnlyBuffer()
 
-  private val lengthBuffer = ByteBuffer.allocate(15)    // Should be enough
-
-
-
   protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = {
     pipe.channelWrite(encodeChunk(chunk, Nil))
   }
@@ -47,19 +43,15 @@ class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBu
     pipe.channelWrite(all)
   }
 
-  private def writeLength(buffer: ByteBuffer, length: Int) {
-    buffer.put(Integer.toHexString(length).getBytes(StandardCharsets.US_ASCII)).put(CRLFBytes)
+  private def writeLength(length: Int): ByteBuffer = {
+    val bytes = Integer.toHexString(length).getBytes(StandardCharsets.US_ASCII)
+    val b = ByteBuffer.allocate(bytes.length + 2)
+    b.put(bytes).put('\r').put('\n').flip()
+    b
   }
 
   private def encodeChunk(chunk: BodyChunk, last: List[ByteBuffer]): List[ByteBuffer] = {
-    lengthBuffer.clear()
-    writeLength(lengthBuffer, chunk.length)
-    lengthBuffer.flip()
-
-    val c = chunk.asByteBuffer
-
-    val list = lengthBuffer::c::CRLF::last
-
+    val list = writeLength(chunk.length)::chunk.asByteBuffer::CRLF::last
     if (headers != null) {
       val i = headers
       headers = null

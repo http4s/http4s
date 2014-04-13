@@ -18,7 +18,11 @@ class Http4sStageSpec extends WordSpec with Matchers {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
     pipeline.LeafBuilder(new Http1Stage(TestRoutes())) .base(head)
     head.sendInboundCommand(Cmd.Connect)
-    Await.result(head.result, 4.seconds)
+    if (!head.result.isCompleted) {
+      Thread.sleep(300)
+      head.stageShutdown()
+    }
+    Await.result(head.result, 100.milliseconds)
   }
 
 
@@ -26,7 +30,9 @@ class Http4sStageSpec extends WordSpec with Matchers {
     "Run requests" in {
 
       TestRoutes.testRequestResults.foreach{ case (req, (status,headers,resp)) =>
+
         val result = runRequest(Seq(req))
+
         val (sresult,hresult,body) = ResponseParser(result)
 
         status should equal(sresult)

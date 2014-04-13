@@ -12,6 +12,7 @@ import java.nio.charset.StandardCharsets
  */
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
+  @volatile
   private var acc = Vector[Array[Byte]]()
 
   private val p = Promise[ByteBuffer]
@@ -27,9 +28,9 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
     Future.successful(())
   }
 
-  override protected def stageShutdown(): Unit = {
+  override def stageShutdown(): Unit = {
     super.stageShutdown()
-    p.success(ByteBuffer.wrap(getBytes()))
+    p.trySuccess(ByteBuffer.wrap(getBytes()))
   }
 }
 
