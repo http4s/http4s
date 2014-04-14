@@ -1,5 +1,194 @@
-<h1>http4s</h1>
+<!DOCTYPE html>
+<html>
+
+  <head>
+    <meta charset='utf-8' />
+    <meta http-equiv="X-UA-Compatible" content="chrome=1" />
+    <meta name="description" content="Http4s : A minimal, idiomatic interface for Scala HTTP services" />
+
+    <link rel="stylesheet" type="text/css" media="screen" href="stylesheets/stylesheet.css">
+
+    <title>Http4s</title>
+  </head>
+
+  <body>
+
+    <!-- HEADER -->
+    <div id="header_wrap" class="outer">
+        <header class="inner">
+          <a id="forkme_banner" href="https://github.com/http4s/http4s">View on GitHub</a>
+
+          <h1 id="project_title">Http4s</h1>
+          <h2 id="project_tagline">A minimal, idiomatic interface for Scala HTTP services</h2>
+
+            <section id="downloads">
+              <a class="zip_download_link" href="https://github.com/http4s/http4s/zipball/master">Download this project as a .zip file</a>
+              <a class="tar_download_link" href="https://github.com/http4s/http4s/tarball/master">Download this project as a tar.gz file</a>
+            </section>
+        </header>
+    </div>
+
+    <!-- MAIN CONTENT -->
+    <div id="main_content_wrap" class="outer">
+      <section id="main_content" class="inner">
+        <h1>
+<a name="http4s" class="anchor" href="#http4s"><span class="octicon octicon-link"></span></a>Http4s</h1>
+
+<p>Http4s is a minimal, idiomatic Scala interface for Scala HTTP services.  Http4s is Scala's answer to Ruby's Rack, Python's WSGI, Haskell's WAI, and Java's Servlets.</p>
+
+<h2>
+<a name="httpservice" class="anchor" href="#httpservice"><span class="octicon octicon-link"></span></a>HttpService</h2>
+
+<p>An <code>HttpService</code> is just a <code>PartialFunction[Request, Task[Response]]</code>.  Http4s provides a variety
+of helpers to facilitate the creation of the <code>Task[Response]</code> from common results.</p>
+
+<div class="highlight highlight-scala"><pre><span class="c1">// A simple route definition using the optional Http4s DSL</span>
+<span class="k">val</span> <span class="n">service</span><span class="k">:</span> <span class="kt">HttpService</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="c1">//  We use the micro DSL to match the path of the Request to the familiar uri form</span>
+  <span class="k">case</span> <span class="nc">Get</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"hello"</span> <span class="k">=&gt;</span>
+    <span class="c1">// We could make a Task[Response] manually, but we use the</span>
+    <span class="c1">// EntityResponseGenerator 'Ok' for convenience</span>
+    <span class="nc">Ok</span><span class="o">(</span><span class="s">"Hello, better world."</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>HttpServices are <em>type safe</em>, <em>composable</em>, and <em>asynchronous</em>.</p>
+
+<h3>
+<a name="type-safety" class="anchor" href="#type-safety"><span class="octicon octicon-link"></span></a>Type safety</h3>
+
+<p><code>Request</code> and <code>Response</code> sit at the top level of a typed, immutable model of HTTP. </p>
 
 <ul>
-  <li><a href="api/0.1">Scaladoc</a></li>
+<li>Well-known headers are lazily parsed into a rich model derived from Spray HTTP.</li>
+<li>Bodies are parsed and generated from a <a href="http://github.com/scalaz/scalaz-stream">scalaz-stream</a> of bytes.</li>
+</ul><h3>
+<a name="composable" class="anchor" href="#composable"><span class="octicon octicon-link"></span></a>Composable</h3>
+
+<p>Not only does making an <code>HttpService</code> a <code>PartialFunction</code> make it simple to define a service,
+it also makes it easy to compose them.  Adding gzip compression or rewriting URIs is
+as simple as applying a middleware to an <code>HttpService</code>.</p>
+
+<div class="highlight highlight-scala"><pre><span class="k">val</span> <span class="n">wcompression</span> <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">GZip</span><span class="o">(</span><span class="n">service</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">translated</span>   <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">URITranslation</span><span class="o">.</span><span class="n">translateRoot</span><span class="o">(</span><span class="s">"/http4s"</span><span class="o">)(</span><span class="n">service</span><span class="o">)</span>
+</pre></div>
+
+<h3>
+<a name="asynchronous" class="anchor" href="#asynchronous"><span class="octicon octicon-link"></span></a>Asynchronous</h3>
+
+<p>Any Http4s response can be streamed from an asynchronous source. Http4s offers a variety
+of helpers to help you get your data out the door in the fastest way possible.</p>
+
+<div class="highlight highlight-scala"><pre><span class="c1">// Make your model safe and streaming by using a scalaz-stream Process</span>
+<span class="k">def</span> <span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="k">:</span> <span class="kt">Request</span><span class="o">)</span><span class="k">:</span> <span class="kt">Process</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+
+<span class="k">val</span> <span class="n">service</span><span class="k">:</span> <span class="kt">HttpService</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="c1">// Wire your data into your service</span>
+  <span class="k">case</span> <span class="nc">Get</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"streaming"</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="o">))</span>
+
+  <span class="c1">// You can use helpers to send any type of data with an available Writable[T]</span>
+  <span class="k">case</span> <span class="nc">Get</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"synchronous"</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="s">"This is good to go right now."</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+
+<p>Http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.</p>
+
+<div class="highlight highlight-scala"><pre><span class="k">val</span> <span class="n">route</span><span class="k">:</span> <span class="kt">HttpService</span> <span class="o">=</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">Get</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"ws"</span> <span class="k">=&gt;</span>
+    <span class="c1">// Send a Text message with payload 'Ping! delay' every second</span>
+    <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="nc">Process</span><span class="o">.</span><span class="n">awakeEvery</span><span class="o">(</span><span class="mf">1.</span><span class="n">seconds</span><span class="o">).</span><span class="n">map</span><span class="o">{</span> <span class="n">d</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="n">s</span><span class="s">"Ping! $d"</span><span class="o">)</span> <span class="o">}</span>
+
+    <span class="c1">// Print received Text frames, and, on completion, notify the console</span>
+    <span class="k">val</span> <span class="n">sink</span><span class="k">:</span> <span class="kt">Sink</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">WSFrame</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Process</span><span class="o">.</span><span class="n">constant</span> <span class="o">{</span>
+      <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">t</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span> <span class="n">println</span><span class="o">(</span><span class="n">t</span><span class="o">))</span>
+      <span class="k">case</span> <span class="n">f</span>       <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"Unknown type: $f"</span><span class="o">))</span>
+    <span class="o">}.</span><span class="n">onComplete</span><span class="o">(</span><span class="nc">Process</span><span class="o">.</span><span class="n">eval</span><span class="o">(</span><span class="nc">Task</span><span class="o">{</span> <span class="n">println</span><span class="o">(</span><span class="s">"Terminated!"</span><span class="o">)}).</span><span class="n">drain</span><span class="o">)</span>
+
+    <span class="c1">// Use the WS helper to make the Task[Response] carrying the info</span>
+    <span class="c1">// needed for the backend to upgrade to a WebSocket connection</span>
+    <span class="nc">WS</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">sink</span><span class="o">)</span>
+
+  <span class="k">case</span> <span class="n">req</span> <span class="k">@</span> <span class="nc">Get</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"wsecho"</span> <span class="k">=&gt;</span>
+    <span class="c1">// a scalaz topic acts as a hub to publish and subscribe to messages safely</span>
+    <span class="k">val</span> <span class="n">t</span> <span class="k">=</span> <span class="n">topic</span><span class="o">[</span><span class="kt">WSFrame</span><span class="o">]</span>
+    <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">t</span><span class="o">.</span><span class="n">subscribe</span><span class="o">.</span><span class="n">collect</span><span class="o">{</span> <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="s">"You sent the server: "</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span> <span class="o">}</span>
+    <span class="nc">WS</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">t</span><span class="o">.</span><span class="n">publish</span><span class="o">)</span>
+<span class="o">}</span>
+</pre></div>
+
+<h2>
+<a name="choose-your-backend" class="anchor" href="#choose-your-backend"><span class="octicon octicon-link"></span></a>Choose your backend</h2>
+
+<p>Http4s supports running the same service on multiple backends.  Pick the deployment model that fits your needs now, and easily port if and when your needs change.</p>
+
+<h3>
+<a name="blaze" class="anchor" href="#blaze"><span class="octicon octicon-link"></span></a>Blaze</h3>
+
+<p><a href="http://github.com/http4s/blaze">Blaze</a> is an NIO framework.  Run Http4s on Blaze for maximum throughput.</p>
+
+<div class="highlight highlight-scala"><pre><span class="k">object</span> <span class="nc">BlazeWebSocketExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="c1">// Provides a template for the blaze pipeline</span>
+  <span class="k">def</span> <span class="n">pipebuilder</span><span class="o">()</span><span class="k">:</span> <span class="kt">LeafBuilder</span><span class="o">[</span><span class="kt">ByteBuffer</span><span class="o">]</span> <span class="k">=</span>
+    <span class="k">new</span> <span class="nc">Http1Stage</span><span class="o">(</span><span class="nc">URITranslation</span><span class="o">.</span><span class="n">translateRoot</span><span class="o">(</span><span class="s">"/http4s"</span><span class="o">)(</span><span class="n">route</span><span class="o">))</span> <span class="k">with</span> <span class="nc">WebSocketSupport</span>
+
+  <span class="c1">// Bind the socket and begin serving</span>
+  <span class="k">new</span> <span class="nc">SocketServerChannelFactory</span><span class="o">(</span><span class="n">pipebuilder</span><span class="o">,</span> <span class="mi">12</span><span class="o">,</span> <span class="mi">8</span><span class="o">*</span><span class="mi">1024</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">bind</span><span class="o">(</span><span class="k">new</span> <span class="nc">InetSocketAddress</span><span class="o">(</span><span class="mi">8080</span><span class="o">))</span>
+    <span class="o">.</span><span class="n">run</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+
+<h3>
+<a name="servlets" class="anchor" href="#servlets"><span class="octicon octicon-link"></span></a>Servlets</h3>
+
+<p>Http4s is committed to first-class support of the Servlet API.  Develop and deploy services on your existing infrastructure, and take full advantage of the mature JVM ecosystem.</p>
+
+<div class="highlight highlight-scala"><pre><span class="k">object</span> <span class="nc">ServletExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">server</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">Server</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+  <span class="k">val</span> <span class="n">context</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">ServletContextHandler</span><span class="o">()</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">setContextPath</span><span class="o">(</span><span class="s">"/"</span><span class="o">)</span>
+  <span class="n">server</span><span class="o">.</span><span class="n">setHandler</span><span class="o">(</span><span class="n">context</span><span class="o">)</span>
+  <span class="n">context</span><span class="o">.</span><span class="n">addServlet</span><span class="o">(</span><span class="k">new</span> <span class="nc">ServletHolder</span><span class="o">(</span><span class="n">service</span><span class="o">),</span> <span class="s">"/http4s/*"</span><span class="o">)</span>
+  <span class="n">server</span><span class="o">.</span><span class="n">start</span><span class="o">()</span>
+  <span class="n">server</span><span class="o">.</span><span class="n">join</span><span class="o">()</span>
+<span class="o">}</span>
+</pre></div>
+
+<h2>
+<a name="build--run" class="anchor" href="#build--run"><span class="octicon octicon-link"></span></a>Build &amp; run</h2>
+
+<div class="highlight highlight-sh"><pre><span class="nv">$ </span>https://github.com/http4s/http4s.git
+<span class="nv">$ </span><span class="nb">cd </span>http4s
+<span class="nv">$ </span>sbt examples/run
+</pre></div>
+
+<h2>
+<a name="project-info" class="anchor" href="#project-info"><span class="octicon octicon-link"></span></a>Project info</h2>
+
+<ul>
+<li><a href="http://github.com/http4s/http4s">GitHub</a></li>
+<li><a href="https://travis-ci.org/http4s/http4s">Travis CI <img src="https://travis-ci.org/http4s/http4s.svg?branch=develop" alt="BuildStatus"></a></li>
+<li><a href="http://http4s.org/api/0.1">Scaladoc</a></li>
+<li>IRC: #http4s on Freenode.</li>
+<li><a href="http://twitter.com/http4s">Twitter</a></li>
+</ul><h2>
+<a name="hat-tips" class="anchor" href="#hat-tips"><span class="octicon octicon-link"></span></a>Hat tips</h2>
+
+<ul>
+<li>HTTP model forked from <a href="http://spray.io/documentation/1.2.1/spray-http/">spray-http</a>, which derives from <a href="https://github.com/jdegoes/blueeyes">Blueeyes</a>.</li>
 </ul>
+      </section>
+    </div>
+
+    <!-- FOOTER  -->
+    <div id="footer_wrap" class="outer">
+      <footer class="inner">
+        <p class="copyright">Http4s maintained by <a href="https://github.com/http4s">http4s</a></p>
+        <p>Published with <a href="http://pages.github.com">GitHub Pages</a></p>
+      </footer>
+    </div>
+
+    
+
+  </body>
+</html>
