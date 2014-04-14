@@ -7,6 +7,7 @@ trait Http4s extends AnyRef
   with WritableInstances
   with middleware.PushSupport.PushSyntax
   with util.CaseInsensitiveStringSyntax
+  with ResponseSyntax
   with util.JodaTimeInstances
   with util.JodaTimeSyntax
   with util.TaskInstances
