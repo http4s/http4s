@@ -20,7 +20,7 @@ final class Headers private (headers: List[Header])
   def +: (header: Header): Headers = new Headers(header::headers)
 
   override def drop(n: Int): Headers = new Headers(headers.drop(n))
-
+  
   def length: Int = headers.length
 
   def apply(idx: Int): Header = headers(idx)
@@ -29,13 +29,11 @@ final class Headers private (headers: List[Header])
 
   def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
 
-  def put(head: Header, tail: Header*): Headers = {
-    if (tail.isEmpty) {
-      new Headers(head :: headers.filterNot(_.name == head.name))
-    }
+  def put(in: Header*): Headers = {
+    if (in.isEmpty) this
     else {
-      val b = new ListBuffer[Header] += head ++= tail
-      val n = b.prependToList(headers.filterNot(h => head.name == h.name || tail.exists(_.name == h.name)))
+      val b = new ListBuffer[Header] ++= in
+      val n = b.prependToList(headers.filterNot(h => in.exists(_.name == h.name)))
       new Headers(n)
     }
     

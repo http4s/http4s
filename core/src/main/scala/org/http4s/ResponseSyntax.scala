@@ -44,19 +44,10 @@ trait ResponseSyntax {
     def withHeaders(headers: Header*): T = withHeaders(Headers(headers.toList))
 
     /** Add the provided headers to the existing headers */
-    def addHeaders(headers: Headers): T = translateResponse(r => r.copy(headers = r.headers ++ headers))
-
-    /** Add the provided headers to the existing headers */
     def addHeaders(headers: Header*): T = translateResponse(r => r.copy(headers = r.headers ++ headers))
 
     /** Add the provided headers to the existing headers, replacing those of the same header name */
-    def putHeaders(headers: Headers): T = putHeaders(headers: _*)
-
-    /** Add the provided headers to the existing headers, replacing those of the same header name */
-    def putHeaders(headers: Header*): T = {
-      if (headers.isEmpty) translateResponse(identity)
-      else translateResponse(r => r.copy(headers = r.headers.put(headers.head, headers.tail:_*)))
-    }
+    def putHeaders(headers: Header*): T = translateResponse(r => r.copy(headers = r.headers.put(headers:_*)))
 
     /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
     def removeCookie(cookie: Cookie): T =
