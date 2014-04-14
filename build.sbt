@@ -1,6 +1,7 @@
 import Http4sDependencies._
 import UnidocKeys._
 import scala.util.{Properties, Success, Try}
+import GhPagesKeys._
 
 lazy val core = project
 
@@ -133,6 +134,8 @@ site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/0.1")
 includeFilter in SiteKeys.makeSite := "*" -- "*~"
 
 ghpages.settings
+
+ghpagesNoJekyll := false
 
 git.remoteRepo in ThisBuild := 
   Try(sys.env("GH_TOKEN"))
