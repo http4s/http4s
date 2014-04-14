@@ -140,6 +140,6 @@ $ sbt examples/run
 * IRC: #http4s on Freenode.
 * [Twitter](http://twitter.com/http4s)
 
-## Hat tips
-
+## Credits
+* [The Contributors](https://github.com/http4s/http4s/graphs/contributors?from=2013-01-01&type=c), as calculated by GitHub.
 * HTTP model forked from [spray-http](http://spray.io/documentation/1.2.1/spray-http/), which derives from [Blueeyes](https://github.com/jdegoes/blueeyes).
