@@ -225,7 +225,7 @@
         <span class="name">addCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="org.joda.time.DateTime">DateTime</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Add a Set-Cookie header with the provided values</p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie header with the provided values</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#addCookie" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addCookie(cookie:org.http4s.Cookie):T"></a>
       <a id="addCookie(Cookie):Response"></a>
@@ -238,7 +238,7 @@
         <span class="name">addCookie</span><span class="params">(<span name="cookie">cookie: <a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Add a Set-Cookie header for the provided <a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie header for the provided <a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.Message#addHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addHeader(header:org.http4s.Header):Message.this.Self"></a>
       <a id="addHeader(Header):Self"></a>
@@ -264,7 +264,7 @@
         <span class="name">addHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Add the provided headers to the existing headers</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#addHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="addHeaders(headers:org.http4s.Headers):T"></a>
       <a id="addHeaders(Headers):Response"></a>
@@ -277,7 +277,7 @@
         <span class="name">addHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Add the provided headers to the existing headers</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -527,6 +527,32 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#putHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="putHeaders(headers:org.http4s.Header*):T"></a>
+      <a id="putHeaders(Header*):Response"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+    </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#putHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="putHeaders(headers:org.http4s.Headers):T"></a>
+      <a id="putHeaders(Headers):Response"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
+      </span>
+      </h4>
+      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#removeCookie" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeCookie(name:String):T"></a>
       <a id="removeCookie(String):Response"></a>
@@ -539,7 +565,7 @@
         <span class="name">removeCookie</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Add a Set-Cookie which will remove the specified cookie from the client</p><div class="fullcomment"><div class="comment cmt"><p>Add a Set-Cookie which will remove the specified cookie from the client</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#removeCookie" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeCookie(cookie:org.http4s.Cookie):T"></a>
       <a id="removeCookie(Cookie):Response"></a>
@@ -552,7 +578,7 @@
         <span class="name">removeCookie</span><span class="params">(<span name="cookie">cookie: <a href="Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Add a <span class="extype" name="`Set-Cookie`">`Set-Cookie`</span> which will remove the specified cookie from the client</p><div class="fullcomment"><div class="comment cmt"><p>Add a <span class="extype" name="`Set-Cookie`">`Set-Cookie`</span> which will remove the specified cookie from the client</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.Message#removeHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeHeader(key:org.http4s.HeaderKey):Message.this.Self"></a>
       <a id="removeHeader(HeaderKey):Self"></a>
@@ -700,7 +726,7 @@
         <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withHeaders(headers:org.http4s.Headers):T"></a>
       <a id="withHeaders(Headers):Response"></a>
@@ -713,7 +739,7 @@
         <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li><li name="org.http4s.ResponseSyntax.ResponseSyntaxBase#withStatus" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withStatus[T](status:T)(implicitevidence$1:T=&gt;org.http4s.Status):T"></a>
       <a id="withStatus[T](T)((T)⇒Status):Response"></a>
@@ -739,7 +765,7 @@
         <span class="name">withType</span><span class="params">(<span name="t">t: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Response">Response</a></span>
       </span>
       </h4>
-      <p class="shortcomment cmt">Extension methods</p><div class="fullcomment"><div class="comment cmt"><p>Extension methods</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
+      <p class="shortcomment cmt">Added the <span class="extype" name="`Content-Type`">`Content-Type`</span> header to the response</p><div class="fullcomment"><div class="comment cmt"><p>Added the <span class="extype" name="`Content-Type`">`Content-Type`</span> header to the response</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a></dd></dl></div>
     </li></ol>
             </div>
 
