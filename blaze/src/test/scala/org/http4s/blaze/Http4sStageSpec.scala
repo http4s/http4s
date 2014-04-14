@@ -39,7 +39,8 @@ class Http4sStageSpec extends WordSpec with Matchers {
 
         val result = runRequest(Seq(req))
 
-        println(makeString(result))
+        //println(makeString(result))
+
         val (sresult,hresult,body) = ResponseParser(result)
 
         status should equal(sresult)

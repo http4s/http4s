@@ -61,14 +61,12 @@ object TestRoutes {
     ("GET /chunked HTTP/1.1\r\nConnection:close\r\n\r\n", (Status.Ok,
       Set(textPlain, chunked, connClose),
       "chunk")),
-    ///////////////////////////////// TODO: blaze parser doesn't support a response without content-length
-//    ("GET /chunked HTTP/1.0\r\n\r\n", (Status.Ok,
-//      Set(textPlain, length(5)),
-//      "chunk")),
+    ///////////////////////////////// Content-Length and Transfer-Encoding free responses for HTTP/1.0
+    ("GET /chunked HTTP/1.0\r\n\r\n", (Status.Ok,
+      Set(textPlain), "chunk")),
 //    /////////////////////////////////
-//    ("GET /chunked HTTP/1.0\r\nConnection:Close\r\n\r\n", (Status.Ok,
-//      Set(textPlain, connClose),
-//      "chunk")),
+    ("GET /chunked HTTP/1.0\r\nConnection:Close\r\n\r\n", (Status.Ok,
+      Set(textPlain, connClose), "chunk")),
     //////////////////////////////// Requests with a body //////////////////////////////////////
     ("POST /post HTTP/1.1\r\nContent-Length:3\r\n\r\nfoo", (Status.Ok,
       Set(textPlain, length(4)),

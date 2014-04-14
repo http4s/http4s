@@ -13,6 +13,7 @@ import org.http4s.Response
 
 
 import java.nio.charset.StandardCharsets
+import org.http4s.blaze.util.BufferTools
 
 class ResponseParser extends Http1ClientParser {
 
@@ -31,7 +32,7 @@ class ResponseParser extends Http1ClientParser {
     parseHeaders(b)
 
     val body = new ListBuffer[ByteBuffer]
-    while(!this.contentComplete()) {
+    while(!this.contentComplete() && b.hasRemaining) {
       body += parseContent(b)
     }
 

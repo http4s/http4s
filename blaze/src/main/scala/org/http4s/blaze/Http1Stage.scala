@@ -218,45 +218,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
 
       case -\/(t) => logger.error("Error writing body", t)
     }
-
   }
-
-  /** Decide which body encoder to use
-    * If length is defined, default to a static writer, otherwise decide based on http version
-    */
-//  private def chooseEncoder(rr: StringWriter, resp: Response, l: Option[`Content-Length`]): ProcessWriter = l match {
-//    case Some(h) =>
-//      logger.trace("Using static encoder")
-//      rr ~ '\r' ~ '\n'
-//      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-//      new StaticWriter(b, h.length, this)
-//
-//    case None =>
-//      if (minor == 0) {        // we are replying to a HTTP 1.0 request. Only do StaticWriters
-//        rr ~ '\r' ~ '\n'
-//        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-//        logger.trace("Using static encoder without length")
-//        new StaticWriter(b, -1, this)
-//      }
-//      else {  // HTTP 1.1 request, its going to be a chunked encoder, but what kind?
-//        Header.`Transfer-Encoding`.from(resp.headers) match {
-//          case Some(h) => // flushing chunk encoder
-//            if (!h.hasChunked) {
-//              logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
-//              rr ~ "Transfer-Encoding: chunked\r\n"
-//            }
-//            rr ~ '\r' ~ '\n'
-//            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-//            new ChunkProcessWriter(b, this)
-//
-//          case None =>     // Transfer-Encoding not set, default to cached chunked for HTTP/1.1
-//            logger.trace("Using Caching Chunk Encoder")
-//            rr ~ "Transfer-Encoding: chunked\r\n\r\n"
-//            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-//            new CachingChunkWriter(b, this)
-//        }
-//      }
-//  }
 
   // TODO: what should be the behavior for determining if we have some body coming?
   private def collectBodyFromParser(buffer: ByteBuffer): HttpBody = {
@@ -295,7 +257,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
           cb(-\/(t))
       }(directec))
 
-    await(t)(emit, cleanup = await(cleanup)(_ => halt)).repeat
+    repeatEval(t).onComplete(await(cleanup)(_ => halt))
   }
 
   private def drainBody(buffer: ByteBuffer): Future[Unit] = {
