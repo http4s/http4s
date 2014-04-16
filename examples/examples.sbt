@@ -26,3 +26,5 @@ javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
      path = file.getAbsolutePath if path.contains("jetty.npn")
    } yield "-Xbootclasspath/p:" + path
 }
+
+publishArtifact := false
