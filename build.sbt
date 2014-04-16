@@ -25,7 +25,7 @@ name := "http4s"
 
 organization in ThisBuild := "org.http4s"
 
-version in ThisBuild := "0.1.0"
+version in ThisBuild := "0.2.0-SNAPSHOT"
 
 description := "Common HTTP framework for Scala"
 
