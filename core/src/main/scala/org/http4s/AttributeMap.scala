@@ -1,8 +1,8 @@
-/**
- * Based on https://raw.github.com/sbt/sbt/0.13/util/collection/src/main/scala/sbt/Attributes.scala
- * Copyright 2010 Mark Harrah
+/*
+ * Derived from https://github.com/sbt/sbt/blob/0.13/util/collection/src/main/scala/sbt/Attributes.scala
  *
- * Simplified for http4s' simplified needs.
+ * sbt -- Simple Build Tool
+ * Copyright 2010 Mark Harrah
  */
 package org.http4s
 

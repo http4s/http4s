@@ -1,4 +1,6 @@
 /*
+ * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/parser/BasicRules.scala
+ *
  * Copyright (C) 2011-2012 spray.io
  *
  * Licensed under the Apache License, Version 2.0 (the "License");

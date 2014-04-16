@@ -1,8 +1,6 @@
-package org.http4s
-
-import org.http4s.util.{Writer, Renderable}
-
 /*
+ * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/RangeUnit.scala
+ *
  * Copyright (C) 2011-2012 spray.io
  * Based on code copyright (C) 2010-2011 by the BlueEyes Web Framework Team (http://github.com/jdegoes/blueeyes)
  *
@@ -18,6 +16,9 @@ import org.http4s.util.{Writer, Renderable}
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
+package org.http4s
+
+import org.http4s.util.{Writer, Renderable}
 
 sealed abstract class RangeUnit extends Renderable {
   def value: String
