@@ -7,6 +7,6 @@ description := "blaze backend for http4s"
 fork := true
 
 libraryDependencies ++= Seq(
-  http4sBlaze
+  blaze
 )
 
