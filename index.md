@@ -27,7 +27,7 @@ HttpServices are _type safe_, _composable_, and _asynchronous_.
 
 ### Type safety
 
-`Request` and `Response` sit at the top level of a typed, immutable model of HTTP. 
+`Request` and `Response` sit at the top level of a typed, immutable model of HTTP.
 
 * Well-known headers are lazily parsed into a rich model derived from Spray HTTP.
 * Bodies are parsed and generated from a [scalaz-stream](http://github.com/scalaz/scalaz-stream) of bytes.
@@ -127,7 +127,7 @@ object ServletExample extends App {
 ## Build & run ##
 
 ```sh
-$ https://github.com/http4s/http4s.git
+$ git clone https://github.com/http4s/http4s.git
 $ cd http4s
 $ sbt examples/run
 ```
