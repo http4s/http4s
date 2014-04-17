@@ -10,6 +10,7 @@ import scala.reflect.ClassTag
 import scala.io.Codec
 import scala.annotation.tailrec
 import scalaz.Semigroup
+import scodec.bits.ByteVector
 
 /** Chunks are the currency of the HTTP body
   *
@@ -120,6 +121,12 @@ object BodyChunk {
 
   def apply(string: String, charset: Charset): BodyChunk = {
     val bytes = string.getBytes(charset)
+    unsafe(bytes, 0, bytes.length)
+  }
+
+  /** Create a BodyChunk from a ByteVector. */
+  def apply(byteVector: ByteVector): BodyChunk = {
+    val bytes = byteVector.toArray
     unsafe(bytes, 0, bytes.length)
   }
 
