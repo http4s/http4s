@@ -1,19 +1,19 @@
 ---
 layout: default
-title: Http4s
+title: http4s
 ---
 
-# Http4s
+# http4s
 
-Http4s is a minimal, idiomatic Scala interface for HTTP services.  Http4s is Scala's answer to Ruby's Rack, Python's WSGI, Haskell's WAI, and Java's Servlets.
+http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Scala's answer to Ruby's Rack, Python's WSGI, Haskell's WAI, and Java's Servlets.
 
 ## HttpService ##
 
-An `HttpService` is just a `PartialFunction[Request, Task[Response]]`.  Http4s provides a variety
+An `HttpService` is just a `PartialFunction[Request, Task[Response]]`.  http4s provides a variety
 of helpers to facilitate the creation of the `Task[Response]` from common results.
 
 ```scala
-// A simple route definition using the optional Http4s DSL
+// A simple route definition using the optional http4s DSL
 val service: HttpService = {
   //  We use the micro DSL to match the path of the Request to the familiar uri form
   case Get -> Root / "hello" =>
@@ -45,7 +45,7 @@ val translated   = middleware.URITranslation.translateRoot("/http4s")(service)
 
 ### Asynchronous
 
-Any Http4s response can be streamed from an asynchronous source. Http4s offers a variety
+Any http4s response can be streamed from an asynchronous source. http4s offers a variety
 of helpers to help you get your data out the door in the fastest way possible.
 
 ```scala
@@ -61,7 +61,7 @@ val service: HttpService = {
 }
 ```
 
-Http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.
+http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.
 
 ```scala
 val route: HttpService = {
@@ -89,11 +89,11 @@ val route: HttpService = {
 
 ## Choose your backend
 
-Http4s supports running the same service on multiple backends.  Pick the deployment model that fits your needs now, and easily port if and when your needs change.
+http4s supports running the same service on multiple backends.  Pick the deployment model that fits your needs now, and easily port if and when your needs change.
 
-### Blaze
+### blaze
 
-[Blaze](http://github.com/http4s/blaze) is an NIO framework.  Run Http4s on Blaze for maximum throughput.
+[blaze](http://github.com/http4s/blaze) is an NIO framework.  Run http4s on blaze for maximum throughput.
 
 ```scala
 object BlazeWebSocketExample extends App {
@@ -110,7 +110,7 @@ object BlazeWebSocketExample extends App {
 
 ### Servlets
 
-Http4s is committed to first-class support of the Servlet API.  Develop and deploy services on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
+http4s is committed to first-class support of the Servlet API.  Develop and deploy services on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
 
 ```scala
 object ServletExample extends App {
@@ -122,6 +122,20 @@ object ServletExample extends App {
   server.start()
   server.join()
 }
+```
+
+## Get it! ##
+
+Artifacts for scala 2.10 are available from Maven Central:
+```scala
+libraryDependencies += "org.http4s" %% "http4s-core"  % version
+```
+
+Snapshots for the development branch are available in the sonatype snapshots repos.
+
+To get scalaz-stream artifacts, you will probably need to add BinTray to your resolvers:
+```scala
+resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 ```
 
 ## Build & run ##

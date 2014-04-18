@@ -76,35 +76,52 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
               case Failure(t)   => cb(-\/(t))
             }(trampoline)
 
-            case Pong(_)     => go()  // TODO: should we deal with these?
+            case Pong(_)     => go()
             case f           => cb(\/-(blazeTows4s(f)))
           }
 
         case Failure(Command.EOF) => cb(-\/(End))
         case Failure(e)           => cb(-\/(e))
-      }(directec)
+      }(trampoline)
 
       go()
     }
-
     repeatEval(t)
   }
-
 
   //////////////////////// Startup and Shutdown ////////////////////////
 
   override protected def stageStartup(): Unit = {
     super.stageStartup()
 
+    // A latch for shutting down if both streams are closed.
     val count = new java.util.concurrent.atomic.AtomicInteger(2)
 
     val onFinish: \/[Throwable,Any] => Unit = {
-      case \/-(_) => if (count.decrementAndGet() == 0) sendOutboundCommand(Command.Disconnect)
-      case -\/(_) => sendOutboundCommand(Command.Disconnect)
+      case \/-(_) =>
+        logger.trace("WebSocket finish signaled")
+        if (count.decrementAndGet() == 0) {
+          logger.trace("Closing WebSocket")
+          sendOutboundCommand(Command.Disconnect)
+        }
+      case -\/(t) =>
+        logger.trace("WebSocket Exception", t)
+        sendOutboundCommand(Command.Disconnect)
     }
 
     ws.source.through(sink).run.runAsync(onFinish)
-    inputstream.to(ws.sink).run.runAsync(onFinish)
+
+    // The sink is a bit more complicated
+    val discard = Process.constant{_: ws4s.WSFrame => Task.now()}
+
+    // if we never expect to get a message, we need to make sure the sink signals closed
+    val routeSink: Sink[Task, ws4s.WSFrame] = ws.sink match {
+      case Halt(End) => onFinish(\/-()); discard
+      case Halt(e)   => onFinish(-\/(e)); ws.sink
+      case s => s ++ await(Task{onFinish(\/-())})(_ => discard)
+    }
+
+    inputstream.to(routeSink).run.runAsync(onFinish)
   }
 
   override protected def stageShutdown(): Unit = {
