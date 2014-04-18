@@ -40,7 +40,7 @@ object BlazeWebSocketExample extends App {
       WS(src, sink)
 
     case req@ Get -> Root / "wsecho" =>
-      val t = topic[WSFrame]
+      val t = topic[WSFrame]()
       val src = t.subscribe.collect {
         case Text(msg) => Text("You sent the server: " + msg)
       }
