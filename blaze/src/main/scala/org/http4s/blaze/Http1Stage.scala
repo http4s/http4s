@@ -14,7 +14,7 @@ import java.nio.charset.StandardCharsets
 
 import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
-import scala.util.{Success, Failure}
+import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError, NotFound}
 import org.http4s.util.StringWriter
@@ -52,42 +52,39 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
     requestLoop()
   }
 
-  this.channelWrite(Nil)
+  private def requestLoop(): Unit = channelRead().onComplete(reqLoopCallback)
 
-  private def requestLoop(): Unit = {
-    channelRead().onComplete {
-      case Success(buff) =>
+  private def reqLoopCallback(buff: Try[ByteBuffer]): Unit = buff match {
+    case Success(buff) =>
+      logger.trace {
+        buff.mark()
+        val sb = new StringBuilder
+        println(buff)
+        while(buff.hasRemaining) sb.append(buff.get().toChar)
 
-        logger.trace {
-          buff.mark()
-          val sb = new StringBuilder
-          println(buff)
-          while(buff.hasRemaining) sb.append(buff.get().toChar)
+        buff.reset()
+        s"Received request\n${sb.result}"
+      }
 
-          buff.reset()
-          s"Received request\n${sb.result}"
+      try {
+        if (!requestLineComplete() && !parseRequestLine(buff)) {
+          requestLoop()
+          return
         }
-
-        try {
-          if (!requestLineComplete() && !parseRequestLine(buff)) {
-            requestLoop()
-            return
-          }
-          if (!headersComplete() && !parseHeaders(buff)) {
-            requestLoop()
-            return
-          }
-          // we have enough to start the request
-          runRequest(buff)
+        if (!headersComplete() && !parseHeaders(buff)) {
+          requestLoop()
+          return
         }
-        catch {
-          case t: ParserException => badRequest("Error parsing status or headers in requestLoop()", t, Request())
-          case t: Throwable       => fatalError(t, "error in requestLoop()")
-        }
+        // we have enough to start the request
+        runRequest(buff)
+      }
+      catch {
+        case t: ParserException => badRequest("Error parsing status or headers in requestLoop()", t, Request())
+        case t: Throwable       => fatalError(t, "error in requestLoop()")
+      }
 
-      case Failure(Cmd.EOF) => stageShutdown()
-      case Failure(t)       => fatalError(t, "Error in requestLoop()")
-    }
+    case Failure(Cmd.EOF) => stageShutdown()
+    case Failure(t)       => fatalError(t, "Error in requestLoop()")
   }
 
   private def collectRequest(body: HttpBody): Request = {
