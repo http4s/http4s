@@ -9,6 +9,7 @@ import scalaz.stream.{processes, process1}
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scala.util.control.NoStackTrace
+import scodec.bits.ByteVector
 
 object HttpBody extends HttpBodyFunctions {
   val empty: HttpBody = halt
@@ -19,9 +20,8 @@ trait HttpBodyFunctions {
 
   def text[A](req: Request, limit: Int = HttpBody.DefaultMaxEntitySize): Task[String] = {
     val buff = new StringBuilder
-    (req.body |> takeBytes(limit) |> processes.fold(buff) { (b, c) => c match {
-      case c: BodyChunk => b.append(c.decodeString(req.charset))
-      case _ => b
+    (req.body |> takeBytes(limit) |> processes.fold(buff) { (b, c) => {
+      b.append(new String(c.toArray, (req.charset.charset)))
     }}).map(_.result()).runLastOr("")
   }
 
@@ -43,47 +43,33 @@ trait HttpBodyFunctions {
       XML.loadXML(source, parser)
     }
 
-  private def takeBytes(n: Int): Process1[Chunk, Chunk] = {
-    def go(taken: Int, chunk: Chunk): Process1[Chunk, Chunk] = chunk match {
-      case c: BodyChunk =>
-        val sz = taken + c.length
-        if (sz > n) fail(EntityTooLarge(n))
-        else Emit(c::Nil, await(Get[Chunk])(go(sz, _)))
-
-      case c =>  Emit(c::Nil, await(Get[Chunk])(go(taken, _)))
+  private def takeBytes(n: Int): Process1[ByteVector, ByteVector] = {
+    def go(taken: Int, chunk: ByteVector): Process1[ByteVector, ByteVector] = {
+      val sz = taken + chunk.length
+      if (sz > n) fail(EntityTooLarge(n))
+      else Emit(Seq(chunk), await(Get[ByteVector])(go(sz, _)))
     }
-    await(Get[Chunk])(go(0,_))
+    await(Get[ByteVector])(go(0,_))
   }
 
-  def comsumeUpTo(n: Int): Process1[Chunk, BodyChunk] = {
-    val p = process1.fold[Chunk, BodyChunk](BodyChunk())((c1, c2) => c2 match {
-      case c2: BodyChunk => c1 ++ (c2)
-      case _ => c1
-    })
+  def comsumeUpTo(n: Int): Process1[ByteVector, ByteVector] = {
+    val p = process1.fold[ByteVector, ByteVector](ByteVector.empty) { (c1, c2) => c1 ++ c2 }
     takeBytes(n) |> p
-  }
-
-  def whileBodyChunk: Process1[Chunk, BodyChunk] = {
-    def go(chunk: Chunk): Process1[Chunk, BodyChunk] = chunk match {
-      case c: BodyChunk => Emit(c::Nil, await(Get[Chunk])(go))
-      case _ => halt
-    }
-    await(Get[Chunk])(go)
   }
 
   // File operations
   // TODO: rewrite these using NIO non blocking FileChannels
   def binFile(req: Request, file: java.io.File)(f: => Task[Response]) = {
     val out = new java.io.FileOutputStream(file)
-    req.body.pipe(whileBodyChunk)
+    req.body
       .map{c => out.write(c.toArray) }
       .run.flatMap{_ => out.close(); f}
   }
 
   def textFile(req: Request, in: java.io.File)(f: => Task[Response]): Task[Response] = {
     val is = new java.io.PrintStream(new FileOutputStream(in))
-    req.body.pipe(whileBodyChunk)
-      .map{ d => is.print(d.decodeString(req.charset)) }
+    req.body
+      .map{ d => is.print(new String(d.toArray, req.charset.charset)) }
       .run.flatMap{_ => is.close(); f}
   }
 }

@@ -5,6 +5,7 @@ import scalaz.stream.Process, Process.{Get => PGet, _}
 import scala.concurrent.Future
 import org.http4s._
 import org.http4s.dsl._
+import scodec.bits.ByteVector
 
 class ExampleRoute extends Http4s {
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
@@ -31,9 +32,8 @@ class ExampleRoute extends Http4s {
       Task.now(Response(body = req.body))
 
     case req @ Post -> Root / "echo2" =>
-      Task.now(Response(body = req.body.map {
-        case chunk: BodyChunk => chunk.slice(6, chunk.length)
-        case chunk => chunk
+      Task.now(Response(body = req.body.map { chunk =>
+        chunk.slice(6, chunk.length)
       }))
 
     case req @ Post -> Root / "sum"  =>
@@ -72,9 +72,7 @@ class ExampleRoute extends Http4s {
       )
 
     case req@ Post -> Root / "challenge" =>
-      val body = req.body.collect {
-        case c: BodyChunk => new String(c.toArray)
-      }.toTask
+      val body = req.body.map { c => new String(c.toArray, req.charset.charset) }.toTask
 
       body.flatMap{ s: String =>
         if (!s.startsWith("go")) {
@@ -118,10 +116,10 @@ class ExampleRoute extends Http4s {
       Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
 
     case req @ Post -> Root / "challenge" =>
-      val parser = await1[Chunk] map {
-        case bits: BodyChunk if (bits.decodeString(req.charset)).startsWith("Go") =>
+      val parser = await1[ByteVector] map {
+        case bits if (new String(bits.toArray, req.charset.charset)).startsWith("Go") =>
           Task.now(Response(body = emit(bits) fby req.body))
-        case bits: BodyChunk if (bits.decodeString(req.charset)).startsWith("NoGo") =>
+        case bits if (new String(bits.toArray, req.charset.charset)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("no data")

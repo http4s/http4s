@@ -4,6 +4,7 @@ import java.io.File
 import java.net.InetAddress
 import org.http4s.Header.`Content-Type`
 import ResponseSyntax.ResponseSyntaxBase
+import scalaz.concurrent.Task
 
 abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMap) {
   type Self <: Message
@@ -35,6 +36,12 @@ abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMa
   def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`)
     .map(_.values.list.contains(TransferCoding.chunked))
     .getOrElse(false)
+
+  /**
+   * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
+   * task might not complete unless the entire body has been consumed.
+   */
+  def trailerHeaders: Task[Headers] = Task.now(Headers.empty)
 }
 
 /** Representation of an incoming HTTP message

@@ -11,6 +11,7 @@ import scala.annotation.tailrec
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Try, Failure, Success}
+import scodec.bits.ByteVector
 
 /**
  * @author Bryce Anderson
@@ -31,17 +32,17 @@ trait ProcessWriter {
     * @param chunk BodyChunk to write to wire
     * @return a future letting you know when its safe to continue
     */
-  protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any]
+  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any]
 
   /** write the ending BodyChunk and possibly a trailer to the wire
     * If a request is cancelled, or the stream is closed this method should
     * return a failed Future with Cancelled as the exception
     *
     * @param chunk BodyChunk to write to wire
-    * @param t optional TrailerChunk to write
+    * @param trailers optional Trailers to write
     * @return a future letting you know when its safe to continue
     */
-  protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any]
+  protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any]
 
   def requireClose(): Boolean = false
 
@@ -55,34 +56,34 @@ trait ProcessWriter {
     * @param p Process[Task, Chunk] to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeProcess(p: Process[Task, Chunk]): Task[Unit] = Task.async(go(p, _))
+  def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async(go(p, _))
 
-  final private def go(p: Process[Task, Chunk], cb: CBType): Unit = p match {
+  final private def go(p: Process[Task, ByteVector], cb: CBType): Unit = p match {
     case Emit(seq, tail) =>
       if (seq.isEmpty) go(tail, cb)
       else {
-        val buffandt = copyChunks(seq)
+        val buffandt = copyChunks(seq.map(-\/(_)))
         val buff = buffandt._1
-        val trailer = buffandt._2
+        val trailers = buffandt._2
 
-        if (trailer == null) {  // TODO: is it worth the complexity to try to predict the tail?
+        if (trailers == null) {  // TODO: is it worth the complexity to try to predict the tail?
           if (!tail.isInstanceOf[Halt]) writeBodyChunk(buff, false).onComplete {
             case Success(_) => go(tail, cb)
             case Failure(t) => tail.killBy(t).run.runAsync(cb)
           }
           else { // Tail is a Halt state
             if (tail.asInstanceOf[Halt].cause eq End) {  // Tail is normal termination
-              writeEnd(buff, None).onComplete(completionListener(_, cb))
+              writeEnd(buff, Headers.empty).onComplete(completionListener(_, cb))
             } else {   // Tail is exception
               val e = tail.asInstanceOf[Halt].cause
-              writeEnd(buff, None).onComplete {
+              writeEnd(buff, Headers.empty).onComplete {
                 case Success(_) => cb(-\/(e))
                 case Failure(t) => cb(-\/(new CausedBy(t, e)))
               }
             }
           }
         }
-        else writeEnd(buff, Some(trailer)).onComplete {
+        else writeEnd(buff, trailers).onComplete {
           case Success(_) => tail.kill.run.runAsync(cb)
           case Failure(t) => tail.killBy(t).run.runAsync(cb)
         }
@@ -97,28 +98,28 @@ trait ProcessWriter {
       }
     }
 
-    case Halt(End) => writeEnd(BodyChunk(), None).onComplete(completionListener(_, cb))
+    case Halt(End) => writeEnd(ByteVector.empty, Headers.empty).onComplete(completionListener(_, cb))
 
     case Halt(error) => cb(-\/(error))
   }
 
   // Must get a non-empty sequence
-  private def copyChunks(seq: Seq[Chunk]): (BodyChunk, TrailerChunk) = {
+  private def copyChunks(seq: Seq[ByteVector \/ Headers]): (ByteVector, Headers) = {
 
     @tailrec
-    def go(acc: BodyChunk, seq: Seq[Chunk]): (BodyChunk, TrailerChunk) = seq.head match {
-      case c: BodyChunk =>
+    def go(acc: ByteVector, seq: Seq[ByteVector \/ Headers]): (ByteVector, Headers) = seq.head match {
+      case -\/(c) =>
         val cc = acc ++ c
         if (!seq.tail.isEmpty) go(cc, seq.tail)
         else (c, null)
 
-      case c: TrailerChunk => (acc, c)
+      case \/-(c) => (acc, c)
     }
 
     if (seq.tail.isEmpty) seq.head match {
-      case c: BodyChunk     => (c, null)
-      case c: TrailerChunk  => (BodyChunk(), c)
-    } else go(BodyChunk(), seq)
+      case -\/(c) => (c, null)
+      case \/-(c) => (ByteVector.empty, c)
+    } else go(ByteVector.empty, seq)
   }
 
   private def completionListener(t: Try[_], cb: CBType): Unit = t match {

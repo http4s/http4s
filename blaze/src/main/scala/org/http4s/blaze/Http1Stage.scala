@@ -29,6 +29,7 @@ import scalaz.concurrent.{Strategy, Task}
 import scalaz.{\/-, -\/}
 import org.parboiled2.ParseError
 import java.util.concurrent.ExecutorService
+import scodec.bits.ByteVector
 
 
 class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy.DefaultExecutorService)
@@ -227,11 +228,11 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
     var currentbuffer = buffer
 
     // TODO: we need to work trailers into here somehow
-    val t = Task.async[Chunk]{ cb =>
+    val t = Task.async[ByteVector]{ cb =>
       if (!contentComplete()) {
         def go(): Unit = try {
           val result = parseContent(currentbuffer)
-          if (result != null) cb(\/-(BodyChunk(result))) // we have a chunk
+          if (result != null) cb(\/-(ByteVector(result))) // we have a chunk
           else if (contentComplete()) cb(-\/(End))
           else channelRead().onComplete {
             case Success(b) =>       // Need more data...

@@ -7,6 +7,7 @@ import scalaz.stream.Process
 import Process._
 import org.http4s.Status.Ok
 import scalaz.concurrent.Task
+import scodec.bits.ByteVector
 
 /**
 * @author Bryce Anderson
@@ -19,7 +20,7 @@ class MiddlewareSpec extends WordSpec with Matchers {
 
   val awareReq = Request(requestUri = Uri.fromString("/rootPath/checktranslate").get)
 
-  val echoBody = emitSeq(List("one", "two", "three")).map[Chunk](s => BodyChunk(s))
+  val echoBody = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
   val echoReq = Request(requestMethod = Method.Post,
                           requestUri = Uri.fromString("/rootPath/echo").get,
                           body = echoBody)

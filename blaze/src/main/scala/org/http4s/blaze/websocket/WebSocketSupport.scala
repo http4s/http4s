@@ -13,6 +13,7 @@ import java.nio.charset.StandardCharsets._
 import org.http4s.Response
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.LeafBuilder
+import scodec.bits.ByteVector
 
 
 /**
@@ -28,7 +29,7 @@ trait WebSocketSupport extends Http1Stage {
         ServerHandshaker.handshakeHeaders(hdrs) match {
           case Left((code, msg)) =>
             logger.info(s"Invalid handshake $code, $msg")
-            val body = Process.emit(BodyChunk(msg))
+            val body = Process.emit(ByteVector(msg.toString.getBytes(req.charset.charset)))
             val rsp = Response(status = Status.BadRequest,
                                body = body,
                                headers = Headers(`Content-Length`(msg.length), Connection("close".ci)))

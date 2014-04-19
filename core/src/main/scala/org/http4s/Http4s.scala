@@ -1,7 +1,6 @@
 package org.http4s
 
 trait Http4s extends AnyRef
-  with ChunkInstances
   with HttpBodyFunctions
   with StatusInstances
   with WritableInstances

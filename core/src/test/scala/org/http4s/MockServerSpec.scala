@@ -7,6 +7,7 @@ import org.http4s.middleware.PushSupport
 import scalaz.stream.Process._
 import org.http4s.MockServer.MockResponse
 import scalaz.concurrent.Task
+import scodec.bits.ByteVector
 
 class MockServerSpec extends WordSpec with Matchers {
 
@@ -19,7 +20,7 @@ class MockServerSpec extends WordSpec with Matchers {
 
   "A mock server" should {
     "handle matching routes" in {
-      val body = emitSeq(List("one", "two", "three")).map[Chunk](s => BodyChunk(s))
+      val body = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
       val req = Request(requestMethod = Method.Post, requestUri = Uri.fromString("/echo").get, body = body)
 
       server(req).getString should equal ("onetwothree")

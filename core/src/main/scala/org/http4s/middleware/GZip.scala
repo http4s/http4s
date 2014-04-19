@@ -3,6 +3,7 @@ package middleware
 
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
+import scodec.bits.ByteVector
 
 import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
 import util.Gzipper
@@ -15,28 +16,23 @@ import com.typesafe.scalalogging.slf4j.Logging
  */
 object GZip extends Logging {
   /** Streaming GZip Process1 */
-  def streamingGZip(buffersize: Int): Process1[Chunk, Chunk] = {
+  def streamingGZip(buffersize: Int): Process1[ByteVector, ByteVector] = {
     val gzip = new Gzipper(buffersize)
 
-    def getBodyChunk = BodyChunk(gzip.getBytes())
+    def getBodyChunk = ByteVector(gzip.getBytes())
 
     val fb = emitLazy {
       gzip.finish()
       getBodyChunk
     }
 
-    def folder(chunk: Chunk): Process1[Chunk, Chunk] = chunk match {
-      case c: BodyChunk =>
-        gzip.write(c.toArray)
-        if (gzip.size() < 0.8*buffersize) await(Get[Chunk])(folder, fb, fb) // Wait for ~80% buffer capacity
-        else Emit(getBodyChunk::Nil, await(Get[Chunk])(folder, fb ,fb))      // Emit a chunk
-
-      case t: TrailerChunk =>
-        gzip.finish()
-        val c = getBodyChunk
-        emitAll(c::t::Nil)
+    def folder(chunk: ByteVector): Process1[ByteVector, ByteVector] = {
+      gzip.write(chunk.toArray)
+      if (gzip.size() < 0.8*buffersize) await(Get[ByteVector])(folder, fb, fb) // Wait for ~80% buffer capacity
+      else Emit(getBodyChunk::Nil, await(Get[ByteVector])(folder, fb ,fb))      // Emit a chunk
     }
-    await(Get[Chunk])(folder, fb, fb)
+
+    await(Get[ByteVector])(folder, fb, fb)
   }
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after

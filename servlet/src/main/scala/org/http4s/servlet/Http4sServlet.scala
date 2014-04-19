@@ -15,6 +15,7 @@ import scalaz.stream.io._
 import scalaz.{-\/, \/-}
 import scala.util.control.NonFatal
 import org.parboiled2.ParseError
+import scodec.bits.ByteVector
 
 class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) extends HttpServlet with Logging {
   private[this] var serverSoftware: ServerSoftware = _
@@ -56,12 +57,9 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
           servletResponse.addHeader(header.name.toString, header.value)
         val out = servletResponse.getOutputStream
         val isChunked = response.isChunked
-        response.body.map {
-          case bytes: BodyChunk =>
-            out.write(bytes.toArray)
-            if (isChunked) servletResponse.flushBuffer()
-
-          case c => logger.trace(s"Unsupported chunk: $c, discarding.")
+        response.body.map { chunk =>
+          out.write(chunk.toArray)
+          if (isChunked) servletResponse.flushBuffer()
         }.run
       }
     }.runAsync {
@@ -79,7 +77,7 @@ class Http4sServlet(service: HttpService, chunkSize: Int = DefaultChunkSize) ext
       requestUri = Uri.fromString(req.getRequestURI).get,
       protocol = ServerProtocol.getOrElseCreate(req.getProtocol.ci),
       headers = toHeaders(req),
-      body = chunkR(req.getInputStream).map(f => f(chunkSize).map(BodyChunk.apply _)).eval,
+      body = chunkR(req.getInputStream).map(f => f(chunkSize)).eval,
       attributes = AttributeMap(
         Request.Keys.PathInfoCaret(req.getServletPath.length),
         Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr)),
