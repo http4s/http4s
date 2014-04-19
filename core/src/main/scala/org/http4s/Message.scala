@@ -37,11 +37,28 @@ abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMa
     .map(_.values.list.contains(TransferCoding.chunked))
     .getOrElse(false)
 
+  /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
+    *
+    * @param key [[AttributeKey]] with which to associate the value
+    * @param value value associated with the key
+    * @tparam T type of the value to store
+    * @return a new message object with the key/value pair appended
+    */
+  def withAttribute[T](key: AttributeKey[T], value: T): Self
+
   /**
    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
    * task might not complete unless the entire body has been consumed.
    */
-  def trailerHeaders: Task[Headers] = Task.now(Headers.empty)
+  def trailerHeaders: Task[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(Task.now(Headers.empty))
+
+  def withTrailerHeaders(trailerHeaders: Task[Headers]) = withAttribute(Message.Keys.TrailerHeaders, trailerHeaders)
+}
+
+object Message {
+  object Keys {
+    val TrailerHeaders = AttributeKey.http4s[Task[Headers]]("trailer-headers")
+  }
 }
 
 /** Representation of an incoming HTTP message
@@ -83,14 +100,7 @@ case class Request(
     */
   def withBody(body: HttpBody): Request = copy(body = body)
 
-  /** Generates a new Request object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
-    *
-    * @param key [[AttributeKey]] with which to associate the value
-    * @param value value associated with the key
-    * @tparam T type of the value to store
-    * @return a new Request object with the key/value pair appended
-    */
-  def withAttribute[T](key: AttributeKey[T], value: T) = copy(attributes = attributes.put(key, value))
+  def withAttribute[T](key: AttributeKey[T], value: T): Request = copy(attributes = attributes.put(key, value))
 
   lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
 
@@ -156,5 +166,7 @@ case class Response(
 
   /** Replace the body of this Response with a new scalaz.stream.Process[Task,Chunk] */
   def withBody(body: HttpBody): Response = copy(body = body)
+
+  def withAttribute[T](key: AttributeKey[T], value: T): Response = copy(attributes = attributes.put(key, value))
 }
 
