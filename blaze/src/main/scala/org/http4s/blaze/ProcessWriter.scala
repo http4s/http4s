@@ -7,8 +7,6 @@ import Process._
 import scalaz.concurrent.Task
 import scalaz.{\/, -\/, \/-}
 
-import scala.annotation.tailrec
-
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Try, Failure, Success}
 import scodec.bits.ByteVector
@@ -62,30 +60,22 @@ trait ProcessWriter {
     case Emit(seq, tail) =>
       if (seq.isEmpty) go(tail, cb)
       else {
-        val buffandt = copyChunks(seq.map(-\/(_)))
-        val buff = buffandt._1
-        val trailers = buffandt._2
+        val buff = seq.reduce(_ ++ _)
 
-        if (trailers == null) {  // TODO: is it worth the complexity to try to predict the tail?
-          if (!tail.isInstanceOf[Halt]) writeBodyChunk(buff, false).onComplete {
-            case Success(_) => go(tail, cb)
-            case Failure(t) => tail.killBy(t).run.runAsync(cb)
-          }
-          else { // Tail is a Halt state
-            if (tail.asInstanceOf[Halt].cause eq End) {  // Tail is normal termination
-              writeEnd(buff, Headers.empty).onComplete(completionListener(_, cb))
-            } else {   // Tail is exception
-              val e = tail.asInstanceOf[Halt].cause
-              writeEnd(buff, Headers.empty).onComplete {
-                case Success(_) => cb(-\/(e))
-                case Failure(t) => cb(-\/(new CausedBy(t, e)))
-              }
+        if (!tail.isInstanceOf[Halt]) writeBodyChunk(buff, false).onComplete {
+          case Success(_) => go(tail, cb)
+          case Failure(t) => tail.killBy(t).run.runAsync(cb)
+        }
+        else { // Tail is a Halt state
+          if (tail.asInstanceOf[Halt].cause eq End) {  // Tail is normal termination
+            writeEnd(buff, Headers.empty).onComplete(completionListener(_, cb))
+          } else {   // Tail is exception
+            val e = tail.asInstanceOf[Halt].cause
+            writeEnd(buff, Headers.empty).onComplete {
+              case Success(_) => cb(-\/(e))
+              case Failure(t) => cb(-\/(new CausedBy(t, e)))
             }
           }
-        }
-        else writeEnd(buff, trailers).onComplete {
-          case Success(_) => tail.kill.run.runAsync(cb)
-          case Failure(t) => tail.killBy(t).run.runAsync(cb)
         }
       }
 
@@ -101,25 +91,6 @@ trait ProcessWriter {
     case Halt(End) => writeEnd(ByteVector.empty, Headers.empty).onComplete(completionListener(_, cb))
 
     case Halt(error) => cb(-\/(error))
-  }
-
-  // Must get a non-empty sequence
-  private def copyChunks(seq: Seq[ByteVector \/ Headers]): (ByteVector, Headers) = {
-
-    @tailrec
-    def go(acc: ByteVector, seq: Seq[ByteVector \/ Headers]): (ByteVector, Headers) = seq.head match {
-      case -\/(c) =>
-        val cc = acc ++ c
-        if (!seq.tail.isEmpty) go(cc, seq.tail)
-        else (c, null)
-
-      case \/-(c) => (acc, c)
-    }
-
-    if (seq.tail.isEmpty) seq.head match {
-      case -\/(c) => (c, null)
-      case \/-(c) => (ByteVector.empty, c)
-    } else go(ByteVector.empty, seq)
   }
 
   private def completionListener(t: Try[_], cb: CBType): Unit = t match {
