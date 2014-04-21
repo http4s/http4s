@@ -32,15 +32,14 @@ trait ProcessWriter {
     */
   protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any]
 
-  /** write the ending BodyChunk and possibly a trailer to the wire
+  /** Write the ending chunk and, in chunked encoding, a trailer to the wire.
     * If a request is cancelled, or the stream is closed this method should
     * return a failed Future with Cancelled as the exception
     *
     * @param chunk BodyChunk to write to wire
-    * @param trailers optional Trailers to write
     * @return a future letting you know when its safe to continue
     */
-  protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any]
+  protected def writeEnd(chunk: ByteVector): Future[Any]
 
   def requireClose(): Boolean = false
 
@@ -68,10 +67,10 @@ trait ProcessWriter {
         }
         else { // Tail is a Halt state
           if (tail.asInstanceOf[Halt].cause eq End) {  // Tail is normal termination
-            writeEnd(buff, Headers.empty).onComplete(completionListener(_, cb))
+            writeEnd(buff).onComplete(completionListener(_, cb))
           } else {   // Tail is exception
             val e = tail.asInstanceOf[Halt].cause
-            writeEnd(buff, Headers.empty).onComplete {
+            writeEnd(buff).onComplete {
               case Success(_) => cb(-\/(e))
               case Failure(t) => cb(-\/(new CausedBy(t, e)))
             }
@@ -88,7 +87,7 @@ trait ProcessWriter {
       }
     }
 
-    case Halt(End) => writeEnd(ByteVector.empty, Headers.empty).onComplete(completionListener(_, cb))
+    case Halt(End) => writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
 
     case Halt(error) => cb(-\/(error))
   }

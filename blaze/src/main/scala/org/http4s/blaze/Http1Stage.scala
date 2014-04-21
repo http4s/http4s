@@ -191,15 +191,16 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
         else {
           rr ~ "Transfer-Encoding: chunked\r\n\r\n"
           val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+          val trailer = resp.trailerHeaders
 
           respCoding match { // HTTP >= 1.1 request without length. Will use a chunked encoder
             case Some(h) => // Signaling chunked may mean flush every chunk
               if (!h.hasChunked) logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
-              new ChunkProcessWriter(b, this)
+              new ChunkProcessWriter(b, this, trailer)
 
             case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
               logger.trace("Using Caching Chunk Encoder")
-              new CachingChunkWriter(b, this)
+              new CachingChunkWriter(b, this, trailer)
           }
         }
     }

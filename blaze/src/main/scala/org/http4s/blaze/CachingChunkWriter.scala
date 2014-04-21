@@ -4,6 +4,7 @@ package blaze
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import scala.concurrent.{ExecutionContext, Future}
+import scalaz.concurrent.Task
 import scodec.bits.ByteVector
 
 
@@ -12,8 +13,9 @@ import scodec.bits.ByteVector
  */
 class CachingChunkWriter(headers: ByteBuffer,
                          pipe: TailStage[ByteBuffer],
+                         trailer: Task[Headers],
                          bufferSize: Int = 10*1024)(implicit ec: ExecutionContext)
-              extends ChunkProcessWriter(headers, pipe) {
+              extends ChunkProcessWriter(headers, pipe, trailer) {
 
   private var bodyBuffer: ByteVector = null
 
@@ -31,10 +33,10 @@ class CachingChunkWriter(headers: ByteBuffer,
     else Future.successful()
   }
 
-  override protected def writeEnd(chunk: ByteVector, trailerHeaders: Headers): Future[Any] = {
+  override protected def writeEnd(chunk: ByteVector): Future[Any] = {
     val b = addChunk(chunk)
     bodyBuffer = null
-    super.writeEnd(b, trailerHeaders)
+    super.writeEnd(b)
   }
 
   override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {

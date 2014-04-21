@@ -34,11 +34,5 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
     else out.channelWrite(b)
   }
 
-  protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = {
-    if (trailers.nonEmpty) {
-      logger.warn("Trailers found for defined length content. Ignoring.")
-    }
-
-    writeBodyChunk(chunk, true)
-  }
+  protected def writeEnd(chunk: ByteVector): Future[Any] = writeBodyChunk(chunk, true)
 }

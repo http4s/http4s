@@ -3,16 +3,18 @@ package blaze
 
 import java.nio.ByteBuffer
 import pipeline.TailStage
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{Promise, Future, ExecutionContext}
+import scalaz.concurrent.Task
 import java.nio.charset.StandardCharsets
 import org.http4s.util.StringWriter
 import scodec.bits.ByteVector
+import scalaz.{\/-, -\/}
 
 /**
  * @author Bryce Anderson
  *         Created on 1/10/14
  */
-class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBuffer])
+class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBuffer], trailer: Task[Headers])
                               (implicit val ec: ExecutionContext) extends ProcessWriter {
 
   import ChunkProcessWriter._
@@ -23,22 +25,25 @@ class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBu
     pipe.channelWrite(encodeChunk(chunk, Nil))
   }
 
-
-  protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = {
-
-    val tailbuffer = if (trailers.nonEmpty) {
-      val rr = new StringWriter(256)
-      rr ~ '0' ~ '\r' ~ '\n'             // Last chunk
-      trailers.foreach( h =>  rr ~ h.name.toString ~ ": " ~ h ~ '\r' ~ '\n')   // trailers
-      rr ~ '\r' ~ '\n'          // end of chunks
-      ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-    } else ByteBuffer.wrap(ChunkEndBytes)
-
-    val all = if (!chunk.isEmpty) encodeChunk(chunk, tailbuffer::Nil) 
-              else if (headers != null) headers::tailbuffer::Nil
-              else tailbuffer::Nil
-    
-    pipe.channelWrite(all)
+  protected def writeEnd(chunk: ByteVector): Future[Any] = {
+    def writeTrailer = {
+      val promise = Promise[Any]
+      trailer.map { trailerHeaders =>
+        if (trailerHeaders.nonEmpty) {
+          val rr = new StringWriter(256)
+          rr ~ '0' ~ '\r' ~ '\n'             // Last chunk
+          trailerHeaders.foreach( h =>  rr ~ h.name.toString ~ ": " ~ h ~ '\r' ~ '\n')   // trailers
+          rr ~ '\r' ~ '\n'          // end of chunks
+          ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+        } else ByteBuffer.wrap(ChunkEndBytes)
+      }.runAsync {
+        case \/-(buffer) => promise.completeWith(pipe.channelWrite(buffer))
+        case -\/(t) => promise.failure(t)
+      }
+      promise.future
+    }
+    if (chunk.nonEmpty) writeBodyChunk(chunk, true).flatMap { _ => writeTrailer }
+    else writeTrailer
   }
 
   private def writeLength(length: Int): ByteBuffer = {

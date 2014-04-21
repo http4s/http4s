@@ -42,15 +42,15 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     else writeBodyChunk(c, true)    // we are already proceeding
   }
 
-  override protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = {
-    if (innerWriter != null) innerWriter.writeEnd(chunk, trailers)
+  override protected def writeEnd(chunk: ByteVector): Future[Any] = {
+    if (innerWriter != null) innerWriter.writeEnd(chunk)
     else {  // We are finished! Write the length and the keep alive
       val c = addChunk(chunk)
       writer ~ `Content-Length`(c.length) ~ "\r\nConnection:Keep-Alive\r\n\r\n"
 
       val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.US_ASCII))
 
-      new InnerWriter(b).writeEnd(c, trailers)
+      new InnerWriter(b).writeEnd(c)
     }
   }
 
@@ -71,7 +71,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
 
   // Make the write stuff public
   private class InnerWriter(buffer: ByteBuffer) extends StaticWriter(buffer, -1, out) {
-    override def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = super.writeEnd(chunk, trailers)
+    override def writeEnd(chunk: ByteVector): Future[Any] = super.writeEnd(chunk)
     override def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = super.writeBodyChunk(chunk, flush)
   }
 }
