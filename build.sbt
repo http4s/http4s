@@ -49,7 +49,7 @@ scmInfo in ThisBuild := Some(
 /* scala versions and options */
 scalaVersion in ThisBuild := "2.10.4"
 
-crossScalaVersions in ThisBuild := Seq(scalaVersion.value)
+crossScalaVersions in ThisBuild := Seq("2.10.4", "2.11.0")
 
 offline in ThisBuild := false
 

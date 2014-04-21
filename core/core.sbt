@@ -7,7 +7,6 @@ description := "Core http4s framework"
 libraryDependencies <+= scalaVersion(scalaReflect)
 
 libraryDependencies ++= Seq(
-  akkaActor,
   base64,
   jodaConvert, // Without this, get bad constant pool tag errors loading joda-time classes.
   jodaTime,
@@ -15,7 +14,10 @@ libraryDependencies ++= Seq(
   rl,
   slf4jApi,
   scalazStream,
-  scalaloggingSlf4j,
+  scalaBinaryVersion.value match {
+    case "2.10" => scalaloggingSlf4j_2_10
+    case "2.11" => scalaloggingSlf4j_2_11
+  },
   typesafeConfig
 )
 

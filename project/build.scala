@@ -1,7 +1,6 @@
 import sbt._
 
 object Http4sDependencies {
-  lazy val akkaActor           = "com.typesafe.akka"        %% "akka-actor"              % "2.1.0"
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
   lazy val blaze               = "org.http4s"               %% "blaze"                   % "0.2.0-SNAPSHOT"
   lazy val typesafeConfig      = "com.typesafe"              % "config"                  % "1.0.0"
@@ -18,9 +17,10 @@ object Http4sDependencies {
   lazy val npn_boot            = "org.mortbay.jetty.npn"     % "npn-boot"                % npn_version
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0-M1"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.10"
-  lazy val scalaloggingSlf4j   = "com.typesafe"             %% "scalalogging-slf4j"      % "1.0.1"
+  lazy val scalaloggingSlf4j_2_10 = "com.typesafe"          %% "scalalogging-slf4j"      % "1.1.0"
+  lazy val scalaloggingSlf4j_2_11 = "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.3"
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.4-M2"
-  lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.0.RC3"
+  lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.1.3"
   lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.0.5"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4"
   lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
