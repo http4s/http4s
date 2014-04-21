@@ -28,7 +28,7 @@ trait WritableInstances {
   implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: `Content-Type` = `Content-Type`.`text/plain`.withCharset(charset)
-      def asChunk(s: String) = ByteVector(s.getBytes(charset.charset))
+      def asChunk(s: String) = ByteVector.view(s.getBytes(charset.charset))
     }
 
   implicit def byteWritable = new SimpleWritable[Array[Byte]] {
@@ -39,13 +39,13 @@ trait WritableInstances {
   implicit def htmlWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: `Content-Type` = `Content-Type`(MediaType.`text/html`).withCharset(charset)
-      def asChunk(s: xml.Elem) = ByteVector(s.buildString(false).getBytes(charset.charset))
+      def asChunk(s: xml.Elem) = ByteVector.view(s.buildString(false).getBytes(charset.charset))
     }
 
   implicit def intWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: `Content-Type` = `Content-Type`.`text/plain`.withCharset(charset)
-      def asChunk(i: Int) = ByteVector(i.toString.getBytes(charset.charset))
+      def asChunk(i: Int) = ByteVector.view(i.toString.getBytes(charset.charset))
     }
 
 
