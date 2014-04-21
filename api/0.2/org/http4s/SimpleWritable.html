@@ -84,15 +84,15 @@
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="org.http4s.SimpleWritable#asChunk" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="asChunk(data:A):org.http4s.BodyChunk"></a>
-      <a id="asChunk(A):BodyChunk"></a>
+      <a id="asChunk(data:A):scodec.bits.ByteVector"></a>
+      <a id="asChunk(A):ByteVector"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">asChunk</span><span class="params">(<span name="data">data: <span class="extype" name="org.http4s.SimpleWritable.A">A</span></span>)</span><span class="result">: <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>
+        <span class="name">asChunk</span><span class="params">(<span name="data">data: <span class="extype" name="org.http4s.SimpleWritable.A">A</span></span>)</span><span class="result">: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>
       </span>
       </h4>
       
@@ -356,7 +356,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">toBody</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.SimpleWritable.A">A</span></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[(<a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a>])]</span>
+        <span class="name">toBody</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.SimpleWritable.A">A</span></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[(<a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a>])]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a> → <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a></dd></dl></div>

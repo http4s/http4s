@@ -42,8 +42,8 @@
       <div class="name">Trailer</div>
       <div class="occurrences"><a href="../org/http4s/Header$.html" class="extype" name="org.http4s.Header">Header</a> </div>
     </div><div class="entry">
-      <div class="name">TrailerChunk</div>
-      <div class="occurrences"><a href="../org/http4s/package.html" class="extype" name="org.http4s">http4s</a> </div>
+      <div class="name">TrailerHeaders</div>
+      <div class="occurrences"><a href="../org/http4s/Message$$Keys$.html" class="extype" name="org.http4s.Message.Keys">Keys</a> </div>
     </div><div class="entry">
       <div class="name">Transfer-Encoding</div>
       <div class="occurrences"><a href="../org/http4s/Header$.html" class="extype" name="org.http4s.Header">Header</a> </div>
@@ -198,9 +198,6 @@
       <div class="name">textFile</div>
       <div class="occurrences"><a href="../org/http4s/HttpBodyFunctions.html" class="extype" name="org.http4s.HttpBodyFunctions">HttpBodyFunctions</a> </div>
     </div><div class="entry">
-      <div class="name">toArray</div>
-      <div class="occurrences"><a href="../org/http4s/TrailerChunk.html" class="extype" name="org.http4s.TrailerChunk">TrailerChunk</a> </div>
-    </div><div class="entry">
       <div class="name">toBody</div>
       <div class="occurrences"><a href="../org/http4s/SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a> <a href="../org/http4s/Writable.html" class="extype" name="org.http4s.Writable">Writable</a> </div>
     </div><div class="entry">
@@ -226,10 +223,13 @@
       <div class="occurrences"><a href="../org/http4s/RequestCookieJar.html" class="extype" name="org.http4s.RequestCookieJar">RequestCookieJar</a> </div>
     </div><div class="entry">
       <div class="name">toString</div>
-      <div class="occurrences"><a href="../org/http4s/AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> <a href="../org/http4s/AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> <a href="../org/http4s/BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a> <a href="../org/http4s/CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> <a href="../org/http4s/Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a> <a href="../org/http4s/CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> <a href="../org/http4s/Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a> <a href="../org/http4s/Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> <a href="../org/http4s/Header.html" class="extype" name="org.http4s.Header">Header</a> <a href="../org/http4s/HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a> <a href="../org/http4s/MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a> <a href="../org/http4s/MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> <a href="../org/http4s/Method.html" class="extype" name="org.http4s.Method">Method</a> <a href="../org/http4s/RangeUnit.html" class="extype" name="org.http4s.RangeUnit">RangeUnit</a> <a href="../org/http4s/RequestCookieJar.html" class="extype" name="org.http4s.RequestCookieJar">RequestCookieJar</a> <a href="../org/http4s/ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> <a href="../org/http4s/dsl/$div.html" class="extype" name="org.http4s.dsl./">/</a> <a href="../org/http4s/dsl/$colon$qmark.html" class="extype" name="org.http4s.dsl.:?">:?</a> <a href="../org/http4s/dsl/Root$.html" class="extype" name="org.http4s.dsl.Root">Root</a> <a href="../org/http4s/util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> </div>
+      <div class="occurrences"><a href="../org/http4s/AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> <a href="../org/http4s/AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> <a href="../org/http4s/CacheDirective.html" class="extype" name="org.http4s.CacheDirective">CacheDirective</a> <a href="../org/http4s/Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a> <a href="../org/http4s/CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> <a href="../org/http4s/Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a> <a href="../org/http4s/Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a> <a href="../org/http4s/Header.html" class="extype" name="org.http4s.Header">Header</a> <a href="../org/http4s/HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a> <a href="../org/http4s/MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a> <a href="../org/http4s/MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> <a href="../org/http4s/Method.html" class="extype" name="org.http4s.Method">Method</a> <a href="../org/http4s/RangeUnit.html" class="extype" name="org.http4s.RangeUnit">RangeUnit</a> <a href="../org/http4s/RequestCookieJar.html" class="extype" name="org.http4s.RequestCookieJar">RequestCookieJar</a> <a href="../org/http4s/ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> <a href="../org/http4s/dsl/$div.html" class="extype" name="org.http4s.dsl./">/</a> <a href="../org/http4s/dsl/$colon$qmark.html" class="extype" name="org.http4s.dsl.:?">:?</a> <a href="../org/http4s/dsl/Root$.html" class="extype" name="org.http4s.dsl.Root">Root</a> <a href="../org/http4s/util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a> </div>
     </div><div class="entry">
       <div class="name">token</div>
       <div class="occurrences"><a href="../org/http4s/OAuth2BearerToken.html" class="extype" name="org.http4s.OAuth2BearerToken">OAuth2BearerToken</a> </div>
+    </div><div class="entry">
+      <div class="name">trailerHeaders</div>
+      <div class="occurrences"><a href="../org/http4s/Message.html" class="extype" name="org.http4s.Message">Message</a> </div>
     </div><div class="entry">
       <div class="name">translateResponse</div>
       <div class="occurrences"><a href="../org/http4s/Response.html" class="extype" name="org.http4s.Response">Response</a> <a href="../org/http4s/ResponseSyntax$ResponseSyntaxBase.html" class="extype" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">ResponseSyntaxBase</a> </div>

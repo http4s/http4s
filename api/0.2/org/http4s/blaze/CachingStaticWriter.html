@@ -474,15 +474,15 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.blaze.CachingStaticWriter#writeBodyChunk" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeBodyChunk(chunk:org.http4s.BodyChunk,flush:Boolean):scala.concurrent.Future[Any]"></a>
-      <a id="writeBodyChunk(BodyChunk,Boolean):Future[Any]"></a>
+      <a id="writeBodyChunk(chunk:scodec.bits.ByteVector,flush:Boolean):scala.concurrent.Future[Any]"></a>
+      <a id="writeBodyChunk(ByteVector,Boolean):Future[Any]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <a href="../BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
+        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">write a BodyChunk to the wire
@@ -494,15 +494,15 @@ return a failed Future with Cancelled as the exception
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue
 </p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.CachingStaticWriter">CachingStaticWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="org.http4s.blaze.CachingStaticWriter#writeEnd" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeEnd(chunk:org.http4s.BodyChunk,t:Option[org.http4s.TrailerChunk]):scala.concurrent.Future[Any]"></a>
-      <a id="writeEnd(BodyChunk,Option[TrailerChunk]):Future[Any]"></a>
+      <a id="writeEnd(chunk:scodec.bits.ByteVector,trailers:org.http4s.Headers):scala.concurrent.Future[Any]"></a>
+      <a id="writeEnd(ByteVector,Headers):Future[Any]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <a href="../BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a></span>, <span name="t">t: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../TrailerChunk.html" class="extype" name="org.http4s.TrailerChunk">TrailerChunk</a>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
+        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="trailers">trailers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">write the ending BodyChunk and possibly a trailer to the wire
@@ -511,18 +511,18 @@ return a failed Future with Cancelled as the exception
 </p><div class="fullcomment"><div class="comment cmt"><p>write the ending BodyChunk and possibly a trailer to the wire
 If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
-</p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt class="param">t</dt><dd class="cmt"><p>optional TrailerChunk to write</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue
+</p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt class="param">trailers</dt><dd class="cmt"><p>optional Trailers to write</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue
 </p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.CachingStaticWriter">CachingStaticWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="org.http4s.blaze.ProcessWriter#writeProcess" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]):scalaz.concurrent.Task[Unit]"></a>
-      <a id="writeProcess(Process[Task,Chunk]):Task[Unit]"></a>
+      <a id="writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]):scalaz.concurrent.Task[Unit]"></a>
+      <a id="writeProcess(Process[Task,ByteVector]):Task[Unit]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeProcess</span><span class="params">(<span name="p">p: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="../Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">writeProcess</span><span class="params">(<span name="p">p: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="scodec.bits.ByteVector">ByteVector</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Creates a Task that writes the contents the Process to the output.</p><div class="fullcomment"><div class="comment cmt"><p>Creates a Task that writes the contents the Process to the output.

@@ -209,15 +209,15 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.HttpBodyFunctions#comsumeUpTo" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="comsumeUpTo(n:Int):scalaz.stream.Process.Process1[org.http4s.Chunk,org.http4s.BodyChunk]"></a>
-      <a id="comsumeUpTo(Int):Process1[Chunk,BodyChunk]"></a>
+      <a id="comsumeUpTo(n:Int):scalaz.stream.Process.Process1[scodec.bits.ByteVector,scodec.bits.ByteVector]"></a>
+      <a id="comsumeUpTo(Int):Process1[ByteVector,ByteVector]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">comsumeUpTo</span><span class="params">(<span name="n">n: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process.Process1">Process1</span>[<a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>, <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a>]</span>
+        <span class="name">comsumeUpTo</span><span class="params">(<span name="n">n: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process.Process1">Process1</span>[<span class="extype" name="scodec.bits.ByteVector">ByteVector</span>, <span class="extype" name="scodec.bits.ByteVector">ByteVector</span>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyFunctions.html" class="extype" name="org.http4s.HttpBodyFunctions">HttpBodyFunctions</a></dd></dl></div>
@@ -230,7 +230,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">empty</span><span class="result">: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.Chunk]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>
+        <span class="name">empty</span><span class="result">: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>
       </span>
       </h4>
       
@@ -466,19 +466,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.HttpBodyFunctions#whileBodyChunk" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="whileBodyChunk:scalaz.stream.Process.Process1[org.http4s.Chunk,org.http4s.BodyChunk]"></a>
-      <a id="whileBodyChunk:Process1[Chunk,BodyChunk]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">whileBodyChunk</span><span class="result">: <span class="extype" name="scalaz.stream.Process.Process1">Process1</span>[<a href="Chunk.html" class="extype" name="org.http4s.Chunk">Chunk</a>, <a href="BodyChunk.html" class="extype" name="org.http4s.BodyChunk">BodyChunk</a>]</span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HttpBodyFunctions.html" class="extype" name="org.http4s.HttpBodyFunctions">HttpBodyFunctions</a></dd></dl></div>
     </li><li name="org.http4s.HttpBodyFunctions#xml" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="xml(req:org.http4s.Request,limit:Int,parser:javax.xml.parsers.SAXParser):scalaz.concurrent.Task[scala.xml.Elem]"></a>
       <a id="xml(Request,Int,SAXParser):Task[Elem]"></a>
