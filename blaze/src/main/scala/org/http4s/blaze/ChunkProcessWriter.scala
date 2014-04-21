@@ -1,11 +1,12 @@
-package org.http4s.blaze
+package org.http4s
+package blaze
 
 import java.nio.ByteBuffer
 import pipeline.TailStage
 import scala.concurrent.{Future, ExecutionContext}
-import org.http4s.{TrailerChunk, BodyChunk}
 import java.nio.charset.StandardCharsets
 import org.http4s.util.StringWriter
+import scodec.bits.ByteVector
 
 /**
  * @author Bryce Anderson
@@ -18,23 +19,20 @@ class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBu
 
   private def CRLF = ByteBuffer.wrap(CRLFBytes).asReadOnlyBuffer()
 
-  protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = {
+  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
     pipe.channelWrite(encodeChunk(chunk, Nil))
   }
 
 
-  protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = {
+  protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = {
 
-    val tailbuffer = t match {
-      case Some(t) =>
-        val rr = new StringWriter(256)
-        rr ~ '0' ~ '\r' ~ '\n'             // Last chunk
-        t.headers.foreach( h =>  rr ~ h.name.toString ~ ": " ~ h ~ '\r' ~ '\n')   // trailers
-        rr ~ '\r' ~ '\n'          // end of chunks
-        ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-
-      case None => ByteBuffer.wrap(ChunkEndBytes)
-    }
+    val tailbuffer = if (trailers.nonEmpty) {
+      val rr = new StringWriter(256)
+      rr ~ '0' ~ '\r' ~ '\n'             // Last chunk
+      trailers.foreach( h =>  rr ~ h.name.toString ~ ": " ~ h ~ '\r' ~ '\n')   // trailers
+      rr ~ '\r' ~ '\n'          // end of chunks
+      ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+    } else ByteBuffer.wrap(ChunkEndBytes)
 
     val all = if (!chunk.isEmpty) encodeChunk(chunk, tailbuffer::Nil) 
               else if (headers != null) headers::tailbuffer::Nil
@@ -50,8 +48,8 @@ class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBu
     b
   }
 
-  private def encodeChunk(chunk: BodyChunk, last: List[ByteBuffer]): List[ByteBuffer] = {
-    val list = writeLength(chunk.length)::chunk.asByteBuffer::CRLF::last
+  private def encodeChunk(chunk: ByteVector, last: List[ByteBuffer]): List[ByteBuffer] = {
+    val list = writeLength(chunk.length)::chunk.toByteBuffer::CRLF::last
     if (headers != null) {
       val i = headers
       headers = null

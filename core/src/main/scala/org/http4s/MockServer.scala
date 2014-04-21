@@ -1,6 +1,7 @@
 package org.http4s
 
 import scalaz.concurrent.Task
+import scodec.bits.ByteVector
 
 class MockServer(service: HttpService) {
   import MockServer._
@@ -10,7 +11,7 @@ class MockServer(service: HttpService) {
       response <- try service.applyOrElse(request, Status.NotFound(_: Request)) catch {
                     case _: Throwable  => Status.InternalServerError()
                   }
-      body <- response.body.collect{ case c: BodyChunk => c.toArray }.runLog
+      body <- response.body.collect{ case c: ByteVector => c.toArray }.runLog
     } yield MockResponse(
       response.status,
       response.headers,

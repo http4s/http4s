@@ -1,11 +1,10 @@
 package org.http4s
 package blaze
 
-import org.http4s.BodyChunk
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import scala.concurrent.{ExecutionContext, Future}
-import com.typesafe.scalalogging.slf4j.Logging
+import scodec.bits.ByteVector
 
 
 /**
@@ -16,9 +15,9 @@ class CachingChunkWriter(headers: ByteBuffer,
                          bufferSize: Int = 10*1024)(implicit ec: ExecutionContext)
               extends ChunkProcessWriter(headers, pipe) {
 
-  private var bodyBuffer: BodyChunk = null
+  private var bodyBuffer: ByteVector = null
 
-  private def addChunk(b: BodyChunk): BodyChunk = {
+  private def addChunk(b: ByteVector): ByteVector = {
     if (bodyBuffer == null) bodyBuffer = b
     else bodyBuffer = bodyBuffer ++ b
 
@@ -32,13 +31,13 @@ class CachingChunkWriter(headers: ByteBuffer,
     else Future.successful()
   }
 
-  override protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = {
+  override protected def writeEnd(chunk: ByteVector, trailerHeaders: Headers): Future[Any] = {
     val b = addChunk(chunk)
     bodyBuffer = null
-    super.writeEnd(b, t)
+    super.writeEnd(b, trailerHeaders)
   }
 
-  override protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = {
+  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
     val c = addChunk(chunk)
     if (c.length >= bufferSize || flush) { // time to flush
       bodyBuffer = null

@@ -4,6 +4,7 @@ import com.typesafe.config.{ConfigFactory, Config}
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import org.http4s.util.CaseInsensitiveString
+import scodec.bits.ByteVector
 
 package object http4s {
 
@@ -16,7 +17,7 @@ package object http4s {
 
   /** The scalaz.stream.Process[Task,Chunk] representing the body of the [[Response]]
      */
-  type HttpBody = Process[Task, Chunk]
+  type HttpBody = Process[Task, ByteVector]
 
   protected[http4s] val Http4sConfig: Config = ConfigFactory.load()
 }

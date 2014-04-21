@@ -14,6 +14,7 @@ import org.http4s.Response
 
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.util.BufferTools
+import scodec.bits.ByteVector
 
 class ResponseParser extends Http1ClientParser {
 
@@ -26,7 +27,7 @@ class ResponseParser extends Http1ClientParser {
   var minorversion = -1
 
   def parseResponse(buff: Seq[ByteBuffer]): (Status, Set[Header], String) = {
-    val b = ByteBuffer.wrap(buff.map(b => BodyChunk(b).toArray).toArray.flatten)
+    val b = ByteBuffer.wrap(buff.map(b => ByteVector(b).toArray).toArray.flatten)
 
     parseResponseLine(b)
     parseHeaders(b)
@@ -36,7 +37,7 @@ class ResponseParser extends Http1ClientParser {
       body += parseContent(b)
     }
 
-    val bp = new String(body.map(BodyChunk(_)).foldLeft(BodyChunk())((c1,c2) => c1 ++ c2).toArray,
+    val bp = new String(body.map(ByteVector(_)).foldLeft(ByteVector.empty)((c1,c2) => c1 ++ c2).toArray,
                                 StandardCharsets.US_ASCII)
 
     val headers = this.headers.result.map{case (k,v) => Header(k,v): Header}.toSet

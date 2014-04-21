@@ -112,7 +112,7 @@ object TestRoutes {
       Ok("Foo").addHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Ok(emit("post") ++ req.body.map(_.decodeString(StandardCharsets.UTF_8)))
+      Ok(emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.charset)))
   }
 
 }

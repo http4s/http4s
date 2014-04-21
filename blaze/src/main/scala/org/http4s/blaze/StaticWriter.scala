@@ -1,10 +1,11 @@
-package org.http4s.blaze
+package org.http4s
+package blaze
 
 import java.nio.ByteBuffer
 import pipeline.TailStage
 import com.typesafe.scalalogging.slf4j.Logging
-import org.http4s.{TrailerChunk, BodyChunk}
 import scala.concurrent.{ExecutionContext, Future}
+import scodec.bits.ByteVector
 
 /**
  * @author Bryce Anderson
@@ -20,8 +21,8 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
     logger.warn(s"Expected $size bytes, $written written")
   }
 
-  protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = {
-    val b = chunk.asByteBuffer
+  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
+    val b = chunk.toByteBuffer
     written += b.remaining()
     checkWritten()
 
@@ -33,9 +34,9 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
     else out.channelWrite(b)
   }
 
-  protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = {
-    if (t.isDefined) {
-      logger.warn(s"Trailer '${t.get}'found for defined length content. Ignoring.")
+  protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = {
+    if (trailers.nonEmpty) {
+      logger.warn("Trailers found for defined length content. Ignoring.")
     }
 
     writeBodyChunk(chunk, true)

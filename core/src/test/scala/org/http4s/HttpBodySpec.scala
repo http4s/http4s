@@ -3,6 +3,7 @@ package org.http4s
 
 import scala.language.postfixOps
 import org.xml.sax.SAXParseException
+import scodec.bits.ByteVector
 
 // the http4s team resents importing this.
 
@@ -28,13 +29,13 @@ class HttpBodySpec extends WordSpec with Matchers {
     })
 
     "parse the XML" in {
-      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => BodyChunk(s)))).run
+      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
       resp.statusLine should equal(Status.Ok)
       resp.body should equal ("html".getBytes)
     }
 
     "handle a parse failure" in {
-      val body = emit("This is not XML.").map(s => BodyChunk(s))
+      val body = emit("This is not XML.").map(s => ByteVector(s.getBytes))
       val resp = server(Request(body = body)).run
       resp.statusLine should equal (Status.BadRequest)
     }
@@ -59,7 +60,7 @@ class HttpBodySpec extends WordSpec with Matchers {
 
     def mocServe(req: Request)(route: HttpService) = {
       val server = new MockServer(route)
-      server(req.copy(body = emit(binData).map(BodyChunk(_))))
+      server(req.copy(body = emit(binData).map(ByteVector(_))))
     }
 
     "Write a text file from a byte string" in {

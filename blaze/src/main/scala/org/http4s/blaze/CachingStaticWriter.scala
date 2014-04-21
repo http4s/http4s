@@ -1,13 +1,14 @@
-package org.http4s.blaze
+package org.http4s
+package blaze
 
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import scala.concurrent.{Future, ExecutionContext}
-import org.http4s.{TrailerChunk, BodyChunk}
 import org.http4s.util.StringWriter
 import com.typesafe.scalalogging.slf4j.Logging
 import java.nio.charset.StandardCharsets
 import org.http4s.Header.`Content-Length`
+import scodec.bits.ByteVector
 
 /**
  * Created by Bryce Anderson on 4/12/14.
@@ -18,12 +19,12 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
 
   @volatile
   private var _forceClose = false
-  private var bodyBuffer: BodyChunk = null
+  private var bodyBuffer: ByteVector = null
   private var innerWriter: InnerWriter = null
 
   override def requireClose(): Boolean = _forceClose
 
-  private def addChunk(b: BodyChunk): BodyChunk = {
+  private def addChunk(b: ByteVector): ByteVector = {
     if (bodyBuffer == null) bodyBuffer = b
     else bodyBuffer = bodyBuffer ++ b
     bodyBuffer
@@ -41,19 +42,19 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     else writeBodyChunk(c, true)    // we are already proceeding
   }
 
-  override protected def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = {
-    if (innerWriter != null) innerWriter.writeEnd(chunk, t)
+  override protected def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = {
+    if (innerWriter != null) innerWriter.writeEnd(chunk, trailers)
     else {  // We are finished! Write the length and the keep alive
       val c = addChunk(chunk)
       writer ~ `Content-Length`(c.length) ~ "\r\nConnection:Keep-Alive\r\n\r\n"
 
       val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.US_ASCII))
 
-      new InnerWriter(b).writeEnd(c, t)
+      new InnerWriter(b).writeEnd(c, trailers)
     }
   }
 
-  override protected def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = {
+  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
     if (innerWriter != null) innerWriter.writeBodyChunk(chunk, flush)
     else {
       val c = addChunk(chunk)
@@ -70,7 +71,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
 
   // Make the write stuff public
   private class InnerWriter(buffer: ByteBuffer) extends StaticWriter(buffer, -1, out) {
-    override def writeEnd(chunk: BodyChunk, t: Option[TrailerChunk]): Future[Any] = super.writeEnd(chunk, t)
-    override def writeBodyChunk(chunk: BodyChunk, flush: Boolean): Future[Any] = super.writeBodyChunk(chunk, flush)
+    override def writeEnd(chunk: ByteVector, trailers: Headers): Future[Any] = super.writeEnd(chunk, trailers)
+    override def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = super.writeBodyChunk(chunk, flush)
   }
 }

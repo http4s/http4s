@@ -6,6 +6,7 @@ import scalaz.stream.Process._
 import com.typesafe.scalalogging.slf4j.Logging
 import scala.annotation.tailrec
 import org.http4s.Header.`Content-Length`
+import scodec.bits.ByteVector
 
 /**
  * @author Bryce Anderson
@@ -14,19 +15,16 @@ import org.http4s.Header.`Content-Length`
 object ChunkAggregator extends Logging {
 
   @tailrec
-  private[ChunkAggregator] def reduce(acc: BodyChunk, chunks: Seq[Chunk]): List[Chunk] = chunks.head match {
-    case c: BodyChunk =>
-      if (!chunks.tail.isEmpty) reduce(acc ++ c, chunks.tail)
-      else acc ++ c :: Nil
-
-    case c: TrailerChunk => acc::c::Nil
+  private[ChunkAggregator] def reduce(acc: ByteVector, chunks: Seq[ByteVector]): List[ByteVector] = {
+    if (!chunks.tail.isEmpty) reduce(acc ++ chunks.head, chunks.tail)
+    else (acc ++ chunks.head) :: Nil
   }
 
-  private[ChunkAggregator] def compact(body: HttpBody): List[Chunk] = {
+  private[ChunkAggregator] def compact(body: HttpBody): List[ByteVector] = {
     val (chunks, tail) = body.unemit
     if (!chunks.isEmpty &&
       tail.isInstanceOf[Halt] &&
-      (tail.asInstanceOf[Halt].cause eq End)) reduce(BodyChunk(), chunks)
+      (tail.asInstanceOf[Halt].cause eq End)) reduce(ByteVector.empty, chunks)
     else Nil
   }
 

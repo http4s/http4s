@@ -19,6 +19,7 @@ import com.typesafe.scalalogging.slf4j.Logging
 
 import org.http4s.Header._
 import org.http4s.Status.NotModified
+import scodec.bits.ByteVector
 
 
 /**
@@ -118,7 +119,7 @@ object StaticFile extends Logging {
   }
 
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
-                (implicit es: ExecutorService): Process[Task, BodyChunk] = {
+                (implicit es: ExecutorService): Process[Task, ByteVector] = {
 
     val outer = Task {
 
@@ -127,7 +128,7 @@ object StaticFile extends Logging {
       val buff = ByteBuffer.allocate(buffsize)
       var position = start
 
-      val innerTask = Task.async[BodyChunk]{ cb =>
+      val innerTask = Task.async[ByteVector]{ cb =>
         // Check for ending condition
         if (!ch.isOpen) cb(-\/(End))
 
@@ -148,8 +149,8 @@ object StaticFile extends Logging {
 
               // Don't make yet another copy unless we need to
               val c = if (buffsize == count) {
-                BodyChunk(buff.array())
-              } else BodyChunk(buff)
+                ByteVector(buff.array())
+              } else ByteVector(buff)
 
               buff.clear()
               position += count
@@ -166,7 +167,7 @@ object StaticFile extends Logging {
         if (ch.isOpen) ch.close()
       })()
 
-      def go(c: BodyChunk): Process[Task, BodyChunk] = {
+      def go(c: ByteVector): Process[Task, ByteVector] = {
         Emit(c::Nil, await(innerTask)(go, cleanup, cleanup))
       }
 

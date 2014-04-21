@@ -6,6 +6,7 @@ import scalaz.concurrent.Task
 import scala.language.implicitConversions
 import org.http4s.Header.`Content-Type`
 import org.http4s.util.task._
+import scodec.bits.ByteVector
 
 trait Writable[-A] {
   def contentType: `Content-Type`
@@ -15,7 +16,7 @@ trait Writable[-A] {
 object Writable extends WritableInstances
 
 trait SimpleWritable[-A] extends Writable[A] {
-  def asChunk(data: A): BodyChunk
+  def asChunk(data: A): ByteVector
   override def toBody(a: A): Task[(HttpBody, Option[Int])] = {
     val chunk = asChunk(a)
     Task.now(Process.emit(chunk), Some(chunk.length))
@@ -27,24 +28,24 @@ trait WritableInstances {
   implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[String] {
       def contentType: `Content-Type` = `Content-Type`.`text/plain`.withCharset(charset)
-      def asChunk(s: String) = BodyChunk(s, charset.charset)
+      def asChunk(s: String) = ByteVector.view(s.getBytes(charset.charset))
     }
 
   implicit def byteWritable = new SimpleWritable[Array[Byte]] {
-    def asChunk(data: Array[Byte]): BodyChunk = BodyChunk(data)
+    def asChunk(data: Array[Byte]): ByteVector = ByteVector(data)
     def contentType: `Content-Type` = `Content-Type`.`application/octet-stream`
   }
 
   implicit def htmlWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[xml.Elem] {
       def contentType: `Content-Type` = `Content-Type`(MediaType.`text/html`).withCharset(charset)
-      def asChunk(s: xml.Elem) = BodyChunk(s.buildString(false), charset.charset)
+      def asChunk(s: xml.Elem) = ByteVector.view(s.buildString(false).getBytes(charset.charset))
     }
 
   implicit def intWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`) =
     new SimpleWritable[Int] {
       def contentType: `Content-Type` = `Content-Type`.`text/plain`.withCharset(charset)
-      def asChunk(i: Int) = BodyChunk(i.toString, charset.charset)
+      def asChunk(i: Int) = ByteVector.view(i.toString.getBytes(charset.charset))
     }
 
 
@@ -73,7 +74,7 @@ trait WritableInstances {
     def contentType: `Content-Type` = w.contentType
 
     def toBody(a: Seq[A]): Task[(HttpBody, Option[Int])] = {
-      val p = Process.emit(a.foldLeft(BodyChunk())((acc, c) => acc ++ w.asChunk(c)))
+      val p = Process.emit(a.foldLeft(ByteVector.empty)((acc, c) => acc ++ w.asChunk(c)))
       Task.now((p, None))
     }
   }
