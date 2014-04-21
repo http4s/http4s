@@ -41,7 +41,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <span class="extype" name="com.typesafe.scalalogging.slf4j.Logging">Logging</span>, <span class="extype" name="org.http4s.blaze.http_parser.Http1ServerParser">Http1ServerParser</span>, <span class="extype" name="org.http4s.blaze.http_parser.BodyAndHeaderParser">BodyAndHeaderParser</span>, <span class="extype" name="org.http4s.blaze.http_parser.ParserBase">ParserBase</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <span class="extype" name="com.typesafe.scalalogging.slf4j.Logging">Logging</span>, <span class="extype" name="com.typesafe.scalalogging.slf4j.AbstractLogging">AbstractLogging</span>, <span class="extype" name="org.http4s.blaze.http_parser.Http1ServerParser">Http1ServerParser</span>, <span class="extype" name="org.http4s.blaze.http_parser.BodyAndHeaderParser">BodyAndHeaderParser</span>, <span class="extype" name="org.http4s.blaze.http_parser.ParserBase">ParserBase</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
           <span class="toggle">Known Subclasses</span>
           <div class="subClasses hiddenContent"><a href="websocket/WebSocketSupport.html" class="extype" name="org.http4s.blaze.websocket.WebSocketSupport">WebSocketSupport</a></div>
@@ -62,7 +62,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.blaze.Http1Stage"><span>Http1Stage</span></li><li class="in" name="org.http4s.blaze.pipeline.TailStage"><span>TailStage</span></li><li class="in" name="org.http4s.blaze.pipeline.Tail"><span>Tail</span></li><li class="in" name="org.http4s.blaze.pipeline.Stage"><span>Stage</span></li><li class="in" name="com.typesafe.scalalogging.slf4j.Logging"><span>Logging</span></li><li class="in" name="org.http4s.blaze.http_parser.Http1ServerParser"><span>Http1ServerParser</span></li><li class="in" name="org.http4s.blaze.http_parser.BodyAndHeaderParser"><span>BodyAndHeaderParser</span></li><li class="in" name="org.http4s.blaze.http_parser.ParserBase"><span>ParserBase</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.blaze.Http1Stage"><span>Http1Stage</span></li><li class="in" name="org.http4s.blaze.pipeline.TailStage"><span>TailStage</span></li><li class="in" name="org.http4s.blaze.pipeline.Tail"><span>Tail</span></li><li class="in" name="org.http4s.blaze.pipeline.Stage"><span>Stage</span></li><li class="in" name="com.typesafe.scalalogging.slf4j.Logging"><span>Logging</span></li><li class="in" name="com.typesafe.scalalogging.slf4j.AbstractLogging"><span>AbstractLogging</span></li><li class="in" name="org.http4s.blaze.http_parser.Http1ServerParser"><span>Http1ServerParser</span></li><li class="in" name="org.http4s.blaze.http_parser.BodyAndHeaderParser"><span>BodyAndHeaderParser</span></li><li class="in" name="org.http4s.blaze.http_parser.ParserBase"><span>ParserBase</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -615,7 +615,7 @@
         <span class="name">logger</span><span class="result">: <span class="extype" name="com.typesafe.scalalogging.slf4j.Logger">Logger</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Logging</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Logging → AbstractLogging</dd></dl></div>
     </li><li name="org.http4s.blaze.http_parser.ParserBase#makeRoom" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="makeRoom(x$1:Int):Unit"></a>
       <a id="makeRoom(Int):Unit"></a>
@@ -1023,6 +1023,8 @@
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span></h3>
             </div><div class="parent" name="com.typesafe.scalalogging.slf4j.Logging">
               <h3>Inherited from <span class="extype" name="com.typesafe.scalalogging.slf4j.Logging">Logging</span></h3>
+            </div><div class="parent" name="com.typesafe.scalalogging.slf4j.AbstractLogging">
+              <h3>Inherited from <span class="extype" name="com.typesafe.scalalogging.slf4j.AbstractLogging">AbstractLogging</span></h3>
             </div><div class="parent" name="org.http4s.blaze.http_parser.Http1ServerParser">
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.http_parser.Http1ServerParser">Http1ServerParser</span></h3>
             </div><div class="parent" name="org.http4s.blaze.http_parser.BodyAndHeaderParser">
