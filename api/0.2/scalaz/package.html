@@ -1,5 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!DOCTYPE html >
 <html>
         <head>
           <title>scalaz - scalaz</title>
@@ -9,6 +8,11 @@
           
       <link href="../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../lib/template.js"></script>
+      <script type="text/javascript" src="../lib/tools.tooltip.js"></script>
+      
       <script type="text/javascript">
          if(top === self) {
             var url = '../index.html';
@@ -41,7 +45,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -103,7 +107,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$qmark$greater" class="name">=?&gt;</span><span class="tparams">[<span name="E">-E</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>, <span class="extype" name="scalaz.=?&gt;.E">E</span>, <span class="extype" name="scalaz.=?&gt;.A">A</span>]</span>
+        <span title="gt4s: $eq$qmark$greater" class="name">=?&gt;</span><span class="tparams">[<span name="E">-E</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>, <span class="extype" name="scalaz.=?&gt;.E">E</span>, <span class="extype" name="scalaz.=?&gt;.A">A</span>]</span>
       </span>
       </h4>
       
@@ -233,7 +237,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">FirstOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.FirstOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.First">First</span>]</span>
+        <span class="name">FirstOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.FirstOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.First">First</span>]</span>
       </span>
       </h4>
       
@@ -363,7 +367,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">LastOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.LastOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.Last">Last</span>]</span>
+        <span class="name">LastOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.LastOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.Last">Last</span>]</span>
       </span>
       </h4>
       
@@ -402,7 +406,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">MaxOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.MaxOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.Max">Max</span>]</span>
+        <span class="name">MaxOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.MaxOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.Max">Max</span>]</span>
       </span>
       </h4>
       
@@ -428,7 +432,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">MinOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.MinOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.Min">Min</span>]</span>
+        <span class="name">MinOption</span><span class="tparams">[<span name="A">A</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.MinOption.A">A</span>] with <a href="#Tagged[T]=AnyRef{typeTag=T}" class="extmbr" name="scalaz.Tagged">Tagged</a>[<span class="extype" name="scalaz.Tags.Min">Min</span>]</span>
       </span>
       </h4>
       
@@ -441,7 +445,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">PIndexedState</span><span class="tparams">[<span name="S1">-S1</span>, <span name="S2">+S2</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>, <span class="extype" name="scalaz.PIndexedState.S1">S1</span>, <span class="extype" name="scalaz.PIndexedState.S2">S2</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PIndexedState.A">A</span>]]</span>
+        <span class="name">PIndexedState</span><span class="tparams">[<span name="S1">-S1</span>, <span name="S2">+S2</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>, <span class="extype" name="scalaz.PIndexedState.S1">S1</span>, <span class="extype" name="scalaz.PIndexedState.S2">S2</span>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PIndexedState.A">A</span>]]</span>
       </span>
       </h4>
       
@@ -454,7 +458,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">PIndexedStateT</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">+_</span>]</span></span>, <span name="S1">-S1</span>, <span name="S2">+S2</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.PIndexedStateT.F">F</span>, <span class="extype" name="scalaz.PIndexedStateT.S1">S1</span>, <span class="extype" name="scalaz.PIndexedStateT.S2">S2</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PIndexedStateT.A">A</span>]]</span>
+        <span class="name">PIndexedStateT</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">+_</span>]</span></span>, <span name="S1">-S1</span>, <span name="S2">+S2</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.PIndexedStateT.F">F</span>, <span class="extype" name="scalaz.PIndexedStateT.S1">S1</span>, <span class="extype" name="scalaz.PIndexedStateT.S2">S2</span>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PIndexedStateT.A">A</span>]]</span>
       </span>
       </h4>
       
@@ -480,7 +484,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">PState</span><span class="tparams">[<span name="S">S</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>, <span class="extype" name="scalaz.PState.S">S</span>, <span class="extype" name="scalaz.PState.S">S</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PState.A">A</span>]]</span>
+        <span class="name">PState</span><span class="tparams">[<span name="S">S</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.IdInstances.Id">scalaz.Id.Id</span>, <span class="extype" name="scalaz.PState.S">S</span>, <span class="extype" name="scalaz.PState.S">S</span>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PState.A">A</span>]]</span>
       </span>
       </h4>
       
@@ -493,7 +497,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">PStateT</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">+_</span>]</span></span>, <span name="S">S</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.PStateT.F">F</span>, <span class="extype" name="scalaz.PStateT.S">S</span>, <span class="extype" name="scalaz.PStateT.S">S</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PStateT.A">A</span>]]</span>
+        <span class="name">PStateT</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">+_</span>]</span></span>, <span name="S">S</span>, <span name="A">+A</span>]</span><span class="result"> = <span class="extype" name="scalaz.IndexedStateT">IndexedStateT</span>[<span class="extype" name="scalaz.PStateT.F">F</span>, <span class="extype" name="scalaz.PStateT.S">S</span>, <span class="extype" name="scalaz.PStateT.S">S</span>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scalaz.PStateT.A">A</span>]]</span>
       </span>
       </h4>
       
@@ -636,7 +640,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">Tagged</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a> { type Tag = T }</span>
+        <span class="name">Tagged</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a> { type Tag = T }</span>
       </span>
       </h4>
       
@@ -740,7 +744,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u22A4" class="name">⊤</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>
+        <span title="gt4s: $u22A4" class="name">⊤</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>
       </span>
       </h4>
       
@@ -753,7 +757,7 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u22A5" class="name">⊥</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Nothing" class="extype" target="_top">Nothing</a></span>
+        <span title="gt4s: $u22A5" class="name">⊥</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Nothing" class="extype" target="_top">Nothing</a></span>
       </span>
       </h4>
       
@@ -764,7 +768,7 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="scalaz.package#IRWS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="scalaz#IRWS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IRWS:scalaz.package.IndexedReaderWriterState.type"></a>
       <a id="IRWS:IndexedReaderWriterState.type"></a>
       <h4 class="signature">
@@ -777,7 +781,7 @@
       </span>
       </h4>
       
-    </li><li name="scalaz.package#IRWST" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="scalaz#IRWST" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IRWST:scalaz.IndexedReaderWriterStateT.type"></a>
       <a id="IRWST:IndexedReaderWriterStateT.type"></a>
       <h4 class="signature">
@@ -790,7 +794,7 @@
       </span>
       </h4>
       
-    </li><li name="scalaz.package#RWS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="scalaz#RWS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RWS:scalaz.package.ReaderWriterState.type"></a>
       <a id="RWS:ReaderWriterState.type"></a>
       <h4 class="signature">
@@ -803,7 +807,7 @@
       </span>
       </h4>
       
-    </li><li name="scalaz.package#RWST" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="scalaz#RWST" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="RWST:scalaz.package.ReaderWriterStateT.type"></a>
       <a id="RWST:ReaderWriterStateT.type"></a>
       <h4 class="signature">
@@ -816,7 +820,7 @@
       </span>
       </h4>
       
-    </li><li name="scalaz.package#idInstance" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="scalaz#idInstance" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="idInstance:scalaz.Traverse1[scalaz.Id.Id]withscalaz.Each[scalaz.Id.Id]withscalaz.Monad[scalaz.Id.Id]withscalaz.Comonad[scalaz.Id.Id]withscalaz.Cojoin[scalaz.Id.Id]withscalaz.Distributive[scalaz.Id.Id]withscalaz.Zip[scalaz.Id.Id]withscalaz.Unzip[scalaz.Id.Id]withscalaz.Cozip[scalaz.Id.Id]"></a>
       <a id="idInstance:Traverse1[scalaz.Id.Id]withEach[scalaz.Id.Id]withMonad[scalaz.Id.Id]withComonad[scalaz.Id.Id]withCojoin[scalaz.Id.Id]withDistributive[scalaz.Id.Id]withZip[scalaz.Id.Id]withUnzip[scalaz.Id.Id]withCozip[scalaz.Id.Id]"></a>
       <h4 class="signature">
@@ -852,9 +856,9 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>
@@ -871,6 +875,7 @@
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-      <script defer="defer" type="text/javascript" id="jquery-js" src="../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../lib/template.js"></script>
+
+
     </body>
       </html>

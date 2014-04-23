@@ -1,5 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!DOCTYPE html >
 <html>
         <head>
           <title>Singleton - org.http4s.HeaderKey.Singleton</title>
@@ -9,6 +8,11 @@
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
@@ -42,11 +46,11 @@
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a Header that should not be repeated.
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a>, <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a>, <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
-          <span class="toggle">Known Subclasses</span>
-          <div class="subClasses hiddenContent"><a href="Header$$Accept$minusPatch$.html" class="extype" name="org.http4s.Header.Accept-Patch">Accept-Patch</a>, <a href="Header$$Accept$minusRanges$.html" class="extype" name="org.http4s.Header.Accept-Ranges">Accept-Ranges</a>, <a href="Header$$Access$minusControl$minusAllow$minusCredentials$.html" class="extype" name="org.http4s.Header.Access-Control-Allow-Credentials">Access-Control-Allow-Credentials</a>, <a href="Header$$Access$minusControl$minusAllow$minusHeaders$.html" class="extype" name="org.http4s.Header.Access-Control-Allow-Headers">Access-Control-Allow-Headers</a>, <a href="Header$$Access$minusControl$minusAllow$minusMethods$.html" class="extype" name="org.http4s.Header.Access-Control-Allow-Methods">Access-Control-Allow-Methods</a>, <a href="Header$$Access$minusControl$minusAllow$minusOrigin$.html" class="extype" name="org.http4s.Header.Access-Control-Allow-Origin">Access-Control-Allow-Origin</a>, <a href="Header$$Access$minusControl$minusExpose$minusHeaders$.html" class="extype" name="org.http4s.Header.Access-Control-Expose-Headers">Access-Control-Expose-Headers</a>, <a href="Header$$Access$minusControl$minusMax$minusAge$.html" class="extype" name="org.http4s.Header.Access-Control-Max-Age">Access-Control-Max-Age</a>, <a href="Header$$Access$minusControl$minusRequest$minusHeaders$.html" class="extype" name="org.http4s.Header.Access-Control-Request-Headers">Access-Control-Request-Headers</a>, <a href="Header$$Access$minusControl$minusRequest$minusMethod$.html" class="extype" name="org.http4s.Header.Access-Control-Request-Method">Access-Control-Request-Method</a>, <a href="Header$$Age$.html" class="extype" name="org.http4s.Header.Age">Age</a>, <a href="Header$$Allow$.html" class="extype" name="org.http4s.Header.Allow">Allow</a>, <a href="Header$$Authorization$.html" class="extype" name="org.http4s.Header.Authorization">Authorization</a>, <a href="Header$$Content$minusBase$.html" class="extype" name="org.http4s.Header.Content-Base">Content-Base</a>, <a href="Header$$Content$minusDisposition$.html" class="extype" name="org.http4s.Header.Content-Disposition">Content-Disposition</a>, <a href="Header$$Content$minusEncoding$.html" class="extype" name="org.http4s.Header.Content-Encoding">Content-Encoding</a>, <a href="Header$$Content$minusLanguage$.html" class="extype" name="org.http4s.Header.Content-Language">Content-Language</a>, <a href="Header$$Content$minusLength$.html" class="extype" name="org.http4s.Header.Content-Length">Content-Length</a>, <a href="Header$$Content$minusLocation$.html" class="extype" name="org.http4s.Header.Content-Location">Content-Location</a>, <a href="Header$$Content$minusMD5$.html" class="extype" name="org.http4s.Header.Content-MD5">Content-MD5</a>, <a href="Header$$Content$minusRange$.html" class="extype" name="org.http4s.Header.Content-Range">Content-Range</a>, <a href="Header$$Content$minusTransfer$minusEncoding$.html" class="extype" name="org.http4s.Header.Content-Transfer-Encoding">Content-Transfer-Encoding</a>, <a href="Header$$Content$minusType$.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>, <a href="Header$$Date$.html" class="extype" name="org.http4s.Header.Date">Date</a>, <a href="Header$$ETag$.html" class="extype" name="org.http4s.Header.ETag">ETag</a>, <a href="Header$$Expect$.html" class="extype" name="org.http4s.Header.Expect">Expect</a>, <a href="Header$$Expires$.html" class="extype" name="org.http4s.Header.Expires">Expires</a>, <a href="Header$$From$.html" class="extype" name="org.http4s.Header.From">From</a>, <a href="Header$$Front$minusEnd$minusHttps$.html" class="extype" name="org.http4s.Header.Front-End-Https">Front-End-Https</a>, <a href="Header$$Host$.html" class="extype" name="org.http4s.Header.Host">Host</a>, <a href="Header$$If$minusMatch$.html" class="extype" name="org.http4s.Header.If-Match">If-Match</a>, <a href="Header$$If$minusModified$minusSince$.html" class="extype" name="org.http4s.Header.If-Modified-Since">If-Modified-Since</a>, <a href="Header$$If$minusNone$minusMatch$.html" class="extype" name="org.http4s.Header.If-None-Match">If-None-Match</a>, <a href="Header$$If$minusRange$.html" class="extype" name="org.http4s.Header.If-Range">If-Range</a>, <a href="Header$$If$minusUnmodified$minusSince$.html" class="extype" name="org.http4s.Header.If-Unmodified-Since">If-Unmodified-Since</a>, <a href="Header$$Last$minusModified$.html" class="extype" name="org.http4s.Header.Last-Modified">Last-Modified</a>, <a href="Header$$Location$.html" class="extype" name="org.http4s.Header.Location">Location</a>, <a href="Header$$Max$minusForwards$.html" class="extype" name="org.http4s.Header.Max-Forwards">Max-Forwards</a>, <a href="Header$$Origin$.html" class="extype" name="org.http4s.Header.Origin">Origin</a>, <a href="Header$$Pragma$.html" class="extype" name="org.http4s.Header.Pragma">Pragma</a>, <a href="Header$$Proxy$minusAuthenticate$.html" class="extype" name="org.http4s.Header.Proxy-Authenticate">Proxy-Authenticate</a>, <a href="Header$$Proxy$minusAuthorization$.html" class="extype" name="org.http4s.Header.Proxy-Authorization">Proxy-Authorization</a>, <a href="Header$$Range$.html" class="extype" name="org.http4s.Header.Range">Range</a>, <a href="Header$$Referer$.html" class="extype" name="org.http4s.Header.Referer">Referer</a>, <a href="Header$$Retry$minusAfter$.html" class="extype" name="org.http4s.Header.Retry-After">Retry-After</a>, <a href="Header$$Sec$minusWebSocket$minusAccept$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Accept">Sec-WebSocket-Accept</a>, <a href="Header$$Sec$minusWebSocket$minusKey$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Key">Sec-WebSocket-Key</a>, <a href="Header$$Sec$minusWebSocket$minusKey1$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Key1">Sec-WebSocket-Key1</a>, <a href="Header$$Sec$minusWebSocket$minusKey2$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Key2">Sec-WebSocket-Key2</a>, <a href="Header$$Sec$minusWebSocket$minusLocation$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Location">Sec-WebSocket-Location</a>, <a href="Header$$Sec$minusWebSocket$minusOrigin$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Origin">Sec-WebSocket-Origin</a>, <a href="Header$$Sec$minusWebSocket$minusProtocol$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Protocol">Sec-WebSocket-Protocol</a>, <a href="Header$$Sec$minusWebSocket$minusVersion$.html" class="extype" name="org.http4s.Header.Sec-WebSocket-Version">Sec-WebSocket-Version</a>, <a href="Header$$Server$.html" class="extype" name="org.http4s.Header.Server">Server</a>, <a href="Header$$Set$minusCookie$.html" class="extype" name="org.http4s.Header.Set-Cookie">Set-Cookie</a>, <a href="Header$$TE$.html" class="extype" name="org.http4s.Header.TE">TE</a>, <a href="Header$$Trailer$.html" class="extype" name="org.http4s.Header.Trailer">Trailer</a>, <a href="Header$$Upgrade$.html" class="extype" name="org.http4s.Header.Upgrade">Upgrade</a>, <a href="Header$$User$minusAgent$.html" class="extype" name="org.http4s.Header.User-Agent">User-Agent</a>, <a href="Header$$Vary$.html" class="extype" name="org.http4s.Header.Vary">Vary</a>, <a href="Header$$Via$.html" class="extype" name="org.http4s.Header.Via">Via</a>, <a href="Header$$Warning$.html" class="extype" name="org.http4s.Header.Warning">Warning</a>, <a href="Header$$WebSocket$minusLocation$.html" class="extype" name="org.http4s.Header.WebSocket-Location">WebSocket-Location</a>, <a href="Header$$WebSocket$minusOrigin$.html" class="extype" name="org.http4s.Header.WebSocket-Origin">WebSocket-Origin</a>, <a href="Header$$WebSocket$minusProtocol$.html" class="extype" name="org.http4s.Header.WebSocket-Protocol">WebSocket-Protocol</a>, <a href="Header$$X$minusForwarded$minusProto$.html" class="extype" name="org.http4s.Header.X-Forwarded-Proto">X-Forwarded-Proto</a>, <a href="Header$$X$minusPowered$minusBy$.html" class="extype" name="org.http4s.Header.X-Powered-By">X-Powered-By</a></div>
-        </div></div>
+            <span class="toggle">Known Subclasses</span>
+            <div class="subClasses hiddenContent"><a href="Header$$Accept$minusRanges$.html" class="extype" name="org.http4s.Header.Accept-Ranges">Accept-Ranges</a>, <a href="Header$$Authorization$.html" class="extype" name="org.http4s.Header.Authorization">Authorization</a>, <a href="Header$$Content$minusDisposition$.html" class="extype" name="org.http4s.Header.Content-Disposition">Content-Disposition</a>, <a href="Header$$Content$minusEncoding$.html" class="extype" name="org.http4s.Header.Content-Encoding">Content-Encoding</a>, <a href="Header$$Content$minusLength$.html" class="extype" name="org.http4s.Header.Content-Length">Content-Length</a>, <a href="Header$$Content$minusType$.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>, <a href="Header$$Date$.html" class="extype" name="org.http4s.Header.Date">Date</a>, <a href="Header$$ETag$.html" class="extype" name="org.http4s.Header.ETag">ETag</a>, <a href="Header$$Host$.html" class="extype" name="org.http4s.Header.Host">Host</a>, <a href="Header$$If$minusModified$minusSince$.html" class="extype" name="org.http4s.Header.If-Modified-Since">If-Modified-Since</a>, <a href="Header$$If$minusNone$minusMatch$.html" class="extype" name="org.http4s.Header.If-None-Match">If-None-Match</a>, <a href="Header$$Last$minusModified$.html" class="extype" name="org.http4s.Header.Last-Modified">Last-Modified</a>, <a href="Header$$Location$.html" class="extype" name="org.http4s.Header.Location">Location</a>, <a href="Header$$Set$minusCookie$.html" class="extype" name="org.http4s.Header.Set-Cookie">Set-Cookie</a></div>
+          </div></div>
         
 
       <div id="mbrsel">
@@ -112,7 +116,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">matchHeader</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
+        <span class="name">matchHeader</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
@@ -135,19 +139,6 @@
         <div id="values" class="values members">
               <h3>Concrete Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="!=(x$1:AnyRef):Boolean"></a>
-      <a id="!=(AnyRef):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.Any#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
       <h4 class="signature">
@@ -156,10 +147,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <a id="##():Int"></a>
@@ -169,24 +160,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="==(x$1:AnyRef):Boolean"></a>
-      <a id="==(AnyRef):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.Any#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a>
       <a id="==(Any):Boolean"></a>
       <h4 class="signature">
@@ -195,10 +173,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -221,7 +199,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -240,7 +218,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -253,7 +231,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -266,7 +244,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -285,7 +263,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">from</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
+        <span class="name">from</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.HeaderKey.Singleton">Singleton</a> → <a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></dd></dl></div>
@@ -311,7 +289,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -324,7 +302,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -337,7 +315,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -350,7 +328,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -363,7 +341,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -402,7 +380,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unapply</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
+        <span class="name">unapply</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey$$Extractable.html" class="extype" name="org.http4s.HeaderKey.Extractable">Extractable</a></dd></dl></div>
@@ -415,7 +393,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unapply</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
+        <span class="name">unapply</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#HeaderT&lt;:org.http4s.Header" class="extmbr" name="org.http4s.HeaderKey.Singleton.HeaderT">HeaderT</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></dd></dl></div>
@@ -428,7 +406,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -447,7 +425,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -466,7 +444,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -490,9 +468,9 @@
             </div><div class="parent" name="org.http4s.HeaderKey">
               <h3>Inherited from <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>
@@ -509,6 +487,7 @@
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+
+
     </body>
       </html>

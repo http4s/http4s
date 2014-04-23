@@ -1,5 +1,4 @@
-<?xml version='1.0' encoding='UTF-8'?>
-<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<!DOCTYPE html >
 <html>
         <head>
           <title>MediaType - org.http4s.MediaType</title>
@@ -9,6 +8,11 @@
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
       <link href="../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../lib/template.js"></script>
+      <script type="text/javascript" src="../../lib/tools.tooltip.js"></script>
+      
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
@@ -41,7 +45,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.util.Registry">Registry</span>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.util.Registry">Registry</span>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -83,7 +87,7 @@
               <h3>Type Members</h3>
               <ol><li name="org.http4s.MediaType.Key" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Key=(String,String)"></a>
-      <a id="Key:(String,String)"></a>
+      <a id="Key:Key"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
@@ -115,19 +119,6 @@
         <div id="values" class="values members">
               <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="!=(x$1:AnyRef):Boolean"></a>
-      <a id="!=(AnyRef):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.Any#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
       <h4 class="signature">
@@ -136,10 +127,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
       <a id="##():Int"></a>
@@ -149,24 +140,11 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="==(x$1:AnyRef):Boolean"></a>
-      <a id="==(AnyRef):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
-      </span>
-      </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.Any#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a>
       <a id="==(Any):Boolean"></a>
       <h4 class="signature">
@@ -175,20 +153,20 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.MediaType#application/atom+xml" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/atom+xml:org.http4s.MediaType.Value"></a>
-      <a id="application/atom+xml:Value"></a>
+      <a id="application/atom+xml:org.http4s.MediaType"></a>
+      <a id="application/atom+xml:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divatom$plusxml" class="name">application/atom+xml</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divatom$plusxml" class="name">application/atom+xml</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -219,28 +197,28 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/font-woff" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/font-woff:org.http4s.MediaType.Value"></a>
-      <a id="application/font-woff:Value"></a>
+      <a id="application/font-woff:org.http4s.MediaType"></a>
+      <a id="application/font-woff:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divfont$minuswoff" class="name">application/font-woff</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divfont$minuswoff" class="name">application/font-woff</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/gnutar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/gnutar:org.http4s.MediaType.Value"></a>
-      <a id="application/gnutar:Value"></a>
+      <a id="application/gnutar:org.http4s.MediaType"></a>
+      <a id="application/gnutar:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divgnutar" class="name">application/gnutar</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divgnutar" class="name">application/gnutar</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -258,54 +236,54 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/javascript" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/javascript:org.http4s.MediaType.Value"></a>
-      <a id="application/javascript:Value"></a>
+      <a id="application/javascript:org.http4s.MediaType"></a>
+      <a id="application/javascript:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divjavascript" class="name">application/javascript</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divjavascript" class="name">application/javascript</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/json" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/json:org.http4s.MediaType.Value"></a>
-      <a id="application/json:Value"></a>
+      <a id="application/json:org.http4s.MediaType"></a>
+      <a id="application/json:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divjson" class="name">application/json</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divjson" class="name">application/json</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/lha" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/lha:org.http4s.MediaType.Value"></a>
-      <a id="application/lha:Value"></a>
+      <a id="application/lha:org.http4s.MediaType"></a>
+      <a id="application/lha:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divlha" class="name">application/lha</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divlha" class="name">application/lha</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/lzx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/lzx:org.http4s.MediaType.Value"></a>
-      <a id="application/lzx:Value"></a>
+      <a id="application/lzx:org.http4s.MediaType"></a>
+      <a id="application/lzx:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divlzx" class="name">application/lzx</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divlzx" class="name">application/lzx</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -349,15 +327,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/pdf" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/pdf:org.http4s.MediaType.Value"></a>
-      <a id="application/pdf:Value"></a>
+      <a id="application/pdf:org.http4s.MediaType"></a>
+      <a id="application/pdf:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divpdf" class="name">application/pdf</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divpdf" class="name">application/pdf</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -375,15 +353,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/rss+xml" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/rss+xml:org.http4s.MediaType.Value"></a>
-      <a id="application/rss+xml:Value"></a>
+      <a id="application/rss+xml:org.http4s.MediaType"></a>
+      <a id="application/rss+xml:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divrss$plusxml" class="name">application/rss+xml</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divrss$plusxml" class="name">application/rss+xml</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -401,145 +379,145 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.google-earth.kml+xml" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.google-earth.kml+xml:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.google-earth.kml+xml:Value"></a>
+      <a id="application/vnd.google-earth.kml+xml:org.http4s.MediaType"></a>
+      <a id="application/vnd.google-earth.kml+xml:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Egoogle$minusearth$u002Ekml$plusxml" class="name">application/vnd.google-earth.kml+xml</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Egoogle$minusearth$u002Ekml$plusxml" class="name">application/vnd.google-earth.kml+xml</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.google-earth.kmz" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.google-earth.kmz:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.google-earth.kmz:Value"></a>
+      <a id="application/vnd.google-earth.kmz:org.http4s.MediaType"></a>
+      <a id="application/vnd.google-earth.kmz:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Egoogle$minusearth$u002Ekmz" class="name">application/vnd.google-earth.kmz</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Egoogle$minusearth$u002Ekmz" class="name">application/vnd.google-earth.kmz</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.ms-fontobject" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.ms-fontobject:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.ms-fontobject:Value"></a>
+      <a id="application/vnd.ms-fontobject:org.http4s.MediaType"></a>
+      <a id="application/vnd.ms-fontobject:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Ems$minusfontobject" class="name">application/vnd.ms-fontobject</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Ems$minusfontobject" class="name">application/vnd.ms-fontobject</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.chart" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.chart:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.chart:Value"></a>
+      <a id="application/vnd.oasis.opendocument.chart:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.chart:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Echart" class="name">application/vnd.oasis.opendocument.chart</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Echart" class="name">application/vnd.oasis.opendocument.chart</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.database" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.database:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.database:Value"></a>
+      <a id="application/vnd.oasis.opendocument.database:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.database:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Edatabase" class="name">application/vnd.oasis.opendocument.database</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Edatabase" class="name">application/vnd.oasis.opendocument.database</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.formula" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.formula:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.formula:Value"></a>
+      <a id="application/vnd.oasis.opendocument.formula:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.formula:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Eformula" class="name">application/vnd.oasis.opendocument.formula</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Eformula" class="name">application/vnd.oasis.opendocument.formula</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.graphics" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.graphics:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.graphics:Value"></a>
+      <a id="application/vnd.oasis.opendocument.graphics:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.graphics:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Egraphics" class="name">application/vnd.oasis.opendocument.graphics</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Egraphics" class="name">application/vnd.oasis.opendocument.graphics</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.image" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.image:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.image:Value"></a>
+      <a id="application/vnd.oasis.opendocument.image:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.image:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Eimage" class="name">application/vnd.oasis.opendocument.image</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Eimage" class="name">application/vnd.oasis.opendocument.image</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.presentation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.presentation:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.presentation:Value"></a>
+      <a id="application/vnd.oasis.opendocument.presentation:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.presentation:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Epresentation" class="name">application/vnd.oasis.opendocument.presentation</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Epresentation" class="name">application/vnd.oasis.opendocument.presentation</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.spreadsheet" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.spreadsheet:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.spreadsheet:Value"></a>
+      <a id="application/vnd.oasis.opendocument.spreadsheet:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.spreadsheet:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Espreadsheet" class="name">application/vnd.oasis.opendocument.spreadsheet</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Espreadsheet" class="name">application/vnd.oasis.opendocument.spreadsheet</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.text" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.text:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.text:Value"></a>
+      <a id="application/vnd.oasis.opendocument.text:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.text:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Etext" class="name">application/vnd.oasis.opendocument.text</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Etext" class="name">application/vnd.oasis.opendocument.text</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -557,119 +535,119 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.oasis.opendocument.text-web" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.oasis.opendocument.text-web:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.oasis.opendocument.text-web:Value"></a>
+      <a id="application/vnd.oasis.opendocument.text-web:org.http4s.MediaType"></a>
+      <a id="application/vnd.oasis.opendocument.text-web:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Etext$minusweb" class="name">application/vnd.oasis.opendocument.text-web</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eoasis$u002Eopendocument$u002Etext$minusweb" class="name">application/vnd.oasis.opendocument.text-web</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.presentationml.presentation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.presentation:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.presentation:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.presentation:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.presentation:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Epresentation" class="name">application/vnd.openxmlformats-officedocument.presentationml.presentation</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Epresentation" class="name">application/vnd.openxmlformats-officedocument.presentationml.presentation</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.presentationml.slide" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.slide:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.slide:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.slide:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.slide:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Eslide" class="name">application/vnd.openxmlformats-officedocument.presentationml.slide</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Eslide" class="name">application/vnd.openxmlformats-officedocument.presentationml.slide</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.presentationml.slideshow" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.slideshow:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.slideshow:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.slideshow:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.slideshow:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Eslideshow" class="name">application/vnd.openxmlformats-officedocument.presentationml.slideshow</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Eslideshow" class="name">application/vnd.openxmlformats-officedocument.presentationml.slideshow</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.presentationml.template" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.template:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.presentationml.template:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.template:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.presentationml.template:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Etemplate" class="name">application/vnd.openxmlformats-officedocument.presentationml.template</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Epresentationml$u002Etemplate" class="name">application/vnd.openxmlformats-officedocument.presentationml.template</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.spreadsheetml.sheet" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.sheet:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Espreadsheetml$u002Esheet" class="name">application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Espreadsheetml$u002Esheet" class="name">application/vnd.openxmlformats-officedocument.spreadsheetml.sheet</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.spreadsheetml.template" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.template:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.template:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.template:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.spreadsheetml.template:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Espreadsheetml$u002Etemplate" class="name">application/vnd.openxmlformats-officedocument.spreadsheetml.template</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Espreadsheetml$u002Etemplate" class="name">application/vnd.openxmlformats-officedocument.spreadsheetml.template</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.wordprocessingml.document" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.document:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.document:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.document:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.document:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Ewordprocessingml$u002Edocument" class="name">application/vnd.openxmlformats-officedocument.wordprocessingml.document</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Ewordprocessingml$u002Edocument" class="name">application/vnd.openxmlformats-officedocument.wordprocessingml.document</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/vnd.openxmlformats-officedocument.wordprocessingml.template" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.template:org.http4s.MediaType.Value"></a>
-      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.template:Value"></a>
+      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.template:org.http4s.MediaType"></a>
+      <a id="application/vnd.openxmlformats-officedocument.wordprocessingml.template:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Ewordprocessingml$u002Etemplate" class="name">application/vnd.openxmlformats-officedocument.wordprocessingml.template</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divvnd$u002Eopenxmlformats$minusofficedocument$u002Ewordprocessingml$u002Etemplate" class="name">application/vnd.openxmlformats-officedocument.wordprocessingml.template</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -687,54 +665,54 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-ace-compressed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-ace-compressed:org.http4s.MediaType.Value"></a>
-      <a id="application/x-ace-compressed:Value"></a>
+      <a id="application/x-ace-compressed:org.http4s.MediaType"></a>
+      <a id="application/x-ace-compressed:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusace$minuscompressed" class="name">application/x-ace-compressed</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusace$minuscompressed" class="name">application/x-ace-compressed</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-apple-diskimage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-apple-diskimage:org.http4s.MediaType.Value"></a>
-      <a id="application/x-apple-diskimage:Value"></a>
+      <a id="application/x-apple-diskimage:org.http4s.MediaType"></a>
+      <a id="application/x-apple-diskimage:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusapple$minusdiskimage" class="name">application/x-apple-diskimage</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusapple$minusdiskimage" class="name">application/x-apple-diskimage</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-arc-compressed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-arc-compressed:org.http4s.MediaType.Value"></a>
-      <a id="application/x-arc-compressed:Value"></a>
+      <a id="application/x-arc-compressed:org.http4s.MediaType"></a>
+      <a id="application/x-arc-compressed:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusarc$minuscompressed" class="name">application/x-arc-compressed</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusarc$minuscompressed" class="name">application/x-arc-compressed</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-bzip" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-bzip:org.http4s.MediaType.Value"></a>
-      <a id="application/x-bzip:Value"></a>
+      <a id="application/x-bzip:org.http4s.MediaType"></a>
+      <a id="application/x-bzip:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusbzip" class="name">application/x-bzip</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusbzip" class="name">application/x-bzip</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -752,119 +730,119 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-chrome-extension" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-chrome-extension:org.http4s.MediaType.Value"></a>
-      <a id="application/x-chrome-extension:Value"></a>
+      <a id="application/x-chrome-extension:org.http4s.MediaType"></a>
+      <a id="application/x-chrome-extension:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minuschrome$minusextension" class="name">application/x-chrome-extension</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minuschrome$minusextension" class="name">application/x-chrome-extension</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-compress" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-compress:org.http4s.MediaType.Value"></a>
-      <a id="application/x-compress:Value"></a>
+      <a id="application/x-compress:org.http4s.MediaType"></a>
+      <a id="application/x-compress:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minuscompress" class="name">application/x-compress</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minuscompress" class="name">application/x-compress</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-compressed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-compressed:org.http4s.MediaType.Value"></a>
-      <a id="application/x-compressed:Value"></a>
+      <a id="application/x-compressed:org.http4s.MediaType"></a>
+      <a id="application/x-compressed:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minuscompressed" class="name">application/x-compressed</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minuscompressed" class="name">application/x-compressed</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-debian-package" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-debian-package:org.http4s.MediaType.Value"></a>
-      <a id="application/x-debian-package:Value"></a>
+      <a id="application/x-debian-package:org.http4s.MediaType"></a>
+      <a id="application/x-debian-package:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusdebian$minuspackage" class="name">application/x-debian-package</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusdebian$minuspackage" class="name">application/x-debian-package</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-dvi" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-dvi:org.http4s.MediaType.Value"></a>
-      <a id="application/x-dvi:Value"></a>
+      <a id="application/x-dvi:org.http4s.MediaType"></a>
+      <a id="application/x-dvi:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusdvi" class="name">application/x-dvi</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusdvi" class="name">application/x-dvi</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-font-opentype" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-font-opentype:org.http4s.MediaType.Value"></a>
-      <a id="application/x-font-opentype:Value"></a>
+      <a id="application/x-font-opentype:org.http4s.MediaType"></a>
+      <a id="application/x-font-opentype:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusfont$minusopentype" class="name">application/x-font-opentype</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusfont$minusopentype" class="name">application/x-font-opentype</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-font-truetype" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-font-truetype:org.http4s.MediaType.Value"></a>
-      <a id="application/x-font-truetype:Value"></a>
+      <a id="application/x-font-truetype:org.http4s.MediaType"></a>
+      <a id="application/x-font-truetype:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusfont$minustruetype" class="name">application/x-font-truetype</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusfont$minustruetype" class="name">application/x-font-truetype</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-gtar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-gtar:org.http4s.MediaType.Value"></a>
-      <a id="application/x-gtar:Value"></a>
+      <a id="application/x-gtar:org.http4s.MediaType"></a>
+      <a id="application/x-gtar:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusgtar" class="name">application/x-gtar</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusgtar" class="name">application/x-gtar</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-gzip" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-gzip:org.http4s.MediaType.Value"></a>
-      <a id="application/x-gzip:Value"></a>
+      <a id="application/x-gzip:org.http4s.MediaType"></a>
+      <a id="application/x-gzip:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusgzip" class="name">application/x-gzip</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusgzip" class="name">application/x-gzip</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -882,67 +860,67 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-rar-compressed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-rar-compressed:org.http4s.MediaType.Value"></a>
-      <a id="application/x-rar-compressed:Value"></a>
+      <a id="application/x-rar-compressed:org.http4s.MediaType"></a>
+      <a id="application/x-rar-compressed:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusrar$minuscompressed" class="name">application/x-rar-compressed</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusrar$minuscompressed" class="name">application/x-rar-compressed</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-redhat-package-manager" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-redhat-package-manager:org.http4s.MediaType.Value"></a>
-      <a id="application/x-redhat-package-manager:Value"></a>
+      <a id="application/x-redhat-package-manager:org.http4s.MediaType"></a>
+      <a id="application/x-redhat-package-manager:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusredhat$minuspackage$minusmanager" class="name">application/x-redhat-package-manager</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusredhat$minuspackage$minusmanager" class="name">application/x-redhat-package-manager</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-shockwave-flash" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-shockwave-flash:org.http4s.MediaType.Value"></a>
-      <a id="application/x-shockwave-flash:Value"></a>
+      <a id="application/x-shockwave-flash:org.http4s.MediaType"></a>
+      <a id="application/x-shockwave-flash:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusshockwave$minusflash" class="name">application/x-shockwave-flash</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusshockwave$minusflash" class="name">application/x-shockwave-flash</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-tar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-tar:org.http4s.MediaType.Value"></a>
-      <a id="application/x-tar:Value"></a>
+      <a id="application/x-tar:org.http4s.MediaType"></a>
+      <a id="application/x-tar:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minustar" class="name">application/x-tar</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minustar" class="name">application/x-tar</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-tex" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-tex:org.http4s.MediaType.Value"></a>
-      <a id="application/x-tex:Value"></a>
+      <a id="application/x-tex:org.http4s.MediaType"></a>
+      <a id="application/x-tex:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minustex" class="name">application/x-tex</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minustex" class="name">application/x-tex</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -960,15 +938,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-vrml" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-vrml:org.http4s.MediaType.Value"></a>
-      <a id="application/x-vrml:Value"></a>
+      <a id="application/x-vrml:org.http4s.MediaType"></a>
+      <a id="application/x-vrml:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusvrml" class="name">application/x-vrml</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusvrml" class="name">application/x-vrml</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -986,28 +964,28 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-x509-ca-cert" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-x509-ca-cert:org.http4s.MediaType.Value"></a>
-      <a id="application/x-x509-ca-cert:Value"></a>
+      <a id="application/x-x509-ca-cert:org.http4s.MediaType"></a>
+      <a id="application/x-x509-ca-cert:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusx509$minusca$minuscert" class="name">application/x-x509-ca-cert</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusx509$minusca$minuscert" class="name">application/x-x509-ca-cert</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#application/x-xpinstall" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/x-xpinstall:org.http4s.MediaType.Value"></a>
-      <a id="application/x-xpinstall:Value"></a>
+      <a id="application/x-xpinstall:org.http4s.MediaType"></a>
+      <a id="application/x-xpinstall:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divx$minusxpinstall" class="name">application/x-xpinstall</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divx$minusxpinstall" class="name">application/x-xpinstall</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1051,15 +1029,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#application/zip" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="application/zip:org.http4s.MediaType.Value"></a>
-      <a id="application/zip:Value"></a>
+      <a id="application/zip:org.http4s.MediaType"></a>
+      <a id="application/zip:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: application$divzip" class="name">application/zip</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: application$divzip" class="name">application/zip</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1116,15 +1094,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#audio/mod" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="audio/mod:org.http4s.MediaType.Value"></a>
-      <a id="audio/mod:Value"></a>
+      <a id="audio/mod:org.http4s.MediaType"></a>
+      <a id="audio/mod:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: audio$divmod" class="name">audio/mod</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: audio$divmod" class="name">audio/mod</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1155,67 +1133,67 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#audio/voc" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="audio/voc:org.http4s.MediaType.Value"></a>
-      <a id="audio/voc:Value"></a>
+      <a id="audio/voc:org.http4s.MediaType"></a>
+      <a id="audio/voc:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: audio$divvoc" class="name">audio/voc</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: audio$divvoc" class="name">audio/voc</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#audio/vorbis" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="audio/vorbis:org.http4s.MediaType.Value"></a>
-      <a id="audio/vorbis:Value"></a>
+      <a id="audio/vorbis:org.http4s.MediaType"></a>
+      <a id="audio/vorbis:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: audio$divvorbis" class="name">audio/vorbis</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: audio$divvorbis" class="name">audio/vorbis</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#audio/voxware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="audio/voxware:org.http4s.MediaType.Value"></a>
-      <a id="audio/voxware:Value"></a>
+      <a id="audio/voxware:org.http4s.MediaType"></a>
+      <a id="audio/voxware:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: audio$divvoxware" class="name">audio/voxware</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: audio$divvoxware" class="name">audio/voxware</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#audio/wav" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="audio/wav:org.http4s.MediaType.Value"></a>
-      <a id="audio/wav:Value"></a>
+      <a id="audio/wav:org.http4s.MediaType"></a>
+      <a id="audio/wav:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: audio$divwav" class="name">audio/wav</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: audio$divwav" class="name">audio/wav</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#audio/x-psid" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="audio/x-psid:org.http4s.MediaType.Value"></a>
-      <a id="audio/x-psid:Value"></a>
+      <a id="audio/x-psid:org.http4s.MediaType"></a>
+      <a id="audio/x-psid:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: audio$divx$minuspsid" class="name">audio/x-psid</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: audio$divx$minuspsid" class="name">audio/x-psid</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1233,15 +1211,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#audio/xm" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="audio/xm:org.http4s.MediaType.Value"></a>
-      <a id="audio/xm:Value"></a>
+      <a id="audio/xm:org.http4s.MediaType"></a>
+      <a id="audio/xm:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: audio$divxm" class="name">audio/xm</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: audio$divxm" class="name">audio/xm</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1254,7 +1232,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1273,7 +1251,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1286,7 +1264,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -1299,7 +1277,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1318,7 +1296,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">forExtension</span><span class="params">(<span name="ext">ext: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
+        <span class="name">forExtension</span><span class="params">(<span name="ext">ext: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>]</span>
       </span>
       </h4>
       
@@ -1350,14 +1328,14 @@
       
     </li><li name="org.http4s.util.Registry#get" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="get(key:Registry.this.Key):Option[Registry.this.Value]"></a>
-      <a id="get((String,String)):Option[Value]"></a>
+      <a id="get(Key):Option[Value]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">get</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a>]</span>
+        <span class="name">get</span><span class="params">(<span name="key">key: <a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Registry</dd></dl></div>
@@ -1376,40 +1354,40 @@
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.util.Registry#getOrElse" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getOrElse[V2&gt;:Registry.this.Value](key:Registry.this.Key,default:=&gt;V2):V2"></a>
-      <a id="getOrElse[V2&gt;:Value]((String,String),⇒V2):V2"></a>
+      <a id="getOrElse[V2&gt;:Value](Key,⇒V2):V2"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getOrElse</span><span class="tparams">[<span name="V2">V2 &gt;: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>]</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>, <span name="default">default: ⇒ <span class="extype" name="org.http4s.util.Registry.getOrElse.V2">V2</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.Registry.getOrElse.V2">V2</span></span>
+        <span class="name">getOrElse</span><span class="tparams">[<span name="V2">V2 &gt;: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>]</span><span class="params">(<span name="key">key: <a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a></span>, <span name="default">default: ⇒ <span class="extype" name="org.http4s.util.Registry.getOrElse.V2">V2</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.Registry.getOrElse.V2">V2</span></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Registry</dd></dl></div>
     </li><li name="org.http4s.util.Registry#getOrElseCreate" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getOrElseCreate(key:Registry.this.Key)(implicitev:Registry.this.Key=&gt;Registry.this.Value):Registry.this.Value"></a>
-      <a id="getOrElseCreate((String,String))(((String,String))⇒Value):Value"></a>
+      <a id="getOrElseCreate(Key)((Key)⇒Value):Value"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getOrElseCreate</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: ((<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)) ⇒ <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span class="name">getOrElseCreate</span><span class="params">(<span name="key">key: <a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: (<a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a>) ⇒ <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Registry</dd></dl></div>
     </li><li name="org.http4s.util.Registry#getOrElseUpdate" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getOrElseUpdate(key:Registry.this.Key,default:=&gt;Registry.this.Value):Registry.this.Value"></a>
-      <a id="getOrElseUpdate((String,String),⇒Value):Value"></a>
+      <a id="getOrElseUpdate(Key,⇒Value):Value"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getOrElseUpdate</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>, <span name="default">default: ⇒ <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span class="name">getOrElseUpdate</span><span class="params">(<span name="key">key: <a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a></span>, <span name="default">default: ⇒ <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Registry</dd></dl></div>
@@ -1422,20 +1400,20 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.MediaType#image/gif" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/gif:org.http4s.MediaType.Value"></a>
-      <a id="image/gif:Value"></a>
+      <a id="image/gif:org.http4s.MediaType"></a>
+      <a id="image/gif:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divgif" class="name">image/gif</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divgif" class="name">image/gif</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1466,15 +1444,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#image/png" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/png:org.http4s.MediaType.Value"></a>
-      <a id="image/png:Value"></a>
+      <a id="image/png:org.http4s.MediaType"></a>
+      <a id="image/png:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divpng" class="name">image/png</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divpng" class="name">image/png</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1505,54 +1483,54 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#image/x-icon" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/x-icon:org.http4s.MediaType.Value"></a>
-      <a id="image/x-icon:Value"></a>
+      <a id="image/x-icon:org.http4s.MediaType"></a>
+      <a id="image/x-icon:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divx$minusicon" class="name">image/x-icon</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divx$minusicon" class="name">image/x-icon</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#image/x-ms-bmp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/x-ms-bmp:org.http4s.MediaType.Value"></a>
-      <a id="image/x-ms-bmp:Value"></a>
+      <a id="image/x-ms-bmp:org.http4s.MediaType"></a>
+      <a id="image/x-ms-bmp:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divx$minusms$minusbmp" class="name">image/x-ms-bmp</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divx$minusms$minusbmp" class="name">image/x-ms-bmp</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#image/x-pcx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/x-pcx:org.http4s.MediaType.Value"></a>
-      <a id="image/x-pcx:Value"></a>
+      <a id="image/x-pcx:org.http4s.MediaType"></a>
+      <a id="image/x-pcx:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divx$minuspcx" class="name">image/x-pcx</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divx$minuspcx" class="name">image/x-pcx</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#image/x-pict" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/x-pict:org.http4s.MediaType.Value"></a>
-      <a id="image/x-pict:Value"></a>
+      <a id="image/x-pict:org.http4s.MediaType"></a>
+      <a id="image/x-pict:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divx$minuspict" class="name">image/x-pict</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divx$minuspict" class="name">image/x-pict</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1570,41 +1548,41 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#image/x-rgb" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/x-rgb:org.http4s.MediaType.Value"></a>
-      <a id="image/x-rgb:Value"></a>
+      <a id="image/x-rgb:org.http4s.MediaType"></a>
+      <a id="image/x-rgb:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divx$minusrgb" class="name">image/x-rgb</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divx$minusrgb" class="name">image/x-rgb</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#image/x-xbitmap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/x-xbitmap:org.http4s.MediaType.Value"></a>
-      <a id="image/x-xbitmap:Value"></a>
+      <a id="image/x-xbitmap:org.http4s.MediaType"></a>
+      <a id="image/x-xbitmap:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divx$minusxbitmap" class="name">image/x-xbitmap</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divx$minusxbitmap" class="name">image/x-xbitmap</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#image/x-xpixmap" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="image/x-xpixmap:org.http4s.MediaType.Value"></a>
-      <a id="image/x-xpixmap:Value"></a>
+      <a id="image/x-xpixmap:org.http4s.MediaType"></a>
+      <a id="image/x-xpixmap:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: image$divx$minusxpixmap" class="name">image/x-xpixmap</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: image$divx$minusxpixmap" class="name">image/x-xpixmap</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1617,7 +1595,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -1669,7 +1647,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">multipart</span><span class="params">(<span name="subType">subType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="boundry">boundry: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
+        <span class="name">multipart</span><span class="params">(<span name="subType">subType: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="boundry">boundry: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1760,7 +1738,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1773,7 +1751,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -1786,59 +1764,59 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.MediaType#register" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="register(key:(String,String),mediaType:org.http4s.MediaType.Value):mediaType.type"></a>
-      <a id="register((String,String),Value):mediaType.type"></a>
+      <a id="register(key:org.http4s.MediaType.Key,mediaType:org.http4s.MediaType.Value):mediaType.type"></a>
+      <a id="register(Key,Value):mediaType.type"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">register</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>, <span name="mediaType">mediaType: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.MediaType.register.mediaType">mediaType</span>.type</span>
+        <span class="name">register</span><span class="params">(<span name="key">key: <a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a></span>, <span name="mediaType">mediaType: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.MediaType.register.mediaType">mediaType</span>.type</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.MediaType">MediaType</a> → Registry</dd></dl></div>
     </li><li name="org.http4s.util.Registry#registerKey" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="registerKey(key:Registry.this.Key)(implicitev:Registry.this.Key=&gt;Registry.this.Value):Registry.this.Value"></a>
-      <a id="registerKey((String,String))(((String,String))⇒Value):Value"></a>
+      <a id="registerKey(Key)((Key)⇒Value):Value"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">registerKey</span><span class="params">(<span name="key">key: (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: ((<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)) ⇒ <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span class="name">registerKey</span><span class="params">(<span name="key">key: <a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: (<a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a>) ⇒ <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Registry</dd></dl></div>
     </li><li name="org.http4s.util.Registry#registerValue" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="registerValue(value:Registry.this.Value)(implicitev:Registry.this.Value=&gt;Registry.this.Key):value.type"></a>
-      <a id="registerValue(Value)((Value)⇒(String,String)):value.type"></a>
+      <a id="registerValue(Value)((Value)⇒Key):value.type"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">registerValue</span><span class="params">(<span name="value">value: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: (<a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a>) ⇒ (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <span class="extype" name="org.http4s.util.Registry.registerValue.value">value</span>.type</span>
+        <span class="name">registerValue</span><span class="params">(<span name="value">value: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ev">ev: (<a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a>) ⇒ <a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.Registry.registerValue.value">value</span>.type</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Registry</dd></dl></div>
     </li><li name="org.http4s.util.Registry#registry" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="registry:scala.collection.concurrent.TrieMap[Registry.this.Key,Registry.this.Value]"></a>
-      <a id="registry:TrieMap[(String,String),Value]"></a>
+      <a id="registry:TrieMap[Key,Value]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">registry</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.collection.concurrent.TrieMap" class="extype" target="_top">TrieMap</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>), <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a>]</span>
+        <span class="name">registry</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.collection.concurrent.TrieMap" class="extype" target="_top">TrieMap</a>[<a href="#Key=(String,String)" class="extmbr" name="org.http4s.MediaType.Key">Key</a>, <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a>]</span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Registry</dd></dl></div>
@@ -1856,28 +1834,28 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.MediaType#text/asp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/asp:org.http4s.MediaType.Value"></a>
-      <a id="text/asp:Value"></a>
+      <a id="text/asp:org.http4s.MediaType"></a>
+      <a id="text/asp:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divasp" class="name">text/asp</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divasp" class="name">text/asp</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/cache-manifest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/cache-manifest:org.http4s.MediaType.Value"></a>
-      <a id="text/cache-manifest:Value"></a>
+      <a id="text/cache-manifest:org.http4s.MediaType"></a>
+      <a id="text/cache-manifest:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divcache$minusmanifest" class="name">text/cache-manifest</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divcache$minusmanifest" class="name">text/cache-manifest</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1895,28 +1873,28 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/css" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/css:org.http4s.MediaType.Value"></a>
-      <a id="text/css:Value"></a>
+      <a id="text/css:org.http4s.MediaType"></a>
+      <a id="text/css:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divcss" class="name">text/css</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divcss" class="name">text/css</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/csv" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/csv:org.http4s.MediaType.Value"></a>
-      <a id="text/csv:Value"></a>
+      <a id="text/csv:org.http4s.MediaType"></a>
+      <a id="text/csv:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divcsv" class="name">text/csv</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divcsv" class="name">text/csv</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1934,15 +1912,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/mcf" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/mcf:org.http4s.MediaType.Value"></a>
-      <a id="text/mcf:Value"></a>
+      <a id="text/mcf:org.http4s.MediaType"></a>
+      <a id="text/mcf:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divmcf" class="name">text/mcf</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divmcf" class="name">text/mcf</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1973,15 +1951,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/tab-separated-values" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/tab-separated-values:org.http4s.MediaType.Value"></a>
-      <a id="text/tab-separated-values:Value"></a>
+      <a id="text/tab-separated-values:org.http4s.MediaType"></a>
+      <a id="text/tab-separated-values:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divtab$minusseparated$minusvalues" class="name">text/tab-separated-values</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divtab$minusseparated$minusvalues" class="name">text/tab-separated-values</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -1999,28 +1977,28 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/vnd.wap.wml" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/vnd.wap.wml:org.http4s.MediaType.Value"></a>
-      <a id="text/vnd.wap.wml:Value"></a>
+      <a id="text/vnd.wap.wml:org.http4s.MediaType"></a>
+      <a id="text/vnd.wap.wml:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divvnd$u002Ewap$u002Ewml" class="name">text/vnd.wap.wml</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divvnd$u002Ewap$u002Ewml" class="name">text/vnd.wap.wml</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/vnd.wap.wmlscript" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/vnd.wap.wmlscript:org.http4s.MediaType.Value"></a>
-      <a id="text/vnd.wap.wmlscript:Value"></a>
+      <a id="text/vnd.wap.wmlscript:org.http4s.MediaType"></a>
+      <a id="text/vnd.wap.wmlscript:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divvnd$u002Ewap$u002Ewmlscript" class="name">text/vnd.wap.wmlscript</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divvnd$u002Ewap$u002Ewmlscript" class="name">text/vnd.wap.wmlscript</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2051,15 +2029,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-component" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-component:org.http4s.MediaType.Value"></a>
-      <a id="text/x-component:Value"></a>
+      <a id="text/x-component:org.http4s.MediaType"></a>
+      <a id="text/x-component:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minuscomponent" class="name">text/x-component</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minuscomponent" class="name">text/x-component</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2090,197 +2068,197 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-pascal" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-pascal:org.http4s.MediaType.Value"></a>
-      <a id="text/x-pascal:Value"></a>
+      <a id="text/x-pascal:org.http4s.MediaType"></a>
+      <a id="text/x-pascal:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minuspascal" class="name">text/x-pascal</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minuspascal" class="name">text/x-pascal</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-script" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-script:org.http4s.MediaType.Value"></a>
-      <a id="text/x-script:Value"></a>
+      <a id="text/x-script:org.http4s.MediaType"></a>
+      <a id="text/x-script:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscript" class="name">text/x-script</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscript" class="name">text/x-script</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptcsh" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptcsh:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptcsh:Value"></a>
+      <a id="text/x-scriptcsh:org.http4s.MediaType"></a>
+      <a id="text/x-scriptcsh:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptcsh" class="name">text/x-scriptcsh</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptcsh" class="name">text/x-scriptcsh</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptelisp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptelisp:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptelisp:Value"></a>
+      <a id="text/x-scriptelisp:org.http4s.MediaType"></a>
+      <a id="text/x-scriptelisp:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptelisp" class="name">text/x-scriptelisp</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptelisp" class="name">text/x-scriptelisp</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptksh" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptksh:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptksh:Value"></a>
+      <a id="text/x-scriptksh:org.http4s.MediaType"></a>
+      <a id="text/x-scriptksh:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptksh" class="name">text/x-scriptksh</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptksh" class="name">text/x-scriptksh</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptlisp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptlisp:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptlisp:Value"></a>
+      <a id="text/x-scriptlisp:org.http4s.MediaType"></a>
+      <a id="text/x-scriptlisp:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptlisp" class="name">text/x-scriptlisp</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptlisp" class="name">text/x-scriptlisp</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptperl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptperl:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptperl:Value"></a>
+      <a id="text/x-scriptperl:org.http4s.MediaType"></a>
+      <a id="text/x-scriptperl:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptperl" class="name">text/x-scriptperl</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptperl" class="name">text/x-scriptperl</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptperl-module" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptperl-module:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptperl-module:Value"></a>
+      <a id="text/x-scriptperl-module:org.http4s.MediaType"></a>
+      <a id="text/x-scriptperl-module:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptperl$minusmodule" class="name">text/x-scriptperl-module</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptperl$minusmodule" class="name">text/x-scriptperl-module</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptphyton" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptphyton:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptphyton:Value"></a>
+      <a id="text/x-scriptphyton:org.http4s.MediaType"></a>
+      <a id="text/x-scriptphyton:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptphyton" class="name">text/x-scriptphyton</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptphyton" class="name">text/x-scriptphyton</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptrexx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptrexx:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptrexx:Value"></a>
+      <a id="text/x-scriptrexx:org.http4s.MediaType"></a>
+      <a id="text/x-scriptrexx:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptrexx" class="name">text/x-scriptrexx</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptrexx" class="name">text/x-scriptrexx</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptscheme" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptscheme:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptscheme:Value"></a>
+      <a id="text/x-scriptscheme:org.http4s.MediaType"></a>
+      <a id="text/x-scriptscheme:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptscheme" class="name">text/x-scriptscheme</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptscheme" class="name">text/x-scriptscheme</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptsh" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptsh:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptsh:Value"></a>
+      <a id="text/x-scriptsh:org.http4s.MediaType"></a>
+      <a id="text/x-scriptsh:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptsh" class="name">text/x-scriptsh</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptsh" class="name">text/x-scriptsh</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scripttcl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scripttcl:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scripttcl:Value"></a>
+      <a id="text/x-scripttcl:org.http4s.MediaType"></a>
+      <a id="text/x-scripttcl:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscripttcl" class="name">text/x-scripttcl</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscripttcl" class="name">text/x-scripttcl</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scripttcsh" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scripttcsh:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scripttcsh:Value"></a>
+      <a id="text/x-scripttcsh:org.http4s.MediaType"></a>
+      <a id="text/x-scripttcsh:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscripttcsh" class="name">text/x-scripttcsh</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscripttcsh" class="name">text/x-scripttcsh</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-scriptzsh" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-scriptzsh:org.http4s.MediaType.Value"></a>
-      <a id="text/x-scriptzsh:Value"></a>
+      <a id="text/x-scriptzsh:org.http4s.MediaType"></a>
+      <a id="text/x-scriptzsh:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusscriptzsh" class="name">text/x-scriptzsh</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusscriptzsh" class="name">text/x-scriptzsh</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2298,15 +2276,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-setext" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-setext:org.http4s.MediaType.Value"></a>
-      <a id="text/x-setext:Value"></a>
+      <a id="text/x-setext:org.http4s.MediaType"></a>
+      <a id="text/x-setext:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minussetext" class="name">text/x-setext</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minussetext" class="name">text/x-setext</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2350,15 +2328,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/x-vcalendar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/x-vcalendar:org.http4s.MediaType.Value"></a>
-      <a id="text/x-vcalendar:Value"></a>
+      <a id="text/x-vcalendar:org.http4s.MediaType"></a>
+      <a id="text/x-vcalendar:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divx$minusvcalendar" class="name">text/x-vcalendar</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divx$minusvcalendar" class="name">text/x-vcalendar</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2376,15 +2354,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#text/xml" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="text/xml:org.http4s.MediaType.Value"></a>
-      <a id="text/xml:Value"></a>
+      <a id="text/xml:org.http4s.MediaType"></a>
+      <a id="text/xml:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: text$divxml" class="name">text/xml</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: text$divxml" class="name">text/xml</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2410,59 +2388,59 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">unapply</span><span class="params">(<span name="mimeType">mimeType: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Option" class="extype" target="_top">Option</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
+        <span class="name">unapply</span><span class="params">(<span name="mimeType">mimeType: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[(<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>)]</span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#video/avs-video" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/avs-video:org.http4s.MediaType.Value"></a>
-      <a id="video/avs-video:Value"></a>
+      <a id="video/avs-video:org.http4s.MediaType"></a>
+      <a id="video/avs-video:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divavs$minusvideo" class="name">video/avs-video</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divavs$minusvideo" class="name">video/avs-video</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#video/divx" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/divx:org.http4s.MediaType.Value"></a>
-      <a id="video/divx:Value"></a>
+      <a id="video/divx:org.http4s.MediaType"></a>
+      <a id="video/divx:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divdivx" class="name">video/divx</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divdivx" class="name">video/divx</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#video/gl" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/gl:org.http4s.MediaType.Value"></a>
-      <a id="video/gl:Value"></a>
+      <a id="video/gl:org.http4s.MediaType"></a>
+      <a id="video/gl:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divgl" class="name">video/gl</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divgl" class="name">video/gl</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#video/mp4" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/mp4:org.http4s.MediaType.Value"></a>
-      <a id="video/mp4:Value"></a>
+      <a id="video/mp4:org.http4s.MediaType"></a>
+      <a id="video/mp4:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divmp4" class="name">video/mp4</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divmp4" class="name">video/mp4</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2480,15 +2458,15 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#video/ogg" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/ogg:org.http4s.MediaType.Value"></a>
-      <a id="video/ogg:Value"></a>
+      <a id="video/ogg:org.http4s.MediaType"></a>
+      <a id="video/ogg:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divogg" class="name">video/ogg</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divogg" class="name">video/ogg</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2519,54 +2497,54 @@
       </h4>
       
     </li><li name="org.http4s.MediaType#video/x-flv" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/x-flv:org.http4s.MediaType.Value"></a>
-      <a id="video/x-flv:Value"></a>
+      <a id="video/x-flv:org.http4s.MediaType"></a>
+      <a id="video/x-flv:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divx$minusflv" class="name">video/x-flv</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divx$minusflv" class="name">video/x-flv</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#video/x-motion-jpeg" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/x-motion-jpeg:org.http4s.MediaType.Value"></a>
-      <a id="video/x-motion-jpeg:Value"></a>
+      <a id="video/x-motion-jpeg:org.http4s.MediaType"></a>
+      <a id="video/x-motion-jpeg:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divx$minusmotion$minusjpeg" class="name">video/x-motion-jpeg</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divx$minusmotion$minusjpeg" class="name">video/x-motion-jpeg</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#video/x-ms-asf" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/x-ms-asf:org.http4s.MediaType.Value"></a>
-      <a id="video/x-ms-asf:Value"></a>
+      <a id="video/x-ms-asf:org.http4s.MediaType"></a>
+      <a id="video/x-ms-asf:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divx$minusms$minusasf" class="name">video/x-ms-asf</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divx$minusms$minusasf" class="name">video/x-ms-asf</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
     </li><li name="org.http4s.MediaType#video/x-msvideo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="video/x-msvideo:org.http4s.MediaType.Value"></a>
-      <a id="video/x-msvideo:Value"></a>
+      <a id="video/x-msvideo:org.http4s.MediaType"></a>
+      <a id="video/x-msvideo:MediaType"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: video$divx$minusmsvideo" class="name">video/x-msvideo</span><span class="result">: <a href="#Value=org.http4s.MediaType" class="extmbr" name="org.http4s.MediaType.Value">Value</a></span>
+        <span title="gt4s: video$divx$minusmsvideo" class="name">video/x-msvideo</span><span class="result">: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>
       </span>
       </h4>
       
@@ -2592,7 +2570,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2611,7 +2589,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2630,7 +2608,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -2652,9 +2630,9 @@
         <div class="parent" name="org.http4s.util.Registry">
               <h3>Inherited from <span class="extype" name="org.http4s.util.Registry">Registry</span></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>
@@ -2671,6 +2649,7 @@
       <div id="tooltip"></div>
 
       <div id="footer">  </div>
-      <script defer="defer" type="text/javascript" id="jquery-js" src="../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../lib/template.js"></script>
+
+
     </body>
       </html>
