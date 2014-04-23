@@ -21,7 +21,7 @@ package parser
 import org.parboiled2._
 import CharacterSet._
 import Header.`Accept-Charset`
-import util.CaseInsensitiveString._
+import org.http4s.util.CaseInsensitiveString._
 
 
 private[parser] trait AcceptCharsetHeader {

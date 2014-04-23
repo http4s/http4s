@@ -15,7 +15,7 @@ object Http4sDependencies {
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
   lazy val npn_api             = "org.eclipse.jetty.npn"     % "npn-api"                 % npn_version
   lazy val npn_boot            = "org.mortbay.jetty.npn"     % "npn-boot"                % npn_version
-  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0-M1"
+  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.0-RC1"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.10"
   lazy val scalaloggingSlf4j_2_10 = "com.typesafe"          %% "scalalogging-slf4j"      % "1.1.0"
   lazy val scalaloggingSlf4j_2_11 = "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.3"
