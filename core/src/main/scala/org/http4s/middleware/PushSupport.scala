@@ -1,7 +1,7 @@
 package org.http4s
 package middleware
 
-import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.util.Logging
 import scalaz.concurrent.Task
 import URITranslation.translateRootKey
 import scalaz.syntax.Ops

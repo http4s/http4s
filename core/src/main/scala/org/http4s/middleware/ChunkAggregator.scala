@@ -3,7 +3,7 @@ package middleware
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
-import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.util.Logging
 import scala.annotation.tailrec
 import org.http4s.Header.`Content-Length`
 import scodec.bits.ByteVector

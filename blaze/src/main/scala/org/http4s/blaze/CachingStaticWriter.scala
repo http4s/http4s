@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import scala.concurrent.{Future, ExecutionContext}
 import org.http4s.util.StringWriter
-import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.util.Logging
 import java.nio.charset.StandardCharsets
 import org.http4s.Header.`Content-Length`
 import scodec.bits.ByteVector
