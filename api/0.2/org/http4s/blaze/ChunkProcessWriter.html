@@ -235,15 +235,15 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.blaze.ProcessWriter#exceptionFlush" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="exceptionFlush():scala.concurrent.Future[Any]"></a>
-      <a id="exceptionFlush():Future[Any]"></a>
+      <a id="exceptionFlush():scala.concurrent.Future[Unit]"></a>
+      <a id="exceptionFlush():Future[Unit]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
+        <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Called in the event of an Await failure to alert the pipeline to cleanup</p><div class="fullcomment"><div class="comment cmt"><p>Called in the event of an Await failure to alert the pipeline to cleanup</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
@@ -441,15 +441,15 @@
               
         </dd></dl></div>
     </li><li name="org.http4s.blaze.ChunkProcessWriter#writeBodyChunk" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeBodyChunk(chunk:scodec.bits.ByteVector,flush:Boolean):scala.concurrent.Future[Any]"></a>
-      <a id="writeBodyChunk(ByteVector,Boolean):Future[Any]"></a>
+      <a id="writeBodyChunk(chunk:scodec.bits.ByteVector,flush:Boolean):scala.concurrent.Future[Unit]"></a>
+      <a id="writeBodyChunk(ByteVector,Boolean):Future[Unit]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
+        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">write a BodyChunk to the wire
@@ -461,15 +461,15 @@ return a failed Future with Cancelled as the exception
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue
 </p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="org.http4s.blaze.ChunkProcessWriter#writeEnd" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Any]"></a>
-      <a id="writeEnd(ByteVector):Future[Any]"></a>
+      <a id="writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Unit]"></a>
+      <a id="writeEnd(ByteVector):Future[Unit]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a>]</span>
+        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Write the ending chunk and, in chunked encoding, a trailer to the wire.</p><div class="fullcomment"><div class="comment cmt"><p>Write the ending chunk and, in chunked encoding, a trailer to the wire.
