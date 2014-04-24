@@ -21,7 +21,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   def result = p.future
 
-  override def writeRequest(data: ByteBuffer): Future[Any] = {
+  override def writeRequest(data: ByteBuffer): Future[Unit] = {
     val cpy = new Array[Byte](data.remaining())
     data.get(cpy)
     acc :+= cpy

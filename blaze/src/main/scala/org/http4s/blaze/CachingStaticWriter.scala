@@ -30,7 +30,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     bodyBuffer
   }
 
-  override protected def exceptionFlush(): Future[Any] = {
+  override protected def exceptionFlush(): Future[Unit] = {
     val c = bodyBuffer
     bodyBuffer = null
 
@@ -42,7 +42,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     else writeBodyChunk(c, true)    // we are already proceeding
   }
 
-  override protected def writeEnd(chunk: ByteVector): Future[Any] = {
+  override protected def writeEnd(chunk: ByteVector): Future[Unit] = {
     if (innerWriter != null) innerWriter.writeEnd(chunk)
     else {  // We are finished! Write the length and the keep alive
       val c = addChunk(chunk)
@@ -54,7 +54,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     }
   }
 
-  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
+  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     if (innerWriter != null) innerWriter.writeBodyChunk(chunk, flush)
     else {
       val c = addChunk(chunk)
@@ -71,7 +71,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
 
   // Make the write stuff public
   private class InnerWriter(buffer: ByteBuffer) extends StaticWriter(buffer, -1, out) {
-    override def writeEnd(chunk: ByteVector): Future[Any] = super.writeEnd(chunk)
-    override def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = super.writeBodyChunk(chunk, flush)
+    override def writeEnd(chunk: ByteVector): Future[Unit] = super.writeEnd(chunk)
+    override def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = super.writeBodyChunk(chunk, flush)
   }
 }

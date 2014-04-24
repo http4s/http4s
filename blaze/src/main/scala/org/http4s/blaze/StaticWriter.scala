@@ -21,7 +21,7 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
     logger.warn(s"Expected $size bytes, $written written")
   }
 
-  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
+  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     val b = chunk.toByteBuffer
     written += b.remaining()
     checkWritten()
@@ -34,5 +34,5 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
     else out.channelWrite(b)
   }
 
-  protected def writeEnd(chunk: ByteVector): Future[Any] = writeBodyChunk(chunk, true)
+  protected def writeEnd(chunk: ByteVector): Future[Unit] = writeBodyChunk(chunk, true)
 }

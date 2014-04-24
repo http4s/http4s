@@ -223,11 +223,12 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
   private def collectBodyFromParser(buffer: ByteBuffer): HttpBody = {
     if (contentComplete()) return HttpBody.empty
 
-    var currentbuffer = buffer
+    @volatile var currentbuffer = buffer
 
     // TODO: we need to work trailers into here somehow
     val t = Task.async[ByteVector]{ cb =>
       if (!contentComplete()) {
+
         def go(): Unit = try {
           val result = parseContent(currentbuffer)
           if (result != null) cb(\/-(ByteVector(result))) // we have a chunk

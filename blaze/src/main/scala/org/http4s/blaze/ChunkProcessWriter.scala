@@ -21,13 +21,13 @@ class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBu
 
   private def CRLF = ByteBuffer.wrap(CRLFBytes).asReadOnlyBuffer()
 
-  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
+  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     pipe.channelWrite(encodeChunk(chunk, Nil))
   }
 
-  protected def writeEnd(chunk: ByteVector): Future[Any] = {
+  protected def writeEnd(chunk: ByteVector): Future[Unit] = {
     def writeTrailer = {
-      val promise = Promise[Any]
+      val promise = Promise[Unit]
       trailer.map { trailerHeaders =>
         if (trailerHeaders.nonEmpty) {
           val rr = new StringWriter(256)

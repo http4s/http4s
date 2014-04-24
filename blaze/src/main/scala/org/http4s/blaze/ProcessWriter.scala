@@ -30,7 +30,7 @@ trait ProcessWriter {
     * @param chunk BodyChunk to write to wire
     * @return a future letting you know when its safe to continue
     */
-  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any]
+  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit]
 
   /** Write the ending chunk and, in chunked encoding, a trailer to the wire.
     * If a request is cancelled, or the stream is closed this method should
@@ -39,12 +39,12 @@ trait ProcessWriter {
     * @param chunk BodyChunk to write to wire
     * @return a future letting you know when its safe to continue
     */
-  protected def writeEnd(chunk: ByteVector): Future[Any]
+  protected def writeEnd(chunk: ByteVector): Future[Unit]
 
   def requireClose(): Boolean = false
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
-  protected def exceptionFlush(): Future[Any] = Future.successful()
+  protected def exceptionFlush(): Future[Unit] = Future.successful()
 
   /** Creates a Task that writes the contents the Process to the output.
     * Cancelled exceptions fall through to the Task cb

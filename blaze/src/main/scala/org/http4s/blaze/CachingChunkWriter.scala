@@ -26,20 +26,20 @@ class CachingChunkWriter(headers: ByteBuffer,
     bodyBuffer
   }
 
-  override protected def exceptionFlush(): Future[Any] = {
+  override protected def exceptionFlush(): Future[Unit] = {
     val c = bodyBuffer
     bodyBuffer = null
     if (c != null && c.length > 0) super.writeBodyChunk(c, true)  // TODO: would we want to writeEnd?
     else Future.successful()
   }
 
-  override protected def writeEnd(chunk: ByteVector): Future[Any] = {
+  override protected def writeEnd(chunk: ByteVector): Future[Unit] = {
     val b = addChunk(chunk)
     bodyBuffer = null
     super.writeEnd(b)
   }
 
-  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Any] = {
+  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     val c = addChunk(chunk)
     if (c.length >= bufferSize || flush) { // time to flush
       bodyBuffer = null
