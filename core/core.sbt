@@ -12,7 +12,6 @@ libraryDependencies ++= Seq(
   jodaTime,
   parboiled,
   rl,
-  slf4jApi,
   scalazStream,
   scalaBinaryVersion.value match {
     case "2.10" => scalaloggingSlf4j_2_10

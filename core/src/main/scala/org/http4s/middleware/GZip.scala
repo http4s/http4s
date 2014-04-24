@@ -8,7 +8,7 @@ import scodec.bits.ByteVector
 import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
 import util.Gzipper
 
-import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.util.Logging
 
 /**
  * @author Bryce Anderson

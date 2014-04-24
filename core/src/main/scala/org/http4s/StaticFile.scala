@@ -15,7 +15,7 @@ import Process._
 
 import org.joda.time.DateTime
 
-import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.util.Logging
 
 import org.http4s.Header._
 import org.http4s.Status.NotModified

@@ -3,7 +3,7 @@ package blaze
 
 import java.nio.ByteBuffer
 import pipeline.TailStage
-import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.util.Logging
 import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
 

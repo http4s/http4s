@@ -9,7 +9,7 @@ import javax.servlet.{ServletConfig, AsyncContext}
 import Http4sServlet._
 import util.CaseInsensitiveString._
 
-import com.typesafe.scalalogging.slf4j.Logging
+import org.http4s.util.Logging
 import scalaz.concurrent.Task
 import scalaz.stream.io._
 import scalaz.{-\/, \/-}

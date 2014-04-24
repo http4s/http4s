@@ -15,15 +15,13 @@ object Http4sDependencies {
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
   lazy val npn_api             = "org.eclipse.jetty.npn"     % "npn-api"                 % npn_version
   lazy val npn_boot            = "org.mortbay.jetty.npn"     % "npn-boot"                % npn_version
-  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0-M1"
+  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.0-RC1"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.10"
   lazy val scalaloggingSlf4j_2_10 = "com.typesafe"          %% "scalalogging-slf4j"      % "1.1.0"
-  lazy val scalaloggingSlf4j_2_11 = "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.0.3"
-  lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.4-M2"
+  lazy val scalaloggingSlf4j_2_11 = "com.typesafe.scala-logging" %% "scala-logging-slf4j" % "2.1.0"
+  lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.5-M2"
   lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.1.3"
-  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.0.5"
-  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4"
-  lazy val slf4jApi            = "org.slf4j"                 % "slf4j-api"               % "1.7.2"
+  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4.1"
 
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
 

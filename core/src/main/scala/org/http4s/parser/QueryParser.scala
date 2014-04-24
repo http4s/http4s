@@ -21,7 +21,7 @@ package parser
 import org.parboiled2._
 import java.io.UnsupportedEncodingException
 import scala.io.Codec
-import util.string._
+import org.http4s.util.string._
 import org.parboiled2.CharPredicate._
 import org.parboiled2.ParseError
 
