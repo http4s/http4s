@@ -21,5 +21,5 @@ object Http4sDependencies {
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.5-M2"
   lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.1.3"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4.1"
-  lazy val specs2              = "org.specs2"               %% "specs2"                  % "2.3.13"
+  lazy val specs2              = "org.specs2"               %% "specs2"                  % "2.3.11"
 }
