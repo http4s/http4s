@@ -107,7 +107,7 @@ trait StatusInstances {
    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
    */
   val Continue = new Status(100, "Continue") with NoEntityResponseGenerator
-  val SwitchingProtocols = new Status(101, "Switching Protocols") {
+  object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: Headers = Headers.empty): Response =
       Response(this, Header("Upgrade", protocols) +: headers, HttpBody.empty)
@@ -120,7 +120,7 @@ trait StatusInstances {
   val NonAuthoritativeInformation = new Status(203, "Non-Authoritative Information") with EntityResponseGenerator
   val NoContent = new Status(204, "No Content") with NoEntityResponseGenerator
   val ResetContent = new Status(205, "Reset Content") with NoEntityResponseGenerator
-  val PartialContent = new Status(206, "Partial Content") with EntityResponseGenerator {
+  object PartialContent extends Status(206, "Partial Content") with EntityResponseGenerator {
     // TODO type this header
     def apply[A](range: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
@@ -140,7 +140,7 @@ trait StatusInstances {
   val TemporaryRedirect = new Status(306, "Temporary Redirect") with RedirectResponderGenerator
 
   val BadRequest = new Status(400, "Bad Request") with EntityResponseGenerator
-  val Unauthorized = new Status(401, "Unauthorized") with EntityResponseGenerator {
+  object Unauthorized extends Status(401, "Unauthorized") with EntityResponseGenerator {
     def apply[A](wwwAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
     // TODO type this header
       apply(body).map { r =>
@@ -149,17 +149,17 @@ trait StatusInstances {
   }
   val PaymentRequired = new Status(402, "Payment Required") with EntityResponseGenerator
   val Forbidden = new Status(403, "Forbidden") with EntityResponseGenerator
-  val NotFound = new Status(404, "Not Found") with EntityResponseGenerator {
+  object NotFound extends Status(404, "Not Found") with EntityResponseGenerator {
     def apply(request: Request): Task[Response] = apply(s"${request.pathInfo} not found")
   }
-  val MethodNotAllowed = new Status(405, "Method Not Allowed") with EntityResponseGenerator {
+  object MethodNotAllowed extends Status(405, "Method Not Allowed") with EntityResponseGenerator {
     def apply[A](allowed: TraversableOnce[Method], body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
         headers.foldLeft(r.addHeader(Header("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
       }
   }
   val NotAcceptable = new Status(406, "Not Acceptable") with EntityResponseGenerator
-  val ProxyAuthenticationRequired = new Status(407, "Proxy Authentication Required") with EntityResponseGenerator {
+  object ProxyAuthenticationRequired extends Status(407, "Proxy Authentication Required") with EntityResponseGenerator {
     // TODO type this header
     def apply[F[_], A](proxyAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>

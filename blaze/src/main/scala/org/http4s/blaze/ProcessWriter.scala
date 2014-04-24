@@ -44,7 +44,7 @@ trait ProcessWriter {
   def requireClose(): Boolean = false
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
-  protected def exceptionFlush(): Future[Unit] = Future.successful()
+  protected def exceptionFlush(): Future[Unit] = Future.successful(())
 
   /** Creates a Task that writes the contents the Process to the output.
     * Cancelled exceptions fall through to the Task cb
@@ -93,7 +93,7 @@ trait ProcessWriter {
   }
 
   private def completionListener(t: Try[_], cb: CBType): Unit = t match {
-    case Success(_) =>  cb(\/-())
+    case Success(_) =>  cb(\/-(()))
     case Failure(t) =>  cb(-\/(t))
   }
 }

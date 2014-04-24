@@ -251,7 +251,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
 
     val cleanup = Task.async[Unit](cb =>
       drainBody(currentbuffer).onComplete {
-        case Success(_) => cb(\/-())
+        case Success(_) => cb(\/-(()))
         case Failure(t) =>
           logger.warn("Error draining body", t)
           cb(-\/(t))
@@ -265,7 +265,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
       parseContent(buffer)
       channelRead().flatMap(drainBody)
     }
-    else Future.successful()
+    else Future.successful(())
   }
 
   private def closeConnection() {

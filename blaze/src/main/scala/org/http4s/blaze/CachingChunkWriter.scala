@@ -30,7 +30,7 @@ class CachingChunkWriter(headers: ByteBuffer,
     val c = bodyBuffer
     bodyBuffer = null
     if (c != null && c.length > 0) super.writeBodyChunk(c, true)  // TODO: would we want to writeEnd?
-    else Future.successful()
+    else Future.successful(())
   }
 
   override protected def writeEnd(chunk: ByteVector): Future[Unit] = {
@@ -45,6 +45,6 @@ class CachingChunkWriter(headers: ByteBuffer,
       bodyBuffer = null
       super.writeBodyChunk(c, true)
     }
-    else Future.successful()    // Pretend to be done.
+    else Future.successful(())    // Pretend to be done.
   }
 }

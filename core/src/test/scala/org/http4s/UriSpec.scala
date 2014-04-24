@@ -28,7 +28,7 @@ class UriSpec extends WordSpec with Matchers {
       } yield (f + "::" + b))
 
       v.foreach(new RequestUriParser(_, CharacterSet.`UTF-8`.charset)
-                    .IpV6Address.run() should equal(Success()))
+                    .IpV6Address.run() should equal(Success(())))
 
     }
 
