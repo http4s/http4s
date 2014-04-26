@@ -18,7 +18,8 @@ lazy val examples = project.dependsOn(servlet, blaze, dsl)
 libraryDependencies in ThisBuild ++= Seq(
   junit % "test",
   scalameter % "test",
-  scalatest % "test"
+  scalatest % "test",
+  specs2 % "test"
 )
 
 /* basic project info */
