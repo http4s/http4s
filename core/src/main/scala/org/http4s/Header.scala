@@ -20,7 +20,6 @@ package org.http4s
 
 import org.joda.time.DateTime
 import java.net.InetAddress
-import org.http4s.util.Logging
 import scalaz.NonEmptyList
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, ValueRenderable, StringWriter}

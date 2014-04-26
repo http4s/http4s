@@ -1,17 +1,17 @@
 package org.http4s
 package middleware
 
-import org.http4s.util.Logging
 import scalaz.concurrent.Task
 import URITranslation.translateRootKey
 import scalaz.syntax.Ops
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 /**
  * @author Bryce Anderson
  *         Created on 11/5/13
  */
 
-object PushSupport extends Logging {
+object PushSupport extends LazyLogging {
 
   trait PushSyntax {
     implicit class PushOps(response: Task[Response]) {

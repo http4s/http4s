@@ -7,14 +7,14 @@ import scodec.bits.ByteVector
 
 import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
 import util.Gzipper
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
-import org.http4s.util.Logging
 
 /**
  * @author Bryce Anderson
  *         Created on 11/30/13
  */
-object GZip extends Logging {
+object GZip extends LazyLogging {
   /** Streaming GZip Process1 */
   def streamingGZip(buffersize: Int): Process1[ByteVector, ByteVector] = {
     val gzip = new Gzipper(buffersize)

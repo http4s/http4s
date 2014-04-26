@@ -5,17 +5,17 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.TailStage
 import scala.concurrent.{Future, ExecutionContext}
 import org.http4s.util.StringWriter
-import org.http4s.util.Logging
 import java.nio.charset.StandardCharsets
 import org.http4s.Header.`Content-Length`
 import scodec.bits.ByteVector
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 /**
  * Created by Bryce Anderson on 4/12/14.
  */
 class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], bufferSize: Int = 8*1024)
                               (implicit val ec: ExecutionContext)
-                          extends ProcessWriter with Logging {
+                          extends ProcessWriter with LazyLogging {
 
   @volatile
   private var _forceClose = false

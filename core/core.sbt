@@ -13,10 +13,7 @@ libraryDependencies ++= Seq(
   parboiled,
   rl,
   scalazStream,
-  scalaBinaryVersion.value match {
-    case "2.10" => scalaloggingSlf4j_2_10
-    case "2.11" => scalaloggingSlf4j_2_11
-  },
+  scalaloggingSlf4j,
   Http4sDependencies.config
 )
 

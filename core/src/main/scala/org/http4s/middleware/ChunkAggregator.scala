@@ -3,16 +3,16 @@ package middleware
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
-import org.http4s.util.Logging
 import scala.annotation.tailrec
 import org.http4s.Header.`Content-Length`
 import scodec.bits.ByteVector
+import com.typesafe.scalalogging.slf4j.LazyLogging
 
 /**
  * @author Bryce Anderson
  *         Created on 11/30/13
  */
-object ChunkAggregator extends Logging {
+object ChunkAggregator extends LazyLogging {
 
   @tailrec
   private[ChunkAggregator] def reduce(acc: ByteVector, chunks: Seq[ByteVector]): List[ByteVector] = {
