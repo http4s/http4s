@@ -1,10 +1,9 @@
-package org.http4s
-package blaze.websocket
+package org.http4s.blaze
+package websocket
 
 import org.http4s._
-import org.http4s.blaze.pipeline.stages.http.websocket.{WSFrameAggregator, WebSocketDecoder, ServerHandshaker}
+import http.websocket.{WSFrameAggregator, WebSocketDecoder, ServerHandshaker}
 import org.http4s.Header.{`Content-Length`, Connection}
-import org.http4s.blaze.Http1Stage
 import org.http4s.util.CaseInsensitiveString._
 
 import scalaz.stream.Process

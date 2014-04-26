@@ -20,8 +20,9 @@ import org.http4s.Status.{InternalServerError, NotFound}
 import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{`Transfer-Encoding`, Connection, `Content-Length`}
-import org.http4s.blaze.http_parser.BaseExceptions.{BadRequest, ParserException}
-import http_parser.Http1ServerParser
+
+import http.http_parser.BaseExceptions.{BadRequest, ParserException}
+import http.http_parser.Http1ServerParser
 
 import scalaz.stream.Process
 import Process._

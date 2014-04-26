@@ -5,15 +5,12 @@ package blaze
  * Created by Bryce Anderson on 3/28/14.
  */
 
-import http_parser.Http1ClientParser
+import http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
-import org.http4s._
 import java.nio.ByteBuffer
-import org.http4s.Response
 
 
 import java.nio.charset.StandardCharsets
-import org.http4s.blaze.util.BufferTools
 import scodec.bits.ByteVector
 
 class ResponseParser extends Http1ClientParser {

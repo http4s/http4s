@@ -2,7 +2,7 @@ import sbt._
 
 object Http4sDependencies {
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
-  lazy val blaze               = "org.http4s"               %% "blaze"                   % "0.2.0-SNAPSHOT"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.2.0-SNAPSHOT"
   lazy val typesafeConfig      = "com.typesafe"              % "config"                  % "1.0.0"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.0.1"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.1.0.v20131115"
