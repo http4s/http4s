@@ -51,6 +51,8 @@ object CoolApi {
 
   case class HeaderCapture[T <: Header](key: HeaderKey.Extractable) extends Validator[T::HNil]
 
+  case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends Validator[R::HNil]
+
   case class Runnable[T <: HList](m: Method, p: PathValidator[_ <: HList], h: Validator[_ <: HList]) {
     def ~>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = compiler(this, f, hf)
   }
@@ -60,10 +62,10 @@ object CoolApi {
   case class StatusValidator[T1 <: HList, T2 <: HList](m: Method, path: PathValidator[T1], hval: Validator[T2]) {
 
     def /(p: PathMatch): StatusValidator[T1,T2] = copy(path = path.and(p))
-    def /(p: PathCapture): StatusValidator[String::T1, T2] = copy(path = path.and(p))
+
+    def /[R](p: PathCapture[R]): StatusValidator[R::T1,T2] = copy(path = path.and(p))
+
     def || (p: PathValidator[T1]): StatusValidator[T1,T2] = copy(path = path.or(p))
-
-
 
     def compile(implicit prep: Prepend[T1, T2]): Runnable[prep.Out] = Runnable(m, path, hval)
   }
@@ -82,7 +84,7 @@ object CoolApi {
 
   case class PathMatch(s: String) extends PathValidator[HNil]
 
-  case class PathCapture(s: String) extends PathValidator[String::HNil]
+  case class PathCapture[T](parser: String => Option[T]) extends PathValidator[T::HNil]
 
   case object PathEmpty extends PathValidator[HNil]
 
@@ -112,8 +114,11 @@ object CoolApi {
     HeaderValidator[H](header, f)
 
   /** requires the header and will pull this header from the pile and put it into the function args stack */
-  def collecting[H <: HeaderKey.Extractable](key: H): Validator[H#HeaderT::HNil] =
+  def capture[H <: HeaderKey.Extractable](key: H): Validator[H#HeaderT::HNil] =
       HeaderCapture[H#HeaderT](key)
+
+  def map[H <: HeaderKey.Extractable, R](key: H)(f: H#HeaderT => R): Validator[R::HNil] =
+    HeaderMapper[H, R](key, f)
   
   def decode[T](t: MediaType)(implicit codec: Dec[T]): Decoder[T, HNil] = {
     // Need to require the right media header

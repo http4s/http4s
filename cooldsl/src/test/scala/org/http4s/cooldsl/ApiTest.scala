@@ -2,6 +2,8 @@ package org.http4s
 package cooldsl
 
 import org.specs2.mutable._
+import shapeless.HNil
+import scalaz.{\/-, -\/}
 
 /**
  * Created by Bryce Anderson on 4/26/14.
@@ -10,14 +12,47 @@ class ApiTest extends Specification {
 
   import CoolApi._
 
+  val lenheader = Header.`Content-Length`(4)
+  val etag = Header.ETag("foo")
+
+  val a = CoolApi.require(Header.ETag)
+  val b = CoolApi.requireThat(Header.`Content-Length`){ h => h.length != 0 }
+
   "CoolDsl Api" should {
     "Combine validators" in {
-      val a = CoolApi.require(Header.`Content-Length`)
-      val b = CoolApi.requireThat(Header.`Content-Length`){ h => h.length != 0 }
-
       a and b should_== And(a, b)
 
       true should_== true
+    }
+
+    "Fail on a bad request" in {
+      val badreq = Request().withHeaders(Headers(lenheader))
+      RouteExecutor.ensureValidHeaders(a and b)(badreq) should_== -\/(s"Missing header: ${etag.name}")
+    }
+
+    "Match captureless route" in {
+      val c = a and b
+
+      val req = Request().withHeaders(Headers(etag, lenheader))
+      RouteExecutor.ensureValidHeaders(c)(req) should_== \/-(HNil)
+    }
+
+    "Capture params" in {
+      val req = Request().withHeaders(Headers(etag, lenheader))
+      Seq({
+        val c2 = CoolApi.capture(Header.`Content-Length`) and a
+        RouteExecutor.ensureValidHeaders(c2)(req) should_== \/-(lenheader::HNil)
+      }, {
+        val c3 = CoolApi.capture(Header.`Content-Length`) and
+          CoolApi.capture(Header.ETag)
+        RouteExecutor.ensureValidHeaders(c3)(req) should_== \/-(etag::lenheader::HNil)
+      }).reduce( _ and _)
+    }
+
+    "Map header params" in {
+      val req = Request().withHeaders(Headers(etag, lenheader))
+      val c = CoolApi.map(Header.`Content-Length`)(_.length)
+      RouteExecutor.ensureValidHeaders(c)(req) should_== \/-(4::HNil)
     }
 
     "Combine status line" in {
