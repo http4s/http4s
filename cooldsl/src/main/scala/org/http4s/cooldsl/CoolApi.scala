@@ -10,21 +10,9 @@ import scalaz.stream.Process
 
 import scala.language.existentials
 
-
-/**
- *    StatusLine             Validator            Decoders
- *              \           /       \            /
- *
- *
- *
- *
- *
- */
-
-
 object CoolApi {
 
-  type Goal = Request => Option[Response]
+  type Goal = Request => Option[Task[Response]]
 
   trait Validator[T <: HList] {
 
@@ -53,10 +41,6 @@ object CoolApi {
 
   case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends Validator[R::HNil]
 
-  case class Runnable[T <: HList](m: Method, p: PathValidator[_ <: HList], h: Validator[_ <: HList]) {
-    def ~>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = compiler(this, f, hf)
-  }
-
   ////////////////// Status line combinators //////////////////////////////////////////
 
   case class StatusValidator[T1 <: HList, T2 <: HList](m: Method, path: PathValidator[T1], hval: Validator[T2]) {
@@ -66,6 +50,9 @@ object CoolApi {
     def /[R](p: PathCapture[R]): StatusValidator[R::T1,T2] = copy(path = path.and(p))
 
     def || (p: PathValidator[T1]): StatusValidator[T1,T2] = copy(path = path.or(p))
+
+    def validate[T3 <: HList](h2: Validator[T3])(implicit prep: Prepend[T2,T3]): StatusValidator[T1, prep.Out] =
+      StatusValidator(m, path, hval.and(h2)(prep))
 
     def compile(implicit prep: Prepend[T1, T2]): Runnable[prep.Out] = Runnable(m, path, hval)
   }
@@ -90,18 +77,34 @@ object CoolApi {
 
   def Get: StatusValidator[HNil, HNil] = StatusValidator(Method.Get, PathEmpty, EmptyValidator)
 
+  /////////////////// API helpers ///////////////////////////////////////////
+
+  implicit def makeFromMethod(m: Method): StatusValidator[HNil, HNil] = StatusValidator(m, PathEmpty, EmptyValidator)
+
+  implicit def mkMatch(s: String): PathMatch = PathMatch(s)
+
+  implicit def captureString[T](sym: Symbol): PathCapture[String] = PathCapture(s => Some(s))
+
 
   ////////////////// Transform the Stream and may perform validation //////////////////
   
-  trait BodyTransformer
+  trait BodyTransformer[T]
 
-  case class Decoder[T, H <: HList](codec: Dec[T], v: Validator[H]) extends BodyTransformer {
-    def ~>[T1, O](f: T1)(implicit conv: HListToFunc[T::H, O, T1]): Transformed[T,H,O] =
-      Transformed(codec, v, conv.conv(f))
+  case class Decoder[T](codec: Dec[T]) extends BodyTransformer[T]
+
+  case class OrDec[T](c1: Decoder[T], c2: Decoder[T]) extends BodyTransformer[T]
+
+  ////////////////////////////////////////////////////////////////////////////////////
+
+  case class Runnable[T <: HList](m: Method, p: PathValidator[_ <: HList], h: Validator[_ <: HList]) {
+    def ~>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = compiler(this, f, hf)
+    def ~>[R](decoder: Decoder[R]): CodecRunnable[T, R] = CodecRunnable(this, decoder)
   }
-  
-  case class Transformed[T, H <: HList, O](dec: Dec[T], v: Validator[H], f: T::H => O)
-    extends BodyTransformer
+
+  case class CodecRunnable[T <: HList, R](r: Runnable[T], t: BodyTransformer[R]) {
+    def ~>[F](f: F)(implicit hf: HListToFunc[R::T,Task[Response],F]): Goal = compileWithBody(this, f, hf)
+    def ~>(decoder: Decoder[R]): CodecRunnable[T, R] = CodecRunnable(r, decoder)
+  }
 
   ////////////////// Api /////////////////////////////////////////////////////////////
 
@@ -120,37 +123,21 @@ object CoolApi {
   def map[H <: HeaderKey.Extractable, R](key: H)(f: H#HeaderT => R): Validator[R::HNil] =
     HeaderMapper[H, R](key, f)
   
-  def decode[T](t: MediaType)(implicit codec: Dec[T]): Decoder[T, HNil] = {
-    // Need to require the right media header
-    ???
-  }
-  
   trait Dec[T] {
+    /** Check the headers to determine of this decoder is applicable */
+    def checkHeaders(h: Headers): Boolean = true
+
+    /** Decode the stream into a concrete T asynchronously */
     def decode(s: Process[Task, ByteVector]): Task[T]
   }
 
-  /////////////////// Helpers for turning a function of may params to a function of a HList
-
-  trait HListToFunc[H <: HList, O, F] {
-    def conv(f: F): H => O
-  }
-
-  implicit def fun1[T1, O] = new HListToFunc[T1::HNil, O, Function1[T1, O]] {
-    override def conv(f: (T1) => O): (::[T1, HNil]) => O = { h => f(h.head)
-    }
-  }
-
-  implicit def fun2[T1, T2, O] = new HListToFunc[T2::T1::HNil, O, Function2[T1, T2, O]] {
-    override def conv(f: (T1, T2) => O): (T2::T1::HNil) => O = { h =>
-      val t2 = h.head
-      val t1 = h.tail.head
-      f(t1,t2)
-    }
-  }
-
-
   /////////////////// Route compiler ////////////////////////////////////////
-  def compiler[T <: HList, F](r: Runnable[T], f: F, hf: HListToFunc[T,Task[Response],F]): Goal = ???
+  def compiler[T <: HList, F](r: Runnable[T], f: F, hf: HListToFunc[T,Task[Response],F]): Goal =
+    RouteExecutor.compile(r, f, hf)
 
+  def compileWithBody[T <: HList, F, R](r: CodecRunnable[T, R], f: F, fg: HListToFunc[R::T, Task[Response], F]): Goal = {
+
+    ???
+  }
 
 }

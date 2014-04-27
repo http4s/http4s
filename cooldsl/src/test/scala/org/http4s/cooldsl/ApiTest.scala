@@ -4,6 +4,7 @@ package cooldsl
 import org.specs2.mutable._
 import shapeless.HNil
 import scalaz.{\/-, -\/}
+import scalaz.concurrent.Task
 
 /**
  * Created by Bryce Anderson on 4/26/14.
@@ -27,37 +28,70 @@ class ApiTest extends Specification {
 
     "Fail on a bad request" in {
       val badreq = Request().withHeaders(Headers(lenheader))
-      RouteExecutor.ensureValidHeaders(a and b)(badreq) should_== -\/(s"Missing header: ${etag.name}")
+      RouteExecutor.ensureValidHeaders(a and b,badreq) should_== -\/(s"Missing header: ${etag.name}")
     }
 
     "Match captureless route" in {
       val c = a and b
 
       val req = Request().withHeaders(Headers(etag, lenheader))
-      RouteExecutor.ensureValidHeaders(c)(req) should_== \/-(HNil)
+      RouteExecutor.ensureValidHeaders(c,req) should_== \/-(HNil)
     }
 
     "Capture params" in {
       val req = Request().withHeaders(Headers(etag, lenheader))
       Seq({
         val c2 = CoolApi.capture(Header.`Content-Length`) and a
-        RouteExecutor.ensureValidHeaders(c2)(req) should_== \/-(lenheader::HNil)
+        RouteExecutor.ensureValidHeaders(c2,req) should_== \/-(lenheader::HNil)
       }, {
         val c3 = CoolApi.capture(Header.`Content-Length`) and
           CoolApi.capture(Header.ETag)
-        RouteExecutor.ensureValidHeaders(c3)(req) should_== \/-(etag::lenheader::HNil)
+        RouteExecutor.ensureValidHeaders(c3,req) should_== \/-(etag::lenheader::HNil)
       }).reduce( _ and _)
     }
 
     "Map header params" in {
       val req = Request().withHeaders(Headers(etag, lenheader))
       val c = CoolApi.map(Header.`Content-Length`)(_.length)
-      RouteExecutor.ensureValidHeaders(c)(req) should_== \/-(4::HNil)
+      RouteExecutor.ensureValidHeaders(c,req) should_== \/-(4::HNil)
     }
 
     "Combine status line" in {
 
       true should_== true
+    }
+  }
+
+  "PathValidator" should {
+    import Status._
+    import FuncHelpers._
+
+    def check(p: Option[Task[Response]], s: String) = {
+      p.get.run.headers.get(Header.ETag).get.value should_== s
+    }
+
+    "traverse a captureless path" in {
+      val stuff = Method.Get / "hello"
+      val req = Request(requestUri = Uri.fromString("/hello").get)
+
+      val f: Request => Option[Task[Response]] = stuff.compile ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      check(f(req), "foo")
+    }
+
+    "Not match a path to long" in {
+      val stuff = Method.Get / "hello"
+      val req = Request(requestUri = Uri.fromString("/hello/world").get)
+
+      val f: Request => Option[Task[Response]] = stuff.compile ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      f(req) should_== None
+    }
+
+    "capture a variable" in {
+      val stuff = Method.Get / 'hello
+      val req = Request(requestUri = Uri.fromString("/hello").get)
+
+      val f: Request => Option[Task[Response]] = stuff.compile ~> { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
+      check(f(req), "hello")
     }
   }
 
