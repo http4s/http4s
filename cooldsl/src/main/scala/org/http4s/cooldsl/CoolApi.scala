@@ -4,9 +4,8 @@ package cooldsl
 import shapeless.{HList, HNil, ::}
 import scalaz.concurrent.Task
 import shapeless.ops.hlist.Prepend
-import scodec.bits.ByteVector
 
-import scalaz.stream.Process
+import BodyCodec._
 
 import scala.language.existentials
 
@@ -55,6 +54,8 @@ object CoolApi {
       StatusValidator(m, path, hval.and(h2)(prep))
 
     def compile(implicit prep: Prepend[T1, T2]): Runnable[prep.Out] = Runnable(m, path, hval)
+
+    def decoding[T](dec: Decoder[T])(implicit prep: Prepend[T1, T2]) = compile(prep).decoding(dec)
   }
 
   trait PathValidator[T <: HList] {
@@ -88,22 +89,18 @@ object CoolApi {
 
   ////////////////// Transform the Stream and may perform validation //////////////////
   
-  trait BodyTransformer[T]
 
-  case class Decoder[T](codec: Dec[T]) extends BodyTransformer[T]
 
-  case class OrDec[T](c1: Decoder[T], c2: Decoder[T]) extends BodyTransformer[T]
-
-  ////////////////////////////////////////////////////////////////////////////////////
+  //////////////// The two types of Runnables, those with a body and those without ////
 
   case class Runnable[T <: HList](m: Method, p: PathValidator[_ <: HList], h: Validator[_ <: HList]) {
     def ~>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = compiler(this, f, hf)
-    def ~>[R](decoder: Decoder[R]): CodecRunnable[T, R] = CodecRunnable(this, decoder)
+    def decoding[R](decoder: Decoder[R]): CodecRunnable[T, R] = CodecRunnable(this, decoder)
   }
 
   case class CodecRunnable[T <: HList, R](r: Runnable[T], t: BodyTransformer[R]) {
     def ~>[F](f: F)(implicit hf: HListToFunc[R::T,Task[Response],F]): Goal = compileWithBody(this, f, hf)
-    def ~>(decoder: Decoder[R]): CodecRunnable[T, R] = CodecRunnable(r, decoder)
+    def decoding(decoder: Decoder[R]): CodecRunnable[T, R] = CodecRunnable(r, decoder)
   }
 
   ////////////////// Api /////////////////////////////////////////////////////////////
@@ -122,22 +119,11 @@ object CoolApi {
 
   def map[H <: HeaderKey.Extractable, R](key: H)(f: H#HeaderT => R): Validator[R::HNil] =
     HeaderMapper[H, R](key, f)
-  
-  trait Dec[T] {
-    /** Check the headers to determine of this decoder is applicable */
-    def checkHeaders(h: Headers): Boolean = true
-
-    /** Decode the stream into a concrete T asynchronously */
-    def decode(s: Process[Task, ByteVector]): Task[T]
-  }
 
   /////////////////// Route compiler ////////////////////////////////////////
   def compiler[T <: HList, F](r: Runnable[T], f: F, hf: HListToFunc[T,Task[Response],F]): Goal =
     RouteExecutor.compile(r, f, hf)
 
-  def compileWithBody[T <: HList, F, R](r: CodecRunnable[T, R], f: F, fg: HListToFunc[R::T, Task[Response], F]): Goal = {
-
-    ???
-  }
-
+  def compileWithBody[T <: HList, F, R](r: CodecRunnable[T, R], f: F, fg: HListToFunc[R::T, Task[Response], F]): Goal =
+    RouteExecutor.compileWithBody(r, f, fg)
 }

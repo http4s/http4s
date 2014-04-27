@@ -5,6 +5,7 @@ import org.specs2.mutable._
 import shapeless.HNil
 import scalaz.{\/-, -\/}
 import scalaz.concurrent.Task
+import scodec.bits.ByteVector
 
 /**
  * Created by Bryce Anderson on 4/26/14.
@@ -92,6 +93,50 @@ class ApiTest extends Specification {
 
       val f: Request => Option[Task[Response]] = stuff.compile ~> { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
       check(f(req), "hello")
+    }
+  }
+
+  "Decoders" should {
+    import Status._
+    import FuncHelpers._
+    import BodyCodec._
+    import scalaz.stream.Process
+
+    val strdec: Decoder[String] = { p: HttpBody =>
+      p.runLog.map(v => new String(v.reduce(_ ++ _).toArray))
+    }
+
+    def check(p: Option[Task[Response]], s: String) = {
+      p.get.run.headers.get(Header.ETag).get.value should_== s
+    }
+
+    "Decode a body" in {
+      val path = Method.Post / "hello"
+      val reqHeader = requireThat(Header.`Content-Length`){ h => h.length < 10}
+      val body = Process.emit(ByteVector.apply("foo".getBytes()))
+      val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
+                  .withHeaders(Headers(Header.`Content-Length`("foo".length)))
+
+      val route = path.validate(reqHeader).decoding(strdec) ~> { str: String =>
+        Ok("stuff").withHeaders(Header.ETag(str))
+      }
+
+      check(route(req), "foo")
+    }
+
+    "Fail on a header" in {
+      val path = Method.Post / "hello"
+      val reqHeader = requireThat(Header.`Content-Length`){ h => h.length < 2}
+      val body = Process.emit(ByteVector.apply("foo".getBytes()))
+      val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
+        .withHeaders(Headers(Header.`Content-Length`("foo".length)))
+
+      val route = path.validate(reqHeader).decoding(strdec) ~> { str: String =>
+        Ok("stuff").withHeaders(Header.ETag(str))
+      }
+
+      val result = route(req)
+      result.get.run.status should_== Status.BadRequest
     }
   }
 

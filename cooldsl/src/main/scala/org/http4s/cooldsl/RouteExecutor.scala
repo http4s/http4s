@@ -7,6 +7,8 @@ import org.http4s.{Header, HeaderKey, Request, Response}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-, \/}
 
+import BodyCodec._
+
 import org.http4s.Status.BadRequest
 
 /**
@@ -46,12 +48,10 @@ trait RouteExecutor {
     val ff: Goal = { req =>
       pathAndValidate(req, r.r).map(_ match {
         case \/-(stack) =>
-          pickCodec(req, r.t) match {
-            case Some(codec) =>
-              codec.decode(req.body).flatMap { r =>  hf.conv(f)(r :: stack) }
-
-            case None => onBadRequest("No valid decoder")
-          }
+          pickDecoder(req, r.t)
+            .map(_.decode(req.body).flatMap { r =>
+              hf.conv(f)(r :: stack)
+            }).getOrElse(onBadRequest("No valid decoder"))
 
         case -\/(s) => onBadRequest(s)
       })
@@ -60,19 +60,21 @@ trait RouteExecutor {
     ff
   }
 
-  private def pickCodec[T](req: Request, d: BodyTransformer[T]): Option[Dec[T]] = d match {
-    case Decoder(codec) =>
-      if (codec.checkHeaders(req.headers)) Some(codec)
-      else None
-
-    case OrDec(c1, c2) => pickCodec(req, c1).orElse(pickCodec(req, c2))
-  }
-
   private def pathAndValidate[T <: HList](req: Request, r: Runnable[T]): Option[\/[String, T]] = {
     val p = parsePath(req.requestUri.path)
     runStatus(r.p, p).map(h => runValidation(req, r.h, h)).asInstanceOf[Option[\/[String, T]]]
   }
 
+  /** Attempts to find a compatible codec */
+  private def pickDecoder[T](req: Request, d: BodyTransformer[T]): Option[Dec[T]] = d match {
+    case Decoder(codec) =>
+      if (codec.checkHeaders(req.headers)) Some(codec)
+      else None
+
+    case OrDec(c1, c2) => pickDecoder(req, c1).orElse(pickDecoder(req, c2))
+  }
+
+  /** Runs the URL and pushes values to the HList stack */
   private def runStatus[T1<: HList](v: PathValidator[T1], path: List[String]): Option[T1] = {
     def go(v: PathValidator[_ <: HList], path: List[String], stack: HList): Option[(List[String],HList)] = v match {
 
@@ -110,6 +112,7 @@ trait RouteExecutor {
   private[cooldsl] def ensureValidHeaders[T1 <: HList](v: Validator[T1], req: Request): \/[String,T1] =
     runValidation(req, v, HNil).asInstanceOf[\/[String,T1]]
 
+  /** The untyped guts of ensureValidHeaders and friends */
   private[this] def runValidation(req: Request, v: Validator[_ <: HList], stack: HList): \/[String,HList] = v match {
     case And(a, b) => runValidation(req, a, stack).flatMap(runValidation(req, b, _))
 
