@@ -6,6 +6,9 @@ import shapeless.HNil
 import scalaz.{\/-, -\/}
 import scalaz.concurrent.Task
 import scodec.bits.ByteVector
+import scalaz.stream.Process
+import java.lang.Process
+import org.http4s.cooldsl.BodyCodec.Decoder
 
 /**
  * Created by Bryce Anderson on 4/26/14.
@@ -75,7 +78,7 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f: Request => Option[Task[Response]] = stuff.compile ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val f: Request => Option[Task[Response]] = stuff.prepare ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
       check(f(req), "foo")
     }
 
@@ -83,7 +86,7 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello/world").get)
 
-      val f: Request => Option[Task[Response]] = stuff.compile ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val f: Request => Option[Task[Response]] = stuff.prepare ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
       f(req) should_== None
     }
 
@@ -91,8 +94,41 @@ class ApiTest extends Specification {
       val stuff = Method.Get / 'hello
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f: Request => Option[Task[Response]] = stuff.compile ~> { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
+      val f: Request => Option[Task[Response]] = stuff.prepare ~> { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
       check(f(req), "hello")
+    }
+
+    "work directly" in {
+      val stuff = Method.Get / "hello"
+      val req = Request(requestUri = Uri.fromString("/hello").get)
+
+      val f = stuff.prepare ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+
+      check(f(req), "foo")
+    }
+  }
+
+  "Query validators" should {
+    import Status._
+    import FuncHelpers._
+
+    def check(p: Option[Task[Response]], s: String) = {
+      p.get.run
+        .headers.get(Header.ETag)
+        .get.value should_== s
+    }
+
+    "get a query string" in {
+      val path = Method.Post / "hello" *? query[Int]("jimbo")
+      val req = Request(requestUri = Uri.fromString("/hello?jimbo=32").get)
+
+      val route = path.prepare ~> { i: Int =>
+        println("Running route ------------------------------------")
+        Ok("stuff").withHeaders(Header.ETag((i + 1).toString))
+      }
+
+      check(route(req), "33")
+
     }
   }
 
@@ -101,10 +137,6 @@ class ApiTest extends Specification {
     import FuncHelpers._
     import BodyCodec._
     import scalaz.stream.Process
-
-    val strdec: Decoder[String] = { p: HttpBody =>
-      p.runLog.map(v => new String(v.reduce(_ ++ _).toArray))
-    }
 
     def check(p: Option[Task[Response]], s: String) = {
       p.get.run.headers.get(Header.ETag).get.value should_== s
@@ -117,7 +149,7 @@ class ApiTest extends Specification {
       val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
                   .withHeaders(Headers(Header.`Content-Length`("foo".length)))
 
-      val route = path.validate(reqHeader).decoding(strdec) ~> { str: String =>
+      val route = path.validate(reqHeader).decoding(strDec) ~> { str: String =>
         Ok("stuff").withHeaders(Header.ETag(str))
       }
 
@@ -131,13 +163,44 @@ class ApiTest extends Specification {
       val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
         .withHeaders(Headers(Header.`Content-Length`("foo".length)))
 
-      val route = path.validate(reqHeader).decoding(strdec) ~> { str: String =>
+      val route = path.validate(reqHeader).decoding(strDec) ~> { str: String =>
         Ok("stuff").withHeaders(Header.ETag(str))
       }
 
       val result = route(req)
       result.get.run.status should_== Status.BadRequest
     }
+  }
+
+  "Do a complicated one" in {
+    import Status._
+    import FuncHelpers._
+    import BodyCodec._
+    import scalaz.stream.Process
+
+    val path = Method.Post / "hello" / 'world *? query[Int]("fav")
+    val validations = requireThat(Header.`Content-Length`){ h => h.length != 0 } &&
+                      capture(Header.ETag)
+
+    val route =
+      path.validate(validations).prepare~>{(world: String, fav: Int, tag: Header.ETag) =>
+
+        Ok(s"Hello to you too, $world. Your Fav number is $fav. You sent me body")
+          .addHeaders(Header.ETag("foo"))
+      }
+
+    val body = Process.emit(ByteVector("cool".getBytes))
+    val req = Request(requestUri = Uri.fromString("/hello/neptune?fav=23").get, body = body)
+                .withHeaders(Headers(Header.`Content-Length`(4), Header.ETag("foo")))
+
+    val resp = route(req).get.run
+    printBody(resp)
+    resp.headers.get(Header.ETag).get.value should_== "foo"
+  }
+
+  def printBody(resp: Response) {
+    val s = new String(resp.body.runLog.run.reduce(_ ++ _).toArray)
+    println(s)
   }
 
 }

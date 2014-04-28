@@ -25,6 +25,13 @@ object BodyCodec {
     def decode(b: HttpBody): Task[T]
   }
 
+  implicit val strDec = new Decoder[String](new Dec[String] {
+    /** Decode the stream into a concrete T asynchronously */
+    override def decode(b: HttpBody): Task[String] = {
+      b.runLog.map(vs => new String(vs.reduce(_ ++ _).toArray))
+    }
+  })
+
   implicit def funcDecoder[T](f: HttpBody => Task[T]) = Decoder(funcDec(f))
 
   implicit def funcDec[T](f: HttpBody => Task[T]) = new Dec[T] {

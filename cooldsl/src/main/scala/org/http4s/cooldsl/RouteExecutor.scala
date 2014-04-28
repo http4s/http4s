@@ -23,6 +23,8 @@ trait RouteExecutor {
 
   def missingHeader(key: HeaderKey): String = s"Missing header: ${key.name}"
 
+  def missingQuery(key: String): String = s"Missing query param: $key"
+
   def invalidHeader(h: Header): String = s"Invalid header: $h"
 
   def onBadRequest(reason: String): Task[Response] = BadRequest(reason)
@@ -62,7 +64,7 @@ trait RouteExecutor {
 
   private def pathAndValidate[T <: HList](req: Request, r: Runnable[T]): Option[\/[String, T]] = {
     val p = parsePath(req.requestUri.path)
-    runStatus(r.p, p).map(h => runValidation(req, r.h, h)).asInstanceOf[Option[\/[String, T]]]
+    runStatus(r.p, p).map(h => runValidation(req, r.validators, h)).asInstanceOf[Option[\/[String, T]]]
   }
 
   /** Attempts to find a compatible codec */
@@ -119,7 +121,7 @@ trait RouteExecutor {
     case Or(a, b) => runValidation(req, a, stack).orElse(runValidation(req, b, stack))
 
     case HeaderCapture(key) => req.headers.get(key) match {
-      case Some(h) => \/-(h :: stack)
+      case Some(h) => \/-(h::stack)
       case None => -\/(missingHeader(key))
     }
 
@@ -129,9 +131,15 @@ trait RouteExecutor {
     }
 
     case HeaderMapper(key, f) => req.headers.get(key) match {
-      case Some(h) => \/-(f(h)::HNil)
+      case Some(h) => \/-(f(h)::stack)
       case None => -\/(missingHeader(key))
     }
+
+    case QueryMapper(name, parser) =>
+      req.requestUri.params.get(name) match {
+        case Some(v) => parser.parse(v).map(_::stack)
+        case None => -\/(missingQuery(name))
+      }
 
     case EmptyValidator => \/-(stack)
   }

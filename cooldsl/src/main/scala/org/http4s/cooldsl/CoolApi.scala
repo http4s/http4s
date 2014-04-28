@@ -19,6 +19,10 @@ object CoolApi {
 
     def and[T1 <: HList](v: Validator[T1])(implicit prepend : Prepend[T, T1]) : Validator[prepend.Out] =
       And(this, v)
+
+    final def &&[T1 <: HList](v: Validator[T1])(implicit prepend : Prepend[T, T1]) : Validator[prepend.Out] = and(v)
+
+    final def ||(v: Validator[T]): Validator[T] = or(v)
   }
 
   object EmptyValidator extends Validator[HNil]
@@ -40,22 +44,32 @@ object CoolApi {
 
   case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends Validator[R::HNil]
 
+  case class QueryMapper[T](name: String, p: StringParser.StringParser[T]) extends Validator[T::HNil]
+
   ////////////////// Status line combinators //////////////////////////////////////////
 
-  case class StatusValidator[T1 <: HList, T2 <: HList](m: Method, path: PathValidator[T1], hval: Validator[T2]) {
+  case class StatusValidator[T1 <: HList, T2 <: HList](m: Method, path: PathValidator[T1], validators: Validator[T2]) {
+
+    def /(p: String): StatusValidator[T1,T2] = copy(path = path.and(PathMatch(p)))
+
+    def /(p: Symbol): StatusValidator[String::T1,T2] = copy(path = path.and(PathCapture(s => Some(s))))
 
     def /(p: PathMatch): StatusValidator[T1,T2] = copy(path = path.and(p))
 
     def /[R](p: PathCapture[R]): StatusValidator[R::T1,T2] = copy(path = path.and(p))
 
+    def *?[T](q: QueryMapper[T]): StatusValidator[T1, T::T2] = StatusValidator(m, path, And(validators, q))
+
+    def &[T](q: QueryMapper[T]): StatusValidator[T1, T::T2] = *?(q)
+
     def || (p: PathValidator[T1]): StatusValidator[T1,T2] = copy(path = path.or(p))
 
-    def validate[T3 <: HList](h2: Validator[T3])(implicit prep: Prepend[T2,T3]): StatusValidator[T1, prep.Out] =
-      StatusValidator(m, path, hval.and(h2)(prep))
+    def validate[T3 <: HList](h2: Validator[T3])(implicit prep: Prepend[T3,T2]): StatusValidator[T1, prep.Out] =
+      StatusValidator(m, path, h2.and(validators)(prep))
 
-    def compile(implicit prep: Prepend[T1, T2]): Runnable[prep.Out] = Runnable(m, path, hval)
+    def prepare(implicit prep: Prepend[T2, T1]): Runnable[prep.Out] = Runnable(m, path, validators)
 
-    def decoding[T](dec: Decoder[T])(implicit prep: Prepend[T1, T2]) = compile(prep).decoding(dec)
+    def decoding[T](dec: Decoder[T])(implicit prep: Prepend[T2, T1]) = prepare(prep).decoding(dec)
   }
 
   trait PathValidator[T <: HList] {
@@ -80,12 +94,7 @@ object CoolApi {
 
   /////////////////// API helpers ///////////////////////////////////////////
 
-  implicit def makeFromMethod(m: Method): StatusValidator[HNil, HNil] = StatusValidator(m, PathEmpty, EmptyValidator)
-
-  implicit def mkMatch(s: String): PathMatch = PathMatch(s)
-
-  implicit def captureString[T](sym: Symbol): PathCapture[String] = PathCapture(s => Some(s))
-
+  implicit def method(m: Method): StatusValidator[HNil, HNil] = StatusValidator(m, PathEmpty, EmptyValidator)
 
   ////////////////// Transform the Stream and may perform validation //////////////////
   
@@ -93,7 +102,7 @@ object CoolApi {
 
   //////////////// The two types of Runnables, those with a body and those without ////
 
-  case class Runnable[T <: HList](m: Method, p: PathValidator[_ <: HList], h: Validator[_ <: HList]) {
+  case class Runnable[T <: HList](method: Method, p: PathValidator[_ <: HList], validators: Validator[_ <: HList]) {
     def ~>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = compiler(this, f, hf)
     def decoding[R](decoder: Decoder[R]): CodecRunnable[T, R] = CodecRunnable(this, decoder)
   }
@@ -119,6 +128,8 @@ object CoolApi {
 
   def map[H <: HeaderKey.Extractable, R](key: H)(f: H#HeaderT => R): Validator[R::HNil] =
     HeaderMapper[H, R](key, f)
+
+  def query[T](key: String)(implicit parser: StringParser.StringParser[T]) = QueryMapper[T](key, parser)
 
   /////////////////// Route compiler ////////////////////////////////////////
   def compiler[T <: HList, F](r: Runnable[T], f: F, hf: HListToFunc[T,Task[Response],F]): Goal =
