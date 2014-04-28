@@ -116,7 +116,7 @@ trait RouteExecutor {
 
   /** The untyped guts of ensureValidHeaders and friends */
   private[this] def runValidation(req: Request, v: Validator[_ <: HList], stack: HList): \/[String,HList] = v match {
-    case And(a, b) => runValidation(req, a, stack).flatMap(runValidation(req, b, _))
+    case And(a, b) => runValidation(req, b, stack).flatMap(runValidation(req, a, _))
 
     case Or(a, b) => runValidation(req, a, stack).orElse(runValidation(req, b, stack))
 

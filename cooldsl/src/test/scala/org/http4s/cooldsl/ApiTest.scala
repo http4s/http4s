@@ -23,20 +23,18 @@ class ApiTest extends Specification {
   val a = CoolApi.require(Header.ETag)
   val b = CoolApi.requireThat(Header.`Content-Length`){ h => h.length != 0 }
 
-  "CoolDsl Api" should {
+  "CoolDsl bits" should {
     "Combine validators" in {
-      a and b should_== And(a, b)
-
-      true should_== true
+      a && b should_== And(a, b)
     }
 
     "Fail on a bad request" in {
       val badreq = Request().withHeaders(Headers(lenheader))
-      RouteExecutor.ensureValidHeaders(a and b,badreq) should_== -\/(s"Missing header: ${etag.name}")
+      RouteExecutor.ensureValidHeaders(a && b,badreq) should_== -\/(s"Missing header: ${etag.name}")
     }
 
     "Match captureless route" in {
-      val c = a and b
+      val c = a && b
 
       val req = Request().withHeaders(Headers(etag, lenheader))
       RouteExecutor.ensureValidHeaders(c,req) should_== \/-(HNil)
@@ -45,12 +43,12 @@ class ApiTest extends Specification {
     "Capture params" in {
       val req = Request().withHeaders(Headers(etag, lenheader))
       Seq({
-        val c2 = CoolApi.capture(Header.`Content-Length`) and a
+        val c2 = CoolApi.capture(Header.`Content-Length`) && a
         RouteExecutor.ensureValidHeaders(c2,req) should_== \/-(lenheader::HNil)
       }, {
-        val c3 = CoolApi.capture(Header.`Content-Length`) and
+        val c3 = CoolApi.capture(Header.`Content-Length`) &&
           CoolApi.capture(Header.ETag)
-        RouteExecutor.ensureValidHeaders(c3,req) should_== \/-(etag::lenheader::HNil)
+        RouteExecutor.ensureValidHeaders(c3,req) should_== \/-(lenheader::etag::HNil)
       }).reduce( _ and _)
     }
 
@@ -123,7 +121,6 @@ class ApiTest extends Specification {
       val req = Request(requestUri = Uri.fromString("/hello?jimbo=32").get)
 
       val route = path.prepare ~> { i: Int =>
-        println("Running route ------------------------------------")
         Ok("stuff").withHeaders(Header.ETag((i + 1).toString))
       }
 
