@@ -2,14 +2,11 @@ package org.http4s.cooldsl
 
 import shapeless.{HNil, HList, ::}
 
-import HeaderMatcher._
 import org.http4s.{Header, HeaderKey, Request, Response}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-, \/}
 
 import BodyCodec._
-
-import PathBuilder._
 
 import org.http4s.Status.BadRequest
 import scala.annotation.unchecked.uncheckedVariance

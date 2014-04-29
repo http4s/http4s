@@ -11,20 +11,17 @@ import java.lang.Process
 
 
 import org.http4s.cooldsl.BodyCodec.Decoder
-import org.http4s.cooldsl.PathBuilder._
-import org.http4s.cooldsl.HeaderMatcher._
 /**
  * Created by Bryce Anderson on 4/26/14.
  */
 class ApiTest extends Specification {
 
-  import HeaderMatcher._
 
   val lenheader = Header.`Content-Length`(4)
   val etag = Header.ETag("foo")
 
-  val a = HeaderMatcher.require(Header.ETag)
-  val b = HeaderMatcher.requireThat(Header.`Content-Length`){ h => h.length != 0 }
+  val a = require(Header.ETag)
+  val b = requireThat(Header.`Content-Length`){ h => h.length != 0 }
 
   def printBody(resp: Response) {
     val s = new String(resp.body.runLog.run.reduce(_ ++ _).toArray)
@@ -51,18 +48,18 @@ class ApiTest extends Specification {
     "Capture params" in {
       val req = Request().withHeaders(Headers(etag, lenheader))
       Seq({
-        val c2 = HeaderMatcher.capture(Header.`Content-Length`) && a
+        val c2 = capture(Header.`Content-Length`) && a
         RouteExecutor.ensureValidHeaders(c2,req) should_== \/-(lenheader::HNil)
       }, {
-        val c3 = HeaderMatcher.capture(Header.`Content-Length`) &&
-          HeaderMatcher.capture(Header.ETag)
+        val c3 = capture(Header.`Content-Length`) &&
+          capture(Header.ETag)
         RouteExecutor.ensureValidHeaders(c3,req) should_== \/-(lenheader::etag::HNil)
       }).reduce( _ and _)
     }
 
     "Map header params" in {
       val req = Request().withHeaders(Headers(etag, lenheader))
-      val c = HeaderMatcher.map(Header.`Content-Length`)(_.length)
+      val c = requireMap(Header.`Content-Length`)(_.length)
       RouteExecutor.ensureValidHeaders(c,req) should_== \/-(4::HNil)
     }
 

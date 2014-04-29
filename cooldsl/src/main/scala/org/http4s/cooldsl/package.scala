@@ -1,9 +1,8 @@
 package org.http4s
 
-import shapeless.{::, HList}
+import shapeless.{HNil, ::, HList}
 import scalaz.concurrent.Task
 import org.http4s.cooldsl.BodyCodec.{Dec, BodyTransformer, Decoder}
-import org.http4s.cooldsl.PathBuilder.PathRule
 
 import scala.language.existentials
 import shapeless.ops.hlist.Prepend
@@ -15,48 +14,31 @@ package object cooldsl {
 
   type Goal = Request => Option[Task[Response]]
 
-  //////////////////////////////////////////////////////////////////////////////////////////////
+  implicit def method(m: Method): PathBuilder[HNil] = new PathBuilder(m, PathEmpty)
 
-  case class Runnable[T1 <: HList, T2 <: HList](method: Method, p: PathRule[_ <: HList], validators: HeaderRule[T2])
-          extends RunnableHeaderRule[T2] {
+  // TODO: this should be implemented as a 'Syntax'
+  implicit def /(str: String): CombinablePathRule[HNil] = PathMatch(str)
 
-    override protected type ThisType[T <: HList] = Runnable[T1, T]
+  def query[T](key: String)(implicit parser: StringParser[T]) = QueryMapper[T](key, parser)
 
-    override protected def combine[T3 <: HList](f: (HeaderRule[T2]) => HeaderRule[T3]): ThisType[T3] = {
-      Runnable(method, p, validators = f(validators))
-    }
+  def parse[T](implicit parser: StringParser[T]) = PathCapture(parser)
 
-    def ==>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): Goal = RouteExecutor.compile(this, f, hf)
-    def decoding[R](decoder: Decoder[R]): CodecRunnable[T1, T2, R] = CodecRunnable(this, decoder)
-  }
+  def -* = CaptureTail()
 
-  case class CodecRunnable[T1 <: HList, T2 <: HList, R](r: Runnable[T1,T2], t: BodyTransformer[R])
-          extends RunnableHeaderRule[T2] {
+  /////////////////////////////// Header helpers //////////////////////////////////////
 
-    override protected def combine[T1 <: HList](f: (HeaderRule[T2]) => HeaderRule[T1]): ThisType[T1] =
-      CodecRunnable(Runnable(r.method, r.p, f(r.validators)), t)
+  /* Checks that the header exists */
+  def require(header: HeaderKey.Extractable): HeaderRule[HNil] = requireThat(header)(_ => true)
 
-    override protected type ThisType[T <: HList] = CodecRunnable[T1, T, R]
+  /* Check that the header exists and satisfies the condition */
+  def requireThat[H <: HeaderKey.Extractable](header: H)
+                                             (implicit f: H#HeaderT => Boolean = {_: H#HeaderT => true}): HeaderRule[HNil] =
+    HeaderRequire[H](header, f)
 
-    def ==>[F](f: F)(implicit hf: HListToFunc[R::T1,Task[Response],F]): Goal = RouteExecutor.compileWithBody(this, f, hf)
-  }
+  /** requires the header and will pull this header from the pile and put it into the function args stack */
+  def capture[H <: HeaderKey.Extractable](key: H): HeaderRule[H#HeaderT::HNil] =
+    HeaderCapture[H#HeaderT](key)
 
-
-  private[cooldsl] trait RunnableHeaderRule[T <: HList] extends HeaderRuleSyntax[T] {
-
-    protected type ThisType[T <: HList] <: RunnableHeaderRule[T]
-
-    protected def combine[T1 <: HList](f: HeaderRule[T] => HeaderRule[T1]): ThisType[T1]
-
-    override def &&[T1 <: HList](v: HeaderRule[T1])(implicit prepend: Prepend[T, T1]): ThisType[prepend.type#Out] =
-      and(v)
-
-    override def and[T1 <: HList](v: HeaderRule[T1])(implicit prepend: Prepend[T, T1]): ThisType[prepend.type#Out] =
-      combine(current => current.and(v))
-
-    override def ||(v: HeaderRule[T]): HeaderRuleSyntax[T] = or(v)
-
-    override def or(v: HeaderRule[T]): HeaderRuleSyntax[T] = combine(vold => vold.or(v))
-  }
-
+  def requireMap[H <: HeaderKey.Extractable, R](key: H)(f: H#HeaderT => R): HeaderRule[R::HNil] =
+    HeaderMapper[H, R](key, f)
 }
