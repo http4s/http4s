@@ -2,7 +2,6 @@ package org.http4s
 package cooldsl
 
 import shapeless.{HList, HNil, ::}
-import scalaz.concurrent.Task
 import shapeless.ops.hlist.Prepend
 
 import BodyCodec._
@@ -29,7 +28,7 @@ object HeaderMatcher {
 
   /////////////////////// Implementation bits //////////////////////////////////////////////////////
 
-  trait HeaderRule[T <: HList] {
+  sealed trait HeaderRule[T <: HList] {
 
     def or(v: HeaderRule[T]): HeaderRule[T] = Or(this, v)
 
@@ -53,8 +52,6 @@ object HeaderMatcher {
   case class HeaderCapture[T <: Header](key: HeaderKey.Extractable) extends HeaderRule[T::HNil]
 
   case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends HeaderRule[R::HNil]
-
-  case class BodyDecoder[T](dec: Dec[T]) extends HeaderRule[T::HNil]
 
   object EmptyHeaderRule extends HeaderRule[HNil]
 }

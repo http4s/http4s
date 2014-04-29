@@ -5,13 +5,12 @@ import scalaz.{-\/, \/-, \/}
 /**
  * Created by Bryce Anderson on 4/27/14.
  */
+
+trait StringParser[T] {
+  def parse(s: String): \/[String, T]
+}
+
 object StringParser {
-
-  trait StringParser[T] {
-    def parse(s: String): \/[String, T]
-  }
-
-
 
   ////////////////////// Default parsers //////////////////////////////
 

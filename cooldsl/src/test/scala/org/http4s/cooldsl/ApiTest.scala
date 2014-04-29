@@ -26,6 +26,11 @@ class ApiTest extends Specification {
   val a = HeaderMatcher.require(Header.ETag)
   val b = HeaderMatcher.requireThat(Header.`Content-Length`){ h => h.length != 0 }
 
+  def printBody(resp: Response) {
+    val s = new String(resp.body.runLog.run.reduce(_ ++ _).toArray)
+    println(s)
+  }
+
   "CoolDsl bits" should {
     "Combine validators" in {
       a && b should_== And(a, b)
@@ -78,7 +83,7 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f: Request => Option[Task[Response]] = stuff ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val f: Request => Option[Task[Response]] = stuff ==> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
       check(f(req), "foo")
     }
 
@@ -86,15 +91,16 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello/world").get)
 
-      val f: Request => Option[Task[Response]] = stuff ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
-      f(req) should_== None
+      val f: Request => Option[Task[Response]] = stuff ==> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val r = f(req)
+      r should_== None
     }
 
     "capture a variable" in {
       val stuff = Method.Get / 'hello
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f: Request => Option[Task[Response]] = stuff ~> { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
+      val f: Request => Option[Task[Response]] = stuff ==> { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
       check(f(req), "hello")
     }
 
@@ -102,9 +108,23 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f = stuff ~> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val f = stuff ==> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
 
       check(f(req), "foo")
+    }
+
+    "capture end with nothing" in {
+      val stuff = Method.Get / "hello" / -*
+      val req = Request(requestUri = Uri.fromString("/hello").get)
+      val f = stuff ==> { path: List[String] => Ok("Cool.").withHeaders(Header.ETag(if (path.isEmpty) "go" else "nogo")) }
+      check(f(req), "go")
+    }
+
+    "capture remaining" in {
+      val stuff = Method.Get / "hello" / -*
+      val req = Request(requestUri = Uri.fromString("/hello/world/foo").get)
+      val f = stuff ==> { path: List[String] => Ok("Cool.").withHeaders(Header.ETag(path.mkString)) }
+      check(f(req), "worldfoo")
     }
   }
 
@@ -119,10 +139,10 @@ class ApiTest extends Specification {
     }
 
     "get a query string" in {
-      val path = Method.Post / "hello" *? query[Int]("jimbo")
+      val path = Method.Post / "hello" -? query[Int]("jimbo")
       val req = Request(requestUri = Uri.fromString("/hello?jimbo=32").get)
 
-      val route = path ~> { i: Int =>
+      val route = path ==> { i: Int =>
         Ok("stuff").withHeaders(Header.ETag((i + 1).toString))
       }
 
@@ -147,7 +167,7 @@ class ApiTest extends Specification {
       val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
                   .withHeaders(Headers(Header.`Content-Length`("foo".length)))
 
-      val route = path.validate(reqHeader).decoding(strDec) ~> { str: String =>
+      val route = path.validate(reqHeader).decoding(strDec) ==> { str: String =>
         Ok("stuff").withHeaders(Header.ETag(str))
       }
 
@@ -161,7 +181,7 @@ class ApiTest extends Specification {
       val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
         .withHeaders(Headers(Header.`Content-Length`("foo".length)))
 
-      val route = path.validate(reqHeader).decoding(strDec) ~> { str: String =>
+      val route = path.validate(reqHeader).decoding(strDec) ==> { str: String =>
         Ok("stuff").withHeaders(Header.ETag(str))
       }
 
@@ -175,12 +195,12 @@ class ApiTest extends Specification {
     import BodyCodec._
     import scalaz.stream.Process
 
-    val path = Method.Post / "hello" / 'world *? query[Int]("fav")
+    val path = Method.Post / "hello" / 'world -? query[Int]("fav")
     val validations = requireThat(Header.`Content-Length`){ h => h.length != 0 } &&
                       capture(Header.ETag)
 
     val route =
-      path.validate(validations).decoding(strDec)~>{(world: String, fav: Int, tag: Header.ETag, body: String) =>
+      path.validate(validations).decoding(strDec)==>{(world: String, fav: Int, tag: Header.ETag, body: String) =>
 
         Ok(s"Hello to you too, $world. Your Fav number is $fav. You sent me $body")
           .addHeaders(Header.ETag("foo"))
@@ -191,45 +211,45 @@ class ApiTest extends Specification {
                 .withHeaders(Headers(Header.`Content-Length`(4), Header.ETag("foo")))
 
     val resp = route(req).get.run
-    printBody(resp)
     resp.headers.get(Header.ETag).get.value should_== "foo"
   }
 
-  def printBody(resp: Response) {
-    val s = new String(resp.body.runLog.run.reduce(_ ++ _).toArray)
-    println(s)
-  }
-
-  "dream api" should {
+  "mock api" should {
     import Status.Ok
 
-    "Allow the segregation of building a path parser and validations" in {
+    "Make it easy to compose routes" in {
 
-      /** The path and validation steps should be composed seperately and then
-        * combined into the final object. This final object can then be combined
-        * with a suitable 'executor' to generate an 'Action'
-        */
-
+      // the path can be built up in mulitiple steps and the parts reused
       val path = Method.Post / "hello"
-      val path2 = path / 'world *? query[Int]("fav")
+      val path2 = path / 'world -? query[Int]("fav") // the symbol 'world just says 'capture a String'
+      path ==> { () => Ok("Empty")}
+      path2 ==> { (world: String, i: Int) => Ok(s"Received $i, $world")}
 
+      // It can also be made all at once
+      val path3 = Method.Post / "hello" / parse[Int] -? query[Int]("fav")
+      path3 ==> {(i1: Int, i2: Int) => Ok(s"Sum of the number is ${i1+i2}")}
+
+      // You can automatically parse variables in the path
+      val path4 = Method.Get / "helloworldnumber" / parse[Int] / "foo"
+      path4 ==> {i: Int => Ok("Received $i")}
+
+      // You can capture the entire rest of the tail using -*
+      val path5 = Method.Get / "hello" / -* ==>{ r: List[String] => Ok(s"Got the rest: ${r.mkString}")}
+
+      // header validation is also composable
       val v1 = requireThat(Header.`Content-Length`)(_.length > 0)
       val v2 = v1 && capture(Header.ETag)
 
       // Now these two can be combined to make the 'Router'
-
       val r = path2.validate(v2)
 
-      // Now this can be matched with a method to make the 'Action'
-      // TODO: kill the prepare method. That can come from the combination of path and validation
-
-      r ~>{(world: String, fav: Int, tag: Header.ETag) =>
-        Ok("Success")
-          .withHeaders(Header.ETag(fav.toString))
+      // Now this can be combined with a method to make the 'Action'
+      val action = r ==> {(world: String, fav: Int, tag: Header.ETag) =>
+        Ok("Success").withHeaders(Header.ETag(fav.toString))
       }
 
-      true should_== true
 
+      true should_== true
     }
 
   }

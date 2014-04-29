@@ -12,6 +12,7 @@ import BodyCodec._
 import PathBuilder._
 
 import org.http4s.Status.BadRequest
+import scala.annotation.unchecked.uncheckedVariance
 
 /**
  * Created by Bryce Anderson on 4/27/14.
@@ -66,7 +67,7 @@ trait RouteExecutor {
 
   private def pathAndValidate[T <: HList](req: Request, r: Runnable[T]): Option[\/[String, T]] = {
     val p = parsePath(req.requestUri.path)
-    runStatus(req, r.p, p).map(h => runValidation(req, r.validators, h)).asInstanceOf[Option[\/[String, T]]]
+    runStatus(req, r.p, p).map(_.flatMap(runValidation(req, r.validators, _))).asInstanceOf[Option[\/[String, T]]]
   }
 
   /** Attempts to find a compatible codec */
@@ -79,40 +80,68 @@ trait RouteExecutor {
   }
 
   /** Runs the URL and pushes values to the HList stack */
-  private def runStatus[T1<: HList](req: Request, v: PathRule[T1], path: List[String]): Option[T1] = {
+  private def runStatus[T1<: HList](req: Request, v: PathRule[T1], path: List[String]): Option[\/[String,T1]] = {
 
-    def go(v: PathRule[_ <: HList], path: List[String], stack: HList): Option[(List[String],HList)] = v match {
-
-      case PathAnd(a, b) => go(a, path, stack).flatMap {
-        case (Nil, stack)  => ???
-        case (Nil, _)     => None // TODO: the error is here!
-        case (lst, stack) => go(b, lst, stack)
-      }
-
-      case PathOr(a, b) => go(a, path, stack).orElse(go(b, path, stack))
-
-      case PathCapture(f) => f(path.head).map{ i => (path.tail, i::stack)}
-
-      case PathMatch(s) =>
-        if (path.head == s) Some((path.tail, stack))
-        else None
-
-        // TODO: wont get here on purpose...
-      case QueryMapper(name, parser) =>
-        println("Got here! --------------------------")
-        req.requestUri.params.get(name) match {
-          case Some(v) => Some((path, parser.parse(v).fold(_ => ???, _::stack)))
-          case None => ???
-        }
-
-      case PathEmpty => // Needs to be the empty path
-        if (path.head.length == 0) Some(path.tail, stack)
-        else None
+    // setup a stack for the path
+    var currentPath = path
+    def pop = {
+      val head = currentPath.head
+      currentPath = currentPath.tail
+      head
     }
 
-    if (!path.isEmpty) go(v, path, HNil).flatMap {
-      case (Nil, stack) => Some(stack.asInstanceOf[T1])
-      case _ => None
+    // WARNING: returns null if not matched
+    def go(v: PathRule[_ <: HList], stack: HList): \/[String,HList] = v match {
+      case PathAnd(a, b) =>
+        val v = go(a, stack)
+        if (v == null) null
+        else if (!currentPath.isEmpty     ||
+           b.isInstanceOf[PathAnd[_,_,_]] ||
+           b.isInstanceOf[QueryMapper[_]] ||
+           b.isInstanceOf[CaptureTail]) v.flatMap(go(b, _))
+        else null
+
+      case PathOr(a, b) =>
+        val oldPath = currentPath
+        val v = go(a, stack)
+        if (v != null) v
+        else {
+          currentPath = oldPath // reset the path stack
+          go(b, stack)
+        }
+
+      case PathCapture(f) => f.parse(pop).map{ i => i::stack}
+
+      case PathMatch(s) =>
+        if (pop == s) \/-(stack)
+        else null
+
+      case QueryMapper(name, parser) =>
+        if (currentPath.isEmpty) req.requestUri.params.get(name) match {
+          case Some(v) => parser.parse(v).map(_::stack)
+          case None => -\/(s"Missing query param: $name")
+        } else null
+
+      case PathEmpty => // Needs to be the empty path
+        if (currentPath.head.length == 0) {
+          pop
+          \/-(stack)
+        }
+        else null
+
+      case CaptureTail() =>
+        val p = currentPath
+        currentPath = Nil
+        \/-(p::stack)
+    }
+
+    if (!path.isEmpty) {
+      val r = go(v, HNil)
+      if (currentPath.isEmpty) r match {
+        case null => None
+        case r@ \/-(_) => Some(r.asInstanceOf[\/[String,T1]])
+        case r@ -\/(_) => Some(r)
+      } else None
     }
     else None
   }
