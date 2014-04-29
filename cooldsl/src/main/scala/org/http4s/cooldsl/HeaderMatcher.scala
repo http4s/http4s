@@ -16,7 +16,7 @@ object HeaderMatcher {
 
   /* Check that the header exists and satisfies the condition */
   def requireThat[H <: HeaderKey.Extractable](header: H)
-                                             (implicit f: H#HeaderT => Boolean = {_: H#HeaderT => true}): HeaderRule[HNil] =
+                (implicit f: H#HeaderT => Boolean = {_: H#HeaderT => true}): HeaderRule[HNil] =
     HeaderRequire[H](header, f)
 
   /** requires the header and will pull this header from the pile and put it into the function args stack */
@@ -26,32 +26,48 @@ object HeaderMatcher {
   def map[H <: HeaderKey.Extractable, R](key: H)(f: H#HeaderT => R): HeaderRule[R::HNil] =
     HeaderMapper[H, R](key, f)
 
-  /////////////////////// Implementation bits //////////////////////////////////////////////////////
 
-  sealed trait HeaderRule[T <: HList] {
-
-    def or(v: HeaderRule[T]): HeaderRule[T] = Or(this, v)
-
-    def and[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] =
-      And(this, v)
-
-    final def &&[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] = and(v)
-
-    final def ||(v: HeaderRule[T]): HeaderRule[T] = or(v)
-  }
-
-  ///////////////// Header and body AST ///////////////////////
-
-  case class And[T <: HList, T2 <: HList, T3 <: HList](a: HeaderRule[T2], b: HeaderRule[T3])
-    extends HeaderRule[T]
-
-  case class Or[T <: HList](a: HeaderRule[T], b: HeaderRule[T]) extends HeaderRule[T]
-
-  case class HeaderRequire[H <: HeaderKey.Extractable](key: H, f: H#HeaderT => Boolean) extends HeaderRule[HNil]
-
-  case class HeaderCapture[T <: Header](key: HeaderKey.Extractable) extends HeaderRule[T::HNil]
-
-  case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends HeaderRule[R::HNil]
-
-  object EmptyHeaderRule extends HeaderRule[HNil]
 }
+
+/////////////////////// Implementation bits //////////////////////////////////////////////////////
+
+/* this exists only to force method consistency on the Route and HeaderRules,
+   not to play a role in the type tree */
+private[cooldsl] trait HeaderRuleSyntax[T <: HList] {
+
+  def or(v: HeaderRule[T]): HeaderRuleSyntax[T]
+
+  def ||(v: HeaderRule[T]): HeaderRuleSyntax[T]
+
+  def and[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRuleSyntax[prepend.Out]
+
+  def &&[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRuleSyntax[prepend.Out]
+}
+
+sealed trait HeaderRule[T <: HList] extends HeaderRuleSyntax[T] {
+
+  def or(v: HeaderRule[T]): HeaderRule[T] = Or(this, v)
+
+  final def ||(v: HeaderRule[T]): HeaderRule[T] = or(v)
+
+  def and[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] =
+    And(this, v)
+
+  final def &&[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] =
+    and(v)
+}
+
+///////////////// Header and body AST ///////////////////////
+
+case class And[T <: HList, T2 <: HList, T3 <: HList](a: HeaderRule[T2], b: HeaderRule[T3])
+  extends HeaderRule[T]
+
+case class Or[T <: HList](a: HeaderRule[T], b: HeaderRule[T]) extends HeaderRule[T]
+
+case class HeaderRequire[H <: HeaderKey.Extractable](key: H, f: H#HeaderT => Boolean) extends HeaderRule[HNil]
+
+case class HeaderCapture[T <: Header](key: HeaderKey.Extractable) extends HeaderRule[T::HNil]
+
+case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends HeaderRule[R::HNil]
+
+object EmptyHeaderRule extends HeaderRule[HNil]

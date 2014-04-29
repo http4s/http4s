@@ -223,7 +223,7 @@ class ApiTest extends Specification {
       val path = Method.Post / "hello"
       val path2 = path / 'world -? query[Int]("fav") // the symbol 'world just says 'capture a String'
       path ==> { () => Ok("Empty")}
-      path2 ==> { (world: String, i: Int) => Ok(s"Received $i, $world")}
+      path2 ==> { (world: String, fav: Int) => Ok(s"Received $fav, $world")}
 
       // It can also be made all at once
       val path3 = Method.Post / "hello" / parse[Int] -? query[Int]("fav")
@@ -243,10 +243,25 @@ class ApiTest extends Specification {
       // Now these two can be combined to make the 'Router'
       val r = path2.validate(v2)
 
+      // you can continue to add validation actions to a 'Router' but can no longer modify the path
+      val r2 = r && require(Header.`Cache-Control`)
+      // r2 / "stuff" // Doesn't work
+
       // Now this can be combined with a method to make the 'Action'
-      val action = r ==> {(world: String, fav: Int, tag: Header.ETag) =>
+      val action = r2 ==> {(world: String, fav: Int, tag: Header.ETag) =>
         Ok("Success").withHeaders(Header.ETag(fav.toString))
       }
+
+      /** Boolean logic
+        * What if you wanted to run the same thing on two different paths, but the rest of
+        * the hadling was the same??
+        */
+
+      val path6 = "one" / parse[Int]
+      val path7 = "two" / parse[Int]
+
+//      val path8 = Method.Get / (path6 || path7)
+
 
 
       true should_== true
