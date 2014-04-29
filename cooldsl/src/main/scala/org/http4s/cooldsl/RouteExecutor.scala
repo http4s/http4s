@@ -2,12 +2,14 @@ package org.http4s.cooldsl
 
 import shapeless.{HNil, HList, ::}
 
-import CoolApi._
+import HeaderMatcher._
 import org.http4s.{Header, HeaderKey, Request, Response}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-, \/}
 
 import BodyCodec._
+
+import PathBuilder._
 
 import org.http4s.Status.BadRequest
 
@@ -64,7 +66,7 @@ trait RouteExecutor {
 
   private def pathAndValidate[T <: HList](req: Request, r: Runnable[T]): Option[\/[String, T]] = {
     val p = parsePath(req.requestUri.path)
-    runStatus(r.p, p).map(h => runValidation(req, r.validators, h)).asInstanceOf[Option[\/[String, T]]]
+    runStatus(req, r.p, p).map(h => runValidation(req, r.validators, h)).asInstanceOf[Option[\/[String, T]]]
   }
 
   /** Attempts to find a compatible codec */
@@ -77,11 +79,13 @@ trait RouteExecutor {
   }
 
   /** Runs the URL and pushes values to the HList stack */
-  private def runStatus[T1<: HList](v: PathValidator[T1], path: List[String]): Option[T1] = {
-    def go(v: PathValidator[_ <: HList], path: List[String], stack: HList): Option[(List[String],HList)] = v match {
+  private def runStatus[T1<: HList](req: Request, v: PathRule[T1], path: List[String]): Option[T1] = {
+
+    def go(v: PathRule[_ <: HList], path: List[String], stack: HList): Option[(List[String],HList)] = v match {
 
       case PathAnd(a, b) => go(a, path, stack).flatMap {
-        case (Nil, _)     => None
+        case (Nil, stack)  => ???
+        case (Nil, _)     => None // TODO: the error is here!
         case (lst, stack) => go(b, lst, stack)
       }
 
@@ -92,6 +96,14 @@ trait RouteExecutor {
       case PathMatch(s) =>
         if (path.head == s) Some((path.tail, stack))
         else None
+
+        // TODO: wont get here on purpose...
+      case QueryMapper(name, parser) =>
+        println("Got here! --------------------------")
+        req.requestUri.params.get(name) match {
+          case Some(v) => Some((path, parser.parse(v).fold(_ => ???, _::stack)))
+          case None => ???
+        }
 
       case PathEmpty => // Needs to be the empty path
         if (path.head.length == 0) Some(path.tail, stack)
@@ -111,11 +123,11 @@ trait RouteExecutor {
     * @tparam T1 HList representation of the result of the validator tree
     * @return \/-[T1] if successful, -\/(reason string) otherwise
     */
-  private[cooldsl] def ensureValidHeaders[T1 <: HList](v: Validator[T1], req: Request): \/[String,T1] =
+  private[cooldsl] def ensureValidHeaders[T1 <: HList](v: HeaderRule[T1], req: Request): \/[String,T1] =
     runValidation(req, v, HNil).asInstanceOf[\/[String,T1]]
 
   /** The untyped guts of ensureValidHeaders and friends */
-  private[this] def runValidation(req: Request, v: Validator[_ <: HList], stack: HList): \/[String,HList] = v match {
+  private[this] def runValidation(req: Request, v: HeaderRule[_ <: HList], stack: HList): \/[String,HList] = v match {
     case And(a, b) => runValidation(req, b, stack).flatMap(runValidation(req, a, _))
 
     case Or(a, b) => runValidation(req, a, stack).orElse(runValidation(req, b, stack))
@@ -125,7 +137,7 @@ trait RouteExecutor {
       case None => -\/(missingHeader(key))
     }
 
-    case HeaderValidator(key, f) => req.headers.get(key) match {
+    case HeaderRequire(key, f) => req.headers.get(key) match {
       case Some(h) => if (f(h)) \/-(stack) else -\/(invalidHeader(h))
       case None => -\/(missingHeader(key))
     }
@@ -135,13 +147,7 @@ trait RouteExecutor {
       case None => -\/(missingHeader(key))
     }
 
-    case QueryMapper(name, parser) =>
-      req.requestUri.params.get(name) match {
-        case Some(v) => parser.parse(v).map(_::stack)
-        case None => -\/(missingQuery(name))
-      }
-
-    case EmptyValidator => \/-(stack)
+    case EmptyHeaderRule => \/-(stack)
   }
 
 }

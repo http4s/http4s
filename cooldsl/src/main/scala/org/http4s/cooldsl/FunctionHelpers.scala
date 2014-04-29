@@ -36,18 +36,18 @@ object FuncHelpers {
       f(t1,t2,t3)
     }
   }
-//
-//  implicit def fun4[T1, T2, T3, T4, O] = new HListToFunc[T4::T3::T2::T1::HNil, O, Function4[T1, T2, T3, T4, O]] {
-//    override def conv(f: (T1, T2, T3, T4) => O): (T4::T3::T2::T1::HNil) => O = { h4 =>
-//      val t4 = h4.head
-//      val h3 = h4.tail
-//      val t3 = h3.head
-//      val h2 = h3.tail
-//      val t2 = h2.head
-//      val t1 = h2.tail.head
-//      f(t1,t2,t3, t4)
-//    }
-//  }
+
+  implicit def fun4[T1, T2, T3, T4, O] = new HListToFunc[T4::T3::T2::T1::HNil, O, Function4[T1, T2, T3, T4, O]] {
+    override def conv(f: (T1, T2, T3, T4) => O): (T4::T3::T2::T1::HNil) => O = { h4 =>
+      val t4 = h4.head
+      val h3 = h4.tail
+      val t3 = h3.head
+      val h2 = h3.tail
+      val t2 = h2.head
+      val t1 = h2.tail.head
+      f(t1,t2,t3, t4)
+    }
+  }
 
 }
 
