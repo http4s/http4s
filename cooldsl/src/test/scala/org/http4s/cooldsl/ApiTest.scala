@@ -69,7 +69,6 @@ class ApiTest extends Specification {
 
   "PathValidator" should {
     import Status._
-    import FuncHelpers._
 
     def check(p: Option[Task[Response]], s: String) = {
       p.get.run.headers.get(Header.ETag).get.value should_== s
@@ -111,7 +110,6 @@ class ApiTest extends Specification {
 
   "Query validators" should {
     import Status._
-    import FuncHelpers._
 
     def check(p: Option[Task[Response]], s: String) = p match {
       case Some(r) => r.run
@@ -135,7 +133,6 @@ class ApiTest extends Specification {
 
   "Decoders" should {
     import Status._
-    import FuncHelpers._
     import BodyCodec._
     import scalaz.stream.Process
 
@@ -175,7 +172,6 @@ class ApiTest extends Specification {
 
   "Do a complicated one" in {
     import Status._
-    import FuncHelpers._
     import BodyCodec._
     import scalaz.stream.Process
 
@@ -206,12 +202,13 @@ class ApiTest extends Specification {
 
   "dream api" should {
     import Status.Ok
+
     "Allow the segregation of building a path parser and validations" in {
 
       /** The path and validation steps should be composed seperately and then
         * combined into the final object. This final object can then be combined
         * with a suitable 'executor' to generate an 'Action'
-       */
+        */
 
       val path = Method.Post / "hello"
       val path2 = path / 'world *? query[Int]("fav")
@@ -226,7 +223,10 @@ class ApiTest extends Specification {
       // Now this can be matched with a method to make the 'Action'
       // TODO: kill the prepare method. That can come from the combination of path and validation
 
-      r ~>{(world: String, fav: Int, tag: Header.ETag) => Ok("Success")}
+      r ~>{(world: String, fav: Int, tag: Header.ETag) =>
+        Ok("Success")
+          .withHeaders(Header.ETag(fav.toString))
+      }
 
       true should_== true
 

@@ -1,7 +1,6 @@
 package org.http4s.cooldsl
 
 import shapeless.{HList, HNil, ::}
-import scala.annotation.implicitNotFound
 
 /**
  * Created by Bryce Anderson on 4/27/14.
@@ -13,7 +12,7 @@ trait HListToFunc[H <: HList, O, F] {
   def conv(f: F): H => O
 }
 
-object FuncHelpers {
+object HListToFunc {
 
   implicit def fun0[O] = new HListToFunc[HNil, O, () => O] {
     override def conv(f: () => O): (HNil) => O = { h => f() }
