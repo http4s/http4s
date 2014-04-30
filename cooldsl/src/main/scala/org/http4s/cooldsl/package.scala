@@ -33,7 +33,7 @@ package object cooldsl {
 
   /* Check that the header exists and satisfies the condition */
   def requireThat[H <: HeaderKey.Extractable](header: H)
-                                             (implicit f: H#HeaderT => Boolean = {_: H#HeaderT => true}): HeaderRule[HNil] =
+                          (implicit f: H#HeaderT => Boolean = {_: H#HeaderT => true}): HeaderRule[HNil] =
     HeaderRequire[H](header, f)
 
   /** requires the header and will pull this header from the pile and put it into the function args stack */

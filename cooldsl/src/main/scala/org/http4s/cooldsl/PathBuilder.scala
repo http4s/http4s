@@ -19,42 +19,32 @@ import scala.language.existentials
 /** PathBuilder that disallows modifications to path but allows further query params mode */
 final class FinishedPathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T])
                                  extends PathBuilderBase[T] {
-  def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, path.and(q))
+  def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, PathAnd(path,q))
   def &[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = -?(q)
 }
 
 /** Fully functional path building */
 final class PathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T]) extends PathBuilderBase[T] {
 
-  def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, path.and(q))
+  def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, PathAnd(path,q))
 
-  def /(t: CaptureTail) : FinishedPathBuilder[List[String]::T] = new FinishedPathBuilder(m, path.and(t))
+  def /(t: CaptureTail) : FinishedPathBuilder[List[String]::T] = new FinishedPathBuilder(m, PathAnd(path,t))
 
-  def /(s: String): PathBuilder[T] = new PathBuilder(m, path.and(PathMatch(s)))
+  def /(s: String): PathBuilder[T] = new PathBuilder(m, PathAnd(path,PathMatch(s)))
 
-  def /(s: Symbol): PathBuilder[String::T] = new PathBuilder(m, path.and(PathCapture(StringParser.strParser)))
+  def /(s: Symbol): PathBuilder[String::T] = new PathBuilder(m, PathAnd(path,PathCapture(StringParser.strParser)))
 
   def /[T2 <: HList](t: CombinablePathRule[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
-    new PathBuilder(m, path.and(t))
+    new PathBuilder(m, PathAnd(path,t))
 
   def /[T2 <: HList](t: PathBuilder[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
-    new PathBuilder(m, path.and(t.path))
+    new PathBuilder(m, PathAnd(path, t.path))
 
   def /[T2 <: HList](t: FinishedPathBuilder[T2])(implicit prep: Prepend[T2, T]) : FinishedPathBuilder[prep.Out] =
-    new FinishedPathBuilder(m, path.and(t.path))
+    new FinishedPathBuilder(m, PathAnd(path, t.path))
 }
 
 ////////////////// AST representation of operations supported on the path ///////////////////
-sealed trait PathRule[T <: HList] {
-  def and[T2 <: HList](p2: PathRule[T2])(implicit prep: Prepend[T2,T]): PathRule[prep.Out] =
-    PathAnd(this, p2)
-
-  def &&[T2 <: HList](p2: PathRule[T2])(implicit prep: Prepend[T2,T]): PathRule[prep.Out] = and(p2)
-
-  def or(p2: PathRule[T]): PathRule[T] = PathOr(this, p2)
-
-  def ||(p2: PathRule[T]): PathRule[T] = or(p2)
-}
 
 sealed trait CombinablePathRule[T <: HList] extends PathRule[T] {
   /** These methods differ in their return type */
@@ -92,6 +82,8 @@ sealed trait PathBuilderBase[T <: HList] {
 }
 
 /** Actual elements which build up the AST */
+/** The root type of the parser AST */
+private[cooldsl] sealed trait PathRule[T <: HList]
 
 private[cooldsl] case class PathAnd[T <: HList](p1: PathRule[_ <: HList], p2: PathRule[_ <: HList]) extends CombinablePathRule[T]
 

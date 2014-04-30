@@ -1,8 +1,9 @@
-package org.http4s.cooldsl
+package org.http4s.cooldsltest
 
 import org.specs2.mutable.Specification
 import org.http4s.{Header, Method, Status}
 import Status.Ok
+import org.http4s.cooldsl._
 
 /**
  * Created by Bryce Anderson on 4/29/14.
@@ -38,7 +39,7 @@ class ApiExamples extends Specification {
       val r = path2.validate(v2)
 
       // you can continue to add validation actions to a 'Router' but can no longer modify the path
-      val r2 = r && require(Header.`Cache-Control`)
+      val r2 = r >>> require(Header.`Cache-Control`)
       // r2 / "stuff" // Doesn't work
 
       // Now this can be combined with a method to make the 'Action'

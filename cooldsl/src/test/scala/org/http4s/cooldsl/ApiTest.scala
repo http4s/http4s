@@ -6,8 +6,6 @@ import shapeless.HNil
 import scalaz.{\/-, -\/}
 import scalaz.concurrent.Task
 import scodec.bits.ByteVector
-import scalaz.stream.Process
-import java.lang.Process
 
 import Status._
 
