@@ -38,11 +38,14 @@ case class CodecRunnable[T1 <: HList, T2 <: HList, R](r: Runnable[T1,T2], t: Bod
 }
 
 
-private[cooldsl] trait RunnableHeaderRule[T <: HList] extends HeaderRuleSyntax[T] {
+sealed trait RunnableHeaderRule[T <: HList] extends HeaderRuleSyntax[T] {
 
   protected type ThisType[T <: HList] <: RunnableHeaderRule[T]
 
   protected def combine[T1 <: HList](f: HeaderRule[T] => HeaderRule[T1]): ThisType[T1]
+
+  def >>>[T1 <: HList](v: HeaderRule[T1])(implicit prepend: Prepend[T, T1]): ThisType[prepend.type#Out] =
+    and(v)
 
   override def &&[T1 <: HList](v: HeaderRule[T1])(implicit prepend: Prepend[T, T1]): ThisType[prepend.type#Out] =
     and(v)

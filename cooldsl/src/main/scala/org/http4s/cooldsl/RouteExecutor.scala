@@ -9,7 +9,6 @@ import scalaz.{-\/, \/-, \/}
 import BodyCodec._
 
 import org.http4s.Status.BadRequest
-import scala.annotation.unchecked.uncheckedVariance
 
 /**
  * Created by Bryce Anderson on 4/27/14.

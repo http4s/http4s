@@ -16,8 +16,9 @@ package object cooldsl {
 
   implicit def method(m: Method): PathBuilder[HNil] = new PathBuilder(m, PathEmpty)
 
-  // TODO: this should be implemented as a 'Syntax'
-  implicit def /(str: String): CombinablePathRule[HNil] = PathMatch(str)
+  implicit def pathMatch(s: String): CombinablePathRule[HNil] = PathMatch(s)
+
+  implicit def pathMatch(s: Symbol): CombinablePathRule[String::HNil] = PathCapture(StringParser.strParser)
 
   def query[T](key: String)(implicit parser: StringParser[T]) = QueryMapper[T](key, parser)
 

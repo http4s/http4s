@@ -16,27 +16,26 @@ import scala.language.existentials
  */
 
 ////////////////// Status line combinators //////////////////////////////////////////
-
-
-
 /** PathBuilder that disallows modifications to path but allows further query params mode */
-final class FinishedPathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T]) extends PathBuilderBase[T] {
+final class FinishedPathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T])
+                                 extends PathBuilderBase[T] {
   def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, path.and(q))
   def &[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = -?(q)
 }
 
 /** Fully functional path building */
-final class PathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T])
-        extends PathBuilderBase[T] with CombinablePathSyntax[T] {
-
-  override protected type ThisType[T <: HList] = PathBuilder[T]
-
-  override protected def push[T2 <: HList](r2: CombinablePathRule[T2])(implicit prep: Prepend[T2, T]): PathBuilder[prep.type#Out] =
-    new PathBuilder(m, path.and(r2))
+final class PathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T]) extends PathBuilderBase[T] {
 
   def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, path.and(q))
 
   def /(t: CaptureTail) : FinishedPathBuilder[List[String]::T] = new FinishedPathBuilder(m, path.and(t))
+
+  def /(s: String): PathBuilder[T] = new PathBuilder(m, path.and(PathMatch(s)))
+
+  def /(s: Symbol): PathBuilder[String::T] = new PathBuilder(m, path.and(PathCapture(StringParser.strParser)))
+
+  def /[T2 <: HList](t: CombinablePathRule[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
+    new PathBuilder(m, path.and(t))
 
   def /[T2 <: HList](t: PathBuilder[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
     new PathBuilder(m, path.and(t.path))
@@ -57,28 +56,23 @@ sealed trait PathRule[T <: HList] {
   def ||(p2: PathRule[T]): PathRule[T] = or(p2)
 }
 
-sealed trait CombinablePathRule[T <: HList] extends PathRule[T] with CombinablePathSyntax[T] {
-  override protected type ThisType[T <: HList] = CombinablePathRule[T]
+sealed trait CombinablePathRule[T <: HList] extends PathRule[T] {
+  /** These methods differ in their return type */
+  def and[T2 <: HList](p2: CombinablePathRule[T2])(implicit prep: Prepend[T2,T]): CombinablePathRule[prep.Out] =
+    PathAnd(this, p2)
 
-  override protected def push[T2 <: HList](r2: CombinablePathRule[T2])
-                                          (implicit prep: Prepend[T2, T]): CombinablePathRule[prep.type#Out] = PathAnd(this, r2)
-}
+  def &&[T2 <: HList](p2: CombinablePathRule[T2])(implicit prep: Prepend[T2,T]): CombinablePathRule[prep.Out] = and(p2)
 
-/** Facilitates the combination of rules which my be logically arranged using the '/' operator */
-private[cooldsl] trait CombinablePathSyntax[T <: HList] {
-  protected type ThisType[T <: HList] <: CombinablePathSyntax[T]
+  def or(p2: CombinablePathRule[T]): CombinablePathRule[T] = PathOr(this, p2)
 
-  protected def push[T2 <: HList](r2: CombinablePathRule[T2])(implicit prep: Prepend[T2, T]): ThisType[prep.Out]
+  def ||(p2: CombinablePathRule[T]): CombinablePathRule[T] = or(p2)
 
-  def /(p: String): ThisType[T] = /(PathMatch(p))
+  def /(s: String): CombinablePathRule[T] = PathAnd(this, PathMatch(s))
 
-  def /(p: Symbol): ThisType[String::T] = /(PathCapture(StringParser.strParser))
+  def /(s: Symbol): CombinablePathRule[String::T] = PathAnd(this, PathCapture(StringParser.strParser))
 
-  def /(p: PathMatch): ThisType[T] = push(p)
-
-  def /[R](p: PathCapture[R]): ThisType[R::T] = push(p)
-
-  def /[T2 <: HList](p: PathAnd[T2])(implicit prep: Prepend[T2, T]): ThisType[prep.Out] = push(p)
+  def /[T2 <: HList](t: CombinablePathRule[T2])(implicit prep: Prepend[T2, T]) : CombinablePathRule[prep.Out] =
+    PathAnd(this, t)
 }
 
 sealed trait PathBuilderBase[T <: HList] {
@@ -89,6 +83,8 @@ sealed trait PathBuilderBase[T <: HList] {
 
   final def validate[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Runnable[prep.Out, T1] =
     Runnable(m, path, h2)
+
+  final def >>>[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Runnable[prep.Out, T1] = validate(h2)
 
   final def decoding[R](dec: Decoder[R]): CodecRunnable[T, HNil, R] = CodecRunnable(toAction, dec)
 
@@ -107,7 +103,8 @@ private[cooldsl] case class PathCapture[T](parser: StringParser[T]) extends Comb
 
 // These don't fit the  operations of CombinablePathSyntax because they may
 // result in a change of the type of PathBulder
-private[cooldsl] case class CaptureTail() extends PathRule[List[String]::HNil]
+// TODO: can I make this a case object?
+case class CaptureTail() extends PathRule[List[String]::HNil]
 
 private[cooldsl] case object PathEmpty extends PathRule[HNil]
 

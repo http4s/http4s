@@ -9,6 +9,8 @@ import scodec.bits.ByteVector
 import scalaz.stream.Process
 import java.lang.Process
 
+import Status._
+
 
 import org.http4s.cooldsl.BodyCodec.Decoder
 /**
@@ -27,6 +29,8 @@ class ApiTest extends Specification {
     val s = new String(resp.body.runLog.run.reduce(_ ++ _).toArray)
     println(s)
   }
+
+  def fetch(p: Option[Task[Response]]) = p.get.run.headers.get(Header.ETag).get.value
 
   "CoolDsl bits" should {
     "Combine validators" in {
@@ -62,10 +66,18 @@ class ApiTest extends Specification {
       val c = requireMap(Header.`Content-Length`)(_.length)
       RouteExecutor.ensureValidHeaders(c,req) should_== \/-(4::HNil)
     }
+    
+    "Run || routes" in {
+      val p1 = "one" / 'two
+      val p2 = "three" / 'four
+      
+      val f = Method.Get / (p1 || p2) ==> { (s: String) => Ok("").withHeaders(Header.ETag(s)) }
+      
+      val req1 = Request(requestUri = Uri.fromString("/one/two").get)
+      fetch(f(req1)) should_== "two"
 
-    "Combine status line" in {
-
-      true should_== true
+      val req2 = Request(requestUri = Uri.fromString("/three/four").get)
+      fetch(f(req2)) should_== "four"
     }
   }
 
@@ -128,13 +140,6 @@ class ApiTest extends Specification {
   "Query validators" should {
     import Status._
 
-    def check(p: Option[Task[Response]], s: String) = p match {
-      case Some(r) => r.run
-        .headers.get(Header.ETag)
-        .get.value should_== s
-      case None => sys.error("Didn't match!")
-    }
-
     "get a query string" in {
       val path = Method.Post / "hello" -? query[Int]("jimbo")
       val req = Request(requestUri = Uri.fromString("/hello?jimbo=32").get)
@@ -143,7 +148,7 @@ class ApiTest extends Specification {
         Ok("stuff").withHeaders(Header.ETag((i + 1).toString))
       }
 
-      check(route(req), "33")
+      fetch(route(req)) should_== "33"
 
     }
   }
@@ -152,10 +157,6 @@ class ApiTest extends Specification {
     import Status._
     import BodyCodec._
     import scalaz.stream.Process
-
-    def check(p: Option[Task[Response]], s: String) = {
-      p.get.run.headers.get(Header.ETag).get.value should_== s
-    }
 
     "Decode a body" in {
       val path = Method.Post / "hello"
@@ -168,7 +169,7 @@ class ApiTest extends Specification {
         Ok("stuff").withHeaders(Header.ETag(str))
       }
 
-      check(route(req), "foo")
+      fetch(route(req)) should_== "foo"
     }
 
     "Fail on a header" in {
@@ -210,60 +211,4 @@ class ApiTest extends Specification {
     val resp = route(req).get.run
     resp.headers.get(Header.ETag).get.value should_== "foo"
   }
-
-  "mock api" should {
-    import Status.Ok
-
-    "Make it easy to compose routes" in {
-
-      // the path can be built up in mulitiple steps and the parts reused
-      val path = Method.Post / "hello"
-      val path2 = path / 'world -? query[Int]("fav") // the symbol 'world just says 'capture a String'
-      path ==> { () => Ok("Empty")}
-      path2 ==> { (world: String, fav: Int) => Ok(s"Received $fav, $world")}
-
-      // It can also be made all at once
-      val path3 = Method.Post / "hello" / parse[Int] -? query[Int]("fav")
-      path3 ==> {(i1: Int, i2: Int) => Ok(s"Sum of the number is ${i1+i2}")}
-
-      // You can automatically parse variables in the path
-      val path4 = Method.Get / "helloworldnumber" / parse[Int] / "foo"
-      path4 ==> {i: Int => Ok("Received $i")}
-
-      // You can capture the entire rest of the tail using -*
-      val path5 = Method.Get / "hello" / -* ==>{ r: List[String] => Ok(s"Got the rest: ${r.mkString}")}
-
-      // header validation is also composable
-      val v1 = requireThat(Header.`Content-Length`)(_.length > 0)
-      val v2 = v1 && capture(Header.ETag)
-
-      // Now these two can be combined to make the 'Router'
-      val r = path2.validate(v2)
-
-      // you can continue to add validation actions to a 'Router' but can no longer modify the path
-      val r2 = r && require(Header.`Cache-Control`)
-      // r2 / "stuff" // Doesn't work
-
-      // Now this can be combined with a method to make the 'Action'
-      val action = r2 ==> {(world: String, fav: Int, tag: Header.ETag) =>
-        Ok("Success").withHeaders(Header.ETag(fav.toString))
-      }
-
-      /** Boolean logic
-        * What if you wanted to run the same thing on two different paths, but the rest of
-        * the hadling was the same??
-        */
-
-      val path6 = "one" / parse[Int]
-      val path7 = "two" / parse[Int]
-
-//      val path8 = Method.Get / (path6 || path7)
-
-
-
-      true should_== true
-    }
-
-  }
-
 }
