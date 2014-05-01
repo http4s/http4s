@@ -33,7 +33,7 @@ trait RouteExecutor {
 
   ///////////////////// Route execution bits //////////////////////////////////////
 
-  def compile[T <: HList, F](r: Runnable[T, _ <: HList], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
+  def compile[T <: HList, F](r: Router[T, _ <: HList], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
 
     val ff: Goal = { req =>
        pathAndValidate(req, r).map(_ match {
@@ -45,7 +45,7 @@ trait RouteExecutor {
     ff
   }
   
-  def compileWithBody[T <: HList, F, R](r: CodecRunnable[T,_ <: HList, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
+  def compileWithBody[T <: HList, F, R](r: CodecRouter[T,_ <: HList, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
     val ff: Goal = { req =>
       pathAndValidate(req, r.r).map(_ match {
         case \/-(stack) =>
@@ -61,7 +61,7 @@ trait RouteExecutor {
     ff
   }
 
-  private def pathAndValidate[T <: HList](req: Request, r: Runnable[T, _ <: HList]): Option[\/[String, T]] = {
+  private def pathAndValidate[T <: HList](req: Request, r: Router[T, _ <: HList]): Option[\/[String, T]] = {
     val p = parsePath(req.requestUri.path)
     runStatus(req, r.p, p).map(_.flatMap(runValidation(req, r.validators, _))).asInstanceOf[Option[\/[String, T]]]
   }

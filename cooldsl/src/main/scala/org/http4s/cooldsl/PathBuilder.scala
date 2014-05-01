@@ -65,20 +65,20 @@ sealed trait CombinablePathRule[T <: HList] extends PathRule[T] {
     PathAnd(this, t)
 }
 
-sealed trait PathBuilderBase[T <: HList] {
+sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] {
   def m: Method
   private[cooldsl] def path: PathRule[T]
 
-  final def toAction: Runnable[T, HNil] = validate(EmptyHeaderRule)
+  final def toAction: Router[T, HNil] = validate(EmptyHeaderRule)
 
-  final def validate[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Runnable[prep.Out, T1] =
-    Runnable(m, path, h2)
+  final def validate[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Router[prep.Out, T1] =
+    Router(m, path, h2)
 
-  final def >>>[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Runnable[prep.Out, T1] = validate(h2)
+  final def >>>[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Router[prep.Out, T1] = validate(h2)
 
-  final def decoding[R](dec: Decoder[R]): CodecRunnable[T, HNil, R] = CodecRunnable(toAction, dec)
+  final def decoding[R](dec: Decoder[R]): CodecRouter[T, HNil, R] = CodecRouter(toAction, dec)
 
-  final def ==>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = RouteExecutor.compile(toAction, f, hf)
+  final def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = RouteExecutor.compile(toAction, f, hf)
 }
 
 /** Actual elements which build up the AST */
