@@ -1,8 +1,8 @@
-package org.http4s.cooldsl
+package org.http4s
+package cooldsl
 
 import shapeless.{HNil, HList, ::}
 
-import org.http4s.{Header, HeaderKey, Request, Response}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-, \/}
 
@@ -33,7 +33,7 @@ trait RouteExecutor {
 
   ///////////////////// Route execution bits //////////////////////////////////////
 
-  def compile[T <: HList, F](r: Router[T, _ <: HList], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
+  def compile[T <: HList, F](r: Router[T], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
 
     val ff: Goal = { req =>
        pathAndValidate(req, r).map(_ match {
@@ -45,14 +45,14 @@ trait RouteExecutor {
     ff
   }
   
-  def compileWithBody[T <: HList, F, R](r: CodecRouter[T,_ <: HList, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
+  def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
     val ff: Goal = { req =>
       pathAndValidate(req, r.r).map(_ match {
         case \/-(stack) =>
           pickDecoder(req, r.t)
             .map(_.decode(req.body).flatMap { r =>
               hf.conv(f)(r :: stack)
-            }).getOrElse(onBadRequest("No valid decoder"))
+            }).getOrElse(onBadRequest("No acceptable decoder"))
 
         case -\/(s) => onBadRequest(s)
       })
@@ -61,7 +61,7 @@ trait RouteExecutor {
     ff
   }
 
-  private def pathAndValidate[T <: HList](req: Request, r: Router[T, _ <: HList]): Option[\/[String, T]] = {
+  private def pathAndValidate[T <: HList](req: Request, r: Router[T]): Option[\/[String, T]] = {
     val p = parsePath(req.requestUri.path)
     runStatus(req, r.p, p).map(_.flatMap(runValidation(req, r.validators, _))).asInstanceOf[Option[\/[String, T]]]
   }

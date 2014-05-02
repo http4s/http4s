@@ -1,9 +1,11 @@
-package org.http4s.cooldsltest
+package org.http4s
+package cooldsltest
 
 import org.specs2.mutable.Specification
 import org.http4s.{Header, Method, Status}
 import Status.Ok
 import org.http4s.cooldsl._
+import scalaz.concurrent.Task
 
 /**
  * Created by Bryce Anderson on 4/29/14.
@@ -11,14 +13,17 @@ import org.http4s.cooldsl._
 
 class ApiExamples extends Specification {
 
+  def foo(s: String, i: Int): Task[Response] = ???
+
   "mock api" should {
     "Make it easy to compose routes" in {
 
       // the path can be built up in multiple steps and the parts reused
       val path = Method.Post / "hello"
       val path2 = path / 'world -? query[Int]("fav") // the symbol 'world just says 'capture a String'
-      path |>> { () => Ok("Empty")}
+      path |>> { () => Ok("Empty")}   // use the |>> operator to turn a Router into an Action
       path2 |>> { (world: String, fav: Int) => Ok(s"Received $fav, $world")}
+      path2 |>> (foo(_, _))
 
       // It can also be made all at once
       val path3 = Method.Post / "hello" / parse[Int] -? query[Int]("fav")
