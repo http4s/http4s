@@ -41,7 +41,7 @@ class ApiExamples extends Specification {
       val v2 = v1 && capture(Header.ETag)
 
       // Now these two can be combined to make the 'Router'
-      val r = path2.validate(v2)
+      val r = path2 >>> v2
 
       // you can continue to add validation actions to a 'Router' but can no longer modify the path
       val r2 = r >>> require(Header.`Cache-Control`)

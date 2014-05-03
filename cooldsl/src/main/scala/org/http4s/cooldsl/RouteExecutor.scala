@@ -63,7 +63,7 @@ trait RouteExecutor {
 
   private def pathAndValidate[T <: HList](req: Request, r: Router[T]): Option[\/[String, T]] = {
     val p = parsePath(req.requestUri.path)
-    runStatus(req, r.p, p).map(_.flatMap(runValidation(req, r.validators, _))).asInstanceOf[Option[\/[String, T]]]
+    runPath(req, r.p, p).map(_.flatMap(runValidation(req, r.validators, _))).asInstanceOf[Option[\/[String, T]]]
   }
 
   /** Attempts to find a compatible codec */
@@ -76,7 +76,7 @@ trait RouteExecutor {
   }
 
   /** Runs the URL and pushes values to the HList stack */
-  private def runStatus[T1<: HList](req: Request, v: PathRule[T1], path: List[String]): Option[\/[String,T1]] = {
+  private def runPath[T1<: HList](req: Request, v: PathRule[T1], path: List[String]): Option[\/[String,T1]] = {
 
     // setup a stack for the path
     var currentPath = path
@@ -112,12 +112,6 @@ trait RouteExecutor {
         if (pop == s) \/-(stack)
         else null
 
-      case QueryMapper(name, parser) =>
-        if (currentPath.isEmpty) req.requestUri.params.get(name) match {
-          case Some(v) => parser.parse(v).map(_::stack)
-          case None => -\/(s"Missing query param: $name")
-        } else null
-
       case PathEmpty => // Needs to be the empty path
         if (currentPath.head.length == 0) {
           pop
@@ -148,7 +142,7 @@ trait RouteExecutor {
 
   /** The untyped guts of ensureValidHeaders and friends */
   private[this] def runValidation(req: Request, v: HeaderRule[_ <: HList], stack: HList): \/[String,HList] = v match {
-    case And(a, b) => runValidation(req, b, stack).flatMap(runValidation(req, a, _))
+    case And(a, b) => runValidation(req, a, stack).flatMap(runValidation(req, b, _))
 
     case Or(a, b) => runValidation(req, a, stack).orElse(runValidation(req, b, stack))
 
@@ -166,6 +160,12 @@ trait RouteExecutor {
       case Some(h) => \/-(f(h)::stack)
       case None => -\/(missingHeader(key))
     }
+
+    case QueryMapper(name, parser) =>
+      req.requestUri.params.get(name) match {
+        case Some(v) => parser.parse(v).map(_ :: stack)
+        case None => -\/(s"Missing query param: $name")
+      }
 
     case EmptyHeaderRule => \/-(stack)
   }

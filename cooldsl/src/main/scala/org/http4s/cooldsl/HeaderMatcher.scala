@@ -10,15 +10,13 @@ import scala.language.existentials
 
 sealed trait HeaderRule[T <: HList] extends HeaderRuleSyntax[T] {
 
-  def or(v: HeaderRule[T]): HeaderRule[T] = Or(this, v)
+  final def or(v: HeaderRule[T]): HeaderRule[T] = Or(this, v)
 
   final def ||(v: HeaderRule[T]): HeaderRule[T] = or(v)
 
-  def and[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] =
-    And(this, v)
+  final def and[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] = And(this, v)
 
-  final def &&[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] =
-    and(v)
+  final def &&[T1 <: HList](v: HeaderRule[T1])(implicit prepend : Prepend[T, T1]) : HeaderRule[prepend.Out] = and(v)
 }
 
 /* this exists only to force method consistency on the Route and HeaderRules,
@@ -45,5 +43,7 @@ private[cooldsl] case class HeaderRequire[H <: HeaderKey.Extractable](key: H, f:
 private[cooldsl] case class HeaderCapture[T <: Header](key: HeaderKey.Extractable) extends HeaderRule[T::HNil]
 
 private[cooldsl] case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends HeaderRule[R::HNil]
+
+private[cooldsl] case class QueryMapper[T](name: String, p: StringParser[T]) extends HeaderRule[T::HNil]
 
 private[cooldsl] object EmptyHeaderRule extends HeaderRule[HNil]

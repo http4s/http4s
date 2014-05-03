@@ -20,8 +20,8 @@ class ApiTest extends Specification {
   val lenheader = Header.`Content-Length`(4)
   val etag = Header.ETag("foo")
 
-  val a = require(Header.ETag)
-  val b = requireThat(Header.`Content-Length`){ h => h.length != 0 }
+  val RequireETag = require(Header.ETag)
+  val RequireNonZeroLen = requireThat(Header.`Content-Length`){ h => h.length != 0 }
 
   def printBody(resp: Response) {
     val s = new String(resp.body.runLog.run.reduce(_ ++ _).toArray)
@@ -32,16 +32,16 @@ class ApiTest extends Specification {
 
   "CoolDsl bits" should {
     "Combine validators" in {
-      a && b should_== And(a, b)
+      RequireETag && RequireNonZeroLen should_== And(RequireETag, RequireNonZeroLen)
     }
 
     "Fail on a bad request" in {
       val badreq = Request().withHeaders(Headers(lenheader))
-      RouteExecutor.ensureValidHeaders(a && b,badreq) should_== -\/(s"Missing header: ${etag.name}")
+      RouteExecutor.ensureValidHeaders(RequireETag && RequireNonZeroLen,badreq) should_== -\/(s"Missing header: ${etag.name}")
     }
 
     "Match captureless route" in {
-      val c = a && b
+      val c = RequireETag && RequireNonZeroLen
 
       val req = Request().withHeaders(Headers(etag, lenheader))
       RouteExecutor.ensureValidHeaders(c,req) should_== \/-(HNil)
@@ -50,12 +50,11 @@ class ApiTest extends Specification {
     "Capture params" in {
       val req = Request().withHeaders(Headers(etag, lenheader))
       Seq({
-        val c2 = capture(Header.`Content-Length`) && a
+        val c2 = capture(Header.`Content-Length`) && RequireETag
         RouteExecutor.ensureValidHeaders(c2,req) should_== \/-(lenheader::HNil)
       }, {
-        val c3 = capture(Header.`Content-Length`) &&
-          capture(Header.ETag)
-        RouteExecutor.ensureValidHeaders(c3,req) should_== \/-(lenheader::etag::HNil)
+        val c3 = capture(Header.`Content-Length`) && capture(Header.ETag)
+        RouteExecutor.ensureValidHeaders(c3,req) should_== \/-(etag::lenheader::HNil)
       }).reduce( _ and _)
     }
 
@@ -64,13 +63,13 @@ class ApiTest extends Specification {
       val c = requireMap(Header.`Content-Length`)(_.length)
       RouteExecutor.ensureValidHeaders(c,req) should_== \/-(4::HNil)
     }
-    
+
     "Run || routes" in {
       val p1 = "one" / 'two
       val p2 = "three" / 'four
-      
+
       val f = Method.Get / (p1 || p2) |>> { (s: String) => Ok("").withHeaders(Header.ETag(s)) }
-      
+
       val req1 = Request(requestUri = Uri.fromString("/one/two").get)
       fetch(f(req1)) should_== "two"
 
@@ -196,7 +195,7 @@ class ApiTest extends Specification {
                       capture(Header.ETag)
 
     val route =
-      path.validate(validations).decoding(strDec) |>> {(world: String, fav: Int, tag: Header.ETag, body: String) =>
+      (path >>> validations).decoding(strDec) |>> {(world: String, fav: Int, tag: Header.ETag, body: String) =>
 
         Ok(s"Hello to you too, $world. Your Fav number is $fav. You sent me $body")
           .addHeaders(Header.ETag("foo"))
@@ -219,7 +218,7 @@ class ApiTest extends Specification {
     val validations = requireThat(Header.`Content-Length`){ h => h.length != 0 }
 
 
-    val route = (path.validate(validations) >>> capture(Header.ETag)).decoding(strDec) |>>
+    val route = (path >>> validations >>> capture(Header.ETag)).decoding(strDec) |>>
       {(world: String, fav: Int, tag: Header.ETag, body: String) =>
 
         Ok(s"Hello to you too, $world. Your Fav number is $fav. You sent me $body")

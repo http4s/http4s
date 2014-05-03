@@ -15,20 +15,13 @@ import scala.language.existentials
  * of a HTTP request. That includes the request method, path, and query params.
  */
 
-////////////////// Status line combinators //////////////////////////////////////////
-/** PathBuilder that disallows modifications to path but allows further query params mode */
-final class FinishedPathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T])
-                                 extends PathBuilderBase[T] {
-  def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, PathAnd(path,q))
-  def &[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = -?(q)
-}
-
 /** Fully functional path building */
-final class PathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T]) extends PathBuilderBase[T] {
+final class PathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T])
+                  extends PathBuilderBase[T] with HeaderAppendable[T] {
 
-  def -?[T1](q: QueryMapper[T1]): FinishedPathBuilder[T1::T] = new FinishedPathBuilder(m, PathAnd(path,q))
+  def -?[T1](q: QueryMapper[T1]): Router[T1::T] = new Router(m, path, q)
 
-  def /(t: CaptureTail) : FinishedPathBuilder[List[String]::T] = new FinishedPathBuilder(m, PathAnd(path,t))
+  def /(t: CaptureTail) : Router[List[String]::T] = new Router(m, PathAnd(path,t), EmptyHeaderRule)
 
   def /(s: String): PathBuilder[T] = new PathBuilder(m, PathAnd(path,PathMatch(s)))
 
@@ -39,9 +32,6 @@ final class PathBuilder[T <: HList](val m: Method, private[cooldsl] val path: Pa
 
   def /[T2 <: HList](t: PathBuilder[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
     new PathBuilder(m, PathAnd(path, t.path))
-
-  def /[T2 <: HList](t: FinishedPathBuilder[T2])(implicit prep: Prepend[T2, T]) : FinishedPathBuilder[prep.Out] =
-    new FinishedPathBuilder(m, PathAnd(path, t.path))
 }
 
 ////////////////// AST representation of operations supported on the path ///////////////////
@@ -99,6 +89,4 @@ private[cooldsl] case class PathCapture[T](parser: StringParser[T]) extends Comb
 case class CaptureTail() extends PathRule[List[String]::HNil]
 
 private[cooldsl] case object PathEmpty extends PathRule[HNil]
-
-private[cooldsl] case class QueryMapper[T](name: String, p: StringParser[T]) extends PathRule[T::HNil]
 
