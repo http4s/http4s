@@ -14,12 +14,14 @@ import org.http4s.Status.BadRequest
  * Created by Bryce Anderson on 4/27/14.
  */
 
-object RouteExecutor extends RouteExecutor
 
-trait RouteExecutor {
 
-  type Goal = Request => Option[Task[Response]]
+trait RouteCompiler[T1] {
+  private[cooldsl] def compile[T <: HList, F](r: Router[T], f: F, hf: HListToFunc[T, Task[Response], F]): T1
+  private[cooldsl] def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): T1
+}
 
+trait ExecutableCompiler[T] extends RouteCompiler[T] {
   def missingHeader(key: HeaderKey): String = s"Missing header: ${key.name}"
 
   def missingQuery(key: String): String = s"Missing query param: $key"
@@ -30,53 +32,43 @@ trait RouteExecutor {
 
   def parsePath(path: String): List[String] = path.split("/").toList
 
+  //////////////////////// Stuff for executing the route //////////////////////////////////////
 
-  ///////////////////// Route execution bits //////////////////////////////////////
+  protected def runValidation(req: Request, v: HeaderRule[_ <: HList], stack: HList): \/[String,HList] =
+    runValidation(req, v, identity(_)).map(_(stack))
 
-  def compile[T <: HList, F](r: Router[T], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
+  /** The untyped guts of ensureValidHeaders and friends */
+  protected def runValidation(req: Request, v: HeaderRule[_ <: HList], stackBuilder: HList => HList): \/[String,HList => HList] = v match {
+    case And(a, b) => runValidation(req, a, stackBuilder).flatMap(runValidation(req, b, _))
 
-    val ff: Goal = { req =>
-       pathAndValidate(req, r).map(_ match {
-           case \/-(stack) => hf.conv(f)(stack)
-           case -\/(s) => onBadRequest(s)
-       })
+    case Or(a, b) => runValidation(req, a, stackBuilder).orElse(runValidation(req, b, stackBuilder))
+
+    case HeaderCapture(key) => req.headers.get(key) match {
+      case Some(h) => \/-(stack => h::stackBuilder(stack))
+      case None => -\/(missingHeader(key))
     }
 
-    ff
-  }
-  
-  def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
-    val ff: Goal = { req =>
-      pathAndValidate(req, r.r).map(_ match {
-        case \/-(stack) =>
-          pickDecoder(req, r.t)
-            .map(_.decode(req.body).flatMap { r =>
-              hf.conv(f)(r :: stack)
-            }).getOrElse(onBadRequest("No acceptable decoder"))
-
-        case -\/(s) => onBadRequest(s)
-      })
+    case HeaderRequire(key, f) => req.headers.get(key) match {
+      case Some(h) => if (f(h)) \/-(stackBuilder) else -\/(invalidHeader(h))
+      case None => -\/(missingHeader(key))
     }
 
-    ff
-  }
+    case HeaderMapper(key, f) => req.headers.get(key) match {
+      case Some(h) => \/-(stack => f(h)::stackBuilder(stack))
+      case None => -\/(missingHeader(key))
+    }
 
-  private def pathAndValidate[T <: HList](req: Request, r: Router[T]): Option[\/[String, T]] = {
-    val p = parsePath(req.requestUri.path)
-    runPath(req, r.p, p).map(_.flatMap(runValidation(req, r.validators, _))).asInstanceOf[Option[\/[String, T]]]
-  }
+    case QueryMapper(name, parser) =>
+      req.requestUri.params.get(name) match {
+        case Some(v) => parser.parse(v).map(v => stack => v::stack)
+        case None => -\/(s"Missing query param: $name")
+      }
 
-  /** Attempts to find a compatible codec */
-  private def pickDecoder[T](req: Request, d: BodyTransformer[T]): Option[Dec[T]] = d match {
-    case Decoder(codec) =>
-      if (codec.checkHeaders(req.headers)) Some(codec)
-      else None
-
-    case OrDec(c1, c2) => pickDecoder(req, c1).orElse(pickDecoder(req, c2))
+    case EmptyHeaderRule => \/-(stackBuilder)
   }
 
   /** Runs the URL and pushes values to the HList stack */
-  private def runPath[T1<: HList](req: Request, v: PathRule[T1], path: List[String]): Option[\/[String,T1]] = {
+  protected def runPath[T1<: HList](req: Request, v: PathRule[T1], path: List[String]): Option[\/[String,T1]] = {
 
     // setup a stack for the path
     var currentPath = path
@@ -91,10 +83,9 @@ trait RouteExecutor {
       case PathAnd(a, b) =>
         val v = go(a, stack)
         if (v == null) null
-        else if (!currentPath.isEmpty     ||
-           b.isInstanceOf[PathAnd[_]]     ||
-           b.isInstanceOf[QueryMapper[_]] ||
-           b.isInstanceOf[CaptureTail]) v.flatMap(go(b, _))
+        else if (!currentPath.isEmpty    ||
+          b.isInstanceOf[PathAnd[_]]     ||
+          b.isInstanceOf[CaptureTail]) v.flatMap(go(b, _))
         else null
 
       case PathOr(a, b) =>
@@ -136,38 +127,60 @@ trait RouteExecutor {
     else None
   }
 
+}
+
+object RouteExecutor extends RouteExecutor
+
+private[cooldsl] trait RouteExecutor extends ExecutableCompiler[Goal] {
+
+  ///////////////////// Route execution bits //////////////////////////////////////
+
+  def compile[T <: HList, F](r: Router[T], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
+
+    val ff: Goal = { req =>
+       pathAndValidate[T](req, r.p, r.validators).map(_ match {
+           case \/-(stack) => hf.conv(f)(stack)
+           case -\/(s) => onBadRequest(s)
+       })
+    }
+
+    ff
+  }
+  
+  def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
+    val ff: Goal = { req =>
+      pathAndValidate[T](req, r.r.p, r.r.validators).map(_ match {
+        case \/-(stack) =>
+          pickDecoder(req, r.t)
+            .map(_.decode(req.body).flatMap { r =>
+              hf.conv(f)(r :: stack)
+            }).getOrElse(onBadRequest("No acceptable decoder"))
+
+        case -\/(s) => onBadRequest(s)
+      })
+    }
+
+    ff
+  }
+
+  private def pathAndValidate[T <: HList](req: Request, path: PathRule[_ <: HList], v: HeaderRule[_ <: HList]): Option[\/[String, T]] = {
+    val p = parsePath(req.requestUri.path)
+    runPath(req, path, p).map(_.flatMap(runValidation(req, v, _))).asInstanceOf[Option[\/[String, T]]]
+  }
+
+  /** Attempts to find a compatible codec */
+  private def pickDecoder[T](req: Request, d: BodyTransformer[T]): Option[Dec[T]] = d match {
+    case Decoder(codec) =>
+      if (codec.checkHeaders(req.headers)) Some(codec)
+      else None
+
+    case OrDec(c1, c2) => pickDecoder(req, c1).orElse(pickDecoder(req, c2))
+  }
+
   /** Walks the validation tree */
   private[cooldsl] def ensureValidHeaders[T1 <: HList](v: HeaderRule[T1], req: Request): \/[String,T1] =
     runValidation(req, v, HNil).asInstanceOf[\/[String,T1]]
 
-  /** The untyped guts of ensureValidHeaders and friends */
-  private[this] def runValidation(req: Request, v: HeaderRule[_ <: HList], stack: HList): \/[String,HList] = v match {
-    case And(a, b) => runValidation(req, a, stack).flatMap(runValidation(req, b, _))
 
-    case Or(a, b) => runValidation(req, a, stack).orElse(runValidation(req, b, stack))
-
-    case HeaderCapture(key) => req.headers.get(key) match {
-      case Some(h) => \/-(h::stack)
-      case None => -\/(missingHeader(key))
-    }
-
-    case HeaderRequire(key, f) => req.headers.get(key) match {
-      case Some(h) => if (f(h)) \/-(stack) else -\/(invalidHeader(h))
-      case None => -\/(missingHeader(key))
-    }
-
-    case HeaderMapper(key, f) => req.headers.get(key) match {
-      case Some(h) => \/-(f(h)::stack)
-      case None => -\/(missingHeader(key))
-    }
-
-    case QueryMapper(name, parser) =>
-      req.requestUri.params.get(name) match {
-        case Some(v) => parser.parse(v).map(_ :: stack)
-        case None => -\/(s"Missing query param: $name")
-      }
-
-    case EmptyHeaderRule => \/-(stack)
-  }
 
 }

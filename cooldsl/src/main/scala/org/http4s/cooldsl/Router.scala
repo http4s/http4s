@@ -39,7 +39,17 @@ case class CodecRouter[T1 <: HList, R](r: Router[T1], t: BodyTransformer[R])exte
     RouteExecutor.compileWithBody(this, f, hf)
 }
 
-class Action(m: Method, p: PathRule[_ <: HList], v: HeaderRule[_ <: HList], dec: Option[BodyTransformer[_]])
+trait Action {
+  def compile[T](compiler: RouteCompiler[T]): T
+}
+
+private class RouterAction[T1<: HList, F](method: Method,
+                                       p: PathRule[_ <: HList],
+                                       v: HeaderRule[_ <: HList],
+                                       f: F,
+                                       hf: HListToFunc[T1, Task[Response], F]) extends Action {
+  def compile[T](compiler: RouteCompiler[T]): T = ???
+}
 
 private[cooldsl] trait RouteExecutable[T <: HList] {
   def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal
