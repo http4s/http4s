@@ -17,7 +17,7 @@ object StringParser {
   implicit val intParser = new StringParser[Int] {
     override def parse(s: String): \/[String,Int] =
       try \/-(s.toInt)
-      catch { case e: NumberFormatException => -\/(e.getMessage) }
+      catch { case e: NumberFormatException => -\/(s"Invalid Number Format: $s") }
   }
 
   implicit val strParser = new StringParser[String] {

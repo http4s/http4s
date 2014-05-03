@@ -69,6 +69,9 @@ sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] with HeaderA
   final def decoding[R](dec: Decoder[R]): CodecRouter[T, R] = CodecRouter(toAction, dec)
 
   final def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = RouteExecutor.compile(toAction, f, hf)
+
+  final def |>>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): CoolAction[T, F] =
+    new CoolAction(Router(m, path, EmptyHeaderRule), f, hf)
 }
 
 /** Actual elements which build up the AST */

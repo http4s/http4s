@@ -25,7 +25,10 @@ case class Router[T1 <: HList](method: Method, p: PathRule[_ <: HList], validato
   override def >>>[T3 <: HList](v: HeaderRule[T3])(implicit prep1: Prepend[T3, T1]): Router[prep1.Out] =
     Router(method, p, And(validators,v))
 
-  def |>>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): Goal = RouteExecutor.compile(this, f, hf)
+  override def |>>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): Goal = RouteExecutor.compile(this, f, hf)
+
+  override def |>>>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): CoolAction[T1, F] =
+    new CoolAction(this, f, hf)
 
   def decoding[R](decoder: Decoder[R]): CodecRouter[T1,R] = CodecRouter(this, decoder)
 }
@@ -37,6 +40,9 @@ case class CodecRouter[T1 <: HList, R](r: Router[T1], t: BodyTransformer[R])exte
 
   override def |>>[F](f: F)(implicit hf: HListToFunc[R::T1,Task[Response],F]): Goal =
     RouteExecutor.compileWithBody(this, f, hf)
+
+  override def |>>>[F](f: F)(implicit hf: HListToFunc[R::T1,Task[Response],F]): CoolAction[R::T1, F] =
+    new CoolAction(this, f, hf)
 }
 
 trait Action {
@@ -53,6 +59,7 @@ private class RouterAction[T1<: HList, F](method: Method,
 
 private[cooldsl] trait RouteExecutable[T <: HList] {
   def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal
+  def |>>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): CoolAction[T, F]
 }
 
 private[cooldsl] trait HeaderAppendable[T1 <: HList] {

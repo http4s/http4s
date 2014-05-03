@@ -11,11 +11,20 @@ import scodec.bits.ByteVector
  */
 object BodyCodec {
 
-  trait BodyTransformer[T]
+  trait BodyTransformer[T] {
+    def decode(req: Request): Option[Task[T]]
+  }
 
-  case class Decoder[T](codec: Dec[T]) extends BodyTransformer[T]
+  case class Decoder[T](codec: Dec[T]) extends BodyTransformer[T] {
+    override def decode(req: Request): Option[Task[T]] = {
+      if (codec.checkHeaders(req.headers)) Some(codec.decode(req.body))
+      else None
+    }
+  }
 
-  case class OrDec[T](c1: Decoder[T], c2: Decoder[T]) extends BodyTransformer[T]
+  case class OrDec[T](c1: Decoder[T], c2: Decoder[T]) extends BodyTransformer[T] {
+    override def decode(req: Request): Option[Task[T]] = c1.decode(req).orElse(c2.decode(req))
+  }
 
   trait Dec[T] {
     /** Check the headers to determine of this decoder is applicable */

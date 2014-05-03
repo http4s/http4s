@@ -21,7 +21,7 @@ trait RouteCompiler[T1] {
   private[cooldsl] def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): T1
 }
 
-trait ExecutableCompiler[T] extends RouteCompiler[T] {
+trait ExecutableCompiler {
   def missingHeader(key: HeaderKey): String = s"Missing header: ${key.name}"
 
   def missingQuery(key: String): String = s"Missing query param: $key"
@@ -34,37 +34,34 @@ trait ExecutableCompiler[T] extends RouteCompiler[T] {
 
   //////////////////////// Stuff for executing the route //////////////////////////////////////
 
-  protected def runValidation(req: Request, v: HeaderRule[_ <: HList], stack: HList): \/[String,HList] =
-    runValidation(req, v, identity(_)).map(_(stack))
-
   /** The untyped guts of ensureValidHeaders and friends */
-  protected def runValidation(req: Request, v: HeaderRule[_ <: HList], stackBuilder: HList => HList): \/[String,HList => HList] = v match {
-    case And(a, b) => runValidation(req, a, stackBuilder).flatMap(runValidation(req, b, _))
+  protected def runValidation(req: Request, v: HeaderRule[_ <: HList], stack: HList): \/[String,HList] = v match {
+    case And(a, b) => runValidation(req, a, stack).flatMap(runValidation(req, b, _))
 
-    case Or(a, b) => runValidation(req, a, stackBuilder).orElse(runValidation(req, b, stackBuilder))
+    case Or(a, b) => runValidation(req, a, stack).orElse(runValidation(req, b, stack))
 
     case HeaderCapture(key) => req.headers.get(key) match {
-      case Some(h) => \/-(stack => h::stackBuilder(stack))
+      case Some(h) => \/-(h::stack)
       case None => -\/(missingHeader(key))
     }
 
     case HeaderRequire(key, f) => req.headers.get(key) match {
-      case Some(h) => if (f(h)) \/-(stackBuilder) else -\/(invalidHeader(h))
+      case Some(h) => if (f(h)) \/-(stack) else -\/(invalidHeader(h))
       case None => -\/(missingHeader(key))
     }
 
     case HeaderMapper(key, f) => req.headers.get(key) match {
-      case Some(h) => \/-(stack => f(h)::stackBuilder(stack))
+      case Some(h) => \/-(f(h)::stack)
       case None => -\/(missingHeader(key))
     }
 
     case QueryMapper(name, parser) =>
       req.requestUri.params.get(name) match {
-        case Some(v) => parser.parse(v).map(v => stack => v::stack)
+        case Some(v) => parser.parse(v).map(_::stack)
         case None => -\/(s"Missing query param: $name")
       }
 
-    case EmptyHeaderRule => \/-(stackBuilder)
+    case EmptyHeaderRule => \/-(stack)
   }
 
   /** Runs the URL and pushes values to the HList stack */
@@ -78,7 +75,7 @@ trait ExecutableCompiler[T] extends RouteCompiler[T] {
       head
     }
 
-    // WARNING: returns null if not matched
+    // WARNING: returns null if not matched but no nulls should escape the runPath method
     def go(v: PathRule[_ <: HList], stack: HList): \/[String,HList] = v match {
       case PathAnd(a, b) =>
         val v = go(a, stack)
@@ -131,7 +128,7 @@ trait ExecutableCompiler[T] extends RouteCompiler[T] {
 
 object RouteExecutor extends RouteExecutor
 
-private[cooldsl] trait RouteExecutor extends ExecutableCompiler[Goal] {
+private[cooldsl] trait RouteExecutor extends ExecutableCompiler with RouteCompiler[Goal] {
 
   ///////////////////// Route execution bits //////////////////////////////////////
 
