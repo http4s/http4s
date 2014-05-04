@@ -16,22 +16,22 @@ import scala.language.existentials
  */
 
 /** Fully functional path building */
-final class PathBuilder[T <: HList](val m: Method, private[cooldsl] val path: PathRule[T])
+final class PathBuilder[T <: HList](val method: Method, private[cooldsl] val path: PathRule[T])
                   extends PathBuilderBase[T] with HeaderAppendable[T] {
 
-  def -?[T1](q: QueryMapper[T1]): Router[T1::T] = new Router(m, path, q)
+  def -?[T1](q: QueryMapper[T1]): Router[T1::T] = new Router(method, path, q)
 
-  def /(t: CaptureTail) : Router[List[String]::T] = new Router(m, PathAnd(path,t), EmptyHeaderRule)
+  def /(t: CaptureTail) : Router[List[String]::T] = new Router(method, PathAnd(path,t), EmptyHeaderRule)
 
-  def /(s: String): PathBuilder[T] = new PathBuilder(m, PathAnd(path,PathMatch(s)))
+  def /(s: String): PathBuilder[T] = new PathBuilder(method, PathAnd(path,PathMatch(s)))
 
-  def /(s: Symbol): PathBuilder[String::T] = new PathBuilder(m, PathAnd(path,PathCapture(StringParser.strParser)))
+  def /(s: Symbol): PathBuilder[String::T] = new PathBuilder(method, PathAnd(path,PathCapture(StringParser.strParser)))
 
   def /[T2 <: HList](t: CombinablePathRule[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
-    new PathBuilder(m, PathAnd(path,t))
+    new PathBuilder(method, PathAnd(path,t))
 
   def /[T2 <: HList](t: PathBuilder[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
-    new PathBuilder(m, PathAnd(path, t.path))
+    new PathBuilder(method, PathAnd(path, t.path))
 }
 
 ////////////////// AST representation of operations supported on the path ///////////////////
@@ -56,13 +56,13 @@ sealed trait CombinablePathRule[T <: HList] extends PathRule[T] {
 }
 
 sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] with HeaderAppendable[T] {
-  def m: Method
+  def method: Method
   private[cooldsl] def path: PathRule[T]
 
   final def toAction: Router[T] = validate(EmptyHeaderRule)
 
   final def validate[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Router[prep.Out] =
-    Router(m, path, h2)
+    Router(method, path, h2)
 
   override final def >>>[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Router[prep.Out] = validate(h2)
 
@@ -71,25 +71,27 @@ sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] with HeaderA
   final def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = RouteExecutor.compile(toAction, f, hf)
 
   final def |>>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): CoolAction[T, F] =
-    new CoolAction(Router(m, path, EmptyHeaderRule), f, hf)
+    new CoolAction(Router(method, path, EmptyHeaderRule), f, hf)
 }
 
 /** Actual elements which build up the AST */
 /** The root type of the parser AST */
-private[cooldsl] sealed trait PathRule[T <: HList]
+private[cooldsl] sealed trait PathRule[T <: HList] {
+  def documentation: Option[String] = None
+}
 
 private[cooldsl] case class PathAnd[T <: HList](p1: PathRule[_ <: HList], p2: PathRule[_ <: HList]) extends CombinablePathRule[T]
 
 private[cooldsl] case class PathOr[T <: HList](p1: PathRule[T], p2: PathRule[T]) extends CombinablePathRule[T]
 
-private[cooldsl] case class PathMatch(s: String) extends CombinablePathRule[HNil]
+private[cooldsl] case class PathMatch(s: String, override val documentation: Option[String] = None) extends CombinablePathRule[HNil]
 
-private[cooldsl] case class PathCapture[T](parser: StringParser[T]) extends CombinablePathRule[T::HNil]
+private[cooldsl] case class PathCapture[T](parser: StringParser[T], override val documentation: Option[String] = None) extends CombinablePathRule[T::HNil]
 
 // These don't fit the  operations of CombinablePathSyntax because they may
 // result in a change of the type of PathBulder
 // TODO: can I make this a case object?
-case class CaptureTail() extends PathRule[List[String]::HNil]
+case class CaptureTail(override val documentation: Option[String] = None) extends PathRule[List[String]::HNil]
 
 private[cooldsl] case object PathEmpty extends PathRule[HNil]
 

@@ -53,7 +53,13 @@ class CoolServiceTest extends Specification {
 
     val route8 = Method.Get / "variadic" / -* |>>> { tail: Seq[String] => Tag("route8_" + tail.mkString("/"))}
     append(route8)
+
+    val or = "or1" || "or2"
+    val route9 = Method.Get / or |>>> { () => Tag("route9")}
+    append(route9)
   }
+
+  println(service)
 
   "CoolService" should {
     "Execute a route with no params" in {
@@ -103,6 +109,13 @@ class CoolServiceTest extends Specification {
       (checkOk(req1) should_== "route8_")          and
       (checkOk(req2) should_== "route8_one")       and
       (checkOk(req3) should_== "route8_one/two")
+    }
+
+    "Perform path 'or' logic" in {
+      val req1 = Get("/or1")
+      val req2 = Get("/or2")
+      (checkOk(req1) should_== "route9") and
+      (checkOk(req2) should_== "route9")
     }
   }
 

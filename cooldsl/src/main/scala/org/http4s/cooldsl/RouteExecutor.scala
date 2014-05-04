@@ -94,9 +94,9 @@ trait ExecutableCompiler {
           go(b, stack)
         }
 
-      case PathCapture(f) => f.parse(pop).map{ i => i::stack}
+      case PathCapture(f, _) => f.parse(pop).map{ i => i::stack}
 
-      case PathMatch(s) =>
+      case PathMatch(s, _) =>
         if (pop == s) \/-(stack)
         else null
 
@@ -107,7 +107,7 @@ trait ExecutableCompiler {
         }
         else null
 
-      case CaptureTail() =>
+      case CaptureTail(_) =>
         val p = currentPath
         currentPath = Nil
         \/-(p::stack)
@@ -135,7 +135,7 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with RouteCompil
   def compile[T <: HList, F](r: Router[T], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
 
     val ff: Goal = { req =>
-       pathAndValidate[T](req, r.p, r.validators).map(_ match {
+       pathAndValidate[T](req, r.path, r.validators).map(_ match {
            case \/-(stack) => hf.conv(f)(stack)
            case -\/(s) => onBadRequest(s)
        })
@@ -146,7 +146,7 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with RouteCompil
   
   def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
     val ff: Goal = { req =>
-      pathAndValidate[T](req, r.r.p, r.r.validators).map(_ match {
+      pathAndValidate[T](req, r.r.path, r.r.validators).map(_ match {
         case \/-(stack) =>
           pickDecoder(req, r.t)
             .map(_.decode(req.body).flatMap { r =>

@@ -15,15 +15,17 @@ import scala.language.existentials
 /** Provides the operations for generating a router
   *
   * @param method request methods to match
-  * @param p path matching stack
+  * @param path path matching stack
   * @param validators header validation stack
   * @tparam T1 cumulative type of the required method for executing the router
   */
-case class Router[T1 <: HList](method: Method, p: PathRule[_ <: HList], validators: HeaderRule[_ <: HList])
-  extends RouteExecutable[T1] with HeaderAppendable[T1] {
+case class Router[T1 <: HList](method: Method,
+                               private[cooldsl] val path: PathRule[_ <: HList],
+                               validators: HeaderRule[_ <: HList])
+                extends RouteExecutable[T1] with HeaderAppendable[T1] {
 
   override def >>>[T3 <: HList](v: HeaderRule[T3])(implicit prep1: Prepend[T3, T1]): Router[prep1.Out] =
-    Router(method, p, And(validators,v))
+    Router(method, path, And(validators,v))
 
   override def |>>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): Goal = RouteExecutor.compile(this, f, hf)
 
@@ -43,11 +45,17 @@ case class CodecRouter[T1 <: HList, R](r: Router[T1], t: BodyTransformer[R])exte
 
   override def |>>>[F](f: F)(implicit hf: HListToFunc[R::T1,Task[Response],F]): CoolAction[R::T1, F] =
     new CoolAction(this, f, hf)
+
+  private[cooldsl] override def path: PathRule[_ <: HList] = r.path
+
+  override def method: Method = r.method
 }
 
 private[cooldsl] trait RouteExecutable[T <: HList] {
+  def method: Method
   def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal
   def |>>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): CoolAction[T, F]
+  private[cooldsl] def path: PathRule[_ <: HList]
 }
 
 private[cooldsl] trait HeaderAppendable[T1 <: HList] {
