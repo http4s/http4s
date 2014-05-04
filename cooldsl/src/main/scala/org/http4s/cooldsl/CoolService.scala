@@ -3,7 +3,6 @@ package cooldsl
 
 import scalaz.concurrent.Task
 import shapeless.{HNil, HList}
-import com.typesafe.scalalogging.slf4j.LazyLogging
 
 import scala.language.existentials
 import scala.annotation.tailrec
@@ -12,22 +11,23 @@ import scalaz.{-\/, \/-, \/}
 /**
 * Created by Bryce Anderson on 4/30/14.
 */
-trait CoolService extends HttpService with LazyLogging with ExecutableCompiler {
+trait CoolService extends HttpService with ExecutableCompiler {
 
-  type Goal = (Request, HList) => String\/(() =>Task[Response])
+  private type Goal = (Request, HList) => String\/(() =>Task[Response])
 
   private sealed abstract class Node {
+
+    def matchString(s: String, stack: HList): HList
+
+    final var paths: List[Node] = Nil
+    final var end: Goal = null
+    final var variadic: Goal = null
 
     override def toString: String = {
       s"${this.getClass.getName}($paths" +
         (if (end != null) ", Matched" else "") +
         (if (variadic != null) "variadic)" else ")")
     }
-
-    def matchString(s: String, stack: HList): HList
-    final var end: Goal = null
-    final var variadic: Goal = null
-    final var paths: List[Node] = Nil
 
     // Append the action to the tree by walking the PathRule stack
     final def append(tail: List[PathRule[_ <: HList]], action: Goal): Unit = tail match {
@@ -61,13 +61,6 @@ trait CoolService extends HttpService with LazyLogging with ExecutableCompiler {
         end = if (end != null) fuseGoals(end, action) else action
     }
 
-    private def fuseGoals(g1: Goal, g2: Goal): Goal = (req, stack) => {
-      g1(req, stack) match {
-        case r@ \/-(_) => r
-        case e@ -\/(_) => g2(req, stack).orElse(e)
-      }
-    }
-
     /** This function traverses the tree, matching paths in order of priority, provided they path the matches function:
       * 1: exact matches are given priority to wild cards node at a time
       *     This means /"foo"/wild has priority over /wild/"bar" for the route "/foo/bar"
@@ -77,7 +70,7 @@ trait CoolService extends HttpService with LazyLogging with ExecutableCompiler {
       if (h != null) {
         if (path.tail.isEmpty) {
           if (end != null) end(req, h)
-          else if (variadic != null) variadic(req, h)
+          else if (variadic != null) variadic(req, Nil::h)
           else null
         }
         else {
@@ -93,12 +86,19 @@ trait CoolService extends HttpService with LazyLogging with ExecutableCompiler {
 
           val routeMatch = go(paths, null)
           if (routeMatch != null) routeMatch
-          else if(variadic != null) variadic(req, h)
+          else if(variadic != null) variadic(req, path.tail::h)
           else null
         }
 
       }
       else null
+    }
+
+    private def fuseGoals(g1: Goal, g2: Goal): Goal = (req, stack) => {
+      g1(req, stack) match {
+        case r@ \/-(_) => r
+        case e@ -\/(_) => g2(req, stack).orElse(e)
+      }
     }
   }
 
@@ -114,7 +114,10 @@ trait CoolService extends HttpService with LazyLogging with ExecutableCompiler {
   }
 
   final private class HeadNode extends Node {
-    override def matchString(s: String, stack: HList): HList = stack
+    override def matchString(s: String, stack: HList): HList = {
+      if (s.length == 0) stack
+      else sys.error("Invalid start string")
+    }
   }
 
   final private case class MatchNode(name: String) extends Node {

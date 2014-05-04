@@ -8,7 +8,7 @@ import shapeless.{HList, HNil, ::}
 
 /////////////////// Helpers for turning a function of may params to a function of a HList
 
-trait HListToFunc[H <: HList, O, F] {
+trait HListToFunc[H <: HList, +O, -F] {
   def conv(f: F): H => O
 }
 

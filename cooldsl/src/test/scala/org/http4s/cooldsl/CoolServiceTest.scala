@@ -50,12 +50,12 @@ class CoolServiceTest extends Specification {
 
     val route7 = Method.Get / "hello" / "compete" |>>> { () => Tag("route7")}
     append(route7)
+
+    val route8 = Method.Get / "variadic" / -* |>>> { tail: Seq[String] => Tag("route8_" + tail.mkString("/"))}
+    append(route8)
   }
 
-  println(service)
-
   "CoolService" should {
-    //println(service)
     "Execute a route with no params" in {
       val req = Get("/hello")
       checkOk(req) should_== "route1"
@@ -93,6 +93,16 @@ class CoolServiceTest extends Specification {
       (checkOk(req1) should_== "route5")      and
       (checkOk(req2) should_== "route6_bar")  and
       (checkOk(req3) should_== "route7")
+    }
+
+    "Execute a variadic route" in {
+      val req1 = Get("/variadic")
+      val req2 = Get("/variadic/one")
+      val req3 = Get("/variadic/one/two")
+
+      (checkOk(req1) should_== "route8_")          and
+      (checkOk(req2) should_== "route8_one")       and
+      (checkOk(req3) should_== "route8_one/two")
     }
   }
 
