@@ -1,12 +1,13 @@
 package org.http4s.cooldsl
 
+import scala.language.existentials
+
 import shapeless.{::, HNil, HList}
 import shapeless.ops.hlist.Prepend
 import org.http4s.{Response, Method}
 import org.http4s.cooldsl.BodyCodec.Decoder
 import scalaz.concurrent.Task
-
-import scala.language.existentials
+import org.http4s.cooldsl.bits.HListToFunc
 
 /**
  * Created by Bryce Anderson on 4/28/14.
@@ -70,7 +71,7 @@ sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] with HeaderA
 
   final def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = RouteExecutor.compile(toAction, f, hf)
 
-  final def |>>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): CoolAction[T, F] =
+  final def |>>>[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O] =
     new CoolAction(Router(method, path, EmptyHeaderRule), f, hf)
 }
 

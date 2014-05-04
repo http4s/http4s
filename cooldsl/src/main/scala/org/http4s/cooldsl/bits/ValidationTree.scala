@@ -56,31 +56,23 @@ private[cooldsl] trait ValidationTree {
     }
   }
 
+  /////////////////////////////////////////////////////////////////////////////////////////////
   // TODO: this method is ugly...
-  protected def makeLeaf[T <: HList, F](action: CoolAction[T, F]): Leaf = {
+  protected def makeLeaf[T <: HList, F, O](action: CoolAction[T, F, O]): Leaf = {
     action.router match {
       case Router(method, _, vals) =>
-        SingleLeaf(vals, None, {
-          (req, pathstack) =>
-            TempTools.runValidation(req, vals, pathstack).map {
-              pathstack => () =>
-                action.hf.conv(action.f)(pathstack.asInstanceOf[T])
-            }
-        })
+        SingleLeaf(vals, None, (req, pathstack) =>
+            TempTools.runValidation(req, vals, pathstack).map { pathstack => () =>
+              action.hf.conv(action.f)(pathstack.asInstanceOf[T])
+            })
 
       case CodecRouter(Router(_, _, vals), parser) =>
         SingleLeaf(vals, Some(parser), {
           (req, pathstack) =>
-            TempTools.runValidation(req, vals, pathstack).map {
-              pathstack => () =>
-                parser.decode(req) match {
-                  case Some(t) => t.flatMap {
-                    r =>
-                      action.hf.conv(action.f)((r :: pathstack).asInstanceOf[T])
-                  }
-
-                  case None => TempTools.onBadRequest("No acceptable decoder")
-                }
+            TempTools.runValidation(req, vals, pathstack).map { pathstack => () =>
+              parser.decode(req).fold(TempTools.onBadRequest("No acceptable decoder")){ t =>
+                t.flatMap(r => action.hf.conv(action.f)((r::pathstack).asInstanceOf[T]))
+              }
             }
         })
     }

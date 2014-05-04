@@ -9,8 +9,6 @@ import org.http4s.{Request}
 import scalaz.{\/-, -\/, \/}
 import scalaz.concurrent.Task
 import scala.annotation.tailrec
-import org.http4s.cooldsl.PathAnd
-import org.http4s.cooldsl.PathOr
 import org.http4s.Response
 import scala.collection.mutable.ListBuffer
 
@@ -36,7 +34,7 @@ trait PathTree extends ValidationTree {
     // Appends the action to the tree by walking the PathRule stack, returning a new Node structure
     final def append(tail: PathRule[_ <: HList], action: Leaf): Node = append(tail::Nil, action)
 
-    final private def append(tail: List[PathRule[_ <: HList]], action: Leaf): Node = tail match {
+    final private[Node] def append(tail: List[PathRule[_ <: HList]], action: Leaf): Node = tail match {
       case h::tail => h match {
         case PathAnd(p1, p2) => append(p1::p2::tail, action)
 

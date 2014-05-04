@@ -7,6 +7,7 @@ import org.http4s.cooldsl.BodyCodec.{BodyTransformer, Decoder}
 import shapeless.ops.hlist.Prepend
 
 import scala.language.existentials
+import org.http4s.cooldsl.bits.HListToFunc
 
 /**
  * Created by Bryce Anderson on 4/29/14.
@@ -29,7 +30,7 @@ case class Router[T1 <: HList](method: Method,
 
   override def |>>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): Goal = RouteExecutor.compile(this, f, hf)
 
-  override def |>>>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): CoolAction[T1, F] =
+  override def |>>>[F,O](f: F)(implicit hf: HListToFunc[T1,O,F]): CoolAction[T1, F, O] =
     new CoolAction(this, f, hf)
 
   def decoding[R](decoder: Decoder[R]): CodecRouter[T1,R] = CodecRouter(this, decoder)
@@ -43,7 +44,7 @@ case class CodecRouter[T1 <: HList, R](r: Router[T1], t: BodyTransformer[R])exte
   override def |>>[F](f: F)(implicit hf: HListToFunc[R::T1,Task[Response],F]): Goal =
     RouteExecutor.compileWithBody(this, f, hf)
 
-  override def |>>>[F](f: F)(implicit hf: HListToFunc[R::T1,Task[Response],F]): CoolAction[R::T1, F] =
+  override def |>>>[F,O](f: F)(implicit hf: HListToFunc[R::T1,O,F]): CoolAction[R::T1, F, O] =
     new CoolAction(this, f, hf)
 
   private[cooldsl] override def path: PathRule[_ <: HList] = r.path
@@ -54,7 +55,7 @@ case class CodecRouter[T1 <: HList, R](r: Router[T1], t: BodyTransformer[R])exte
 private[cooldsl] trait RouteExecutable[T <: HList] {
   def method: Method
   def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal
-  def |>>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): CoolAction[T, F]
+  def |>>>[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O]
   private[cooldsl] def path: PathRule[_ <: HList]
 }
 

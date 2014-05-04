@@ -9,6 +9,7 @@ import scalaz.{-\/, \/-, \/}
 import BodyCodec._
 
 import org.http4s.Status.BadRequest
+import org.http4s.cooldsl.bits.HListToFunc
 
 /**
  * Created by Bryce Anderson on 4/27/14.

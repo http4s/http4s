@@ -4,6 +4,7 @@ package cooldsl
 import scalaz.concurrent.Task
 import shapeless.{HNil, HList}
 import scalaz.{-\/, \/-, \/}
+import org.http4s.cooldsl.bits.HListToFunc
 
 /**
 * Created by Bryce Anderson on 4/30/14.
@@ -18,7 +19,7 @@ trait CoolService extends HttpService with ExecutableCompiler with bits.PathTree
 
   private def getMethod(method: Method) = methods.get(method).getOrElse(missingMethod)
 
-  def append[T <: HList, F](action: CoolAction[T, F]): Unit = {
+  def append[T <: HList, F, O](action: CoolAction[T, F, O]): Unit = {
     val newLeaf = makeLeaf(action)
     val newNode = methods.get(action.router.method).getOrElse(missingMethod)
                       .append(action.router.path, newLeaf)
@@ -51,6 +52,6 @@ trait CoolService extends HttpService with ExecutableCompiler with bits.PathTree
   override def toString(): String = s"CoolService($methods)"
 }
 
-class CoolAction[T <: HList, F](private[cooldsl] val router: RouteExecutable[T],
+class CoolAction[T <: HList, F, O](private[cooldsl] val router: RouteExecutable[T],
                                 private[cooldsl] val f: F,
-                                private[cooldsl] val hf: HListToFunc[T, Task[Response], F])
+                                private[cooldsl] val hf: HListToFunc[T, O, F])
