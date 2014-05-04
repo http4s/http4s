@@ -14,40 +14,38 @@ class CoolServiceTest extends Specification {
     new String(b.runLog.run.foldLeft(ByteVector.empty)(_ ++ _).toArray)
   }
 
-  def checkOk(r: Request): String = {
-    service(r).run.headers.get(Header.ETag)
-      .map(_.value)
-      .getOrElse(null)
-  }
+  def checkOk(r: Request): String = getBody(service(r).run.body)
 
   def checkError(r: Request): String = {
     getBody(service(r).run.body)
   }
 
-  def Tag(s: String) = Ok(s).withHeaders(Header.ETag(s))
-
   def Get(s: String, h: Header*): Request = Request(Method.Get, Uri.fromString(s).get, headers = Headers(h:_*))
 
   val service = new CoolService {
-    Method.Get / "hello" |>>> { () => Tag("route1") }
+    Method.Get / "hello" |>>> { () => "route1" }
 
-    Method.Get / 'hello |>>> { s: String => Tag("route2") }
+    Method.Get / 'hello |>>> { hello: String => "route2" }
 
-    Method.Get / "hello" / "world" |>>> { () => Tag("route3")}
+    Method.Get / "hello" / "world" |>>> { () => "route3" }
 
-    Method.Get / "hello" / "headers" -? query[Int]("foo") |>>> { i: Int => Tag("route" + i)}
+    Method.Get / "hello" / "headers" -? query[Int]("foo") |>>> { foo: Int => "route" + foo }
 
     // Routes that will have different headers/query string requirements should work together
-    Method.Get / "hello" / "compete" -? query[Int]("foo") |>>> { i: Int => Tag("route" + i)}
+    Method.Get / "hello" / "compete" -? query[Int]("foo") |>>> { foo: Int => "route" + foo }
 
-    Method.Get / "hello" / "compete" -? query[String]("foo") |>>> { i: String => Tag("route6_" + i)}
+    Method.Get / "hello" / "compete" -? query[String]("foo") |>>> { foo: String => "route6_" + foo }
 
-    Method.Get / "hello" / "compete" |>>> { () => Tag("route7")}
+    Method.Get / "hello" / "compete" |>>> { () => "route7"}
 
-    Method.Get / "variadic" / -* |>>> { tail: Seq[String] => Tag("route8_" + tail.mkString("/"))}
+    Method.Get / "variadic" / -* |>>> { tail: Seq[String] => "route8_" + tail.mkString("/") }
 
     val or = "or1" || "or2"
-    Method.Get / or |>>> { () => Tag("route9")}
+    Method.Get / or |>>> { () => "route9" }
+
+    Method.Get / "options" -? query[Option[String]]("foo") |>>> { os: Option[String] => os.getOrElse("None") }
+
+    Method.Get / "seq" -? query[Seq[String]]("foo") |>>> { os: Seq[String] => os.mkString(" ") }
   }
 
   "CoolService" should {
@@ -105,6 +103,22 @@ class CoolServiceTest extends Specification {
       val req2 = Get("/or2")
       (checkOk(req1) should_== "route9") and
       (checkOk(req2) should_== "route9")
+    }
+
+    "Work with options" in {
+      val req1 = Get("/options")
+      val req2 = Get("/options?foo=bar")
+      (checkOk(req1) should_== "None") and
+      (checkOk(req2) should_== "bar")
+    }
+
+    "Work with collections" in {
+      val req1 = Get("/seq")
+      val req2 = Get("/seq?foo=bar")
+      val req3 = Get("/seq?foo=hello&foo=world")
+      (checkOk(req1) should_== "")    and
+      (checkOk(req2) should_== "bar") and
+      (checkOk(req3) should_== "hello world")
     }
   }
 

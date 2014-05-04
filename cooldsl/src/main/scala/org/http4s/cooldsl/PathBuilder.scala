@@ -7,7 +7,7 @@ import shapeless.ops.hlist.Prepend
 import org.http4s.{Response, Method}
 import org.http4s.cooldsl.BodyCodec.Decoder
 import scalaz.concurrent.Task
-import org.http4s.cooldsl.bits.HListToFunc
+import org.http4s.cooldsl.bits.{StringParser, HListToFunc}
 
 /**
  * Created by Bryce Anderson on 4/28/14.
@@ -20,7 +20,7 @@ import org.http4s.cooldsl.bits.HListToFunc
 final class PathBuilder[T <: HList](val method: Method, private[cooldsl] val path: PathRule[T])
                   extends PathBuilderBase[T] with HeaderAppendable[T] {
 
-  def -?[T1](q: QueryMapper[T1]): Router[T1::T] = new Router(method, path, q)
+  def -?[T1](q: QueryRule[T1]): Router[T1::T] = new Router(method, path, q)
 
   def /(t: CaptureTail) : Router[List[String]::T] = new Router(method, PathAnd(path,t), EmptyHeaderRule)
 

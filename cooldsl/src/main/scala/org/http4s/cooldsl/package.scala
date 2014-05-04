@@ -6,6 +6,7 @@ import org.http4s.cooldsl.BodyCodec.{Dec, BodyTransformer, Decoder}
 
 import scala.language.existentials
 import shapeless.ops.hlist.Prepend
+import org.http4s.cooldsl.bits.{QueryParser, StringParser}
 
 /**
  * Created by Bryce Anderson on 4/28/14.
@@ -18,7 +19,7 @@ package object cooldsl {
 
   implicit def pathMatch(s: Symbol): CombinablePathRule[String::HNil] = PathCapture(StringParser.strParser)
 
-  def query[T](key: String)(implicit parser: StringParser[T]) = QueryMapper[T](key, parser)
+  def query[T](key: String)(implicit parser: QueryParser[T]) = QueryRule[T](key, parser)
 
   def parse[T](implicit parser: StringParser[T]) = PathCapture(parser)
 

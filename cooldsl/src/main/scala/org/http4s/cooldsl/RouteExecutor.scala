@@ -50,11 +50,7 @@ trait ExecutableCompiler {
       case None => -\/(missingHeader(key))
     }
 
-    case QueryMapper(name, parser) =>
-      req.requestUri.params.get(name) match {
-        case Some(v) => parser.parse(v).map(_::stack)
-        case None => -\/(s"Missing query param: $name")
-      }
+    case QueryRule(name, parser) => parser.collect(name, req).map(_::stack)
 
     case EmptyHeaderRule => \/-(stack)
   }
