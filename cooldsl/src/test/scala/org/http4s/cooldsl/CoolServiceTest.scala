@@ -29,37 +29,26 @@ class CoolServiceTest extends Specification {
   def Get(s: String, h: Header*): Request = Request(Method.Get, Uri.fromString(s).get, headers = Headers(h:_*))
 
   val service = new CoolService {
-    val route1 = Method.Get / "hello" |>>> { () => Tag("route1") }
-    append(route1)
+    Method.Get / "hello" |>>> { () => Tag("route1") }
 
-    val route2 = Method.Get / 'hello |>>> { s: String => Tag("route2") }
-    append(route2)
+    Method.Get / 'hello |>>> { s: String => Tag("route2") }
 
-    val route3 = Method.Get / "hello" / "world" |>>> { () => Tag("route3")}
-    append(route3)
+    Method.Get / "hello" / "world" |>>> { () => Tag("route3")}
 
-    val route4 = Method.Get / "hello" / "headers" -? query[Int]("foo") |>>> { i: Int => Tag("route" + i)}
-    append(route4)
+    Method.Get / "hello" / "headers" -? query[Int]("foo") |>>> { i: Int => Tag("route" + i)}
 
     // Routes that will have different headers/query string requirements should work together
-    val route5 = Method.Get / "hello" / "compete" -? query[Int]("foo") |>>> { i: Int => Tag("route" + i)}
-    append(route5)
+    Method.Get / "hello" / "compete" -? query[Int]("foo") |>>> { i: Int => Tag("route" + i)}
 
-    val route6 = Method.Get / "hello" / "compete" -? query[String]("foo") |>>> { i: String => Tag("route6_" + i)}
-    append(route6)
+    Method.Get / "hello" / "compete" -? query[String]("foo") |>>> { i: String => Tag("route6_" + i)}
 
-    val route7 = Method.Get / "hello" / "compete" |>>> { () => Tag("route7")}
-    append(route7)
+    Method.Get / "hello" / "compete" |>>> { () => Tag("route7")}
 
-    val route8 = Method.Get / "variadic" / -* |>>> { tail: Seq[String] => Tag("route8_" + tail.mkString("/"))}
-    append(route8)
+    Method.Get / "variadic" / -* |>>> { tail: Seq[String] => Tag("route8_" + tail.mkString("/"))}
 
     val or = "or1" || "or2"
-    val route9 = Method.Get / or |>>> { () => Tag("route9")}
-    append(route9)
+    Method.Get / or |>>> { () => Tag("route9")}
   }
-
-  println(service)
 
   "CoolService" should {
     "Execute a route with no params" in {

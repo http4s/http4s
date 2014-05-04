@@ -16,12 +16,6 @@ import org.http4s.cooldsl.bits.HListToFunc
  */
 
 
-
-trait RouteCompiler[T1] {
-  private[cooldsl] def compile[T <: HList, F](r: Router[T], f: F, hf: HListToFunc[T, Task[Response], F]): T1
-  private[cooldsl] def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): T1
-}
-
 trait ExecutableCompiler {
   def missingHeader(key: HeaderKey): String = s"Missing header: ${key.name}"
 
@@ -129,13 +123,20 @@ trait ExecutableCompiler {
 
 object RouteExecutor extends RouteExecutor
 
-private[cooldsl] trait RouteExecutor extends ExecutableCompiler with RouteCompiler[Goal] {
+private[cooldsl] trait RouteExecutor extends ExecutableCompiler with CompileService[Request=>Option[Task[Response]]] {
+  
+  private type Result = Request => Option[Task[Response]]
 
   ///////////////////// Route execution bits //////////////////////////////////////
 
-  def compile[T <: HList, F](r: Router[T], f: F, hf: HListToFunc[T, Task[Response], F]): Goal = {
+  override def compile[T <: HList, F, O](action: CoolAction[T, F, O]): Result = action match {
+    case CoolAction(r@ Router(_,_,_), f, hf) => compileRouter(r, f, hf)
+    case CoolAction(r@ CodecRouter(_,_), f, hf) => compileCodecRouter(r, f, hf)
+  }
 
-    val ff: Goal = { req =>
+  protected def compileRouter[T <: HList, F, O](r: Router[T], f: F, hf: HListToFunc[T, O, F]): Result = {
+
+    val ff: Result = { req =>
        pathAndValidate[T](req, r.path, r.validators).map(_ match {
            case \/-(stack) => hf.conv(f)(stack)
            case -\/(s) => onBadRequest(s)
@@ -145,13 +146,13 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with RouteCompil
     ff
   }
   
-  def compileWithBody[T <: HList, F, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, Task[Response], F]): Goal = {
-    val ff: Goal = { req =>
+  protected def compileCodecRouter[T <: HList, F, O, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, O, F]): Result = {
+    val ff: Result = { req =>
       pathAndValidate[T](req, r.r.path, r.r.validators).map(_ match {
         case \/-(stack) =>
           pickDecoder(req, r.t)
             .map(_.decode(req.body).flatMap { r =>
-              hf.conv(f)(r :: stack)
+              hf.conv(f)(r::stack)
             }).getOrElse(onBadRequest("No acceptable decoder"))
 
         case -\/(s) => onBadRequest(s)
@@ -178,7 +179,4 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with RouteCompil
   /** Walks the validation tree */
   private[cooldsl] def ensureValidHeaders[T1 <: HList](v: HeaderRule[T1], req: Request): \/[String,T1] =
     runValidation(req, v, HNil).asInstanceOf[\/[String,T1]]
-
-
-
 }

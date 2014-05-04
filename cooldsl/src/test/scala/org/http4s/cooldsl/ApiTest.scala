@@ -68,7 +68,7 @@ class ApiTest extends Specification {
       val p1 = "one" / 'two
       val p2 = "three" / 'four
 
-      val f = Method.Get / (p1 || p2) |>> { (s: String) => Ok("").withHeaders(Header.ETag(s)) }
+      val f = Method.Get / (p1 || p2) runWith { (s: String) => Ok("").withHeaders(Header.ETag(s)) }
 
       val req1 = Request(requestUri = Uri.fromString("/one/two").get)
       fetch(f(req1)) should_== "two"
@@ -89,7 +89,7 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f: Request => Option[Task[Response]] = stuff |>> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val f: Request => Option[Task[Response]] = stuff runWith { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
       check(f(req), "foo")
     }
 
@@ -97,7 +97,7 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello/world").get)
 
-      val f: Request => Option[Task[Response]] = stuff |>> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val f: Request => Option[Task[Response]] = stuff runWith { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
       val r = f(req)
       r should_== None
     }
@@ -106,7 +106,7 @@ class ApiTest extends Specification {
       val stuff = Method.Get / 'hello
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f: Request => Option[Task[Response]] = stuff |>> { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
+      val f: Request => Option[Task[Response]] = stuff runWith { str: String => Ok("Cool.").withHeaders(Header.ETag(str)) }
       check(f(req), "hello")
     }
 
@@ -114,7 +114,7 @@ class ApiTest extends Specification {
       val stuff = Method.Get / "hello"
       val req = Request(requestUri = Uri.fromString("/hello").get)
 
-      val f = stuff |>> { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
+      val f = stuff runWith { () => Ok("Cool.").withHeaders(Header.ETag("foo")) }
 
       check(f(req), "foo")
     }
@@ -122,14 +122,14 @@ class ApiTest extends Specification {
     "capture end with nothing" in {
       val stuff = Method.Get / "hello" / -*
       val req = Request(requestUri = Uri.fromString("/hello").get)
-      val f = stuff |>> { path: List[String] => Ok("Cool.").withHeaders(Header.ETag(if (path.isEmpty) "go" else "nogo")) }
+      val f = stuff runWith { path: List[String] => Ok("Cool.").withHeaders(Header.ETag(if (path.isEmpty) "go" else "nogo")) }
       check(f(req), "go")
     }
 
     "capture remaining" in {
       val stuff = Method.Get / "hello" / -*
       val req = Request(requestUri = Uri.fromString("/hello/world/foo").get)
-      val f = stuff |>> { path: List[String] => Ok("Cool.").withHeaders(Header.ETag(path.mkString)) }
+      val f = stuff runWith { path: List[String] => Ok("Cool.").withHeaders(Header.ETag(path.mkString)) }
       check(f(req), "worldfoo")
     }
   }
@@ -141,7 +141,7 @@ class ApiTest extends Specification {
       val path = Method.Post / "hello" -? query[Int]("jimbo")
       val req = Request(requestUri = Uri.fromString("/hello?jimbo=32").get)
 
-      val route = path |>> { i: Int =>
+      val route = path runWith { i: Int =>
         Ok("stuff").withHeaders(Header.ETag((i + 1).toString))
       }
 
@@ -162,7 +162,7 @@ class ApiTest extends Specification {
       val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
                   .withHeaders(Headers(Header.`Content-Length`("foo".length)))
 
-      val route = path.validate(reqHeader).decoding(strDec) |>> { str: String =>
+      val route = path.validate(reqHeader).decoding(strDec) runWith { str: String =>
         Ok("stuff").withHeaders(Header.ETag(str))
       }
 
@@ -176,7 +176,7 @@ class ApiTest extends Specification {
       val req = Request(requestUri = Uri.fromString("/hello").get, body = body)
         .withHeaders(Headers(Header.`Content-Length`("foo".length)))
 
-      val route = path.validate(reqHeader).decoding(strDec) |>> { str: String =>
+      val route = path.validate(reqHeader).decoding(strDec) runWith { str: String =>
         Ok("stuff").withHeaders(Header.ETag(str))
       }
 
@@ -195,7 +195,7 @@ class ApiTest extends Specification {
                       capture(Header.ETag)
 
     val route =
-      (path >>> validations).decoding(strDec) |>> {(world: String, fav: Int, tag: Header.ETag, body: String) =>
+      (path >>> validations).decoding(strDec) runWith {(world: String, fav: Int, tag: Header.ETag, body: String) =>
 
         Ok(s"Hello to you too, $world. Your Fav number is $fav. You sent me $body")
           .addHeaders(Header.ETag("foo"))
@@ -218,7 +218,7 @@ class ApiTest extends Specification {
     val validations = requireThat(Header.`Content-Length`){ h => h.length != 0 }
 
 
-    val route = (path >>> validations >>> capture(Header.ETag)).decoding(strDec) |>>
+    val route = (path >>> validations >>> capture(Header.ETag)).decoding(strDec) runWith
       {(world: String, fav: Int, tag: Header.ETag, body: String) =>
 
         Ok(s"Hello to you too, $world. Your Fav number is $fav. You sent me $body")

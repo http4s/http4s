@@ -21,12 +21,8 @@ class HListToFuncTest extends Specification {
   def Get(s: String, h: Header*): Request = Request(Method.Get, Uri.fromString(s).get, headers = Headers(h:_*))
 
   val service = new CoolService {
-    val route1 = Method.Get / "route1" |>>> { () => Ok("foo") }
-    append(route1)
-
-    val route2 = Method.Get / "route2" |>>> { () => "foo" }
-    append(route2)
-
+    Method.Get / "route1" |>>> { () => Ok("foo") }
+    Method.Get / "route2" |>>> { () => "foo" }
   }
 
   "HListToFunc" should {

@@ -28,9 +28,7 @@ case class Router[T1 <: HList](method: Method,
   override def >>>[T3 <: HList](v: HeaderRule[T3])(implicit prep1: Prepend[T3, T1]): Router[prep1.Out] =
     Router(method, path, And(validators,v))
 
-  override def |>>[F](f: F)(implicit hf: HListToFunc[T1,Task[Response],F]): Goal = RouteExecutor.compile(this, f, hf)
-
-  override def |>>>[F,O](f: F)(implicit hf: HListToFunc[T1,O,F]): CoolAction[T1, F, O] =
+  override def makeAction[F,O](f: F)(implicit hf: HListToFunc[T1,O,F]): CoolAction[T1, F, O] =
     new CoolAction(this, f, hf)
 
   def decoding[R](decoder: Decoder[R]): CodecRouter[T1,R] = CodecRouter(this, decoder)
@@ -41,22 +39,25 @@ case class CodecRouter[T1 <: HList, R](r: Router[T1], t: BodyTransformer[R])exte
   override def >>>[T3 <: HList](v: HeaderRule[T3])(implicit prep1: Prepend[T3, T1]): CodecRouter[prep1.Out,R] =
     CodecRouter(r >>> v, t)
 
-  override def |>>[F](f: F)(implicit hf: HListToFunc[R::T1,Task[Response],F]): Goal =
-    RouteExecutor.compileWithBody(this, f, hf)
-
-  override def |>>>[F,O](f: F)(implicit hf: HListToFunc[R::T1,O,F]): CoolAction[R::T1, F, O] =
+  override def makeAction[F,O](f: F)(implicit hf: HListToFunc[R::T1,O,F]): CoolAction[R::T1, F, O] =
     new CoolAction(this, f, hf)
 
   private[cooldsl] override def path: PathRule[_ <: HList] = r.path
 
   override def method: Method = r.method
+
+  override private[cooldsl] def validators: HeaderRule[_ <: HList] = r.validators
 }
 
 private[cooldsl] trait RouteExecutable[T <: HList] {
   def method: Method
-  def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal
-  def |>>>[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O]
+  def makeAction[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O]
   private[cooldsl] def path: PathRule[_ <: HList]
+  private[cooldsl] def validators: HeaderRule[_ <: HList]
+  final def |>>>[F, O, R](f: F)(implicit hf: HListToFunc[T,O,F], srvc: CompileService[R]): R =
+    srvc.compile(makeAction(f))
+  final def runWith[F, O, R](f: F)(implicit hf: HListToFunc[T,O,F]): Request=>Option[Task[Response]] =
+    |>>>(f)(hf, RouteExecutor)
 }
 
 private[cooldsl] trait HeaderAppendable[T1 <: HList] {

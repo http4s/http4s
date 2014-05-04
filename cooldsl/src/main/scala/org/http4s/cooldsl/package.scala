@@ -12,8 +12,6 @@ import shapeless.ops.hlist.Prepend
  */
 package object cooldsl {
 
-  type Goal = Request => Option[Task[Response]]
-
   implicit def method(m: Method): PathBuilder[HNil] = new PathBuilder(m, PathEmpty)
 
   implicit def pathMatch(s: String): CombinablePathRule[HNil] = PathMatch(s)

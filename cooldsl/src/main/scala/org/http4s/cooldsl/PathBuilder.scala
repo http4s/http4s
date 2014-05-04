@@ -60,6 +60,8 @@ sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] with HeaderA
   def method: Method
   private[cooldsl] def path: PathRule[T]
 
+  override private[cooldsl] def validators: HeaderRule[_ <: HList] = EmptyHeaderRule
+
   final def toAction: Router[T] = validate(EmptyHeaderRule)
 
   final def validate[T1 <: HList](h2: HeaderRule[T1])(implicit prep: Prepend[T1,T]): Router[prep.Out] =
@@ -69,9 +71,7 @@ sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] with HeaderA
 
   final def decoding[R](dec: Decoder[R]): CodecRouter[T, R] = CodecRouter(toAction, dec)
 
-  final def |>>[F](f: F)(implicit hf: HListToFunc[T,Task[Response],F]): Goal = RouteExecutor.compile(toAction, f, hf)
-
-  final def |>>>[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O] =
+  final def makeAction[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O] =
     new CoolAction(Router(method, path, EmptyHeaderRule), f, hf)
 }
 
