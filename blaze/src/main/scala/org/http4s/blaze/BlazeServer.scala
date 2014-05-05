@@ -31,7 +31,12 @@ object BlazeServer {
     private var port = 8080
 
     override def mountService(service: HttpService, prefix: String): this.type = {
-      aggregateService = URITranslation.translateRoot(prefix)(service) orElse aggregateService
+      val prefixedService =
+        if (prefix.isEmpty) service
+        else URITranslation.translateRoot(prefix)(service)
+      aggregateService =
+        if (aggregateService eq HttpService.empty) prefixedService
+        else prefixedService orElse aggregateService
       this
     }
 
