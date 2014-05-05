@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>servlet - org.http4s.servlet</title>
-          <meta name="description" content="servlet - org.http4s.servlet" />
-          <meta name="keywords" content="servlet org.http4s.servlet" />
+          <title>jetty - org.http4s.jetty</title>
+          <meta name="description" content="jetty - org.http4s.jetty" />
+          <meta name="keywords" content="jetty org.http4s.jetty" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../index.html';
-            var hash = 'org.http4s.servlet.package';
+            var hash = 'org.http4s.jetty.package';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -30,7 +30,7 @@
       <div id="definition">
         <img src="../../../lib/package_big.png" />
         <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a></p>
-        <h1>servlet</h1>
+        <h1>jetty</h1>
       </div>
 
       <h4 id="signature" class="signature">
@@ -39,7 +39,7 @@
         <span class="kind">package</span>
       </span>
       <span class="symbol">
-        <span class="name">servlet</span>
+        <span class="name">jetty</span>
       </span>
       </h4>
       
@@ -62,42 +62,16 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.servlet.Http4sServlet" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http4sServletextendsHttpServletwithLazyLogging"></a>
-      <a id="Http4sServlet:Http4sServlet"></a>
+              <ol><li name="org.http4s.jetty.JettyServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="JettyServerextendsServletContainerwithLazyLogging"></a>
+      <a id="JettyServer:JettyServer"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Http4sServlet.html"><span class="name">Http4sServlet</span></a><span class="result"> extends <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span> with <span class="extype" name="com.typesafe.scalalogging.slf4j.LazyLogging">LazyLogging</span></span>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.servlet.ServletContainer" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ServletContainerextendsServer"></a>
-      <a id="ServletContainer:ServletContainer"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ServletContainer.html"><span class="name">ServletContainer</span></a><span class="result"> extends <a href="../server/Server.html" class="extype" name="org.http4s.server.Server">Server</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.servlet.ServletContainerBuilder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ServletContainerBuilderextendsServerBuilder"></a>
-      <a id="ServletContainerBuilder:ServletContainerBuilder"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ServletContainerBuilder.html"><span class="name">ServletContainerBuilder</span></a><span class="result"> extends <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
+        <a href="JettyServer.html"><span class="name">JettyServer</span></a><span class="result"> extends <a href="../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a> with <span class="extype" name="com.typesafe.scalalogging.slf4j.LazyLogging">LazyLogging</span></span>
       </span>
       </h4>
       
@@ -108,16 +82,16 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.servlet.Http4sServlet" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http4sServlet"></a>
-      <a id="Http4sServlet:Http4sServlet"></a>
+              <ol><li name="org.http4s.jetty.JettyServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="JettyServer"></a>
+      <a id="JettyServer:JettyServer"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Http4sServlet$.html"><span class="name">Http4sServlet</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="JettyServer$.html"><span class="name">JettyServer</span></a>
       </span>
       </h4>
       

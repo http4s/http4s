@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>ValueRenderable - org.http4s.util.ValueRenderable</title>
-          <meta name="description" content="ValueRenderable - org.http4s.util.ValueRenderable" />
-          <meta name="keywords" content="ValueRenderable org.http4s.util.ValueRenderable" />
+          <title>ServletContainerBuilder - org.http4s.servlet.ServletContainerBuilder</title>
+          <meta name="description" content="ServletContainerBuilder - org.http4s.servlet.ServletContainerBuilder" />
+          <meta name="keywords" content="ServletContainerBuilder org.http4s.servlet.ServletContainerBuilder" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../index.html';
-            var hash = 'org.http4s.util.ValueRenderable';
+            var hash = 'org.http4s.servlet.ServletContainerBuilder';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -29,8 +29,8 @@
         <body class="type">
       <div id="definition">
         <img src="../../../lib/trait_big.png" />
-        <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.util">util</a></p>
-        <h1>ValueRenderable</h1>
+        <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.servlet">servlet</a></p>
+        <h1>ServletContainerBuilder</h1>
       </div>
 
       <h4 id="signature" class="signature">
@@ -39,16 +39,16 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">ValueRenderable</span><span class="result"> extends <a href="Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <span class="name">ServletContainerBuilder</span><span class="result"> extends <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../Header$$Accept.html" class="extype" name="org.http4s.Header.Accept">Accept</a>, <a href="../Header$$Accept$minusCharset.html" class="extype" name="org.http4s.Header.Accept-Charset">Accept-Charset</a>, <a href="../Header$$Accept$minusEncoding.html" class="extype" name="org.http4s.Header.Accept-Encoding">Accept-Encoding</a>, <a href="../Header$$Accept$minusLanguage.html" class="extype" name="org.http4s.Header.Accept-Language">Accept-Language</a>, <a href="../Header$$Accept$minusRanges.html" class="extype" name="org.http4s.Header.Accept-Ranges">Accept-Ranges</a>, <a href="../Header$$Authorization.html" class="extype" name="org.http4s.Header.Authorization">Authorization</a>, <a href="../BasicCredentials.html" class="extype" name="org.http4s.BasicCredentials">BasicCredentials</a>, <a href="../Header$$Cache$minusControl.html" class="extype" name="org.http4s.Header.Cache-Control">Cache-Control</a>, <a href="../Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a>, <a href="../Header$$Connection.html" class="extype" name="org.http4s.Header.Connection">Connection</a>, <a href="../Header$$Content$minusDisposition.html" class="extype" name="org.http4s.Header.Content-Disposition">Content-Disposition</a>, <a href="../Header$$Content$minusEncoding.html" class="extype" name="org.http4s.Header.Content-Encoding">Content-Encoding</a>, <a href="../Header$$Content$minusLength.html" class="extype" name="org.http4s.Header.Content-Length">Content-Length</a>, <a href="../Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>, <a href="../ContentCoding.html" class="extype" name="org.http4s.ContentCoding">ContentCoding</a>, <a href="../Cookie.html" class="extype" name="org.http4s.Cookie">Cookie</a>, <a href="../Header$$Cookie.html" class="extype" name="org.http4s.Header.Cookie">Cookie</a>, <a href="../Credentials.html" class="extype" name="org.http4s.Credentials">Credentials</a>, <a href="../Header$$Date.html" class="extype" name="org.http4s.Header.Date">Date</a>, <a href="../Header$$ETag.html" class="extype" name="org.http4s.Header.ETag">ETag</a>, <a href="../GenericCredentials.html" class="extype" name="org.http4s.GenericCredentials">GenericCredentials</a>, <a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>, <a href="../Header$$Host.html" class="extype" name="org.http4s.Header.Host">Host</a>, <a href="../Header$$If$minusModified$minusSince.html" class="extype" name="org.http4s.Header.If-Modified-Since">If-Modified-Since</a>, <a href="../Header$$If$minusNone$minusMatch.html" class="extype" name="org.http4s.Header.If-None-Match">If-None-Match</a>, <a href="../Header$$Last$minusModified.html" class="extype" name="org.http4s.Header.Last-Modified">Last-Modified</a>, <a href="../Header$$Location.html" class="extype" name="org.http4s.Header.Location">Location</a>, <a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>, <a href="../MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>, <a href="../OAuth2BearerToken.html" class="extype" name="org.http4s.OAuth2BearerToken">OAuth2BearerToken</a>, <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a>, <a href="../Q.html" class="extype" name="org.http4s.Q">Q</a>, <a href="../Header$$Raw.html" class="extype" name="org.http4s.Header.Raw">Raw</a>, <a href="../Header$$Recurring.html" class="extype" name="org.http4s.Header.Recurring">Recurring</a>, <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a>, <a href="../Header$$Set$minusCookie.html" class="extype" name="org.http4s.Header.Set-Cookie">Set-Cookie</a>, <a href="../Header$$Transfer$minusEncoding.html" class="extype" name="org.http4s.Header.Transfer-Encoding">Transfer-Encoding</a>, <a href="../TransferCoding.html" class="extype" name="org.http4s.TransferCoding">TransferCoding</a>, <a href="../Header$$WWW$minusAuthenticate.html" class="extype" name="org.http4s.Header.WWW-Authenticate">WWW-Authenticate</a>, <a href="../Header$$X$minusForwarded$minusFor.html" class="extype" name="org.http4s.Header.X-Forwarded-For">X-Forwarded-For</a></div>
+            <div class="subClasses hiddenContent"><a href="../jetty/JettyServer$$Builder.html" class="extype" name="org.http4s.jetty.JettyServer.Builder">Builder</a></div>
           </div></div>
         
 
@@ -66,7 +66,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.util.ValueRenderable"><span>ValueRenderable</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.servlet.ServletContainerBuilder"><span>ServletContainerBuilder</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -86,23 +86,65 @@
         <div id="allMembers">
         
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.servlet.ServletContainerBuilder.To" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="To&lt;:org.http4s.servlet.ServletContainer"></a>
+      <a id="To:To"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">To</span><span class="result"> &lt;: <a href="ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.servlet.ServletContainerBuilder">ServletContainerBuilder</a> → <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li></ol>
+            </div>
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.util.ValueRenderable#renderValue" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="renderValue[W&lt;:org.http4s.util.Writer](writer:W):W"></a>
-      <a id="renderValue[W&lt;:Writer](W):W"></a>
+              <ol><li name="org.http4s.server.ServerBuilder#build" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="build:ServerBuilder.this.To"></a>
+      <a id="build:To"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">renderValue</span><span class="tparams">[<span name="W">W &lt;: <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.util.ValueRenderable.renderValue.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.ValueRenderable.renderValue.W">W</span></span>
+        <span class="name">build</span><span class="result">: <a href="#To&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainerBuilder.To">To</a></span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.servlet.ServletContainerBuilder#mountServlet" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String):ServletContainerBuilder.this.type"></a>
+      <a id="mountServlet(HttpServlet,String):ServletContainerBuilder.this.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mountServlet</span><span class="params">(<span name="servlet">servlet: <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainerBuilder">ServletContainerBuilder</a>.this.type</span>
       </span>
       </h4>
       
+    </li><li name="org.http4s.server.ServerBuilder#withPort" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="withPort(port:Int):ServerBuilder.this.type"></a>
+      <a id="withPort(Int):ServletContainerBuilder.this.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withPort</span><span class="params">(<span name="port">port: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainerBuilder">ServletContainerBuilder</a>.this.type</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -263,6 +305,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.servlet.ServletContainerBuilder#mountService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mountService(service:org.http4s.HttpService,prefix:String):ServletContainerBuilder.this.type"></a>
+      <a id="mountService(HttpService,String):ServletContainerBuilder.this.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mountService</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>, <span name="prefix">prefix: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainerBuilder">ServletContainerBuilder</a>.this.type</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.servlet.ServletContainerBuilder">ServletContainerBuilder</a> → <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -302,19 +357,32 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.util.ValueRenderable#render" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="render[W&lt;:org.http4s.util.Writer](writer:W):W"></a>
-      <a id="render[W&lt;:Writer](W):W"></a>
+    </li><li name="org.http4s.server.ServerBuilder#run" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="run():ServerBuilder.this.To"></a>
+      <a id="run():To"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">render</span><span class="tparams">[<span name="W">W &lt;: <a href="Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.util.ValueRenderable.render.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.ValueRenderable.render.W">W</span></span>
+        <span class="name">run</span><span class="params">()</span><span class="result">: <a href="#To&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainerBuilder.To">To</a></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a> → <a href="Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.server.ServerBuilder#start" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="start:scalaz.concurrent.Task[ServerBuilder.this.To]"></a>
+      <a id="start:Task[To]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">start</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="#To&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainerBuilder.To">To</a>]</span>
+      </span>
+      </h4>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -341,19 +409,6 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.util.ValueRenderable#value" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="value:String"></a>
-      <a id="value:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">value</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -420,8 +475,8 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.util.Renderable">
-              <h3>Inherited from <a href="Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
+        <div class="parent" name="org.http4s.server.ServerBuilder">
+              <h3>Inherited from <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
