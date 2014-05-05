@@ -46,6 +46,10 @@ class CoolServiceTest extends Specification {
     Method.Get / "options" -? query[Option[String]]("foo") |>>> { os: Option[String] => os.getOrElse("None") }
 
     Method.Get / "seq" -? query[Seq[String]]("foo") |>>> { os: Seq[String] => os.mkString(" ") }
+
+    Method.Get / "seq" -? query[Seq[Int]]("foo") |>>> { os: Seq[Int] => os.mkString(" ") }
+
+    Method.Get / "withreq" -? query[String]("foo") |>>> { (req: Request, foo: String) => s"req $foo" }
   }
 
   "CoolService" should {
@@ -115,10 +119,15 @@ class CoolServiceTest extends Specification {
     "Work with collections" in {
       val req1 = Get("/seq")
       val req2 = Get("/seq?foo=bar")
-      val req3 = Get("/seq?foo=hello&foo=world")
+      val req3 = Get("/seq?foo=1&foo=2")
       (checkOk(req1) should_== "")    and
       (checkOk(req2) should_== "bar") and
-      (checkOk(req3) should_== "hello world")
+      (checkOk(req3) should_== "1 2")
+    }
+
+    "Provide the request if desired" in {
+      val req = Get("/withreq?foo=bar")
+      checkOk(req) should_== "req bar"
     }
   }
 

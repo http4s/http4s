@@ -63,7 +63,7 @@ private[cooldsl] trait ValidationTree {
       case Router(method, _, vals) =>
         SingleLeaf(vals, None, (req, pathstack) =>
             TempTools.runValidation(req, vals, pathstack).map { pathstack => () =>
-              action.hf.conv(action.f)(pathstack.asInstanceOf[T])
+              action.hf.conv(action.f)(req,pathstack.asInstanceOf[T])
             })
 
       case CodecRouter(Router(_, _, vals), parser) =>
@@ -71,7 +71,7 @@ private[cooldsl] trait ValidationTree {
           (req, pathstack) =>
             TempTools.runValidation(req, vals, pathstack).map { pathstack => () =>
               parser.decode(req).fold(TempTools.onBadRequest("No acceptable decoder")){ t =>
-                t.flatMap(r => action.hf.conv(action.f)((r::pathstack).asInstanceOf[T]))
+                t.flatMap(r => action.hf.conv(action.f)(req,(r::pathstack).asInstanceOf[T]))
               }
             }
         })

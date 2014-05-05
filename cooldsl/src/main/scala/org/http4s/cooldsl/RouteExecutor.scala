@@ -134,7 +134,7 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with CompileServ
 
     val ff: Result = { req =>
        pathAndValidate[T](req, r.path, r.validators).map(_ match {
-           case \/-(stack) => hf.conv(f)(stack)
+           case \/-(stack) => hf.conv(f)(req,stack)
            case -\/(s) => onBadRequest(s)
        })
     }
@@ -148,7 +148,7 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with CompileServ
         case \/-(stack) =>
           pickDecoder(req, r.t)
             .map(_.decode(req.body).flatMap { r =>
-              hf.conv(f)(r::stack)
+              hf.conv(f)(req,r::stack)
             }).getOrElse(onBadRequest("No acceptable decoder"))
 
         case -\/(s) => onBadRequest(s)

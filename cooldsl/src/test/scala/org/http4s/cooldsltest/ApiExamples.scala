@@ -77,6 +77,9 @@ class ApiExamples extends Specification {
           (i: Int, foo: String, v: Int) =>
             Ok(s"Received $i, $foo, $v")
         }
+
+        // If you want to access the the Request, just add it as the first param
+        Method.Get / "getrequest" |>>> { req: Request => ??? }
       }
 
       true should_== true
