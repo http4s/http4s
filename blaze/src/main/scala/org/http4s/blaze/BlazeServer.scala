@@ -12,12 +12,14 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.LeafBuilder
 
 class BlazeServer private (serverChannel: ServerChannel) extends Server {
-  override def start: Task[this.type] = Task.async { cb =>
-    cb(\/.fromTryCatch(serverChannel.run()).map(_ => this))
+  override def start: Task[this.type] = Task.delay {
+    serverChannel.run()
+    this
   }
 
-  override def shutdown: Task[this.type] = Task.async { cb =>
-    cb(\/.fromTryCatch(serverChannel.close()).map(_ => this))
+  override def shutdown: Task[this.type] = Task.delay {
+    serverChannel.close()
+    this
   }
 }
 

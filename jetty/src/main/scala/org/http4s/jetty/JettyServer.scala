@@ -5,17 +5,18 @@ import javax.servlet.http.HttpServlet
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
-import scalaz.\/
 import scalaz.concurrent.Task
 import org.http4s.servlet.{ServletContainer, ServletContainerBuilder}
 
 class JettyServer private[jetty] (server: JServer) extends ServletContainer with LazyLogging {
-  def start: Task[this.type] = Task.async { cb =>
-    cb(\/.fromTryCatch(server.start).map(_ => this))
+  def start: Task[this.type] = Task.delay {
+    server.start()
+    this
   }
 
-  def shutdown: Task[this.type] = Task.async { cb =>
-    cb(\/.fromTryCatch(server.stop).map(_ => this))
+  def shutdown: Task[this.type] = Task.delay {
+    server.stop()
+    this
   }
 
   def join(): this.type = {
