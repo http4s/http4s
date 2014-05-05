@@ -10,6 +10,9 @@ trait ServletContainer extends Server
 trait ServletContainerBuilder extends ServerBuilder {
   type To <: ServletContainer
 
+  protected def defaultServletName(servlet: HttpServlet): String =
+    s"${servlet.getClass.getName}-${System.identityHashCode(servlet)}"
+
   def mountService(service: HttpService, prefix: String): this.type = {
     val pathMapping = s"${prefix}/*"
     mountServlet(new Http4sServlet(service), pathMapping)

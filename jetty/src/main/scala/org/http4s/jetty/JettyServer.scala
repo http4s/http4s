@@ -50,7 +50,7 @@ object JettyServer {
     }
 
     def mountServlet(servlet: HttpServlet, urlMapping: String): this.type = {
-      context.addServlet(new ServletHolder(servlet), urlMapping)
+      context.addServlet(new ServletHolder(defaultServletName(servlet), servlet), urlMapping)
       this
     }
   }
