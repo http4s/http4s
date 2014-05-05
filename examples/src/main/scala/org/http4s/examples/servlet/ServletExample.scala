@@ -1,20 +1,10 @@
 package org.http4s.examples
 package servlet
 
-import org.eclipse.jetty.server.Server
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-import org.http4s.servlet.Http4sServlet
+import org.http4s.jetty.JettyServer
 
-/**
- * @author ross
- */
 object ServletExample extends App {
-
-  import concurrent.ExecutionContext.Implicits.global
-
-  val taskServlet = new Http4sServlet(new ExampleRoute().apply())
-
   val rawServlet = new HttpServlet {
     override def service(req: HttpServletRequest, resp: HttpServletResponse) {
       if (req.getPathInfo == "/ping")
@@ -36,12 +26,9 @@ object ServletExample extends App {
     }
   }
 
-  val server = new Server(8080)
-  val context = new ServletContextHandler()
-  context.setContextPath("/")
-  server.setHandler(context)
-  context.addServlet(new ServletHolder(taskServlet), "/http4s/*")
-  context.addServlet(new ServletHolder(rawServlet), "/raw/*")
-  server.start()
-  server.join()
+  JettyServer.newBuilder
+    .mountService(new ExampleRoute().apply, "/http4s")
+    .mountServlet(rawServlet, "/raw/*")
+    .run()
+    .join()
 }

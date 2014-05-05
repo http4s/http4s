@@ -10,9 +10,11 @@ lazy val blaze = project.dependsOn(core)
 
 lazy val servlet = project.dependsOn(core)
 
+lazy val jetty = project.dependsOn(servlet)
+
 lazy val dsl = project.dependsOn(core)
 
-lazy val examples = project.dependsOn(servlet, blaze, dsl)
+lazy val examples = project.dependsOn(blaze, jetty, dsl)
 
 /* common dependencies */
 libraryDependencies in ThisBuild ++= Seq(

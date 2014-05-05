@@ -8,11 +8,7 @@ seq(Revolver.settings: _*)
 
 libraryDependencies ++= Seq(
   logbackClassic,
-  javaxServletApi,
-  jettyServer,
-  jettyServlet,
-  jspApi % "runtime", // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
-  parboiled // TODO Why aren't you inherited?
+  jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
 )
 
 mainClass in Revolver.reStart := Some("org.http4s.examples.blaze.BlazeExample")
