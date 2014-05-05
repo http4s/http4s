@@ -7,12 +7,11 @@ package org.http4s.examples.blaze
 */
 
 import org.http4s.blaze.BlazeServer
-
-import org.http4s.examples.ExampleRoute
+import org.http4s.examples.ExampleService
 
 object BlazeExample extends App {
   println("Starting Http4s-blaze example")
   BlazeServer.newBuilder
-    .mountService(new ExampleRoute().apply, "/http4s")
+    .mountService(ExampleService.service, "/http4s")
     .run()
 }

@@ -27,7 +27,7 @@ object ServletExample extends App {
   }
 
   JettyServer.newBuilder
-    .mountService(new ExampleRoute().apply, "/http4s")
+    .mountService(ExampleService.service, "/http4s")
     .mountServlet(rawServlet, "/raw/*")
     .run()
     .join()

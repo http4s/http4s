@@ -1,20 +1,17 @@
 package org.http4s.examples
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process, Process.{Get => PGet, _}
-import scala.concurrent.Future
+import scalaz.stream.Process, Process.{Get => _, _}
+import scala.concurrent.{ExecutionContext, Future}
 import org.http4s._
 import org.http4s.dsl._
 import scodec.bits.ByteVector
 
-class ExampleRoute extends Http4s {
+object ExampleService extends Http4s {
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
-
-  import scala.concurrent.ExecutionContext.Implicits.global
-
   val MyVar = AttributeKey[Int]("org.http4s.examples.myVar")
 
-  def apply(): HttpService = {
+  def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = {
 
     case Get -> Root / "ping" =>
       Ok("pong")
