@@ -21,5 +21,7 @@ trait ServerBuilder { self =>
   def build: To
 
   def start: Task[To] = build.start
+
+  def run(): To = start.run
 }
 

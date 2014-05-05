@@ -36,8 +36,6 @@ object JettyServer {
 
     def build: To = new JettyServer(server)
 
-    def run(): To = build.start.run
-
     def mountServlet(servlet: HttpServlet, urlMapping: String): this.type = {
       context.addServlet(new ServletHolder(servlet), urlMapping)
       this
