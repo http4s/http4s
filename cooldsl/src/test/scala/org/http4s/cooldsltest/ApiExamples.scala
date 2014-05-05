@@ -22,9 +22,7 @@ class ApiExamples extends Specification {
         // the path can be built up in multiple steps and the parts reused
         val path = Method.Post / "hello"
         val path2 = path / 'world -? query[Int]("fav") // the symbol 'world just says 'capture a String'
-        path |>>> {
-          () => Ok("Empty")
-        } // use the |>> operator to turn a Router into an Action
+        path |>>> { () => Ok("Empty") }// use the |>>> operator to turn a Router into an Action
         path2 |>>> { (world: String, fav: Int) => Ok(s"Received $fav, $world") }
         path2 |>>> (foo(_, _))
 
@@ -80,6 +78,7 @@ class ApiExamples extends Specification {
 
         // If you want to access the the Request, just add it as the first param
         Method.Get / "getrequest" |>>> { req: Request => ??? }
+        Method.Get / "getrequest" / 'foo |>>> { (req: Request, foo: String) => ??? }
       }
 
       true should_== true

@@ -131,10 +131,10 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with CompileServ
   }
 
   protected def compileRouter[T <: HList, F, O](r: Router[T], f: F, hf: HListToFunc[T, O, F]): Result = {
-
+    val readyf = hf.conv(f)
     val ff: Result = { req =>
        pathAndValidate[T](req, r.path, r.validators).map(_ match {
-           case \/-(stack) => hf.conv(f)(req,stack)
+           case \/-(stack) => readyf(req,stack)
            case -\/(s) => onBadRequest(s)
        })
     }
@@ -143,14 +143,14 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with CompileServ
   }
   
   protected def compileCodecRouter[T <: HList, F, O, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, O, F]): Result = {
+    val actionf = hf.conv(f)
+    val allvals = And(r.router.validators, r.decoder.validations)
     val ff: Result = { req =>
-      pathAndValidate[T](req, r.r.path, r.r.validators).map(_ match {
-        case \/-(stack) =>
-          pickDecoder(req, r.t)
-            .map(_.decode(req.body).flatMap { r =>
-              hf.conv(f)(req,r::stack)
-            }).getOrElse(onBadRequest("No acceptable decoder"))
-
+      pathAndValidate[T](req, r.router.path, allvals).map(_ match {
+        case \/-(stack) => r.decoder.decode(req).flatMap(_ match {
+            case \/-(r) => actionf(req,r::stack)
+            case -\/(e) => onBadRequest(s"Error decoding body: $e")
+          })
         case -\/(s) => onBadRequest(s)
       })
     }
@@ -163,16 +163,7 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with CompileServ
     runPath(req, path, p).map(_.flatMap(runValidation(req, v, _))).asInstanceOf[Option[\/[String, T]]]
   }
 
-  /** Attempts to find a compatible codec */
-  private def pickDecoder[T](req: Request, d: BodyTransformer[T]): Option[Dec[T]] = d match {
-    case Decoder(codec) =>
-      if (codec.checkHeaders(req.headers)) Some(codec)
-      else None
-
-    case OrDec(c1, c2) => pickDecoder(req, c1).orElse(pickDecoder(req, c2))
-  }
-
   /** Walks the validation tree */
-  private[cooldsl] def ensureValidHeaders[T1 <: HList](v: HeaderRule[T1], req: Request): \/[String,T1] =
+  def ensureValidHeaders[T1 <: HList](v: HeaderRule[T1], req: Request): \/[String,T1] =
     runValidation(req, v, HNil).asInstanceOf[\/[String,T1]]
 }

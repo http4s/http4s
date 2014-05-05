@@ -34,28 +34,33 @@ case class Router[T1 <: HList](method: Method,
   def decoding[R](decoder: Decoder[R]): CodecRouter[T1,R] = CodecRouter(this, decoder)
 }
 
-case class CodecRouter[T1 <: HList, R](r: Router[T1], t: BodyTransformer[R])extends HeaderAppendable[T1] with RouteExecutable[R::T1] {
+case class CodecRouter[T1 <: HList, R](router: Router[T1], decoder: BodyTransformer[R])extends HeaderAppendable[T1] with RouteExecutable[R::T1] {
 
   override def >>>[T3 <: HList](v: HeaderRule[T3])(implicit prep1: Prepend[T3, T1]): CodecRouter[prep1.Out,R] =
-    CodecRouter(r >>> v, t)
+    CodecRouter(router >>> v, decoder)
 
   override def makeAction[F,O](f: F)(implicit hf: HListToFunc[R::T1,O,F]): CoolAction[R::T1, F, O] =
     new CoolAction(this, f, hf)
 
-  private[cooldsl] override def path: PathRule[_ <: HList] = r.path
+  private[cooldsl] override def path: PathRule[_ <: HList] = router.path
 
-  override def method: Method = r.method
+  override def method: Method = router.method
 
-  override private[cooldsl] def validators: HeaderRule[_ <: HList] = r.validators
+  override private[cooldsl] val validators: HeaderRule[_ <: HList] = And(router.validators, decoder.validations)
 }
 
 private[cooldsl] trait RouteExecutable[T <: HList] {
   def method: Method
+  
   def makeAction[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O]
+  
   private[cooldsl] def path: PathRule[_ <: HList]
+  
   private[cooldsl] def validators: HeaderRule[_ <: HList]
+  
   final def |>>>[F, O, R](f: F)(implicit hf: HListToFunc[T,O,F], srvc: CompileService[R]): R =
     srvc.compile(makeAction(f))
+  
   final def runWith[F, O, R](f: F)(implicit hf: HListToFunc[T,O,F]): Request=>Option[Task[Response]] =
     |>>>(f)(hf, RouteExecutor)
 }

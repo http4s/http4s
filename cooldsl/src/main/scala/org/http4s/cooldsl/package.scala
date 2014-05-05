@@ -1,11 +1,8 @@
 package org.http4s
 
-import shapeless.{HNil, ::, HList}
-import scalaz.concurrent.Task
-import org.http4s.cooldsl.BodyCodec.{Dec, BodyTransformer, Decoder}
-
 import scala.language.existentials
-import shapeless.ops.hlist.Prepend
+
+import shapeless.{HNil, ::}
 import org.http4s.cooldsl.bits.{QueryParser, StringParser}
 
 /**
@@ -17,7 +14,8 @@ package object cooldsl {
 
   implicit def pathMatch(s: String): CombinablePathRule[HNil] = PathMatch(s)
 
-  implicit def pathMatch(s: Symbol): CombinablePathRule[String::HNil] = PathCapture(StringParser.strParser)
+  implicit def pathMatch(s: Symbol): CombinablePathRule[String::HNil] =
+    PathCapture(StringParser.strParser, Some(s"Param name: ${s.name}"))
 
   def query[T](key: String)(implicit parser: QueryParser[T]) = QueryRule[T](key, parser)
 
