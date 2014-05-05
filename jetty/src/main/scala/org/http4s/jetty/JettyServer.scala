@@ -3,7 +3,7 @@ package jetty
 
 import javax.servlet.http.HttpServlet
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import org.eclipse.jetty.server.{Server => JServer}
+import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import scalaz.\/
 import scalaz.concurrent.Task
@@ -28,13 +28,25 @@ object JettyServer {
   class Builder extends ServletContainerBuilder {
     type To = JettyServer
 
-    private val server = new JServer(8080)
+    private val server = new JServer()
+
+    private var port = 8080
+
+    override def withPort(port: Int): this.type = {
+      this.port = port
+      this
+    }
 
     private val context = new ServletContextHandler()
     context.setContextPath("/")
     server.setHandler(context)
 
-    def build: To = new JettyServer(server)
+    def build: To = {
+      val connector = new ServerConnector(server)
+      connector.setPort(port)
+      server.addConnector(connector)
+      new JettyServer(server)
+    }
 
     def mountServlet(servlet: HttpServlet, urlMapping: String): this.type = {
       context.addServlet(new ServletHolder(servlet), urlMapping)

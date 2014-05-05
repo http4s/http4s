@@ -26,16 +26,22 @@ object BlazeServer {
     type To = BlazeServer
 
     private var aggregateService = HttpService.empty
+    private var port = 8080
 
     override def mountService(service: HttpService, prefix: String): this.type = {
       aggregateService = URITranslation.translateRoot(prefix)(service) orElse service
       this
     }
 
+    override def withPort(port: Int): this.type = {
+      this.port = port
+      this
+    }
+
     override def build: To = {
       def stage(): LeafBuilder[ByteBuffer] = new Http1Stage(aggregateService)
       val factory = new SocketServerChannelFactory(stage, 12, 8 * 1024)
-      val channel = factory.bind(new InetSocketAddress(8080))
+      val channel = factory.bind(new InetSocketAddress(port))
       new BlazeServer(channel)
     }
   }

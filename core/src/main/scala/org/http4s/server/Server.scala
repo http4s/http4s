@@ -20,6 +20,8 @@ trait ServerBuilder { self =>
 
   def build: To
 
+  def withPort(port: Int): this.type
+
   def start: Task[To] = build.start
 
   def run(): To = start.run
