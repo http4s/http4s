@@ -102,6 +102,8 @@ trait ExecutableCompiler {
         val p = currentPath
         currentPath = Nil
         \/-(p::stack)
+
+      case _: MetaData => \/-(stack)
     }
 
     if (!path.isEmpty) {
@@ -144,7 +146,15 @@ private[cooldsl] trait RouteExecutor extends ExecutableCompiler with CompileServ
   
   protected def compileCodecRouter[T <: HList, F, O, R](r: CodecRouter[T, R], f: F, hf: HListToFunc[R::T, O, F]): Result = {
     val actionf = hf.conv(f)
-    val allvals = And(r.router.validators, r.decoder.validations)
+    val allvals = {
+      if (!r.decoder.force) {
+        val mediaReq = r.decoder.consumes.map { mediaType =>
+          HeaderRequire(Header.`Content-Type`, { h: Header.`Content-Type`.HeaderT => h.mediaType == mediaType })
+        }
+        And(r.router.validators, mediaReq.tail.foldLeft(mediaReq.head:HeaderRule[HNil])(Or(_, _)))
+      }
+      else r.router.validators
+    }
     val ff: Result = { req =>
       pathAndValidate[T](req, r.router.path, allvals).map(_ match {
         case \/-(stack) => r.decoder.decode(req).flatMap(_ match {

@@ -20,7 +20,9 @@ trait PathTree extends ValidationTree {
   protected sealed abstract class Node {
 
     protected def paths: List[Node]
+
     protected def end: Leaf
+
     protected def variadic: Leaf
 
     protected def clone(paths: List[Node], variadic: Leaf, end: Leaf): Node
@@ -57,6 +59,8 @@ trait PathTree extends ValidationTree {
           clone(paths, v, end)
 
         case PathEmpty => append(tail, action)
+
+        case _: MetaData => append(tail, action)
       }
 
       case Nil =>  // this is the end of the stack

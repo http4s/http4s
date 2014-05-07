@@ -22,7 +22,7 @@ trait CoolService extends HttpService with ExecutableCompiler with bits.PathTree
 
   private def getMethod(method: Method) = methods.get(method).getOrElse(missingMethod)
 
-  private def append[T <: HList, F, O](action: CoolAction[T, F, O]): Unit = {
+  protected def append[T <: HList, F, O](action: CoolAction[T, F, O]): Unit = {
     val m = action.router.method
     val newLeaf = makeLeaf(action)
     val newNode = methods.get(m).getOrElse(HeadNode()).append(action.router.path, newLeaf)

@@ -45,6 +45,6 @@ private[cooldsl] case class HeaderCapture[T <: Header](key: HeaderKey.Extractabl
 
 private[cooldsl] case class HeaderMapper[H <: HeaderKey.Extractable, R](key: H, f: H#HeaderT => R) extends HeaderRule[R::HNil]
 
-private[cooldsl] case class QueryRule[T](name: String, p: QueryParser[T]) extends HeaderRule[T::HNil]
+private[cooldsl] case class QueryRule[T](name: String, p: QueryParser[T])(implicit m: Manifest[T]) extends HeaderRule[T::HNil]
 
 private[cooldsl] object EmptyHeaderRule extends HeaderRule[HNil]

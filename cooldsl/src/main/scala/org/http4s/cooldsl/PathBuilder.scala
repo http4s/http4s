@@ -4,10 +4,10 @@ import scala.language.existentials
 
 import shapeless.{::, HNil, HList}
 import shapeless.ops.hlist.Prepend
-import org.http4s.{Response, Method}
+import org.http4s.Method
 import org.http4s.cooldsl.BodyCodec.Decoder
-import scalaz.concurrent.Task
 import org.http4s.cooldsl.bits.{StringParser, HListToFunc}
+import scala.reflect.Manifest
 
 /**
  * Created by Bryce Anderson on 4/28/14.
@@ -18,7 +18,9 @@ import org.http4s.cooldsl.bits.{StringParser, HListToFunc}
 
 /** Fully functional path building */
 final class PathBuilder[T <: HList](val method: Method, private[cooldsl] val path: PathRule[T])
-                  extends PathBuilderBase[T] with HeaderAppendable[T] {
+                  extends PathBuilderBase[T] with HeaderAppendable[T] with MetaDataSyntax {
+
+  type Self = PathBuilder[T]
 
   def -?[T1](q: QueryRule[T1]): Router[T1::T] = new Router(method, path, q)
 
@@ -33,6 +35,8 @@ final class PathBuilder[T <: HList](val method: Method, private[cooldsl] val pat
 
   def /[T2 <: HList](t: PathBuilder[T2])(implicit prep: Prepend[T2, T]) : PathBuilder[prep.Out] =
     new PathBuilder(method, PathAnd(path, t.path))
+
+  override protected def addMetaData(data: MetaData): PathBuilder[T] = new PathBuilder[T](method, PathAnd(path, data))
 }
 
 ////////////////// AST representation of operations supported on the path ///////////////////
@@ -87,7 +91,9 @@ private[cooldsl] case class PathOr[T <: HList](p1: PathRule[T], p2: PathRule[T])
 
 private[cooldsl] case class PathMatch(s: String, override val documentation: Option[String] = None) extends CombinablePathRule[HNil]
 
-private[cooldsl] case class PathCapture[T](parser: StringParser[T], override val documentation: Option[String] = None) extends CombinablePathRule[T::HNil]
+private[cooldsl] case class PathCapture[T](parser: StringParser[T],
+                                           override val documentation: Option[String] = None)
+                                          (implicit val m: Manifest[T]) extends CombinablePathRule[T::HNil]
 
 // These don't fit the  operations of CombinablePathSyntax because they may
 // result in a change of the type of PathBulder
@@ -95,4 +101,8 @@ private[cooldsl] case class PathCapture[T](parser: StringParser[T], override val
 case class CaptureTail(override val documentation: Option[String] = None) extends PathRule[List[String]::HNil]
 
 private[cooldsl] case object PathEmpty extends PathRule[HNil]
+
+trait MetaData extends PathRule[HNil]
+
+case class PathDescription(desc: String) extends MetaData
 

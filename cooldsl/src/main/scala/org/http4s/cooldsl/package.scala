@@ -17,9 +17,11 @@ package object cooldsl {
   implicit def pathMatch(s: Symbol): CombinablePathRule[String::HNil] =
     PathCapture(StringParser.strParser, Some(s"Param name: ${s.name}"))
 
-  def query[T](key: String)(implicit parser: QueryParser[T]) = QueryRule[T](key, parser)
+  def query[T](key: String)(implicit parser: QueryParser[T], m: Manifest[T]) = QueryRule[T](key, parser)
 
-  def parse[T](implicit parser: StringParser[T]) = PathCapture(parser)
+  def parse[T](implicit parser: StringParser[T], m: Manifest[T]) = PathCapture(parser, None)
+
+  def parse[T](id: String)(implicit parser: StringParser[T], m: Manifest[T]) = PathCapture(parser, Some(id))
 
   def -* = CaptureTail()
 
