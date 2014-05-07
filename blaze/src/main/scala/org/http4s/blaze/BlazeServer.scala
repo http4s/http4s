@@ -21,6 +21,11 @@ class BlazeServer private (serverChannel: ServerChannel) extends Server {
     serverChannel.close()
     this
   }
+
+  override def onShutdown(f: => Unit): this.type = {
+    serverChannel.addShutdownHook(() => f)
+    this
+  }
 }
 
 object BlazeServer {

@@ -7,6 +7,8 @@ import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import scalaz.concurrent.Task
 import org.http4s.servlet.{ServletContainer, ServletContainerBuilder}
+import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
+import org.eclipse.jetty.util.component.LifeCycle
 
 class JettyServer private[jetty] (server: JServer) extends ServletContainer with LazyLogging {
   def start: Task[this.type] = Task.delay {
@@ -21,6 +23,13 @@ class JettyServer private[jetty] (server: JServer) extends ServletContainer with
 
   def join(): this.type = {
     server.join()
+    this
+  }
+
+  override def onShutdown(f: => Unit): this.type = {
+    server.addLifeCycleListener { new AbstractLifeCycleListener {
+      override def lifeCycleStopped(event: LifeCycle): Unit = f
+    }}
     this
   }
 }

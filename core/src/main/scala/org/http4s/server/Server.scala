@@ -11,6 +11,8 @@ trait Server {
   def shutdown: Task[this.type]
 
   def shutdownNow(): this.type = shutdown.run
+
+  def onShutdown(f: => Unit): this.type
 }
 
 trait ServerBuilder { self =>

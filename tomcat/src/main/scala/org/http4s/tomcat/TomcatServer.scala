@@ -17,7 +17,6 @@ class TomcatServer private[tomcat] (tomcat: Tomcat) extends ServletContainer wit
   }
 
   def shutdown: Task[this.type] = Task.delay {
-    println("STOPPING TOMCAT")
     tomcat.stop()
     this
   }
@@ -25,14 +24,19 @@ class TomcatServer private[tomcat] (tomcat: Tomcat) extends ServletContainer wit
   def join(): this.type = {
     if (tomcat.getServer.getState.ordinal < LifecycleState.STOPPED.ordinal) {
       val latch = new CountDownLatch(1)
-      tomcat.getServer.addLifecycleListener(new LifecycleListener {
-        override def lifecycleEvent(event: LifecycleEvent): Unit = {
-          if (event.getLifecycle == Lifecycle.AFTER_STOP_EVENT)
-            latch.countDown()
-        }
-      })
+      onShutdown { latch.countDown() }
       latch.await()
     }
+    this
+  }
+
+  override def onShutdown(f: => Unit): this.type = {
+    tomcat.getServer.addLifecycleListener(new LifecycleListener {
+      override def lifecycleEvent(event: LifecycleEvent): Unit = {
+        if (event.getLifecycle == Lifecycle.AFTER_STOP_EVENT)
+          f
+      }
+    })
     this
   }
 }
