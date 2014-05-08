@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.http4s.util.Registry
+import scalaz.concurrent.Task
 
 /**
  * An HTTP method.
@@ -14,10 +15,10 @@ sealed abstract case class Method (name: String) {
   def isIdempotent: Boolean
 
   /** Make a [[org.http4s.Request]] using this Method */
-  def apply(uri: Uri): Request = Request(this, uri)
+  def apply(uri: Uri): Task[Request] = Task.now(Request(this, uri))
 
   /** Make a [[org.http4s.Request]] using this Method */
-  def apply(uri: String): Request = {
+  def apply(uri: String): Task[Request] = {
     apply(Uri.fromString(uri)
       .getOrElse(throw new IllegalArgumentException(s"Invalid path: $uri")))
   }

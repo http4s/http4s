@@ -3,27 +3,25 @@ package org.http4s
 import java.io.File
 import java.net.InetAddress
 import org.http4s.Header.`Content-Type`
-import ResponseSyntax.ResponseSyntaxBase
+import MessageSyntax.ResponseSyntax
 import scalaz.concurrent.Task
 
-abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMap) {
-  protected type Self <: Message
+/** Represents a HTTP Message. The interesting subclasses are Request and Response
+  * while most of the functionality is found in [[MessageSyntax]] and [[ResponseSyntax]]
+  * @see [[MessageSyntax]], [[ResponseSyntax]]
+  */
+trait Message {
+  type Self <: Message
+  
+  def headers: Headers
+  
+  def body: HttpBody
+  
+  def attributes: AttributeMap
 
-  protected def withBodyHeaders(body: HttpBody = body, headers: Headers = headers): Self
-
-  /** Replaces the [[Header]]s of the incoming Request object
-    *
-    * @param headers [[Headers]] containing the desired headers
-    * @return a new Request object
-    */
-  def withHeaders(headers: Headers): Self = withBodyHeaders(headers = headers)
-
-  /** Replace the body of the incoming Request object
-    *
-    * @param body scalaz.stream.Process[Task,Chunk] representing the new body
-    * @return a new Request object
-    */
-  def withBody(body: HttpBody): Self = withBodyHeaders(body = body)
+  private[http4s] def withBHA(body: HttpBody = body,
+                              headers: Headers = headers,
+                              attributes: AttributeMap = attributes): Self
 
   /** Replace the body of the incoming Request object
     *
@@ -32,57 +30,33 @@ abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMa
     * @tparam T type of the body
     * @return new message
     */
-  def withBody[T](body: T)(implicit w: Writable[T]): Self = withBody(body, w.contentType)
+  def withBody[T](body: T)(implicit w: Writable[T]): Task[Self] = withBody(body, w.contentType)
 
-  def withBody[T](body: T, contentType: `Content-Type`)(implicit w: Writable[T]): Self = {
-    val (proc, len) = w.toBody(body)
-    val h = len match {
-      case Some(l) => headers.put(Header.`Content-Length`(l), contentType)
-      case None => headers.put(contentType)
+  def withBody[T](body: T, contentType: `Content-Type`)(implicit w: Writable[T]): Task[Self] = {
+    w.toBody(body).flatMap{ case (proc, len) =>
+      val h = len match {
+        case Some(l) => headers.put(Header.`Content-Length`(l), contentType)
+        case None => headers.put(contentType)
+      }
+      Task.now(withBHA(body = proc, headers = h))
     }
-    withBodyHeaders(body = proc, headers = h)
   }
 
   def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
 
   def contentType: Option[`Content-Type`] = headers.get(Header.`Content-Type`)
-  def withContentType(contentType: Option[`Content-Type`]): Self =
-    withHeaders(contentType match {
-      case Some(ct) => headers.put(ct)
-      case None => headers.filterNot(_.is(Header.`Content-Type`))
-    })
 
   def charset: CharacterSet = contentType.map(_.charset) getOrElse CharacterSet.`ISO-8859-1`
-
-  def addHeader(header: Header): Self = withHeaders(headers = header +: headers)
-
-  def putHeader(header: Header): Self = withHeaders(headers = headers.put(header))
-
-  def filterHeaders(f: Header => Boolean): Self =
-    withHeaders(headers = headers.filter(f))
-
-  def removeHeader(key: HeaderKey): Self = filterHeaders(_ isNot key)
 
   def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`)
     .map(_.values.list.contains(TransferCoding.chunked))
     .getOrElse(false)
-
-  /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
-    *
-    * @param key [[AttributeKey]] with which to associate the value
-    * @param value value associated with the key
-    * @tparam T type of the value to store
-    * @return a new message object with the key/value pair appended
-    */
-  def withAttribute[T](key: AttributeKey[T], value: T): Self
 
   /**
    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
    * task might not complete unless the entire body has been consumed.
    */
   def trailerHeaders: Task[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(Task.now(Headers.empty))
-
-  def withTrailerHeaders(trailerHeaders: Task[Headers]) = withAttribute(Message.Keys.TrailerHeaders, trailerHeaders)
 }
 
 object Message {
@@ -111,10 +85,10 @@ case class Request(
   headers: Headers = Headers.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message(headers, body, attributes) {
+) extends Message {
   import Request._
 
-  protected type Self = Request
+  type Self = Request
 
   def withAttribute[T](key: AttributeKey[T], value: T): Request = copy(attributes = attributes.put(key, value))
 
@@ -124,6 +98,7 @@ case class Request(
     val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
     requestUri.path.splitAt(caret)
   }
+
   def withPathInfo(pi: String) = copy(requestUri = requestUri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
@@ -153,7 +128,8 @@ case class Request(
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  override protected def withBodyHeaders(body: HttpBody, headers: Headers): Self = copy(body = body, headers = headers)
+  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Self =
+    copy(body = body, headers = headers, attributes = attributes)
 }
 
 object Request {
@@ -178,16 +154,12 @@ case class Response(
   headers: Headers = Headers.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message(headers, body, attributes) with ResponseSyntaxBase[Response] {
-  protected type Self = Response
+) extends Message with ResponseSyntax[Response] {
+  type Self = Response
 
-  // fixes conflicting overrides
-  override def withHeaders(headers: Headers): Response = super.withHeaders(headers)
+  override protected def translateMessage(f: (Response) => Response): Response = f(this)
 
-  override protected def translateResponse(f: (Response) => Response): Response = f(this)
-
-  override protected def withBodyHeaders(body: HttpBody, headers: Headers): Self = copy(body = body, headers = headers)
-
-  def withAttribute[T](key: AttributeKey[T], value: T): Response = copy(attributes = attributes.put(key, value))
+  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Self =
+    copy(body = body, headers = headers, attributes = attributes)
 }
 
