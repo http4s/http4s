@@ -57,11 +57,10 @@ object Status extends StatusInstances {
     def apply[A](body: A, contentType: `Content-Type`)(implicit w: Writable[A]): Task[Response] = {
       var headers: Headers = Headers.empty
       // tuple assignment runs afoul of https://issues.scala-lang.org/browse/SI-5301
-      headers :+= contentType
-      w.toBody(body).map { case (proc, len) =>
-        len foreach { headers :+= Header.`Content-Length`(_) }
-        Response(self, headers, proc)
-      }
+      headers +:= contentType
+      val (proc, len) = w.toBody(body)
+      len foreach { headers +:= Header.`Content-Length`(_) }
+      Task.now(Response(self, headers, proc))
     }
   }
 

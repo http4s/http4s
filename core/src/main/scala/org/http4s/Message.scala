@@ -7,9 +7,41 @@ import ResponseSyntax.ResponseSyntaxBase
 import scalaz.concurrent.Task
 
 abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMap) {
-  type Self <: Message
+  protected type Self <: Message
 
-  def withHeaders(headers: Headers): Self
+  protected def withBodyHeaders(body: HttpBody = body, headers: Headers = headers): Self
+
+  /** Replaces the [[Header]]s of the incoming Request object
+    *
+    * @param headers [[Headers]] containing the desired headers
+    * @return a new Request object
+    */
+  def withHeaders(headers: Headers): Self = withBodyHeaders(headers = headers)
+
+  /** Replace the body of the incoming Request object
+    *
+    * @param body scalaz.stream.Process[Task,Chunk] representing the new body
+    * @return a new Request object
+    */
+  def withBody(body: HttpBody): Self = withBodyHeaders(body = body)
+
+  /** Replace the body of the incoming Request object
+    *
+    * @param body body of type T
+    * @param w [[Writable]] corresponding to the body
+    * @tparam T type of the body
+    * @return new message
+    */
+  def withBody[T](body: T)(implicit w: Writable[T]): Self = withBody(body, w.contentType)
+
+  def withBody[T](body: T, contentType: `Content-Type`)(implicit w: Writable[T]): Self = {
+    val (proc, len) = w.toBody(body)
+    val h = len match {
+      case Some(l) => headers.put(Header.`Content-Length`(l), contentType)
+      case None => headers.put(contentType)
+    }
+    withBodyHeaders(body = proc, headers = h)
+  }
 
   def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
 
@@ -21,8 +53,6 @@ abstract class Message(headers: Headers, body: HttpBody, attributes: AttributeMa
     })
 
   def charset: CharacterSet = contentType.map(_.charset) getOrElse CharacterSet.`ISO-8859-1`
-
-  def withBody(body: HttpBody): Self
 
   def addHeader(header: Header): Self = withHeaders(headers = header +: headers)
 
@@ -84,21 +114,7 @@ case class Request(
 ) extends Message(headers, body, attributes) {
   import Request._
 
-  type Self = Request
-
-  /** Replaces the [[Header]]s of the incoming Request object
-    *
-    * @param headers [[Headers]] containing the desired headers
-    * @return a new Request object
-    */
-  def withHeaders(headers: Headers): Request = copy(headers = headers)
-
-  /** Replace the body of the incoming Request object
-    *
-    * @param body scalaz.stream.Process[Task,Chunk] representing the new body
-    * @return a new Request object
-    */
-  def withBody(body: HttpBody): Request = copy(body = body)
+  protected type Self = Request
 
   def withAttribute[T](key: AttributeKey[T], value: T): Request = copy(attributes = attributes.put(key, value))
 
@@ -136,6 +152,8 @@ case class Request(
   lazy val serverPort = (requestUri.port orElse headers.get(Header.Host).map(_.port) getOrElse 80)
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
+
+  override protected def withBodyHeaders(body: HttpBody, headers: Headers): Self = copy(body = body, headers = headers)
 }
 
 object Request {
@@ -161,11 +179,14 @@ case class Response(
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message(headers, body, attributes) with ResponseSyntaxBase[Response] {
-  type Self = Response
+  protected type Self = Response
+
+  // fixes conflicting overrides
+  override def withHeaders(headers: Headers): Response = super.withHeaders(headers)
+
   override protected def translateResponse(f: (Response) => Response): Response = f(this)
 
-  /** Replace the body of this Response with a new scalaz.stream.Process[Task,Chunk] */
-  def withBody(body: HttpBody): Response = copy(body = body)
+  override protected def withBodyHeaders(body: HttpBody, headers: Headers): Self = copy(body = body, headers = headers)
 
   def withAttribute[T](key: AttributeKey[T], value: T): Response = copy(attributes = attributes.put(key, value))
 }
