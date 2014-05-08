@@ -13,8 +13,14 @@ sealed abstract case class Method (name: String) {
   def isSafe: Boolean
   def isIdempotent: Boolean
 
-//  def :/(path: String): Path = new :/(this, Path(path))
-//  def /(path: String): Path = new /(this, Path(path))
+  /** Make a [[org.http4s.Request]] using this Method */
+  def apply(uri: Uri): Request = Request(this, uri)
+
+  /** Make a [[org.http4s.Request]] using this Method */
+  def apply(uri: String): Request = {
+    apply(Uri.fromString(uri)
+      .getOrElse(throw new IllegalArgumentException(s"Invalid path: $uri")))
+  }
 }
 
 object Method extends Registry {

@@ -86,7 +86,7 @@ case class Request(
 
   type Self = Request
 
-  /** Replaces the [[org.http4s.Header]]s of the incoming Request object
+  /** Replaces the [[Header]]s of the incoming Request object
     *
     * @param headers [[Headers]] containing the desired headers
     * @return a new Request object
