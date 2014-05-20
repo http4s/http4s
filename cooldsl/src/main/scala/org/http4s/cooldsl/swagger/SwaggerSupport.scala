@@ -31,12 +31,28 @@ trait SwaggerSupport extends CoolService {
           .withHeaders(Header.`Content-Type`(MediaType.`application/json`))
   }
 
+  Method.Get / "apiinfo" / -* |>>> { params: Seq[String] =>
+    val path = params.mkString("/", "/", "")
+    swagger.doc(path) match {
+      case Some(api) =>
+        val json = renderDoc(api)
+
+        Status.Ok(compact(render(json)))
+          .withHeaders(Header.`Content-Type`(MediaType.`application/json`))
+
+      case None => Status.NotFound("apiinfo" + path)
+    }
+  }
+
   override protected def append[T <: HList, F, O](action: CoolAction[T, F, O]): Unit = {
     super.append(action)
-    swagger.register(action.router)
+    swagger.register(action)
   }
 
   protected def renderDoc(doc: Api): JValue = {
+
+    println(doc)
+
     val json = docToJson(doc) merge
       ("basePath" -> "/") ~
         ("swaggerVersion" -> swagger.swaggerVersion) ~

@@ -152,7 +152,7 @@ class ApiTest extends Specification {
 
   "Decoders" should {
     import Status._
-    import BodyCodec._
+    import Decoder._
     import scalaz.stream.Process
 
     "Decode a body" in {
@@ -187,7 +187,7 @@ class ApiTest extends Specification {
 
   "Do a complicated one" in {
     import Status._
-    import BodyCodec._
+    import Decoder._
     import scalaz.stream.Process
 
     val path = Method.Post / "hello" / 'world -? query[Int]("fav")
@@ -211,7 +211,7 @@ class ApiTest extends Specification {
 
   "Append headers to a Route" in {
     import Status._
-    import BodyCodec._
+    import Decoder._
     import scalaz.stream.Process
 
     val path = Method.Post / "hello" / 'world -? query[Int]("fav")

@@ -3,7 +3,6 @@ package cooldsl
 
 import shapeless.{::, HList}
 import scalaz.concurrent.Task
-import org.http4s.cooldsl.BodyCodec.{BodyTransformer, Decoder}
 import shapeless.ops.hlist.Prepend
 
 import scala.language.existentials
@@ -31,7 +30,7 @@ case class Router[T1 <: HList](method: Method,
   override def >>>[T3 <: HList](v: HeaderRule[T3])(implicit prep1: Prepend[T3, T1]): Router[prep1.Out] =
     Router(method, path, And(validators,v))
 
-  override def makeAction[F,O](f: F)(implicit hf: HListToFunc[T1,O,F]): CoolAction[T1, F, O] =
+  override def makeAction[F,O](f: F, hf: HListToFunc[T1,O,F]): CoolAction[T1, F, O] =
     new CoolAction(this, f, hf)
 
   def decoding[R](decoder: Decoder[R]): CodecRouter[T1,R] = CodecRouter(this, decoder)
@@ -39,19 +38,21 @@ case class Router[T1 <: HList](method: Method,
   override protected def addMetaData(data: MetaData): Router[T1] = copy(path = PathAnd(path, data))
 }
 
-case class CodecRouter[T1 <: HList, R](router: Router[T1], decoder: BodyTransformer[R])extends HeaderAppendable[T1] with RouteExecutable[R::T1] {
+case class CodecRouter[T1 <: HList, R](router: Router[T1], decoder: Decoder[R])extends HeaderAppendable[T1] with RouteExecutable[R::T1] {
 
   type Self = CodecRouter[T1, R]
 
   override def >>>[T3 <: HList](v: HeaderRule[T3])(implicit prep1: Prepend[T3, T1]): CodecRouter[prep1.Out,R] =
     CodecRouter(router >>> v, decoder)
 
-  override def makeAction[F,O](f: F)(implicit hf: HListToFunc[R::T1,O,F]): CoolAction[R::T1, F, O] =
+  override def makeAction[F,O](f: F, hf: HListToFunc[R::T1,O,F]): CoolAction[R::T1, F, O] =
     new CoolAction(this, f, hf)
 
   private[cooldsl] override def path: PathRule[_ <: HList] = router.path
 
   override def method: Method = router.method
+
+  def decoding(decoder2: Decoder[R]): CodecRouter[T1, R] = CodecRouter(router, decoder.or(decoder2))
 
   override private[cooldsl] val validators: HeaderRule[_ <: HList] = {
     if (!decoder.consumes.isEmpty) {
@@ -68,14 +69,14 @@ case class CodecRouter[T1 <: HList, R](router: Router[T1], decoder: BodyTransfor
 private[cooldsl] trait RouteExecutable[T <: HList] {
   def method: Method
   
-  def makeAction[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O]
+  def makeAction[F, O](f: F, hf: HListToFunc[T,O,F]): CoolAction[T, F, O]
   
   private[cooldsl] def path: PathRule[_ <: HList]
   
   private[cooldsl] def validators: HeaderRule[_ <: HList]
   
   final def |>>>[F, O, R](f: F)(implicit hf: HListToFunc[T,O,F], srvc: CompileService[R]): R =
-    srvc.compile(makeAction(f))
+    srvc.compile(makeAction(f, hf))
   
   final def runWith[F, O, R](f: F)(implicit hf: HListToFunc[T,O,F]): Request=>Option[Task[Response]] =
     |>>>(f)(hf, RouteExecutor)

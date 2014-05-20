@@ -5,7 +5,6 @@ import scala.language.existentials
 import shapeless.{::, HNil, HList}
 import shapeless.ops.hlist.Prepend
 import org.http4s.Method
-import org.http4s.cooldsl.BodyCodec.Decoder
 import org.http4s.cooldsl.bits.{StringParser, HListToFunc}
 import scala.reflect.Manifest
 
@@ -75,7 +74,7 @@ sealed trait PathBuilderBase[T <: HList] extends RouteExecutable[T] with HeaderA
 
   final def decoding[R](dec: Decoder[R]): CodecRouter[T, R] = CodecRouter(toAction, dec)
 
-  final def makeAction[F, O](f: F)(implicit hf: HListToFunc[T,O,F]): CoolAction[T, F, O] =
+  final def makeAction[F, O](f: F, hf: HListToFunc[T,O,F]): CoolAction[T, F, O] =
     new CoolAction(Router(method, path, EmptyHeaderRule), f, hf)
 }
 

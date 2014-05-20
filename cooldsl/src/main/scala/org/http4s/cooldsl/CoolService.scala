@@ -57,6 +57,13 @@ trait CoolService extends HttpService with ExecutableCompiler with bits.PathTree
 case class CoolAction[T <: HList, F, O](private[cooldsl] val router: RouteExecutable[T],
                                 private[cooldsl] val f: F,
                                 private[cooldsl] val hf: HListToFunc[T, O, F]) {
-  def path: PathRule[_ <: HList] = router.path
-  def validators: HeaderRule[_ <: HList] = router.validators
+  final def method: Method = router.method
+  final def path: PathRule[_ <: HList] = router.path
+  final def validators: HeaderRule[_ <: HList] = router.validators
+  final def responseEncodings: Seq[MediaType] = hf.encodings
+  final def responseType: Option[Manifest[O]] = hf.manifest
+  final def decoders: Seq[MediaType] = router match {
+    case r: CodecRouter[_,_] => r.decoder.consumes
+    case _ => Nil
+  }
 }

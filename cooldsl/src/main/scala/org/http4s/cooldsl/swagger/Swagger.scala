@@ -53,7 +53,7 @@ trait SwaggerEngine[T <: SwaggerApi[_]] {
 //               protocols: List[String],
 //               authorizations: List[String])
 
-  def register(router: RouteExecutable[_ <: HList])
+  def register(action: CoolAction[_ <: HList,_,_])
 
 }
 
@@ -211,7 +211,7 @@ class Swagger(val swaggerVersion: String,
 //               protocols: List[String],
 //               authorizations: List[String]) = {
 
-  def register(router: RouteExecutable[_ <: HList]) {
+  def register(action: CoolAction[_ <: HList,_,_]) {
 //    logger.debug("registering swagger api with: { name: %s, resourcePath: %s, description: %s, servlet: %s }" format (name, resourcePath, description, s.getClass))
 //
 //    val endpoints: List[Endpoint] = s.endpoints(resourcePath) collect { case m: Endpoint => m }
@@ -228,21 +228,61 @@ class Swagger(val swaggerVersion: String,
 //      (authorizations ::: endpoints.flatMap(_.operations.flatMap(_.authorizations))).distinct,
 //      0)
 
-    val paths = getPaths(router.path)
+    println(action.hf.encodings)
 
-    paths.foreach { case (resourcePath, desc) =>
-      _docs += ("foo_" + math.random) -> Api(
+    val router = action.router
+
+      getPaths(router.path).foreach { case (resourcePath, desc) =>
+
+        val ops = getHeaderRules(action.validators)
+                  .map(_.copy(method = action.method,
+                              responseClass = action.responseType.map(DataType.fromManifest(_)).getOrElse(DataType.Void),
+                              summary = desc.getOrElse(s"${action.method}: $resourcePath"),
+                              consumes = action.decoders.map(_.value).toList
+                      ))
+
+      _docs += resourcePath -> Api(
         apiVersion,
         swaggerVersion,
         resourcePath,
         description = desc,
-        apis = Endpoint(resourcePath, desc)::Nil)
+        produces = ops.flatMap(_.produces),
+        consumes = ops.flatMap(_.consumes),
+        protocols = "http"::Nil,
+        apis = Endpoint(resourcePath, desc, operations = ops)::Nil)
     }
   }
 
-  private def parseHeaders(rules: HeaderRule[_ <: HList]): Seq[_] = {
+  private def getHeaderRules(rules: HeaderRule[_ <: HList]): List[Operation] = {
 
-    ???
+    val operations = new ListBuffer[Operation]
+
+    def getHeaderRules(rules: List[HeaderRule[_ <: HList]], op: Operation): Unit = rules match {
+      case head::rules => head match {
+        case And(a, b) => getHeaderRules(a::b::rules, op)
+
+        case Or(a, b) => getHeaderRules(a::rules, op); getHeaderRules(b::rules, op)
+
+        case HeaderCapture(key) =>
+          val p: Parameter = Parameter(key.name.toString, DataType.Void, paramType = ParamType.Header)
+          getHeaderRules(rules, op.copy(parameters = p::op.parameters))
+
+        case HeaderRequire(key, _) => getHeaderRules(HeaderCapture(key)::rules, op)
+
+        case HeaderMapper(key, _) => getHeaderRules(HeaderCapture(key)::rules, op)
+
+        case r@ QueryRule(name, parser) =>
+          val p = Parameter(name, DataType.fromManifest(r.m), paramType = ParamType.Query)
+          getHeaderRules(rules, op.copy(parameters = p::op.parameters))
+
+        case EmptyHeaderRule => getHeaderRules(rules, op)
+      }
+
+      case Nil => operations += op// finished
+    }
+
+    getHeaderRules(rules::Nil, Operation(Method.Delete, DataType.Void, ""))
+    operations.result()
   }
 
   private def getPaths(path: PathRule[_ <: HList]): Seq[(String, Option[String])] = {
@@ -475,7 +515,7 @@ case class Parameter(name: String,
                      `type`: DataType,
                      description: Option[String] = None,
                      notes: Option[String] = None,
-                     paramType: ParamType.ParamType = ParamType.Query,
+                     paramType: ParamType.ParamType,
                      defaultValue: Option[String] = None,
                      allowableValues: AllowableValues = AllowableValues.AnyValue,
                      required: Boolean = true,
@@ -559,7 +599,7 @@ trait SwaggerOperation {
 case class Operation(method: Method,
                      responseClass: DataType,
                      summary: String,
-                     position: Int,
+                     position: Int = 0,
                      notes: Option[String] = None,
                      deprecated: Boolean = false,
                      nickname: Option[String] = None,

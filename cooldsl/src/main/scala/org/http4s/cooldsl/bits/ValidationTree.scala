@@ -5,7 +5,6 @@ import scala.language.existentials
 
 import shapeless.HList
 import org.http4s.cooldsl.HeaderRule
-import org.http4s.cooldsl.BodyCodec.BodyTransformer
 import org.http4s.{Response, Request}
 import scalaz.concurrent.Task
 import scalaz.{\/-, -\/, \/}
@@ -37,7 +36,7 @@ private[cooldsl] trait ValidationTree {
   }
 
   final private case class SingleLeaf(vals: HeaderRule[_ <: HList],       // TODO: For documentation purposes
-                                      codec: Option[BodyTransformer[_]],  // For documentation purposes
+                                      codec: Option[Decoder[_]],  // For documentation purposes
                                       f: (Request, HList)=>Result) extends Leaf {
     override def attempt(req: Request, stack: HList): Result = f(req,stack)
   }

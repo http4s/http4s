@@ -6,7 +6,7 @@ import shapeless.{HNil, HList, ::}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-, \/}
 
-import BodyCodec._
+import Decoder._
 
 import org.http4s.Status.BadRequest
 import org.http4s.cooldsl.bits.HListToFunc
