@@ -28,22 +28,24 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="Message$.html" title="Go to companion"><img src="../../lib/class_to_object_big.png" /></a>
+        <a href="Message$.html" title="Go to companion"><img src="../../lib/trait_to_object_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="org">org</a>.<a href="package.html" class="extype" name="org.http4s">http4s</a></p>
         <h1><a href="Message$.html" title="Go to companion">Message</a></h1>
       </div>
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">class</span>
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
         <span class="name">Message</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response
+while most of the functionality is found in <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> and <span class="extype" name="ResponseSyntax">ResponseSyntax</span></p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a>, <span class="extype" name="ResponseSyntax">ResponseSyntax</span>
+</p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
@@ -84,23 +86,7 @@
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.Message#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(headers:org.http4s.Headers,body:org.http4s.HttpBody,attributes:org.http4s.AttributeMap):org.http4s.Message"></a>
-      <a id="&lt;init&gt;:Message"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Message</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>)</span>
-      </span>
-      </h4>
-      
-    </li></ol>
-            </div>
+        
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
@@ -122,45 +108,42 @@
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.Message#withAttribute" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="withAttribute[T](key:org.http4s.AttributeKey[T],value:T):Message.this.Self"></a>
-      <a id="withAttribute[T](AttributeKey[T],T):Self"></a>
+              <ol><li name="org.http4s.Message#attributes" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="attributes:org.http4s.AttributeMap"></a>
+      <a id="attributes:AttributeMap"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.Message.withAttribute.T">T</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.T">T</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      </h4>
-      <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended
-</p></dd></dl></div>
-    </li><li name="org.http4s.Message#withBody" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="withBody(body:org.http4s.HttpBody):Message.this.Self"></a>
-      <a id="withBody(HttpBody):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withBody</span><span class="params">(<span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">attributes</span><span class="result">: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a></span>
       </span>
       </h4>
       
-    </li><li name="org.http4s.Message#withHeaders" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="withHeaders(headers:org.http4s.Headers):Message.this.Self"></a>
-      <a id="withHeaders(Headers):Self"></a>
+    </li><li name="org.http4s.Message#body" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="body:org.http4s.HttpBody"></a>
+      <a id="body:HttpBody"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">body</span><span class="result">: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.Message#headers" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="headers:org.http4s.Headers"></a>
+      <a id="headers:Headers"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">headers</span><span class="result">: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>
       </span>
       </h4>
       
@@ -208,19 +191,6 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Message#addHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="addHeader(header:org.http4s.Header):Message.this.Self"></a>
-      <a id="addHeader(Header):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">addHeader</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -318,19 +288,6 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Message#filterHeaders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self"></a>
-      <a id="filterHeaders((Header)⇒Boolean):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -441,32 +398,6 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.Message#putHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="putHeader(header:org.http4s.Header):Message.this.Self"></a>
-      <a id="putHeader(Header):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">putHeader</span><span class="params">(<span name="header">header: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      </h4>
-      
-    </li><li name="org.http4s.Message#removeHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="removeHeader(key:org.http4s.HeaderKey):Message.this.Self"></a>
-      <a id="removeHeader(HeaderKey):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">removeHeader</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      </h4>
-      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -565,32 +496,35 @@ task might not complete unless the entire body has been consumed.
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.Message#withContentType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withContentType(contentType:Option[org.http4s.Header.Content-Type]):Message.this.Self"></a>
-      <a id="withContentType(Option[Content-Type]):Self"></a>
+    </li><li name="org.http4s.Message#withBody" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withBody[T](body:T,contentType:org.http4s.Header.Content-Type)(implicitw:org.http4s.Writable[T]):scalaz.concurrent.Task[Message.this.Self]"></a>
+      <a id="withBody[T](T,Content-Type)(Writable[T]):Task[Self]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.Message.withBody.T">T</span></span>, <span name="contentType">contentType: <a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.Message.withBody.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a>]</span>
       </span>
       </h4>
       
-    </li><li name="org.http4s.Message#withTrailerHeaders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="withTrailerHeaders(trailerHeaders:scalaz.concurrent.Task[org.http4s.Headers]):Message.this.Self"></a>
-      <a id="withTrailerHeaders(Task[Headers]):Self"></a>
+    </li><li name="org.http4s.Message#withBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withBody[T](body:T)(implicitw:org.http4s.Writable[T]):scalaz.concurrent.Task[Message.this.Self]"></a>
+      <a id="withBody[T](T)(Writable[T]):Task[Self]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withTrailerHeaders</span><span class="params">(<span name="trailerHeaders">trailerHeaders: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.Message.withBody.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.Message.withBody.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a>]</span>
       </span>
       </h4>
-      
+      <p class="shortcomment cmt">Replace the body of the incoming Request object
+</p><div class="fullcomment"><div class="comment cmt"><p>Replace the body of the incoming Request object
+</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the body</p></dd><dt class="param">body</dt><dd class="cmt"><p>body of type T</p></dd><dt class="param">w</dt><dd class="cmt"><p><a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a> corresponding to the body</p></dd><dt>returns</dt><dd class="cmt"><p>new message
+</p></dd></dl></div>
     </li></ol>
             </div>
 

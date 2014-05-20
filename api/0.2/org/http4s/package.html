@@ -294,7 +294,7 @@
       </h4>
       <p class="comment cmt">A collection of HTTP Headers</p>
     </li><li name="org.http4s.Http4s" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Http4sextendsHttpBodyFunctionswithStatusInstanceswithWritableInstanceswithPushSupport.PushSyntaxwithCaseInsensitiveStringSyntaxwithResponseSyntaxwithJodaTimeInstanceswithJodaTimeSyntaxwithTaskInstances"></a>
+      <a id="Http4sextendsHttpBodyFunctionswithStatusInstanceswithWritableInstanceswithPushSupport.PushSyntaxwithCaseInsensitiveStringSyntaxwithMessageSyntaxwithJodaTimeInstanceswithJodaTimeSyntaxwithTaskInstances"></a>
       <a id="Http4s:Http4s"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -302,7 +302,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Http4s.html"><span class="name">Http4s</span></a><span class="result"> extends <a href="HttpBodyFunctions.html" class="extype" name="org.http4s.HttpBodyFunctions">HttpBodyFunctions</a> with <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a> with <a href="middleware/PushSupport$$PushSyntax.html" class="extype" name="org.http4s.middleware.PushSupport.PushSyntax">PushSyntax</a> with <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="ResponseSyntax.html" class="extype" name="org.http4s.ResponseSyntax">ResponseSyntax</a> with <a href="util/JodaTimeInstances.html" class="extype" name="org.http4s.util.JodaTimeInstances">JodaTimeInstances</a> with <a href="util/JodaTimeSyntax.html" class="extype" name="org.http4s.util.JodaTimeSyntax">JodaTimeSyntax</a> with <a href="util/TaskInstances.html" class="extype" name="org.http4s.util.TaskInstances">TaskInstances</a></span>
+        <a href="Http4s.html"><span class="name">Http4s</span></a><span class="result"> extends <a href="HttpBodyFunctions.html" class="extype" name="org.http4s.HttpBodyFunctions">HttpBodyFunctions</a> with <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a> with <a href="middleware/PushSupport$$PushSyntax.html" class="extype" name="org.http4s.middleware.PushSupport.PushSyntax">PushSyntax</a> with <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> with <a href="util/JodaTimeInstances.html" class="extype" name="org.http4s.util.JodaTimeInstances">JodaTimeInstances</a> with <a href="util/JodaTimeSyntax.html" class="extype" name="org.http4s.util.JodaTimeSyntax">JodaTimeSyntax</a> with <a href="util/TaskInstances.html" class="extype" name="org.http4s.util.TaskInstances">TaskInstances</a></span>
       </span>
       </h4>
       
@@ -418,11 +418,24 @@ containing the <a href="Response.html" class="extype" name="org.http4s.Response"
       <a id="Message:Message"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">class</span>
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
       </span>
       <span class="symbol">
         <a href="Message.html"><span class="name">Message</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Represents a HTTP Message.</p>
+    </li><li name="org.http4s.MessageSyntax" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MessageSyntaxextendsAnyRef"></a>
+      <a id="MessageSyntax:MessageSyntax"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="MessageSyntax.html"><span class="name">MessageSyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4>
       
@@ -544,7 +557,7 @@ containing the <a href="Response.html" class="extype" name="org.http4s.Response"
       </h4>
       
     </li><li name="org.http4s.Response" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ResponseextendsMessagewithResponseSyntax.ResponseSyntaxBase[org.http4s.Response]withProductwithSerializable"></a>
+      <a id="ResponseextendsMessagewithMessageSyntax.ResponseSyntax[org.http4s.Response]withProductwithSerializable"></a>
       <a id="Response:Response"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -552,24 +565,11 @@ containing the <a href="Response.html" class="extype" name="org.http4s.Response"
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Response.html"><span class="name">Response</span></a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol"><span class="name"><a href="HttpBody$.html">HttpBody.empty</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="ResponseSyntax$.html#ResponseSyntaxBase[T]extendsAnyRef" class="extmbr" name="org.http4s.ResponseSyntax.ResponseSyntaxBase">http4s.ResponseSyntax.ResponseSyntaxBase</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>] with <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Response.html"><span class="name">Response</span></a><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> = <span class="symbol"><span class="name"><a href="Status$.html">Status.Ok</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol"><span class="name"><a href="HttpBody$.html">HttpBody.empty</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="MessageSyntax$.html#ResponseSyntax[T]extendsMessageSyntax.this.MessageSyntax[T,org.http4s.Response]" class="extmbr" name="org.http4s.MessageSyntax.ResponseSyntax">http4s.MessageSyntax.ResponseSyntax</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>] with <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       <p class="comment cmt">Representation of the HTTP response to send back to the client
 </p>
-    </li><li name="org.http4s.ResponseSyntax" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ResponseSyntaxextendsAnyRef"></a>
-      <a id="ResponseSyntax:ResponseSyntax"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ResponseSyntax.html"><span class="name">ResponseSyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4>
-      
     </li><li name="org.http4s.ServerProtocol" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ServerProtocolextendsAnyRef"></a>
       <a id="ServerProtocol:ServerProtocol"></a>
@@ -956,6 +956,19 @@ http://www.</p>
       </span>
       </h4>
       
+    </li><li name="org.http4s.MessageSyntax" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MessageSyntax"></a>
+      <a id="MessageSyntax:MessageSyntax"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MessageSyntax$.html"><span class="name">MessageSyntax</span></a><span class="result"> extends <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a></span>
+      </span>
+      </h4>
+      <p class="comment cmt">Created by Bryce Anderson on 3/25/14.</p>
     </li><li name="org.http4s.Method" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Method"></a>
       <a id="Method:Method"></a>
@@ -1034,19 +1047,6 @@ http://www.</p>
       </span>
       </h4>
       
-    </li><li name="org.http4s.ResponseSyntax" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ResponseSyntax"></a>
-      <a id="ResponseSyntax:ResponseSyntax"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ResponseSyntax$.html"><span class="name">ResponseSyntax</span></a><span class="result"> extends <a href="ResponseSyntax.html" class="extype" name="org.http4s.ResponseSyntax">ResponseSyntax</a></span>
-      </span>
-      </h4>
-      <p class="comment cmt">Created by Bryce Anderson on 3/25/14.</p>
     </li><li name="org.http4s.ServerProtocol" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ServerProtocol"></a>
       <a id="ServerProtocol:ServerProtocol"></a>
