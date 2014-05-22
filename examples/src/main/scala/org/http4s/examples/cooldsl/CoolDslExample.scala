@@ -8,12 +8,15 @@ import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
 import java.net.InetSocketAddress
 import org.http4s.cooldsl.CoolService
+import org.http4s.Header
 
 /**
  * Created by Bryce Anderson on 5/9/14.
  */
 class CoolDslExample(port: Int) {
-  val route = URITranslation.translateRoot("/http4s")(new MyService)
+  val route = URITranslation.translateRoot("/http4s")(new MyService).andThen{ t =>
+    t.addHeaders(Header("Access-Control-Allow-Origin", "*"))
+  }
 
   def f(): LeafBuilder[ByteBuffer] = new Http1Stage(route)
 

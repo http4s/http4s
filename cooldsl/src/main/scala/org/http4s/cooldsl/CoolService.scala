@@ -14,7 +14,7 @@ trait CoolService extends HttpService with ExecutableCompiler with bits.PathTree
 
   private val methods: mutable.Map[Method, Node] = mutable.HashMap.empty
 
-  implicit def compilerSrvc = new CompileService[Unit] {
+  implicit protected def compilerSrvc = new CompileService[Unit] {
     override def compile[T <: HList, F, O](action: CoolAction[T, F, O]): Unit = append(action)
   }
 

@@ -19,9 +19,8 @@ import reflect._
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
 import shapeless.HList
-import scalaz.concurrent.Task
-import scala.annotation.tailrec
-import scala.collection.mutable.ListBuffer
+import java.lang.reflect.{Field, TypeVariable}
+import org.http4s.cooldsl.swagger.annotations.{ApiModelProperty, ApiModel}
 
 trait SwaggerEngine[T <: SwaggerApi[_]] {
   def swaggerVersion: String
@@ -101,20 +100,22 @@ object Swagger {
 //  }
 //
 //  def modelToSwagger[T](implicit mf: Manifest[T]): Option[Model] = modelToSwagger(Reflector.scalaTypeOf[T])
-//
-//  private[this] def toModelProperty(descr: ClassDescriptor, position: Option[Int] = None, required: Boolean = true, description: Option[String] = None, allowableValues: String = "")(prop: PropertyDescriptor) = {
-//    val ctorParam = if (!prop.returnType.isOption) descr.mostComprehensive.find(_.name == prop.name) else None
-//    //    if (descr.simpleName == "Pet") println("converting property: " + prop)
-//    val mp = ModelProperty(
-//      DataType.fromScalaType(if (prop.returnType.isOption) prop.returnType.typeArgs.head else prop.returnType),
-//      if (position.isDefined && position.forall(_ >= 0)) position.get else ctorParam.map(_.argIndex).getOrElse(position.getOrElse(0)),
-//      required = required && !prop.returnType.isOption,
-//      description = description.flatMap(_.blankOption),
-//      allowableValues = convertToAllowableValues(allowableValues))
-//    //    if (descr.simpleName == "Pet") println("The property is: " + mp)
-//    prop.name -> mp
-//  }
-//
+
+  private def blankOpt(s: String) = if (s.length == 0) None else Some(s)
+
+  private[this] def toModelProperty(descr: ClassDescriptor, position: Option[Int] = None, required: Boolean = true, description: Option[String] = None, allowableValues: String = "")(prop: PropertyDescriptor) = {
+    val ctorParam = if (!prop.returnType.isOption) descr.mostComprehensive.find(_.name == prop.name) else None
+    //    if (descr.simpleName == "Pet") println("converting property: " + prop)
+    val mp = ModelProperty(
+      DataType.fromScalaType(if (prop.returnType.isOption) prop.returnType.typeArgs.head else prop.returnType),
+      if (position.isDefined && position.forall(_ >= 0)) position.get else ctorParam.map(_.argIndex).getOrElse(position.getOrElse(0)),
+      required = required && !prop.returnType.isOption,
+      description = description.flatMap(blankOpt(_)),
+      allowableValues = convertToAllowableValues(allowableValues))
+    //    if (descr.simpleName == "Pet") println("The property is: " + mp)
+    prop.name -> mp
+  }
+
 //  def modelToSwagger(klass: ScalaType): Option[Model] = {
 //    if (Reflector.isPrimitive(klass.erasure) || Reflector.isExcluded(klass.erasure, excludes.toSeq)) None
 //    else {
@@ -126,7 +127,7 @@ object Swagger {
 //      val fields = klass.erasure.getDeclaredFields.toList collect {
 //        case f: Field if f.getAnnotation(classOf[ApiModelProperty]) != null =>
 //          val annot = f.getAnnotation(classOf[ApiModelProperty])
-//          val asModelProperty = toModelProperty(descr, Some(annot.position()), annot.required(), annot.description().blankOption, annot.allowableValues())_
+//          val asModelProperty = toModelProperty(descr, Some(annot.position()), annot.required(), blankOpt(annot.description), annot.allowableValues())_
 //          descr.properties.find(_.mangledName == f.getName) map asModelProperty
 //
 //        case f: Field =>
@@ -136,59 +137,59 @@ object Swagger {
 //      }
 //
 //      val result = apiModel map { am =>
-//        Model(name, name, klass.fullName.blankOption, properties = fields.flatten, baseModel = am.parent.getName.blankOption, discriminator = am.discriminator.blankOption )
-//      } orElse Some(Model(name, name, klass.fullName.blankOption, properties = fields.flatten))
+//        Model(name, name, blankOpt(klass.fullName), properties = fields.flatten, baseModel = blankOpt(am.parent.getName), discriminator = blankOpt(am.discriminator) )
+//      } orElse Some(Model(name, name, blankOpt(klass.fullName), properties = fields.flatten))
 //      //      if (descr.simpleName == "Pet") println("The collected fields:\n" + result)
 //      result
 //    }
 //  }
-//
-//  private def convertToAllowableValues(csvString: String, paramType: String = null): AllowableValues = {
-//    if (csvString.toLowerCase.startsWith("range[")) {
-//      val ranges = csvString.substring(6, csvString.length() - 1).split(",")
-//      buildAllowableRangeValues(ranges, csvString, inclusive = true)
-//    } else if (csvString.toLowerCase.startsWith("rangeexclusive[")) {
-//      val ranges = csvString.substring(15, csvString.length() - 1).split(",")
-//      buildAllowableRangeValues(ranges, csvString, inclusive = false)
-//    } else {
-//      if (csvString.isBlank) {
-//        AllowableValues.AnyValue
-//      } else {
-//        val params = csvString.split(",").toList
-//        implicit val format = DefaultJsonFormats.GenericFormat(DefaultReaders.StringReader, DefaultWriters.StringWriter)
-//        paramType match {
-//          case null => AllowableValues.AllowableValuesList(params)
-//          case "string" => AllowableValues.AllowableValuesList(params)
-//        }
-//      }
-//    }
-//  }
-//
-//  private def buildAllowableRangeValues(ranges: Array[String], inputStr: String, inclusive: Boolean = true): AllowableValues.AllowableRangeValues = {
-//    var min: java.lang.Float = 0
-//    var max: java.lang.Float = 0
-//    if (ranges.size < 2) {
-//      throw new RuntimeException("Allowable values format " + inputStr + "is incorrect")
-//    }
-//    if (ranges(0).equalsIgnoreCase("Infinity")) {
-//      min = Float.PositiveInfinity
-//    } else if (ranges(0).equalsIgnoreCase("-Infinity")) {
-//      min = Float.NegativeInfinity
-//    } else {
-//      min = ranges(0).toFloat
-//    }
-//    if (ranges(1).equalsIgnoreCase("Infinity")) {
-//      max = Float.PositiveInfinity
-//    } else if (ranges(1).equalsIgnoreCase("-Infinity")) {
-//      max = Float.NegativeInfinity
-//    } else {
-//      max = ranges(1).toFloat
-//    }
-//    val allowableValues =
-//      AllowableValues.AllowableRangeValues(if (inclusive) Range.inclusive(min.toInt, max.toInt) else Range(min.toInt, max.toInt))
-//    allowableValues
-//  }
-//
+
+  private def convertToAllowableValues(csvString: String, paramType: String = null): AllowableValues = {
+    if (csvString.toLowerCase.startsWith("range[")) {
+      val ranges = csvString.substring(6, csvString.length() - 1).split(",")
+      buildAllowableRangeValues(ranges, csvString, inclusive = true)
+    } else if (csvString.toLowerCase.startsWith("rangeexclusive[")) {
+      val ranges = csvString.substring(15, csvString.length() - 1).split(",")
+      buildAllowableRangeValues(ranges, csvString, inclusive = false)
+    } else {
+      if (csvString.length == 0) {
+        AllowableValues.AnyValue
+      } else {
+        val params = csvString.split(",").toList
+        implicit val format = DefaultJsonFormats.GenericFormat(DefaultReaders.StringReader, DefaultWriters.StringWriter)
+        paramType match {
+          case null => AllowableValues.AllowableValuesList(params)
+          case "string" => AllowableValues.AllowableValuesList(params)
+        }
+      }
+    }
+  }
+
+  private def buildAllowableRangeValues(ranges: Array[String], inputStr: String, inclusive: Boolean = true): AllowableValues.AllowableRangeValues = {
+    var min: java.lang.Float = 0
+    var max: java.lang.Float = 0
+    if (ranges.size < 2) {
+      throw new RuntimeException("Allowable values format " + inputStr + "is incorrect")
+    }
+    if (ranges(0).equalsIgnoreCase("Infinity")) {
+      min = Float.PositiveInfinity
+    } else if (ranges(0).equalsIgnoreCase("-Infinity")) {
+      min = Float.NegativeInfinity
+    } else {
+      min = ranges(0).toFloat
+    }
+    if (ranges(1).equalsIgnoreCase("Infinity")) {
+      max = Float.PositiveInfinity
+    } else if (ranges(1).equalsIgnoreCase("-Infinity")) {
+      max = Float.NegativeInfinity
+    } else {
+      max = ranges(1).toFloat
+    }
+    val allowableValues =
+      AllowableValues.AllowableRangeValues(if (inclusive) Range.inclusive(min.toInt, max.toInt) else Range(min.toInt, max.toInt))
+    allowableValues
+  }
+
 }
 
 /**
@@ -228,100 +229,152 @@ class Swagger(val swaggerVersion: String,
 //      (authorizations ::: endpoints.flatMap(_.operations.flatMap(_.authorizations))).distinct,
 //      0)
 
+    /** What will be considered an 'API'? Will it be the last PathMatch?
+      * TODO:
+      * * The path needs to be broken down to the API endpoint and a
+      *    basic Operation should be passed to the getHeaderRules method
+      *    These could also be rethough altogether.
+      *
+      * * Rest path params belong in the Operation parameters list
+      *
+     *
+     */
+
     println(action.hf.encodings)
 
     val router = action.router
 
-      getPaths(router.path).foreach { case (resourcePath, desc) =>
+    val api = Api(apiVersion, swaggerVersion, "")
+    val respClass = action.responseType.map(DataType.fromManifest(_)).getOrElse(DataType.Void)
 
-        val ops = getHeaderRules(action.validators)
-                  .map(_.copy(method = action.method,
-                              responseClass = action.responseType.map(DataType.fromManifest(_)).getOrElse(DataType.Void),
-                              summary = desc.getOrElse(s"${action.method}: $resourcePath"),
-                              consumes = action.decoders.map(_.value).toList
-                      ))
-
-      _docs += resourcePath -> Api(
-        apiVersion,
-        swaggerVersion,
-        resourcePath,
-        description = desc,
-        produces = ops.flatMap(_.produces),
-        consumes = ops.flatMap(_.consumes),
-        protocols = "http"::Nil,
-        apis = Endpoint(resourcePath, desc, operations = ops)::Nil)
-    }
-  }
-
-  private def getHeaderRules(rules: HeaderRule[_ <: HList]): List[Operation] = {
-
-    val operations = new ListBuffer[Operation]
-
-    def getHeaderRules(rules: List[HeaderRule[_ <: HList]], op: Operation): Unit = rules match {
-      case head::rules => head match {
-        case And(a, b) => getHeaderRules(a::b::rules, op)
-
-        case Or(a, b) => getHeaderRules(a::rules, op); getHeaderRules(b::rules, op)
-
-        case HeaderCapture(key) =>
-          val p: Parameter = Parameter(key.name.toString, DataType.Void, paramType = ParamType.Header)
-          getHeaderRules(rules, op.copy(parameters = p::op.parameters))
-
-        case HeaderRequire(key, _) => getHeaderRules(HeaderCapture(key)::rules, op)
-
-        case HeaderMapper(key, _) => getHeaderRules(HeaderCapture(key)::rules, op)
-
-        case r@ QueryRule(name, parser) =>
-          val p = Parameter(name, DataType.fromManifest(r.m), paramType = ParamType.Query)
-          getHeaderRules(rules, op.copy(parameters = p::op.parameters))
-
-        case EmptyHeaderRule => getHeaderRules(rules, op)
+    getPaths(api, router.method, respClass, router.path).foreach{ api =>
+      val _endpoints = if (api.apis.isEmpty) {
+        val op = Operation(action.method, respClass, "", nickname = "nick")
+        List(Endpoint(api.resourcePath, api.description, getHeaderRules(router.validators::Nil, op)))
+      } else api.apis.map { endpoint =>
+        endpoint.copy(operations = endpoint.operations.flatMap(getHeaderRules(router.validators::Nil, _)))
       }
 
-      case Nil => operations += op// finished
-    }
+      val api2 = api.copy(produces = _endpoints.flatMap(_.operations.flatMap(_.produces)),
+                          consumes = _endpoints.flatMap(_.operations.flatMap(_.consumes)),
+                          apis = _endpoints)
 
-    getHeaderRules(rules::Nil, Operation(Method.Delete, DataType.Void, ""))
-    operations.result()
+      _docs += api2.resourcePath -> api2
+    }
   }
 
-  private def getPaths(path: PathRule[_ <: HList]): Seq[(String, Option[String])] = {
-    val paths = new ListBuffer[(String, Option[String])]
+  private def getHeaderRules(rules: List[HeaderRule[_ <: HList]], op: Operation): List[Operation] = rules match {
+    case head::rules => head match {
+      case And(a, b) => getHeaderRules(a::b::rules, op)
 
-    def go(stack: List[PathRule[_ <: HList]], builder: StringBuilder, desc: Option[String]): Unit = {
-      if(!stack.isEmpty) stack.head match {
-        case PathAnd(a, b) => go(a::b::stack.tail, builder, desc)
-        case PathOr(a, b) => // need to split
+      case Or(a, b) => getHeaderRules(a::rules, op):::getHeaderRules(b::rules, op)
 
-          val newb = new StringBuilder
-          newb.append(builder.result())
+      case HeaderCapture(key) =>
+        val p = Parameter(key.name.toString, DataType.Void, paramType = ParamType.Header)
+        getHeaderRules(rules, op.copy(parameters = op.parameters:+ p))
 
-          go(a::stack.tail, builder, desc)
-          go(b::stack.tail, newb, desc)
+      case HeaderRequire(key, _) => getHeaderRules(HeaderCapture(key)::rules, op)
+
+      case HeaderMapper(key, _) => getHeaderRules(HeaderCapture(key)::rules, op)
+
+      case r@ QueryRule(name, parser) =>
+        val p = Parameter(name, DataType.fromManifest(r.m), paramType = ParamType.Query)
+        getHeaderRules(rules, op.copy(parameters = op.parameters :+ p))
+
+      case EmptyHeaderRule => getHeaderRules(rules, op)
+    }
+
+    case Nil => op::Nil // finished
+  }
+
+  private def getPaths(api: Api, method: Method, responseType: DataType, path: PathRule[_ <: HList]): Seq[Api] = {
+
+    def mergeDescriptions(doc1: Option[String], doc2: Option[String]) = (doc1, doc2) match {
+      case (Some(d1), Some(d2)) => Some(d1 + "; " + d2)
+      case (s@ Some(_), None)   => s
+      case (None, s@ Some(_))   => s
+      case _                    => None
+    }
+
+    def mergeApis(apis: List[Api], api: Api): List[Api] = ???
+
+    def goPath(stack: List[PathRule[_ <: HList]], api: Api, end: Option[Endpoint]): List[Api] =  stack match {
+      case head::stack => head match {
+        case PathAnd(a, b) => goPath(a::b::stack, api, end)
+        case PathOr(a, b) => // need to split and then merge the APIs
+
+          val apis1 = goPath(a::stack, api, end)
+          val apis2 = goPath(b::stack, api, end)
+
+          apis1.foldLeft(apis2)((apis, api) => mergeApis(apis, api))
 
         case PathMatch(name, docs) =>
-          builder.append(s"/$name")
-          go(stack.tail, builder, desc)
+          val _path = "/" + name
+          end match {
+            case Some(end) =>
+              val e2 = end.copy(end.path + _path, description = mergeDescriptions(end.description, docs))
+              goPath(stack, api, Some(e2))
 
-        case c@ PathCapture(p, doc) =>
-          builder.append(s"/{${doc.getOrElse(c.m.runtimeClass.getSimpleName)}}")
-          go(stack.tail, builder, desc)
+            case None =>
+              goPath(stack, api.copy(resourcePath = api.resourcePath + "/" + name,
+                description = mergeDescriptions(api.description, docs)), end)
+          }
+
+
+        case c@ PathCapture(p, docs) =>
+          val dtype = p.manifest.map(DataType.fromManifest(_)).getOrElse(DataType.Void)
+          val docstr = docs.getOrElse(dtype.name)
+          end match {
+          case Some(end) => // Already making endpoints
+            val newpath = s"${end.path}/{$docstr}"
+            val param = Parameter(s"$docstr", dtype, paramType = ParamType.Path)
+            val op = end.operations.head
+            val newop = op.copy(parameters = op.parameters:+ param)
+            val newEnd = end.copy(path = newpath, operations = newop::Nil)
+            goPath(stack, api, Some(newEnd))
+
+          case None =>  // We now are at the point to make endpoints
+            val newpath = s"${api.resourcePath}/{${docs.getOrElse(dtype.name)}}"
+            val param = Parameter(s"${docs.getOrElse(dtype.name)}", dtype, paramType = ParamType.Path)
+            val op = Operation(method, responseType, "", parameters = param::Nil, nickname = "nick")
+            val newEnd = Endpoint(path = newpath, operations = op::Nil)
+
+            goPath(stack, api, Some(newEnd))
+        }
 
         case CaptureTail(doc) =>
-          builder.append(s"/${doc.getOrElse("...")}")
-          go(stack.tail, builder, desc)
 
-        case PathEmpty => go(stack.tail, builder, desc)
+          val param = Parameter("...", DataType.GenList(DataType.String), paramType = ParamType.Path)
+          end match {
+          case Some(end) =>
+            val newpath = s"${end.path}/..."
+            val op = end.operations.head
+            val newop = op.copy(parameters = op.parameters:+ param)
+            val newEnd = end.copy(path = newpath, operations = newop::Nil)
+            goPath(stack, api, Some(newEnd))
 
-        case PathDescription(s) => go(stack.tail, builder, Some(s))
+          case None =>
+            val newpath = s"${api.resourcePath}/..."
+            val op = Operation(method, responseType, "", parameters = param::Nil, nickname = "nick")
+            val newEnd = Endpoint(path = newpath, operations = op::Nil)
+            goPath(stack, api, Some(newEnd))
+        }
 
-        case _: MetaData => go(stack.tail, builder, desc)
+        case PathEmpty => goPath(stack, api, end)
+
+        case PathDescription(s) =>
+          goPath(stack, api.copy(description = mergeDescriptions(api.description, Some(s))), end)
+
+        case _: MetaData => goPath(stack, api, end)
       }
-      else paths += ((builder.result(), desc)) // Finished
+
+      case Nil => end match { // Finished
+        case Some(end) => api.copy(apis = end::Nil)::Nil
+        case None => api::Nil
+      }
     }
 
-    go(path::Nil, new StringBuilder, None)
-    paths.result()
+    goPath(path::Nil, api, None)
   }
 }
 
@@ -585,9 +638,9 @@ trait SwaggerOperation {
   def method: Method
   def responseClass: DataType
   def summary: String
+  def nickname: String
   def notes: Option[String]
   def deprecated: Boolean
-  def nickname: Option[String]
   def produces: List[String]
   def consumes: List[String]
   def protocols: List[String]
@@ -599,10 +652,10 @@ trait SwaggerOperation {
 case class Operation(method: Method,
                      responseClass: DataType,
                      summary: String,
+                     nickname: String,
                      position: Int = 0,
                      notes: Option[String] = None,
                      deprecated: Boolean = false,
-                     nickname: Option[String] = None,
                      parameters: List[Parameter] = Nil,
                      responseMessages: List[ResponseMessage[_]] = Nil,
                      //                     supportedContentTypes: List[String] = Nil,

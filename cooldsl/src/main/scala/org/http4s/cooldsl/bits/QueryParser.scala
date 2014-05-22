@@ -8,7 +8,7 @@ import scala.collection.generic.CanBuildFrom
 /**
  * Created by Bryce Anderson on 5/4/14.
  */
-trait QueryParser[+A] {
+trait QueryParser[A] {
   def collect(name: String, req: Request): String\/A
 }
 

@@ -24,14 +24,14 @@ trait SwaggerSupport extends CoolService {
 
   private val swagger = new Swagger("1.2", apiVersion, apiInfo)
 
-  Method.Get / "apiinfo" |>>> { () =>
+  Method.Get / "api-info" |>>> { () =>
     val json = renderIndex(swagger.docs.toSeq)
 
     Status.Ok(compact(render(json)))
           .withHeaders(Header.`Content-Type`(MediaType.`application/json`))
   }
 
-  Method.Get / "apiinfo" / -* |>>> { params: Seq[String] =>
+  Method.Get / "api-info" / -* |>>> { params: Seq[String] =>
     val path = params.mkString("/", "/", "")
     swagger.doc(path) match {
       case Some(api) =>
@@ -40,7 +40,7 @@ trait SwaggerSupport extends CoolService {
         Status.Ok(compact(render(json)))
           .withHeaders(Header.`Content-Type`(MediaType.`application/json`))
 
-      case None => Status.NotFound("apiinfo" + path)
+      case None => Status.NotFound("api-info" + path)
     }
   }
 
@@ -50,11 +50,8 @@ trait SwaggerSupport extends CoolService {
   }
 
   protected def renderDoc(doc: Api): JValue = {
-
-    println(doc)
-
     val json = docToJson(doc) merge
-      ("basePath" -> "/") ~
+      ("basePath" -> "http://localhost:8080/http4s") ~
         ("swaggerVersion" -> swagger.swaggerVersion) ~
         ("apiVersion" -> swagger.apiVersion)
     val consumes = dontAddOnEmpty("consumes", doc.consumes)_
