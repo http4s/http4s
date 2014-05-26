@@ -31,14 +31,20 @@ import scalaz.{\/-, -\/}
 import org.parboiled2.ParseError
 import java.util.concurrent.ExecutorService
 import scodec.bits.ByteVector
+import org.http4s.blaze.channel.SocketConnection
 
 
-class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy.DefaultExecutorService)
+class Http1Stage(service: HttpService, conn: Option[SocketConnection])
+                (implicit pool: ExecutorService = Strategy.DefaultExecutorService)
               extends Http1ServerParser with TailStage[ByteBuffer] {
 
   protected implicit def ec = trampoline
 
   val name = "Http4sStage"
+  
+  private val requestAttrs = conn.flatMap(_.remoteInetAddress).map{ addr =>
+    AttributeMap(AttributeEntry(Request.Keys.Remote, addr))
+  }.getOrElse(AttributeMap.empty)
 
   private var uri: String = null
   private var method: String = null
@@ -98,7 +104,7 @@ class Http1Stage(service: HttpService)(implicit pool: ExecutorService = Strategy
         Request(Method.getOrElseCreate(this.method),
           uri,
           if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`,
-          h, body)
+          h, body, requestAttrs)
 
       case Failure(_: ParseError) =>
         val req = Request(requestUri = Uri(Some(this.uri.ci)), headers = h)

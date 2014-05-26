@@ -11,6 +11,7 @@ import org.http4s.blaze.websocket.WebSocketSupport
 
 import java.nio.ByteBuffer
 import java.net.InetSocketAddress
+import org.http4s.blaze.channel.SocketConnection
 
 
 /**
@@ -48,8 +49,8 @@ object BlazeWebSocketExample extends App {
       WS(src, t.publish)
   }
 
-  def pipebuilder(): LeafBuilder[ByteBuffer] =
-    new Http1Stage(URITranslation.translateRoot("/http4s")(route)) with WebSocketSupport
+  def pipebuilder(conn: SocketConnection): LeafBuilder[ByteBuffer] =
+    new Http1Stage(URITranslation.translateRoot("/http4s")(route), Some(conn)) with WebSocketSupport
 
   new SocketServerChannelFactory(pipebuilder, 12, 8*1024)
     .bind(new InetSocketAddress(8080))

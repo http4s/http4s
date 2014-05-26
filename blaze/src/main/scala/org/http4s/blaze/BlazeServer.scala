@@ -2,9 +2,8 @@ package org.http4s
 package blaze
 
 import java.net.InetSocketAddress
-import org.http4s.blaze.channel.ServerChannel
+import org.http4s.blaze.channel.{SocketConnection, ServerChannel}
 import org.http4s.server.{ServerBuilder, Server}
-import scalaz.\/
 import scalaz.concurrent.Task
 import org.http4s.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
@@ -51,7 +50,7 @@ object BlazeServer {
     }
 
     override def build: To = {
-      def stage(): LeafBuilder[ByteBuffer] = new Http1Stage(aggregateService)
+      def stage(conn: SocketConnection): LeafBuilder[ByteBuffer] = new Http1Stage(aggregateService, Some(conn))
       val factory = new SocketServerChannelFactory(stage, 12, 8 * 1024)
       val channel = factory.bind(new InetSocketAddress(port))
       new BlazeServer(channel)
