@@ -15,15 +15,42 @@ trait MessageSyntax {
 
   implicit def addHelpers(r: Task[Response]) = new ResponseSyntax[Task[Response]] {
     override protected def translateMessage(f: Response => Response) = r.map(f)
+
+    override protected def translateWithTask(f: (Response) => Task[Response]): Task[Response] = r.flatMap(f)
   }
 
   implicit def addHelpers(r: Task[Request]) = new MessageSyntax[Task[Request], Request] {
-    override protected def translateMessage(f: (Request) => Request#Self): Task[Request] = r.map(f)
+    override protected def translateMessage(f: (Request) => Request): Task[Request] = r.map(f)
+
+    override protected def translateWithTask(f: (Request) => Task[Request]): Task[Request] = r.flatMap(f)
   }
 
   trait MessageSyntax[T, M <: Message] {
 
     protected def translateMessage(f: M => M#Self): T
+    
+    protected def translateWithTask(f: M => Task[M#Self]): Task[M#Self]
+
+    /** Replace the body of the incoming Request object
+      *
+      * @param body body of type T
+      * @param w [[Writable]] corresponding to the body
+      * @tparam B type of the body
+      * @return new message
+      */
+    def withBody[B](body: B)(implicit w: Writable[B]): Task[M#Self] = withBody(body, w.contentType)
+
+    def withBody[B](body: B, contentType: `Content-Type`)(implicit w: Writable[B]): Task[M#Self] = {
+      translateWithTask { self =>
+        w.toBody(body).map { case (proc, len) =>
+          val h = len match {
+            case Some(l) => self.headers.put(Header.`Content-Length`(l), contentType)
+            case None => self.headers.put(contentType)
+          }
+          self.withBHA(body = proc, headers = h)
+        }
+      }
+    }
 
     /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
       *

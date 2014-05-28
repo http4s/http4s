@@ -13,7 +13,11 @@ trait Writable[-A] {
   def toBody(a: A): Task[(HttpBody, Option[Int])]
 }
 
-object Writable extends WritableInstances
+object Writable extends WritableInstances {
+  def apply[A](body: A)(implicit w: Writable[A]): Task[(HttpBody, Option[Int])] = w.toBody(body)
+
+  def get[A](body: A)(implicit w: Writable[A]): HttpBody = apply(body).run._1
+}
 
 trait SimpleWritable[-A] extends Writable[A] {
   def asChunk(data: A): ByteVector

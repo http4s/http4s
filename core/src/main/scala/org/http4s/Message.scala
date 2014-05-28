@@ -3,8 +3,8 @@ package org.http4s
 import java.io.File
 import java.net.InetAddress
 import org.http4s.Header.`Content-Type`
-import MessageSyntax.ResponseSyntax
 import scalaz.concurrent.Task
+import MessageSyntax.ResponseSyntax
 
 /** Represents a HTTP Message. The interesting subclasses are Request and Response
   * while most of the functionality is found in [[MessageSyntax]] and [[ResponseSyntax]]
@@ -22,25 +22,6 @@ trait Message {
   private[http4s] def withBHA(body: HttpBody = body,
                               headers: Headers = headers,
                               attributes: AttributeMap = attributes): Self
-
-  /** Replace the body of the incoming Request object
-    *
-    * @param body body of type T
-    * @param w [[Writable]] corresponding to the body
-    * @tparam T type of the body
-    * @return new message
-    */
-  def withBody[T](body: T)(implicit w: Writable[T]): Task[Self] = withBody(body, w.contentType)
-
-  def withBody[T](body: T, contentType: `Content-Type`)(implicit w: Writable[T]): Task[Self] = {
-    w.toBody(body).flatMap{ case (proc, len) =>
-      val h = len match {
-        case Some(l) => headers.put(Header.`Content-Length`(l), contentType)
-        case None => headers.put(contentType)
-      }
-      Task.now(withBHA(body = proc, headers = h))
-    }
-  }
 
   def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
 
@@ -85,12 +66,14 @@ case class Request(
   headers: Headers = Headers.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message {
+) extends Message with MessageSyntax.MessageSyntax[Request, Request] {
   import Request._
 
   type Self = Request
 
-  def withAttribute[T](key: AttributeKey[T], value: T): Request = copy(attributes = attributes.put(key, value))
+  override protected def translateMessage(f: (Request) => Request): Request = f(this)
+
+  override protected def translateWithTask(f: (Request) => Task[Request]): Task[Request] = f(this)
 
   lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
 
@@ -128,7 +111,7 @@ case class Request(
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Self =
+  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Request =
     copy(body = body, headers = headers, attributes = attributes)
 }
 
@@ -153,13 +136,14 @@ case class Response(
   status: Status = Status.Ok,
   headers: Headers = Headers.empty,
   body: HttpBody = HttpBody.empty,
-  attributes: AttributeMap = AttributeMap.empty
-) extends Message with ResponseSyntax[Response] {
+  attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseSyntax[Response] {
   type Self = Response
 
   override protected def translateMessage(f: (Response) => Response): Response = f(this)
 
-  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Self =
+  override protected def translateWithTask(f: (Response) => Task[Response]): Task[Response] = f(this)
+
+  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Response =
     copy(body = body, headers = headers, attributes = attributes)
 }
 

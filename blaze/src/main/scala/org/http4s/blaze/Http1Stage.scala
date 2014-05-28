@@ -41,7 +41,7 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
   protected implicit def ec = trampoline
 
   val name = "Http4sStage"
-  
+
   private val requestAttrs = conn.flatMap(_.remoteInetAddress).map{ addr =>
     AttributeMap(AttributeEntry(Request.Keys.Remote, addr))
   }.getOrElse(AttributeMap.empty)

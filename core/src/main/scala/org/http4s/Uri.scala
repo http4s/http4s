@@ -44,7 +44,7 @@ case class Uri (
     */
   def params: Map[String, String] = new ParamsView(multiParams)
 
-  private class ParamsView(wrapped: Map[String, Seq[String]]) extends AnyRef with Map[String, String] {
+  private class ParamsView(wrapped: Map[String, Seq[String]]) extends Map[String, String] {
     override def +[B1 >: String](kv: (String, B1)): Map[String, B1] = {
       val b = immutable.Map.newBuilder[String, B1]
       wrapped.foreach { case (k, s) => b += ((k, s.head))}

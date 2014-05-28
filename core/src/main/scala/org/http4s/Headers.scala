@@ -6,7 +6,7 @@ import scala.collection.mutable.ListBuffer
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
-  extends AnyRef with immutable.Seq[Header]
+  extends immutable.Seq[Header]
   with collection.SeqLike[Header, Headers]
 {
   override protected def newBuilder: mutable.Builder[Header, Headers] = Headers.newBuilder
