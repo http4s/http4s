@@ -25,7 +25,7 @@ object Timeout {
       * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
       * @param service [[HttpService]] to transform
       */
-  def apply(r: Task[Response]) (service: HttpService): HttpService = service.andThen{ resp =>
+  def apply(r: Task[Response]) (service: HttpService): HttpService = service.andThen { resp =>
     Task.taskInstance.chooseAny(resp, r::Nil).map(_._1)
   }
 
@@ -33,7 +33,10 @@ object Timeout {
     * @param timeout Duration to wait before returning the RequestTimeOut
     * @param service [[HttpService]] to transform
     */
-  def apply(timeout: Duration)(service: HttpService): HttpService = apply(timeoutResp(timeout))(service)
+  def apply(timeout: Duration)(service: HttpService): HttpService = {
+    if (timeout.isFinite()) apply(timeoutResp(timeout))(service)
+    else service
+  }
 
   /** Transform the service to return a RequestTimeOut [[Status]] after 30 seconds
     * @param service [[HttpService]] to transform

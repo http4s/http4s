@@ -30,6 +30,12 @@ class TimeoutSpec extends WordSpec with Matchers {
 
       timeoutService.apply(req).run.status should equal(Status.RequestTimeOut)
     }
+
+    "Handle infinite durations" in {
+      val service = Timeout(Duration.Inf)(myservice)
+
+      service(Method.Get("/slow").run).run.status should equal(Status.Ok)
+    }
   }
 
 }
