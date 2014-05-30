@@ -1,0 +1,35 @@
+package org.http4s.middleware
+
+import org.scalatest.{Matchers, WordSpec}
+import org.http4s._
+import scalaz.concurrent.Task
+import scala.concurrent.duration._
+import org.http4s.Response
+
+/**
+ * Created by Bryce Anderson on 5/30/14.
+ */
+class TimeoutSpec extends WordSpec with Matchers {
+
+  val myservice: HttpService = {
+    case req if req.requestUri.path == "/fast" => Status.Ok("Fast")
+    case req if req.requestUri.path == "/slow" => Task(Thread.sleep(1000)).flatMap(_ => Status.Ok("Slow"))
+  }
+
+  val timeoutService = Timeout.apply(500.millis)(myservice)
+
+  "Timeout Middleware" should {
+    "Have no effect if the response is not delayed" in {
+      val req = Method.Get("/fast").run
+
+      timeoutService.apply(req).run.status should equal(Status.Ok)
+    }
+
+    "return a timeout if the result takes too long" in {
+      val req = Method.Get("/slow").run
+
+      timeoutService.apply(req).run.status should equal(Status.RequestTimeOut)
+    }
+  }
+
+}

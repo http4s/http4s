@@ -5,8 +5,6 @@ import org.scalatest.{Matchers, WordSpec}
 
 import scalaz.stream.Process
 import Process._
-import org.http4s.Status.Ok
-import scalaz.concurrent.Task
 import scodec.bits.ByteVector
 
 /**
