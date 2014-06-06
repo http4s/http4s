@@ -21,6 +21,7 @@ import scodec.bits.ByteVector
 trait WebSocketSupport extends Http1Stage {
   override protected def renderResponse(req: Request, resp: Response): Unit = {
     val ws = resp.attributes.get(org.http4s.websocket.websocketKey)
+    logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
     if (ws.isDefined) {
       val hdrs =  req.headers.map(h=>(h.name.toString,h.value))
@@ -29,9 +30,11 @@ trait WebSocketSupport extends Http1Stage {
           case Left((code, msg)) =>
             logger.info(s"Invalid handshake $code, $msg")
             val body = Process.emit(ByteVector(msg.toString.getBytes(req.charset.charset)))
-            val rsp = Response(status = Status.BadRequest,
-                               body = body,
-                               headers = Headers(`Content-Length`(msg.length), Connection("close".ci)))
+            val headers = Headers(`Content-Length`(msg.length),
+                                   Connection("close".ci),
+                                   Header.Raw(Header.`Sec-WebSocket-Version`.name, "13"))
+
+            val rsp = Response(status = Status.BadRequest, body = body, headers = headers)
             super.renderResponse(req, rsp)
 
           case Right(hdrs) =>
