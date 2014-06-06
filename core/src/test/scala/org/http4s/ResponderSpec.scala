@@ -44,5 +44,8 @@ class ResponderSpec extends WordSpec with Matchers with OptionValues {
       newHeaders.headers.get(Header.Connection) should be (None)
     }
 
+    "Set cookie" in {
+      resp.addCookie("foo", "bar").headers.get(Header.`Set-Cookie`).value should equal (Header.`Set-Cookie`(Cookie("foo", "bar")))
+    }
   }
 }
