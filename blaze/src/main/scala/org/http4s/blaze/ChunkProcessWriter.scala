@@ -42,8 +42,18 @@ class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBu
       }
       promise.future
     }
-    if (chunk.nonEmpty) writeBodyChunk(chunk, true).flatMap { _ => writeTrailer }
-    else writeTrailer
+
+    if (headers != null) {
+      val h = headers
+      headers = null
+      val chunks = if (chunk.nonEmpty) h::encodeChunk(chunk, Nil)
+                   else h::Nil
+
+      pipe.channelWrite(chunks).flatMap { _ => writeTrailer }
+    } else {
+      if (chunk.nonEmpty) writeBodyChunk(chunk, true).flatMap { _ => writeTrailer }
+      else writeTrailer
+    }
   }
 
   private def writeLength(length: Int): ByteBuffer = {

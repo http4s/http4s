@@ -3,6 +3,7 @@ package org.http4s
 import scalaz.concurrent.Task
 import java.net.{URL, URI}
 import org.http4s.Header.`Content-Type`
+import org.joda.time.DateTime
 
 /** Representation of the HTTP response code and reason
   *
@@ -50,7 +51,11 @@ object Status extends StatusInstances {
     *
     * @see [[NoEntityResponseGenerator]]
     */
-  trait EntityResponseGenerator extends NoEntityResponseGenerator { self: Status =>
+  trait EntityResponseGenerator { self: Status =>
+    private[this] val StatusResponder = Response(this)
+
+    def apply(): Task[Response] = Task.now(StatusResponder)
+
     def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
       apply(body, w.contentType)(w)
 
@@ -135,7 +140,11 @@ trait StatusInstances {
   val MovedPermanently = new Status(301, "Moved Permanently") with RedirectResponderGenerator
   val Found = new Status(302, "Found") with RedirectResponderGenerator
   val SeeOther = new Status(303, "See Other") with RedirectResponderGenerator
-  val NotModified = new Status(304, "Not Modified") with NoEntityResponseGenerator
+
+  val NotModified = new Status(304, "Not Modified") with NoEntityResponseGenerator {
+    override def apply(): Task[Response] = Task.now(Response(status = this, headers = Headers(Header.Date(new DateTime()))))
+  }
+
   val UseProxy = new Status(305, "Use Proxy") with RedirectResponderGenerator
   val TemporaryRedirect = new Status(306, "Temporary Redirect") with RedirectResponderGenerator
 

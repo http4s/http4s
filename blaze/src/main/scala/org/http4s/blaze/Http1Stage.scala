@@ -16,7 +16,7 @@ import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
 import scala.util.{Try, Success, Failure}
 
-import org.http4s.Status.{InternalServerError, NotFound}
+import org.http4s.Status.{NoEntityResponseGenerator, InternalServerError, NotFound}
 import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{`Transfer-Encoding`, Connection, `Content-Length`}
@@ -67,7 +67,7 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
       logger.trace {
         buff.mark()
         val sb = new StringBuilder
-        println(buff)
+        println(buff) /// ------- Only for tracing purposes!
         while(buff.hasRemaining) sb.append(buff.get().toChar)
 
         buff.reset()
@@ -171,45 +171,52 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
     val lengthHeader = `Content-Length`.from(resp.headers)
 
-    val bodyEncoder = lengthHeader match {
-      case Some(h) if respCoding.isEmpty =>
-        logger.trace("Using static encoder")
-
-        // add KeepAlive to Http 1.0 responses if the header isn't already present
-        if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr ~ "Connection:keep-alive\r\n\r\n"
-        else rr ~ '\r' ~ '\n'
-
+    val bodyEncoder = {
+      if (resp.status.isInstanceOf[NoEntityResponseGenerator] && lengthHeader.isEmpty && respCoding.isEmpty) {
+        // We don't have a body so we just get the headers
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-        new StaticWriter(b, h.length, this)
+        new BodylessWriter(b, this, closeOnFinish)
+      }
+      else lengthHeader match {
+        case Some(h) if respCoding.isEmpty =>
+          logger.trace("Using static encoder")
 
-      case _ =>  // No Length designated for body or Transfer-Encoding included
-        if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
-          if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
-            logger.trace("Using static encoder")
-            rr ~ '\r' ~ '\n'
-            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-            new StaticWriter(b, -1, this)
-          }
-          else {  // HTTP 1.0, but request was Keep-Alive.
-            logger.trace("Using static encoder without length")
-            new CachingStaticWriter(rr, this) // will cache for a bit, then signal close if the body is long
-          }
-        }
-        else {
-          rr ~ "Transfer-Encoding: chunked\r\n\r\n"
+          // add KeepAlive to Http 1.0 responses if the header isn't already present
+          if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr ~ "Connection:keep-alive\r\n\r\n"
+          else rr ~ '\r' ~ '\n'
+
           val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-          val trailer = resp.trailerHeaders
+          new StaticWriter(b, h.length, this)
 
-          respCoding match { // HTTP >= 1.1 request without length. Will use a chunked encoder
-            case Some(h) => // Signaling chunked may mean flush every chunk
-              if (!h.hasChunked) logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
-              new ChunkProcessWriter(b, this, trailer)
-
-            case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
-              logger.trace("Using Caching Chunk Encoder")
-              new CachingChunkWriter(b, this, trailer)
+        case _ =>  // No Length designated for body or Transfer-Encoding included
+          if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
+            if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
+              logger.trace("Using static encoder")
+              rr ~ '\r' ~ '\n'
+              val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+              new StaticWriter(b, -1, this)
+            }
+            else {  // HTTP 1.0, but request was Keep-Alive.
+              logger.trace("Using static encoder without length")
+              new CachingStaticWriter(rr, this) // will cache for a bit, then signal close if the body is long
+            }
           }
-        }
+          else {
+            rr ~ "Transfer-Encoding: chunked\r\n\r\n"
+            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+            val trailer = resp.trailerHeaders
+
+            respCoding match { // HTTP >= 1.1 request without length. Will use a chunked encoder
+              case Some(h) => // Signaling chunked may mean flush every chunk
+                if (!h.hasChunked) logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
+                new ChunkProcessWriter(b, this, trailer)
+
+              case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
+                logger.trace("Using Caching Chunk Encoder")
+                new CachingChunkWriter(b, this, trailer)
+            }
+          }
+      }
     }
 
     bodyEncoder.writeProcess(resp.body).runAsync {

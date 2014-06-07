@@ -100,7 +100,10 @@ object TestRoutes {
       "post")),
     ///////////////////////////////// Check corner cases //////////////////
     ("GET /twocodings HTTP/1.0\r\nConnection:Close\r\n\r\n",
-      (Status.Ok, Set(textPlain, length(3), connClose), "Foo"))
+      (Status.Ok, Set(textPlain, length(3), connClose), "Foo")),
+    ///////////////// Work with examples that don't have a body //////////////////////
+    ("GET /notmodified HTTP/1.1\r\n\r\n",
+      (Status.NotModified, Set[Header](), ""))
   )
 
   def apply(): HttpService = {
@@ -113,6 +116,9 @@ object TestRoutes {
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
       Ok(emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.charset)))
+
+      // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
+    case req if req.requestMethod == Method.Get && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))
   }
 
 }
