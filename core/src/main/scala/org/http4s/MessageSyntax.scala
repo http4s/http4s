@@ -125,7 +125,7 @@ trait MessageSyntax {
     /** Response specific extension methods */
 
     /** Add a Set-Cookie header for the provided [[Cookie]] */
-    def addCookie(cookie: Cookie): T = addHeaders(Header.Cookie(cookie))
+    def addCookie(cookie: Cookie): T = addHeaders(Header.`Set-Cookie`(cookie))
 
     /** Add a Set-Cookie header with the provided values */
     def addCookie(name: String,
