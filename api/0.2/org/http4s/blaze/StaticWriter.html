@@ -240,7 +240,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Called in the event of an Await failure to alert the pipeline to cleanup</p><div class="fullcomment"><div class="comment cmt"><p>Called in the event of an Await failure to alert the pipeline to cleanup</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></dd></dl></div>
@@ -459,7 +459,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">write a BodyChunk to the wire
@@ -479,7 +479,7 @@ return a failed Future with Cancelled as the exception
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Write the ending chunk and, in chunked encoding, a trailer to the wire.</p><div class="fullcomment"><div class="comment cmt"><p>Write the ending chunk and, in chunked encoding, a trailer to the wire.

@@ -48,7 +48,7 @@
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="CachingChunkWriter.html" class="extype" name="org.http4s.blaze.CachingChunkWriter">CachingChunkWriter</a>, <a href="CachingStaticWriter.html" class="extype" name="org.http4s.blaze.CachingStaticWriter">CachingStaticWriter</a>, <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a>, <a href="StaticWriter.html" class="extype" name="org.http4s.blaze.StaticWriter">StaticWriter</a></div>
+            <div class="subClasses hiddenContent"><a href="BodylessWriter.html" class="extype" name="org.http4s.blaze.BodylessWriter">BodylessWriter</a>, <a href="CachingChunkWriter.html" class="extype" name="org.http4s.blaze.CachingChunkWriter">CachingChunkWriter</a>, <a href="CachingStaticWriter.html" class="extype" name="org.http4s.blaze.CachingStaticWriter">CachingStaticWriter</a>, <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a>, <a href="StaticWriter.html" class="extype" name="org.http4s.blaze.StaticWriter">StaticWriter</a></div>
           </div></div>
         
 
@@ -128,7 +128,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">writeBodyChunk</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="flush">flush: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">write a BodyChunk to the wire
@@ -148,7 +148,7 @@ return a failed Future with Cancelled as the exception
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>)</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Write the ending chunk and, in chunked encoding, a trailer to the wire.</p><div class="fullcomment"><div class="comment cmt"><p>Write the ending chunk and, in chunked encoding, a trailer to the wire.
@@ -267,7 +267,7 @@ return a failed Future with Cancelled as the exception
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">exceptionFlush</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.concurrent.Future">Future</span>[<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4>
       <p class="shortcomment cmt">Called in the event of an Await failure to alert the pipeline to cleanup</p><div class="fullcomment"><div class="comment cmt"><p>Called in the event of an Await failure to alert the pipeline to cleanup</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
