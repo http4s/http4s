@@ -174,6 +174,11 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
     val bodyEncoder = {
       if (resp.status.isInstanceOf[NoEntityResponseGenerator] && lengthHeader.isEmpty && respCoding.isEmpty) {
         // We don't have a body so we just get the headers
+
+        // add KeepAlive to Http 1.0 responses if the header isn't already present
+        if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr ~ "Connection:keep-alive\r\n\r\n"
+        else rr ~ '\r' ~ '\n'
+
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
         new BodylessWriter(b, this, closeOnFinish)
       }

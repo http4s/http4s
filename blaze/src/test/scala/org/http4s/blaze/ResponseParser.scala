@@ -29,6 +29,8 @@ class ResponseParser extends Http1ClientParser {
     parseResponseLine(b)
     parseHeaders(b)
 
+    if (!headersComplete()) sys.error("Headers didn't complete!")
+
     val body = new ListBuffer[ByteBuffer]
     while(!this.contentComplete() && b.hasRemaining) {
       body += parseContent(b)

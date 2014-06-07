@@ -103,7 +103,9 @@ object TestRoutes {
       (Status.Ok, Set(textPlain, length(3), connClose), "Foo")),
     ///////////////// Work with examples that don't have a body //////////////////////
     ("GET /notmodified HTTP/1.1\r\n\r\n",
-      (Status.NotModified, Set[Header](), ""))
+      (Status.NotModified, Set[Header](), "")),
+    ("GET /notmodified HTTP/1.0\r\nConnection: Keep-Alive\r\n\r\n",
+      (Status.NotModified, Set[Header](connKeep), ""))
   )
 
   def apply(): HttpService = {

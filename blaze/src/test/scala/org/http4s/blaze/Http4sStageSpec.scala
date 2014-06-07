@@ -25,8 +25,9 @@ class Http4sStageSpec extends WordSpec with Matchers {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
     pipeline.LeafBuilder(new Http1Stage(TestRoutes(), None)).base(head)
     head.sendInboundCommand(Cmd.Connect)
+
     if (!head.result.isCompleted) {
-      Thread.sleep(300)
+      Thread.sleep(500)
       head.stageShutdown()
     }
     Await.result(head.result, 100.milliseconds)
@@ -39,7 +40,7 @@ class Http4sStageSpec extends WordSpec with Matchers {
 
         val result = runRequest(Seq(req))
 
-        //println(makeString(result))
+//        println("Received ---------------------------\n" + makeString(result) + "\n----------------------------")
 
         val (sresult,hresult,body) = ResponseParser(result)
 
