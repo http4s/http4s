@@ -83,11 +83,7 @@ object HeaderKey {
     override def from(headers: Headers): Option[HeaderT] = headers.find(_ is this)
   }
 
-  /** Provides a type to generate your own Header matchers
-    * The name if your type should follow the pattern found in the [[Header]] object
-    * or override the name field
-    */
-  trait Default extends Internal[Header] with StringKey {
+  private[http4s] trait Default extends Internal[Header] with StringKey {
     override type HeaderT = Header
   }
 }
