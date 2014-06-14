@@ -46,7 +46,7 @@
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Created by Bryce Anderson on 3/30/14.
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="org.http4s.blaze.http.websocket.WebSocketDecoder.WebSocketFrame">WebSocketFrame</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="org.http4s.blaze.http.websocket.WebSocketDecoder.WebSocketFrame">WebSocketFrame</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <span class="extype" name="com.typesafe.scalalogging.slf4j.LazyLogging">LazyLogging</span>, <span class="extype" name="com.typesafe.scalalogging.Logging">Logging</span>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="org.http4s.blaze.http.websocket.WebSocketDecoder.WebSocketFrame">WebSocketFrame</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="org.http4s.blaze.http.websocket.WebSocketDecoder.WebSocketFrame">WebSocketFrame</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <span class="extype" name="com.typesafe.scalalogging.slf4j.StrictLogging">StrictLogging</span>, <span class="extype" name="com.typesafe.scalalogging.Logging">Logging</span>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -64,7 +64,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.blaze.websocket.Http4sWSStage"><span>Http4sWSStage</span></li><li class="in" name="org.http4s.blaze.pipeline.TailStage"><span>TailStage</span></li><li class="in" name="org.http4s.blaze.pipeline.Tail"><span>Tail</span></li><li class="in" name="org.http4s.blaze.pipeline.Stage"><span>Stage</span></li><li class="in" name="com.typesafe.scalalogging.slf4j.LazyLogging"><span>LazyLogging</span></li><li class="in" name="com.typesafe.scalalogging.Logging"><span>Logging</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.blaze.websocket.Http4sWSStage"><span>Http4sWSStage</span></li><li class="in" name="org.http4s.blaze.pipeline.TailStage"><span>TailStage</span></li><li class="in" name="org.http4s.blaze.pipeline.Tail"><span>Tail</span></li><li class="in" name="org.http4s.blaze.pipeline.Stage"><span>Stage</span></li><li class="in" name="com.typesafe.scalalogging.slf4j.StrictLogging"><span>StrictLogging</span></li><li class="in" name="com.typesafe.scalalogging.Logging"><span>Logging</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -340,15 +340,15 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.blaze.pipeline.Stage#inboundCommand" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="inboundCommand(cmd:org.http4s.blaze.pipeline.Command.Command):Unit"></a>
-      <a id="inboundCommand(Command):Unit"></a>
+      <a id="inboundCommand(cmd:org.http4s.blaze.pipeline.Command.InboundCommand):Unit"></a>
+      <a id="inboundCommand(InboundCommand):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">inboundCommand</span><span class="params">(<span name="cmd">cmd: <span class="extype" name="org.http4s.blaze.pipeline.Command.Command">Command</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">inboundCommand</span><span class="params">(<span name="cmd">cmd: <span class="extype" name="org.http4s.blaze.pipeline.Command.InboundCommand">InboundCommand</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Stage</dd></dl></div>
@@ -378,19 +378,19 @@
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="com.typesafe.scalalogging.slf4j.LazyLogging#logger" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="com.typesafe.scalalogging.slf4j.StrictLogging#logger" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="logger:com.typesafe.scalalogging.slf4j.Logger"></a>
       <a id="logger:Logger"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">lazy val</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
         <span class="name">logger</span><span class="result">: <span class="extype" name="com.typesafe.scalalogging.slf4j.Logger">Logger</span></span>
       </span>
       </h4>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>LazyLogging → Logging</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>StrictLogging → Logging</dd></dl></div>
     </li><li name="org.http4s.blaze.websocket.Http4sWSStage#name" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="name:String"></a>
       <a id="name:String"></a>
@@ -457,15 +457,15 @@
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
     </li><li name="org.http4s.blaze.pipeline.Tail#sendOutboundCommand" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="sendOutboundCommand(cmd:org.http4s.blaze.pipeline.Command.Command):Unit"></a>
-      <a id="sendOutboundCommand(Command):Unit"></a>
+      <a id="sendOutboundCommand(cmd:org.http4s.blaze.pipeline.Command.OutboundCommand):Unit"></a>
+      <a id="sendOutboundCommand(OutboundCommand):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">sendOutboundCommand</span><span class="params">(<span name="cmd">cmd: <span class="extype" name="org.http4s.blaze.pipeline.Command.Command">Command</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">sendOutboundCommand</span><span class="params">(<span name="cmd">cmd: <span class="extype" name="org.http4s.blaze.pipeline.Command.OutboundCommand">OutboundCommand</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
@@ -606,8 +606,8 @@
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="org.http4s.blaze.http.websocket.WebSocketDecoder.WebSocketFrame">WebSocketFrame</span>]</h3>
             </div><div class="parent" name="org.http4s.blaze.pipeline.Stage">
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span></h3>
-            </div><div class="parent" name="com.typesafe.scalalogging.slf4j.LazyLogging">
-              <h3>Inherited from <span class="extype" name="com.typesafe.scalalogging.slf4j.LazyLogging">LazyLogging</span></h3>
+            </div><div class="parent" name="com.typesafe.scalalogging.slf4j.StrictLogging">
+              <h3>Inherited from <span class="extype" name="com.typesafe.scalalogging.slf4j.StrictLogging">StrictLogging</span></h3>
             </div><div class="parent" name="com.typesafe.scalalogging.Logging">
               <h3>Inherited from <span class="extype" name="com.typesafe.scalalogging.Logging">Logging</span></h3>
             </div><div class="parent" name="scala.AnyRef">
