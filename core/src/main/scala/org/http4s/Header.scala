@@ -67,6 +67,13 @@ object Header {
 
   def apply(name: String, value: String): Raw = Raw(name.ci, value)
 
+  /** Raw representation of the Header
+    *
+    * This can be considered the simplest representation where the header is specified as the product of
+    * a key and a value
+    * @param name [[CaseInsensitiveString]] used to identify the header
+    * @param value String representation of the header value
+    */
   final case class Raw (name: CaseInsensitiveString, override val value: String) extends Header {
     override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
     def renderValue[W <: Writer](writer: W) = writer.append(value)
@@ -93,6 +100,7 @@ object Header {
     def values: NonEmptyList[Value]
   }
 
+  /** Simple helper trait that provides a default way of rendering the value */
   trait RecurringRenderable extends Recurring {
     type Value <: Renderable
     def renderValue[W <: Writer](writer: W) = {

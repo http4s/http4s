@@ -140,7 +140,7 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
   }
 
 
-
+  // TODO: I think its time to break this down, its getting out of hand
   protected def renderResponse(req: Request, resp: Response) {
     val rr = new StringWriter(512)
     rr ~ req.protocol.value.toString ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'

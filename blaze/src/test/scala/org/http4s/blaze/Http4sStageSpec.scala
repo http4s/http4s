@@ -24,7 +24,7 @@ class Http4sStageSpec extends WordSpec with Matchers {
   def runRequest(req: Seq[String]): ByteBuffer = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
     pipeline.LeafBuilder(new Http1Stage(TestRoutes(), None)).base(head)
-    head.sendInboundCommand(Cmd.Connect)
+    head.sendInboundCommand(Cmd.Connected)
 
     if (!head.result.isCompleted) {
       Thread.sleep(500)

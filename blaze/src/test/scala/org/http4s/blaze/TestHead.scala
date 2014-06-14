@@ -3,9 +3,7 @@ package org.http4s.blaze
 import org.http4s.blaze.pipeline.HeadStage
 import java.nio.ByteBuffer
 import scala.concurrent.{Promise, Future}
-import org.http4s.blaze.pipeline.Command.{Command, EOF}
-import org.http4s.Request
-import java.nio.charset.StandardCharsets
+import org.http4s.blaze.pipeline.Command.EOF
 
 /**
  * Created by Bryce Anderson on 3/28/14.

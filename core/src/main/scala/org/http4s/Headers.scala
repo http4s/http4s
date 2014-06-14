@@ -3,6 +3,8 @@ package org.http4s
 import scala.collection.{mutable, immutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
+import org.http4s.HeaderKey.StringKey
+import org.http4s.util.CaseInsensitiveString
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
@@ -27,8 +29,31 @@ final class Headers private (headers: List[Header])
 
   def iterator: Iterator[Header] = headers.iterator
 
+  /** Attempt to get a [[org.http4s.Header]] of type key.HeaderT from this collection
+    *
+    * @param key [[HeaderKey.Extractable]] that can identify the required header
+    * @return a scala.Option possibly containing the resulting header of type key.HeaderT
+  *   @see [[Header]] object and get([[CaseInsensitiveString]])
+    */
   def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
 
+  /** Attempt to get a [[org.http4s.Header.Raw]] from this collection of headers
+    *
+    * @param key name of the header to find
+    * @return a scala.Option possibly containing the resulting [[org.http4s.Header.Raw]]
+    *
+    * @see [[HeaderKey.Default]] in conjunction with get([[HeaderKey]])
+    */
+  def get(key: CaseInsensitiveString): Option[Header.Raw] = {
+    val k = new StringKey { override def name = key }
+    get(k).map(_.toRaw)
+  }
+
+  /** Make a new collection adding the specified headers, replacing existing headers of the same name
+    *
+    * @param in multiple [[Header]] to append to the new collection
+    * @return a new [[Headers]] containing the sum of the initial and input headers
+    */
   def put(in: Header*): Headers = {
     if (in.isEmpty) this
     else {
