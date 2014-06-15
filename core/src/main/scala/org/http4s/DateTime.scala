@@ -55,47 +55,47 @@ final class DateTime private (val year: Int, // the year
   /**
    * `yyyy-mm-dd`
    */
-  def renderIsoDate[W <: Writer](w: Writer): w.type = put_##(put_##(w ~ year ~ '-', month) ~ '-', day)
+  def renderIsoDate[W <: Writer](w: W): w.type = put_##(put_##(w ~ year ~ '-', month) ~ '-', day)
 
   /**
    * `yyyy-mm-dd`
    */
-  def toIsoDateString = renderIsoDate(new StringWriter).asInstanceOf[StringWriter].result()
+  def toIsoDateString = renderIsoDate(new StringWriter).result()
 
   /**
    * `yyyy-mm-ddThh:mm:ss`
    */
-  def renderIsoDateTimeString[W <: Writer](w: Writer): w.type =
+  def renderIsoDateTimeString[W <: Writer](w: W): w.type =
     put_##(put_##(put_##(renderIsoDate(w) ~ 'T', hour) ~ ':', minute) ~ ':', second)
 
   /**
    * `yyyy-mm-ddThh:mm:ss`
    */
-  def toIsoDateTimeString = renderIsoDateTimeString(new StringWriter).asInstanceOf[StringWriter].result()
+  def toIsoDateTimeString = renderIsoDateTimeString(new StringWriter).result()
 
   /**
    * `yyyy-mm-dd hh:mm:ss`
    */
-  def renderIsoLikeDateTimeString[W <: Writer](w: Writer): w.type =
+  def renderIsoLikeDateTimeString[W <: Writer](w: W): w.type =
     put_##(put_##(put_##(renderIsoDate(w) ~ ' ', hour) ~ ':', minute) ~ ':', second)
 
   /**
    * `yyyy-mm-dd hh:mm:ss`
    */
-  def toIsoLikeDateTimeString = renderIsoLikeDateTimeString(new StringWriter).asInstanceOf[StringWriter].result()
+  def toIsoLikeDateTimeString = renderIsoLikeDateTimeString(new StringWriter).result()
 
   /**
    * RFC1123 date string, e.g. `Sun, 06 Nov 1994 08:49:37 GMT`
    */
-  def renderRfc1123DateTimeString[W <: Writer](w: Writer): w.type =
+  def renderRfc1123DateTimeString[W <: Writer](w: W): w.type =
     put_##(put_##(put_##(put_##(w ~ weekdayStr ~ ',' ~ ' ', day) ~ ' ' ~ monthStr ~ ' ' ~ year ~ ' ', hour) ~ ':', minute) ~ ':', second) ~ " GMT"
 
   /**
    * RFC1123 date string, e.g. `Sun, 06 Nov 1994 08:49:37 GMT`
    */
-  def toRfc1123DateTimeString = renderRfc1123DateTimeString(new StringWriter).asInstanceOf[StringWriter].result()
+  def toRfc1123DateTimeString = renderRfc1123DateTimeString(new StringWriter).result()
 
-  private def put_##[W <: Writer](w: Writer, i: Int): w.type = w ~ (i / 10 + '0').toChar ~ (i % 10 + '0').toChar
+  private def put_##[W <: Writer](w: W, i: Int): w.type = w ~ (i / 10 + '0').toChar ~ (i % 10 + '0').toChar
 
   def compare(that: DateTime): Int = math.signum(clicks - that.clicks).toInt
 
