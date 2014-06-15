@@ -18,8 +18,7 @@
 package org.http4s.parser
 
 import org.parboiled2._
-import org.http4s.{Header, Cookie}
-import org.joda.time.DateTime
+import org.http4s.{DateTime, Header, Cookie}
 import org.http4s.Header.`Set-Cookie`
 import shapeless.{HNil, ::}
 

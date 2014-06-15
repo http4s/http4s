@@ -2,8 +2,6 @@ package org.http4s
 
 import scalaz.concurrent.Task
 import org.http4s.Header.{`Set-Cookie`, `Content-Type`}
-import org.joda.time.DateTime
-import org.http4s.util.jodaTime.UnixEpoch
 
 /**
  * Created by Bryce Anderson on 3/25/14.
@@ -134,11 +132,11 @@ trait MessageSyntax {
 
     /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
     def removeCookie(cookie: Cookie): T = addHeaders(`Set-Cookie`(cookie.copy(content = "",
-        expires = Some(UnixEpoch), maxAge = Some(0))))
+        expires = Some(DateTime.UnixEpoch), maxAge = Some(0))))
 
     /** Add a Set-Cookie which will remove the specified cookie from the client */
     def removeCookie(name: String): T = addHeaders(Header.`Set-Cookie`(
-      Cookie(name, "", expires = Some(UnixEpoch), maxAge = Some(0))
+      Cookie(name, "", expires = Some(DateTime.UnixEpoch), maxAge = Some(0))
     ))
 
     def withStatus[T <% Status](status: T) = translateMessage(_.copy(status = status))

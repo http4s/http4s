@@ -5,7 +5,6 @@ import Http4s._
 import org.scalatest.{Matchers, WordSpec}
 import Header._
 import scalaz.{NonEmptyList, Success}
-import org.joda.time.DateTime
 import java.net.InetAddress
 
 /**
@@ -43,7 +42,7 @@ class SimpleHeadersSpec extends WordSpec with Matchers {
     }
 
     "parse Date" in {       // mills are lost, get rid of them
-      val header = Date(new DateTime()).toRaw.parsed
+      val header = Date(DateTime.now).toRaw.parsed
       HttpParser.parseHeader(header.toRaw) should equal(Success(header))
 
       val bad = Header(header.name.toString, "foo")
@@ -62,7 +61,7 @@ class SimpleHeadersSpec extends WordSpec with Matchers {
     }
 
     "parse Last-Modified" in {
-      val header = `Last-Modified`(new DateTime()).toRaw.parsed
+      val header = `Last-Modified`(DateTime.now).toRaw.parsed
       HttpParser.parseHeader(header.toRaw) should equal(Success(header))
 
       val bad = Header(header.name.toString, "foo")
@@ -70,7 +69,7 @@ class SimpleHeadersSpec extends WordSpec with Matchers {
     }
 
     "parse If-Modified-Since" in {
-      val header = `If-Modified-Since`(new DateTime()).toRaw.parsed
+      val header = `If-Modified-Since`(DateTime.now).toRaw.parsed
       HttpParser.parseHeader(header.toRaw) should equal(Success(header))
 
       val bad = Header(header.name.toString, "foo")

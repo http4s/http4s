@@ -5,14 +5,14 @@ package org.http4s.util
  *         Created on 12/30/13
  */
 trait Renderable {
-  def render[W <: Writer](writer: W): W
+  def render[W <: Writer](writer: W): writer.type
 }
 
 trait ValueRenderable extends Renderable {
 
-  def renderValue[W <: Writer](writer: W): W
+  def renderValue[W <: Writer](writer: W): writer.type
 
-  def render[W <: Writer](writer: W) = renderValue(writer)
+  override def render[W <: Writer](writer: W): writer.type = renderValue(writer)
 
   def value: String = renderValue(new StringWriter).result()
 }

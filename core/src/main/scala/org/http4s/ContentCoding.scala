@@ -30,7 +30,7 @@ final case class ContentCoding (coding: CaseInsensitiveString, q: Q = Q.Unity) e
     !(q.unacceptable || encoding.q.unacceptable)
   }
 
-  def renderValue[W <: Writer](writer: W): W = writer ~ coding ~ q
+  def renderValue[W <: Writer](writer: W): writer.type = writer ~ coding ~ q
 
   // We want the normal case class generated methods except copy
   private def copy(coding: CaseInsensitiveString = this.coding, q: Q = this.q) = ContentCoding(coding, q)

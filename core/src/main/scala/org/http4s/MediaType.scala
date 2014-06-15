@@ -28,7 +28,7 @@ sealed class MediaRange private[http4s](val mainType: String,
                                         val extensions: Map[String, String] = Map.empty)
                                         extends QualityFactor with ValueRenderable {
 
-  def renderValue[W <: Writer](writer: W) = {
+  def renderValue[W <: Writer](writer: W): writer.type = {
     writer ~ mainType ~ "/*"~ q
     renderExtensions(writer)
     writer
@@ -115,7 +115,7 @@ sealed class MediaType(mainType: String,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override def renderValue[W <: Writer](writer: W) = {
+  override def renderValue[W <: Writer](writer: W): writer.type = {
     writer ~ mainType ~ '/' ~ subType ~ q
     renderExtensions(writer)
     writer

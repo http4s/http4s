@@ -25,7 +25,7 @@ case class Challenge(scheme: String,
                      params: Map[String, String] = Map.empty) extends ValueRenderable {
   override lazy val value = super.value
 
-  def renderValue[W <: Writer](writer: W) = {
+  def renderValue[W <: Writer](writer: W): writer.type = {
     writer.append(scheme).append(' ')
     writer.append("realm=\"").append(realm).append('"')
     params.foreach{ case (k, v) => addPair(writer, k, v )}

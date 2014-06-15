@@ -13,9 +13,6 @@ import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.Process
 import Process._
 
-import org.joda.time.DateTime
-
-
 import org.http4s.Header._
 import org.http4s.Status.NotModified
 import scodec.bits.ByteVector
@@ -78,7 +75,7 @@ object StaticFile extends LazyLogging {
     if (req.isDefined) {
       req.get.headers.get(`If-Modified-Since`) match {
         case Some(h) =>
-          val mod = new DateTime(lastModified).millisOfSecond().setCopy(0)
+          val mod = DateTime(lastModified)
           val expired = h.date.compareTo(mod) < 0
           logger.trace(s"Expired: ${expired}. Request age: ${h.date}, Modified: $mod")
           if (!expired) {
@@ -89,7 +86,7 @@ object StaticFile extends LazyLogging {
       }
     }
 
-    val lastmodified = `Last-Modified`(new DateTime(lastModified))
+    val lastmodified = `Last-Modified`(DateTime(lastModified))
 
     val mimeheader = Option(Files.probeContentType(f.toPath)).flatMap { mime =>
       val parts = mime.split('/')

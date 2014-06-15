@@ -20,7 +20,6 @@ package parser
 
 import org.parboiled2._
 import scala.util.Try
-import org.joda.time.{DateTimeZone, DateTime}
 import shapeless.{HNil, ::}
 import java.net.InetAddress
 
@@ -124,7 +123,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   }
 
   private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int) = {
-    Try(new DateTime(year, month, day, hour, min, sec, DateTimeZone.UTC)).getOrElse {
+    Try(DateTime(year, month, day, hour, min, sec)).getOrElse {
       // TODO Would be better if this message had the real input.
       throw new Exception("Invalid date: "+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec )
     }

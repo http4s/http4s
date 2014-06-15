@@ -8,8 +8,6 @@ libraryDependencies <+= scalaVersion(scalaReflect)
 
 libraryDependencies ++= Seq(
   base64,
-  jodaConvert, // Without this, get bad constant pool tag errors loading joda-time classes.
-  jodaTime,
   parboiled,
   rl,
   scalazStream,

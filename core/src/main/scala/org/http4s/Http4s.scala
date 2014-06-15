@@ -6,8 +6,6 @@ trait Http4s extends HttpBodyFunctions
   with WritableInstances
   with middleware.PushSupport.PushSyntax
   with util.CaseInsensitiveStringSyntax
-  with util.JodaTimeInstances
-  with util.JodaTimeSyntax
   with util.TaskInstances
 
 object Http4s extends Http4s
