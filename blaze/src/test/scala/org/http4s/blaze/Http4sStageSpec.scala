@@ -23,14 +23,13 @@ class Http4sStageSpec extends WordSpec with Matchers {
 
   def runRequest(req: Seq[String]): ByteBuffer = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
-    pipeline.LeafBuilder(new Http1Stage(TestRoutes(), None)).base(head)
+    val httpStage = new Http1Stage(TestRoutes(), None) {
+      override def reset(): Unit = head.stageShutdown()     // shutdown the stage after a complete request
+    }
+    pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
 
-    if (!head.result.isCompleted) {
-      Thread.sleep(500)
-      head.stageShutdown()
-    }
-    Await.result(head.result, 100.milliseconds)
+    Await.result(head.result, 10000.milliseconds)
   }
 
   "Http4sStage" should {

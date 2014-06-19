@@ -11,7 +11,7 @@ object Http4sDependencies {
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
   lazy val junit               = "junit"                     % "junit"                   % "4.11"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
-  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.0-RC1"
+  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.0"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.10"
   lazy val scalaloggingSlf4j   = "com.typesafe.scala-logging" %% "scala-logging-slf4j"   % "2.1.2"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
