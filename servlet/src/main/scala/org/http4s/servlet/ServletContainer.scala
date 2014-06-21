@@ -15,7 +15,7 @@ trait ServletContainerBuilder extends ServerBuilder {
 
   def mountService(service: HttpService, prefix: String): this.type = {
     val pathMapping = s"${prefix}/*"
-    mountServlet(new Http4sServlet(service), pathMapping)
+    mountServlet(new Http4sServlet(service, timeout), pathMapping)
   }
 
   def mountServlet(servlet: HttpServlet, urlMapping: String): this.type

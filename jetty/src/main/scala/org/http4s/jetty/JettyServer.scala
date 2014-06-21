@@ -55,6 +55,8 @@ object JettyServer {
       val connector = new ServerConnector(server)
       connector.setPort(port)
       server.addConnector(connector)
+      val dur = if (timeout.isFinite) timeout.toMillis else -1
+      connector.setIdleTimeout(dur)  // timeout <= 0 => infinite
       new JettyServer(server)
     }
 

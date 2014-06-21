@@ -9,6 +9,8 @@ import org.http4s.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.LeafBuilder
+import scala.concurrent.duration.Duration
+import org.http4s.blaze.pipeline.stages.TimeoutStage
 
 class BlazeServer private (serverChannel: ServerChannel) extends Server {
   override def start: Task[this.type] = Task.delay {
@@ -50,7 +52,11 @@ object BlazeServer {
     }
 
     override def build: To = {
-      def stage(conn: SocketConnection): LeafBuilder[ByteBuffer] = new Http1Stage(aggregateService, Some(conn))
+      def stage(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
+        val leaf = LeafBuilder(new Http1Stage(aggregateService, Some(conn)))
+        if (timeout.isFinite) leaf.prepend(new TimeoutStage[ByteBuffer](timeout))
+        else leaf
+      }
       val factory = new SocketServerChannelFactory(stage, 12, 8 * 1024)
       val channel = factory.bind(new InetSocketAddress(port))
       new BlazeServer(channel)

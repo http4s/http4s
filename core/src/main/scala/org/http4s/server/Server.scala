@@ -2,6 +2,7 @@ package org.http4s
 package server
 
 import scalaz.concurrent.Task
+import scala.concurrent.duration.Duration
 
 trait Server {
   def start: Task[this.type]
@@ -15,10 +16,14 @@ trait Server {
   def onShutdown(f: => Unit): this.type
 }
 
-trait ServerBuilder { self =>
+abstract class ServerBuilder { self =>
   type To <: Server
 
+  protected var timeout: Duration = Duration.Inf
+
   def mountService(service: HttpService, prefix: String = ""): this.type
+
+  def timeout(duration: Duration): this.type = { timeout = duration; this }
 
   def build: To
 

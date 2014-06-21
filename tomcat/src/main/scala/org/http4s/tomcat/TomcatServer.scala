@@ -3,6 +3,7 @@ package tomcat
 
 import javax.servlet.http.HttpServlet
 import com.typesafe.scalalogging.slf4j.LazyLogging
+import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
 import org.apache.catalina.startup.Tomcat
 import org.http4s.servlet.{ServletContainer, ServletContainerBuilder}
@@ -47,9 +48,19 @@ object TomcatServer {
 
     private val tomcat = new Tomcat
     tomcat.addContext("", getClass.getResource("/").getPath)
+    timeout(Duration.Inf)
 
     override def withPort(port: Int): this.type = {
       tomcat.setPort(port)
+      this
+    }
+
+
+    override def timeout(duration: Duration): this.type = {
+      super.timeout(duration)
+      val millis = new Integer(if (duration.isFinite) duration.toMillis.toInt else -1) // timeout == -1 == Inf
+      tomcat.getConnector().setAttribute("connectionTimeout", millis)
+      tomcat.getConnector().setAttribute("asyncTimeout", millis)
       this
     }
 
