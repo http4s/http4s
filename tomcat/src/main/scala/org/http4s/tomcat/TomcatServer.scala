@@ -60,7 +60,6 @@ object TomcatServer {
       super.timeout(duration)
       val millis = new Integer(if (duration.isFinite) duration.toMillis.toInt else -1) // timeout == -1 == Inf
       tomcat.getConnector().setAttribute("connectionTimeout", millis)
-      tomcat.getConnector().setAttribute("asyncTimeout", millis)
       this
     }
 
