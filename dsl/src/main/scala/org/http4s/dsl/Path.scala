@@ -86,19 +86,6 @@ object ~ {
   }
 }
 
-object :/ {
-  def unapply(req: Request): Option[(Path, String)] = {
-    val p = Path(req.pathInfo)
-    Some(p.parent, p.lastOption.getOrElse(""))
-  }
-}
-
-//object * {
-//  def unapply(req: RequestPrelude): Option[(Method, Path)] = {
-//    Some((req.requestMethod, Path(req.pathInfo)))
-//  }
-//}
-
 case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
   def lastOption: Option[String] = Some(child)

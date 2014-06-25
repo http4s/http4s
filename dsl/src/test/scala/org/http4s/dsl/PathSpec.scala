@@ -1,10 +1,10 @@
+
 /*
-/*
- * Derived from Twitter Finagle.
- *
- * Original source:
- * https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/test/scala/com/twitter/finagle/http/path/PathSpec.scala
- */
+* Derived from Twitter Finagle.
+*
+* Original source:
+* https://github.com/twitter/finagle/blob/6e2462acc32ac753bf4e9d8e672f9f361be6b2da/finagle-http/src/test/scala/com/twitter/finagle/http/path/PathSpec.scala
+*/
 package org.http4s
 package dsl
 
@@ -61,7 +61,6 @@ class PathSpec extends WordSpec with Matchers {
         case Root / "test.json" :? (I(i) :& L(l) :& D(d)) => i == 1 && l == 2147483648L && d == 1.3D
         case _                                    => false
       }) should be (true)
-
     }
 
     "~ extractor on Path" in {
@@ -86,7 +85,7 @@ class PathSpec extends WordSpec with Matchers {
     }
 
     "-> extractor /test.json" in {
-      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
+      val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/test.json").get)
       (req match {
         case Get -> Root / "test.json" => true
         case _                         => false
@@ -94,39 +93,15 @@ class PathSpec extends WordSpec with Matchers {
     }
 
     "-> extractor /foo/test.json" in {
-      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/foo/test.json")
+      val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/foo/test.json").get)
       (req match {
         case Get -> Root / "foo" / "test.json" => true
         case _                         => false
       }) should be (true)
     }
-//
-//    ":/ extractor /foo/test.json " in {
-//      val req = RequestPrelude(requestMethod = Methods.Get, pathInfo = "/foo/test.json")
-//      (req match {
-//        case Get :/ (Root / "foo" / "test.json") => true
-//        case _                          => false
-//      }) should be (true)
-//    }
-//
-//    ":/ extractor /test.json" in {
-//      val req = RequestPrelude(requestMethod = Methods.Get, pathInfo = "/test.json")
-//      (req match {
-//        case Get :/ "test.json" => true
-//        case _                          => false
-//      }) should be (true)
-//    }
-
-    "request path info extractor" in {
-      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/test.json")
-      (req match {
-        case Root :/ "test.json" => true
-        case _ => false
-      }) should be (true)
-    }
 
    "request path info extractor for /" in {
-      val req = RequestPrelude(requestMethod = Method.Get, pathInfo = "/")
+      val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/").get)
       (req match {
         case _ -> Root => true
         case _ => false
@@ -204,12 +179,14 @@ class PathSpec extends WordSpec with Matchers {
     }
   }
 
-  "Method extractors" should {
-    "match relative to path info" in {
-      (RequestPrelude(requestMethod = Get, scriptName = "/script-name", pathInfo = "/path-info") match {
-        case Get -> Root / "path-info" => true
-        case _ => false
-      }) should be (true)
-    }
-  }
-}*/
+
+
+//  "Method extractors" should {
+//    "match relative to path info" in {
+//      (Request(requestMethod = Get, scriptName = "/script-name", pathInfo = "/path-info") match {
+//        case Get -> Root / "path-info" => true
+//        case _ => false
+//      }) should be (true)
+//    }
+//  }
+}
