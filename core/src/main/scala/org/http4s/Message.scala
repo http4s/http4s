@@ -12,6 +12,8 @@ import MessageSyntax.ResponseSyntax
   */
 trait Message {
   type Self <: Message
+
+  def protocol: ServerProtocol
   
   def headers: Headers
   
@@ -134,6 +136,7 @@ object Request {
  */
 case class Response(
   status: Status = Status.Ok,
+  protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: HttpBody = HttpBody.empty,
   attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseSyntax[Response] {

@@ -64,7 +64,7 @@ object Status extends StatusInstances {
       headers +:= contentType
       w.toBody(body).flatMap { case (proc, len) =>
         len foreach { headers +:= Header.`Content-Length`(_) }
-        Task.now(Response(self, headers, proc))
+        Task.now(Response(status = self, headers = headers, body = proc))
       }
     }
   }
@@ -82,7 +82,7 @@ object Status extends StatusInstances {
     * @see [[NoEntityResponseGenerator]]
     */
   trait RedirectResponderGenerator { self: Status =>
-    def apply(uri: String): Response = Response(self, Headers(Header.Location(uri)))
+    def apply(uri: String): Response = Response(status = self, headers = Headers(Header.Location(uri)))
 
     def apply(uri: URI): Response = apply(uri.toString)
 
@@ -114,7 +114,7 @@ trait StatusInstances {
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: Headers = Headers.empty): Response =
-      Response(this, Header("Upgrade", protocols) +: headers, HttpBody.empty)
+      Response(status = this, headers = Header("Upgrade", protocols) +: headers, body = HttpBody.empty)
   }
   val Processing = new Status(102, "Processing") with NoEntityResponseGenerator
 
