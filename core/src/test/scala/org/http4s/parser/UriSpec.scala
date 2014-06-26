@@ -1,15 +1,25 @@
-package org.http4s
+package org.http4s.parser
 
-import org.scalatest.{Matchers, WordSpec}
+import java.nio.charset.Charset
+
 import org.http4s.Uri.Authority
-import org.http4s.parser.RequestUriParser
-import scala.util.Success
 import org.http4s.util.string._
+import org.http4s.{CharacterSet, Uri}
+import org.scalatest.{Matchers, WordSpec}
+
+import scala.util.Success
+import org.parboiled2._
 
 /**
  * Created by Bryce Anderson on 3/18/14.
  */
+class IPV6Parser(val input: ParserInput, val charset: Charset) extends Parser with Rfc3986Parser {
+  def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
+}
+
 class UriSpec extends WordSpec with Matchers {
+
+
 
   "Uri" should {
 
@@ -27,9 +37,14 @@ class UriSpec extends WordSpec with Matchers {
         b = List.fill(l)("32ba").mkString(":")
       } yield (f + "::" + b))
 
-      v.foreach(new RequestUriParser(_, CharacterSet.`UTF-8`.charset)
-                    .IpV6Address.run() should equal(Success(())))
+      v.foreach { s =>
+        new IPV6Parser(s, CharacterSet.`UTF-8`.charset).CaptureIPv6.run() should equal(Success((s)))
+      }
+    }
 
+    "parse short IPv6 address" in {
+      val s = "01ab::32ba:32ba"
+      Uri.fromString("01ab::32ba:32ba").get should equal(Uri(authority = Some(Authority(host = "01ab::32ba:32ba".ci))))
     }
 
     "handle port configurations" in {
@@ -99,5 +114,4 @@ class UriSpec extends WordSpec with Matchers {
     }
 
   }
-
 }
