@@ -21,6 +21,7 @@ package parser
 import org.parboiled2._
 import java.io.UnsupportedEncodingException
 import scala.io.Codec
+import org.http4s.parser.QueryParser._
 import org.http4s.util.string._
 import org.parboiled2.CharPredicate._
 import org.parboiled2.ParseError
@@ -32,14 +33,14 @@ private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends 
 
   def charset = codec.charSet
 
-  def QueryString: Rule1[Seq[(String, String)]] = rule {
-      EOI ~ push(Seq.empty[(String, String)]) |
+  def QueryString: Rule1[Seq[Param]] = rule {
+      EOI ~ push(Seq.empty[Param]) |
       zeroOrMore(QueryParameter).separatedBy("&") ~ EOI
   }
 
-  def QueryParameter: Rule1[(String,String)] = rule {
+  def QueryParameter: Rule1[Param] = rule {
     capture(zeroOrMore(!anyOf("&=") ~ QChar)) ~ optional('=' ~ capture(zeroOrMore(!anyOf("&") ~ QChar))) ~> {
-      (k: String, v: Option[String]) => (decodeParam(k), v.map(decodeParam(_)).getOrElse(""))
+      (k: String, v: Option[String]) => (decodeParam(k), v.map(decodeParam(_)))
     }
   }
 
@@ -61,7 +62,8 @@ private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends 
 }
 
 private[http4s] object QueryParser {
-  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[(String, String)]] = {
+  type Param = (String,Option[String])
+  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[Param]] = {
     try new QueryParser(queryString, codec)
       .QueryString
       .run()(Parser.DeliveryScheme.Either)

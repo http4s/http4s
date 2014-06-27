@@ -299,4 +299,39 @@ class UriSpec extends WordSpec with Matchers {
 
   }
 
+  "Uri parameters" should {
+    "parse empty query string" in {
+      Uri(query = Some("")).multiParams should equal(Map.empty)
+    }
+    "parse parameter without key but with empty value" in {
+      Uri(query = Some("=")).multiParams should equal(Map("" -> List("")))
+    }
+    "parse parameter without key but with value" in {
+      Uri(query = Some("=value")).multiParams should equal(Map("" -> List("value")))
+    }
+    "parse single parameter with empty value" in {
+      Uri(query = Some("param1=")).multiParams should equal(Map("param1" -> List("")))
+    }
+    "parse single parameter with value" in {
+      Uri(query = Some("param1=value")).multiParams should equal(Map("param1" -> List("value")))
+    }
+    "parse single parameter without value" in {
+      Uri(query = Some("param1")).multiParams should equal(Map("param1" -> Nil))
+    }
+    "parse many parameter with value" in {
+      Uri(query = Some("param1=value&param2=value1&param2=value2&param3=value")).multiParams should
+        equal(Map(
+          "param1" -> List("value"),
+          "param2" -> List("value1", "value2"),
+          "param3" -> List("value")))
+    }
+    "parse many parameter without value" in {
+      Uri(query = Some("param1&param2&param3")).multiParams should
+        equal(Map(
+          "param1" -> Nil,
+          "param2" -> Nil,
+          "param3" -> Nil))
+    }
+  }
+
 }

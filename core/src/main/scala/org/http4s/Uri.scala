@@ -34,9 +34,11 @@ case class Uri(
       QueryParser.parseQueryString(query) match {
         case Right(params) =>
           val m = mutable.Map.empty[String, ListBuffer[String]]
-          params.foreach { case (k, v) => m.getOrElseUpdate(k, new ListBuffer) += v }
+          params.foreach {
+            case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
+            case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
+          }
           m.map { case (k, lst) => (k, lst.toSeq) }.toMap
-
         case Left(e) => throw e
       }
     }
