@@ -30,7 +30,11 @@
       <div id="definition">
         <a href="Status.html" title="Go to companion"><img src="../../lib/object_to_class_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="org">org</a>.<a href="package.html" class="extype" name="org.http4s">http4s</a></p>
-        <h1><a href="Status.html" title="Go to companion">Status</a></h1>
+        <h1><a href="Status.html" title="Go to companion">Status</a></h1> <span class="permalink">
+      <a href="../../index.html#org.http4s.Status$" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       </div>
 
       <h4 id="signature" class="signature">
@@ -39,13 +43,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Status</span><span class="result"> extends <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">Status</span><span class="result"> extends <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -85,7 +89,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.Status.EntityResponseGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.Status.EntityResponseGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="EntityResponseGeneratorextendsAnyRef"></a>
       <a id="EntityResponseGenerator:EntityResponseGenerator"></a>
       <h4 class="signature">
@@ -94,11 +98,20 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Status$$EntityResponseGenerator.html"><span class="name">EntityResponseGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="Status$$EntityResponseGenerator.html"><span class="name">EntityResponseGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
-      </h4>
-      <p class="comment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p>
-    </li><li name="org.http4s.Status.NoEntityResponseGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@EntityResponseGeneratorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><p>While it is possible to for the <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
+offer shortcut syntax to make intention clear and concise.
+</p></div><dl class="attributes block"> <div class="block">Example:
+               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = Ok(<span class="lit">"Hello world!"</span>)</pre></li></ol>
+            </div><dt>See also</dt><dd><span class="cmt"><p><a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a>
+</p></span></dd></dl></div>
+    </li><li name="org.http4s.Status.NoEntityResponseGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="NoEntityResponseGeneratorextendsAnyRef"></a>
       <a id="NoEntityResponseGenerator:NoEntityResponseGenerator"></a>
       <h4 class="signature">
@@ -107,11 +120,20 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Status$$NoEntityResponseGenerator.html"><span class="name">NoEntityResponseGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="Status$$NoEntityResponseGenerator.html"><span class="name">NoEntityResponseGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
-      </h4>
-      <p class="comment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p>
-    </li><li name="org.http4s.Status.RedirectResponderGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NoEntityResponseGeneratorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><p>While it is possible to for the <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
+offer shortcut syntax to make intention clear and concise.
+</p></div><dl class="attributes block"> <div class="block">Example:
+               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = Status.Continue()</pre></li></ol>
+            </div><dt>See also</dt><dd><span class="cmt"><p><a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a>
+</p></span></dd></dl></div>
+    </li><li name="org.http4s.Status.RedirectResponderGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="RedirectResponderGeneratorextendsAnyRef"></a>
       <a id="RedirectResponderGenerator:RedirectResponderGenerator"></a>
       <h4 class="signature">
@@ -120,10 +142,20 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Status$$RedirectResponderGenerator.html"><span class="name">RedirectResponderGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="Status$$RedirectResponderGenerator.html"><span class="name">RedirectResponderGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
-      </h4>
-      <p class="comment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which points to another HTTP location</p>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@RedirectResponderGeneratorextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which points to another HTTP location</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which points to another HTTP location</p><p>The RedirectResponseGenerator aids in adding the appropriate headers for Redirect actions.
+While it is possible to for the <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
+offer shortcut syntax to make intention clear and concise.
+</p></div><dl class="attributes block"> <div class="block">Example:
+               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = MovedPermanently(<span class="lit">"http://foo.com"</span>)</pre></li></ol>
+            </div><dt>See also</dt><dd><span class="cmt"><p><a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a>
+</p></span></dd></dl></div>
     </li></ol>
             </div>
 
@@ -140,9 +172,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="##():Int"></a>
@@ -153,9 +189,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@##():Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a>
@@ -166,9 +206,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Accepted" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Accepted:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -181,7 +225,11 @@
       <span class="symbol">
         <span class="name">Accepted</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Accepted:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#AlreadyReported" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="AlreadyReported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -194,7 +242,11 @@
       <span class="symbol">
         <span class="name">AlreadyReported</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@AlreadyReported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#BadGateway" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="BadGateway:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -207,7 +259,11 @@
       <span class="symbol">
         <span class="name">BadGateway</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@BadGateway:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#BadRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="BadRequest:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -220,7 +276,11 @@
       <span class="symbol">
         <span class="name">BadRequest</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@BadRequest:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Conflict" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Conflict:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -233,7 +293,11 @@
       <span class="symbol">
         <span class="name">Conflict</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Conflict:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Continue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Continue:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
@@ -246,7 +310,11 @@
       <span class="symbol">
         <span class="name">Continue</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Continue:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <p class="shortcomment cmt">Status code list taken from http://www.</p><div class="fullcomment"><div class="comment cmt"><p>Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Created" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -260,7 +328,11 @@
       <span class="symbol">
         <span class="name">Created</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Created:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#ExpectationFailed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ExpectationFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -273,7 +345,11 @@
       <span class="symbol">
         <span class="name">ExpectationFailed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@ExpectationFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#FailedDependency" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="FailedDependency:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -286,7 +362,11 @@
       <span class="symbol">
         <span class="name">FailedDependency</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@FailedDependency:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Forbidden" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Forbidden:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -299,7 +379,11 @@
       <span class="symbol">
         <span class="name">Forbidden</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Forbidden:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Found" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Found:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
@@ -312,7 +396,11 @@
       <span class="symbol">
         <span class="name">Found</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Found:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#GatewayTimeOut" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="GatewayTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -325,7 +413,11 @@
       <span class="symbol">
         <span class="name">GatewayTimeOut</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@GatewayTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Gone" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Gone:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -338,7 +430,11 @@
       <span class="symbol">
         <span class="name">Gone</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Gone:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#HttpVersionNotSupported" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpVersionNotSupported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -351,7 +447,11 @@
       <span class="symbol">
         <span class="name">HttpVersionNotSupported</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@HttpVersionNotSupported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#IMUsed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="IMUsed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -364,7 +464,11 @@
       <span class="symbol">
         <span class="name">IMUsed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@IMUsed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#ImATeapot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ImATeapot:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -377,7 +481,11 @@
       <span class="symbol">
         <span class="name">ImATeapot</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@ImATeapot:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#InsufficientStorage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="InsufficientStorage:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -390,7 +498,11 @@
       <span class="symbol">
         <span class="name">InsufficientStorage</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@InsufficientStorage:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#InternalServerError" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="InternalServerError:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -403,7 +515,11 @@
       <span class="symbol">
         <span class="name">InternalServerError</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@InternalServerError:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#LengthRequred" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="LengthRequred:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -416,7 +532,11 @@
       <span class="symbol">
         <span class="name">LengthRequred</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@LengthRequred:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Locked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Locked:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -429,7 +549,11 @@
       <span class="symbol">
         <span class="name">Locked</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Locked:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#LoopDetected" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="LoopDetected:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -442,7 +566,11 @@
       <span class="symbol">
         <span class="name">LoopDetected</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@LoopDetected:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances.MethodNotAllowed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="MethodNotAllowed"></a>
@@ -455,7 +583,11 @@
       <span class="symbol">
         <a href="StatusInstances$MethodNotAllowed$.html"><span class="name">MethodNotAllowed</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.StatusInstances@MethodNotAllowed" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#MovedPermanently" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="MovedPermanently:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
@@ -468,7 +600,11 @@
       <span class="symbol">
         <span class="name">MovedPermanently</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@MovedPermanently:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#MultiStatus" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="MultiStatus:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -481,7 +617,11 @@
       <span class="symbol">
         <span class="name">MultiStatus</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@MultiStatus:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#MultipleChoices" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="MultipleChoices:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -494,7 +634,11 @@
       <span class="symbol">
         <span class="name">MultipleChoices</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@MultipleChoices:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#NetworkAuthenticationRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NetworkAuthenticationRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -507,7 +651,11 @@
       <span class="symbol">
         <span class="name">NetworkAuthenticationRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NetworkAuthenticationRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#NoContent" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NoContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
@@ -520,7 +668,11 @@
       <span class="symbol">
         <span class="name">NoContent</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NoContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#NonAuthoritativeInformation" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NonAuthoritativeInformation:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -533,7 +685,11 @@
       <span class="symbol">
         <span class="name">NonAuthoritativeInformation</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NonAuthoritativeInformation:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#NotAcceptable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NotAcceptable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -546,7 +702,11 @@
       <span class="symbol">
         <span class="name">NotAcceptable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NotAcceptable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#NotExtended" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NotExtended:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -559,7 +719,11 @@
       <span class="symbol">
         <span class="name">NotExtended</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NotExtended:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances.NotFound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NotFound"></a>
@@ -572,7 +736,11 @@
       <span class="symbol">
         <a href="StatusInstances$NotFound$.html"><span class="name">NotFound</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.StatusInstances@NotFound" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#NotImplemented" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NotImplemented:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -585,7 +753,11 @@
       <span class="symbol">
         <span class="name">NotImplemented</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NotImplemented:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#NotModified" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NotModified:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
@@ -598,7 +770,11 @@
       <span class="symbol">
         <span class="name">NotModified</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@NotModified:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Ok" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Ok:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -611,7 +787,11 @@
       <span class="symbol">
         <span class="name">Ok</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Ok:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances.PartialContent" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="PartialContent"></a>
@@ -624,7 +804,11 @@
       <span class="symbol">
         <a href="StatusInstances$PartialContent$.html"><span class="name">PartialContent</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.StatusInstances@PartialContent" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#PaymentRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="PaymentRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -637,7 +821,11 @@
       <span class="symbol">
         <span class="name">PaymentRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@PaymentRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#PreconditionFailed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="PreconditionFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -650,7 +838,11 @@
       <span class="symbol">
         <span class="name">PreconditionFailed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@PreconditionFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#PreconditionRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="PreconditionRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -663,7 +855,11 @@
       <span class="symbol">
         <span class="name">PreconditionRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@PreconditionRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#Processing" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Processing:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
@@ -676,7 +872,11 @@
       <span class="symbol">
         <span class="name">Processing</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@Processing:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances.ProxyAuthenticationRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ProxyAuthenticationRequired"></a>
@@ -689,7 +889,11 @@
       <span class="symbol">
         <a href="StatusInstances$ProxyAuthenticationRequired$.html"><span class="name">ProxyAuthenticationRequired</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.StatusInstances@ProxyAuthenticationRequired" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#RequestEntityTooLarge" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RequestEntityTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -702,7 +906,11 @@
       <span class="symbol">
         <span class="name">RequestEntityTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@RequestEntityTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#RequestHeaderFieldsTooLarge" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RequestHeaderFieldsTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -715,7 +923,11 @@
       <span class="symbol">
         <span class="name">RequestHeaderFieldsTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@RequestHeaderFieldsTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#RequestTimeOut" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RequestTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -728,7 +940,11 @@
       <span class="symbol">
         <span class="name">RequestTimeOut</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@RequestTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#RequestUriTooLarge" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RequestUriTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -741,7 +957,11 @@
       <span class="symbol">
         <span class="name">RequestUriTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@RequestUriTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#RequestedRangeNotSatisfiable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RequestedRangeNotSatisfiable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -754,7 +974,11 @@
       <span class="symbol">
         <span class="name">RequestedRangeNotSatisfiable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@RequestedRangeNotSatisfiable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#ResetContent" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ResetContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
@@ -767,7 +991,11 @@
       <span class="symbol">
         <span class="name">ResetContent</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@ResetContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#SeeOther" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="SeeOther:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
@@ -780,7 +1008,11 @@
       <span class="symbol">
         <span class="name">SeeOther</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@SeeOther:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#ServiceUnavailable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ServiceUnavailable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -793,7 +1025,11 @@
       <span class="symbol">
         <span class="name">ServiceUnavailable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@ServiceUnavailable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances.SwitchingProtocols" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="SwitchingProtocols"></a>
@@ -806,7 +1042,11 @@
       <span class="symbol">
         <a href="StatusInstances$SwitchingProtocols$.html"><span class="name">SwitchingProtocols</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.StatusInstances@SwitchingProtocols" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#TemporaryRedirect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="TemporaryRedirect:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
@@ -819,7 +1059,11 @@
       <span class="symbol">
         <span class="name">TemporaryRedirect</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@TemporaryRedirect:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#TooManyRequests" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="TooManyRequests:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -832,7 +1076,11 @@
       <span class="symbol">
         <span class="name">TooManyRequests</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@TooManyRequests:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances.Unauthorized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Unauthorized"></a>
@@ -845,7 +1093,11 @@
       <span class="symbol">
         <a href="StatusInstances$Unauthorized$.html"><span class="name">Unauthorized</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.StatusInstances@Unauthorized" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#UnorderedCollection" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UnorderedCollection:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -858,7 +1110,11 @@
       <span class="symbol">
         <span class="name">UnorderedCollection</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UnorderedCollection:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#UnprocessableEntity" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UnprocessableEntity:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -871,7 +1127,11 @@
       <span class="symbol">
         <span class="name">UnprocessableEntity</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UnprocessableEntity:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#UnsupportedMediaType" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UnsupportedMediaType:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -884,7 +1144,11 @@
       <span class="symbol">
         <span class="name">UnsupportedMediaType</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UnsupportedMediaType:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#UpgradeRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UpgradeRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -897,7 +1161,11 @@
       <span class="symbol">
         <span class="name">UpgradeRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UpgradeRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#UseProxy" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UseProxy:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
@@ -910,7 +1178,11 @@
       <span class="symbol">
         <span class="name">UseProxy</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UseProxy:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.StatusInstances#VariantAlsoNegotiates" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="VariantAlsoNegotiates:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
@@ -923,7 +1195,11 @@
       <span class="symbol">
         <span class="name">VariantAlsoNegotiates</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@VariantAlsoNegotiates:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
     </li><li name="org.http4s.Status#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="apply(code:Int):org.http4s.Status"></a>
@@ -934,9 +1210,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="code">code: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+        <span class="name">apply</span><span class="params">(<span name="code">code: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@apply(code:Int):org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
@@ -949,7 +1229,11 @@
       <span class="symbol">
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
@@ -960,9 +1244,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@clone():Object" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
@@ -979,9 +1267,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="equals(x$1:Any):Boolean"></a>
@@ -992,9 +1284,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
@@ -1005,9 +1301,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
@@ -1026,7 +1326,11 @@
       <span class="symbol">
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
@@ -1037,9 +1341,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Status#int2statusCode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="int2statusCode(i:Int):org.http4s.Status"></a>
@@ -1050,9 +1358,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">int2statusCode</span><span class="params">(<span name="i">i: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+        <span class="name">int2statusCode</span><span class="params">(<span name="i">i: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@int2statusCode(i:Int):org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -1063,9 +1375,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
@@ -1076,9 +1392,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notify():Unit"></a>
@@ -1089,9 +1409,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@notify():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="notifyAll():Unit"></a>
@@ -1102,9 +1426,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
@@ -1117,7 +1445,11 @@
       <span class="symbol">
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
@@ -1130,7 +1462,11 @@
       <span class="symbol">
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@toString():String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.Status#tuple2statusCode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="tuple2statusCode(tup:(Int,String)):org.http4s.Status"></a>
@@ -1141,9 +1477,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">tuple2statusCode</span><span class="params">(<span name="tup">tup: (<a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+        <span class="name">tuple2statusCode</span><span class="params">(<span name="tup">tup: (<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@tuple2statusCode(tup:(Int,String)):org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
@@ -1154,9 +1494,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@wait():Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
@@ -1173,9 +1517,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
@@ -1192,9 +1540,13 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
-      </h4>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
                 <span class="name">@throws</span><span class="args">(<span>
       
@@ -1212,15 +1564,15 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="org.http4s.StatusInstances">
               <h3>Inherited from <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.0/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>
