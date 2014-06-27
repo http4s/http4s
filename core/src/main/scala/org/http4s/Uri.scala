@@ -69,6 +69,15 @@ case class Uri(
     renderUri(this)
 
   /**
+   * Creates maybe a new `Uri` with the specified parameters. The entire
+   * query string will be replaced with the given one. If a the given
+   * parameters equal the existing one the same `Uri` instance will be
+   * returned.
+   */
+  def =?(q: Map[String, Seq[String]]): Uri =
+    setQueryParams(q)
+
+  /**
    * Creates maybe a new `Uri` with the specified parameter in query string.
    * If a parameter with the given `name` already exists the value will be
    * replaced. If the parameter to be added equal the existing entry the same
@@ -101,6 +110,17 @@ case class Uri(
       else copy(query = renderQueryString(multiParams - name))
     case None =>
       this
+  }
+
+  /**
+   * Creates maybe a new `Uri` with the specified parameters. The entire
+   * query string will be replaced with the given one. If a the given
+   * parameters equal the existing one the same `Uri` instance will be
+   * returned.
+   */
+  def setQueryParams(query: Map[String, Seq[String]]): Uri = {
+    if (multiParams == query) this
+    else copy(query = renderQueryString(query))
   }
 
   /**
