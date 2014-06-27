@@ -46,7 +46,11 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
 
-  def Host = rule { (IpLiteral | capture(IpV4Address | IpV6Address | RegName)) ~> (s => decode(s).ci) }
+  def Host: Rule1[org.http4s.Uri.Host] = rule {
+    capture(IpV4Address) ~> { s: String => org.http4s.Uri.IPv4(s.ci) } |
+      (IpLiteral | capture(IpV6Address)) ~> { s: String => org.http4s.Uri.IPv6(s.ci) } |
+      capture(RegName) ~> { s: String => org.http4s.Uri.RegName(decode(s).ci) }
+  }
 
   def Port = rule { ":" ~ (capture(oneOrMore(Digit)) ~> {s: String => (Some(s.toInt))} |  push(None)) |  push(None) }
 
