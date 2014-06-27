@@ -138,42 +138,42 @@ class PathSpec extends WordSpec with Matchers {
 
     "Integer extractor" in {
       (Path("/user/123") match {
-        case Root / "user" / IntParam(userId) => userId == 123
+        case Root / "user" / IntVar(userId) => userId == 123
         case _                                => false
       }) should be (true)
     }
 
-    "Integer extractor, invalid int" in {
+    "Int extractor, invalid int" in {
       (Path("/user/invalid") match {
-        case Root / "user" / IntParam(userId) => true
+        case Root / "user" / IntVar(userId) => true
         case _                                => false
       }) should be (false)
     }
 
-    "Integer extractor, number format error" in {
+    "Int extractor, number format error" in {
       (Path("/user/2147483648") match {
-        case Root / "user" / IntParam(userId) => true
+        case Root / "user" / IntVar(userId) => true
         case _                                => false
       }) should be (false)
     }
 
-    "LongParam extractor" in {
+    "Long extractor" in {
       (Path("/user/123") match {
-        case Root / "user" / LongParam(userId) => userId == 123
+        case Root / "user" / LongVar(userId) => userId == 123
         case _                                 => false
       }) should be (true)
     }
 
-    "LongParam extractor, invalid int" in {
+    "Long extractor, invalid int" in {
       (Path("/user/invalid") match {
-        case Root / "user" / LongParam(userId) => true
+        case Root / "user" / LongVar(userId) => true
         case _                                 => false
       }) should be (false)
     }
 
     "LongParam extractor, number format error" in {
       (Path("/user/9223372036854775808") match {
-        case Root / "user" / LongParam(userId) => true
+        case Root / "user" / LongVar(userId) => true
         case _                                 => false
       }) should be (false)
     }
