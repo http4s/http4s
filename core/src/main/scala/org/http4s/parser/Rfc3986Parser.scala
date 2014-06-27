@@ -42,11 +42,15 @@ private[parser] trait Rfc3986Parser { this: Parser =>
     capture(Alpha ~ zeroOrMore(Alpha | Digit | "+" | "-" | ".")) ~> (_.ci)
   }
 
-  def Authority: Rule1[org.http4s.Uri.Authority] = rule { optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _) }
+  def Authority: Rule1[org.http4s.Uri.Authority] = rule { optional(UserInfo ~ "@") ~ IPv4 ~ IPv6 ~ RName ~ Port ~> (org.http4s.Uri.Authority.from _) }
 
   def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
 
-  def Host = rule { (IpLiteral | capture(IpV4Address | IpV6Address | RegName)) ~> (s => decode(s).ci) }
+  def IPv4 = rule { capture(IpV4Address) ~> {s: String => if(s.nonEmpty) (Some(org.http4s.Uri.IPv4(s.ci))) else None} | push(None) }
+
+  def IPv6 = rule { (IpLiteral | capture(IpV6Address)) ~> {s: String => if(s.nonEmpty) (Some(org.http4s.Uri.IPv6(s.ci))) else None} | push(None) }
+
+  def RName = rule { capture(RegName) ~> {s: String => if(s.nonEmpty) (Some(org.http4s.Uri.RegName(decode(s).ci))) else None} | push(None) }
 
   def Port = rule { ":" ~ (capture(oneOrMore(Digit)) ~> {s: String => (Some(s.toInt))} |  push(None)) |  push(None) }
 

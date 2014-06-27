@@ -21,6 +21,7 @@ case class Uri(
 
   def host: Option[Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
+  def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
 
   /**
    * Representation of the query as a Map[String, Seq[String]]
@@ -61,6 +62,10 @@ case class Uri(
 
     override def get(key: String): Option[String] = wrapped.get(key).map(_.head)
   }
+
+  override lazy val toString =
+    renderUri(this)
+
 }
 
 object Uri {
@@ -71,13 +76,95 @@ object Uri {
 
   case class Authority(
     userInfo: Option[UserInfo] = None,
-    host: Host = "localhost".ci,
-    port: Option[Int] = None)
+    host: Host = RegName("localhost"),
+    port: Option[Int] = None) {
+  }
+  object Authority {
+    def from(
+      userInfo: Option[UserInfo],
+      ipv4: Option[IPv4],
+      ipv6: Option[IPv6],
+      host: Option[RegName],
+      port: Option[Int]): Authority = {
+      val h = host.getOrElse {
+        ipv4.getOrElse {
+          ipv6.getOrElse {
+            RegName("localhost")
+          }
+        }
+      }
+      Authority(userInfo, h, port)
+    }
+  }
 
-  type Host = CaseInsensitiveString
+  sealed trait Host
+  case class RegName(host: CaseInsensitiveString) extends Host
+  case class IPv4(address: CaseInsensitiveString) extends Host
+  case class IPv6(address: CaseInsensitiveString) extends Host
+
+  object RegName { def apply(name: String) = new RegName(name.ci) }
+  object IPv4 { def apply(address: String) = new IPv4(address.ci) }
+  object IPv6 { def apply(address: String) = new IPv6(address.ci) }
+
   type UserInfo = String
 
   type Path = String
   type Query = String
   type Fragment = String
+
+  protected def renderAuthority(a: Authority): String = a match {
+    case Authority(Some(u), h, None) => u + "@" + renderHost(h)
+    case Authority(Some(u), h, Some(p)) => u + "@" + renderHost(h) + ":" + p
+    case Authority(None, h, Some(p)) => renderHost(h) + ":" + p
+    case Authority(_, h, _) => renderHost(h)
+    case _ => ""
+  }
+
+  protected def renderHost(h: Host): String = h match {
+    case RegName(n) => n.toString
+    case IPv4(a) => a.toString
+    case IPv6(a) => "[" + a.toString + "]"
+    case _ => ""
+  }
+
+  protected def renderScheme(s: Scheme): String =
+    s + ":"
+
+  protected def renderSchemeAndAuthority(s: Scheme, a: Authority): String =
+    renderScheme(s) + "//" + renderAuthority(a)
+
+  protected def renderParamsAndFragment(p: Option[Query], f: Option[Fragment]): String = {
+    val b = new StringBuilder
+    if (p.isDefined) {
+      b.append("?")
+      b.append(p.get)
+    }
+    if (f.isDefined) {
+      b.append("#")
+      b.append(f.get)
+    }
+    b.toString
+  }
+
+  protected def renderUri(uri: Uri): String = {
+    val b = new StringBuilder
+    uri match {
+      case Uri(Some(s), Some(a), "/", None, None) =>
+        b.append(renderSchemeAndAuthority(s, a))
+      case Uri(Some(s), Some(a), path, params, fragment) =>
+        b.append(renderSchemeAndAuthority(s, a))
+        b.append(path)
+        b.append(renderParamsAndFragment(params, fragment))
+      case Uri(Some(s), None, path, params, fragment) =>
+        b.append(renderScheme(s))
+        b.append(path)
+        b.append(renderParamsAndFragment(params, fragment))
+      case Uri(None, None, path, params, fragment) =>
+        b.append(path)
+        b.append(renderParamsAndFragment(params, fragment))
+      case _ =>
+    }
+    b.toString
+  }
+
 }
