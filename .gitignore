@@ -6,7 +6,7 @@ target/
 /.idea/
 /.idea_modules/
 
-/.cache
+.cache
 .classpath
 .project
 .settings/
