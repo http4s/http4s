@@ -4,8 +4,8 @@ import java.nio.charset.Charset
 
 import org.http4s.Uri.Authority
 import org.http4s.util.string._
-import org.http4s.{CharacterSet, Uri}
-import org.scalatest.{Matchers, WordSpec}
+import org.http4s.{ CharacterSet, Uri }
+import org.scalatest.{ Matchers, WordSpec }
 
 import scala.util.Success
 import org.parboiled2._
@@ -18,8 +18,6 @@ class IPV6Parser(val input: ParserInput, val charset: Charset) extends Parser wi
 }
 
 class UriSpec extends WordSpec with Matchers {
-
-
 
   "Uri" should {
 
@@ -51,26 +49,24 @@ class UriSpec extends WordSpec with Matchers {
       val portExamples: Seq[(String, Uri)] = Seq(
         ("http://foo.com", Uri(Some("http".ci), Some(Authority(host = "foo.com".ci, port = None)))),
         ("http://foo.com:", Uri(Some("http".ci), Some(Authority(host = "foo.com".ci, port = None)))),
-        ("http://foo.com:80", Uri(Some("http".ci), Some(Authority(host = "foo.com".ci, port = Some(80)))))
-      )
+        ("http://foo.com:80", Uri(Some("http".ci), Some(Authority(host = "foo.com".ci, port = Some(80))))))
 
       check(portExamples)
     }
 
     "Parse absolute URIs" in {
-      val absoluteUris : Seq[(String, Uri)] = Seq(
+      val absoluteUris: Seq[(String, Uri)] = Seq(
         ("http://www.foo.com", Uri(Some("http".ci), Some(Authority(host = "www.foo.com".ci)))),
         ("http://www.foo.com/foo?bar=baz",
           Uri(Some("http".ci), Some(Authority(host = "www.foo.com".ci)), "/foo", Some("bar=baz"))),
         ("http://192.168.1.1",
-          Uri(Some("http".ci), Some(Authority(host = "192.168.1.1".ci)))) ,
+          Uri(Some("http".ci), Some(Authority(host = "192.168.1.1".ci)))),
         ("http://192.168.1.1:80/c?GB=object&Class=one",
           Uri(Some("http".ci), Some(Authority(host = "192.168.1.1".ci, port = Some(80))), "/c", Some("GB=object&Class=one"))),
         ("http://[2001:db8::7]/c?GB=object&Class=one",
           Uri(Some("http".ci), Some(Authority(host = "2001:db8::7".ci)), "/c", Some("GB=object&Class=one"))),
         ("mailto:John.Doe@example.com",
-          Uri(Some("mailto".ci), path = "John.Doe@example.com"))
-      )
+          Uri(Some("mailto".ci), path = "John.Doe@example.com")))
 
       check(absoluteUris)
     }
@@ -78,9 +74,8 @@ class UriSpec extends WordSpec with Matchers {
     "Parse relative URIs" in {
       val relativeUris: Seq[(String, Uri)] = Seq(
         ("/foo/bar", Uri(path = "/foo/bar")),
-        ("/foo/bar?foo=bar&ding=dong", Uri(path="/foo/bar", query = Some("foo=bar&ding=dong"))),
-        ("/", Uri())
-      )
+        ("/foo/bar?foo=bar&ding=dong", Uri(path = "/foo/bar", query = Some("foo=bar&ding=dong"))),
+        ("/", Uri()))
 
       check(relativeUris)
     }
@@ -89,7 +84,7 @@ class UriSpec extends WordSpec with Matchers {
       val q = "param1=3&param2=2&param2=foo"
       val u = Uri(query = Some(q))
       "parse query and represent multiParams as a Map[String,Seq[String]]" in {
-        u.multiParams should equal(Map("param1" -> Seq("3"), "param2" -> Seq("2","foo")))
+        u.multiParams should equal(Map("param1" -> Seq("3"), "param2" -> Seq("2", "foo")))
       }
 
       "parse query and represent params as a Map[String,String] taking the first param" in {
@@ -99,8 +94,8 @@ class UriSpec extends WordSpec with Matchers {
 
     "Deal with an invalid Query" in {
       val u = Uri.fromString("/hello/world?bad=enc%ode").get
-      u.params should equal (Map("bad" -> "enc"))
-      u.fragment should equal (None)
+      u.params should equal(Map("bad" -> "enc"))
+      u.fragment should equal(None)
       u.path should equal("/hello/world")
     }
 
@@ -109,8 +104,9 @@ class UriSpec extends WordSpec with Matchers {
       u.path should equal("/hello/wo")
     }
 
-    def check(items: Seq[(String, Uri)]) = items.foreach { case (str, uri) =>
-      Uri.fromString(str).get should equal(uri)
+    def check(items: Seq[(String, Uri)]) = items.foreach {
+      case (str, uri) =>
+        Uri.fromString(str).get should equal(uri)
     }
 
   }
