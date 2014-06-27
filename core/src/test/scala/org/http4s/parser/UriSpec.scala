@@ -383,6 +383,23 @@ class UriSpec extends WordSpec with Matchers {
       val u = Uri(query = Some("param1=value1&param1=value2")) <<? ("param1", "value")
       u should equal(Uri(query = Some("param1=value")))
     }
+    "set a parameter with a value" in {
+      val ps = Map("param" -> List("value"))
+      Uri() ? ps should equal(Uri(query = Some("param=value")))
+    }
+    "set a parameter without a value" in {
+      val ps = Map("param" -> Nil)
+      Uri() ? ps should equal(Uri(query = Some("param")))
+    }
+    "set many parameters" in {
+      val ps = Map("param1" -> Nil, "param2" -> List("value1", "value2"), "param3" -> List("value"))
+      Uri() ? ps should equal(Uri(query = Some("param1&param2=value1&param2=value2&param3=value")))
+    }
+    "set the same parameters again" in {
+      val ps = Map("param" -> List("value"))
+      val u = Uri(query = Some("param=value"))
+      u ? ps should equal(u ? ps)
+    }
   }
 
 }
