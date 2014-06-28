@@ -90,6 +90,21 @@ class UriSpec extends WordSpec with Matchers {
       u should equal(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Some("bar=baz"), Some("Example-Fragment")))
     }
 
+    "parse relative URI with empty query string" in {
+      val u = Uri.fromString("/foo/bar?").get
+      u should equal(Uri(path = "/foo/bar", query = Some("")))
+    }
+
+    "parse relative URI with empty query string followed by empty fragement" in {
+      val u = Uri.fromString("/foo/bar?#").get
+      u should equal(Uri(path = "/foo/bar", query = Some(""), fragment = Some("")))
+    }
+
+    "parse relative URI with empty query string followed by fragement" in {
+      val u = Uri.fromString("/foo/bar?#Example_of_Fragment").get
+      u should equal(Uri(path = "/foo/bar", query = Some(""), fragment = Some("Example_of_Fragment")))
+    }
+
     "parse relative URI with fragment" in {
       val u = Uri.fromString("/foo/bar#Examples_of_Fragment").get
       u should equal(Uri(path = "/foo/bar", fragment = Some("Examples_of_Fragment")))
