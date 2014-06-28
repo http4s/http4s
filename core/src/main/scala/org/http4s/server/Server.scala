@@ -16,14 +16,10 @@ trait Server {
   def onShutdown(f: => Unit): this.type
 }
 
-abstract class ServerBuilder { self =>
+trait ServerBuilder { self =>
   type To <: Server
 
-  protected var timeout: Duration = Duration.Inf
-
   def mountService(service: HttpService, prefix: String = ""): this.type
-
-  def timeout(duration: Duration): this.type = { timeout = duration; this }
 
   def build: To
 
@@ -34,3 +30,14 @@ abstract class ServerBuilder { self =>
   def run(): To = start.run
 }
 
+trait HasIdleTimeout { this: ServerBuilder =>
+  def withIdleTimeout(timeout: Duration): this.type
+}
+
+trait HasConnectionTimeout { this: ServerBuilder =>
+  def withConnectionTimeout(timeout: Duration): this.type
+}
+
+trait HasAsyncTimeout { this: ServerBuilder =>
+  def withAsyncTimeout(timeout: Duration): this.type
+}

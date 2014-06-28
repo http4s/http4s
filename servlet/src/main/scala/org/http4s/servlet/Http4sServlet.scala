@@ -17,10 +17,10 @@ import scala.util.control.NonFatal
 import org.parboiled2.ParseError
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-class Http4sServlet(service: HttpService, timeout: Duration, chunkSize: Int = DefaultChunkSize)
+class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf, chunkSize: Int = DefaultChunkSize)
             extends HttpServlet with LazyLogging {
 
-  private val timeoutMillis = if (timeout.isFinite) timeout.toMillis else -1  // -1 == Inf
+  private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1  // -1 == Inf
 
   private[this] var serverSoftware: ServerSoftware = _
 
@@ -32,7 +32,7 @@ class Http4sServlet(service: HttpService, timeout: Duration, chunkSize: Int = De
     try {
       val request = toRequest(servletRequest)
       val ctx = servletRequest.startAsync()
-      ctx.setTimeout(timeoutMillis)
+      ctx.setTimeout(asyncTimeoutMillis)
       handle(request, ctx)
     } catch {
       case NonFatal(e) => handleError(e, servletResponse)
