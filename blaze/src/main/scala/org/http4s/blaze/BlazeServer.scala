@@ -3,12 +3,14 @@ package blaze
 
 import java.net.InetSocketAddress
 import org.http4s.blaze.channel.{SocketConnection, ServerChannel}
-import org.http4s.server.{ServerBuilder, Server}
+import org.http4s.server.{HasIdleTimeout, ServerBuilder, Server}
+import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
 import org.http4s.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.LeafBuilder
+import org.http4s.blaze.pipeline.stages.QuietTimeoutStage
 
 class BlazeServer private (serverChannel: ServerChannel) extends Server {
   override def start: Task[this.type] = Task.delay {
@@ -28,11 +30,12 @@ class BlazeServer private (serverChannel: ServerChannel) extends Server {
 }
 
 object BlazeServer {
-  class Builder extends ServerBuilder {
+  class Builder extends ServerBuilder with HasIdleTimeout {
     type To = BlazeServer
 
     private var aggregateService = HttpService.empty
     private var port = 8080
+    private var idleTimeout: Duration = Duration.Inf
 
     override def mountService(service: HttpService, prefix: String): this.type = {
       val prefixedService =
@@ -49,8 +52,17 @@ object BlazeServer {
       this
     }
 
+    override def withIdleTimeout(timeout: Duration): this.type = {
+      this.idleTimeout = idleTimeout
+      this
+    }
+
     override def build: To = {
-      def stage(conn: SocketConnection): LeafBuilder[ByteBuffer] = new Http1Stage(aggregateService, Some(conn))
+      def stage(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
+        val leaf = LeafBuilder(new Http1Stage(aggregateService, Some(conn)))
+        if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
+        else leaf
+      }
       val factory = new SocketServerChannelFactory(stage, 12, 8 * 1024)
       val channel = factory.bind(new InetSocketAddress(port))
       new BlazeServer(channel)

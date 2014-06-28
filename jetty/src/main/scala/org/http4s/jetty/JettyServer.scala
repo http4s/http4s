@@ -5,6 +5,8 @@ import javax.servlet.http.HttpServlet
 import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
+import org.http4s.server.HasIdleTimeout
+import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
 import org.http4s.servlet.{ServletContainer, ServletContainerBuilder}
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
@@ -35,12 +37,12 @@ class JettyServer private[jetty] (server: JServer) extends ServletContainer with
 }
 
 object JettyServer {
-  class Builder extends ServletContainerBuilder {
+  class Builder extends ServletContainerBuilder with HasIdleTimeout {
     type To = JettyServer
 
     private val server = new JServer()
-
     private var port = 8080
+    private var timeout: Duration = Duration.Inf
 
     override def withPort(port: Int): this.type = {
       this.port = port
@@ -55,11 +57,18 @@ object JettyServer {
       val connector = new ServerConnector(server)
       connector.setPort(port)
       server.addConnector(connector)
+      val dur = if (timeout.isFinite) timeout.toMillis else -1
+      connector.setIdleTimeout(dur)  // timeout <= 0 => infinite
       new JettyServer(server)
     }
 
     def mountServlet(servlet: HttpServlet, urlMapping: String): this.type = {
       context.addServlet(new ServletHolder(defaultServletName(servlet), servlet), urlMapping)
+      this
+    }
+
+    def withIdleTimeout(timeout: Duration): this.type = {
+      this.timeout = timeout
       this
     }
   }
