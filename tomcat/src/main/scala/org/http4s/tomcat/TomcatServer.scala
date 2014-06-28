@@ -3,7 +3,7 @@ package tomcat
 
 import javax.servlet.http.HttpServlet
 import com.typesafe.scalalogging.slf4j.LazyLogging
-import org.http4s.server.HasConnectionTimeout
+import org.http4s.server.{HasIdleTimeout, HasConnectionTimeout}
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
 import org.apache.catalina.startup.Tomcat
@@ -44,15 +44,30 @@ class TomcatServer private[tomcat] (tomcat: Tomcat) extends ServletContainer wit
 }
 
 object TomcatServer {
-  class Builder extends ServletContainerBuilder with HasConnectionTimeout {
+  class Builder extends ServletContainerBuilder with HasConnectionTimeout with HasIdleTimeout {
     type To = TomcatServer
 
     private val tomcat = new Tomcat
     tomcat.addContext("", getClass.getResource("/").getPath)
     withConnectionTimeout(Duration.Inf)
+    withIdleTimeout(Duration.Inf)
 
     override def withPort(port: Int): this.type = {
       tomcat.setPort(port)
+      this
+    }
+
+    /** Add timeout for idle connections
+      * '''WARNING:''' Tomcat maintains connections on a fixed interval determined by the global
+      * attribute worker.maintain with a default interval of 60 seconds. In the worst case the connection
+      * may not timeout for an additional 59.999 seconds from the specified Duration
+      * @param timeout Duration to wait for an idle connection before timing out
+      * @return this [[server.ServerBuilder]]
+      */
+    override def withIdleTimeout(timeout: Duration): this.type = {
+      // the connection_pool_timeout attribute has units of seconds
+      val millis = new Integer(if (timeout.isFinite) timeout.toSeconds.toInt else 0)
+      tomcat.getConnector.setAttribute("connection_pool_timeout", millis)
       this
     }
 
