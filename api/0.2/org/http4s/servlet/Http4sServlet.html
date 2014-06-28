@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.servlet.Http4sServlet#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(service:org.http4s.HttpService,chunkSize:Int):org.http4s.servlet.Http4sServlet"></a>
+      <a id="&lt;init&gt;(service:org.http4s.HttpService,asyncTimeout:scala.concurrent.duration.Duration,chunkSize:Int):org.http4s.servlet.Http4sServlet"></a>
       <a id="&lt;init&gt;:Http4sServlet"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Http4sServlet</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>, <span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="Http4sServlet$.html">DefaultChunkSize</a></span></span></span>)</span>
+        <span class="name">Http4sServlet</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>, <span name="asyncTimeout">asyncTimeout: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a> = <span class="symbol">Duration.Inf</span></span>, <span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="Http4sServlet$.html">DefaultChunkSize</a></span></span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.servlet.Http4sServlet@&lt;init&gt;(service:org.http4s.HttpService,chunkSize:Int):org.http4s.servlet.Http4sServlet" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.servlet.Http4sServlet@&lt;init&gt;(service:org.http4s.HttpService,asyncTimeout:scala.concurrent.duration.Duration,chunkSize:Int):org.http4s.servlet.Http4sServlet" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>

@@ -43,13 +43,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Builder</span><span class="result"> extends <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
+        <span class="name">Builder</span><span class="result"> extends <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> with <a href="../server/HasIdleTimeout.html" class="extype" name="org.http4s.server.HasIdleTimeout">HasIdleTimeout</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../server/HasIdleTimeout.html" class="extype" name="org.http4s.server.HasIdleTimeout">HasIdleTimeout</a>, <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -67,7 +67,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.blaze.BlazeServer.Builder"><span>Builder</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.blaze.BlazeServer.Builder"><span>Builder</span></li><li class="in" name="org.http4s.server.HasIdleTimeout"><span>HasIdleTimeout</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -554,6 +554,24 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.blaze.BlazeServer.Builder#withIdleTimeout" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withIdleTimeout(timeout:scala.concurrent.duration.Duration):Builder.this.type"></a>
+      <a id="withIdleTimeout(Duration):Builder.this.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withIdleTimeout</span><span class="params">(<span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.blaze.BlazeServer.Builder">Builder</a>.this.type</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.blaze.BlazeServer$$Builder@withIdleTimeout(timeout:scala.concurrent.duration.Duration):Builder.this.type" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Add timeout for idle connections</p><div class="fullcomment"><div class="comment cmt"><p>Add timeout for idle connections</p></div><dl class="paramcmts block"><dt class="param">timeout</dt><dd class="cmt"><p>Duration to wait for an idle connection before terminating the connection</p></dd><dt>returns</dt><dd class="cmt"><p>this <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">server.ServerBuilder</a>
+</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.BlazeServer.Builder">Builder</a> → <a href="../server/HasIdleTimeout.html" class="extype" name="org.http4s.server.HasIdleTimeout">HasIdleTimeout</a></dd></dl></div>
     </li><li name="org.http4s.blaze.BlazeServer.Builder#withPort" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withPort(port:Int):Builder.this.type"></a>
       <a id="withPort(Int):Builder.this.type"></a>
@@ -580,7 +598,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.server.ServerBuilder">
+        <div class="parent" name="org.http4s.server.HasIdleTimeout">
+              <h3>Inherited from <a href="../server/HasIdleTimeout.html" class="extype" name="org.http4s.server.HasIdleTimeout">HasIdleTimeout</a></h3>
+            </div><div class="parent" name="org.http4s.server.ServerBuilder">
               <h3>Inherited from <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
