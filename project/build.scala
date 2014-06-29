@@ -1,5 +1,9 @@
 import sbt._
 
+object Http4sKeys {
+  val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
+}
+
 object Http4sDependencies {
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.2.0-SNAPSHOT"

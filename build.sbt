@@ -1,5 +1,7 @@
 import Http4sDependencies._
+import Http4sKeys._
 import UnidocKeys._
+import SiteKeys._
 import scala.util.{Properties, Success, Try}
 import GhPagesKeys._
 import com.typesafe.sbt.git.GitRunner
@@ -32,6 +34,13 @@ name := "http4s"
 organization in ThisBuild := "org.http4s"
 
 version in ThisBuild := "0.2.0-SNAPSHOT"
+
+apiVersion in ThisBuild <<= version map { v => 
+  val VersionExtractor = """(\d+)\.(\d+)\..*""".r
+  v match {
+    case VersionExtractor(major, minor) => (major.toInt, minor.toInt)
+  }
+}
 
 description := "Common HTTP framework for Scala"
 
@@ -137,7 +146,10 @@ pomExtra in ThisBuild := (
 
 site.settings
 
-site.addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), "api/0.2")
+siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map { 
+  case (m, (major, minor)) => 
+    for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
+}
 
 includeFilter in SiteKeys.makeSite := "*" -- "*~"
 
