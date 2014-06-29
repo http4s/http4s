@@ -126,8 +126,7 @@ pomExtra in ThisBuild := (
     <developer>
       <id>rossabaker</id>
       <name>Ross A. Baker</name>
-      <email>baker@alumni.indiana.edu</email>
-      <!-- <url></url> -->
+      <email>ross@rossabaker.com</email>
     </developer>
     <developer>
       <id>casualjim</id>
