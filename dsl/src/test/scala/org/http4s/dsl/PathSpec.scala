@@ -136,7 +136,7 @@ class PathSpec extends WordSpec with Matchers {
       }) should be (true)
     }
 
-    "Integer extractor" in {
+    "Int extractor" in {
       (Path("/user/123") match {
         case Root / "user" / IntVar(userId) => userId == 123
         case _                                => false
@@ -171,7 +171,7 @@ class PathSpec extends WordSpec with Matchers {
       }) should be (false)
     }
 
-    "LongParam extractor, number format error" in {
+    "Long extractor, number format error" in {
       (Path("/user/9223372036854775808") match {
         case Root / "user" / LongVar(userId) => true
         case _                                 => false
