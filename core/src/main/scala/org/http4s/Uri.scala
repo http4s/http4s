@@ -68,6 +68,92 @@ case class Uri(
   override lazy val toString =
     renderUri(this)
 
+  /**
+   * Checks if a specified parameter exists in query string. A parameter
+   * without a name can be checked with an empty string.
+   */
+  def ?(name: String): Boolean =
+    containsQueryParam(name)
+
+  /**
+   * Creates maybe a new `Uri` with the specified parameters. The entire
+   * query string will be replaced with the given one. If a the given
+   * parameters equal the existing one the same `Uri` instance will be
+   * returned.
+   */
+  def =?(q: Map[String, Seq[String]]): Uri =
+    setQueryParams(q)
+
+  /**
+   * Creates maybe a new `Uri` with the specified parameter in query string.
+   * If a parameter with the given `name` already exists the value will be
+   * replaced. If the parameter to be added equal the existing entry the same
+   * instance of `Uri` will be returned.
+   */
+  def +?(name: String, value: String*): Uri =
+    withQueryParam(name, value.toSeq)
+
+  /**
+   * Creates maybe a new `Uri` without the specified parameter in query string.
+   * If no parameter with the given `name` exists the same `Uri` will be
+   * returned. If the parameter to be removed is not present the existing `Uri`
+   * instance of `Uri` will be returned.
+   */
+  def -?(name: String): Uri =
+    removeQueryParam(name)
+
+  /**
+   * Checks if a specified parameter exists in query string. A parameter
+   * without a name can be checked with an empty string.
+   */
+  def containsQueryParam(name: String): Boolean = query match {
+    case Some("") => if (name == "") true else false
+    case Some(_) => multiParams.contains(name)
+    case None => false
+  }
+
+  /**
+   * Creates maybe a new `Uri` without the specified parameter in query string.
+   * If no parameter with the given `name` exists the same `Uri` will be
+   * returned. If the parameter to be removed is not present the existing `Uri`
+   * instance of `Uri` will be returned.
+   */
+  def removeQueryParam(name: String): Uri = query match {
+    case Some("") =>
+      if (name == "") copy(query = None)
+      else this
+    case Some(_) =>
+      if (!multiParams.contains(name)) this
+      else copy(query = renderQueryString(multiParams - name))
+    case None =>
+      this
+  }
+
+  /**
+   * Creates maybe a new `Uri` with the specified parameters. The entire
+   * query string will be replaced with the given one. If a the given
+   * parameters equal the existing one the same `Uri` instance will be
+   * returned.
+   */
+  def setQueryParams(query: Map[String, Seq[String]]): Uri = {
+    if (multiParams == query) this
+    else copy(query = renderQueryString(query))
+  }
+
+  /**
+   * Creates maybe a new `Uri` with the specified parameter in query string.
+   * If a parameter with the given `name` already exists the value will be
+   * replaced. If the parameter to be added equal the existing entry the same
+   * instance of `Uri` will be returned.
+   */
+  def withQueryParam(name: String, values: Seq[String]): Uri = {
+    if (multiParams.contains(name) && multiParams.getOrElse(name, Nil) == values) this
+    else {
+      val p = multiParams updated (name, values)
+      copy(query = renderQueryString(p))
+    }
+  }
+
 }
 
 object Uri {
@@ -150,6 +236,26 @@ object Uri {
       case _ =>
     }
     b.toString
+  }
+
+  protected def renderQueryString(params: Map[String, Seq[String]]): Option[String] = {
+    if (params.isEmpty) None
+    else {
+      val b = new StringBuilder
+      params.foreach {
+        case (n, vs) =>
+          if (vs.isEmpty) {
+            if (b.nonEmpty) b.append("&")
+            b.append(n)
+          } else {
+            vs.foldLeft(b) { (b, v) =>
+              if (b.nonEmpty) b.append("&")
+              b.append(n + "=" + v)
+            }
+          }
+      }
+      Some(b.toString)
+    }
   }
 
 }
