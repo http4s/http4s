@@ -147,6 +147,48 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Uri#+?" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="+?(name:String,value:String*):org.http4s.Uri"></a>
+      <a id="+?(String,String*):Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $plus$qmark" class="name">+?</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span>*</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@+?(name:String,value:String*):org.http4s.Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Creates maybe a new <code>Uri</code> with the specified parameter in query string.</p><div class="fullcomment"><div class="comment cmt"><p>Creates maybe a new <code>Uri</code> with the specified parameter in query string.
+If a parameter with the given <code>name</code> already exists the value will be
+replaced. If the parameter to be added equal the existing entry the same
+instance of <code>Uri</code> will be returned.
+</p></div></div>
+    </li><li name="org.http4s.Uri#-?" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="-?(name:String):org.http4s.Uri"></a>
+      <a id="-?(String):Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $minus$qmark" class="name">-?</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@-?(name:String):org.http4s.Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Creates maybe a new <code>Uri</code> without the specified parameter in query string.</p><div class="fullcomment"><div class="comment cmt"><p>Creates maybe a new <code>Uri</code> without the specified parameter in query string.
+If no parameter with the given <code>name</code> exists the same <code>Uri</code> will be
+returned. If the parameter to be removed is not present the existing <code>Uri</code>
+instance of <code>Uri</code> will be returned.
+</p></div></div>
     </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="==(x$1:Any):Boolean"></a>
       <a id="==(Any):Boolean"></a>
@@ -164,6 +206,46 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Uri#=?" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="=?(q:Map[String,Seq[String]]):org.http4s.Uri"></a>
+      <a id="=?(Map[String,Seq[String]]):Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$qmark" class="name">=?</span><span class="params">(<span name="q">q: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@=?(q:Map[String,Seq[String]]):org.http4s.Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Creates maybe a new <code>Uri</code> with the specified parameters.</p><div class="fullcomment"><div class="comment cmt"><p>Creates maybe a new <code>Uri</code> with the specified parameters. The entire
+query string will be replaced with the given one. If a the given
+parameters equal the existing one the same <code>Uri</code> instance will be
+returned.
+</p></div></div>
+    </li><li name="org.http4s.Uri#?" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="?(name:String):Boolean"></a>
+      <a id="?(String):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $qmark" class="name">?</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@?(name:String):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Checks if a specified parameter exists in query string.</p><div class="fullcomment"><div class="comment cmt"><p>Checks if a specified parameter exists in query string. A parameter
+without a name can be checked with an empty string.
+</p></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -221,6 +303,25 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.Uri#containsQueryParam" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="containsQueryParam(name:String):Boolean"></a>
+      <a id="containsQueryParam(String):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">containsQueryParam</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@containsQueryParam(name:String):Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Checks if a specified parameter exists in query string.</p><div class="fullcomment"><div class="comment cmt"><p>Checks if a specified parameter exists in query string. A parameter
+without a name can be checked with an empty string.
+</p></div></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -468,6 +569,27 @@ an empty Map is returned
       </a>
     </span>
       
+    </li><li name="org.http4s.Uri#removeQueryParam" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="removeQueryParam(name:String):org.http4s.Uri"></a>
+      <a id="removeQueryParam(String):Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">removeQueryParam</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@removeQueryParam(name:String):org.http4s.Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Creates maybe a new <code>Uri</code> without the specified parameter in query string.</p><div class="fullcomment"><div class="comment cmt"><p>Creates maybe a new <code>Uri</code> without the specified parameter in query string.
+If no parameter with the given <code>name</code> exists the same <code>Uri</code> will be
+returned. If the parameter to be removed is not present the existing <code>Uri</code>
+instance of <code>Uri</code> will be returned.
+</p></div></div>
     </li><li name="org.http4s.Uri#scheme" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="scheme:Option[org.http4s.util.CaseInsensitiveString]"></a>
       <a id="scheme:Option[CaseInsensitiveString]"></a>
@@ -485,6 +607,27 @@ an empty Map is returned
       </a>
     </span>
       
+    </li><li name="org.http4s.Uri#setQueryParams" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="setQueryParams(query:Map[String,Seq[String]]):org.http4s.Uri"></a>
+      <a id="setQueryParams(Map[String,Seq[String]]):Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">setQueryParams</span><span class="params">(<span name="query">query: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@setQueryParams(query:Map[String,Seq[String]]):org.http4s.Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Creates maybe a new <code>Uri</code> with the specified parameters.</p><div class="fullcomment"><div class="comment cmt"><p>Creates maybe a new <code>Uri</code> with the specified parameters. The entire
+query string will be replaced with the given one. If a the given
+parameters equal the existing one the same <code>Uri</code> instance will be
+returned.
+</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -622,6 +765,27 @@ an empty Map is returned
       </a>
     </span>
       
+    </li><li name="org.http4s.Uri#withQueryParam" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withQueryParam(name:String,values:Seq[String]):org.http4s.Uri"></a>
+      <a id="withQueryParam(String,Seq[String]):Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withQueryParam</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="values">values: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Uri@withQueryParam(name:String,values:Seq[String]):org.http4s.Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Creates maybe a new <code>Uri</code> with the specified parameter in query string.</p><div class="fullcomment"><div class="comment cmt"><p>Creates maybe a new <code>Uri</code> with the specified parameter in query string.
+If a parameter with the given <code>name</code> already exists the value will be
+replaced. If the parameter to be added equal the existing entry the same
+instance of <code>Uri</code> will be returned.
+</p></div></div>
     </li></ol>
             </div>
 
