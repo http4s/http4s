@@ -138,7 +138,10 @@ pomExtra in ThisBuild := (
       <id>brycelane</id>
       <name>Bryce L. Anderson</name>
       <email>bryce.anderson22@gmail.com</email>
-      <!-- <url></url> -->
+    </developer>
+    <developer>
+      <id>before</id>
+      <name>André Rouél</name>
     </developer>
   </developers>
 )
