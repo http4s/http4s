@@ -110,6 +110,11 @@ class UriSpec extends WordSpec with Matchers {
       u should equal(Uri(path = "/foo/bar", fragment = Some("Examples_of_Fragment")))
     }
 
+    "parse relative URI with single parameter without a value followed by a fragment" in {
+      val u = Uri.fromString("/foo/bar?bar#Example_of_Fragment").get
+      u should equal(Uri(path = "/foo/bar", query = Some("bar"), fragment = Some("Example_of_Fragment")))
+    }
+
     "parse relative URI with parameters and fragment" in {
       val u = Uri.fromString("/foo/bar?bar=baz#Example_of_Fragment").get
       u should equal(Uri(path = "/foo/bar", query = Some("bar=baz"), fragment = Some("Example_of_Fragment")))
@@ -322,6 +327,109 @@ class UriSpec extends WordSpec with Matchers {
       }
     }
 
+  }
+
+  "Uri parameters" should {
+    "parse empty query string" in {
+      Uri(query = Some("")).multiParams should equal(Map.empty)
+    }
+    "parse parameter without key but with empty value" in {
+      Uri(query = Some("=")).multiParams should equal(Map("" -> List("")))
+    }
+    "parse parameter without key but with value" in {
+      Uri(query = Some("=value")).multiParams should equal(Map("" -> List("value")))
+    }
+    "parse single parameter with empty value" in {
+      Uri(query = Some("param1=")).multiParams should equal(Map("param1" -> List("")))
+    }
+    "parse single parameter with value" in {
+      Uri(query = Some("param1=value")).multiParams should equal(Map("param1" -> List("value")))
+    }
+    "parse single parameter without value" in {
+      Uri(query = Some("param1")).multiParams should equal(Map("param1" -> Nil))
+    }
+    "parse many parameter with value" in {
+      Uri(query = Some("param1=value&param2=value1&param2=value2&param3=value")).multiParams should
+        equal(Map(
+          "param1" -> List("value"),
+          "param2" -> List("value1", "value2"),
+          "param3" -> List("value")))
+    }
+    "parse many parameter without value" in {
+      Uri(query = Some("param1&param2&param3")).multiParams should
+        equal(Map(
+          "param1" -> Nil,
+          "param2" -> Nil,
+          "param3" -> Nil))
+    }
+  }
+
+  "Uri parameter convenience methods" should {
+    "add a parameter if no query is available" in {
+      val u = Uri(query = None) <<? ("param1", "value")
+      u should equal(Uri(query = Some("param1=value")))
+    }
+    "add a parameter" in {
+      val u = Uri(query = Some("param1=value1&param1=value2")) <<? ("param2", "value")
+      u should equal(Uri(query = Some("param1=value1&param1=value2&param2=value")))
+    }
+    "add a parameter without a value" in {
+      val u = Uri(query = Some("param1=value1&param1=value2")) <<? ("param2")
+      u should equal(Uri(query = Some("param1=value1&param1=value2&param2")))
+    }
+    "add a parameter with many values" in {
+      val u = Uri() <<? ("param1", "value1", "value2")
+      u should equal(Uri(query = Some("param1=value1&param1=value2")))
+    }
+    "remove a parameter if present" in {
+      val u = Uri(query = Some("param1=value&param2=value")) -? ("param1")
+      u should equal(Uri(query = Some("param2=value")))
+    }
+    "remove nothing if parameter is not present" in {
+      val u = Uri(query = Some("param1=value&param2=value"))
+      u -? ("param3") should equal(u)
+    }
+    "remove the last parameter" in {
+      val u = Uri(query = Some("param1=value")) -? ("param1")
+      u should equal(Uri())
+    }
+    "replace a parameter" in {
+      val u = Uri(query = Some("param1=value&param2=value")) <<? ("param1", "newValue")
+      u should equal(Uri(query = Some("param1=newValue&param2=value")))
+    }
+    "replace a parameter without a value" in {
+      val u = Uri(query = Some("param1=value1&param1=value2&param2=value")) <<? ("param2")
+      u should equal(Uri(query = Some("param1=value1&param1=value2&param2")))
+    }
+    "replace the same parameter" in {
+      val u = Uri(query = Some("param1=value1&param1=value2&param2")) <<? ("param1", "value1", "value2")
+      u should equal(Uri(query = Some("param1=value1&param1=value2&param2")))
+    }
+    "replace the same parameter without a value" in {
+      val u = Uri(query = Some("param1=value1&param1=value2&param2")) <<? ("param2")
+      u should equal(Uri(query = Some("param1=value1&param1=value2&param2")))
+    }
+    "replace a parameter set" in {
+      val u = Uri(query = Some("param1=value1&param1=value2")) <<? ("param1", "value")
+      u should equal(Uri(query = Some("param1=value")))
+    }
+    "set a parameter with a value" in {
+      val ps = Map("param" -> List("value"))
+      Uri() ? ps should equal(Uri(query = Some("param=value")))
+    }
+    "set a parameter without a value" in {
+      val ps = Map("param" -> Nil)
+      Uri() ? ps should equal(Uri(query = Some("param")))
+    }
+    "set many parameters" in {
+      val ps = Map("param1" -> Nil, "param2" -> List("value1", "value2"), "param3" -> List("value"))
+      Uri() ? ps should equal(Uri(query = Some("param1&param2=value1&param2=value2&param3=value")))
+    }
+    "set the same parameters again" in {
+      val ps = Map("param" -> List("value"))
+      val u = Uri(query = Some("param=value"))
+      u ? ps should equal(u ? ps)
+    }
   }
 
 }
