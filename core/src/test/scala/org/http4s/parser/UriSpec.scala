@@ -381,6 +381,32 @@ class UriSpec extends WordSpec with Matchers {
       val u = Uri() +? ("param1", "value1", "value2")
       u should equal(Uri(query = Some("param1=value1&param1=value2")))
     }
+    "contains not a parameter" in {
+      Uri(query = None) ? "param1" should equal(false)
+    }
+    "contains an empty parameter" in {
+      Uri(query = Some("")) ? "" should equal(true)
+      Uri(query = Some("")) ? "param" should equal(false)
+      Uri(query = Some("&&=value&&")) ? "" should equal(true)
+      Uri(query = Some("&&=value&&")) ? "param" should equal(false)
+    }
+    "contains a parameter" in {
+      Uri(query = Some("param1=value&param1=value")) ? "param1" should equal(true)
+      Uri(query = Some("param1=value&param2=value")) ? "param2" should equal(true)
+      Uri(query = Some("param1=value&param2=value")) ? "param3" should equal(false)
+    }
+    "contains a parameter with many values" in {
+      Uri(query = Some("param1=value1&param1=value2&param1=value3")) ? "param1" should equal(true)
+    }
+    "contains a parameter without a value" in {
+      Uri(query = Some("param1")) ? "param1" should equal(true)
+    }
+    "contains with many parameters" in {
+      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "param1" should equal(true)
+      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "param2" should equal(true)
+      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "" should equal(true)
+      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "param3" should equal(false)
+    }
     "remove a parameter if present" in {
       val u = Uri(query = Some("param1=value&param2=value")) -? ("param1")
       u should equal(Uri(query = Some("param2=value")))

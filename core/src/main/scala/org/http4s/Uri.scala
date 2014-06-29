@@ -69,6 +69,13 @@ case class Uri(
     renderUri(this)
 
   /**
+   * Checks if a specified parameter exists in query string. A parameter
+   * without a name can be checked with an empty string.
+   */
+  def ?(name: String): Boolean =
+    containsQueryParam(name)
+
+  /**
    * Creates maybe a new `Uri` with the specified parameters. The entire
    * query string will be replaced with the given one. If a the given
    * parameters equal the existing one the same `Uri` instance will be
@@ -94,6 +101,16 @@ case class Uri(
    */
   def -?(name: String): Uri =
     removeQueryParam(name)
+
+  /**
+   * Checks if a specified parameter exists in query string. A parameter
+   * without a name can be checked with an empty string.
+   */
+  def containsQueryParam(name: String): Boolean = query match {
+    case Some("") => if (name == "") true else false
+    case Some(_) => multiParams.contains(name)
+    case None => false
+  }
 
   /**
    * Creates maybe a new `Uri` without the specified parameter in query string.
