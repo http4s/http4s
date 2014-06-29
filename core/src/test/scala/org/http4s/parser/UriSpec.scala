@@ -231,6 +231,21 @@ class UriSpec extends WordSpec with Matchers {
         equal("http://username:password@some.example.com/some/path?param1=5&param-without-value")
     }
 
+    "render relative URI with empty query string" in {
+      Uri(path = "/", query = Some(""), fragment = None).toString should
+        equal("/?")
+    }
+
+    "render relative URI with empty query string and fragment" in {
+      Uri(path = "/", query = Some(""), fragment = Some("")).toString should
+        equal("/?#")
+    }
+
+    "render relative URI with empty fragment" in {
+      Uri(path = "/", query = None, fragment = Some("")).toString should
+        equal("/#")
+    }
+
     "render relative path with fragment" in {
       Uri(path = "/foo/bar", fragment = Some("an-anchor")).toString should
         equal("/foo/bar#an-anchor")
