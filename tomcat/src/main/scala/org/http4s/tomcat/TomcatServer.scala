@@ -35,7 +35,7 @@ class TomcatServer private[tomcat] (tomcat: Tomcat) extends ServletContainer wit
   override def onShutdown(f: => Unit): this.type = {
     tomcat.getServer.addLifecycleListener(new LifecycleListener {
       override def lifecycleEvent(event: LifecycleEvent): Unit = {
-        if (event.getLifecycle == Lifecycle.AFTER_STOP_EVENT)
+        if (Lifecycle.AFTER_STOP_EVENT.eq(event.getLifecycle))
           f
       }
     })
