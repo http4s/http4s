@@ -50,11 +50,15 @@ object Path {
 
 }
 
-
 case class :?(path: Path, params: Map[String, Seq[String]]) {
   override def toString = params.toString
 }
 
+object :? {
+  def unapply(req: Request): Option[(Request, Map[String, Seq[String]])] = {
+    Some((req, req.multiParams))
+  }
+}
 
 /** File extension extractor */
 object ~ {
