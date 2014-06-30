@@ -30,16 +30,16 @@ class PathSpec extends WordSpec with Matchers {
 
     ":? extract one parameter" in {
       object Limit extends IntParamMatcher("limit")
-      (Get.apply("/hello?limit=1").run match {
-        case Get -> Root / "hello" :? Limit(l) => l
+      (GET.apply("/hello?limit=1").run match {
+        case GET -> Root / "hello" :? Limit(l) => l
       }) should equal(1)
     }
 
     ":? extract two parameters" in {
       object Start extends IntParamMatcher("start")
       object Limit extends IntParamMatcher("limit")
-      (Get.apply("/hello?limit=10&start=1&term=some").run match {
-        case Get -> Root / "hello" :? Start(s) :? Limit(l) => s"$s,$l"
+      (GET.apply("/hello?limit=10&start=1&term=some").run match {
+        case GET -> Root / "hello" :? Start(s) :? Limit(l) => s"$s,$l"
       }) should equal("1,10")
     }
 
@@ -47,8 +47,8 @@ class PathSpec extends WordSpec with Matchers {
       object Start extends LongParamMatcher("start")
       object Limit extends LongParamMatcher("limit")
       object SearchTerm extends ParamMatcher("term")
-      (Get.apply("/hello?limit=10&start=1&term=some").run match {
-        case Get -> Root / "hello" :? Start(s) :? SearchTerm(t) :? Limit(l) => s"$s,$l,$t"
+      (GET.apply("/hello?limit=10&start=1&term=some").run match {
+        case GET -> Root / "hello" :? Start(s) :? SearchTerm(t) :? Limit(l) => s"$s,$l,$t"
       }) should equal("1,10,some")
     }
 
@@ -112,7 +112,7 @@ class PathSpec extends WordSpec with Matchers {
     "-> extractor /test.json" in {
       val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/test.json").get)
       (req match {
-        case Get -> Root / "test.json" => true
+        case GET -> Root / "test.json" => true
         case _                         => false
       }) should be (true)
     }
@@ -120,7 +120,7 @@ class PathSpec extends WordSpec with Matchers {
     "-> extractor /foo/test.json" in {
       val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/foo/test.json").get)
       (req match {
-        case Get -> Root / "foo" / "test.json" => true
+        case GET -> Root / "foo" / "test.json" => true
         case _                         => false
       }) should be (true)
     }
@@ -208,8 +208,8 @@ class PathSpec extends WordSpec with Matchers {
 
 //  "Method extractors" should {
 //    "match relative to path info" in {
-//      (Request(requestMethod = Get, scriptName = "/script-name", pathInfo = "/path-info") match {
-//        case Get -> Root / "path-info" => true
+//      (Request(requestMethod = GET, scriptName = "/script-name", pathInfo = "/path-info") match {
+//        case GET -> Root / "path-info" => true
 //        case _ => false
 //      }) should be (true)
 //    }

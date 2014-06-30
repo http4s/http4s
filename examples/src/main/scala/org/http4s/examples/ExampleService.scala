@@ -13,33 +13,33 @@ object ExampleService extends Http4s {
 
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = {
 
-    case Get -> Root / "ping" =>
+    case GET -> Root / "ping" =>
       Ok("pong")
 
-    case req @ Get -> Root / "push" =>
+    case req @ GET -> Root / "push" =>
       val data = <html><body><img src="image.jpg"/></body></html>
       Ok(data).push("/image.jpg")(req)
 
-    case req @ Get -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
+    case req @ GET -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
         .map(Task.now)
         .getOrElse(NotFound(req))
 
-    case req @ Post -> Root / "echo" =>
+    case req @ POST -> Root / "echo" =>
       Task.now(Response(body = req.body))
 
-    case req @ Post -> Root / "echo2" =>
+    case req @ POST -> Root / "echo2" =>
       Task.now(Response(body = req.body.map { chunk =>
         chunk.slice(6, chunk.length)
       }))
 
-    case req @ Post -> Root / "sum"  =>
+    case req @ POST -> Root / "sum"  =>
       text(req).flatMap{ s =>
         val sum = s.split('\n').filter(_.length > 0).map(_.trim.toInt).sum
         Ok(sum)
       }
 
-    case req @ Post -> Root / "shortsum"  =>
+    case req @ POST -> Root / "shortsum"  =>
       text(req, limit = 3).flatMap { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
@@ -58,7 +58,7 @@ object ExampleService extends Http4s {
       } yield Ok(s"$body\n${trailer.headers("Hi").value}")
 */
 
-    case Get -> Root / "html" =>
+    case GET -> Root / "html" =>
       Ok(
         <html><body>
           <div id="main">
@@ -68,7 +68,7 @@ object ExampleService extends Http4s {
         </body></html>
       )
 
-    case req@ Post -> Root / "challenge" =>
+    case req@ POST -> Root / "challenge" =>
       val body = req.body.map { c => new String(c.toArray, req.charset.charset) }.toTask
 
       body.flatMap{ s: String =>
@@ -79,7 +79,7 @@ object ExampleService extends Http4s {
         }
       }
 /*
-    case req @ Get -> Root / "stream" =>
+    case req @ GET -> Root / "stream" =>
       Ok(Concurrent.unicast[ByteString]({
         channel =>
           new Thread {
@@ -94,25 +94,25 @@ object ExampleService extends Http4s {
 
       }))
   */
-    case Get -> Root / "bigstring" =>
+    case GET -> Root / "bigstring" =>
       Ok((0 until 1000).map(i => s"This is string number $i"))
 
-    case Get -> Root / "bigfile" =>
+    case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB
       Ok(new Array[Byte](size))
 
-    case Get -> Root / "future" =>
+    case GET -> Root / "future" =>
       Ok(Future("Hello from the future!"))
 
-    case req @ Get -> Root / "bigstring2" =>
+    case req @ GET -> Root / "bigstring2" =>
       Ok(Process.range(0, 1000).map(i => s"This is string number $i"))
 
-    case req @ Get -> Root / "bigstring3" => Ok(flatBigString)
+    case req @ GET -> Root / "bigstring3" => Ok(flatBigString)
 
-    case Get -> Root / "contentChange" =>
+    case GET -> Root / "contentChange" =>
       Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
 
-    case req @ Post -> Root / "challenge" =>
+    case req @ POST -> Root / "challenge" =>
       val parser = await1[ByteVector] map {
         case bits if (new String(bits.toArray, req.charset.charset)).startsWith("Go") =>
           Task.now(Response(body = emit(bits) fby req.body))
@@ -123,7 +123,7 @@ object ExampleService extends Http4s {
       }
       (req.body |> parser).eval.toTask
 
-    case req @ Get -> Root / "root-element-name" =>
+    case req @ GET -> Root / "root-element-name" =>
       xml(req).flatMap(root => Ok(root.label))
 
     case req => NotFound(req)

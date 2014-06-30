@@ -29,10 +29,10 @@ object BlazeWebSocketExample extends App {
 
 
   val route: HttpService = {
-    case Get -> Root / "hello" =>
+    case GET -> Root / "hello" =>
       Ok("Hello world.")
 
-    case req@ Get -> Root / "ws" =>
+    case req@ GET -> Root / "ws" =>
       val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
       val sink: Sink[Task, WSFrame] = Process.constant {
         case Text(t) => Task.delay( println(t))
@@ -40,7 +40,7 @@ object BlazeWebSocketExample extends App {
       }
       WS(src, sink)
 
-    case req@ Get -> Root / "wsecho" =>
+    case req@ GET -> Root / "wsecho" =>
       val t = topic[WSFrame]()
       val src = t.subscribe.collect {
         case Text(msg) => Text("You sent the server: " + msg)
