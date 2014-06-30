@@ -12,6 +12,7 @@ import org.scalatest.{Matchers, WordSpec}
 
 class PathSpec extends WordSpec with Matchers {
   "Path" should {
+
     "/foo/bar" in {
       Path("/foo/bar").toList should equal (List("foo", "bar"))
     }
@@ -25,6 +26,30 @@ class PathSpec extends WordSpec with Matchers {
         case Root / "test.json" :? _ => true
         case _                       => false
       }) should be (true)
+    }
+
+    ":? extract one parameter" in {
+      object Limit extends IntParamMatcher("limit")
+      (Get.apply("/hello?limit=1").run match {
+        case Get -> Root / "hello" :? Limit(l) => l
+      }) should equal(1)
+    }
+
+    ":? extract two parameters" in {
+      object Start extends IntParamMatcher("start")
+      object Limit extends IntParamMatcher("limit")
+      (Get.apply("/hello?limit=10&start=1&term=some").run match {
+        case Get -> Root / "hello" :? Start(s) :? Limit(l) => s"$s,$l"
+      }) should equal("1,10")
+    }
+
+    ":? extract many parameters" in {
+      object Start extends LongParamMatcher("start")
+      object Limit extends LongParamMatcher("limit")
+      object SearchTerm extends ParamMatcher("term")
+      (Get.apply("/hello?limit=10&start=1&term=some").run match {
+        case Get -> Root / "hello" :? Start(s) :? SearchTerm(t) :? Limit(l) => s"$s,$l,$t"
+      }) should equal("1,10,some")
     }
 
     ":? extractor with ParamMatcher" in {
