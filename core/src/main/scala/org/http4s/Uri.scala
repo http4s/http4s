@@ -24,10 +24,24 @@ case class Uri(
   def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
 
   /**
-   * Representation of the query as a Map[String, Seq[String]]
+   * Representation of the query string as a map
+   *
+   * In case a parameter is available in query string but no value is there the
+   * sequence will be empty. If the value is empty the the sequence contains an
+   * empty string.
+   *
+   * =====Examples=====
+   * <table>
+   * <tr><th>Query String</th><th>Map</th></tr>
+   * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
+   * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
+   * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
+   * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
+   * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+   * </table>
    *
    * The query string is lazily parsed. If an error occurs during parsing
-   * an empty Map is returned
+   * an empty `Map` is returned.
    */
   lazy val multiParams: Map[String, Seq[String]] = {
     query.fold(Map.empty[String, Seq[String]]) { query =>
@@ -45,17 +59,18 @@ case class Uri(
   }
 
   /**
-   * View of the head elements of multiParams
+   * View of the head elements of the URI parameters in query string.
+   *
+   * In case a parameter has no value the map returns an empty string.
+   *
    * @see multiParams
    */
   def params: Map[String, String] = new ParamsView(multiParams)
 
   private class ParamsView(wrapped: Map[String, Seq[String]]) extends Map[String, String] {
     override def +[B1 >: String](kv: (String, B1)): Map[String, B1] = {
-      val b = immutable.Map.newBuilder[String, B1]
-      wrapped.foreach { case (k, s) => b += ((k, s.head)) }
-      b += kv
-      b.result()
+      val m = wrapped + (kv)
+      m.asInstanceOf[Map[String, B1]]
     }
 
     override def -(key: String): Map[String, String] = new ParamsView(wrapped - key)
@@ -64,7 +79,7 @@ case class Uri(
       wrapped.iterator.map { case (k, s) => (k, s.headOption.getOrElse("")) }
 
     override def get(key: String): Option[String] =
-      wrapped.get(key).map(_.headOption.getOrElse(""))
+      wrapped.get(key).flatMap(_.headOption)
   }
 
   override lazy val toString =

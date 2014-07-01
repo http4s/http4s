@@ -90,16 +90,35 @@ case class Request(
 
   def queryString: String = requestUri.query.getOrElse("")
 
-  /** Representation of the URI query as a Map[String, Seq[String]]
-    *
-    * The query string is lazily parsed. If an error occurs during parsing
-    * an empty Map is returned
-    */
+  /**
+   * Representation of the query string as a map
+   *
+   * In case a parameter is available in query string but no value is there the
+   * sequence will be empty. If the value is empty the the sequence contains an
+   * empty string.
+   *
+   * =====Examples=====
+   * <table>
+   * <tr><th>Query String</th><th>Map</th></tr>
+   * <tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
+   * <tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
+   * <tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
+   * <tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
+   * <tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+   * </table>
+   *
+   * The query string is lazily parsed. If an error occurs during parsing
+   * an empty `Map` is returned.
+   */
   def multiParams: Map[String, Seq[String]] = requestUri.multiParams
 
-  /** View of the head elements of the URI multiParams
-    * @see multiParams
-    */
+  /**
+   * View of the head elements of the URI parameters in query string.
+   *
+   * In case a parameter has no value the map returns an empty string.
+   *
+   * @see multiParams
+   */
   def params: Map[String, String] = requestUri.params
 
   lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)

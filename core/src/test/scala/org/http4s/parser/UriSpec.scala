@@ -364,6 +364,171 @@ class UriSpec extends WordSpec with Matchers {
     }
   }
 
+  "Uri.params.+" should {
+    "add parameter to empty query" in {
+      val i = Uri(query = None).params + (("param", Seq("value")))
+      i should equal(Map("param" -> Seq("value")))
+    }
+    "add parameter" in {
+      val i = Uri(query = Some("param1")).params + (("param2", Seq()))
+      i should equal(Map("param1" -> Seq(), "param2" -> Seq()))
+    }
+    "replace an existing parameter" in {
+      val i = Uri(query = Some("param=value")).params + (("param", Seq("value1", "value2")))
+      i should equal(Map("param" -> Seq("value1", "value2")))
+    }
+    "replace an existing parameter with empty value" in {
+      val i = Uri(query = Some("param=value")).params + (("param", Seq()))
+      i should equal(Map("param" -> Seq()))
+    }
+  }
+
+  "Uri.params.-" should {
+    "not do anything on an URI without a query" in {
+      val i = Uri(query = None).params - "param"
+      i should equal(Map())
+    }
+    "not reduce a map if parameter does not match" in {
+      val i = Uri(query = Some("param1")).params - "param2"
+      i should equal(Map("param1" -> ""))
+    }
+    "reduce a map if matching parameter found" in {
+      val i = Uri(query = Some("param")).params - "param"
+      i should equal(Map())
+    }
+  }
+
+  "Uri.params.iterate" should {
+    "work on an URI without a query" in {
+      for (i <- Uri(query = None).params.iterator) {
+        throw new Error(s"should not have $i") // should not happen
+      }
+    }
+    "work on empty list" in {
+      for (i <- Uri(query = Some("")).params.iterator) {
+        throw new Error(s"should not have $i") // should not happen
+      }
+    }
+    "work with empty keys" in {
+      val u = Uri(query = Some("=value1&=value2&=&"))
+      val i = u.params.iterator
+      i.next should equal("" -> "value1")
+      intercept[NoSuchElementException] {
+        i.next
+      }
+    }
+    "work on non-empty query string" in {
+      val u = Uri(query = Some("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+      val i = u.params.iterator
+      i.next should equal("param1" -> "value1")
+      i.next should equal("param2" -> "value4")
+      intercept[NoSuchElementException] {
+        i.next
+      }
+    }
+  }
+
+  "Uri.multiParams" should {
+    "find first value of parameter with many values" in {
+      val u = Uri(query = Some("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+      u.multiParams should equal(
+        Map(
+          "param1" -> Seq("value1", "value2", "value3"),
+          "param2" -> Seq("value4", "value5")))
+    }
+    "find parameter with empty key and a value" in {
+      val u = Uri(query = Some("param1=&=value-of-empty-key&param2=value"))
+      u.multiParams should equal(
+        Map(
+          "" -> Seq("value-of-empty-key"),
+          "param1" -> Seq(""),
+          "param2" -> Seq("value")))
+    }
+    "find first value of parameter with empty key" in {
+      Uri(query = Some("=value1&=value2")).multiParams should
+        equal(
+          Map("" -> Seq("value1", "value2")))
+      Uri(query = Some("&=value1&=value2")).multiParams should
+        equal(
+          Map("" -> Seq("value1", "value2")))
+      Uri(query = Some("&&&=value1&&&=value2&=&")).multiParams should
+        equal(
+          Map("" -> Seq("value1", "value2", "")))
+    }
+    "find parameter with empty key and without value" in {
+      Uri(query = Some("&")).multiParams should
+        equal(Map("" -> Seq()))
+      Uri(query = Some("&&")).multiParams should
+        equal(Map("" -> Seq()))
+      Uri(query = Some("&&&")).multiParams should
+        equal(Map("" -> Seq()))
+    }
+    "find parameter with an empty value" in {
+      Uri(query = Some("param1=")).multiParams should
+        equal(Map("param1" -> Seq("")))
+      Uri(query = Some("param1=&param2=")).multiParams should
+        equal(Map("param1" -> Seq(""), "param2" -> Seq("")))
+    }
+    "find parameter with single value" in {
+      Uri(query = Some("param1=value1&param2=value2")).multiParams should
+        equal(
+          Map(
+            "param1" -> Seq("value1"),
+            "param2" -> Seq("value2")))
+    }
+    "find parameter without value" in {
+      Uri(query = Some("param1&param2&param3")).multiParams should
+        equal(
+          Map(
+            "param1" -> Seq(),
+            "param2" -> Seq(),
+            "param3" -> Seq()))
+    }
+  }
+
+  "Uri.params.get" should {
+    "find first value of parameter with many values" in {
+      val u = Uri(query = Some("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+      u.params.get("param1") should equal(Some("value1"))
+      u.params.get("param2") should equal(Some("value4"))
+    }
+    "find parameter with empty key and a value" in {
+      val u = Uri(query = Some("param1=&=valueWithEmptyKey&param2=value2"))
+      u.params.get("") should equal(Some("valueWithEmptyKey"))
+    }
+    "find first value of parameter with empty key" in {
+      Uri(query = Some("=value1&=value2")).params.get("") should equal(Some("value1"))
+      Uri(query = Some("&=value1&=value2")).params.get("") should equal(Some("value1"))
+      Uri(query = Some("&&&=value1")).params.get("") should equal(Some("value1"))
+    }
+    "find parameter with empty key and without value" in {
+      Uri(query = Some("&")).params.get("") should equal(None)
+      Uri(query = Some("&&")).params.get("") should equal(None)
+      Uri(query = Some("&&&")).params.get("") should equal(None)
+    }
+    "find parameter with an empty value" in {
+      val u = Uri(query = Some("param1=&param2=value2"))
+      u.params.get("param1") should equal(Some(""))
+    }
+    "find parameter with single value" in {
+      val u = Uri(query = Some("param1=value1&param2=value2"))
+      u.params.get("param1") should equal(Some("value1"))
+      u.params.get("param2") should equal(Some("value2"))
+    }
+    "find parameter without value" in {
+      val u = Uri(query = Some("param1&param2&param3"))
+      u.params.get("param1") should equal(None)
+      u.params.get("param2") should equal(None)
+      u.params.get("param3") should equal(None)
+    }
+    "not find an unknown parameter" in {
+      Uri(query = Some("param1&param2&param3")).params.get("param4") should equal(None)
+    }
+    "not find anything if query string is empty" in {
+      Uri(query = None).params.get("param1") should equal(None)
+    }
+  }
+
   "Uri parameter convenience methods" should {
     "add a parameter if no query is available" in {
       val u = Uri(query = None) +? ("param1", "value")
