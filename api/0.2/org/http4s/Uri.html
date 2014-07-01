@@ -446,8 +446,17 @@ without a name can be checked with an empty string.
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Representation of the query as a Map[String, Seq[String]]</p><div class="fullcomment"><div class="comment cmt"><p>Representation of the query as a Map[String, Seq[String]]</p><p>The query string is lazily parsed. If an error occurs during parsing
-an empty Map is returned
+      <p class="shortcomment cmt">Representation of the query string as a map</p><div class="fullcomment"><div class="comment cmt"><p>Representation of the query string as a map</p><p>In case a parameter is available in query string but no value is there the
+sequence will be empty. If the value is empty the the sequence contains an
+empty string.</p><h6>Examples</h6><p><table>
+<tr><th>Query String</th><th>Map</th></tr>
+<tr><td><code>?param=v</code></td><td><code>Map("param" -> Seq("v"))</code></td></tr>
+<tr><td><code>?param=</code></td><td><code>Map("param" -> Seq(""))</code></td></tr>
+<tr><td><code>?param</code></td><td><code>Map("param" -> Seq())</code></td></tr>
+<tr><td><code>?=value</code></td><td><code>Map("" -> Seq("value"))</code></td></tr>
+<tr><td><code>?p1=v1&amp;p1=v2&amp;p2=v3&amp;p2=v3</code></td><td><code>Map("p1" -> Seq("v1","v2"), "p2" -> Seq("v3","v4"))</code></td></tr>
+</table></p><p>The query string is lazily parsed. If an error occurs during parsing
+an empty <code>Map</code> is returned.
 </p></div></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
@@ -516,7 +525,8 @@ an empty Map is returned
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">View of the head elements of multiParams</p><div class="fullcomment"><div class="comment cmt"><p>View of the head elements of multiParams</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>multiParams
+      <p class="shortcomment cmt">View of the head elements of the URI parameters in query string.</p><div class="fullcomment"><div class="comment cmt"><p>View of the head elements of the URI parameters in query string.</p><p>In case a parameter has no value the map returns an empty string.
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>multiParams
 </p></span></dd></dl></div>
     </li><li name="org.http4s.Uri#path" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="path:org.http4s.Uri.Path"></a>
