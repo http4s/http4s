@@ -60,9 +60,11 @@ case class Uri(
 
     override def -(key: String): Map[String, String] = new ParamsView(wrapped - key)
 
-    override def iterator: Iterator[(String, String)] = wrapped.iterator.map { case (k, s) => (k, s.head) }
+    override def iterator: Iterator[(String, String)] =
+      wrapped.iterator.map { case (k, s) => (k, s.headOption.getOrElse("")) }
 
-    override def get(key: String): Option[String] = wrapped.get(key).map(_.head)
+    override def get(key: String): Option[String] =
+      wrapped.get(key).map(_.headOption.getOrElse(""))
   }
 
   override lazy val toString =
