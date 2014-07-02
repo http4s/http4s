@@ -106,23 +106,6 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.dsl.:?" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id=":?extendsProductwithSerializable"></a>
-      <a id=":?::?"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="$colon$qmark.html"><span title="gt4s: $colon$qmark" class="name">:?</span></a><span class="params">(<span name="path">path: <a href="Path.html" class="extype" name="org.http4s.dsl.Path">Path</a></span>, <span name="params">params: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.dsl.package@:?extendsProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="org.http4s.dsl.DoubleParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="DoubleParamMatcherextendsAnyRef"></a>
       <a id="DoubleParamMatcher:DoubleParamMatcher"></a>
@@ -141,10 +124,11 @@
     </span>
       <p class="shortcomment cmt">Double param extractor:
   object Latitude extends DoubleParamMatcher(&quot;lat&quot;)
-  (Path(request.</p><div class="fullcomment"><div class="comment cmt"><p>Double param extractor:
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;closest&quot; :? Latitude(&quot;lat&quot;) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Double param extractor:
   object Latitude extends DoubleParamMatcher(&quot;lat&quot;)
-  (Path(request.path) :? request.params) match {
-    case Root / &quot;closest&quot; :? Latitude(&quot;lat&quot;) =&gt; ...
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;closest&quot; :? Latitude(&quot;lat&quot;) =&gt; ...
 </p></div></div>
     </li><li name="org.http4s.dsl.IntParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="IntParamMatcherextendsAnyRef"></a>
@@ -164,10 +148,11 @@
     </span>
       <p class="shortcomment cmt">IntParam param extractor:
   object Page extends IntParamMatcher(&quot;page&quot;)
-  (Path(request.</p><div class="fullcomment"><div class="comment cmt"><p>IntParam param extractor:
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;blog&quot; :? Page(page) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>IntParam param extractor:
   object Page extends IntParamMatcher(&quot;page&quot;)
-  (Path(request.path) :? request.params) match {
-    case Root / &quot;blog&quot; :? Page(page) =&gt; ...
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;blog&quot; :? Page(page) =&gt; ...
 </p></div></div>
     </li><li name="org.http4s.dsl.LongParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="LongParamMatcherextendsAnyRef"></a>
@@ -187,10 +172,11 @@
     </span>
       <p class="shortcomment cmt">LongParam param extractor:
   object UserId extends LongParamMatcher(&quot;user_id&quot;)
-  (Path(request.</p><div class="fullcomment"><div class="comment cmt"><p>LongParam param extractor:
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;user&quot; :? UserId(userId) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>LongParam param extractor:
   object UserId extends LongParamMatcher(&quot;user_id&quot;)
-  (Path(request.path) :? request.params) match {
-    case Root / &quot;user&quot; :? UserId(userId) =&gt; ...
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;user&quot; :? UserId(userId) =&gt; ...
 </p></div></div>
     </li><li name="org.http4s.dsl.NumericPathVar" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NumericPathVar[A&lt;:AnyVal]extendsAnyRef"></a>
@@ -227,10 +213,11 @@
     </span>
       <p class="shortcomment cmt">Param extractor:
   object ScreenName extends ParamMatcher(&quot;screen_name&quot;)
-  (Path(request.</p><div class="fullcomment"><div class="comment cmt"><p>Param extractor:
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;user&quot; :? ScreenName(screenName) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Param extractor:
   object ScreenName extends ParamMatcher(&quot;screen_name&quot;)
-  (Path(request.path) :? request.params) match {
-    case Root / &quot;user&quot; :? ScreenName(screenName) =&gt; ...
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;user&quot; :? ScreenName(screenName) =&gt; ...
 </p></div></div>
     </li><li name="org.http4s.dsl.Path" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="PathextendsAnyRef"></a>
@@ -256,7 +243,33 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.dsl.-&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.dsl.+&amp;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="+&amp;"></a>
+      <a id="+&amp;:+&amp;"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="$plus$amp$.html"><span title="gt4s: $plus$amp" class="name">+&amp;</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.dsl.package@+&amp;" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Multiple param extractor:
+  object A extends ParamMatcher(&quot;a&quot;)
+  object B extends ParamMatcher(&quot;b&quot;)
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;user&quot; :? A(a) +&amp; B(b) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Multiple param extractor:
+  object A extends ParamMatcher(&quot;a&quot;)
+  object B extends ParamMatcher(&quot;b&quot;)
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;user&quot; :? A(a) +&amp; B(b) =&gt; ...
+</p></div></div>
+    </li><li name="org.http4s.dsl.-&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="-&gt;"></a>
       <a id="-&gt;:-&gt;"></a>
       <h4 class="signature">
@@ -273,31 +286,6 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.dsl.:&amp;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id=":&amp;"></a>
-      <a id=":&amp;::&amp;"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="$colon$amp$.html"><span title="gt4s: $colon$amp" class="name">:&amp;</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.dsl.package@:&amp;" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Multiple param extractor:
-  object A extends ParamMatcher(&quot;a&quot;)
-  object B extends ParamMatcher(&quot;b&quot;)
-  (Path(request.</p><div class="fullcomment"><div class="comment cmt"><p>Multiple param extractor:
-  object A extends ParamMatcher(&quot;a&quot;)
-  object B extends ParamMatcher(&quot;b&quot;)
-  (Path(request.path) :? request.params) match {
-    case Root / &quot;user&quot; :? A(a) :&amp; B(b) =&gt; ...
-</p></div></div>
     </li><li name="org.http4s.dsl.:?" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id=":?"></a>
       <a id=":?::?"></a>
@@ -307,7 +295,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="$colon$qmark$.html"><span title="gt4s: $colon$qmark" class="name">:?</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="$colon$qmark$.html"><span title="gt4s: $colon$qmark" class="name">:?</span></a>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@:?" title="Permalink" target="_top">

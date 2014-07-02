@@ -49,8 +49,8 @@
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>LongParam param extractor:
   object UserId extends LongParamMatcher(&quot;user_id&quot;)
-  (Path(request.path) :? request.params) match {
-    case Root / &quot;user&quot; :? UserId(userId) =&gt; ...
+  val service: HttpService = {
+    case GET -&gt; Root / &quot;user&quot; :? UserId(userId) =&gt; ...
 </p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
