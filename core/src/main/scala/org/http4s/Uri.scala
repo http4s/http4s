@@ -65,7 +65,7 @@ case class Uri(
    *
    * @see multiParams
    */
-  def params: Map[String, String] = new ParamsView(multiParams)
+  lazy val params: Map[String, String] = new ParamsView(multiParams)
 
   private class ParamsView(wrapped: Map[String, Seq[String]]) extends Map[String, String] {
     override def +[B1 >: String](kv: (String, B1)): Map[String, B1] = {
