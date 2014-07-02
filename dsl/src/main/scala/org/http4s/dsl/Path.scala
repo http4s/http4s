@@ -13,14 +13,11 @@ import scala.util.control.Exception.catching
 /** Base class for path extractors. */
 abstract class Path {
   def /(child: String) = new /(this, child)
-  def :?(params: Map[String, Seq[String]]) = new :?(this, params)
   def toList: List[String]
   def parent: Path
   def lastOption: Option[String]
   def startsWith(other: Path): Boolean
-
 }
-
 
 object Path {
   def apply(str: String): Path =
@@ -38,9 +35,9 @@ object Path {
     }
 
   def apply(first: String, rest: String*): Path =
-    rest.foldLeft(Root / first)( _ / _)
+    rest.foldLeft(Root / first)(_ / _)
 
-  def apply(list: List[String]): Path = list.foldLeft(Root : Path)(_ / _)
+  def apply(list: List[String]): Path = list.foldLeft(Root: Path)(_ / _)
 
   def unapplySeq(path: Path): Option[List[String]] = Some(path.toList)
 
@@ -48,10 +45,6 @@ object Path {
 
   def unapply(request: Request): Option[Path] = Some(Path(request.pathInfo))
 
-}
-
-case class :?(path: Path, params: Map[String, Seq[String]]) {
-  override def toString = params.toString
 }
 
 object :? {
@@ -126,7 +119,6 @@ case object Root extends Path {
   def startsWith(other: Path) = other == Root
 }
 
-
 // Base class for Integer and LongParam extractors.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] = {
@@ -156,37 +148,33 @@ object IntVar extends NumericPathVar(_.toInt)
  */
 object LongVar extends NumericPathVar(_.toLong)
 
-
-
 /**
  * Multiple param extractor:
  *   object A extends ParamMatcher("a")
  *   object B extends ParamMatcher("b")
- *   (Path(request.path) :? request.params) match {
- *     case Root / "user" :? A(a) :& B(b) => ...
+ *   val service: HttpService = {
+ *     case GET -> Root / "user" :? A(a) +& B(b) => ...
  */
-object :& {
+object +& {
   def unapply(params: Map[String, Seq[String]]) = Some((params, params))
 }
-
 
 /**
  * Param extractor:
  *   object ScreenName extends ParamMatcher("screen_name")
- *   (Path(request.path) :? request.params) match {
- *     case Root / "user" :? ScreenName(screenName) => ...
+ *   val service: HttpService = {
+ *     case GET -> Root / "user" :? ScreenName(screenName) => ...
  */
 abstract class ParamMatcher(name: String) {
   def unapply(params: Map[String, Seq[String]]) = unapplySeq(params).flatMap(_.headOption)
   def unapplySeq(params: Map[String, Seq[String]]) = params.get(name)
 }
 
-
 /**
  * IntParam param extractor:
  *   object Page extends IntParamMatcher("page")
- *   (Path(request.path) :? request.params) match {
- *     case Root / "blog" :? Page(page) => ...
+ *   val service: HttpService = {
+ *     case GET -> Root / "blog" :? Page(page) => ...
  */
 abstract class IntParamMatcher(name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Int]] =
@@ -199,12 +187,11 @@ abstract class IntParamMatcher(name: String) {
   def unapply(params: Map[String, Seq[String]]): Option[Int] = unapplySeq(params).flatMap(_.headOption)
 }
 
-
 /**
  * LongParam param extractor:
  *   object UserId extends LongParamMatcher("user_id")
- *   (Path(request.path) :? request.params) match {
- *     case Root / "user" :? UserId(userId) => ...
+ *   val service: HttpService = {
+ *     case GET -> Root / "user" :? UserId(userId) => ...
  */
 abstract class LongParamMatcher(name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Long]] =
@@ -220,8 +207,8 @@ abstract class LongParamMatcher(name: String) {
 /**
  * Double param extractor:
  *   object Latitude extends DoubleParamMatcher("lat")
- *   (Path(request.path) :? request.params) match {
- *     case Root / "closest" :? Latitude("lat") => ...
+ *   val service: HttpService = {
+ *     case GET -> Root / "closest" :? Latitude("lat") => ...
  */
 abstract class DoubleParamMatcher(name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Double]] =
