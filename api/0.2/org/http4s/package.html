@@ -316,6 +316,71 @@ Note that this implementation discards milliseconds (i.e. rounds down to full se
       </a>
     </span>
       
+    </li><li name="org.http4s.ExpansionType" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ExpansionTypeextendsAnyRef"></a>
+      <a id="ExpansionType:ExpansionType"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ExpansionType.html"><span class="name">ExpansionType</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ExpansionTypeextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">URI Templates are similar to a macro language with a fixed set of macro
+definitions: the expression type determines the expansion process.</p><div class="fullcomment"><div class="comment cmt"><p>URI Templates are similar to a macro language with a fixed set of macro
+definitions: the expression type determines the expansion process.</p><p>The default expression type is simple string expansion (Level 1), wherein a
+single named variable is replaced by its value as a string after
+pct-encoding any characters not in the set of unreserved URI characters
+(<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>).</p><p>Level 2 templates add the plus (&quot;+&quot;) operator, for expansion of values that
+are allowed to include reserved URI characters
+(<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>),
+and the crosshatch (&quot;#&quot;) operator for expansion of fragment identifiers.</p><p>Level 3 templates allow multiple variables per expression, each
+separated by a comma, and add more complex operators for dot-prefixed
+labels, slash-prefixed path segments, semicolon-prefixed path
+parameters, and the form-style construction of a query syntax
+consisting of name=value pairs that are separated by an ampersand
+character.
+</p></div></div>
+    </li><li name="org.http4s.FragmentDef" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="FragmentDefextendsAnyRef"></a>
+      <a id="FragmentDef:FragmentDef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="FragmentDef.html"><span class="name">FragmentDef</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@FragmentDefextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.FragmentElm" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FragmentElmextendsFragmentDefwithProductwithSerializable"></a>
+      <a id="FragmentElm:FragmentElm"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="FragmentElm.html"><span class="name">FragmentElm</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="FragmentDef.html" class="extype" name="org.http4s.FragmentDef">FragmentDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@FragmentElmextendsFragmentDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Static fragment element</p>
     </li><li name="org.http4s.GenericCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="GenericCredentialsextendsCredentialswithProductwithSerializable"></a>
       <a id="GenericCredentials:GenericCredentials"></a>
@@ -613,6 +678,27 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       </a>
     </span>
       
+    </li><li name="org.http4s.MultiFragmentExp" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="MultiFragmentExpextendsFragmentDefwithProductwithSerializable"></a>
+      <a id="MultiFragmentExp:MultiFragmentExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MultiFragmentExp.html"><span class="name">MultiFragmentExp</span></a><span class="params">(<span name="names">names: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="FragmentDef.html" class="extype" name="org.http4s.FragmentDef">FragmentDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@MultiFragmentExpextendsFragmentDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Fragment expansion with multiple variables, crosshatch-prefixed
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+</a></p><div class="fullcomment"><div class="comment cmt"><p>Fragment expansion with multiple variables, crosshatch-prefixed
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+</p></div></div>
     </li><li name="org.http4s.OAuth2BearerToken" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="OAuth2BearerTokenextendsCredentialswithProductwithSerializable"></a>
       <a id="OAuth2BearerToken:OAuth2BearerToken"></a>
@@ -630,6 +716,101 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       </a>
     </span>
       
+    </li><li name="org.http4s.ParamContExp" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ParamContExpextendsQueryExpwithProductwithSerializable"></a>
+      <a id="ParamContExp:ParamContExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamContExp.html"><span class="name">ParamContExp</span></a><span class="params">(<span name="names">names: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="QueryExp.html" class="extype" name="org.http4s.QueryExp">QueryExp</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamContExpextendsQueryExpwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Form-style query continuation
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
+</a></p><div class="fullcomment"><div class="comment cmt"><p>Form-style query continuation
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
+</p></div></div>
+    </li><li name="org.http4s.ParamElm" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamElmextendsQueryDefwithProductwithSerializable"></a>
+      <a id="ParamElm:ParamElm"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamElm.html"><span class="name">ParamElm</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="values">values: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="QueryDef.html" class="extype" name="org.http4s.QueryDef">QueryDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamElmextendsQueryDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Static query parameter element</p>
+    </li><li name="org.http4s.ParamExp" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ParamExpextendsQueryExpwithProductwithSerializable"></a>
+      <a id="ParamExp:ParamExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamExp.html"><span class="name">ParamExp</span></a><span class="params">(<span name="names">names: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="QueryExp.html" class="extype" name="org.http4s.QueryExp">QueryExp</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamExpextendsQueryExpwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Form-style query, ampersand-separated
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
+</a></p><div class="fullcomment"><div class="comment cmt"><p>Form-style query, ampersand-separated
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
+</p></div></div>
+    </li><li name="org.http4s.ParamReservedExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamReservedExpextendsQueryDefwithProductwithSerializable"></a>
+      <a id="ParamReservedExp:ParamReservedExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamReservedExp.html"><span class="name">ParamReservedExp</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="variables">variables: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="QueryDef.html" class="extype" name="org.http4s.QueryDef">QueryDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamReservedExpextendsQueryDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Reserved string expansion for query parameter
+</p>
+    </li><li name="org.http4s.ParamVarExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamVarExpextendsQueryDefwithProductwithSerializable"></a>
+      <a id="ParamVarExp:ParamVarExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamVarExp.html"><span class="name">ParamVarExp</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="variables">variables: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="QueryDef.html" class="extype" name="org.http4s.QueryDef">QueryDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamVarExpextendsQueryDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Simple string expansion for query parameter
+</p>
     </li><li name="org.http4s.ParseException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ParseExceptionextendsHttp4sException"></a>
       <a id="ParseException:ParseException"></a>
@@ -647,6 +828,61 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       </a>
     </span>
       
+    </li><li name="org.http4s.PathDef" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PathDefextendsAnyRef"></a>
+      <a id="PathDef:PathDef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="PathDef.html"><span class="name">PathDef</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@PathDefextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.PathElm" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PathElmextendsPathDefwithProductwithSerializable"></a>
+      <a id="PathElm:PathElm"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="PathElm.html"><span class="name">PathElm</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="PathDef.html" class="extype" name="org.http4s.PathDef">PathDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@PathElmextendsPathDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Static path element</p>
+    </li><li name="org.http4s.PathExp" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="PathExpextendsPathDefwithProductwithSerializable"></a>
+      <a id="PathExp:PathExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="PathExp.html"><span class="name">PathExp</span></a><span class="params">(<span name="names">names: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="PathDef.html" class="extype" name="org.http4s.PathDef">PathDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@PathExpextendsPathDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Path segments, slash-prefixed
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
+</a></p><div class="fullcomment"><div class="comment cmt"><p>Path segments, slash-prefixed
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
+</p></div></div>
     </li><li name="org.http4s.Q" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="QextendsOrdering[org.http4s.Q]withValueRenderablewithProductwithSerializable"></a>
       <a id="Q:Q"></a>
@@ -681,6 +917,40 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       </a>
     </span>
       <p class="shortcomment cmt"></p>
+    </li><li name="org.http4s.QueryDef" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="QueryDefextendsAnyRef"></a>
+      <a id="QueryDef:QueryDef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="QueryDef.html"><span class="name">QueryDef</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@QueryDefextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.QueryExp" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="QueryExpextendsQueryDef"></a>
+      <a id="QueryExp:QueryExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="QueryExp.html"><span class="name">QueryExp</span></a><span class="result"> extends <a href="QueryDef.html" class="extype" name="org.http4s.QueryDef">QueryDef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@QueryExpextendsQueryDef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.RangeUnit" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="RangeUnitextendsRenderable"></a>
       <a id="RangeUnit:RangeUnit"></a>
@@ -736,6 +1006,27 @@ for a <a href="#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent
       </a>
     </span>
       
+    </li><li name="org.http4s.ReservedExp" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ReservedExpextendsPathDefwithProductwithSerializable"></a>
+      <a id="ReservedExp:ReservedExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ReservedExp.html"><span class="name">ReservedExp</span></a><span class="params">(<span name="names">names: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="PathDef.html" class="extype" name="org.http4s.PathDef">PathDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ReservedExpextendsPathDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Level 2 allows reserved string expansion
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)</a></p><div class="fullcomment"><div class="comment cmt"><p>Level 2 allows reserved string expansion
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)</p><p>Level 3 allows reserved expansion with multiple variables
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+</p></div></div>
     </li><li name="org.http4s.Response" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ResponseextendsMessagewithMessageSyntax.ResponseSyntax[org.http4s.Response]withProductwithSerializable"></a>
       <a id="Response:Response"></a>
@@ -792,6 +1083,27 @@ for a <a href="#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent
       </a>
     </span>
       
+    </li><li name="org.http4s.SimpleFragmentExp" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="SimpleFragmentExpextendsFragmentDefwithProductwithSerializable"></a>
+      <a id="SimpleFragmentExp:SimpleFragmentExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="SimpleFragmentExp.html"><span class="name">SimpleFragmentExp</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="FragmentDef.html" class="extype" name="org.http4s.FragmentDef">FragmentDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@SimpleFragmentExpextendsFragmentDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Fragment expansion, crosshatch-prefixed
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+</a></p><div class="fullcomment"><div class="comment cmt"><p>Fragment expansion, crosshatch-prefixed
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+</p></div></div>
     </li><li name="org.http4s.SimpleWritable" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="SimpleWritable[-A]extendsWritable[A]"></a>
       <a id="SimpleWritable[-A]:SimpleWritable[A]"></a>
@@ -880,6 +1192,48 @@ for a <a href="#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent
       </a>
     </span>
       <p class="shortcomment cmt">Representation of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> URI</p>
+    </li><li name="org.http4s.UriTemplate" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="UriTemplateextendsProductwithSerializable"></a>
+      <a id="UriTemplate:UriTemplate"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="UriTemplate.html"><span class="name">UriTemplate</span></a><span class="params">(<span name="scheme">scheme: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Uri$.html#Scheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.Uri.Scheme">Scheme</a>] = <span class="symbol">None</span></span>, <span name="authority">authority: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="UriTemplate$.html#Path=List[org.http4s.PathDef]" class="extmbr" name="org.http4s.UriTemplate.Path">Path</a> = <span class="symbol">Nil</span></span>, <span name="query">query: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="UriTemplate$.html#Query=List[org.http4s.QueryDef]" class="extmbr" name="org.http4s.UriTemplate.Query">Query</a>] = <span class="symbol">None</span></span>, <span name="fragment">fragment: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="UriTemplate$.html#Fragment=List[org.http4s.FragmentDef]" class="extmbr" name="org.http4s.UriTemplate.Fragment">Fragment</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@UriTemplateextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Simple representation of a URI Template that can be rendered as RFC6570
+conform string.</p><div class="fullcomment"><div class="comment cmt"><p>Simple representation of a URI Template that can be rendered as RFC6570
+conform string.</p><p>This model reflects only a subset of RFC6570.</p><p>Level 1 and Level 2 are completely modeled and
+Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><li>Form-style query, ampersand-separated</li><li>Fragment expansion
+</li></ul></div></div>
+    </li><li name="org.http4s.VarExp" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="VarExpextendsPathDefwithProductwithSerializable"></a>
+      <a id="VarExp:VarExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="VarExp.html"><span class="name">VarExp</span></a><span class="params">(<span name="names">names: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result"> extends <a href="PathDef.html" class="extype" name="org.http4s.PathDef">PathDef</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@VarExpextendsPathDefwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Level 1 allows string expansion
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)</a></p><div class="fullcomment"><div class="comment cmt"><p>Level 1 allows string expansion
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)</p><p>Level 3 allows string expansion with multiple variables
+(<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+</p></div></div>
     </li><li name="org.http4s.Writable" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Writable[-A]extendsAnyRef"></a>
       <a id="Writable[-A]:Writable[A]"></a>
@@ -1332,6 +1686,125 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </a>
     </span>
       
+    </li><li name="org.http4s.MultiFragmentExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MultiFragmentExp"></a>
+      <a id="MultiFragmentExp:MultiFragmentExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="MultiFragmentExp$.html"><span class="name">MultiFragmentExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@MultiFragmentExp" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ParamContExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamContExp"></a>
+      <a id="ParamContExp:ParamContExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamContExp$.html"><span class="name">ParamContExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamContExp" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ParamElm" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamElm"></a>
+      <a id="ParamElm:ParamElm"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamElm$.html"><span class="name">ParamElm</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamElm" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ParamExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamExp"></a>
+      <a id="ParamExp:ParamExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamExp$.html"><span class="name">ParamExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamExp" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ParamReservedExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamReservedExp"></a>
+      <a id="ParamReservedExp:ParamReservedExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamReservedExp$.html"><span class="name">ParamReservedExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamReservedExp" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ParamVarExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ParamVarExp"></a>
+      <a id="ParamVarExp:ParamVarExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ParamVarExp$.html"><span class="name">ParamVarExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ParamVarExp" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.PathExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PathExp"></a>
+      <a id="PathExp:PathExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="PathExp$.html"><span class="name">PathExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@PathExp" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.Q" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Q"></a>
       <a id="Q:Q"></a>
@@ -1396,6 +1869,23 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@RequestCookieJar" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ReservedExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ReservedExp"></a>
+      <a id="ReservedExp:ReservedExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ReservedExp$.html"><span class="name">ReservedExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ReservedExp" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -1498,6 +1988,40 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.UriTemplate" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UriTemplate"></a>
+      <a id="UriTemplate:UriTemplate"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="UriTemplate$.html"><span class="name">UriTemplate</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@UriTemplate" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.VarExp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="VarExp"></a>
+      <a id="VarExp:VarExp"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="VarExp$.html"><span class="name">VarExp</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@VarExp" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
