@@ -1,5 +1,33 @@
 import sbt._
 
+import scala.util.Properties.envOrNone
+
+object Http4sBuild {
+  def extractApiVersion(version: String) = {
+    val VersionExtractor = """(\d+)\.(\d+)\..*""".r
+    version match {
+      case VersionExtractor(major, minor) => (major.toInt, minor.toInt)
+    }
+  }
+
+  lazy val travisCredentials = (envOrNone("SONATYPE_USER"), envOrNone("SONATYPE_PASS")) match {
+    case (Some(user), Some(pass)) =>
+      Some(Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass))
+    case _ =>
+      None
+  }
+
+  def nexusRepoFor(version: String): Resolver = {
+    val nexus = "https://oss.sonatype.org/"
+    if (isSnapshot(version))
+      "snapshots" at nexus + "content/repositories/snapshots"
+    else
+      "releases" at nexus + "service/local/staging/deploy/maven2"
+  }
+
+  def isSnapshot(version: String): Boolean = version.endsWith("-SNAPSHOT")
+}
+
 object Http4sKeys {
   val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
 }
