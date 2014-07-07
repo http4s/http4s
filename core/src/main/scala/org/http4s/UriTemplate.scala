@@ -389,157 +389,156 @@ object UriTemplate {
     case UriTemplate(s, a, p, None, Some(f)) => Uri(s, a, renderPath(p), fragment = Some(renderFragmentIdentifier(f)))
   }
 
-}
+  sealed trait PathDef
 
-sealed trait PathDef
+  /** Static path element */
+  case class PathElm(value: String) extends PathDef
 
-/** Static path element */
-case class PathElm(value: String) extends PathDef
+  sealed trait QueryDef
 
-sealed trait QueryDef
+  sealed trait QueryExp extends QueryDef
+  /** Static query parameter element */
+  case class ParamElm(name: String, values: List[String]) extends QueryDef
+  object ParamElm {
+    def apply(name: String): ParamElm = new ParamElm(name, Nil)
+    def apply(name: String, values: String*): ParamElm = new ParamElm(name, values.toList)
+  }
 
-sealed trait QueryExp extends QueryDef
-/** Static query parameter element */
-case class ParamElm(name: String, values: List[String]) extends QueryDef
-object ParamElm {
-  def apply(name: String): ParamElm = new ParamElm(name, Nil)
-  def apply(name: String, values: String*): ParamElm = new ParamElm(name, values.toList)
-}
+  /**
+   * Simple string expansion for query parameter
+   */
+  case class ParamVarExp(name: String, variables: List[String]) extends QueryDef {
+    require(variables forall isUnreserved, "all variables must consist of unreserved characters")
+  }
+  object ParamVarExp {
+    def apply(name: String): ParamVarExp = new ParamVarExp(name, Nil)
+    def apply(name: String, variables: String*): ParamVarExp = new ParamVarExp(name, variables.toList)
+  }
 
-/**
- * Simple string expansion for query parameter
- */
-case class ParamVarExp(name: String, variables: List[String]) extends QueryDef {
-  require(variables forall isUnreserved, "all variables must consist of unreserved characters")
-}
-object ParamVarExp {
-  def apply(name: String): ParamVarExp = new ParamVarExp(name, Nil)
-  def apply(name: String, variables: String*): ParamVarExp = new ParamVarExp(name, variables.toList)
-}
+  /**
+   * Reserved string expansion for query parameter
+   */
+  case class ParamReservedExp(name: String, variables: List[String]) extends QueryDef {
+    require(variables forall isUnreserved, "all variables must consist of unreserved characters")
+  }
+  object ParamReservedExp {
+    def apply(name: String): ParamReservedExp = new ParamReservedExp(name, Nil)
+    def apply(name: String, variables: String*): ParamReservedExp = new ParamReservedExp(name, variables.toList)
+  }
 
-/**
- * Reserved string expansion for query parameter
- */
-case class ParamReservedExp(name: String, variables: List[String]) extends QueryDef {
-  require(variables forall isUnreserved, "all variables must consist of unreserved characters")
-}
-object ParamReservedExp {
-  def apply(name: String): ParamReservedExp = new ParamReservedExp(name, Nil)
-  def apply(name: String, variables: String*): ParamReservedExp = new ParamReservedExp(name, variables.toList)
-}
+  /**
+   * URI Templates are similar to a macro language with a fixed set of macro
+   * definitions: the expression type determines the expansion process.
+   *
+   * The default expression type is simple string expansion (Level 1), wherein a
+   * single named variable is replaced by its value as a string after
+   * pct-encoding any characters not in the set of unreserved URI characters
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>).
+   *
+   * Level 2 templates add the plus ("+") operator, for expansion of values that
+   * are allowed to include reserved URI characters
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>),
+   * and the crosshatch ("#") operator for expansion of fragment identifiers.
+   *
+   * Level 3 templates allow multiple variables per expression, each
+   * separated by a comma, and add more complex operators for dot-prefixed
+   * labels, slash-prefixed path segments, semicolon-prefixed path
+   * parameters, and the form-style construction of a query syntax
+   * consisting of name=value pairs that are separated by an ampersand
+   * character.
+   */
+  sealed trait ExpansionType
 
-/**
- * URI Templates are similar to a macro language with a fixed set of macro
- * definitions: the expression type determines the expansion process.
- *
- * The default expression type is simple string expansion (Level 1), wherein a
- * single named variable is replaced by its value as a string after
- * pct-encoding any characters not in the set of unreserved URI characters
- * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>).
- *
- * Level 2 templates add the plus ("+") operator, for expansion of values that
- * are allowed to include reserved URI characters
- * (<a href="http://tools.ietf.org/html/rfc6570#section-1.5">Section 1.5</a>),
- * and the crosshatch ("#") operator for expansion of fragment identifiers.
- *
- * Level 3 templates allow multiple variables per expression, each
- * separated by a comma, and add more complex operators for dot-prefixed
- * labels, slash-prefixed path segments, semicolon-prefixed path
- * parameters, and the form-style construction of a query syntax
- * consisting of name=value pairs that are separated by an ampersand
- * character.
- */
-sealed trait ExpansionType
+  sealed trait FragmentDef
 
-sealed trait FragmentDef
+  /** Static fragment element */
+  case class FragmentElm(value: String) extends FragmentDef
 
-/** Static fragment element */
-case class FragmentElm(value: String) extends FragmentDef
+  /**
+   * Fragment expansion, crosshatch-prefixed
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+   */
+  case class SimpleFragmentExp(name: String) extends FragmentDef {
+    require(name.nonEmpty, "at least one character must be set")
+    require(isUnreserved(name), "name must consist of unreserved characters")
+  }
 
-/**
- * Fragment expansion, crosshatch-prefixed
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
- */
-case class SimpleFragmentExp(name: String) extends FragmentDef {
-  require(name.nonEmpty, "at least one character must be set")
-  require(isUnreserved(name), "name must consist of unreserved characters")
-}
+  /**
+   * Level 1 allows string expansion
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+   *
+   * Level 3 allows string expansion with multiple variables
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
+   */
+  case class VarExp(names: List[String]) extends PathDef {
+    require(names.nonEmpty, "at least one name must be set")
+    require(names forall isUnreserved, "all names must consist of unreserved characters")
+  }
+  object VarExp {
+    def apply(names: String*): VarExp = new VarExp(names.toList)
+  }
 
-/**
- * Level 1 allows string expansion
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
- *
- * Level 3 allows string expansion with multiple variables
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.2">Section 3.2.2</a>)
- */
-case class VarExp(names: List[String]) extends PathDef {
-  require(names.nonEmpty, "at least one name must be set")
-  require(names forall isUnreserved, "all names must consist of unreserved characters")
-}
-object VarExp {
-  def apply(names: String*): VarExp = new VarExp(names.toList)
-}
+  /**
+   * Level 2 allows reserved string expansion
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+   *
+   * Level 3 allows reserved expansion with multiple variables
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
+   */
+  case class ReservedExp(names: List[String]) extends PathDef {
+    require(names.nonEmpty, "at least one name must be set")
+    require(names forall isUnreserved, "all names must consist of unreserved characters")
+  }
+  object ReservedExp {
+    def apply(names: String*): ReservedExp = new ReservedExp(names.toList)
+  }
 
-/**
- * Level 2 allows reserved string expansion
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
- *
- * Level 3 allows reserved expansion with multiple variables
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.3">Section 3.2.3</a>)
- */
-case class ReservedExp(names: List[String]) extends PathDef {
-  require(names.nonEmpty, "at least one name must be set")
-  require(names forall isUnreserved, "all names must consist of unreserved characters")
-}
-object ReservedExp {
-  def apply(names: String*): ReservedExp = new ReservedExp(names.toList)
-}
+  /**
+   * Fragment expansion with multiple variables, crosshatch-prefixed
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
+   */
+  case class MultiFragmentExp(names: List[String]) extends FragmentDef {
+    require(names.nonEmpty, "at least one name must be set")
+    require(names forall isUnreserved, "all names must consist of unreserved characters")
+  }
+  object MultiFragmentExp {
+    def apply(names: String*): MultiFragmentExp = new MultiFragmentExp(names.toList)
+  }
 
-/**
- * Fragment expansion with multiple variables, crosshatch-prefixed
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.4">Section 3.2.4</a>)
- */
-case class MultiFragmentExp(names: List[String]) extends FragmentDef {
-  require(names.nonEmpty, "at least one name must be set")
-  require(names forall isUnreserved, "all names must consist of unreserved characters")
-}
-object MultiFragmentExp {
-  def apply(names: String*): MultiFragmentExp = new MultiFragmentExp(names.toList)
-}
+  /**
+   * Path segments, slash-prefixed
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
+   */
+  case class PathExp(names: List[String]) extends PathDef {
+    require(names.nonEmpty, "at least one name must be set")
+    require(names forall isUnreserved, "all names must consist of unreserved characters")
+  }
+  object PathExp {
+    def apply(names: String*): PathExp = new PathExp(names.toList)
+  }
 
-/**
- * Path segments, slash-prefixed
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.6">Section 3.2.6</a>)
- */
-case class PathExp(names: List[String]) extends PathDef {
-  require(names.nonEmpty, "at least one name must be set")
-  require(names forall isUnreserved, "all names must consist of unreserved characters")
-}
-object PathExp {
-  def apply(names: String*): PathExp = new PathExp(names.toList)
-}
+  /**
+   * Form-style query, ampersand-separated
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
+   */
+  case class ParamExp(names: List[String]) extends QueryExp {
+    require(names.nonEmpty, "at least one name must be set")
+    require(names forall isUnreserved, "all names must consist of unreserved characters")
+  }
+  object ParamExp {
+    def apply(names: String*): ParamExp = new ParamExp(names.toList)
+  }
 
-/**
- * Form-style query, ampersand-separated
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.8">Section 3.2.8</a>)
- */
-case class ParamExp(names: List[String]) extends QueryExp {
-  require(names.nonEmpty, "at least one name must be set")
-  require(names forall isUnreserved, "all names must consist of unreserved characters")
-}
-object ParamExp {
-  def apply(names: String*): ParamExp = new ParamExp(names.toList)
-}
+  /**
+   * Form-style query continuation
+   * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
+   */
+  case class ParamContExp(names: List[String]) extends QueryExp {
+    require(names.nonEmpty, "at least one name must be set")
+    require(names forall isUnreserved, "all names must consist of unreserved characters")
+  }
+  object ParamContExp {
+    def apply(names: String*): ParamContExp = new ParamContExp(names.toList)
+  }
 
-/**
- * Form-style query continuation
- * (<a href="http://tools.ietf.org/html/rfc6570#section-3.2.9">Section 3.2.9</a>)
- */
-case class ParamContExp(names: List[String]) extends QueryExp {
-  require(names.nonEmpty, "at least one name must be set")
-  require(names forall isUnreserved, "all names must consist of unreserved characters")
 }
-object ParamContExp {
-  def apply(names: String*): ParamContExp = new ParamContExp(names.toList)
-}
-

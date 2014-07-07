@@ -1,17 +1,26 @@
 package org.http4s
 
-import org.http4s.util.CaseInsensitiveString._
+import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
 import org.specs2.mutable.Specification
 
-import scalaz._
-
 import Uri.Authority
-import Uri.Host
 import Uri.IPv4
 import Uri.IPv6
 import Uri.RegName
-import Uri.Scheme
-import Uri.UserInfo
+import UriTemplate.FragmentElm
+import UriTemplate.MultiFragmentExp
+import UriTemplate.ParamContExp
+import UriTemplate.ParamElm
+import UriTemplate.ParamExp
+import UriTemplate.ParamReservedExp
+import UriTemplate.ParamVarExp
+import UriTemplate.PathElm
+import UriTemplate.PathExp
+import UriTemplate.ReservedExp
+import UriTemplate.SimpleFragmentExp
+import UriTemplate.VarExp
+import scalaz.{-\/ => -\/}
+import scalaz.{\/- => \/-}
 
 object UriTemplateSpec extends Specification {
 
