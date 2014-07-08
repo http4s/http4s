@@ -13,10 +13,10 @@ import Uri.Scheme
 import Uri.UserInfo
 import UriTemplate._
 
-import scalaz.\/
-import scalaz.\/-
-import scalaz.-\/
 import scala.collection.mutable.ArrayBuffer
+import scala.util.Failure
+import scala.util.Success
+import scala.util.Try
 
 /**
  * Simple representation of a URI Template that can be rendered as RFC6570
@@ -99,9 +99,9 @@ case class UriTemplate(
    * If no expansion is available an `Uri` will be created otherwise the
    * current instance of `UriTemplate` will be returned.
    */
-  def toUriIfPossible: \/[UriTemplate, Uri] =
-    if (containsExpansions(this)) -\/(this)
-    else \/-(toUri(this))
+  def toUriIfPossible: Try[Uri] =
+    if (containsExpansions(this)) Failure(new IllegalStateException(s"all expansions must be resolved to be convertable: $this"))
+    else Success(toUri(this))
 
 }
 
