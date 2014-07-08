@@ -6,10 +6,11 @@ import org.http4s.Header.`Content-Type`
 import scalaz.concurrent.Task
 import MessageSyntax.ResponseSyntax
 
-/** Represents a HTTP Message. The interesting subclasses are Request and Response
-  * while most of the functionality is found in [[MessageSyntax]] and [[ResponseSyntax]]
-  * @see [[MessageSyntax]], [[ResponseSyntax]]
-  */
+/**
+ * Represents a HTTP Message. The interesting subclasses are Request and Response
+ * while most of the functionality is found in [[MessageSyntax]] and [[MessageSyntax.ResponseSyntax]]
+ * @see [[MessageSyntax]], [[MessageSyntax.ResponseSyntax]]
+ */
 trait Message {
   type Self <: Message
 
