@@ -121,7 +121,7 @@ object UriTemplate {
 
   protected def expandPathN(path: Path, name: String, values: List[String]): Path = {
     val acc = new ArrayBuffer[PathDef]()
-    def appendValues = values foreach { v => acc.append(PathElm(v)) }
+    def appendValues() = values foreach { v => acc.append(PathElm(v)) }
     path foreach { p =>
       p match {
         case p @ PathElm(_) => acc.append(p)
