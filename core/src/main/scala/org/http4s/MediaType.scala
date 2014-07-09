@@ -216,6 +216,7 @@ object MediaType extends Registry {
   val `application/excel`                                                         = app("excel", uncompressible, binary, "xl", "xla", "xlb", "xlc", "xld", "xlk", "xll", "xlm", "xls", "xlt", "xlv", "xlw")
   val `application/font-woff`                                                     = app("font-woff", uncompressible, binary, "woff")
   val `application/gnutar`                                                        = app("gnutar", uncompressible, binary, "tgz")
+  val `application/hal+json`                                                      = app("hal+json", compressible, binary) // we treat JSON as binary, since it's encoding is not variable but defined by RFC4627
   val `application/java-archive`                                                  = app("java-archive", uncompressible, binary, "jar", "war", "ear")
   val `application/javascript`                                                    = app("javascript", compressible, notBinary, "js")
   val `application/json`                                                          = app("json", compressible, binary, "json") // we treat JSON as binary, since it's encoding is not variable but defined by RFC4627
