@@ -95,11 +95,19 @@ case class Uri(
   /**
    * Creates maybe a new `Uri` with the specified parameters. The entire
    * query string will be replaced with the given one. If a the given
-   * parameters equal the existing one the same `Uri` instance will be
+   * parameters equal the existing the same `Uri` instance will be
    * returned.
    */
-  def =?(q: Map[String, Seq[String]]): Uri =
+  def =?[T: AcceptableParamType](q: Map[String, Seq[T]]): Uri =
     setQueryParams(q)
+
+  /**
+   * Creates a new `Uri` with the specified parameter in query string.
+   * If a parameter with the given `name` already exists the values will be
+   * replaced with an empty list.
+   */
+  def +?(name: String): Uri =
+    withQueryParam(name)
 
   /**
    * Creates maybe a new `Uri` with the specified parameter in query string.
@@ -107,8 +115,8 @@ case class Uri(
    * replaced. If the parameter to be added equal the existing entry the same
    * instance of `Uri` will be returned.
    */
-  def +?(name: String, value: String*): Uri =
-    withQueryParam(name, value.toSeq)
+  def +?[T: AcceptableParamType](name: String, values: T*): Uri =
+    withQueryParam(name, values.toList)
 
   /**
    * Creates maybe a new `Uri` without the specified parameter in query string.
@@ -148,25 +156,34 @@ case class Uri(
 
   /**
    * Creates maybe a new `Uri` with the specified parameters. The entire
-   * query string will be replaced with the given one. If a the given
-   * parameters equal the existing one the same `Uri` instance will be
-   * returned.
+   * query string will be replaced with the given one. If the given parameters
+   * equal the existing the same `Uri` instance will be returned.
    */
-  def setQueryParams(query: Map[String, Seq[String]]): Uri = {
+  def setQueryParams[T: AcceptableParamType](query: Map[String, Seq[T]]): Uri = {
     if (multiParams == query) this
-    else copy(query = renderQueryString(query))
+    else copy(query = renderQueryString(query.mapValues(_.map(String.valueOf(_)))))
+  }
+
+  /**
+   * Creates a new `Uri` with the specified parameter in query string.
+   * If a parameter with the given `name` already exists the values will be
+   * replaced with an empty list.
+   */
+  def withQueryParam(name: String): Uri = {
+    val p = multiParams updated (name, Nil)
+    copy(query = renderQueryString(p))
   }
 
   /**
    * Creates maybe a new `Uri` with the specified parameter in query string.
-   * If a parameter with the given `name` already exists the value will be
+   * If a parameter with the given `name` already exists the values will be
    * replaced. If the parameter to be added equal the existing entry the same
    * instance of `Uri` will be returned.
    */
-  def withQueryParam(name: String, values: Seq[String]): Uri = {
+  def withQueryParam[T: AcceptableParamType](name: String, values: Seq[T]): Uri = {
     if (multiParams.contains(name) && multiParams.getOrElse(name, Nil) == values) this
     else {
-      val p = multiParams updated (name, values)
+      val p = multiParams updated (name, values.map(String.valueOf(_)))
       copy(query = renderQueryString(p))
     }
   }
@@ -273,6 +290,24 @@ object Uri {
       }
       Some(b.toString)
     }
+  }
+
+  /**
+   * Defines acceptable types of values as query parameter. This class should
+   * ensure that a type has a reasonable [[String]] definition. If a class
+   * extends from this type `toString` should be overridden to ensure a valid
+   * representation in `Uri`.
+   */
+  abstract class AcceptableParamType[T]
+  object AcceptableParamType {
+    implicit object BooleanOk extends AcceptableParamType[Boolean]
+    implicit object CharOk extends AcceptableParamType[Char]
+    implicit object DoubleOk extends AcceptableParamType[Double]
+    implicit object FloatOk extends AcceptableParamType[Float]
+    implicit object IntOk extends AcceptableParamType[Int]
+    implicit object LongOk extends AcceptableParamType[Long]
+    implicit object ShortOk extends AcceptableParamType[Short]
+    implicit object StringOk extends AcceptableParamType[String]
   }
 
 }

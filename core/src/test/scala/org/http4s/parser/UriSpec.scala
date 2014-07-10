@@ -538,6 +538,10 @@ class UriSpec extends WordSpec with Matchers {
       val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2", "value")
       u should equal(Uri(query = Some("param1=value1&param1=value2&param2=value")))
     }
+    "add a parameter with boolean value" in {
+      val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2", true)
+      u should equal(Uri(query = Some("param1=value1&param1=value2&param2=true")))
+    }
     "add a parameter without a value" in {
       val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2")
       u should equal(Uri(query = Some("param1=value1&param1=value2&param2")))
@@ -545,6 +549,10 @@ class UriSpec extends WordSpec with Matchers {
     "add a parameter with many values" in {
       val u = Uri() +? ("param1", "value1", "value2")
       u should equal(Uri(query = Some("param1=value1&param1=value2")))
+    }
+    "add a parameter with many long values" in {
+      val u = Uri() +? ("param1", 1L, -1L)
+      u should equal(Uri(query = Some(s"param1=1&param1=-1")))
     }
     "contains not a parameter" in {
       Uri(query = None) ? "param1" should equal(false)
@@ -612,8 +620,40 @@ class UriSpec extends WordSpec with Matchers {
       val ps = Map("param" -> List("value"))
       Uri() =? ps should equal(Uri(query = Some("param=value")))
     }
+    "set a parameter with a boolean values" in {
+      val ps = Map("param" -> List(true, false))
+      Uri() =? ps should equal(Uri(query = Some("param=true&param=false")))
+    }
+    "set a parameter with a char values" in {
+      val ps = Map("param" -> List('x', 'y'))
+      Uri() =? ps should equal(Uri(query = Some("param=x&param=y")))
+    }
+    "set a parameter with a double values" in {
+      val ps = Map("param" -> List(1.2, 2.1))
+      Uri() =? ps should equal(Uri(query = Some("param=1.2&param=2.1")))
+    }
+    "set a parameter with a float values" in {
+      val ps = Map("param" -> List(1.2F, 2.1F))
+      Uri() =? ps should equal(Uri(query = Some("param=1.2&param=2.1")))
+    }
+    "set a parameter with a integer values" in {
+      val ps = Map("param" -> List(1, 2, 3))
+      Uri() =? ps should equal(Uri(query = Some("param=1&param=2&param=3")))
+    }
+    "set a parameter with a long values" in {
+      val ps = Map("param" -> List(Long.MaxValue, 0L, Long.MinValue))
+      Uri() =? ps should equal(Uri(query = Some("param=9223372036854775807&param=0&param=-9223372036854775808")))
+    }
+    "set a parameter with a short values" in {
+      val ps = Map("param" -> List(Short.MaxValue, Short.MinValue))
+      Uri() =? ps should equal(Uri(query = Some("param=32767&param=-32768")))
+    }
+    "set a parameter with a string values" in {
+      val ps = Map("param" -> List("some", "none"))
+      Uri() =? ps should equal(Uri(query = Some("param=some&param=none")))
+    }
     "set a parameter without a value" in {
-      val ps = Map("param" -> Nil)
+      val ps: Map[String, List[String]] = Map("param" -> Nil)
       Uri() =? ps should equal(Uri(query = Some("param")))
     }
     "set many parameters" in {
