@@ -1,4 +1,4 @@
-package org.http4s.middleware
+package org.http4s.server.middleware
 
 import org.http4s._
 import org.scalatest.{Matchers, WordSpec}
@@ -12,7 +12,7 @@ import scodec.bits.ByteVector
 * Created on 3/9/13 at 11:10 AM
 */
 class MiddlewareSpec extends WordSpec with Matchers {
-  import middleware.URITranslation._
+  import org.http4s.server.middleware.URITranslation._
 
   val pingReq     = Request(requestUri = Uri.fromString("/rootPath/ping").get)
 

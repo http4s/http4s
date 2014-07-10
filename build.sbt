@@ -5,9 +5,11 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 lazy val core = project
 
-lazy val blaze = project.dependsOn(core)
+lazy val server = project.dependsOn(core)
 
-lazy val servlet = project.dependsOn(core)
+lazy val blaze = project.dependsOn(server)
+
+lazy val servlet = project.dependsOn(server)
 
 lazy val jetty = project.dependsOn(servlet)
 

@@ -4,7 +4,7 @@ package websocket
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
-import org.http4s.{websocket => ws4s}
+import org.http4s.{org.http4s.server.websocket => ws4s}
 
 import scalaz.stream.Process
 import scalaz.stream.Process._

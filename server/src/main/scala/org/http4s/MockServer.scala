@@ -1,10 +1,12 @@
 package org.http4s
+package server
 
-import scalaz.concurrent.Task
 import scodec.bits.ByteVector
 
+import scalaz.concurrent.Task
+
 class MockServer(service: HttpService) {
-  import MockServer._
+  import org.http4s.server.MockServer._
 
   def apply(request: Request): Task[MockResponse] = {
     val task = for {

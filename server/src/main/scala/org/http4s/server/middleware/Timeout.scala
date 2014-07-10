@@ -1,5 +1,5 @@
 package org.http4s
-package middleware
+package org.http4s.server.middleware
 
 import scala.concurrent.duration._
 import scalaz.concurrent.Task

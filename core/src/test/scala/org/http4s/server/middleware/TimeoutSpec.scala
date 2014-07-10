@@ -1,4 +1,4 @@
-package org.http4s.middleware
+package org.http4s.server.middleware
 
 import org.scalatest.{Matchers, WordSpec}
 import org.http4s._

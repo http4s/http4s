@@ -6,7 +6,7 @@ import org.http4s.blaze.channel.{SocketConnection, ServerChannel}
 import org.http4s.server.{HasIdleTimeout, ServerBuilder, Server}
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
-import org.http4s.middleware.URITranslation
+import org.http4s.server.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
 import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.LeafBuilder
