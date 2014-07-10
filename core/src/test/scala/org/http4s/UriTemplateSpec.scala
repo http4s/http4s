@@ -634,7 +634,7 @@ object UriTemplateSpec extends Specification {
     "expand /{?start} to /?start=123" in {
       val exp = ParamExp("start")
       val query = Some(List(exp))
-      UriTemplate(query = query).expandQuery("start", "123") must
+      UriTemplate(query = query).expandQuery("start", 123) must
         equalTo(UriTemplate(query = Some(List(ParamElm("start", "123")))))
     }
     "expand /{?switch} to /?switch" in {
@@ -649,13 +649,13 @@ object UriTemplateSpec extends Specification {
     }
     "expand /?={path} to /?=123" in {
       val query = Some(List(ParamVarExp("", "path")))
-      UriTemplate(query = query).expandQuery("path", "123") must
+      UriTemplate(query = query).expandQuery("path", 123L) must
         equalTo(UriTemplate(query = Some(List(ParamElm("", "123")))))
     }
-    "expand /?={path} to /?=123&=456" in {
+    "expand /?={path} to /?=25.1&=56.9" in {
       val query = Some(List(ParamVarExp("", "path")))
-      UriTemplate(query = query).expandQuery("path", List("123", "456")) must
-        equalTo(UriTemplate(query = Some(List(ParamElm("", List("123", "456"))))))
+      UriTemplate(query = query).expandQuery("path", List(25.1F, 56.9F)) must
+        equalTo(UriTemplate(query = Some(List(ParamElm("", List("25.1", "56.9"))))))
     }
     "expand /orders{?start} to /orders?start=123&start=456" in {
       val exp = ParamExp("start")
@@ -673,7 +673,7 @@ object UriTemplateSpec extends Specification {
     }
     "expand nothing" in {
       val tpl = UriTemplate(query = Some(List(ParamExp("some"))))
-      tpl.expandQuery("unknown", List()) must equalTo(tpl)
+      tpl.expandQuery("unknown") must equalTo(tpl)
     }
   }
 

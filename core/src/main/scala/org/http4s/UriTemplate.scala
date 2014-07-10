@@ -4,6 +4,7 @@ import scala.collection.immutable
 import scala.collection.mutable
 import scala.collection.mutable.ListBuffer
 
+import Uri.AcceptableParamType
 import Uri.Authority
 import Uri.Host
 import Uri.IPv4
@@ -39,14 +40,14 @@ case class UriTemplate(
 
   /**
    * Replaces any expansion type that matches the given `name`. If no matching
-   * `expansion` could not be found the same instance will be returned.
+   * `expansion` could be found the same instance will be returned.
    */
   def expandAny(name: String, value: String): UriTemplate =
     expandPath(name, value).expandQuery(name, value).expandFragment(name, value)
 
   /**
    * Replaces any expansion type in `fragment` that matches the given `name`.
-   * If no matching `expansion` could not be found the same instance will be
+   * If no matching `expansion` could be found the same instance will be
    * returned.
    */
   def expandFragment(name: String, value: String): UriTemplate = {
@@ -56,41 +57,41 @@ case class UriTemplate(
 
   /**
    * Replaces any expansion type in `path` that matches the given `name`. If no
-   * matching `expansion` could not be found the same instance will be returned.
+   * matching `expansion` could be found the same instance will be returned.
    */
   def expandPath(name: String, values: List[String]): UriTemplate =
     copy(path = expandPathN(path, name, values))
 
   /**
    * Replaces any expansion type in `path` that matches the given `name`. If no
-   * matching `expansion` could not be found the same instance will be returned.
+   * matching `expansion` could be found the same instance will be returned.
    */
   def expandPath(name: String, value: String): UriTemplate =
     copy(path = expandPathN(path, name, List(value)))
 
   /**
    * Replaces any expansion type in `query` that matches the specified `name`.
-   * If no matching `expansion` could not be found the same instance will be
+   * If no matching `expansion` could be found the same instance will be
    * returned.
    */
-  def expandQuery(name: String, values: List[String]): UriTemplate = {
+  def expandQuery[T: AcceptableParamType](name: String, values: List[T]): UriTemplate = {
     if (query.isEmpty) this
-    else copy(query = expandQueryN(query, name, values))
+    else copy(query = expandQueryN(query, name, values.map(String.valueOf(_))))
   }
 
   /**
    * Replaces any expansion type in `query` that matches the specified `name`.
-   * If no matching `expansion` could not be found the same instance will be
+   * If no matching `expansion` could be found the same instance will be
    * returned.
    */
-  def expandQuery(name: String): UriTemplate = expandQuery(name, Nil)
+  def expandQuery(name: String): UriTemplate = expandQuery(name, List[String]())
 
   /**
    * Replaces any expansion type in `query` that matches the specified `name`.
-   * If no matching `expansion` could not be found the same instance will be
+   * If no matching `expansion` could be found the same instance will be
    * returned.
    */
-  def expandQuery(name: String, values: String*): UriTemplate = expandQuery(name, values.toList)
+  def expandQuery[T: AcceptableParamType](name: String, values: T*): UriTemplate = expandQuery(name, values.toList)
 
   override lazy val toString =
     renderUriTemplate(this)
