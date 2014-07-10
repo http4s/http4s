@@ -258,7 +258,7 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
       </a>
     </span>
       <p class="shortcomment cmt">Replaces any expansion type that matches the given <code>name</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Replaces any expansion type that matches the given <code>name</code>. If no matching
-<code>expansion</code> could not be found the same instance will be returned.
+<code>expansion</code> could be found the same instance will be returned.
 </p></div></div>
     </li><li name="org.http4s.UriTemplate#expandFragment" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="expandFragment(name:String,value:String):org.http4s.UriTemplate"></a>
@@ -277,7 +277,7 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
       </a>
     </span>
       <p class="shortcomment cmt">Replaces any expansion type in <code>fragment</code> that matches the given <code>name</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Replaces any expansion type in <code>fragment</code> that matches the given <code>name</code>.
-If no matching <code>expansion</code> could not be found the same instance will be
+If no matching <code>expansion</code> could be found the same instance will be
 returned.
 </p></div></div>
     </li><li name="org.http4s.UriTemplate#expandPath" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -297,7 +297,7 @@ returned.
       </a>
     </span>
       <p class="shortcomment cmt">Replaces any expansion type in <code>path</code> that matches the given <code>name</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Replaces any expansion type in <code>path</code> that matches the given <code>name</code>. If no
-matching <code>expansion</code> could not be found the same instance will be returned.
+matching <code>expansion</code> could be found the same instance will be returned.
 </p></div></div>
     </li><li name="org.http4s.UriTemplate#expandPath" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="expandPath(name:String,values:List[String]):org.http4s.UriTemplate"></a>
@@ -316,26 +316,26 @@ matching <code>expansion</code> could not be found the same instance will be ret
       </a>
     </span>
       <p class="shortcomment cmt">Replaces any expansion type in <code>path</code> that matches the given <code>name</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Replaces any expansion type in <code>path</code> that matches the given <code>name</code>. If no
-matching <code>expansion</code> could not be found the same instance will be returned.
+matching <code>expansion</code> could be found the same instance will be returned.
 </p></div></div>
     </li><li name="org.http4s.UriTemplate#expandQuery" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="expandQuery(name:String,values:String*):org.http4s.UriTemplate"></a>
-      <a id="expandQuery(String,String*):UriTemplate"></a>
+      <a id="expandQuery[T](name:String,values:T*)(implicitevidence$2:org.http4s.Uri.AcceptableParamType[T]):org.http4s.UriTemplate"></a>
+      <a id="expandQuery[T](String,T*)(AcceptableParamType[T]):UriTemplate"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">expandQuery</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="values">values: <span class="extype" name="scala.Predef.String">String</span>*</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.UriTemplate">UriTemplate</a></span>
+        <span class="name">expandQuery</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="values">values: <span class="extype" name="org.http4s.UriTemplate.expandQuery.T">T</span>*</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Uri$$AcceptableParamType.html" class="extype" name="org.http4s.Uri.AcceptableParamType">AcceptableParamType</a>[<span class="extype" name="org.http4s.UriTemplate.expandQuery.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.UriTemplate">UriTemplate</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.UriTemplate@expandQuery(name:String,values:String*):org.http4s.UriTemplate" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.UriTemplate@expandQuery[T](name:String,values:T*)(implicitevidence$2:org.http4s.Uri.AcceptableParamType[T]):org.http4s.UriTemplate" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Replaces any expansion type in <code>query</code> that matches the specified <code>name</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Replaces any expansion type in <code>query</code> that matches the specified <code>name</code>.
-If no matching <code>expansion</code> could not be found the same instance will be
+If no matching <code>expansion</code> could be found the same instance will be
 returned.
 </p></div></div>
     </li><li name="org.http4s.UriTemplate#expandQuery" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -355,27 +355,27 @@ returned.
       </a>
     </span>
       <p class="shortcomment cmt">Replaces any expansion type in <code>query</code> that matches the specified <code>name</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Replaces any expansion type in <code>query</code> that matches the specified <code>name</code>.
-If no matching <code>expansion</code> could not be found the same instance will be
+If no matching <code>expansion</code> could be found the same instance will be
 returned.
 </p></div></div>
     </li><li name="org.http4s.UriTemplate#expandQuery" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="expandQuery(name:String,values:List[String]):org.http4s.UriTemplate"></a>
-      <a id="expandQuery(String,List[String]):UriTemplate"></a>
+      <a id="expandQuery[T](name:String,values:List[T])(implicitevidence$1:org.http4s.Uri.AcceptableParamType[T]):org.http4s.UriTemplate"></a>
+      <a id="expandQuery[T](String,List[T])(AcceptableParamType[T]):UriTemplate"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">expandQuery</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="values">values: <span class="extype" name="scala.List">List</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.UriTemplate">UriTemplate</a></span>
+        <span class="name">expandQuery</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="values">values: <span class="extype" name="scala.List">List</span>[<span class="extype" name="org.http4s.UriTemplate.expandQuery.T">T</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Uri$$AcceptableParamType.html" class="extype" name="org.http4s.Uri.AcceptableParamType">AcceptableParamType</a>[<span class="extype" name="org.http4s.UriTemplate.expandQuery.T">T</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.UriTemplate">UriTemplate</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.UriTemplate@expandQuery(name:String,values:List[String]):org.http4s.UriTemplate" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.UriTemplate@expandQuery[T](name:String,values:List[T])(implicitevidence$1:org.http4s.Uri.AcceptableParamType[T]):org.http4s.UriTemplate" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Replaces any expansion type in <code>query</code> that matches the specified <code>name</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Replaces any expansion type in <code>query</code> that matches the specified <code>name</code>.
-If no matching <code>expansion</code> could not be found the same instance will be
+If no matching <code>expansion</code> could be found the same instance will be
 returned.
 </p></div></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
