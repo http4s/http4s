@@ -42,7 +42,7 @@ case class UriTemplate(
    * Replaces any expansion type that matches the given `name`. If no matching
    * `expansion` could be found the same instance will be returned.
    */
-  def expandAny(name: String, value: String): UriTemplate =
+  def expandAny[T: AcceptableParamType](name: String, value: T): UriTemplate =
     expandPath(name, value).expandQuery(name, value).expandFragment(name, value)
 
   /**
@@ -50,24 +50,24 @@ case class UriTemplate(
    * If no matching `expansion` could be found the same instance will be
    * returned.
    */
-  def expandFragment(name: String, value: String): UriTemplate = {
+  def expandFragment[T: AcceptableParamType](name: String, value: T): UriTemplate = {
     if (fragment.isEmpty) this
-    else copy(fragment = expandFragmentN(fragment, name, value))
+    else copy(fragment = expandFragmentN(fragment, name, String.valueOf(value)))
   }
 
   /**
    * Replaces any expansion type in `path` that matches the given `name`. If no
    * matching `expansion` could be found the same instance will be returned.
    */
-  def expandPath(name: String, values: List[String]): UriTemplate =
-    copy(path = expandPathN(path, name, values))
+  def expandPath[T: AcceptableParamType](name: String, values: List[T]): UriTemplate =
+    copy(path = expandPathN(path, name, values.map(String.valueOf(_))))
 
   /**
    * Replaces any expansion type in `path` that matches the given `name`. If no
    * matching `expansion` could be found the same instance will be returned.
    */
-  def expandPath(name: String, value: String): UriTemplate =
-    copy(path = expandPathN(path, name, List(value)))
+  def expandPath[T: AcceptableParamType](name: String, value: T): UriTemplate =
+    copy(path = expandPathN(path, name, List(String.valueOf(value))))
 
   /**
    * Replaces any expansion type in `query` that matches the specified `name`.
