@@ -2,10 +2,6 @@ package org.http4s
 
 import org.scalatest.{Matchers, WordSpec}
 
-/**
- * @author Bryce Anderson
- *         Created on 11/3/13
- */
 class HeaderSpec extends WordSpec with Matchers {
   "Headers" should {
     "Equate same headers" in {

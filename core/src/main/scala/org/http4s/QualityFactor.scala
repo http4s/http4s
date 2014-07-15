@@ -2,11 +2,6 @@ package org.http4s
 
 import org.http4s.util.{StringWriter, Writer, ValueRenderable}
 
-/**
- * @author Bryce Anderson
- *         Created on 12/26/13
- */
-
 trait QualityFactor {
 
   def q: Q

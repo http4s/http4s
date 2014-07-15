@@ -1,9 +1,5 @@
 package org.http4s.util
 
-/**
- * @author Bryce Anderson
- *         Created on 12/30/13
- */
 trait Renderable {
   def render[W <: Writer](writer: W): writer.type
 }

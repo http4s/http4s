@@ -23,10 +23,6 @@ import scala.util.Try
 import shapeless.{HNil, ::}
 import java.net.InetAddress
 
-/**
- * @author Bryce Anderson
- *         Created on 12/22/13
- */
 private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
   
   def EOL: Rule0 = rule { OptWS ~ EOI }  // Strip trailing whitespace

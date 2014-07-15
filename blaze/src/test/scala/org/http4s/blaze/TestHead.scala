@@ -5,9 +5,6 @@ import java.nio.ByteBuffer
 import scala.concurrent.{Promise, Future}
 import org.http4s.blaze.pipeline.Command.EOF
 
-/**
- * Created by Bryce Anderson on 3/28/14.
- */
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
   @volatile

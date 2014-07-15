@@ -3,10 +3,6 @@ package org.http4s.parser
 import org.http4s.{MediaType, MediaRange}
 import org.parboiled2._
 
-/**
- * @author Bryce Anderson
- *         Created on 12/23/13
- */
 private[parser] trait MediaParser { self: Http4sHeaderParser[_] =>
 
   def MediaRangeDef: Rule1[MediaRange] = rule {

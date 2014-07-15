@@ -8,10 +8,6 @@ import MediaRange._
 import MediaType._
 import scalaz.Validation
 
-/**
- * @author Bryce Anderson
- *         Created on 12/23/13
- */
 class AcceptHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Accept] {
 
 

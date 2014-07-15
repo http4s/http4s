@@ -5,10 +5,6 @@ import org.http4s.Header.`Accept-Charset`
 import scalaz.Validation
 import org.http4s.CharacterSet._
 
-/**
- * @author Bryce Anderson
- *         Created on 12/26/13
- */
 class AcceptCharsetSpec extends WordSpec with Matchers with HeaderParserHelper[`Accept-Charset`] {
 
   def hparse(value: String): Validation[ParseErrorInfo, `Accept-Charset`] = HttpParser.ACCEPT_CHARSET(value)

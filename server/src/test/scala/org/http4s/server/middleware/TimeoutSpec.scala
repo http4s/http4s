@@ -7,9 +7,6 @@ import org.scalatest.{Matchers, WordSpec}
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
 
-/**
- * Created by Bryce Anderson on 5/30/14.
- */
 class TimeoutSpec extends WordSpec with Matchers {
 
   val myservice: HttpService = {

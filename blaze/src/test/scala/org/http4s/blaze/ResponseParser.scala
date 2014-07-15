@@ -1,9 +1,6 @@
 package org.http4s
 package blaze
 
-/**
- * Created by Bryce Anderson on 3/28/14.
- */
 
 import http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer

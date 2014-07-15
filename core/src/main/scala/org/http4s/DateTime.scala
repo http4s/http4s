@@ -249,5 +249,5 @@ object DateTime {
   val UnixEpoch = DateTime(0L)
 
   def unapply(dt: DateTime): Option[(Int, Int, Int, Int, Int, Int)] =
-    Some(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
+    Some((dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second))
 }

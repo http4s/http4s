@@ -5,10 +5,6 @@ import org.scalatest.{Matchers, WordSpec}
 import org.http4s.Header.`Accept-Encoding`
 import scalaz.Validation
 
-/**
- * @author Bryce Anderson
- *         Created on 12/30/13
- */
 class AcceptEncodingSpec extends WordSpec with Matchers with HeaderParserHelper[`Accept-Encoding`] {
   def hparse(value: String): Validation[ParseErrorInfo, `Accept-Encoding`] = HttpParser.ACCEPT_ENCODING(value)
 

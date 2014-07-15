@@ -4,10 +4,6 @@ import org.scalatest.{Matchers, WordSpec}
 import org.http4s.MediaRange._
 import org.http4s.MediaType._
 
-/**
- * @author Bryce Anderson
- *         Created on 12/24/13
- */
 class MediaRangeSpec extends WordSpec with Matchers {
 
   def ext = Map("foo" -> "bar")

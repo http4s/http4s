@@ -10,9 +10,6 @@ import org.scalatest.{ Matchers, WordSpec }
 import scala.util.Success
 import org.parboiled2._
 
-/**
- * Created by Bryce Anderson on 3/18/14.
- */
 class IPV6Parser(val input: ParserInput, val charset: Charset) extends Parser with Rfc3986Parser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
 }

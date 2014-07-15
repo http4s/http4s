@@ -5,10 +5,6 @@ import org.http4s.Header.`Accept-Language`
 import scalaz.Validation
 import org.http4s.{Q, LanguageTag}
 
-/**
- * @author Bryce Anderson
- *         Created on 1/7/14
- */
 class AcceptLanguageSpec  extends WordSpec with Matchers with HeaderParserHelper[`Accept-Language`] {
 
   def hparse(value: String): Validation[ParseErrorInfo, `Accept-Language`] = HttpParser.ACCEPT_LANGUAGE(value)

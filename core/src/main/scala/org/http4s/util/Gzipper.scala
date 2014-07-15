@@ -3,11 +3,6 @@ package org.http4s.util
 import java.util.zip.{CRC32, Deflater}
 import java.nio.{ByteOrder, ByteBuffer}
 
-/**
- * @author Bryce Anderson
- *         Created on 12/1/13
- */
-
 /** A non-thread safe GZip helper
   * 
   * @param buffersize Initial size of the outputbuffer, but it will grow as needed

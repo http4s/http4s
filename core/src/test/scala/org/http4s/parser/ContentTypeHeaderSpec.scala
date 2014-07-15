@@ -6,10 +6,6 @@ import org.http4s.MediaType._
 import org.http4s.CharacterSet
 import scalaz.Validation
 
-/**
- * @author Bryce Anderson
- *         Created on 12/26/13
- */
 class ContentTypeHeaderSpec  extends WordSpec with Matchers with HeaderParserHelper[`Content-Type`] {
 
   def hparse(value: String): Validation[ParseErrorInfo, `Content-Type`] = HttpParser.CONTENT_TYPE(value)

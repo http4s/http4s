@@ -3,10 +3,6 @@ package org.http4s.parser
 import org.http4s.Header
 import scalaz.Validation
 
-/**
- * @author Bryce Anderson
- *         Created on 12/26/13
- */
 trait HeaderParserHelper[H <: Header] {
 
   def hparse(value: String): Validation[ParseErrorInfo, H]

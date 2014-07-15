@@ -4,11 +4,6 @@ package middleware
 
 import scalaz.concurrent.Task
 
-/**
- * @author Bryce Anderson
- *         Created on 3/9/13 at 10:43 AM
- */
-
 object URITranslation {
   def translateRoot(prefix: String)(service: HttpService): HttpService = new HttpService {
 

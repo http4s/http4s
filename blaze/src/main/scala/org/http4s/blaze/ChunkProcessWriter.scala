@@ -10,10 +10,6 @@ import org.http4s.util.StringWriter
 import scodec.bits.ByteVector
 import scalaz.{\/-, -\/}
 
-/**
- * @author Bryce Anderson
- *         Created on 1/10/14
- */
 class ChunkProcessWriter(private var headers: ByteBuffer, pipe: TailStage[ByteBuffer], trailer: Task[Headers])
                               (implicit val ec: ExecutionContext) extends ProcessWriter {
 

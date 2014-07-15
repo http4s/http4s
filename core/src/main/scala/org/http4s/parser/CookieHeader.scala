@@ -22,10 +22,6 @@ import org.http4s.{DateTime, Header, Cookie}
 import org.http4s.Header.`Set-Cookie`
 import shapeless.{HNil, ::}
 
-/**
- * @author Bryce Anderson
- *         Created on 2/9/14
- */
 private[parser] trait CookieHeader {
 
   def SET_COOKIE(value: String) = new SetCookieParser(value).parse

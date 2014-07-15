@@ -18,16 +18,11 @@
 package org.http4s
 package parser
 
-import org.http4s.Header
 import org.http4s.util.CaseInsensitiveString
 
 import scalaz.{Failure, Validation, Success}
 import org.http4s.util.string._
 
-/**
- * @author Bryce Anderson
- *         Created on 12/22/13
- */
 
 private[http4s] object HttpParser extends HttpParser
 
