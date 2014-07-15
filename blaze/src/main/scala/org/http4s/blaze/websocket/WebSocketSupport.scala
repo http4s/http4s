@@ -1,26 +1,23 @@
-package org.http4s.blaze
+package org.http4s
+package blaze
 package websocket
 
-import org.http4s._
 import http.websocket.{WSFrameAggregator, WebSocketDecoder, ServerHandshaker}
-import org.http4s.Header.{`Content-Length`, Connection}
+import Header.{`Content-Length`, Connection}
 import org.http4s.util.CaseInsensitiveString._
+import pipeline.LeafBuilder
 
-import scalaz.stream.Process
-import java.nio.ByteBuffer
-import java.nio.charset.StandardCharsets._
-import org.http4s.Response
-import scala.util.{Failure, Success}
-import org.http4s.blaze.pipeline.LeafBuilder
 import scodec.bits.ByteVector
 
+import scalaz.stream.Process
 
-/**
- * Created by Bryce Anderson on 3/30/14.
- */
+import java.nio.ByteBuffer
+import java.nio.charset.StandardCharsets._
+import scala.util.{Failure, Success}
+
 trait WebSocketSupport extends Http1Stage {
   override protected def renderResponse(req: Request, resp: Response): Unit = {
-    val ws = resp.attributes.get(org.http4s.websocket.websocketKey)
+    val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey)
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
     if (ws.isDefined) {

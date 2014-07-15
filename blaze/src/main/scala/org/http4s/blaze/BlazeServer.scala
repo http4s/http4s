@@ -1,16 +1,20 @@
 package org.http4s
 package blaze
 
+import pipeline.LeafBuilder
+import pipeline.stages.QuietTimeoutStage
+import channel.{SocketConnection, ServerChannel}
+import channel.nio1.SocketServerChannelFactory
+
+import server.{HttpService, HasIdleTimeout, ServerBuilder, Server}
+import server.middleware.URITranslation
+
 import java.net.InetSocketAddress
-import org.http4s.blaze.channel.{SocketConnection, ServerChannel}
-import org.http4s.server.{HasIdleTimeout, ServerBuilder, Server}
 import scala.concurrent.duration.Duration
-import scalaz.concurrent.Task
-import org.http4s.server.middleware.URITranslation
-import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
 import java.nio.ByteBuffer
-import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.QuietTimeoutStage
+
+import scalaz.concurrent.Task
+
 
 class BlazeServer private (serverChannel: ServerChannel) extends Server {
   override def start: Task[this.type] = Task.delay {

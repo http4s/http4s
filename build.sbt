@@ -15,7 +15,7 @@ lazy val jetty = project.dependsOn(servlet)
 
 lazy val tomcat = project.dependsOn(servlet)
 
-lazy val dsl = project.dependsOn(core)
+lazy val dsl = project.dependsOn(core, server % "test->compile")
 
 lazy val examples = project.dependsOn(blaze, jetty, tomcat, dsl)
 

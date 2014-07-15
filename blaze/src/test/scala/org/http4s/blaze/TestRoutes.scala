@@ -2,20 +2,13 @@ package org.http4s
 package blaze
 
 import org.http4s.Status.Ok
+import org.http4s.server.HttpService
+import org.http4s.Http4s._
+import org.http4s.Header._
+
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
-import java.nio.charset.StandardCharsets
 
-import org.http4s.Http4s._
-
-import org.http4s.Header._
-import org.http4s.MediaRange._
-import org.http4s.MediaType._
-
-
-/**
- * Created by Bryce Anderson on 3/28/14.
- */
 object TestRoutes {
 
   val textPlain: Header = `Content-Type`.`text/plain`.withCharset(CharacterSet.`UTF-8`)

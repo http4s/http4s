@@ -1,10 +1,11 @@
-package org.http4s.server.middleware
+package org.http4s
+package server
+package middleware
 
 import org.scalatest.{Matchers, WordSpec}
-import org.http4s._
-import scalaz.concurrent.Task
+
 import scala.concurrent.duration._
-import org.http4s.Response
+import scalaz.concurrent.Task
 
 /**
  * Created by Bryce Anderson on 5/30/14.

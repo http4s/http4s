@@ -1,14 +1,11 @@
 package org.http4s
-package org.http4s.server.middleware
+package server
+package middleware
 
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import java.util.concurrent.{TimeUnit, ScheduledThreadPoolExecutor}
 import scalaz.\/-
-
-/**
- * Created by Bryce Anderson on 5/30/14.
- */
 
 object Timeout {
 
@@ -23,7 +20,7 @@ object Timeout {
     /** Transform the service such to return whichever resolves first:
       * the provided Task[Response], or the result of the service
       * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
-      * @param service [[HttpService]] to transform
+      * @param service [[org.http4s.server.HttpService]] to transform
       */
   def apply(r: Task[Response]) (service: HttpService): HttpService = service.andThen { resp =>
     Task.taskInstance.chooseAny(resp, r::Nil).map(_._1)

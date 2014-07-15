@@ -7,28 +7,22 @@ import URITranslation.translateRootKey
 import scalaz.syntax.Ops
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-/**
- * @author Bryce Anderson
- *         Created on 11/5/13
- */
 
 object PushSupport extends LazyLogging {
 
-  trait PushSyntax {
-    implicit class PushOps(response: Task[Response]) {
-      def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
-        val newUrl = req.attributes.get(translateRootKey)
-          .map(f => f(url))
-          .getOrElse(url)
+  implicit class PushOps(response: Task[Response]) {
+    def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
+      val newUrl = req.attributes.get(translateRootKey)
+        .map(f => f(url))
+        .getOrElse(url)
 
-        val newPushResouces = response.attributes.get(pushLocationKey)
-          .map(_ :+ PushLocation(newUrl, cascade))
-          .getOrElse(Vector(PushLocation(newUrl,cascade)))
-        logger.trace(s"Adding push resource: $newUrl")
-        response.copy(
-          body = response.body,
-          attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
-      }
+      val newPushResouces = response.attributes.get(pushLocationKey)
+        .map(_ :+ PushLocation(newUrl, cascade))
+        .getOrElse(Vector(PushLocation(newUrl,cascade)))
+      logger.trace(s"Adding push resource: $newUrl")
+      response.copy(
+        body = response.body,
+        attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
     }
   }
 

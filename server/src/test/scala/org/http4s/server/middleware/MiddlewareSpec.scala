@@ -1,16 +1,13 @@
-package org.http4s.server.middleware
+package org.http4s
+package server
+package middleware
 
-import org.http4s._
 import org.scalatest.{Matchers, WordSpec}
-
-import scalaz.stream.Process
-import Process._
 import scodec.bits.ByteVector
 
-/**
-* @author Bryce Anderson
-* Created on 3/9/13 at 11:10 AM
-*/
+import scalaz.stream.Process._
+
+
 class MiddlewareSpec extends WordSpec with Matchers {
   import org.http4s.server.middleware.URITranslation._
 

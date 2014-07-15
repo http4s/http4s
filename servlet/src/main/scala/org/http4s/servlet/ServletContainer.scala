@@ -1,9 +1,9 @@
 package org.http4s
 package servlet
 
-import org.http4s.server.{HasAsyncTimeout, ServerBuilder, Server}
+import org.http4s.server.{HttpService, HasAsyncTimeout, ServerBuilder, Server}
+
 import javax.servlet.http.HttpServlet
-import javax.servlet.ServletContext
 
 import scala.concurrent.duration.Duration
 

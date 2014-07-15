@@ -1,12 +1,10 @@
 package org.http4s
+package server
 
 import scalaz.stream.Process
 import scalaz.concurrent.Task
 import Process._
 
-/**
- * Created by Bryce Anderson on 3/30/14.
- */
 package object websocket {
   val websocketKey = AttributeKey.http4s[Websocket]("websocket")
 
