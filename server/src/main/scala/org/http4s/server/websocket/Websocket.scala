@@ -1,4 +1,4 @@
-package org.http4s.websocket
+package org.http4s.server.websocket
 
 import scalaz.concurrent.Task
 import scalaz.stream.{Process, Sink}

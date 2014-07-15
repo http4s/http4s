@@ -10,9 +10,6 @@ import org.http4s.Header.`Content-Length`
 import scodec.bits.ByteVector
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-/**
- * Created by Bryce Anderson on 4/12/14.
- */
 class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], bufferSize: Int = 8*1024)
                               (implicit val ec: ExecutionContext)
                           extends ProcessWriter with LazyLogging {

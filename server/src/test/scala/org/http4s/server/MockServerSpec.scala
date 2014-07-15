@@ -1,13 +1,13 @@
-
 package org.http4s
+package server
 
-
-import org.scalatest.{WordSpec, Matchers}
-import org.http4s.middleware.PushSupport
-import scalaz.stream.Process._
-import org.http4s.MockServer.MockResponse
-import scalaz.concurrent.Task
+import org.http4s.server.MockServer._
+import org.http4s.server.middleware.PushSupport
+import org.scalatest.{Matchers, WordSpec}
 import scodec.bits.ByteVector
+
+import scalaz.concurrent.Task
+import scalaz.stream.Process._
 
 class MockServerSpec extends WordSpec with Matchers {
 

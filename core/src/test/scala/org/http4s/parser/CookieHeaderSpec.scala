@@ -5,10 +5,6 @@ import org.http4s.Header.{`Set-Cookie`}
 import scalaz.Validation
 import org.http4s.{Header, Cookie}
 
-/**
- * @author Bryce Anderson
- *         Created on 2/9/14
- */
 class SetCookieHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[`Set-Cookie`] {
   def hparse(value: String): Validation[ParseErrorInfo, `Set-Cookie`] = HttpParser.SET_COOKIE(value)
 

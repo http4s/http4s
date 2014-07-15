@@ -22,10 +22,6 @@ import org.parboiled2._
 import org.http4s.Header.`Accept-Language`
 import org.http4s.{LanguageTag, Q}
 
-/**
- * @author Bryce Anderson
- *         Created on 1/7/14
- */
 private[parser] trait AcceptLanguageHeader {
 
   def ACCEPT_LANGUAGE(value: String) = new AcceptLanguageParser(value).parse

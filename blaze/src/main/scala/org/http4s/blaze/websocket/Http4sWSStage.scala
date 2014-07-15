@@ -1,10 +1,11 @@
-package org.http4s.blaze
+package org.http4s
+package blaze
 package websocket
 
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
-import org.http4s.{websocket => ws4s}
+import org.http4s.server.{websocket => ws4s}
 
 import scalaz.stream.Process
 import scalaz.stream.Process._
@@ -15,10 +16,6 @@ import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import pipeline.Command.EOF
 import http.websocket.WebSocketDecoder
 import http.websocket.WebSocketDecoder._
-
-/**
- * Created by Bryce Anderson on 3/30/14.
- */
 
 
 

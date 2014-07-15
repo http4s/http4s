@@ -7,10 +7,6 @@ import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-/**
- * @author Bryce Anderson
- *         Created on 1/10/14
- */
 class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[ByteBuffer])
                   (implicit val ec: ExecutionContext)
                               extends ProcessWriter with LazyLogging {

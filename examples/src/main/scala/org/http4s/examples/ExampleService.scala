@@ -1,5 +1,7 @@
 package org.http4s.examples
 
+import org.http4s.server.HttpService
+
 import scalaz.concurrent.Task
 import scalaz.stream.Process, Process.{Get => _, _}
 import scala.concurrent.{ExecutionContext, Future}
@@ -8,6 +10,8 @@ import org.http4s.dsl._
 import scodec.bits.ByteVector
 
 object ExampleService extends Http4s {
+  import org.http4s.server.middleware.PushSupport._
+
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
   val MyVar = AttributeKey[Int]("org.http4s.examples.myVar")
 

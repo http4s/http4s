@@ -1,11 +1,7 @@
 package org.http4s
 package blaze
 
-/**
- * @author Bryce Anderson
- *         Created on 1/10/14
- */
-
+import server.HttpService
 import pipeline.{Command => Cmd, TailStage}
 import util.Execution._
 
@@ -16,6 +12,7 @@ import scala.concurrent.Future
 import scala.collection.mutable.ListBuffer
 import scala.util.{Try, Success, Failure}
 
+import org.http4s.blaze.channel.SocketConnection
 import org.http4s.Status.{NoEntityResponseGenerator, InternalServerError, NotFound}
 import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
@@ -31,7 +28,6 @@ import scalaz.{\/-, -\/}
 import org.parboiled2.ParseError
 import java.util.concurrent.ExecutorService
 import scodec.bits.ByteVector
-import org.http4s.blaze.channel.SocketConnection
 
 
 class Http1Stage(service: HttpService, conn: Option[SocketConnection])

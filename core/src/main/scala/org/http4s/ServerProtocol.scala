@@ -31,7 +31,7 @@ object ServerProtocol extends Registry {
   object HttpVersion {
     def unapply(serverProtocol: ServerProtocol): Option[(Int, Int)] = serverProtocol match {
       case http: HttpVersion => unapply(http)
-      case INCLUDED => Some(1, 0)
+      case INCLUDED => Some(1 -> 0)
       case _ => None
     }
   }

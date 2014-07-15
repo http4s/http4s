@@ -13,10 +13,6 @@ import scala.concurrent.duration._
 import org.http4s.util.string._
 import org.http4s.CacheDirective
 
-/**
- * @author Bryce Anderson
- *         Created on 1/29/14
- */
 class CacheControlSpec extends WordSpec with Matchers with HeaderParserHelper[`Cache-Control`] {
   def hparse(value: String): Validation[ParseErrorInfo, `Cache-Control`] = HttpParser.CACHE_CONTROL(value)
 

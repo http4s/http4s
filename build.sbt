@@ -5,15 +5,17 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 lazy val core = project
 
-lazy val blaze = project.dependsOn(core)
+lazy val server = project.dependsOn(core)
 
-lazy val servlet = project.dependsOn(core)
+lazy val blaze = project.dependsOn(server)
+
+lazy val servlet = project.dependsOn(server)
 
 lazy val jetty = project.dependsOn(servlet)
 
 lazy val tomcat = project.dependsOn(servlet)
 
-lazy val dsl = project.dependsOn(core)
+lazy val dsl = project.dependsOn(core, server % "test->compile")
 
 lazy val examples = project.dependsOn(blaze, jetty, tomcat, dsl)
 

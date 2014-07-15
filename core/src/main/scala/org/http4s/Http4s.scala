@@ -4,7 +4,6 @@ trait Http4s extends HttpBodyFunctions
   with MessageSyntax
   with StatusInstances
   with WritableInstances
-  with middleware.PushSupport.PushSyntax
   with util.CaseInsensitiveStringSyntax
   with util.TaskInstances
 

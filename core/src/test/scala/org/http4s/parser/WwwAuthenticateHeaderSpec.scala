@@ -7,10 +7,6 @@ import org.http4s.Challenge
 import scala.Predef._
 import org.http4s.Challenge
 
-/**
- * @author Bryce Anderson
- *         Created on 1/29/14
- */
 class WwwAuthenticateHeaderSpec  extends WordSpec with Matchers with HeaderParserHelper[`WWW-Authenticate`] {
   def hparse(value: String): Validation[ParseErrorInfo, `WWW-Authenticate`] = HttpParser.WWW_AUTHENTICATE(value)
 

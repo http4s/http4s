@@ -7,10 +7,6 @@ import org.http4s.Header.Raw
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string._
 
-/**
- * @author Bryce Anderson
- *         Created on 11/3/13
- */
 sealed trait HeaderKey {
   type HeaderT <: Header
 

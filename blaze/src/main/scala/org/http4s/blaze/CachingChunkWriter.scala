@@ -8,9 +8,6 @@ import scalaz.concurrent.Task
 import scodec.bits.ByteVector
 
 
-/**
- * Created by Bryce Anderson on 4/12/14.
- */
 class CachingChunkWriter(headers: ByteBuffer,
                          pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers],

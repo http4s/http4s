@@ -5,10 +5,6 @@ import org.http4s.Header.`Accept-Ranges`
 import scalaz.Validation
 import org.http4s.RangeUnit
 
-/**
- * @author Bryce Anderson
- *         Created on 12/26/13
- */
 class AcceptRangesSpec  extends WordSpec with Matchers with HeaderParserHelper[`Accept-Ranges`] {
 
   def hparse(value: String) = HttpParser.ACCEPT_RANGES(value)

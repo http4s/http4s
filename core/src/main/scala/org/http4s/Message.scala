@@ -128,8 +128,17 @@ case class Request(
 
   lazy val remoteUser: Option[String] = None
 
-  lazy val serverName = (requestUri.host orElse headers.get(Header.Host).map(_.host) getOrElse InetAddress.getLocalHost.getHostName)
-  lazy val serverPort = (requestUri.port orElse headers.get(Header.Host).map(_.port) getOrElse 80)
+  lazy val serverName: String = {
+    requestUri.host.map(_.value)
+      .orElse(headers.get(Header.Host).map(_.host))
+      .getOrElse(InetAddress.getLocalHost.getHostName)
+  }
+
+  lazy val serverPort: Int = {
+    requestUri.port
+      .orElse(headers.get(Header.Host).flatMap(_.port))
+      .getOrElse(80)
+  }
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 

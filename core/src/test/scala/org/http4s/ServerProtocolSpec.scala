@@ -52,11 +52,11 @@ class ServerProtocolSpec extends WordSpec with Matchers {
 
   "HttpVersion extractor" should {
     "recognize HttpVersions" in {
-      HttpVersion.unapply(`HTTP/1.1`: ServerProtocol) should equal (Some(1, 1))
+      HttpVersion.unapply(`HTTP/1.1`: ServerProtocol) should equal (Some(1 -> 1))
     }
 
     "treat INCLUDED as HTTP/1.0" in {
-      HttpVersion.unapply(INCLUDED) should equal (Some(1, 0))
+      HttpVersion.unapply(INCLUDED) should equal (Some(1 -> 0))
     }
 
     "treat extension versions as not HTTP" in {

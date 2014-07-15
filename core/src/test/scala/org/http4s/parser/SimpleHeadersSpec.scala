@@ -7,10 +7,6 @@ import Header._
 import scalaz.{NonEmptyList, Success}
 import java.net.InetAddress
 
-/**
- * @author Bryce Anderson
- *         Created on 12/22/13
- */
 class SimpleHeadersSpec extends WordSpec with Matchers {
 
   "SimpleHeaders" should {

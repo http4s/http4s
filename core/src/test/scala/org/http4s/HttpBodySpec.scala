@@ -1,9 +1,10 @@
-
 package org.http4s
 
 import scala.language.postfixOps
 import org.xml.sax.SAXParseException
 import scodec.bits.ByteVector
+
+import scalaz.concurrent.Task
 
 // the http4s team resents importing this.
 
@@ -15,29 +16,28 @@ import org.scalatest.{Matchers, WordSpec}
 import scalaz.stream.Process._
 import HttpBody._
 
-/**
- * @author Bryce Anderson
- * Created on 2/14/13 at 8:44 PM
- */
 
 class HttpBodySpec extends WordSpec with Matchers {
+
+  def getBody(body: HttpBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
+
   "xml" should {
 
-    val server = new MockServer({
-      case req => xml(req).flatMap{ elem => Ok(elem.label) }
+    val server: Request => Task[Response] = { req =>
+      xml(req).flatMap{ elem => Ok(elem.label) }
                     .handle{ case t: SAXParseException => Status.BadRequest().run }
-    })
+    }
 
     "parse the XML" in {
       val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
-      resp.statusLine should equal(Status.Ok)
-      resp.body should equal ("html".getBytes)
+      resp.status should equal(Status.Ok)
+      getBody(resp.body) should equal ("html".getBytes)
     }
 
     "handle a parse failure" in {
       val body = emit("This is not XML.").map(s => ByteVector(s.getBytes))
       val resp = server(Request(body = body)).run
-      resp.statusLine should equal (Status.BadRequest)
+      resp.status should equal (Status.BadRequest)
     }
   }
 
@@ -58,9 +58,8 @@ class HttpBodySpec extends WordSpec with Matchers {
       data.foldLeft("")(_ + _)
     }
 
-    def mocServe(req: Request)(route: HttpService) = {
-      val server = new MockServer(route)
-      server(req.copy(body = emit(binData).map(ByteVector(_))))
+    def mocServe(req: Request)(route: Request => Task[Response]) = {
+      route(req.copy(body = emit(binData).map(ByteVector(_))))
     }
 
     "Write a text file from a byte string" in {
@@ -73,8 +72,8 @@ class HttpBodySpec extends WordSpec with Matchers {
       }.run
 
       readTextFile(tmpFile) should equal (new String(binData))
-      response.statusLine should equal (Status.Ok)
-      response.body should equal ("Hello".getBytes)
+      response.status should equal (Status.Ok)
+      getBody(response.body) should equal ("Hello".getBytes)
     }
 
     "Write a binary file from a byte string" in {
@@ -83,8 +82,8 @@ class HttpBodySpec extends WordSpec with Matchers {
         case req => binFile(req, tmpFile)(Ok("Hello"))
       }.run
 
-      response.statusLine should equal (Status.Ok)
-      response.body should equal ("Hello".getBytes)
+      response.status should equal (Status.Ok)
+      getBody(response.body) should equal ("Hello".getBytes)
       readFile(tmpFile) should equal (binData)
     }
   }

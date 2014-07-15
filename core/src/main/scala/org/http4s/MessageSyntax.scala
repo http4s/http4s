@@ -3,10 +3,6 @@ package org.http4s
 import scalaz.concurrent.Task
 import org.http4s.Header.{`Set-Cookie`, `Content-Type`}
 
-/**
- * Created by Bryce Anderson on 3/25/14.
- */
-
 object MessageSyntax extends MessageSyntax
 
 trait MessageSyntax {

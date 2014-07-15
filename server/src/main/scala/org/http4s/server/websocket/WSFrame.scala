@@ -1,4 +1,4 @@
-package org.http4s.websocket
+package org.http4s.server.websocket
 
 sealed trait WSFrame
 case class Text(msg: String) extends WSFrame

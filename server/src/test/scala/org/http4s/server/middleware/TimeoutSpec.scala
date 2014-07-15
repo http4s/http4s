@@ -1,14 +1,12 @@
-package org.http4s.middleware
+package org.http4s
+package server
+package middleware
 
 import org.scalatest.{Matchers, WordSpec}
-import org.http4s._
-import scalaz.concurrent.Task
-import scala.concurrent.duration._
-import org.http4s.Response
 
-/**
- * Created by Bryce Anderson on 5/30/14.
- */
+import scala.concurrent.duration._
+import scalaz.concurrent.Task
+
 class TimeoutSpec extends WordSpec with Matchers {
 
   val myservice: HttpService = {

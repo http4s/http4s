@@ -5,7 +5,8 @@ import org.http4s._
 import org.http4s.Status._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.Http1Stage
-import org.http4s.middleware.URITranslation
+import org.http4s.server.HttpService
+import org.http4s.server.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
 import org.http4s.blaze.websocket.WebSocketSupport
 
@@ -14,13 +15,10 @@ import java.net.InetSocketAddress
 import org.http4s.blaze.channel.SocketConnection
 
 
-/**
- * Created by Bryce Anderson on 3/30/14.
- */
 object BlazeWebSocketExample extends App {
 
   import dsl._
-  import websocket._
+  import org.http4s.server.websocket._
   import scala.concurrent.duration._
   import scalaz.stream.Process
   import Process.Sink

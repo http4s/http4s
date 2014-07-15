@@ -4,9 +4,6 @@ import org.scalatest.{Matchers, WordSpec}
 import Header._
 import org.http4s.util.CaseInsensitiveString._
 
-/**
- * Created by Bryce Anderson on 6/14/14.
- */
 class HeadersSpec extends WordSpec with Matchers {
 
   val clength = `Content-Length`(10)

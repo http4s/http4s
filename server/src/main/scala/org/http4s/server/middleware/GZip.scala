@@ -1,4 +1,5 @@
 package org.http4s
+package server
 package middleware
 
 import scalaz.stream.Process._
@@ -9,11 +10,6 @@ import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, 
 import util.Gzipper
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-
-/**
- * @author Bryce Anderson
- *         Created on 11/30/13
- */
 object GZip extends LazyLogging {
   /** Streaming GZip Process1 */
   def streamingGZip(buffersize: Int): Process1[ByteVector, ByteVector] = {

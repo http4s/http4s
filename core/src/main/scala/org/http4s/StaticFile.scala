@@ -19,11 +19,6 @@ import scodec.bits.ByteVector
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
 
-/**
- * @author Bryce Anderson
- *         Created on 12/18/13
- */
-
 object StaticFile extends LazyLogging {
 
   val DEFAULT_BUFFSIZE = Http4sConfig.getInt("org.http4s.staticfile.default-buffersize")    // 10KB

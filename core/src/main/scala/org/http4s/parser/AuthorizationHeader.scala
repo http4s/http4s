@@ -22,10 +22,6 @@ import org.parboiled2.{Rule0, Rule1, ParserInput}
 import org.http4s.Header.Authorization
 import org.http4s.util.CaseInsensitiveString._
 
-/**
- * @author Bryce Anderson
- *         Created on 2/9/14
- */
 private[parser] trait AuthorizationHeader {
 
   def AUTHORIZATION(value: String) = new AuthorizationParser(value).parse

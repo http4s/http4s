@@ -24,11 +24,6 @@ import org.http4s.CacheDirective._
 import org.http4s.util.string._
 import scala.concurrent.duration._
 
-
-/**
- * @author Bryce Anderson
- *         Created on 1/29/14
- */
 private[parser] trait CacheControlHeader {
 
   def CACHE_CONTROL(value: String) = new CacheControlParser(value).parse
