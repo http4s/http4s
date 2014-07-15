@@ -47,8 +47,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Created by Bryce Anderson on 3/30/14.
-</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="org.http4s.blaze.http.websocket.WebSocketDecoder.WebSocketFrame">WebSocketFrame</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="org.http4s.blaze.http.websocket.WebSocketDecoder.WebSocketFrame">WebSocketFrame</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <span class="extype" name="com.typesafe.scalalogging.slf4j.StrictLogging">StrictLogging</span>, <span class="extype" name="com.typesafe.scalalogging.Logging">Logging</span>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -89,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.blaze.websocket.Http4sWSStage#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(ws:org.http4s.websocket.Websocket):org.http4s.blaze.websocket.Http4sWSStage"></a>
+      <a id="&lt;init&gt;(ws:org.http4s.server.websocket.Websocket):org.http4s.blaze.websocket.Http4sWSStage"></a>
       <a id="&lt;init&gt;:Http4sWSStage"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -97,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Http4sWSStage</span><span class="params">(<span name="ws">ws: <span class="extype" name="org.http4s.websocket.Websocket">Websocket</span></span>)</span>
+        <span class="name">Http4sWSStage</span><span class="params">(<span name="ws">ws: <span class="extype" name="org.http4s.server.websocket.Websocket">Websocket</span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.websocket.Http4sWSStage@&lt;init&gt;(ws:org.http4s.websocket.Websocket):org.http4s.blaze.websocket.Http4sWSStage" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.blaze.websocket.Http4sWSStage@&lt;init&gt;(ws:org.http4s.server.websocket.Websocket):org.http4s.blaze.websocket.Http4sWSStage" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
@@ -433,7 +432,7 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Stage</dd></dl></div>
     </li><li name="org.http4s.blaze.websocket.Http4sWSStage#inputstream" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="inputstream:scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.websocket.WSFrame]"></a>
+      <a id="inputstream:scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.server.websocket.WSFrame]"></a>
       <a id="inputstream:Process[Task,WSFrame]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -441,10 +440,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">inputstream</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="../../websocket/WSFrame.html" class="extype" name="org.http4s.websocket.WSFrame">WSFrame</a>]</span>
+        <span class="name">inputstream</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="../../server/websocket/WSFrame.html" class="extype" name="org.http4s.server.websocket.WSFrame">WSFrame</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.websocket.Http4sWSStage@inputstream:scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.websocket.WSFrame]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.blaze.websocket.Http4sWSStage@inputstream:scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.server.websocket.WSFrame]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
@@ -586,7 +585,7 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
     </li><li name="org.http4s.blaze.websocket.Http4sWSStage#sink" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="sink:scalaz.stream.Process.Sink[scalaz.concurrent.Task,org.http4s.websocket.WSFrame]"></a>
+      <a id="sink:scalaz.stream.Process.Sink[scalaz.concurrent.Task,org.http4s.server.websocket.WSFrame]"></a>
       <a id="sink:Sink[Task,WSFrame]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -594,10 +593,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">sink</span><span class="result">: <span class="extype" name="scalaz.stream.Process.Sink">Sink</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="../../websocket/WSFrame.html" class="extype" name="org.http4s.websocket.WSFrame">WSFrame</a>]</span>
+        <span class="name">sink</span><span class="result">: <span class="extype" name="scalaz.stream.Process.Sink">Sink</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="../../server/websocket/WSFrame.html" class="extype" name="org.http4s.server.websocket.WSFrame">WSFrame</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.websocket.Http4sWSStage@sink:scalaz.stream.Process.Sink[scalaz.concurrent.Task,org.http4s.websocket.WSFrame]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.blaze.websocket.Http4sWSStage@sink:scalaz.stream.Process.Sink[scalaz.concurrent.Task,org.http4s.server.websocket.WSFrame]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>

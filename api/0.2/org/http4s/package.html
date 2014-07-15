@@ -367,7 +367,7 @@ Note that this implementation discards milliseconds (i.e. rounds down to full se
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p>
+      
     </li><li name="org.http4s.Headers" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HeadersextendsSeq[org.http4s.Header]withSeqLike[org.http4s.Header,org.http4s.Headers]"></a>
       <a id="Headers:Headers"></a>
@@ -386,7 +386,7 @@ Note that this implementation discards milliseconds (i.e. rounds down to full se
     </span>
       <p class="shortcomment cmt">A collection of HTTP Headers</p>
     </li><li name="org.http4s.Http4s" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Http4sextendsHttpBodyFunctionswithMessageSyntaxwithStatusInstanceswithWritableInstanceswithPushSupport.PushSyntaxwithCaseInsensitiveStringSyntaxwithTaskInstances"></a>
+      <a id="Http4sextendsHttpBodyFunctionswithMessageSyntaxwithStatusInstanceswithWritableInstanceswithCaseInsensitiveStringSyntaxwithTaskInstances"></a>
       <a id="Http4s:Http4s"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -394,10 +394,10 @@ Note that this implementation discards milliseconds (i.e. rounds down to full se
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Http4s.html"><span class="name">Http4s</span></a><span class="result"> extends <a href="HttpBodyFunctions.html" class="extype" name="org.http4s.HttpBodyFunctions">HttpBodyFunctions</a> with <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> with <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a> with <a href="middleware/PushSupport$$PushSyntax.html" class="extype" name="org.http4s.middleware.PushSupport.PushSyntax">PushSyntax</a> with <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="util/TaskInstances.html" class="extype" name="org.http4s.util.TaskInstances">TaskInstances</a></span>
+        <a href="Http4s.html"><span class="name">Http4s</span></a><span class="result"> extends <a href="HttpBodyFunctions.html" class="extype" name="org.http4s.HttpBodyFunctions">HttpBodyFunctions</a> with <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> with <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a> with <a href="util/CaseInsensitiveStringSyntax.html" class="extype" name="org.http4s.util.CaseInsensitiveStringSyntax">CaseInsensitiveStringSyntax</a> with <a href="util/TaskInstances.html" class="extype" name="org.http4s.util.TaskInstances">TaskInstances</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@Http4sextendsHttpBodyFunctionswithMessageSyntaxwithStatusInstanceswithWritableInstanceswithPushSupport.PushSyntaxwithCaseInsensitiveStringSyntaxwithTaskInstances" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@Http4sextendsHttpBodyFunctionswithMessageSyntaxwithStatusInstanceswithWritableInstanceswithCaseInsensitiveStringSyntaxwithTaskInstances" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -471,25 +471,6 @@ Note that this implementation discards milliseconds (i.e. rounds down to full se
       </a>
     </span>
       
-    </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]"></a>
-      <a id="HttpService:HttpService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">HttpService</span><span class="result"> = <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.PartialFunction" class="extype" target="_top">PartialFunction</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">A PartialFunction which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>A PartialFunction which defines the transformation of <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> to a scalaz.concurrent.Task[Response]
-containing the <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>
-</p></div></div>
     </li><li name="org.http4s.LanguageTag" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="LanguageTagextendsRenderablewithProductwithSerializable"></a>
       <a id="LanguageTag:LanguageTag"></a>
@@ -596,23 +577,6 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       <p class="shortcomment cmt">An HTTP method.</p><div class="fullcomment"><div class="comment cmt"><p>An HTTP method.
 </p></div><dl class="paramcmts block"><dt class="param">name</dt><dd class="cmt"><p>the name of the method.
 </p></dd></dl></div>
-    </li><li name="org.http4s.MockServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MockServerextendsAnyRef"></a>
-      <a id="MockServer:MockServer"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="MockServer.html"><span class="name">MockServer</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@MockServerextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="org.http4s.OAuth2BearerToken" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="OAuth2BearerTokenextendsCredentialswithProductwithSerializable"></a>
       <a id="OAuth2BearerToken:OAuth2BearerToken"></a>
@@ -680,7 +644,7 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p>
+      
     </li><li name="org.http4s.RangeUnit" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="RangeUnitextendsRenderable"></a>
       <a id="RangeUnit:RangeUnit"></a>
@@ -716,7 +680,7 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
     </span>
       <p class="shortcomment cmt">Representation of an incoming HTTP message</p><div class="fullcomment"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body. A Request will be the only argument
-for a <a href="#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.
+for a <span class="extype" name="HttpService">HttpService</span>.
 </p></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">protocol</dt><dd class="cmt"><p>HTTP protocol, eg ServerProtocol.<code>HTTP/1.1</code></p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
 </p></dd></dl></div>
     </li><li name="org.http4s.RequestCookieJar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
@@ -755,7 +719,7 @@ for a <a href="#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent
       <p class="shortcomment cmt">Representation of the HTTP response to send back to the client
 </p><div class="fullcomment"><div class="comment cmt"><p>Representation of the HTTP response to send back to the client
 </p></div><dl class="paramcmts block"><dt class="param">status</dt><dd class="cmt"><p><a href="Status.html" class="extype" name="org.http4s.Status">Status</a> code and message</p></dd><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing all response headers</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></dd><dt class="param">attributes</dt><dd class="cmt"><p><a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> containing additional parameters which may be used by the http4s
-                  backend for additional processing such as <a href="websocket/package.html#websocketKey:org.http4s.AttributeKey[org.http4s.websocket.Websocket]" class="extmbr" name="org.http4s.websocket#websocketKey">websocket.websocketKey</a> or java.io.File objects
+                  backend for additional processing such as <span class="extype" name="websocket.websocketKey">websocket.websocketKey</span> or java.io.File objects
 </p></dd></dl></div>
     </li><li name="org.http4s.ServerProtocol" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ServerProtocolextendsAnyRef"></a>
@@ -1217,23 +1181,6 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </a>
     </span>
       
-    </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="HttpService"></a>
-      <a id="HttpService:HttpService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="HttpService$.html"><span class="name">HttpService</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@HttpService" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="org.http4s.LanguageTag" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="LanguageTag"></a>
       <a id="LanguageTag:LanguageTag"></a>
@@ -1318,7 +1265,7 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Created by Bryce Anderson on 3/25/14.</p>
+      
     </li><li name="org.http4s.Method" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Method"></a>
       <a id="Method:Method"></a>
@@ -1332,23 +1279,6 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@Method" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.MockServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MockServer"></a>
-      <a id="MockServer:MockServer"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="MockServer$.html"><span class="name">MockServer</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@MockServer" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -1471,7 +1401,7 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p>
+      
     </li><li name="org.http4s.Status" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Status"></a>
       <a id="Status:Status"></a>
@@ -1608,23 +1538,6 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </a>
     </span>
       
-    </li><li name="org.http4s.middleware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="middleware"></a>
-      <a id="middleware:middleware"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a href="middleware/package.html"><span class="name">middleware</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@middleware" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="org.http4s.parser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="parser"></a>
       <a id="parser:parser"></a>
@@ -1641,7 +1554,7 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Created by Bryce Anderson on 4/5/14.</p>
+      
     </li><li name="org.http4s.server" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="server"></a>
       <a id="server:server"></a>
@@ -1710,23 +1623,6 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </a>
     </span>
       
-    </li><li name="org.http4s.websocket" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="websocket"></a>
-      <a id="websocket:websocket"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">package</span>
-      </span>
-      <span class="symbol">
-        <a href="websocket/package.html"><span class="name">websocket</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@websocket" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Created by Bryce Anderson on 3/30/14.</p>
     </li></ol>
             </div>
 

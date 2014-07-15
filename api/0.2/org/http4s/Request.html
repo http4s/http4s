@@ -49,7 +49,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body. A Request will be the only argument
-for a <a href="package.html#HttpService=PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.
+for a <span class="extype" name="HttpService">HttpService</span>.
 </p></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">protocol</dt><dd class="cmt"><p>HTTP protocol, eg ServerProtocol.<code>HTTP/1.1</code></p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
 </p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
@@ -863,35 +863,35 @@ an empty <code>Map</code> is returned.
     </span>
       
     </li><li name="org.http4s.Request#serverName" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="serverName:Object"></a>
-      <a id="serverName:AnyRef"></a>
+      <a id="serverName:String"></a>
+      <a id="serverName:String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">serverName</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">serverName</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@serverName:Object" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@serverName:String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       
     </li><li name="org.http4s.Request#serverPort" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="serverPort:Any"></a>
-      <a id="serverPort:Any"></a>
+      <a id="serverPort:Int"></a>
+      <a id="serverPort:Int"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">serverPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>
+        <span class="name">serverPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@serverPort:Any" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@serverPort:Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
