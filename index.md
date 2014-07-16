@@ -16,7 +16,7 @@ of helpers to facilitate the creation of the `Task[Response]` from common result
 // A simple route definition using the optional http4s DSL
 val service: HttpService = {
   //  We use the micro DSL to match the path of the Request to the familiar uri form
-  case Get -> Root / "hello" =>
+  case GET -> Root / "hello" =>
     // We could make a Task[Response] manually, but we use the
     // EntityResponseGenerator 'Ok' for convenience
     Ok("Hello, better world.")
@@ -54,10 +54,10 @@ def getData(req: Request): Process[Task, String] = ???
 
 val service: HttpService = {
   // Wire your data into your service
-  case Get -> Root / "streaming" => Ok(getData(req))
+  case GET -> Root / "streaming" => Ok(getData(req))
 
   // You can use helpers to send any type of data with an available Writable[T]
-  case Get -> Root / "synchronous" => Ok("This is good to go right now.")
+  case GET -> Root / "synchronous" => Ok("This is good to go right now.")
 }
 ```
 
@@ -65,13 +65,13 @@ http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a cen
 
 ```scala
 val route: HttpService = {
-  case req@ Get -> Root / "ws" =>
-    // Send a Text message with payload 'Ping! delay' every second
+  case req@ GET -> Root / "ws" =>
+    // Send a Text message with payload 'Ping!' every second
     val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
 
     // Print received Text frames, and, on completion, notify the console
     val sink: Sink[Task, WSFrame] = Process.constant {
-      case Text(t) => Task.delay( println(t))
+      case Text(t) => Task.delay(println(t))
       case f       => Task.delay(println(s"Unknown type: $f"))
     }.onComplete(Process.eval(Task{ println("Terminated!")}).drain)
 
@@ -79,7 +79,7 @@ val route: HttpService = {
     // needed for the backend to upgrade to a WebSocket connection
     WS(src, sink)
 
-  case req @ Get -> Root / "wsecho" =>
+  case req @ GET -> Root / "wsecho" =>
     // a scalaz topic acts as a hub to publish and subscribe to messages safely
     val t = topic[WSFrame]
     val src = t.subscribe.collect{ case Text(msg) => Text("You sent the server: " + msg) }
@@ -113,20 +113,17 @@ object BlazeWebSocketExample extends App {
 http4s is committed to first-class support of the Servlet API.  Develop and deploy services on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
 
 ```scala
-object ServletExample extends App {
-  val server = new Server(8080)
-  val context = new ServletContextHandler()
-  context.setContextPath("/")
-  server.setHandler(context)
-  context.addServlet(new ServletHolder(service), "/http4s/*")
-  server.start()
-  server.join()
+object JettyExample extends App {
+  JettyServer.newBuilder
+    .mountService(ExampleService.service, "/http4s")
+    .run()
+    .join()
 }
 ```
 
 ## Get it! ##
 
-Artifacts for scala 2.10 are available from Maven Central:
+Artifacts for scala 2.10 and 2.11 are available from Maven Central:
 ```scala
 libraryDependencies += "org.http4s" %% "http4s-core"  % version
 ```
@@ -150,7 +147,7 @@ $ sbt examples/run
 
 * [GitHub](http://github.com/http4s/http4s)
 * [Travis CI ![BuildStatus](https://travis-ci.org/http4s/http4s.svg?branch=develop)](https://travis-ci.org/http4s/http4s)
-* [Scaladoc](http://http4s.org/api/0.1)
+* [Scaladoc](http://http4s.org/api/0.2)
 * IRC: #http4s on Freenode.
 * [Twitter](http://twitter.com/http4s)
 
