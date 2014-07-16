@@ -6,7 +6,7 @@ Servlets.
 
 ```scala
 val service: HttpService = {
-  case Get -> Root / "hello" =>
+  case GET -> Root / "hello" =>
     Ok("Hello, better world.")
 }
 ```
