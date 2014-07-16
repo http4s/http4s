@@ -150,7 +150,7 @@ $ sbt examples/run
 
 * [GitHub](http://github.com/http4s/http4s)
 * [Travis CI ![BuildStatus](https://travis-ci.org/http4s/http4s.svg?branch=develop)](https://travis-ci.org/http4s/http4s)
-* [Scaladoc](http://http4s.org/api/0.1)
+* [Scaladoc](http://http4s.org/api/0.2)
 * IRC: #http4s on Freenode.
 * [Twitter](http://twitter.com/http4s)
 
