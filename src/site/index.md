@@ -16,7 +16,7 @@ of helpers to facilitate the creation of the `Task[Response]` from common result
 // A simple route definition using the optional http4s DSL
 val service: HttpService = {
   //  We use the micro DSL to match the path of the Request to the familiar uri form
-  case Get -> Root / "hello" =>
+  case GET -> Root / "hello" =>
     // We could make a Task[Response] manually, but we use the
     // EntityResponseGenerator 'Ok' for convenience
     Ok("Hello, better world.")
@@ -54,10 +54,10 @@ def getData(req: Request): Process[Task, String] = ???
 
 val service: HttpService = {
   // Wire your data into your service
-  case Get -> Root / "streaming" => Ok(getData(req))
+  case GET -> Root / "streaming" => Ok(getData(req))
 
   // You can use helpers to send any type of data with an available Writable[T]
-  case Get -> Root / "synchronous" => Ok("This is good to go right now.")
+  case GET -> Root / "synchronous" => Ok("This is good to go right now.")
 }
 ```
 
@@ -65,13 +65,13 @@ http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a cen
 
 ```scala
 val route: HttpService = {
-  case req@ Get -> Root / "ws" =>
-    // Send a Text message with payload 'Ping! delay' every second
+  case req@ GET -> Root / "ws" =>
+    // Send a Text message with payload 'Ping!' every second
     val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
 
     // Print received Text frames, and, on completion, notify the console
     val sink: Sink[Task, WSFrame] = Process.constant {
-      case Text(t) => Task.delay( println(t))
+      case Text(t) => Task.delay(println(t))
       case f       => Task.delay(println(s"Unknown type: $f"))
     }.onComplete(Process.eval(Task{ println("Terminated!")}).drain)
 
@@ -79,7 +79,7 @@ val route: HttpService = {
     // needed for the backend to upgrade to a WebSocket connection
     WS(src, sink)
 
-  case req @ Get -> Root / "wsecho" =>
+  case req @ GET -> Root / "wsecho" =>
     // a scalaz topic acts as a hub to publish and subscribe to messages safely
     val t = topic[WSFrame]
     val src = t.subscribe.collect{ case Text(msg) => Text("You sent the server: " + msg) }
