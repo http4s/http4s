@@ -47,8 +47,8 @@ object ExampleService extends Http4s {
       text(req, limit = 3).flatMap { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
-      } handle { case EntityTooLarge(_) =>
-        Ok("Got a nonfatal Exception, but its OK").run
+      } handleWith { case EntityTooLarge(_) =>
+        Ok("Got a nonfatal Exception, but its OK")
       }
 
 /*
