@@ -113,14 +113,11 @@ object BlazeWebSocketExample extends App {
 http4s is committed to first-class support of the Servlet API.  Develop and deploy services on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
 
 ```scala
-object ServletExample extends App {
-  val server = new Server(8080)
-  val context = new ServletContextHandler()
-  context.setContextPath("/")
-  server.setHandler(context)
-  context.addServlet(new ServletHolder(service), "/http4s/*")
-  server.start()
-  server.join()
+object JettyExample extends App {
+  JettyServer.newBuilder
+    .mountService(ExampleService.service, "/http4s")
+    .run()
+    .join()
 }
 ```
 
