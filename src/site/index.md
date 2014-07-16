@@ -126,7 +126,7 @@ object ServletExample extends App {
 
 ## Get it! ##
 
-Artifacts for scala 2.10 are available from Maven Central:
+Artifacts for scala 2.10 and 2.11 are available from Maven Central:
 ```scala
 libraryDependencies += "org.http4s" %% "http4s-core"  % version
 ```
