@@ -2,38 +2,22 @@ package org.http4s
 package server
 package middleware
 
-import scalaz.stream.Process._
-import scalaz.concurrent.Task
-import scodec.bits.ByteVector
+import java.util.zip.Deflater
 
 import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
-import util.Gzipper
-import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object GZip extends LazyLogging {
-  /** Streaming GZip Process1 */
-  def streamingGZip(buffersize: Int): Process1[ByteVector, ByteVector] = {
-    val gzip = new Gzipper(buffersize)
+import scalaz.stream.Process._
+import scalaz.concurrent.Task
 
-    def getBodyChunk = ByteVector(gzip.getBytes())
+import scodec.bits.ByteVector
 
-    val fb = emitLazy {
-      gzip.finish()
-      getBodyChunk
-    }
+import com.typesafe.scalalogging.slf4j.StrictLogging
 
-    def folder(chunk: ByteVector): Process1[ByteVector, ByteVector] = {
-      gzip.write(chunk.toArray)
-      if (gzip.size() < 0.8*buffersize) await(Get[ByteVector])(folder, fb, fb) // Wait for ~80% buffer capacity
-      else Emit(getBodyChunk::Nil, await(Get[ByteVector])(folder, fb ,fb))      // Emit a chunk
-    }
-
-    await(Get[ByteVector])(folder, fb, fb)
-  }
+object GZip extends StrictLogging {
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply(route: HttpService, buffersize: Int = 512): HttpService = {
+  def apply(route: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = {
 
     new HttpService {
       override def isDefinedAt(x: Request): Boolean = route.isDefinedAt(x)
@@ -50,7 +34,10 @@ object GZip extends LazyLogging {
                 contentType.get.mediaType.compressible ||
                 (contentType.get.mediaType eq MediaType.`application/octet-stream`))) {
               logger.trace("GZip middleware encoding content")
-              val b = resp.body.pipe(streamingGZip(buffersize))
+              // Need to add the Gzip header
+              val b = emit(ByteVector.view(header)) ++
+                        resp.body.pipe(scalaz.stream.compress.deflate(level = level, nowrap = true))
+              
               resp.removeHeader(`Content-Length`)
                 .addHeader(`Content-Encoding`(ContentCoding.gzip))
                 .copy(body = b)
@@ -61,5 +48,20 @@ object GZip extends LazyLogging {
       }
     }
   }
+
+  private val GZIP_MAGIC_NUMBER = 0x8b1f
+  private val TRAILER_LENGTH = 8
+
+  private val header: Array[Byte] = Array(
+    GZIP_MAGIC_NUMBER.toByte,           // Magic number (int16)
+    (GZIP_MAGIC_NUMBER >> 8).toByte,    // Magic number  c
+    Deflater.DEFLATED.toByte,           // Compression method
+    0.toByte,                           // Flags
+    0.toByte,                           // Modification time (int32)
+    0.toByte,                           // Modification time  c
+    0.toByte,                           // Modification time  c
+    0.toByte,                           // Modification time  c
+    0.toByte,                           // Extra flags
+    0.toByte)                           // Operating system
 
 }
