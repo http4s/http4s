@@ -2,6 +2,7 @@ package org.http4s
 
 import java.io.{InputStream, File}
 import java.nio.ByteBuffer
+import java.nio.file.Path
 import scala.language.implicitConversions
 import scalaz._
 import scalaz.concurrent.Task
@@ -9,7 +10,6 @@ import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.stream.{Channel, io, Process}
 import scalaz.stream.Process.emit
-import scalaz.stream.io._
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
@@ -101,8 +101,12 @@ trait WritableInstances extends WritableInstances0 {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileWritable: Writable[File] =
+  implicit val fileWritable: Writable[File] =
     channelWritable { f: File => io.fileChunkR(f.getAbsolutePath) }
+
+  // TODO parameterize chunk size
+  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  implicit val filePathWritable: Writable[Path] = fileWritable.contramap(_.toFile)
 
   // TODO parameterize chunk size
   implicit def inputStreamWritable: Writable[InputStream] =
