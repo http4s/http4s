@@ -1,5 +1,6 @@
 package org.http4s
 
+import java.io.{FileWriter, File}
 import java.nio.charset.StandardCharsets
 
 import org.specs2.mutable.Specification
@@ -68,6 +69,17 @@ class WritableSpec extends Specification with Http4s {
     "render processes" in {
       val helloWorld = Process("hello", "world")
       writeString(helloWorld) must_== "helloworld"
+    }
+
+    "render files" in {
+      val tmpFile = File.createTempFile("http4s-test-", ".txt")
+      try {
+        val w = new FileWriter(tmpFile)
+        try w.write("render files test")
+        finally w.close()
+        writeString(tmpFile) must_== "render files test"
+      }
+      finally tmpFile.delete()
     }
   }
 }

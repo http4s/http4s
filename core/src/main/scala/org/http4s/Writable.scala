@@ -1,5 +1,6 @@
 package org.http4s
 
+import java.io.File
 import java.nio.ByteBuffer
 import scala.language.implicitConversions
 import scalaz._
@@ -8,6 +9,7 @@ import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.stream.Process
 import scalaz.stream.Process.emit
+import scalaz.stream.io._
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
@@ -58,6 +60,18 @@ trait WritableInstances0 extends WritableInstances1 {
 
   implicit def naturalTransformationWritable[F[_], A](implicit W: Writable[A], N: ~>[F, Task]): Writable[F[A]] =
     taskWritable[A].contramap { f: F[A] => N(f) }
+
+  /**
+   * A process writable is intended for streaming, and does not calculate its bodies in
+   * advance.  As such, it does not calculate the Content-Length in advance.  This is for
+   * use with chunked transfer encoding.
+   */
+  // TODO buggy at bufSize > 1
+  // TODO configurable bufSize
+  implicit def processWritable[A](implicit W: Writable[A]): Writable[Process[Task, A]] =
+    W.copy(toEntity = { process =>
+      Task.now(Entity(process.gatherMap(1)(W.toEntity).flatMap(_.body), None))
+    })
 }
 
 trait WritableInstances extends WritableInstances0 {
@@ -85,13 +99,11 @@ trait WritableInstances extends WritableInstances0 {
   implicit def taskWritable[A](implicit W: Writable[A]): Writable[Task[A]] =
     W.copy(toEntity = _.flatMap(W.toEntity))
 
-  /**
-   * A process writable is intended for streaming, and does not calculate its bodies in
-   * advance.  As such, it does not calculate the Content-Length in advance.  This is for
-   * use with chunked transfer encoding.
-   */
-  implicit def processWritable[A](implicit W: Writable[A]): Writable[Process[Task, A]] =
-    W.copy(toEntity = { process =>
-      Task.now(Entity(process.gatherMap(8)(W.toEntity).flatMap(_.body), None))
-    })
+  // TODO parameterize/configure chunk size
+  // TODO if Header moves to Entity, can add a Content-Disposition with the filename
+  implicit def fileWritable: Writable[File] =
+    processWritable[ByteVector].contramap { file =>
+      val chunkSize = 4096
+      Process.constant(chunkSize).through(scalaz.stream.io.fileChunkR(file.getAbsolutePath, chunkSize))
+    }
 }
