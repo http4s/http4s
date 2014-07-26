@@ -4,12 +4,10 @@ import java.nio.charset.StandardCharsets
 
 import org.specs2.mutable.Specification
 
-import scala.language.postfixOps
 import scala.concurrent.Future
 import scalaz.concurrent.Task
 import scalaz.stream.text.utf8Decode
 import scalaz.stream.Process
-import scodec.bitVectorMonoidInstance
 
 class WritableSpec extends Specification with Http4s {
   "Writable" should {
@@ -59,7 +57,7 @@ class WritableSpec extends Specification with Http4s {
     "render futures" in {
       import scala.concurrent.ExecutionContext.Implicits.global
       val hello = "Hello"
-      writeString(hello) must_== hello
+      writeString(Future(hello)) must_== hello
     }
 
     "render Tasks" in {

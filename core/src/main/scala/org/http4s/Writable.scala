@@ -3,7 +3,7 @@ package org.http4s
 import java.nio.ByteBuffer
 import scala.language.implicitConversions
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz.{Foldable, Nondeterminism, Monoid, Show}
+import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.list._
 import scalaz.std.option._
@@ -57,6 +57,9 @@ trait WritableInstances0 extends WritableInstances1 {
       a => ByteVector.view(show.shows(a).getBytes("UTF-8")),
       Headers(`Content-Type`.`text/plain`.withCharset(charset))
     )
+
+  implicit def naturalTransformationWritable[F[_], A](implicit W: Writable[A], N: ~>[F, Task]): Writable[F[A]] =
+    taskWritable[A].contramap { f: F[A] => N(f) }
 }
 
 trait WritableInstances extends WritableInstances0 {
@@ -93,8 +96,4 @@ trait WritableInstances extends WritableInstances0 {
     W.copy(toEntity = { process =>
       Task.now(Entity(process.gatherMap(8)(W.toEntity).flatMap(_.body), None))
     })
-
-  // TODO I think a natural transformation would generalize this beyond Futures
-  implicit def futureWritable[A](implicit ec: ExecutionContext, W: Writable[A]): Writable[Future[A]] =
-    taskWritable[A].contramap(f => futureToTask(ec)(f))
 }
