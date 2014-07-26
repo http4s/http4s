@@ -67,7 +67,7 @@ trait MessageSyntax {
       * @param body scalaz.stream.Process[Task,Chunk] representing the new body
       * @return a new Request object
       */
-    def withBody(body: HttpBody): T = translateMessage{ r => r.withBHA(body = body) }
+    def withBody(body: EntityBody): T = translateMessage{ r => r.withBHA(body = body) }
 
     def withContentType(contentType: Option[`Content-Type`]): T = translateMessage { r =>
       r.withBHA(headers = contentType match {

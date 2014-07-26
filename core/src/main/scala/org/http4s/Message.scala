@@ -18,11 +18,11 @@ trait Message {
   
   def headers: Headers
   
-  def body: HttpBody
+  def body: EntityBody
   
   def attributes: AttributeMap
 
-  private[http4s] def withBHA(body: HttpBody = body,
+  private[http4s] def withBHA(body: EntityBody = body,
                               headers: Headers = headers,
                               attributes: AttributeMap = attributes): Self
 
@@ -67,7 +67,7 @@ case class Request(
   requestUri: Uri = Uri(path = "/"),
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: Headers = Headers.empty,
-  body: HttpBody = HttpBody.empty,
+  body: EntityBody = EntityBody.empty,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message with MessageSyntax.MessageSyntax[Request, Request] {
   import Request._
@@ -142,7 +142,7 @@ case class Request(
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Request =
+  override private[http4s] def withBHA(body: EntityBody, headers: Headers, attributes: AttributeMap): Request =
     copy(body = body, headers = headers, attributes = attributes)
 }
 
@@ -167,7 +167,7 @@ case class Response(
   status: Status = Status.Ok,
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: Headers = Headers.empty,
-  body: HttpBody = HttpBody.empty,
+  body: EntityBody = EntityBody.empty,
   attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseSyntax[Response] {
   type Self = Response
 
@@ -175,7 +175,7 @@ case class Response(
 
   override protected def translateWithTask(f: (Response) => Task[Response]): Task[Response] = f(this)
 
-  override private[http4s] def withBHA(body: HttpBody, headers: Headers, attributes: AttributeMap): Response =
+  override private[http4s] def withBHA(body: EntityBody, headers: Headers, attributes: AttributeMap): Response =
     copy(body = body, headers = headers, attributes = attributes)
 }
 

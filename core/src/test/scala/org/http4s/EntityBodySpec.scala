@@ -14,12 +14,12 @@ import java.io.{FileInputStream,File,InputStreamReader}
 import org.scalatest.{Matchers, WordSpec}
 
 import scalaz.stream.Process._
-import HttpBody._
+import EntityBody._
 
 
-class HttpBodySpec extends WordSpec with Matchers {
+class EntityBodySpec extends WordSpec with Matchers {
 
-  def getBody(body: HttpBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
+  def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
 
   "xml" should {
 

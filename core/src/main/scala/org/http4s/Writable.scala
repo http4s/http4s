@@ -10,18 +10,15 @@ import scodec.bits.ByteVector
 
 trait Writable[-A] {
   def contentType: `Content-Type`
-  def toBody(a: A): Task[(HttpBody, Option[Int])]
+  def toBody(a: A): Task[(EntityBody, Option[Int])]
 }
 
 object Writable extends WritableInstances {
-  def apply[A](body: A)(implicit w: Writable[A]): Task[(HttpBody, Option[Int])] = w.toBody(body)
-
-  def get[A](body: A)(implicit w: Writable[A]): HttpBody = apply(body).run._1
 }
 
 trait SimpleWritable[-A] extends Writable[A] {
   def asChunk(data: A): ByteVector
-  override def toBody(a: A): Task[(HttpBody, Option[Int])] = {
+  override def toBody(a: A): Task[(EntityBody, Option[Int])] = {
     val chunk = asChunk(a)
     Task.now((Process.emit(chunk), Some(chunk.length)))
   }
@@ -71,13 +68,13 @@ trait WritableInstances {
   implicit def processWritable[A](implicit w: SimpleWritable[A]) = new Writable[Process[Task, A]] {
     def contentType: `Content-Type` = w.contentType
 
-    def toBody(a: Process[Task, A]): Task[(HttpBody, Option[Int])] = Task.now((a.map(w.asChunk), None))
+    def toBody(a: Process[Task, A]): Task[(EntityBody, Option[Int])] = Task.now((a.map(w.asChunk), None))
   }
 
   implicit def seqWritable[A](implicit w: SimpleWritable[A]) = new Writable[Seq[A]] {
     def contentType: `Content-Type` = w.contentType
 
-    def toBody(a: Seq[A]): Task[(HttpBody, Option[Int])] = {
+    def toBody(a: Seq[A]): Task[(EntityBody, Option[Int])] = {
       val p = Process.emit(a.foldLeft(ByteVector.empty)((acc, c) => acc ++ w.asChunk(c)))
       Task.now((p, None))
     }

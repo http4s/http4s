@@ -11,14 +11,14 @@ import scalaz.stream.Process._
 import scala.util.control.NoStackTrace
 import scodec.bits.ByteVector
 
-object HttpBody extends HttpBodyFunctions {
-  val empty: HttpBody = halt
+object EntityBody extends EntityBodyFunctions {
+  val empty: EntityBody = halt
   val DefaultMaxEntitySize: Int = Http4sConfig.getInt("org.http4s.default-max-entity-size")
 }
 
-trait HttpBodyFunctions {
+trait EntityBodyFunctions {
 
-  def text[A](req: Request, limit: Int = HttpBody.DefaultMaxEntitySize): Task[String] = {
+  def text[A](req: Request, limit: Int = EntityBody.DefaultMaxEntitySize): Task[String] = {
     val buff = new StringBuilder
     (req.body |> takeBytes(limit) |> processes.fold(buff) { (b, c) => {
       b.append(new String(c.toArray, (req.charset.charset)))
@@ -35,7 +35,7 @@ trait HttpBodyFunctions {
    * @return a request handler
    */
   def xml(req: Request,
-          limit: Int = HttpBody.DefaultMaxEntitySize,
+          limit: Int = EntityBody.DefaultMaxEntitySize,
           parser: SAXParser = XML.parser): Task[Elem] =
     text(req, limit).map { s =>
     // TODO: exceptions here should be handled by Task, but are not until 7.0.5+

@@ -91,7 +91,7 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
     case Failure(t)       => fatalError(t, "Error in requestLoop()")
   }
 
-  private def collectRequest(body: HttpBody): Request = {
+  private def collectRequest(body: EntityBody): Request = {
     val h = Headers(headers.result())
     headers.clear()
 
@@ -235,8 +235,8 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
   }
 
   // TODO: what should be the behavior for determining if we have some body coming?
-  private def collectBodyFromParser(buffer: ByteBuffer): HttpBody = {
-    if (contentComplete()) return HttpBody.empty
+  private def collectBodyFromParser(buffer: ByteBuffer): EntityBody = {
+    if (contentComplete()) return EntityBody.empty
 
     @volatile var currentbuffer = buffer
 

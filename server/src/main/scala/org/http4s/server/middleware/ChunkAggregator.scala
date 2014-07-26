@@ -16,7 +16,7 @@ object ChunkAggregator extends LazyLogging {
     else (acc ++ chunks.head) :: Nil
   }
 
-  private[ChunkAggregator] def compact(body: HttpBody): List[ByteVector] = {
+  private[ChunkAggregator] def compact(body: EntityBody): List[ByteVector] = {
     val (chunks, tail) = body.unemit
     if (!chunks.isEmpty &&
       tail.isInstanceOf[Halt] &&
