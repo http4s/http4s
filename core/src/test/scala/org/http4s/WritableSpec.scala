@@ -1,6 +1,6 @@
 package org.http4s
 
-import java.io.{FileWriter, File}
+import java.io.{ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
 import org.specs2.mutable.Specification
@@ -80,6 +80,11 @@ class WritableSpec extends Specification with Http4s {
         writeString(tmpFile) must_== "render files test"
       }
       finally tmpFile.delete()
+    }
+
+    "render input streams" in {
+      val inputStream = new ByteArrayInputStream(("input stream").getBytes(StandardCharsets.UTF_8))
+      writeString(inputStream) must_== "input stream"
     }
   }
 }

@@ -1,13 +1,13 @@
 package org.http4s
 
-import java.io.File
+import java.io.{InputStream, File}
 import java.nio.ByteBuffer
 import scala.language.implicitConversions
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.list._
 import scalaz.std.option._
-import scalaz.stream.Process
+import scalaz.stream.{Channel, io, Process}
 import scalaz.stream.Process.emit
 import scalaz.stream.io._
 import scalaz.syntax.apply._
@@ -99,11 +99,15 @@ trait WritableInstances extends WritableInstances0 {
   implicit def taskWritable[A](implicit W: Writable[A]): Writable[Task[A]] =
     W.copy(toEntity = _.flatMap(W.toEntity))
 
-  // TODO parameterize/configure chunk size
+  // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit def fileWritable: Writable[File] =
-    processWritable[ByteVector].contramap { file =>
-      val chunkSize = 4096
-      Process.constant(chunkSize).through(scalaz.stream.io.fileChunkR(file.getAbsolutePath, chunkSize))
-    }
+    channelWritable { f: File => io.fileChunkR(f.getAbsolutePath) }
+
+  // TODO parameterize chunk size
+  implicit def inputStreamWritable: Writable[InputStream] =
+    channelWritable { is: InputStream => io.chunkR(is) }
+
+  def channelWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
+    processWritable[ByteVector].contramap { a => Process.constant(chunkSize).through(f(a)) }
 }
