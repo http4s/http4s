@@ -70,7 +70,7 @@ trait WritableInstances0 extends WritableInstances1 {
   // TODO configurable bufSize
   implicit def processWritable[A](implicit W: Writable[A]): Writable[Process[Task, A]] =
     W.copy(toEntity = { process =>
-      Task.now(Entity(process.gatherMap(1)(W.toEntity).flatMap(_.body), None))
+      Task.now(Entity(process.flatMap(a => Process.await(W.toEntity(a))(_.body)), None))
     })
 }
 
