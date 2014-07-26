@@ -1,5 +1,7 @@
 package org.http4s
 
+import org.http4s.Writable.Entity
+
 import scalaz.concurrent.Task
 import org.http4s.Header.{`Set-Cookie`, `Content-Type`}
 
@@ -32,15 +34,12 @@ trait MessageSyntax {
       * @tparam B type of the body
       * @return new message
       */
-    def withBody[B](body: B)(implicit w: Writable[B]): Task[M#Self] = withBody(body, w.contentType)
+    def withBody[B](body: B)(implicit w: Writable[B]): Task[M#Self] = withBody(body, w.headers)
 
-    def withBody[B](body: B, contentType: `Content-Type`)(implicit w: Writable[B]): Task[M#Self] = {
+    def withBody[B](body: B, headers: Headers)(implicit w: Writable[B]): Task[M#Self] = {
       translateWithTask { self =>
-        w.toBody(body).map { case (proc, len) =>
-          val h = len match {
-            case Some(l) => self.headers.put(Header.`Content-Length`(l), contentType)
-            case None => self.headers.put(contentType)
-          }
+        w.toEntity(body).map { case Entity(proc, len) =>
+          val h = self.headers ++ headers ++ len.fold(Headers.empty)(l => Headers(Header.`Content-Length`(l)))
           self.withBHA(body = proc, headers = h)
         }
       }

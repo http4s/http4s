@@ -50,6 +50,7 @@ object Http4sDependencies {
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.5-M2"
   lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.1.3"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4.1"
+  lazy val scodecCore          = "org.typelevel"            %% "scodec-core"             % "1.1.0"
   lazy val specs2              = "org.specs2"               %% "specs2"                  % "2.3.11"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "7.0.53"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision

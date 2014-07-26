@@ -1,5 +1,6 @@
 package org.http4s.examples
 
+import org.http4s.Header.`Content-Type`
 import org.http4s.server.HttpService
 
 import scalaz.concurrent.Task
@@ -114,7 +115,7 @@ object ExampleService extends Http4s {
     case req @ GET -> Root / "bigstring3" => Ok(flatBigString)
 
     case GET -> Root / "contentChange" =>
-      Ok("<h2>This will have an html content type!</h2>", MediaType.`text/html`)
+      Ok("<h2>This will have an html content type!</h2>", Headers(`Content-Type`(MediaType.`text/html`)))
 
     case req @ POST -> Root / "challenge" =>
       val parser = await1[ByteVector] map {

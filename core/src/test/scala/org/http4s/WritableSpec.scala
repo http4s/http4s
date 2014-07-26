@@ -1,68 +1,76 @@
 package org.http4s
 
+import java.nio.charset.StandardCharsets
+
+import org.specs2.mutable.Specification
+
 import scala.language.postfixOps
+import scala.concurrent.Future
 import scalaz.concurrent.Task
+import scalaz.stream.text.utf8Decode
+import scalaz.stream.Process
+import scodec.bitVectorMonoidInstance
 
-// the http4s team resents importing this.
-
-import org.http4s.Status._
-import concurrent.Future
-import org.scalatest.{Matchers, WordSpec}
-
-class WritableSpec extends WordSpec with Matchers {
+class WritableSpec extends Specification with Http4s {
   "Writable" should {
-    import Writable._
 
-    def route(in: Task[Response]) = {
-      new String(in.run.body.runLog.run.reduce(_ ++ _).toArray)
+    def writeString[A](a: A)(implicit w: Writable[A]): String = {
+      Process.eval(w.toEntity(a))
+        .collect { case Writable.Entity(body, _ ) => body }
+        .flatMap(identity)
+        .fold1Monoid
+        .pipe(utf8Decode)
+        .runLastOr("")
+        .run
     }
 
-
-    "Get Strings" in {
-      route {Ok("pong")} should equal("pong")
+    "render strings" in {
+      writeString("pong") must_== "pong"
     }
 
-    "Get Sequences of Strings" in {
-      val result = (0 until 1000).map{ i => s"This is string number $i" }
-      route{Ok(result)} should equal (result.foldLeft ("")(_ + _))
+    "calculate the content length of strings" in {
+      implicitly[Writable[String]].toEntity("pong").run.length must_== Some(4)
     }
 
-    "Get Sequences of Ints" in {
-      val input = (0 until 10)
-      route{Ok(input)} should equal (input.foldLeft ("")(_ + _))
+    "render indexed sequences of strings" in {
+      val range = (0 until 10).map(_.toString)
+      writeString(range) must_== "0123456789"
     }
 
-    "Get Integers" in {
-      route{Ok(1)} should equal ("1")
+    "render ranges of ints" in {
+      val range = (0 until 10)
+      writeString(range) must_== "0123456789"
     }
 
-    "Get Html" in {
-      val myxml = <html><body>Hello</body></html>
-      route { Ok(myxml) } should equal (myxml.buildString(false))
+    "render integers" in {
+      writeString(1) must_== "1"
     }
 
-    "Get Array[Byte]" in {
+    "render html" in {
+      val html = <html><body>Hello</body></html>
+      writeString(html) must_== "<html><body>Hello</body></html>"
+    }
+
+    "render byte arrays" in {
       val hello = "hello"
-      route { Ok(hello.getBytes) } should equal(hello)
+      writeString(hello.getBytes(StandardCharsets.UTF_8)) must_== hello
     }
 
-    "Get Futures" in {
-      import concurrent.ExecutionContext.Implicits.global
-      val txt = "Hello"
-      route(Ok(Future(txt))) should equal (txt)
+    "render futures" in {
+      import scala.concurrent.ExecutionContext.Implicits.global
+      val hello = "Hello"
+      writeString(hello) must_== hello
     }
 
-    "Get Tasks" in {
-      val txt = "Hello"
-      route(Ok(Task(txt))) should equal (txt)
+    "render Tasks" in {
+      val hello = "Hello"
+      writeString(Task.now(hello)) must_== hello
     }
 
-    "Get Processes" in {
-      import scalaz.stream.Process.emit
-      val txt = "Hello"
-      route(Ok(emit(txt))) should equal (txt)
+    "render processes" in {
+      val helloWorld = Process("hello", "world")
+      writeString(helloWorld) must_== "helloworld"
     }
-
   }
 }
 

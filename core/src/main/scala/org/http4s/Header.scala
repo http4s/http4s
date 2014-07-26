@@ -245,6 +245,8 @@ object Header {
     // RFC4627 defines JSON to always be UTF encoded, we always render JSON to UTF-8
     val `application/json` = `Content-Type`(MediaType.`application/json`, `UTF-8`)
 
+    val `application/xml` = `Content-Type`(MediaType.`application/xml`, `UTF-8`)
+
     def apply(mediaType: MediaType, charset: CharacterSet): `Content-Type` = apply(mediaType, Some(charset))
     implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
   }
