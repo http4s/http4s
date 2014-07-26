@@ -2,7 +2,6 @@ package org.http4s
 
 import java.nio.ByteBuffer
 import scala.language.implicitConversions
-import scala.concurrent.{ExecutionContext, Future}
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.list._
@@ -12,8 +11,7 @@ import scalaz.stream.Process.emit
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
-import org.http4s.Header.{`Content-Length`, `Content-Encoding`, `Content-Type`}
-import util.task._
+import org.http4s.Header.`Content-Type`
 
 case class Writable[-A](
   toEntity: A => Task[Writable.Entity],
@@ -54,7 +52,7 @@ trait WritableInstances1 {
 trait WritableInstances0 extends WritableInstances1 {
   implicit def showWritable[A](implicit charset: CharacterSet = CharacterSet.`UTF-8`, show: Show[A]): Writable[A] =
     simple(
-      a => ByteVector.view(show.shows(a).getBytes("UTF-8")),
+      a => ByteVector.view(show.shows(a).getBytes(charset.charset)),
       Headers(`Content-Type`.`text/plain`.withCharset(charset))
     )
 
@@ -64,7 +62,7 @@ trait WritableInstances0 extends WritableInstances1 {
 
 trait WritableInstances extends WritableInstances0 {
   implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[String] = simple(
-    s => ByteVector.view(s.getBytes("UTF-8")),
+    s => ByteVector.view(s.getBytes(charset.charset)),
     Headers(`Content-Type`.`text/plain`.withCharset(charset))
   )
 
