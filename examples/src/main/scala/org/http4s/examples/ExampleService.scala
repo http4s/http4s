@@ -1,7 +1,10 @@
 package org.http4s.examples
 
 import org.http4s.Header.`Content-Type`
+import org.http4s.json4s.jackson.Json4sJacksonSupport
 import org.http4s.server.HttpService
+import org.json4s.JsonAST.JValue
+import org.json4s.JsonDSL._
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process, Process.{Get => _, _}
@@ -10,7 +13,7 @@ import org.http4s._
 import org.http4s.dsl._
 import scodec.bits.ByteVector
 
-object ExampleService extends Http4s {
+object ExampleService extends Http4s with Json4sJacksonSupport {
   import org.http4s.server.middleware.PushSupport._
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
@@ -130,6 +133,9 @@ object ExampleService extends Http4s {
 
     case req @ GET -> Root / "root-element-name" =>
       xml(req).flatMap(root => Ok(root.label))
+
+    case req @ GET -> Root / "ip" =>
+      Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
 
     case req => NotFound(req)
   }

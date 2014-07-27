@@ -1,0 +1,5 @@
+package org.http4s.json4s.jackson
+
+trait Json4sJacksonSupport extends Json4sJacksonWritableInstances
+
+object Json4sJacksonSupport extends Json4sJacksonSupport

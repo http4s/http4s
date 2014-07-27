@@ -1,0 +1,5 @@
+package org.http4s.json4s.native
+
+trait Json4sNativeSupport extends Json4sNativeWritableInstances
+
+object Json4sNativeSupport extends Json4sNativeSupport
