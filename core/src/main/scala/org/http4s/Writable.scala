@@ -124,7 +124,7 @@ trait WritableInstances extends WritableInstances0 {
   implicit def readerWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Reader] =
     // TODO polish and contribute back to scalaz-stream
     processWritable[Array[Char]].contramap { r: Reader =>
-      val chunkR = io.resource(Task.delay(r))(
+      val unsafeChunkR = io.resource(Task.delay(r))(
         src => Task.delay(src.close())) { src =>
         Task.now { buf: Array[Char] => Task.delay {
           val m = src.read(buf)
@@ -134,7 +134,11 @@ trait WritableInstances extends WritableInstances0 {
           else buf.slice(0, m)
         }}
       }
-      Process.constant(new Array[Char](4096)).through(chunkR)
+      val chunkR = unsafeChunkR.map(f => (n: Int) => {
+        val buf = new Array[Char](n)
+        f(buf)
+      })
+      Process.constant(4096).through(chunkR)
     }
 
   def chunkedWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
