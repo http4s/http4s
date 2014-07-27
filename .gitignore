@@ -2,9 +2,9 @@ target/
 /.lib/
 
 *~
-/.ensime
-/.idea/
-/.idea_modules/
+.ensime
+.idea/
+.idea_modules/
 
 .cache
 .classpath
