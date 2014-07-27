@@ -3,6 +3,8 @@ package org.http4s.examples
 import org.http4s.Header.`Content-Type`
 import org.http4s.json4s.jackson.Json4sJacksonSupport
 import org.http4s.server.HttpService
+import org.http4s.server.middleware.EntityLimiter
+import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 
@@ -19,7 +21,10 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
   val MyVar = AttributeKey[Int]("org.http4s.examples.myVar")
 
-  def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = {
+  def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService =
+    service1(executionContext) orElse EntityLimiter(service2, 3)
+
+  def service1(implicit executionContext: ExecutionContext): HttpService = {
 
     case GET -> Root / "ping" =>
       Ok("pong")
@@ -45,14 +50,6 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
       text(req).flatMap{ s =>
         val sum = s.split('\n').filter(_.length > 0).map(_.trim.toInt).sum
         Ok(sum)
-      }
-
-    case req @ POST -> Root / "shortsum"  =>
-      text(req, limit = 3).flatMap { s =>
-        val sum = s.split('\n').map(_.toInt).sum
-        Ok(sum)
-      } handleWith { case EntityTooLarge(_) =>
-        Ok("Got a nonfatal Exception, but its OK")
       }
 
 /*
@@ -138,5 +135,15 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
       Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
 
     case req => NotFound(req)
+  }
+
+  def service2: HttpService = {
+    case req @ POST -> Root / "shortsum"  =>
+      text(req).flatMap { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Ok(sum)
+      } handleWith { case EntityTooLarge(_) =>
+        Ok("Got a nonfatal Exception, but its OK")
+      }
   }
 }
