@@ -79,7 +79,7 @@ scalaVersion in ThisBuild := "2.10.4"
 
 crossScalaVersions in ThisBuild := Seq(
   "2.10.4",
-  "2.11.1"
+  "2.11.2"
 )
 
 val JvmTarget = "1.7"
