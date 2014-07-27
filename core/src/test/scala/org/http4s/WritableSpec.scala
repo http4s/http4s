@@ -93,12 +93,10 @@ class WritableSpec extends Specification with Http4s {
       writeString(reader) must_== "string reader"
     }
 
-    /*
     "render text ropes" in {
       val rope = Rope.fromString("text rope")
       writeString(rope) must_== "text rope"
     }
-    */
 
     "render binary ropes" in {
       val rope = Rope.fromArray("binary rope".getBytes(StandardCharsets.UTF_8))
