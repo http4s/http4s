@@ -1,7 +1,7 @@
 package org.http4s
 
-import java.io.{InputStream, File}
-import java.nio.ByteBuffer
+import java.io.{InputStream, File, Reader}
+import java.nio.{CharBuffer, ByteBuffer}
 import java.nio.file.Path
 import scala.language.implicitConversions
 import scalaz._
@@ -9,7 +9,7 @@ import scalaz.concurrent.Task
 import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.stream.{Channel, io, Process}
-import scalaz.stream.Process.emit
+import scalaz.stream.Process.{End, emit}
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
@@ -20,6 +20,8 @@ case class Writable[-A](
   headers: Headers
 ) {
   def contramap[B](f: B => A): Writable[B] = copy(toEntity = f andThen toEntity)
+
+  def withContentType(contentType: `Content-Type`) = copy(headers = headers.put(contentType))
 }
 
 object Writable extends WritableInstances {
@@ -80,6 +82,9 @@ trait WritableInstances extends WritableInstances0 {
     Headers(`Content-Type`.`text/plain`.withCharset(charset))
   )
 
+  implicit def charArrayWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Array[Char]] =
+    stringWritable.contramap(new String(_))
+
   implicit val byteVectorWritable: Writable[ByteVector] = simple(
     identity,
     Headers(`Content-Type`.`application/octet-stream`)
@@ -102,16 +107,33 @@ trait WritableInstances extends WritableInstances0 {
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit val fileWritable: Writable[File] =
-    channelWritable { f: File => io.fileChunkR(f.getAbsolutePath) }
+    chunkedWritable { f: File => io.fileChunkR(f.getAbsolutePath) }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit val filePathWritable: Writable[Path] = fileWritable.contramap(_.toFile)
 
   // TODO parameterize chunk size
-  implicit def inputStreamWritable: Writable[InputStream] =
-    channelWritable { is: InputStream => io.chunkR(is) }
+  implicit val inputStreamWritable: Writable[InputStream] =
+    chunkedWritable { is: InputStream => io.chunkR(is) }
 
-  def channelWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
+  // TODO parameterize chunk size
+  implicit def readerWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Reader] =
+    // TODO polish and contribute back to scalaz-stream
+    processWritable[Array[Char]].contramap { r: Reader =>
+      val chunkR = io.resource(Task.delay(r))(
+        src => Task.delay(src.close())) { src =>
+        Task.now { buf: Array[Char] => Task.delay {
+          val m = src.read(buf)
+          println("BUFFER = "+buf.subSequence(0, m))
+          if (m == buf.length) buf
+          else if (m == -1) throw End
+          else buf.slice(0, m)
+        }}
+      }
+      Process.constant(new Array[Char](4096)).through(chunkR)
+    }
+
+  def chunkedWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
     processWritable[ByteVector].contramap { a => Process.constant(chunkSize).through(f(a)) }
 }
