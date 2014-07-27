@@ -17,15 +17,13 @@ lazy val tomcat = project.dependsOn(servlet)
 
 lazy val dsl = project.dependsOn(core, server % "test->compile")
 
-lazy val json = project.dependsOn(core)
-
-lazy val json4s = project.dependsOn(json)
+lazy val json4s = project.dependsOn(core)
 
 lazy val json4sNative = project.dependsOn(json4s)
 
 lazy val json4sJackson = project.dependsOn(json4s)
 
-lazy val argonaut = project.dependsOn(json, core -> "test->test")
+lazy val argonaut = project.dependsOn(core % "compile;test->test")
 
 lazy val examples = project.dependsOn(blaze, jetty, tomcat, dsl, json4sJackson)
 
