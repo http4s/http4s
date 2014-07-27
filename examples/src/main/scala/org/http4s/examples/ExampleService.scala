@@ -100,7 +100,7 @@ object ExampleService extends Http4s {
       }))
   */
     case GET -> Root / "bigstring" =>
-      Ok((0 until 1000).map(i => s"This is string number $i"))
+      Ok((0 until 1000).map(i => s"This is string number $i").mkString("\n"))
 
     case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB

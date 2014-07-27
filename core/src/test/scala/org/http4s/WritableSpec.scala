@@ -32,16 +32,6 @@ class WritableSpec extends Specification with Http4s {
       implicitly[Writable[String]].toEntity("pong").run.length must_== Some(4)
     }
 
-    "render indexed sequences of strings" in {
-      val range = (0 until 10).map(_.toString)
-      writeString(range) must_== "0123456789"
-    }
-
-    "render ranges of ints" in {
-      val range = (0 until 10)
-      writeString(range) must_== "0123456789"
-    }
-
     "render integers" in {
       writeString(1) must_== "1"
     }

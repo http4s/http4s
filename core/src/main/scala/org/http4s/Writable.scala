@@ -44,16 +44,7 @@ object Writable extends WritableInstances {
 
 import Writable._
 
-trait WritableInstances1 {
-  // TODO This one is in questionable taste
-  implicit def seqWritable[A](implicit W: Writable[A]): Writable[Seq[A]] =
-    Writable(
-      as => Nondeterminism[Task].gather(as.map(W.toEntity)).map(entities => Foldable[List].fold(entities)),
-      W.headers
-    )
-}
-
-trait WritableInstances0 extends WritableInstances1 {
+trait WritableInstances0 {
   implicit def showWritable[A](implicit charset: CharacterSet = CharacterSet.`UTF-8`, show: Show[A]): Writable[A] =
     simple(
       a => ByteVector.view(show.shows(a).getBytes(charset.charset)),
