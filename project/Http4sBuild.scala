@@ -33,6 +33,7 @@ object Http4sKeys {
 }
 
 object Http4sDependencies {
+  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.0.4"
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.2.0"
   lazy val config              = "com.typesafe"              % "config"                  % "1.0.0"
