@@ -6,6 +6,7 @@ import java.nio.charset.StandardCharsets
 import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
+import scalaz.Rope
 import scalaz.concurrent.Task
 import scalaz.stream.text.utf8Decode
 import scalaz.stream.Process
@@ -90,6 +91,18 @@ class WritableSpec extends Specification with Http4s {
     "render readers" in {
       val reader = new StringReader("string reader")
       writeString(reader) must_== "string reader"
+    }
+
+    /*
+    "render text ropes" in {
+      val rope = Rope.fromString("text rope")
+      writeString(rope) must_== "text rope"
+    }
+    */
+
+    "render binary ropes" in {
+      val rope = Rope.fromArray("binary rope".getBytes(StandardCharsets.UTF_8))
+      writeString(rope) must_== "binary rope"
     }
   }
 }
