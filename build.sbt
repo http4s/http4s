@@ -110,7 +110,6 @@ resolvers in ThisBuild ++= Seq(
 /* These test dependencies applied to all projects under the http4s umbrella */
 libraryDependencies in ThisBuild ++= Seq(
   scalameter % "test",
-  scalatest % "test", // use is deprecated
   specs2 % "test"
 )
 

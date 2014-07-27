@@ -1,62 +1,62 @@
 package org.http4s
 
-import org.scalatest.{Matchers, WordSpec}
 import org.http4s.util.string._
+import org.specs2.mutable.Specification
 
-class ServerProtocolSpec extends WordSpec with Matchers {
+class ServerProtocolSpec extends Specification {
   import ServerProtocol._
 
   def resolve(str: String) = ServerProtocol.getOrElseCreate(str.ci)
 
   "HTTP versions" should {
     "be registered if standard" in {
-      resolve("HTTP/1.1") should be theSameInstanceAs `HTTP/1.1`
+      resolve("HTTP/1.1") must be (`HTTP/1.1`)
     }
 
     "parse for future versions" in {
-      resolve("HTTP/1.3") should equal(HttpVersion(1, 3))
+      resolve("HTTP/1.3") must_==(HttpVersion(1, 3))
     }
 
     "render with protocol and version" in {
-      `HTTP/1.0`.toString should equal ("HTTP/1.0")
+      `HTTP/1.0`.toString must_== ("HTTP/1.0")
     }
   }
 
   "INCLUDED" should {
     "be registered" in {
-      resolve("INCLUDED") should be theSameInstanceAs INCLUDED
+      resolve("INCLUDED") must be (INCLUDED)
     }
 
     "render as 'INCLUDED'" in {
-      INCLUDED.toString should equal ("INCLUDED")
+      INCLUDED.toString must_== ("INCLUDED")
     }
   }
 
   "Extension versions" should {
     "parse with a version" in {
-      resolve("FOO/2.10") should equal (ExtensionVersion("FOO".ci, Some(Version(2, 10))))
+      resolve("FOO/2.10") must_== (ExtensionVersion("FOO".ci, Some(Version(2, 10))))
     }
 
     "parse without a version" in {
-      resolve("FOO") should equal (ExtensionVersion("FOO".ci, None))
+      resolve("FOO") must_== (ExtensionVersion("FOO".ci, None))
     }
 
     "render with a version" in {
-      resolve("FOO/2.10").toString should equal ("FOO/2.10")
+      resolve("FOO/2.10").toString must_== ("FOO/2.10")
     }
 
     "render without a verison" in {
-      resolve("FOO").toString should equal ("FOO")
+      resolve("FOO").toString must_== ("FOO")
     }
   }
 
   "HttpVersion extractor" should {
     "recognize HttpVersions" in {
-      HttpVersion.unapply(`HTTP/1.1`: ServerProtocol) should equal (Some(1 -> 1))
+      HttpVersion.unapply(`HTTP/1.1`: ServerProtocol) must_== (Some(1 -> 1))
     }
 
     "treat INCLUDED as HTTP/1.0" in {
-      HttpVersion.unapply(INCLUDED) should equal (Some(1 -> 0))
+      HttpVersion.unapply(INCLUDED) must_== (Some(1 -> 0))
     }
 
     "treat extension versions as not HTTP" in {

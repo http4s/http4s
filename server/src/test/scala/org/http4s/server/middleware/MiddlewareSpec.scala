@@ -2,13 +2,13 @@ package org.http4s
 package server
 package middleware
 
-import org.scalatest.{Matchers, WordSpec}
+import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 
 import scalaz.stream.Process._
 
 
-class MiddlewareSpec extends WordSpec with Matchers {
+class MiddlewareSpec extends Specification {
   import org.http4s.server.middleware.URITranslation._
 
   val pingReq     = Request(requestUri = Uri.fromString("/rootPath/ping").get)
@@ -25,12 +25,12 @@ class MiddlewareSpec extends WordSpec with Matchers {
 
 
     "Translate address" in {
-      new String(server(pingReq).run.body) should equal ("pong")
-      new String(server(echoReq).run.body) should equal ("onetwothree")
+      new String(server(pingReq).run.body) must_== ("pong")
+      new String(server(echoReq).run.body) must_== ("onetwothree")
     }
 
     "Be aware of translated path" in {
-      new String(server(awareReq).run.body) should equal("/rootPath/foo")
+      new String(server(awareReq).run.body) must_==("/rootPath/foo")
     }
 
     "Be undefined at non-matching address" in {
@@ -38,9 +38,9 @@ class MiddlewareSpec extends WordSpec with Matchers {
       val badpingReq1 = Request(requestUri = Uri.fromString("/rootPat/ping").get)
       val badpingReq2 = Request(requestUri = Uri.fromString("/rootPathh/ping").get)
 
-      server.apply(req).run.statusLine should equal (Status.NotFound)
-      server.apply(badpingReq1).run.statusLine should equal (Status.NotFound)
-      server.apply(badpingReq2).run.statusLine should equal (Status.NotFound)
+      server.apply(req).run.statusLine must_== (Status.NotFound)
+      server.apply(badpingReq1).run.statusLine must_== (Status.NotFound)
+      server.apply(badpingReq2).run.statusLine must_== (Status.NotFound)
     }
 
 

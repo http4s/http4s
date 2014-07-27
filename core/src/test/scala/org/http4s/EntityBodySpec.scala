@@ -1,5 +1,7 @@
 package org.http4s
 
+import org.specs2.mutable.Specification
+
 import scala.language.postfixOps
 import org.xml.sax.SAXParseException
 import scodec.bits.ByteVector
@@ -11,13 +13,12 @@ import scalaz.concurrent.Task
 import Status._
 
 import java.io.{FileInputStream,File,InputStreamReader}
-import org.scalatest.{Matchers, WordSpec}
 
 import scalaz.stream.Process._
 import EntityBody._
 
 
-class EntityBodySpec extends WordSpec with Matchers {
+class EntityBodySpec extends Specification {
 
   def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
 
@@ -30,14 +31,14 @@ class EntityBodySpec extends WordSpec with Matchers {
 
     "parse the XML" in {
       val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
-      resp.status should equal(Status.Ok)
-      getBody(resp.body) should equal ("html".getBytes)
+      resp.status must_==(Status.Ok)
+      getBody(resp.body) must_== ("html".getBytes)
     }
 
     "handle a parse failure" in {
       val body = emit("This is not XML.").map(s => ByteVector(s.getBytes))
       val resp = server(Request(body = body)).run
-      resp.status should equal (Status.BadRequest)
+      resp.status must_== (Status.BadRequest)
     }
   }
 
@@ -71,9 +72,9 @@ class EntityBodySpec extends WordSpec with Matchers {
           }
       }.run
 
-      readTextFile(tmpFile) should equal (new String(binData))
-      response.status should equal (Status.Ok)
-      getBody(response.body) should equal ("Hello".getBytes)
+      readTextFile(tmpFile) must_== (new String(binData))
+      response.status must_== (Status.Ok)
+      getBody(response.body) must_== ("Hello".getBytes)
     }
 
     "Write a binary file from a byte string" in {
@@ -82,9 +83,9 @@ class EntityBodySpec extends WordSpec with Matchers {
         case req => binFile(req, tmpFile)(Ok("Hello"))
       }.run
 
-      response.status should equal (Status.Ok)
-      getBody(response.body) should equal ("Hello".getBytes)
-      readFile(tmpFile) should equal (binData)
+      response.status must_== (Status.Ok)
+      getBody(response.body) must_== ("Hello".getBytes)
+      readFile(tmpFile) must_== (binData)
     }
   }
 

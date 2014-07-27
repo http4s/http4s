@@ -1,7 +1,8 @@
 package org.http4s.parser
 
-import org.scalatest.{Matchers, WordSpec}
 import org.http4s.Header.`Cache-Control`
+import org.specs2.mutable.Specification
+import org.specs2.time.NoTimeConversions
 import scalaz.Validation
 import org.http4s.CacheDirective._
 import org.http4s.CacheDirective.`s-maxage`
@@ -13,7 +14,7 @@ import scala.concurrent.duration._
 import org.http4s.util.string._
 import org.http4s.CacheDirective
 
-class CacheControlSpec extends WordSpec with Matchers with HeaderParserHelper[`Cache-Control`] {
+class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] with NoTimeConversions {
   def hparse(value: String): Validation[ParseErrorInfo, `Cache-Control`] = HttpParser.CACHE_CONTROL(value)
 
   // Default values
@@ -35,26 +36,26 @@ class CacheControlSpec extends WordSpec with Matchers with HeaderParserHelper[`C
 
     "Generate correct directive values" in {
       valueless.foreach { v =>
-        v.value should equal(v.name.toString)
+        v.value must be_==(v.name.toString)
       }
 
       numberdirectives.zipWithIndex.foreach{ case (v, i) =>
-        v.value should equal(s"${v.name}=$i")
+        v.value must be_==(s"${v.name}=$i")
       }
 
-      `max-stale`(None).value should equal("max-stale")
-      `max-stale`(Some(2.seconds)).value should equal("max-stale=2")
+      `max-stale`(None).value must be_==("max-stale")
+      `max-stale`(Some(2.seconds)).value must be_==("max-stale=2")
 
-      CacheDirective("Foo", Some("Bar")).value should equal("Foo=\"Bar\"")
-      CacheDirective("Foo", None).value should equal("Foo")
+      CacheDirective("Foo", Some("Bar")).value must be_==("Foo=\"Bar\"")
+      CacheDirective("Foo", None).value must be_==("Foo")
     }
 
     "Parse cache headers" in {
       val all = valueless ::: numberdirectives ::: strdirectives ::: others
 
-      all.foreach { d =>
+      foreach(all) { d =>
         val h = `Cache-Control`(d)
-        parse(h.value) should equal(h)
+        parse(h.value) must be_==(h)
       }
     }
   }

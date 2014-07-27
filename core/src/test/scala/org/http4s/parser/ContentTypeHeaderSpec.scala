@@ -1,12 +1,12 @@
 package org.http4s.parser
 
-import org.scalatest.{Matchers, WordSpec}
 import org.http4s.Header.`Content-Type`
 import org.http4s.MediaType._
 import org.http4s.CharacterSet
+import org.specs2.mutable.Specification
 import scalaz.Validation
 
-class ContentTypeHeaderSpec  extends WordSpec with Matchers with HeaderParserHelper[`Content-Type`] {
+class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Content-Type`] {
 
   def hparse(value: String): Validation[ParseErrorInfo, `Content-Type`] = HttpParser.CONTENT_TYPE(value)
 
@@ -17,17 +17,17 @@ class ContentTypeHeaderSpec  extends WordSpec with Matchers with HeaderParserHel
 
   "ContentType Header" should {
     "Generate the correct values" in {
-      simple.value should equal("text/html")
-      charset.value should equal("text/html; charset=UTF-8")
-      extensions.value should equal("text/html; foo=bar")
-      extensionsandset.value should equal("text/html; foo=bar; charset=UTF-8")
+      simple.value must be_==("text/html")
+      charset.value must be_==("text/html; charset=UTF-8")
+      extensions.value must be_==("text/html; foo=bar")
+      extensionsandset.value must be_==("text/html; foo=bar; charset=UTF-8")
     }
 
     "Parse correctly" in {
-      parse(simple.value) should equal(simple)
-      parse(charset.value) should equal(charset)
-      parse(extensions.value) should equal(extensions)
-      parse(extensionsandset.value) should equal(extensionsandset)
+      parse(simple.value) must be_==(simple)
+      parse(charset.value) must be_==(charset)
+      parse(extensions.value) must be_==(extensions)
+      parse(extensionsandset.value) must be_==(extensionsandset)
     }
   }
 

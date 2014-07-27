@@ -6,11 +6,11 @@
 package org.http4s
 
 import java.util.TimeZone
-import scala.util.Random
-import org.scalatest.{ Matchers, WordSpec }
-import org.scalatest.matchers.{ Matcher, MatchResult }
+import org.specs2.mutable.Specification
 
-class DateTimeSpec extends WordSpec with Matchers {
+import scala.util.Random
+
+class DateTimeSpec extends Specification {
 
   val GMT = TimeZone.getTimeZone("GMT")
   val specificClicks = DateTime(2011, 7, 12, 14, 8, 12).clicks
@@ -33,13 +33,9 @@ class DateTimeSpec extends WordSpec with Matchers {
         fmt
       }
       def rfc1123Format(dt: DateTime) = Rfc1123Format.format(new java.util.Date(dt.clicks))
-      val matchSimpleDateFormat: Matcher[DateTime] = Matcher { dt: DateTime ⇒
-        MatchResult(
-          dt.toRfc1123DateTimeString == rfc1123Format(dt),
-          dt.toRfc1123DateTimeString + " != " + rfc1123Format(dt),
-          dt.toRfc1123DateTimeString + " == " + rfc1123Format(dt))
+      foreach(httpDateTimes.take(10000)) { dt: DateTime ⇒
+        dt.toRfc1123DateTimeString must_== rfc1123Format(dt)
       }
-      all(httpDateTimes.take(10000)) should matchSimpleDateFormat
     }
   }
 
@@ -51,41 +47,40 @@ class DateTimeSpec extends WordSpec with Matchers {
 
   "DateTime.fromIsoDateTimeString" should {
     "properly parse a legal string" in {
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12") shouldBe Some(DateTime(specificClicks))
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12") should beSome(DateTime(specificClicks))
     }
     "properly parse a legal extended string" in {
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.123Z") shouldBe Some(DateTime(specificClicks))
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.123Z") should beSome(DateTime(specificClicks))
     }
     "fail on an illegal string" in {
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12x") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08_12") shouldBe None
-      DateTime.fromIsoDateTimeString("201A-07-12T14:08:12") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-13-12T14:08:12") shouldBe None
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12x") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08_12") should beNone
+      DateTime.fromIsoDateTimeString("201A-07-12T14:08:12") should beNone
+      DateTime.fromIsoDateTimeString("2011-13-12T14:08:12") should beNone
     }
     "fail on an illegal extended string" in {
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.a") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.Z") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.12") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.123") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1234") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1Z") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.12Z") shouldBe None
-      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1234Z") shouldBe None
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.a") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.Z") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.12") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.123") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1234") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1Z") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.12Z") should beNone
+      DateTime.fromIsoDateTimeString("2011-07-12T14:08:12.1234Z") should beNone
     }
   }
 
   "The two DateTime implementations" should {
     "allow for transparent round-trip conversions" in {
       def roundTrip(dt: DateTime) = DateTime(dt.year, dt.month, dt.day, dt.hour, dt.minute, dt.second)
-      val roundTripOk: Matcher[DateTime] = Matcher { dt: DateTime ⇒
-        MatchResult(
-        { val rt = roundTrip(dt); dt == rt && dt.weekday == rt.weekday },
-        dt.toRfc1123DateTimeString + " != " + roundTrip(dt).toRfc1123DateTimeString,
-        dt.toRfc1123DateTimeString + " == " + roundTrip(dt).toRfc1123DateTimeString)
+      foreach(httpDateTimes.take(10000)) { dt: DateTime =>
+        val rt = roundTrip(dt);
+        dt must_== rt
+        dt.weekday must_== rt.weekday
+        dt.toRfc1123DateTimeString must_== rt.toRfc1123DateTimeString
       }
-      all(httpDateTimes.take(10000)) should roundTripOk
     }
     "properly represent DateTime.MinValue" in {
       DateTime.MinValue.toString shouldEqual "1800-01-01T00:00:00"

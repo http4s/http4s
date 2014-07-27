@@ -1,11 +1,11 @@
 package org.http4s.parser
 
-import org.scalatest.{Matchers, WordSpec}
 import org.http4s.Header.{`Set-Cookie`}
+import org.specs2.mutable.Specification
 import scalaz.Validation
 import org.http4s.{Header, Cookie}
 
-class SetCookieHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[`Set-Cookie`] {
+class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Cookie`] {
   def hparse(value: String): Validation[ParseErrorInfo, `Set-Cookie`] = HttpParser.SET_COOKIE(value)
 
   "Set-Cookie parser" should {
@@ -26,19 +26,19 @@ class SetCookieHeaderSpec extends WordSpec with Matchers with HeaderParserHelper
 
     "parse a set cookie" in {
       val c = parse(cookiestr).cookie
-      c.name should equal("myname")
-      c.content should equal("foo")
-      c.maxAge should equal(Some(1))
-      c.path should equal(Some("value"))
-      c.secure should equal(true)
-      c.httpOnly should equal(true)
+      c.name must be_==("myname")
+      c.content must be_==("foo")
+      c.maxAge must be_==(Some(1))
+      c.path must be_==(Some("value"))
+      c.secure must be_==(true)
+      c.httpOnly must be_==(true)
 
     }
 
   }
 }
 
-class CookieHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[Header.Cookie] {
+class CookieHeaderSpec extends Specification with HeaderParserHelper[Header.Cookie] {
   def hparse(value: String): Validation[ParseErrorInfo, Header.Cookie] = HttpParser.COOKIE(value)
 
   val cookiestr = "key1=value1; key2=\"value2\""
@@ -47,7 +47,7 @@ class CookieHeaderSpec extends WordSpec with Matchers with HeaderParserHelper[He
   "Cookie parser" should {
     "parse a cookie" in {
 
-      parse(cookiestr).values.list should equal (cookies)
+      parse(cookiestr).values.list must be_== (cookies)
 
     }
   }

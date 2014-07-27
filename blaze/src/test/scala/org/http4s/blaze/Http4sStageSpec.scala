@@ -1,14 +1,13 @@
-package org.http4s.blaze
+package org.http4s
+package blaze
 
-import org.scalatest.{Matchers, WordSpec}
+import scala.concurrent.Future
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import org.http4s.blaze.pipeline.{Command => Cmd}
-import scala.concurrent.Await
-import scala.concurrent.duration._
+import org.specs2.mutable.Specification
 
-
-class Http4sStageSpec extends WordSpec with Matchers {
+class Http4sStageSpec extends Specification {
 
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -17,34 +16,22 @@ class Http4sStageSpec extends WordSpec with Matchers {
     new String(a)
   }
 
-  def runRequest(req: Seq[String]): ByteBuffer = {
+  def runRequest(req: Seq[String]): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
     val httpStage = new Http1Stage(TestRoutes(), None) {
       override def reset(): Unit = head.stageShutdown()     // shutdown the stage after a complete request
     }
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
-
-    Await.result(head.result, 10000.milliseconds)
+    head.result
   }
 
   "Http4sStage" should {
-
     TestRoutes.testRequestResults.zipWithIndex.foreach { case ((req, (status,headers,resp)), i) =>
       s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
-
         val result = runRequest(Seq(req))
-
-//        println("Received ---------------------------\n" + makeString(result) + "\n----------------------------")
-
-        val (sresult,hresult,body) = ResponseParser(result)
-
-        status should equal(sresult)
-        body should equal(resp)
-        headers should equal(hresult)
-
+        result.map(ResponseParser.apply(_)) must be_== ((status, headers, resp)).await
       }
     }
   }
-
 }

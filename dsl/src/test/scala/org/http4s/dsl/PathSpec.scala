@@ -1,4 +1,3 @@
-
 /*
 * Derived from Twitter Finagle.
 *
@@ -8,17 +7,17 @@
 package org.http4s
 package dsl
 
-import org.scalatest.{Matchers, WordSpec}
+import org.specs2.mutable.Specification
 
-class PathSpec extends WordSpec with Matchers {
+class PathSpec extends Specification {
   "Path" should {
 
     "/foo/bar" in {
-      Path("/foo/bar").toList should equal (List("foo", "bar"))
+      Path("/foo/bar").toList must_== (List("foo", "bar"))
     }
 
     "foo/bar" in {
-      Path("foo/bar").toList should equal (List("foo", "bar"))
+      Path("foo/bar").toList must_== (List("foo", "bar"))
     }
 
 
@@ -26,21 +25,21 @@ class PathSpec extends WordSpec with Matchers {
       (Path("/foo.json") match {
         case Root / "foo" ~ "json" => true
         case _                     => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "~ extractor on filename foo.json" in {
       ("foo.json" match {
         case "foo" ~ "json" => true
         case _              => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "~ extractor on filename foo" in {
       ("foo" match {
         case "foo" ~ "" => true
         case _          => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "-> extractor /test.json" in {
@@ -48,7 +47,7 @@ class PathSpec extends WordSpec with Matchers {
       (req match {
         case GET -> Root / "test.json" => true
         case _                         => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "-> extractor /foo/test.json" in {
@@ -56,7 +55,7 @@ class PathSpec extends WordSpec with Matchers {
       (req match {
         case GET -> Root / "foo" / "test.json" => true
         case _                         => false
-      }) should be (true)
+      }) must beTrue
     }
 
    "request path info extractor for /" in {
@@ -64,88 +63,77 @@ class PathSpec extends WordSpec with Matchers {
       (req match {
         case _ -> Root => true
         case _ => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "Root extractor" in {
       (Path("/") match {
         case Root => true
         case _    => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "Root extractor, no partial match" in {
       (Path("/test.json") match {
         case Root => true
         case _    => false
-      }) should be (false)
+      }) must beFalse
     }
 
     "Root extractor, empty path" in {
       (Path("") match {
         case Root => true
         case _    => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "/ extractor" in {
       (Path("/1/2/3/test.json") match {
         case Root / "1" / "2" / "3" / "test.json" => true
         case _                                    => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "Int extractor" in {
       (Path("/user/123") match {
         case Root / "user" / IntVar(userId) => userId == 123
         case _                                => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "Int extractor, invalid int" in {
       (Path("/user/invalid") match {
         case Root / "user" / IntVar(userId) => true
         case _                                => false
-      }) should be (false)
+      }) must beFalse
     }
 
     "Int extractor, number format error" in {
       (Path("/user/2147483648") match {
         case Root / "user" / IntVar(userId) => true
         case _                                => false
-      }) should be (false)
+      }) must beFalse
     }
 
     "Long extractor" in {
       (Path("/user/123") match {
         case Root / "user" / LongVar(userId) => userId == 123
         case _                                 => false
-      }) should be (true)
+      }) must beTrue
     }
 
     "Long extractor, invalid int" in {
       (Path("/user/invalid") match {
         case Root / "user" / LongVar(userId) => true
         case _                                 => false
-      }) should be (false)
+      }) must beFalse
     }
 
     "Long extractor, number format error" in {
       (Path("/user/9223372036854775808") match {
         case Root / "user" / LongVar(userId) => true
         case _                                 => false
-      }) should be (false)
+      }) must beFalse
     }
   }
-
-
-
-//  "Method extractors" should {
-//    "match relative to path info" in {
-//      (Request(requestMethod = GET, scriptName = "/script-name", pathInfo = "/path-info") match {
-//        case GET -> Root / "path-info" => true
-//        case _ => false
-//      }) should be (true)
-//    }
-//  }
 }

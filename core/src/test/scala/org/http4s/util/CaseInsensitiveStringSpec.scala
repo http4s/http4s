@@ -1,21 +1,21 @@
 package org.http4s.util
 
-import org.scalatest.{Matchers, WordSpec}
+import org.specs2.mutable.Specification
 
-class CaseInsensitiveStringSpec extends WordSpec with Matchers with CaseInsensitiveStringSyntax {
+class CaseInsensitiveStringSpec extends Specification with CaseInsensitiveStringSyntax {
   "Two case-insensitively equal strings" should {
     "be equal" in {
-      "DON'T YELL".ci should equal ("don't yell".ci)
+      "DON'T YELL".ci must be_== ("don't yell".ci)
     }
 
     "have same hash" in {
-      "DON'T YELL".ci.## should equal ("don't yell".ci.##)
+      "DON'T YELL".ci.## must be_== ("don't yell".ci.##)
     }
   }
 
   "A case-insenstive string" should {
     "preserve the original value" in {
-      "What Goes In Must Come Out".ci.toString should equal ("What Goes In Must Come Out")
+      "What Goes In Must Come Out".ci.toString must be_== ("What Goes In Must Come Out")
     }
   }
 }

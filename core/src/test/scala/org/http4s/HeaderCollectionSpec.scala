@@ -1,19 +1,19 @@
 package org.http4s
 
-import org.scalatest.{OptionValues, WordSpec, Matchers}
 import Header._
+import org.specs2.mutable.Specification
 
-class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
+class HeaderCollectionSpec extends Specification {
   "put" should {
     "replace duplicate headers" in {
       val headers = Headers(
         `Set-Cookie`(Cookie("foo", "bar")),
         `Set-Cookie`(Cookie("baz", "quux"))
       )
-      headers.count(_ is `Set-Cookie`) should equal (2)
-      headers.put(`Set-Cookie`(Cookie("piff", "paff"))).filter(_ is `Set-Cookie`) should be (Seq(
+      headers.count(_ is `Set-Cookie`) must_== (2)
+      headers.put(`Set-Cookie`(Cookie("piff", "paff"))).filter(_ is `Set-Cookie`) must_== Headers(
         `Set-Cookie`(Cookie("piff", "paff"))
-      ))
+      )
     }
   }
 
@@ -23,7 +23,7 @@ class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
         Header.`Cookie`(Cookie("foo", "bar")),
         Header("Cookie", Cookie("baz", "quux").toString)
       )
-      headers.get(Header.Cookie).value.values.list should have length (2)
+      headers.get(Header.Cookie).map(_.values.list.length) must beSome (2)
     }
   }
 
@@ -34,7 +34,7 @@ class HeaderCollectionSpec extends WordSpec with Matchers with OptionValues {
         Header("Accept-Patch",""),
         Header("Access-Control-Allow-Credentials","")
       )
-      headers.get(`Accept-Patch`).value.value should equal ("")
+      headers.get(`Accept-Patch`).map(_.value) must beSome ("")
     }
   }
 }
