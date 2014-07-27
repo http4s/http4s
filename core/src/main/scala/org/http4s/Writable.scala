@@ -82,6 +82,9 @@ trait WritableInstances extends WritableInstances0 {
     Headers(`Content-Type`.`text/plain`.withCharset(charset))
   )
 
+  implicit def charSequenceWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[CharSequence] =
+    stringWritable.contramap(_.toString)
+
   implicit def charArrayWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Array[Char]] =
     stringWritable.contramap(new String(_))
 
