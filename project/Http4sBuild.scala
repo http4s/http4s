@@ -41,9 +41,9 @@ object Http4sDependencies {
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.1.4.v20140401"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val jettyWebSocket      = "org.eclipse.jetty"         % "jetty-websocket"         % jettyServer.revision
-  lazy val json4sAst           = "org.json4s"               %% "json4s-ast"              % "3.2.10"
-  lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sAst.revision
-  lazy val json4sNative        = "org.json4s"               %% "json4s-native"           % json4sAst.revision
+  lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.2.10"
+  lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sCore.revision
+  lazy val json4sNative        = "org.json4s"               %% "json4s-native"           % json4sCore.revision
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
   lazy val junit               = "junit"                     % "junit"                   % "4.11"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
