@@ -12,16 +12,7 @@ http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Sca
 An `HttpService` is just a `PartialFunction[Request, Task[Response]]`.  http4s provides a variety
 of helpers to facilitate the creation of the `Task[Response]` from common results.
 
-```scala
-// A simple route definition using the optional http4s DSL
-val service: HttpService = {
-  //  We use the micro DSL to match the path of the Request to the familiar uri form
-  case GET -> Root / "hello" =>
-    // We could make a Task[Response] manually, but we use the
-    // EntityResponseGenerator 'Ok' for convenience
-    Ok("Hello, better world.")
-}
-```
+{% code_ref ../../examples/src/main/scala/org/http4s/examples/site/HelloBetterWorld.scala service %}
 
 HttpServices are _type safe_, _composable_, and _asynchronous_.
 
