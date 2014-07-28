@@ -1,7 +1,0 @@
-gh-pages is auto-generated:
-
-* api comes from unidoc in src/main/scala in develop
-* all else comes from src/site on the develop branch
-
-We love documentation, but so it lasts, please submit from the source.  Protip:
-your commit to gh-pages might cherry-pick back to develop.  git is smart.
