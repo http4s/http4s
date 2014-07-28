@@ -1,0 +1,20 @@
+safe:        false
+encoding:    "utf-8"
+url:         http://localhost:4000/
+baseurl:     /muster
+
+muster_version: 0.2.0
+json4s_version: 3.2.10
+
+source:      .
+destination: ../../target/site
+plugins:     ./_plugins
+
+future:      true
+lsi:         false
+highlighter: rouge
+
+markdown:    redcarpet
+redcarpet:
+  extensions: ["no_intra_emphasis", "fenced_code_blocks", "autolink", "strikethrough", "superscript", "with_toc_data"]
+permalink:   date
