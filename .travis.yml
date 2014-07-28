@@ -5,6 +5,8 @@ scala:
 env:
   global:
   - secure: IgzqZjDGDiXkBrGoTdAdj/em5C+rO48QSdeA3K0FTzuti8VuC4U7RslqiqokF1QziOxA6GYjB0sfVdupAnDmyuYLUjDDvvEuQu73bt1fucQxho2xUHq678xjorV2xKrAKriiFG8i4HMFNVL+vKKtScGTkjyNI29bdLYJS7Bftgw=
+rvm:
+  - "1.9.3-p392"
 before_script:
 - openssl aes-256-cbc -k $SECRET -in .travis.secrets.enc -d -a -out .travis.secrets
 - source .travis.secrets
@@ -12,6 +14,7 @@ before_script:
 - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 - git config --global user.email "travis-ci@http4s.org"
 - git config --global user.name "Travis CI"
+- "cd $TRAVIS_BUILD_DIR/src/jekyll && bundle install && cd -"
 script: sbt ++$TRAVIS_SCALA_VERSION test
 after_success: 
 - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "develop" && sbt ++$TRAVIS_SCALA_VERSION publish

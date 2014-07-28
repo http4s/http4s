@@ -15,7 +15,7 @@ import Http4sKeys.apiVersion
 import scala.util.Properties
 
 object Http4sSite {
-  lazy val settings = site.settings ++ ghpages.settings ++ Seq(
+  lazy val settings = site.settings ++ ghpages.settings ++ site.jekyllSupport() ++ Seq(
     siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map {
       case (m, (major, minor)) =>
         for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
@@ -23,7 +23,6 @@ object Http4sSite {
     includeFilter in makeSite := "*" -- "*~",
     cleanSite <<= cleanSite0,
     synchLocal <<= synchLocal0,
-    ghpagesNoJekyll := false,
     git.remoteRepo := remoteRepo
   )
 
