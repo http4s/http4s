@@ -67,7 +67,7 @@ case class Request(
   requestUri: Uri = Uri(path = "/"),
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: Headers = Headers.empty,
-  body: EntityBody = EntityBody.empty,
+  body: EntityBody = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
 ) extends Message with MessageSyntax.MessageSyntax[Request, Request] {
   import Request._
@@ -161,13 +161,13 @@ object Request {
  * @param headers [[Headers]] containing all response headers
  * @param body scalaz.stream.Process[Task,Chunk] representing the possible body of the response
  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
- *                   backend for additional processing such as [[websocket.websocketKey]] or java.io.File objects
+ *                   backend for additional processing such as java.io.File object
  */
 case class Response(
   status: Status = Status.Ok,
   protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
   headers: Headers = Headers.empty,
-  body: EntityBody = EntityBody.empty,
+  body: EntityBody = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseSyntax[Response] {
   type Self = Response
 

@@ -5,6 +5,7 @@ import org.http4s.json4s.jackson.Json4sJacksonSupport
 import org.http4s.server.HttpService
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
+import org.http4s.EntityDecoder._
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonDSL._
 
@@ -47,7 +48,7 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
       }))
 
     case req @ POST -> Root / "sum"  =>
-      text(req).flatMap{ s =>
+      text(req).flatMap { s =>
         val sum = s.split('\n').filter(_.length > 0).map(_.trim.toInt).sum
         Ok(sum)
       }

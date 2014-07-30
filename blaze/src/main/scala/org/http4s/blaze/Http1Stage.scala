@@ -236,7 +236,7 @@ class Http1Stage(service: HttpService, conn: Option[SocketConnection])
 
   // TODO: what should be the behavior for determining if we have some body coming?
   private def collectBodyFromParser(buffer: ByteBuffer): EntityBody = {
-    if (contentComplete()) return EntityBody.empty
+    if (contentComplete()) return EmptyBody
 
     @volatile var currentbuffer = buffer
 

@@ -1,5 +1,6 @@
 package org.http4s
 
+import org.http4s.Header.`Content-Type`
 import org.specs2.mutable.Specification
 
 import scala.language.postfixOps
@@ -9,16 +10,15 @@ import scodec.bits.ByteVector
 import scalaz.concurrent.Task
 
 // the http4s team resents importing this.
-
-import Status._
+import org.http4s.Http4s._
 
 import java.io.{FileInputStream,File,InputStreamReader}
 
 import scalaz.stream.Process._
-import EntityBody._
+import EntityDecoder._
 
 
-class EntityBodySpec extends Specification {
+class EntityDecoderSpec extends Specification {
 
   def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
 
@@ -42,7 +42,7 @@ class EntityBodySpec extends Specification {
     }
   }
 
-  "A File BodyParser" should {
+  "A File EntityDecoder" should {
     val binData: Array[Byte] = "Bytes 10111".getBytes
 
     def readFile(in: File): Array[Byte] = {
@@ -67,7 +67,7 @@ class EntityBodySpec extends Specification {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
         case req =>
-          textFile(req, tmpFile){
+          textFile(tmpFile).decode(req).flatMap { _ =>
             Ok("Hello")
           }
       }.run
@@ -80,13 +80,24 @@ class EntityBodySpec extends Specification {
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
-        case req => binFile(req, tmpFile)(Ok("Hello"))
+        case req => binFile(tmpFile).decode(req).flatMap(_ => Ok("Hello"))
       }.run
 
       response.status must_== (Status.Ok)
       getBody(response.body) must_== ("Hello".getBytes)
       readFile(tmpFile) must_== (binData)
     }
+
+    "Match any media type" in {
+      val req = Ok("foo").run
+      binary.matchesMediaType(req) must_== true
+    }
+
+    "Not match invalid media type" in {
+      val req = Ok("foo").run
+      xml().matchesMediaType(req) must_== false
+    }
+
   }
 
 }

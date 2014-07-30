@@ -1,7 +1,6 @@
 package org.http4s
 
-trait Http4s extends EntityBodyFunctions
-  with MessageSyntax
+trait Http4s extends MessageSyntax
   with StatusInstances
   with WritableInstances
   with util.CaseInsensitiveStringSyntax
