@@ -1,6 +1,6 @@
 package org.http4s
 
-trait Http4s extends EntityBodyFunctions
+trait Http4s extends EntityDecoderInstances
   with MessageSyntax
   with StatusInstances
   with WritableInstances

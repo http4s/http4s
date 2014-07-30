@@ -114,7 +114,7 @@ trait StatusInstances {
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: Headers = Headers.empty): Response =
-      Response(status = this, headers = Header("Upgrade", protocols) +: headers, body = EntityBody.empty)
+      Response(status = this, headers = Header("Upgrade", protocols) +: headers, body = EmptyBody)
   }
   val Processing = new Status(102, "Processing") with NoEntityResponseGenerator
 

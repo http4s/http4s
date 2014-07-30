@@ -130,14 +130,14 @@ sealed class MediaType(mainType: String,
 
   final def satisfies(mediaType: MediaType) = mediaType.satisfiedBy(this)
 
-  def satisfiedBy(mediaType: MediaType) = {
-    (this eq mediaType) ||
-      mainType == mediaType.mainType        &&
-        subType == mediaType.subType        &&
-        qualityMatches(mediaType)
-  }
+  override def satisfiedBy(mediaType: MediaRange) = mediaType match {
+    case mediaType: MediaType =>
+      (this eq mediaType) ||
+        mainType == mediaType.mainType &&
+          subType == mediaType.subType && qualityMatches(mediaType)
 
-  override def satisfiedBy(mediaType: MediaRange) = false
+    case _            => false
+  }
 
   override def equals(obj: Any) = obj match {
     case x: MediaType => (this eq x) ||

@@ -1,12 +1,11 @@
 package org.http4s
 
 import java.io.{InputStream, File, Reader}
-import java.nio.{CharBuffer, ByteBuffer}
+import java.nio.ByteBuffer
 import java.nio.file.Path
 import scala.language.implicitConversions
 import scalaz._
 import scalaz.concurrent.Task
-import scalaz.std.list._
 import scalaz.std.option._
 import scalaz.stream.{Channel, io, Process}
 import scalaz.stream.Process.{End, emit}
@@ -33,7 +32,7 @@ object Writable extends WritableInstances {
       empty
     )
 
-    lazy val empty = Entity(EntityBody.empty, Some(0))
+    lazy val empty = Entity(EmptyBody, Some(0))
   }
 
   def simple[A](toChunk: A => ByteVector, headers: Headers = Headers.empty): Writable[A] = Writable(
