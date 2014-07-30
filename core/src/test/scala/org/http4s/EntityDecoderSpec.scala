@@ -1,6 +1,5 @@
 package org.http4s
 
-import org.http4s.Header.`Content-Type`
 import org.specs2.mutable.Specification
 
 import scala.language.postfixOps
@@ -8,9 +7,6 @@ import org.xml.sax.SAXParseException
 import scodec.bits.ByteVector
 
 import scalaz.concurrent.Task
-
-// the http4s team resents importing this.
-import org.http4s.Http4s._
 
 import java.io.{FileInputStream,File,InputStreamReader}
 
@@ -25,7 +21,7 @@ class EntityDecoderSpec extends Specification {
   "xml" should {
 
     val server: Request => Task[Response] = { req =>
-      xml(req).flatMap{ elem => Ok(elem.label) }
+      xml(req).flatMap{ elem => Status.Ok(elem.label) }
                     .handle{ case t: SAXParseException => Status.BadRequest().run }
     }
 
@@ -68,7 +64,7 @@ class EntityDecoderSpec extends Specification {
       val response = mocServe(Request()) {
         case req =>
           textFile(tmpFile).decode(req).flatMap { _ =>
-            Ok("Hello")
+            Status.Ok("Hello")
           }
       }.run
 
@@ -80,7 +76,7 @@ class EntityDecoderSpec extends Specification {
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
-        case req => binFile(tmpFile).decode(req).flatMap(_ => Ok("Hello"))
+        case req => binFile(tmpFile).decode(req).flatMap(_ => Status.Ok("Hello"))
       }.run
 
       response.status must_== (Status.Ok)
@@ -89,13 +85,18 @@ class EntityDecoderSpec extends Specification {
     }
 
     "Match any media type" in {
-      val req = Ok("foo").run
+      val req = Status.Ok("foo").run
       binary.matchesMediaType(req) must_== true
     }
 
     "Not match invalid media type" in {
-      val req = Ok("foo").run
-      xml().matchesMediaType(req) must_== false
+      val req = Status.Ok("foo").run
+      EntityDecoder.xml().matchesMediaType(req) must_== false
+    }
+
+    "Match valid media type" in {
+      val req = Status.Ok("foo").run
+      EntityDecoder.text.matchesMediaType(req) must_== true
     }
 
   }
