@@ -1,6 +1,8 @@
 package org.http4s
 package server
 
+import org.http4s.websocket.{WSFrame, Websocket}
+
 import scalaz.stream.Process
 import scalaz.concurrent.Task
 import Process._

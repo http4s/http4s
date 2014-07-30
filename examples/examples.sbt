@@ -11,7 +11,7 @@ libraryDependencies ++= Seq(
   jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
 )
 
-mainClass in Revolver.reStart := Some("org.http4s.examples.blaze.BlazeWebSocketExample")
+mainClass in Revolver.reStart := Some("org.http4s.examples.blaze.BlazeExample")
 
 fork := true
 

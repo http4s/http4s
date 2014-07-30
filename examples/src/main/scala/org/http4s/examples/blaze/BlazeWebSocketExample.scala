@@ -4,15 +4,15 @@ package blaze
 import org.http4s._
 import org.http4s.Status._
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.Http1Stage
 import org.http4s.server.HttpService
+import org.http4s.server.blaze.{WebSocketSupport, Http1ServerStage}
 import org.http4s.server.middleware.URITranslation
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
-import org.http4s.blaze.websocket.WebSocketSupport
 
 import java.nio.ByteBuffer
 import java.net.InetSocketAddress
 import org.http4s.blaze.channel.SocketConnection
+import org.http4s.websocket.{Text, WSFrame}
 
 
 object BlazeWebSocketExample extends App {
@@ -48,7 +48,7 @@ object BlazeWebSocketExample extends App {
   }
 
   def pipebuilder(conn: SocketConnection): LeafBuilder[ByteBuffer] =
-    new Http1Stage(URITranslation.translateRoot("/http4s")(route), Some(conn)) with WebSocketSupport
+    new Http1ServerStage(URITranslation.translateRoot("/http4s")(route), Some(conn)) with WebSocketSupport
 
   new SocketServerChannelFactory(pipebuilder, 12, 8*1024)
     .bind(new InetSocketAddress(8080))

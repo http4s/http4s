@@ -3,6 +3,7 @@ package org.http4s
 import java.io.File
 import java.net.InetAddress
 import org.http4s.Header.`Content-Type`
+import org.http4s.server.ServerSoftware
 import scalaz.concurrent.Task
 import MessageSyntax.ResponseSyntax
 

@@ -9,8 +9,8 @@ import org.http4s.util.CaseInsensitiveString
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
   extends immutable.Seq[Header]
-  with collection.SeqLike[Header, Headers]
-{
+  with collection.SeqLike[Header, Headers] {
+
   override protected def newBuilder: mutable.Builder[Header, Headers] = Headers.newBuilder
 
   override def tail: Headers = new Headers(headers.tail)
@@ -61,9 +61,7 @@ final class Headers private (headers: List[Header])
       val n = b.prependToList(headers.filterNot(h => in.exists(_.name == h.name)))
       new Headers(n)
     }
-    
   }
-    
 }
 
 object Headers {

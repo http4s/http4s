@@ -1,9 +1,10 @@
 package org.http4s
 package servlet
 
+import server.{HttpService, ServerSoftware}
+
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import java.net.InetAddress
-import org.http4s.server.HttpService
 
 import scala.collection.JavaConverters._
 import javax.servlet.{ServletConfig, AsyncContext}

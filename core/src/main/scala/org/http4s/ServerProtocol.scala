@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.util.{Registry, CaseInsensitiveString}
+import org.http4s.util.{Writer, Renderable, Registry, CaseInsensitiveString}
 import org.http4s.util.string._
 import org.http4s.parser.ServerProtocolParser
 
@@ -9,8 +9,11 @@ import org.http4s.parser.ServerProtocolParser
  *
  * http://www.ietf.org/rfc/rfc3875, section 4.1.16
  */
-sealed trait ServerProtocol {
+sealed trait ServerProtocol extends Renderable {
   def value: CaseInsensitiveString
+
+  override def render[W <: Writer](writer: W): writer.type = writer ~ value
+
   override def toString = value.toString
 }
 

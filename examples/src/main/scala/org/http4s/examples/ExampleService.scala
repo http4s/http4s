@@ -53,6 +53,14 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
         Ok(sum)
       }
 
+    case req @ POST -> Root / "shortsum"  =>
+      text(req).flatMap { s =>
+        val sum = s.split('\n').map(_.toInt).sum
+        Ok(sum)
+      } handleWith { case EntityTooLarge(_) =>
+        Ok("Got a nonfatal Exception, but its OK")
+      }
+
 /*
     case req @ Post -> Root / "trailer" =>
       trailer(t => Ok(t.headers.length))
