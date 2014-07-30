@@ -1,17 +1,19 @@
 package org.http4s
 
+import scala.language.postfixOps
+
+import org.http4s.Header.`Content-Type`
+import EntityDecoder._
+
 import org.specs2.mutable.Specification
 
-import scala.language.postfixOps
 import org.xml.sax.SAXParseException
-import scodec.bits.ByteVector
-
-import scalaz.concurrent.Task
 
 import java.io.{FileInputStream,File,InputStreamReader}
 
 import scalaz.stream.Process._
-import EntityDecoder._
+import scalaz.concurrent.Task
+import scodec.bits.ByteVector
 
 
 class EntityDecoderSpec extends Specification {
@@ -94,8 +96,13 @@ class EntityDecoderSpec extends Specification {
       EntityDecoder.xml().matchesMediaType(req) must_== false
     }
 
-    "Match valid media type" in {
+    "Match valid media range" in {
       val req = Status.Ok("foo").run
+      EntityDecoder.text.matchesMediaType(req) must_== true
+    }
+
+    "Match valid media type to a range" in {
+      val req = Request(headers = Headers(`Content-Type`(MediaType.`text/css`)))
       EntityDecoder.text.matchesMediaType(req) must_== true
     }
 

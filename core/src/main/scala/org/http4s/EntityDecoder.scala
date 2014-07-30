@@ -37,7 +37,7 @@ sealed trait EntityDecoder[+T] { self =>
   }
 }
 
-object EntityDecoder {
+object EntityDecoder extends EntityDecoderInstances {
   def apply[T](f: Message => Task[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): Task[T] = {
       try f(msg)
@@ -59,6 +59,11 @@ object EntityDecoder {
   def collectBinary(msg: Message): Task[Array[Byte]] =
     msg.body.runLog.map(_.reduce(_ ++ _).toArray)
 
+}
+
+trait EntityDecoderInstances {
+  import EntityDecoder._
+
   /////////////////// Instances //////////////////////////////////////////////
   implicit val binary: EntityDecoder[Array[Byte]] = {
     EntityDecoder(collectBinary, MediaRange.`*/*`)
@@ -72,7 +77,7 @@ object EntityDecoder {
       }}).map(_.result()).runLastOr("")
     }
     EntityDecoder(msg => collectBinary(msg).map(new String(_, msg.charset.charset)),
-      MediaType.`text/plain`)
+      MediaRange.`text/*`)
   }
 
   /**
@@ -83,7 +88,7 @@ object EntityDecoder {
    * @param parser the SAX parser to use to parse the XML
    * @return an XML element
    */
-  def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder(msg => {
+  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder(msg => {
     collectBinary(msg).map { arr =>
       val source = new InputSource(new StringReader(new String(arr, msg.charset.charset)))
       XML.loadXML(source, parser)
@@ -105,7 +110,7 @@ object EntityDecoder {
     EntityDecoder(msg => {
       val p = io.chunkW(new java.io.PrintStream(new FileOutputStream(in)))
       msg.body.to(p).run.map(_ => in)
-    }, MediaRange.`*/*`)
+    }, MediaRange.`text/*`)
   }
 
 }
