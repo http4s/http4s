@@ -11,6 +11,9 @@ import scalaz.concurrent.Task
 import scalaz.stream.processes
 import scalaz.stream.io
 
+// TODO: Need to handle failure in a more uniform manner
+
+/** Decoder that describes the MediaTypes it can decode */
 sealed trait EntityDecoder[+T] { self =>
 
   final def apply(msg: Message): Task[T] = decode(msg)
@@ -58,9 +61,9 @@ object EntityDecoder extends EntityDecoderInstances {
 
   def collectBinary(msg: Message): Task[Array[Byte]] =
     msg.body.runLog.map(_.reduce(_ ++ _).toArray)
-
 }
 
+/** Various instances of common decoders */
 trait EntityDecoderInstances {
   import EntityDecoder._
 
@@ -98,7 +101,7 @@ trait EntityDecoderInstances {
   def xml: EntityDecoder[Elem] = xml()
 
   // File operations
-  // TODO: rewrite these using NIO non blocking FileChannels
+  // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] = {
     EntityDecoder(msg => {
       val p = io.chunkW(new java.io.FileOutputStream(file))
@@ -112,5 +115,4 @@ trait EntityDecoderInstances {
       msg.body.to(p).run.map(_ => in)
     }, MediaRange.`text/*`)
   }
-
 }
