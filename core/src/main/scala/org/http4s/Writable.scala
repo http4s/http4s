@@ -51,16 +51,14 @@ trait WritableInstances0 {
       Headers(`Content-Type`.`text/plain`.withCharset(charset))
     )
 
-  implicit def naturalTransformationWritable[F[_], A](implicit W: Writable[A], N: ~>[F, Task]): Writable[F[A]] =
-    taskWritable[A].contramap { f: F[A] => N(f) }
+  implicit def naturalTransformationWritable[F[_], A](implicit N: ~>[F, Task], W: Writable[A]): Writable[F[A]] =
+    taskWritable[A](W).contramap { f: F[A] => N(f) }
 
   /**
    * A process writable is intended for streaming, and does not calculate its bodies in
    * advance.  As such, it does not calculate the Content-Length in advance.  This is for
    * use with chunked transfer encoding.
    */
-  // TODO buggy at bufSize > 1
-  // TODO configurable bufSize
   implicit def processWritable[A](implicit W: Writable[A]): Writable[Process[Task, A]] =
     W.copy(toEntity = { process =>
       Task.now(Entity(process.flatMap(a => Process.await(W.toEntity(a))(_.body)), None))
