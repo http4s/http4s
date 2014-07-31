@@ -123,19 +123,16 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
     // if we get a non-null response, process the route. Else, error has already been dealt with.
     if (req != null) {
-      val resp = Task.fork {
-        try service.applyOrElse(req, NotFound(_: Request)) catch {
-          case t: Throwable =>
+      Task.fork(service.applyOrElse(req, NotFound(_: Request)))(pool)
+        .runAsync {
+          case \/-(resp) => renderResponse(req, resp)
+          case -\/(t)    =>
             logger.error(s"Error running route: $req", t)
-            InternalServerError("500 Internal Service Error\n" + t.getMessage)
-              .withHeaders(Connection("close".ci))
+            val resp = InternalServerError("500 Internal Service Error\n" + t.getMessage)
+                         .run
+                         .withHeaders(Connection("close".ci))
+            renderResponse(req, resp)   // will terminate the connection due to connection: close header
         }
-      }(pool)
-
-      resp.runAsync {
-        case \/-(resp) => renderResponse(req, resp)
-        case -\/(t)    => fatalError(t, "Error running route")
-      }
     }
   }
 
