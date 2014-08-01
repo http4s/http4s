@@ -3,6 +3,7 @@ package org.http4s
 import scala.language.postfixOps
 
 import org.http4s.Header.`Content-Type`
+import Status.Ok
 import EntityDecoder._
 
 import org.specs2.mutable.Specification
@@ -23,13 +24,13 @@ class EntityDecoderSpec extends Specification {
   "xml" should {
 
     val server: Request => Task[Response] = { req =>
-      xml(req).flatMap{ elem => Status.Ok(elem.label) }
-                    .handle{ case t: SAXParseException => Status.BadRequest().run }
+      xml(req).flatMap{ elem => ResponseBuilder(Ok, elem.label) }
+        .handle{ case t: SAXParseException => ResponseBuilder.basic(Status.BadRequest).run }
     }
 
     "parse the XML" in {
       val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
-      resp.status must_==(Status.Ok)
+      resp.status must_==(Ok)
       getBody(resp.body) must_== ("html".getBytes)
     }
 
@@ -66,7 +67,7 @@ class EntityDecoderSpec extends Specification {
       val response = mocServe(Request()) {
         case req =>
           textFile(tmpFile).decode(req).flatMap { _ =>
-            Status.Ok("Hello")
+            ResponseBuilder(Ok, "Hello")
           }
       }.run
 
@@ -78,7 +79,7 @@ class EntityDecoderSpec extends Specification {
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
-        case req => binFile(tmpFile).decode(req).flatMap(_ => Status.Ok("Hello"))
+        case req => binFile(tmpFile).decode(req).flatMap(_ => ResponseBuilder(Ok, "Hello"))
       }.run
 
       response.status must_== (Status.Ok)
@@ -87,17 +88,17 @@ class EntityDecoderSpec extends Specification {
     }
 
     "Match any media type" in {
-      val req = Status.Ok("foo").run
+      val req = ResponseBuilder(Ok, "foo").run
       binary.matchesMediaType(req) must_== true
     }
 
     "Not match invalid media type" in {
-      val req = Status.Ok("foo").run
+      val req = ResponseBuilder(Ok, "foo").run
       EntityDecoder.xml().matchesMediaType(req) must_== false
     }
 
     "Match valid media range" in {
-      val req = Status.Ok("foo").run
+      val req = ResponseBuilder(Ok, "foo").run
       EntityDecoder.text.matchesMediaType(req) must_== true
     }
 

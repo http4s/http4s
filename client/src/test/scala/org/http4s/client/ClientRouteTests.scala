@@ -86,7 +86,7 @@ trait ClientRouteTests { self: Specification =>
   /////////////// Define the routes here ////////////////////////////////
 
   protected val getPaths: Map[String, Response] = Map(
-    "get" -> Ok("get").run
+    "get" -> ResponseBuilder(Ok, "get").run
   )
 
 }

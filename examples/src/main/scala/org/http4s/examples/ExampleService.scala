@@ -37,7 +37,7 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
     case req @ GET -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
         .map(Task.now)
-        .getOrElse(NotFound(req))
+        .getOrElse(notFound(req))
 
     case req @ POST -> Root / "echo" =>
       Task.now(Response(body = req.body))
@@ -143,7 +143,7 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
     case req @ GET -> Root / "ip" =>
       Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
 
-    case req => NotFound(req)
+    case req => notFound(req)
   }
 
   def service2: HttpService = {

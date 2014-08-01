@@ -5,7 +5,7 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 lazy val core = project
 
-lazy val server = project.dependsOn(core)
+lazy val server = project.dependsOn(core % "compile; test->test")
 
 lazy val client = project.dependsOn(core, server % "test->compile")
 

@@ -11,8 +11,8 @@ import scalaz.concurrent.Task
 class TimeoutSpec extends Specification with NoTimeConversions {
 
   val myservice: HttpService = {
-    case req if req.requestUri.path == "/fast" => Status.Ok("Fast")
-    case req if req.requestUri.path == "/slow" => Task(Thread.sleep(1000)).flatMap(_ => Status.Ok("Slow"))
+    case req if req.requestUri.path == "/fast" => ResponseBuilder(Status.Ok, "Fast")
+    case req if req.requestUri.path == "/slow" => Task(Thread.sleep(1000)).flatMap(_ => ResponseBuilder(Status.Ok, "Slow"))
   }
 
   val timeoutService = Timeout.apply(500.millis)(myservice)

@@ -1,6 +1,7 @@
 package org.http4s
 package server
 
+
 import org.http4s.server.MockServer._
 import scodec.bits.ByteVector
 
@@ -10,8 +11,8 @@ class MockServer(service: HttpService) {
 
   def apply(request: Request): Task[MockResponse] = {
     val task = for {
-      response <- try service.applyOrElse(request, Status.NotFound(_: Request)) catch {
-                    case _: Throwable  => Status.InternalServerError()
+      response <- try service.applyOrElse(request, ResponseBuilder.notFound(_: Request)) catch {
+                    case _: Throwable  => ResponseBuilder.basic(Status.InternalServerError)
                   }
       body <- response.body.collect{ case c: ByteVector => c.toArray }.runLog
     } yield MockResponse(
