@@ -76,27 +76,4 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
       true must be_==(true)
     }
   }
-
-  "Client syntax" should {
-    implicit def client = SimpleHttp1Client
-    "be simple to use" in {
-      val resp = Get("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
-      println(resp.body)
-
-      resp.body.isEmpty must be_==(false)
-    }
-
-    "be simple to use for any status" in {
-      val resp = Get("http://www.google.com/").decode{ case Status.Ok => EntityDecoder.text}.run
-      println(resp.body)
-
-      resp.body.isEmpty must be_==(false)
-    }
-
-    "fail on bad status" in {
-      Get("http://www.google.com/")
-        .decode{ case Status.NotFound => EntityDecoder.text}
-        .run must throwA[BadResponse]
-    }
-  }
 }

@@ -68,6 +68,13 @@ trait EntityDecoderInstances {
   import EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////
+
+  /** Provides a mechanism to fail decoding */
+  def error(t: Throwable) = new EntityDecoder[Nothing] {
+    override def decode(msg: Message): Task[Nothing] = { msg.body.killBy(t); Task.fail(t) }
+    override def consumes: Set[MediaRange] = Set.empty
+  }
+
   implicit val binary: EntityDecoder[Array[Byte]] = {
     EntityDecoder(collectBinary, MediaRange.`*/*`)
   }

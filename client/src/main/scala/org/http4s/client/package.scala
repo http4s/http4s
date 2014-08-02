@@ -1,7 +1,6 @@
 package org.http4s
 
 import org.http4s.Header.`Content-Length`
-import org.http4s.client.Client.Result
 
 import scalaz.concurrent.Task
 
@@ -12,22 +11,17 @@ package object client {
   /** Some syntactic sugar for making requests */
   implicit class ClientSyntax(request: Task[Request]) {
 
+    /** Generate a Task which, when executed, will perform the request using the provided client */
     def build(implicit client: Client): Task[Response] = client.prepare(request)
 
-    def withbody[A](body: A)(implicit w: Writable[A]): Task[Request] = request.flatMap { req =>
-      w.toEntity(body).map { e =>
-        val headers = e.length match {
-          case Some(i) => req.headers ++ w.headers :+ `Content-Length`(i)
-          case None    => req.headers ++ w.headers
-        }
-        req.copy(headers = headers, body = e.body)
-      }
-    }
-
+    /** Generate a Task which, when executed, will perform the request and if the response
+      * is of type `status`, decodes it.
+      */
     def on[T](status: Status)(decoder: EntityDecoder[T])(implicit client: Client): Task[Result[T]] =
-      client.request(request){ case s: Status if s == status => decoder }
+      client.decode(request){ case s: Status if s == status => decoder }
 
+    /** Generate a Task which, when executed, will perform the request and attempt to decode it */
     def decode[T](pf: PartialFunction[Status, EntityDecoder[T]])(implicit client: Client): Task[Result[T]] =
-      client.request(request)(pf)
+      client.decode(request)(pf)
   }
 }

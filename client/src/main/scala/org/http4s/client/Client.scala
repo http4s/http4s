@@ -25,10 +25,12 @@ trait Client { self: Logging =>
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
-  final def request[A](req: Task[Request])(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
-    req.flatMap(req => request(req)(onResponse))
+  /** Generate a Task which, when executed, will perform the request and decode the result */
+  final def decode[A](req: Task[Request])(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
+    req.flatMap(req => decode(req)(onResponse))
 
-  final def request[A](req: Request)(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
+  /** Generate a Task which, when executed, will perform the request and decode the result */
+  final def decode[A](req: Request)(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
     prepare(req).flatMap { resp =>
       onResponse
         .andThen(_.apply(resp))
