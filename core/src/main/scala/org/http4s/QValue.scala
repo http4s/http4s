@@ -4,13 +4,13 @@ import org.http4s.util.{Renderable, StringWriter, Writer, ValueRenderable}
 
 import scalaz.Order
 
-final class QValue private (val thousandths: Int) extends Ordering[QValue] with Renderable {
+final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
 
   def toDouble: Double = 0.001 * thousandths
 
   def isAcceptable: Boolean = thousandths > 0
 
-  def compare(x: QValue, y: QValue): Int = y.thousandths - x.thousandths
+  override def compare(that: QValue): Int = that.thousandths - thousandths
 
   def render[W <: Writer](writer: W): writer.type = {
     if (thousandths == 1000) writer
@@ -49,13 +49,6 @@ final class QValue private (val thousandths: Int) extends Ordering[QValue] with 
       b.append(convert(mod10))   // Last digit
     }
   }
-
-  override def hashCode(): Int = thousandths.hashCode
-
-  override def equals(o: scala.Any): Boolean = o match {
-    case that: QValue => thousandths == that.thousandths
-    case _ => false
-  }
 }
 
 object QValue {
@@ -80,18 +73,9 @@ object QValue {
       throw new IllegalArgumentException(s"Invalid qValue. 0.0 <= q <= 1.0, specified: $q")
   }
 
-  private def compare(x: QValue, y: QValue): Int = {
-    x.thousandths - y.thousandths
-  }
-  
   implicit def toDouble(q: QValue): Double = q.toDouble
 
   implicit def doubleToQ(d: Double): QValue = QValue.fromDouble(d)
-
-  // Charset are sorted by the quality value, from greatest to least
-  implicit def qfactorOrdering = new Ordering[QValue] {
-    def compare(x: QValue, y: QValue): Int = QValue.compare(x, y)
-  }
 }
 
 trait HasQValue {

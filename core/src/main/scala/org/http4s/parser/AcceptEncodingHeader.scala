@@ -38,7 +38,7 @@ private[parser] trait AcceptEncodingHeader {
 
     def EncodingRangeDecl: Rule1[ContentCoding] = rule {
       (EncodingRangeDef ~ EncodingQuality) ~> { (coding: ContentCoding, q: QValue) =>
-        if (q eq org.http4s.QValue.One) coding
+        if (q == org.http4s.QValue.One) coding
         else coding.withQValue(q)
       }
     }
