@@ -52,7 +52,8 @@ object Http4sDependencies {
   lazy val scalaloggingSlf4j   = "com.typesafe.scala-logging" %% "scala-logging-slf4j"   % "2.1.2"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.5-M2"
-  lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "2.1.3"
+  lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "1.10.1" force() // without this, get a NoSuchMethodError on Buildable.buildableList()
+  lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.0.6"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4.1"
   lazy val scodecCore          = "org.typelevel"            %% "scodec-core"             % "1.1.0"
   lazy val specs2              = "org.specs2"               %% "specs2"                  % "2.3.11"

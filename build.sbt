@@ -116,6 +116,7 @@ resolvers in ThisBuild ++= Seq(
 /* These test dependencies applied to all projects under the http4s umbrella */
 libraryDependencies in ThisBuild ++= Seq(
   scalameter % "test",
+  scalazScalacheckBinding % "test",
   specs2 % "test"
 )
 

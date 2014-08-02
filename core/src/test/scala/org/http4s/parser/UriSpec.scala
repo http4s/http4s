@@ -1,16 +1,16 @@
 package org.http4s.parser
 
-import java.nio.charset.Charset
+import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 
 import org.http4s.Uri._
 import org.http4s.util.string._
-import org.http4s.{ CharacterSet, Uri }
+import org.http4s.{ Charset, Uri }
 import org.specs2.mutable.Specification
 
 import scala.util.Success
 import org.parboiled2._
 
-class IPV6Parser(val input: ParserInput, val charset: Charset) extends Parser with Rfc3986Parser {
+class IPV6Parser(val input: ParserInput, val charset: NioCharset) extends Parser with Rfc3986Parser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
 }
 
@@ -33,7 +33,7 @@ class UriSpec extends Specification {
       } yield (f + "::" + b))
 
       foreach(v) { s =>
-        new IPV6Parser(s, CharacterSet.`UTF-8`.charset).CaptureIPv6.run() must be_==(Success((s)))
+        new IPV6Parser(s, StandardCharsets.UTF_8).CaptureIPv6.run() must be_==(Success((s)))
       }
     }
 

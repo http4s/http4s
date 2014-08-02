@@ -11,7 +11,7 @@ import scalaz.stream.Process._
 
 object ServerTestRoutes {
 
-  val textPlain: Header = `Content-Type`.`text/plain`.withCharset(CharacterSet.`UTF-8`)
+  val textPlain: Header = `Content-Type`.`text/plain`.withCharset(Charset.`UTF-8`)
 
   val connClose = Connection("close".ci)
   val connKeep = Connection("keep-alive".ci)
@@ -123,7 +123,7 @@ object ServerTestRoutes {
       Ok("Foo").addHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
-      Ok(emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.charset)))
+      Ok(emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.nioCharset)))
 
       // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
     case req if req.requestMethod == Method.Get && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))

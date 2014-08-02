@@ -20,10 +20,11 @@ package org.http4s
 
 import java.net.InetAddress
 import scalaz.NonEmptyList
+import scalaz.syntax.order._
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, ValueRenderable, StringWriter}
 import org.http4s.util.string._
-import org.http4s.CharacterSet._
+import org.http4s.Charset._
 import scala.util.hashing.MurmurHash3
 
 /**
@@ -116,11 +117,18 @@ object Header {
   }
 
   object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring
-  final case class `Accept-Charset`(values: NonEmptyList[CharacterSet]) extends RecurringRenderable {
+  final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringRenderable {
     def key = `Accept-Charset`
-    type Value = CharacterSet
-    def preferred: CharacterSet = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
-    def satisfiedBy(characterSet: CharacterSet) = values.list.find(_.satisfiedBy(characterSet)).isDefined
+    type Value = CharsetRange
+
+    def qValue(charset: Charset) = {
+      def specific = values.list.collectFirst { case cs: CharsetRange.Atom => cs.q }
+      def splatted = values.list.collectFirst { case cs: CharsetRange.`*` => cs.q }
+      def default = if (charset == Charset.`ISO-8859-1`) Q.Unity else Q.fromString("0")
+      specific orElse splatted getOrElse default
+    }
+
+    def isSatisfiedBy(charset: Charset) = qValue(charset) > Q.fromString("0")
   }
 
   object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring
@@ -247,11 +255,11 @@ object Header {
 
     val `application/xml` = `Content-Type`(MediaType.`application/xml`, `UTF-8`)
 
-    def apply(mediaType: MediaType, charset: CharacterSet): `Content-Type` = apply(mediaType, Some(charset))
+    def apply(mediaType: MediaType, charset: Charset): `Content-Type` = apply(mediaType, Some(charset))
     implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
   }
 
-  final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[CharacterSet]) extends Parsed {
+  final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[Charset]) extends Parsed {
     def key = `Content-Type`
     def renderValue[W <: Writer](writer: W): writer.type = definedCharset match {
       case Some(cs) => writer ~ mediaType ~ "; charset=" ~ cs
@@ -260,7 +268,7 @@ object Header {
 
     def withMediaType(mediaType: MediaType) =
       if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
-    def withCharset(charset: CharacterSet) =
+    def withCharset(charset: Charset) =
       if (noCharsetDefined || charset != definedCharset.get) copy(definedCharset = Some(charset)) else this
     def withoutDefinedCharset =
       if (isCharsetDefined) copy(definedCharset = None) else this
@@ -268,7 +276,7 @@ object Header {
     def isCharsetDefined = definedCharset.isDefined
     def noCharsetDefined = definedCharset.isEmpty
 
-    def charset: CharacterSet = definedCharset.getOrElse(`ISO-8859-1`)
+    def charset: Charset = definedCharset.getOrElse(`ISO-8859-1`)
   }
 
   object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring

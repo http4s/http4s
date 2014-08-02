@@ -1,5 +1,7 @@
 package org.http4s
 
+import java.nio.charset.StandardCharsets
+
 import Uri._
 
 import scala.collection.{ immutable, mutable }
@@ -192,7 +194,7 @@ case class Uri(
 
 object Uri {
 
-  def fromString(s: String): Try[Uri] = (new RequestUriParser(s, CharacterSet.`UTF-8`.charset)).RequestUri.run()
+  def fromString(s: String): Try[Uri] = (new RequestUriParser(s, StandardCharsets.UTF_8)).RequestUri.run()
 
   type Scheme = CaseInsensitiveString
 

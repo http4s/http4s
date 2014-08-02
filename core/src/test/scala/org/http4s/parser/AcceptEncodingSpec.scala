@@ -26,9 +26,9 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
   "Give correct value" in {
     gzip.value must be_==("gzip")
-    gzip5.value must be_==("gzip; q=0.5")
-    gzip55.value must be_==("gzip; q=0.55")
-    gzip555.value must be_==("gzip; q=0.555")
+    gzip5.value must be_==("gzip;q=0.5")
+    gzip55.value must be_==("gzip;q=0.55")
+    gzip555.value must be_==("gzip;q=0.555")
 
     gzip1.value must be_==("gzip")
   }

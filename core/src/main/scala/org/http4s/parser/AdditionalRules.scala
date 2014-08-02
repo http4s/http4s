@@ -129,8 +129,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def QValue: Rule1[Q] = rule {
     // more loose than the spec which only allows 1 to max. 3 digits/zeros
-    (capture(ch('0') ~ ch('.') ~ oneOrMore(Digit)) ~> (Q.fromString(_))) |
+    (capture(ch('0') ~ optional(ch('.') ~ oneOrMore(Digit))) ~> (Q.fromString(_))) |
     (ch('1') ~ optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(Q.Unity))
   }
-
 }

@@ -45,9 +45,9 @@ object Writable extends WritableInstances {
 import Writable._
 
 trait WritableInstances0 {
-  implicit def showWritable[A](implicit charset: CharacterSet = CharacterSet.`UTF-8`, show: Show[A]): Writable[A] =
+  implicit def showWritable[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): Writable[A] =
     simple(
-      a => ByteVector.view(show.shows(a).getBytes(charset.charset)),
+      a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)),
       Headers(`Content-Type`.`text/plain`.withCharset(charset))
     )
 
@@ -66,15 +66,15 @@ trait WritableInstances0 {
 }
 
 trait WritableInstances extends WritableInstances0 {
-  implicit def stringWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[String] = simple(
-    s => ByteVector.view(s.getBytes(charset.charset)),
+  implicit def stringWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[String] = simple(
+    s => ByteVector.view(s.getBytes(charset.nioCharset)),
     Headers(`Content-Type`.`text/plain`.withCharset(charset))
   )
 
-  implicit def charSequenceWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[CharSequence] =
+  implicit def charSequenceWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[CharSequence] =
     stringWritable.contramap(_.toString)
 
-  implicit def charArrayWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Array[Char]] =
+  implicit def charArrayWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Array[Char]] =
     stringWritable.contramap(new String(_))
 
   implicit val byteVectorWritable: Writable[ByteVector] = simple(
@@ -88,8 +88,8 @@ trait WritableInstances extends WritableInstances0 {
 
   // TODO split off to module to drop scala-xml core dependency
   // TODO infer HTML, XHTML, etc.
-  implicit def htmlWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[xml.Elem] = simple(
-    xml => ByteVector.view(xml.buildString(false).getBytes(charset.charset)),
+  implicit def htmlWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[xml.Elem] = simple(
+    xml => ByteVector.view(xml.buildString(false).getBytes(charset.nioCharset)),
     Headers(`Content-Type`(MediaType.`text/html`).withCharset(charset))
   )
 
@@ -110,7 +110,7 @@ trait WritableInstances extends WritableInstances0 {
     chunkedWritable { is: InputStream => io.chunkR(is) }
 
   // TODO parameterize chunk size
-  implicit def readerWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Reader] =
+  implicit def readerWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Reader] =
     // TODO polish and contribute back to scalaz-stream
     processWritable[Array[Char]].contramap { r: Reader =>
       val unsafeChunkR = io.resource(Task.delay(r))(
@@ -133,9 +133,9 @@ trait WritableInstances extends WritableInstances0 {
   def chunkedWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
     processWritable[ByteVector].contramap { a => Process.constant(chunkSize).through(f(a)) }
 
-  implicit def charRopeWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Rope[Char]] =
+  implicit def charRopeWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Rope[Char]] =
     stringWritable.contramap(_.asString)
 
-  implicit def byteRopeWritable(implicit charset: CharacterSet = CharacterSet.`UTF-8`): Writable[Rope[Byte]] =
+  implicit def byteRopeWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Rope[Byte]] =
      byteArrayWritable.contramap(_.toArray)
 }

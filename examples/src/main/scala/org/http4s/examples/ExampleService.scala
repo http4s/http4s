@@ -83,7 +83,7 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
       )
 
     case req@ POST -> Root / "challenge" =>
-      val body = req.body.map { c => new String(c.toArray, req.charset.charset) }.toTask
+      val body = req.body.map { c => new String(c.toArray, req.charset.nioCharset) }.toTask
 
       body.flatMap{ s: String =>
         if (!s.startsWith("go")) {
@@ -128,9 +128,9 @@ object ExampleService extends Http4s with Json4sJacksonSupport {
 
     case req @ POST -> Root / "challenge" =>
       val parser = await1[ByteVector] map {
-        case bits if (new String(bits.toArray, req.charset.charset)).startsWith("Go") =>
+        case bits if (new String(bits.toArray, req.charset.nioCharset)).startsWith("Go") =>
           Task.now(Response(body = emit(bits) fby req.body))
-        case bits if (new String(bits.toArray, req.charset.charset)).startsWith("NoGo") =>
+        case bits if (new String(bits.toArray, req.charset.nioCharset)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("no data")

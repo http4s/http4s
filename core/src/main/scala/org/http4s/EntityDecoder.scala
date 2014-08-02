@@ -76,10 +76,10 @@ trait EntityDecoderInstances {
     def decodeString(msg: Message): Task[String] = {
       val buff = new StringBuilder
       (msg.body |> processes.fold(buff) { (b, c) => {
-        b.append(new String(c.toArray, (msg.charset.charset)))
+        b.append(new String(c.toArray, (msg.charset.nioCharset)))
       }}).map(_.result()).runLastOr("")
     }
-    EntityDecoder(msg => collectBinary(msg).map(new String(_, msg.charset.charset)),
+    EntityDecoder(msg => collectBinary(msg).map(new String(_, msg.charset.nioCharset)),
       MediaRange.`text/*`)
   }
 
@@ -93,7 +93,7 @@ trait EntityDecoderInstances {
    */
   implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder(msg => {
     collectBinary(msg).map { arr =>
-      val source = new InputSource(new StringReader(new String(arr, msg.charset.charset)))
+      val source = new InputSource(new StringReader(new String(arr, msg.charset.nioCharset)))
       XML.loadXML(source, parser)
     }
   }, MediaType.`text/xml`)

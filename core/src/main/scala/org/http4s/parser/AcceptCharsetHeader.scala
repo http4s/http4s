@@ -19,7 +19,8 @@ package org.http4s
 package parser
 
 import org.parboiled2._
-import CharacterSet._
+import Charset._
+import CharsetRange._
 import Header.`Accept-Charset`
 import org.http4s.util.CaseInsensitiveString._
 
@@ -30,17 +31,17 @@ private[parser] trait AcceptCharsetHeader {
 
   private class AcceptCharsetParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Charset`](input) {
     def entry: Rule1[`Accept-Charset`] = rule {
-      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> {xs: Seq[CharacterSet] =>
+      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> {xs: Seq[CharsetRange] =>
         Header.`Accept-Charset`(xs.head, xs.tail: _*)
       }
     }
 
-    def CharsetRangeDecl: Rule1[CharacterSet] = rule {
+    def CharsetRangeDecl: Rule1[CharsetRange] = rule {
       ("*" ~ CharsetQuality) ~> { q => if (q.intValue != Q.MAX_VALUE) `*`.withQuality(q) else `*` } |
-        ((Token ~ CharsetQuality) ~> { (s: String, q: Q) =>
-          val c = CharacterSet.getOrElseCreate(s.ci)
-          if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c
-        })
+      ((Token ~ CharsetQuality) ~> { (s: String, q: Q) =>
+        val c = Charset.fromString(s).valueOr(throw _)
+        if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c.toRange
+      })
     }
 
     def CharsetQuality: Rule1[Q] = rule {

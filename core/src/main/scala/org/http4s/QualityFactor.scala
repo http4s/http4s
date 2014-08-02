@@ -27,7 +27,7 @@ final case class Q private(intValue: Int) extends Ordering[Q] with ValueRenderab
   def renderValue[W <: Writer](writer: W): writer.type = {
     if (intValue == Q.MAX_VALUE) writer
     else {
-      writer.append("; q=")
+      writer.append(";q=")
       formatq(writer)
     }
   }

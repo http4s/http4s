@@ -25,7 +25,7 @@ trait WebSocketSupport extends Http1ServerStage {
         ServerHandshaker.handshakeHeaders(hdrs) match {
           case Left((code, msg)) =>
             logger.info(s"Invalid handshake $code, $msg")
-            val body = Process.emit(ByteVector(msg.toString.getBytes(req.charset.charset)))
+            val body = Process.emit(ByteVector(msg.toString.getBytes(req.charset.nioCharset)))
             val headers = Headers(`Content-Length`(msg.length),
                                    Connection("close".ci),
                                    Header.Raw(Header.`Sec-WebSocket-Version`.name, "13"))

@@ -2,8 +2,9 @@ package org.http4s
 
 trait Http4s extends EntityDecoderInstances
   with MessageSyntax
-  with StatusInstances
   with WritableInstances
+  with StatusInstances
+  with CharsetRangeInstances
   with util.CaseInsensitiveStringSyntax
   with util.TaskInstances
   with scalaz.std.AllInstances

@@ -31,7 +31,7 @@ trait Message {
 
   def contentType: Option[`Content-Type`] = headers.get(Header.`Content-Type`)
 
-  def charset: CharacterSet = contentType.map(_.charset) getOrElse CharacterSet.`ISO-8859-1`
+  def charset: Charset = contentType.map(_.charset) getOrElse Charset.`ISO-8859-1`
 
   def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`)
     .map(_.values.list.contains(TransferCoding.chunked))

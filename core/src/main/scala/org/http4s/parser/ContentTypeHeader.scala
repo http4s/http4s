@@ -36,12 +36,11 @@ private[parser] trait ContentTypeHeader {
             throw new ParseException(err)
         }
 
-        var charset: Option[CharacterSet] = None
+        var charset: Option[Charset] = None
         var ext = Map.empty[String, String]
 
         exts.foreach(_.foreach { case p @ (k, v) =>
-          val civalue = CaseInsensitiveString(v)
-          if (k == "charset") charset = Some(CharacterSet.getOrElseCreate(civalue))
+          if (k == "charset") charset = Charset.fromString(v).toOption
           else ext += p
         })
 

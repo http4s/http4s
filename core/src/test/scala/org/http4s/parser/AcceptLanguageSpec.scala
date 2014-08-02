@@ -20,7 +20,7 @@ class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-L
   "Accept-Language" should {
     "Give correct value" in {
       en.value must be_==("en")
-      enq5.value must be_==("en; q=0.5")
+      enq5.value must be_==("en;q=0.5")
     }
 
     "Parse properly" in {

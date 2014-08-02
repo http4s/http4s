@@ -18,7 +18,9 @@
  */
 package org.http4s
 
-import CharacterSet._
+import java.nio.charset.StandardCharsets
+
+import Charset._
 import org.http4s.util.{Writer, ValueRenderable}
 import net.iharder.Base64
 
@@ -32,7 +34,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
 
   override lazy val value = {
     val userPass = username + ':' + password
-    val bytes = userPass.getBytes(`ISO-8859-1`.charset)
+    val bytes = userPass.getBytes(StandardCharsets.ISO_8859_1)
     val cookie = Base64.encodeBytes(bytes)
     "Basic " + cookie
   }
@@ -43,7 +45,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
 object BasicCredentials {
   def apply(credentials: String): BasicCredentials = {
     val bytes = Base64.decode(credentials)
-    val userPass = new String(bytes, `ISO-8859-1`.charset)
+    val userPass = new String(bytes, StandardCharsets.ISO_8859_1)
     userPass.indexOf(':') match {
       case -1 => apply(userPass, "")
       case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1))
