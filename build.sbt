@@ -9,11 +9,11 @@ lazy val server = project.dependsOn(core)
 
 lazy val client = project.dependsOn(core, server % "test->compile")
 
-lazy val blazecore = project.dependsOn(core)
+lazy val `blaze-core` = project.dependsOn(core)
 
-lazy val blazeserver = project.dependsOn(blazecore % "compile;test->test", server)
+lazy val `blaze-server` = project.dependsOn(`blaze-core` % "compile;test->test", server)
 
-lazy val blazeclient = project.dependsOn(blazecore, client)
+lazy val `blaze-client` = project.dependsOn(`blaze-core`, client)
 
 lazy val servlet = project.dependsOn(server)
 
@@ -25,13 +25,13 @@ lazy val dsl = project.dependsOn(core, server % "test->compile")
 
 lazy val json4s = project.dependsOn(core)
 
-lazy val json4sNative = project.dependsOn(json4s)
+lazy val `json4s-native` = project.dependsOn(json4s)
 
-lazy val json4sJackson = project.dependsOn(json4s)
+lazy val `json4s-jackson` = project.dependsOn(json4s)
 
 lazy val argonaut = project.dependsOn(core % "compile;test->test")
 
-lazy val examples = project.dependsOn(blazeserver, jetty, tomcat, dsl, json4sJackson)
+lazy val examples = project.dependsOn(`blaze-server`, jetty, tomcat, dsl, `json4s-jackson`)
 
 organization in ThisBuild := "org.http4s"
 
