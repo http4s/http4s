@@ -32,11 +32,16 @@ sealed trait EntityDecoder[+T] { self =>
 
   def matchesMediaType(msg: Message): Boolean = {
     if (!consumes.isEmpty) {
-      msg.headers.get(Header.`Content-Type`).flatMap {
-        h => consumes.find(_.satisfiedBy(h.mediaType))
-      }.isDefined
+      msg.headers.get(Header.`Content-Type`) match {
+        case Some(h) => matchesMediaType(h.mediaType)
+        case None    => false
+      }
     }
     else false
+  }
+
+  def matchesMediaType(mediaType: MediaType): Boolean = consumes.isEmpty || {
+    consumes.find(_.satisfiedBy(mediaType)).isDefined
   }
 }
 

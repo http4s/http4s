@@ -2,7 +2,6 @@ package org.http4s.client.blaze
 
 import org.http4s.Method._
 import org.http4s._
-import org.http4s.client.Client.BadResponse
 import org.http4s.client.ClientSyntax
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
@@ -12,24 +11,18 @@ import scala.concurrent.{Await, Future}
 
 class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
 
-  def gatherBody(body: EntityBody): String = {
-    new String(body.runLog.run.map(_.toArray).flatten.toArray)
-  }
-
   "Blaze Simple Http1 Client" should {
     implicit def client = SimpleHttp1Client
 
     "Make simple http requests" in {
-      val resp = Get("http://www.google.com/").build.run
-      val thebody = gatherBody(resp.body)
+      val resp = Get("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
 //      println(resp.copy(body = halt))
 
       resp.status.code must be_==(200)
     }
 
     "Make simple https requests" in {
-      val resp = Get("https://www.google.com/").build.run
-      val thebody = gatherBody(resp.body)
+      val resp = Get("https://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.status.code must be_==(200)
@@ -42,8 +35,7 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
     implicit val client = new PooledHttp1Client()
 
     "Make simple http requests" in {
-      val resp = Get("http://www.google.com/").build.run
-      val thebody = gatherBody(resp.body)
+      val resp = Get("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
 
       resp.status.code must be_==(200)
@@ -52,8 +44,7 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
     "Repeat a simple http request" in {
       val f = 0 until 10 map { _ =>
         Future {
-          val resp = Get("http://www.google.com/").build.run
-          val thebody = gatherBody(resp.body)
+          val resp = Get("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
           //      println(resp.copy(body = halt))
 
           resp.status.code must be_==(200)
@@ -64,8 +55,7 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
     }
 
     "Make simple https requests" in {
-      val resp = Get("https://www.google.com/").build.run
-      val thebody = gatherBody(resp.body)
+      val resp = Get("https://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
       //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.status.code must be_==(200)
