@@ -1,7 +1,7 @@
 package org.http4s.client
 
 import com.typesafe.scalalogging.Logging
-import org.http4s.client.Client.BadResponse
+import org.http4s.client.Client.{Result, BadResponse}
 import org.http4s._
 
 import scala.util.control.NoStackTrace
@@ -25,18 +25,20 @@ trait Client { self: Logging =>
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
-  final def request[A](req: Task[Request])(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[A] =
+  final def request[A](req: Task[Request])(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
     req.flatMap(req => request(req)(onResponse))
 
-  final def request[A](req: Request)(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[A] =
+  final def request[A](req: Request)(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
     prepare(req).flatMap { resp =>
       onResponse
         .andThen(_.apply(resp))
         .applyOrElse(resp.status, {status: Status => Task.fail(BadResponse(status, "Invalid status")) })
+        .map(Result(resp.status, resp.headers, _))
     }
 }
 
 object Client {
+  case class Result[T](status: Status, headers: Headers, body: T)
   
   case class BadResponse(status: Status, msg: String) extends Exception with NoStackTrace {
     override def getMessage: String = s"Bad Response, $status: '$msg'"
