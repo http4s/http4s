@@ -2,7 +2,9 @@ package org.http4s
 
 import org.http4s.util.{Renderable, StringWriter, Writer, ValueRenderable}
 
-import scalaz.Order
+import scala.util.control.NoStackTrace
+import scalaz.{Validation, Order}
+import scalaz.syntax.validation._
 
 final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
 
@@ -10,7 +12,7 @@ final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QV
 
   def isAcceptable: Boolean = thousandths > 0
 
-  override def compare(that: QValue): Int = that.thousandths - thousandths
+  override def compare(that: QValue): Int = thousandths - that.thousandths
 
   def render[W <: Writer](writer: W): writer.type = {
     if (thousandths == 1000) writer
@@ -55,28 +57,35 @@ object QValue {
   private val MaxThousandths = 1000
   private val MinThousandths = 0
 
-  val One: QValue = fromThousandths(1000)
-  val Zero: QValue = fromThousandths(0)
+  val One: QValue = fromThousandths(1000).fold(throw _, identity)
+  val Zero: QValue = fromThousandths(0).fold(throw _, identity)
 
-  def fromThousandths(i: Int): QValue = { 
-    checkBounds(i) 
-    new QValue(i) 
+  private def mkQValue(thousandths: Int, s: => String): Validation[InvalidQValue, QValue] = {
+    if (thousandths < MinThousandths || thousandths > MaxThousandths) InvalidQValue(s).fail
+    else new QValue(thousandths).success
   }
 
+  def fromThousandths(thousandths: Int): Validation[InvalidQValue, QValue] =
+    mkQValue(thousandths, (thousandths * .001).toString)
+
   //the 0.0005 is to round up else  0.7f -> 699
-  def fromDouble(d: Double): QValue = fromThousandths((QValue.MaxThousandths * d + 0.0005).toInt)
+  def fromDouble(d: Double): Validation[InvalidQValue, QValue] =
+    mkQValue((QValue.MaxThousandths * d + 0.0005).toInt, d.toString)
   
-  def fromString(s: String): QValue = fromDouble(java.lang.Double.parseDouble(s))
+  def fromString(s: String): Validation[InvalidQValue, QValue] =
+    try fromDouble(s.toDouble)
+    catch { case e: NumberFormatException => InvalidQValue(s).fail }
 
   private[http4s] def checkBounds(q: Int): Unit = {
     if (q > MaxThousandths || q < 0)
       throw new IllegalArgumentException(s"Invalid qValue. 0.0 <= q <= 1.0, specified: $q")
   }
 
-  implicit def toDouble(q: QValue): Double = q.toDouble
-
-  implicit def doubleToQ(d: Double): QValue = QValue.fromDouble(d)
+  @deprecated("fromDouble and deal with validation.  Consider macro for literals?", "0.3")
+  implicit def doubleToQ(d: Double): QValue = QValue.fromDouble(d).fold(throw _, identity)
 }
+
+case class InvalidQValue(s: String) extends Http4sException(s) with NoStackTrace
 
 trait HasQValue {
   def qValue: QValue

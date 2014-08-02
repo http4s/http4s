@@ -1,4 +1,5 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.MediaRange._
 import org.http4s.MediaType._
@@ -103,11 +104,11 @@ class MediaRangeSpec extends Specification {
     }
 
     "Not accept illegal q values" in {
-      `text/*`.withQValue(2.0) must throwAn [IllegalArgumentException]
-      `text/*`.withQValue(-2.0) must throwAn [IllegalArgumentException]
+      `text/*`.withQValue(2.0) must throwAn [InvalidQValue]
+      `text/*`.withQValue(-2.0) must throwAn [InvalidQValue]
 
-      `text/html`.withQValue(2.0) must throwAn [IllegalArgumentException]
-      `text/html`.withQValue(-2.0) must throwAn [IllegalArgumentException]
+      `text/html`.withQValue(2.0) must throwAn [InvalidQValue]
+      `text/html`.withQValue(-2.0) must throwAn [InvalidQValue]
     }
   }
 }

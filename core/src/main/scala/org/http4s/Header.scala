@@ -20,7 +20,6 @@ package org.http4s
 
 import java.net.InetAddress
 import scalaz.NonEmptyList
-import scalaz.syntax.order._
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, ValueRenderable, StringWriter}
 import org.http4s.util.string._
@@ -121,14 +120,14 @@ object Header {
     def key = `Accept-Charset`
     type Value = CharsetRange
 
-    def qValue(charset: Charset) = {
+    def qValue(charset: Charset): QValue = {
       def specific = values.list.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
       def splatted = values.list.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
-      def default = if (charset == Charset.`ISO-8859-1`) QValue.One else QValue.fromString("0")
+      def default = if (charset == Charset.`ISO-8859-1`) QValue.One else QValue.Zero
       specific orElse splatted getOrElse default
     }
 
-    def isSatisfiedBy(charset: Charset) = qValue(charset) > QValue.fromString("0")
+    def isSatisfiedBy(charset: Charset) = qValue(charset) > QValue.Zero
   }
 
   object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring

@@ -19,7 +19,7 @@ class CharsetRangeSpec extends Http4sSpec {
 
     "not be satisfied when q = 0" in {
       prop { cs: Charset =>
-        `*`.withQValue(QValue.fromString("0")) isSatisfiedBy cs must beFalse
+        `*`.withQValue(QValue.Zero) isSatisfiedBy cs must beFalse
       }
     }
   }

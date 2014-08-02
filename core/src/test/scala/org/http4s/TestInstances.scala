@@ -21,7 +21,7 @@ trait TestInstances {
     Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
 
   implicit val qualities: Arbitrary[QValue] =
-    Arbitrary { Gen.oneOf(oneOf(0, 1000), choose(0, 1000)).map(QValue.fromThousandths) }
+    Arbitrary { Gen.oneOf(oneOf(0, 1000), choose(0, 1000)).map(QValue.fromThousandths(_).fold(throw _, identity)) }
 
   implicit val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { frequency((10, arbitrary[CharsetRange.Atom]), (1, arbitrary[CharsetRange.`*`])) }
