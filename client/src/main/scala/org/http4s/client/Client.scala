@@ -17,7 +17,7 @@ trait Client { self: Logging =>
   def prepare(req: Request): Task[Response]
 
   /** Prepare a single request
-    * @param req [[Request]] containing the headers, URI, etc.
+    * @param req `Task[Request]` containing the headers, URI, etc
     * @return Task which will generate the Response
     */
   final def prepare(req: Task[Request]): Task[Response] = req.flatMap(prepare(_))
@@ -25,19 +25,15 @@ trait Client { self: Logging =>
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
-  final def request[A](req: Task[Request], decoder: EntityDecoder[A]): Task[A] =
-    req.flatMap(req => request(req, decoder))
-  
-  final def request[A](req: Request, decoder: EntityDecoder[A]): Task[A] = prepare(req).flatMap { resp =>
-    if (resp.status == Status.Ok) {
-      if (resp.contentType.isDefined && !decoder.matchesMediaType(resp)) {
-        logger.warn(s"Response media type ${resp.contentType.get} " +
-                    s"not recognized by decoder: ${decoder.consumes}")
-      }
-      decoder(resp)
+  final def request[A](req: Task[Request])(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[A] =
+    req.flatMap(req => request(req)(onResponse))
+
+  final def request[A](req: Request)(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[A] =
+    prepare(req).flatMap { resp =>
+      onResponse
+        .andThen(_.apply(resp))
+        .applyOrElse(resp.status, {status: Status => Task.fail(BadResponse(status, "Invalid status")) })
     }
-    else EntityDecoder.text(resp).flatMap(str => Task.fail(BadResponse(resp.status, str)))
-  }
 }
 
 object Client {

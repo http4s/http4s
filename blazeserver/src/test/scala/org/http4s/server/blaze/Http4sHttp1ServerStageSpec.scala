@@ -11,6 +11,7 @@ import org.http4s.util.CaseInsensitiveString._
 import org.specs2.mutable.Specification
 
 import scala.concurrent.Future
+import scala.concurrent.duration.FiniteDuration
 import scalaz.concurrent.Task
 
 class Http4sStageSpec extends Specification {
@@ -35,7 +36,7 @@ class Http4sStageSpec extends Specification {
     ServerTestRoutes.testRequestResults.zipWithIndex.foreach { case ((req, (status,headers,resp)), i) =>
       s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
         val result = runRequest(Seq(req), ServerTestRoutes())
-        result.map(ResponseParser.apply(_)) must be_== ((status, headers, resp)).await
+        result.map(ResponseParser.apply(_)) must be_== ((status, headers, resp)).await(0, FiniteDuration(5, "seconds"))
       }
     }
   }
