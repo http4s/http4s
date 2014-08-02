@@ -23,16 +23,16 @@ import scala.annotation.tailrec
 
 object LanguageTag {
 
-  val `*` = LanguageTag("*", Q.Unity)
+  val `*` = LanguageTag("*", QValue.One)
 
-  def apply(primaryTag: String, subTags: String*): LanguageTag = LanguageTag(primaryTag, Q.Unity, subTags)
+  def apply(primaryTag: String, subTags: String*): LanguageTag = LanguageTag(primaryTag, QValue.One, subTags)
 
 //  def apply(primaryTag: String): LanguageTag = LanguageTag(primaryTag, Q.Unity)
 //  def apply(primaryTag: String, subTags: String*): LanguageTag = LanguageTag(primaryTag, Q.Unity, subTags)
 }
 
-case class LanguageTag(primaryTag: String, q: Q = Q.Unity, subTags: Seq[String] = Nil) extends Renderable {
-  def withQuality(q: Q): LanguageTag = LanguageTag(primaryTag, q, subTags)
+case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags: Seq[String] = Nil) extends Renderable {
+  def withQuality(q: QValue): LanguageTag = LanguageTag(primaryTag, q, subTags)
 
   def render[W <: Writer](writer: W): writer.type = {
     writer.append(primaryTag)
@@ -51,8 +51,8 @@ case class LanguageTag(primaryTag: String, q: Q = Q.Unity, subTags: Seq[String] 
   def satisfies(encoding: LanguageTag) = encoding.satisfiedBy(this)
   def satisfiedBy(encoding: LanguageTag) = {
     (this.primaryTag == "*" || this.primaryTag == encoding.primaryTag) &&
-      !(q.unacceptable || encoding.q.unacceptable) &&
-      q.intValue <= encoding.q.intValue &&
+      q.isAcceptable && encoding.q.isAcceptable &&
+      q <= encoding.q &&
       checkLists(subTags, encoding.subTags)
   }
 }

@@ -37,15 +37,15 @@ private[parser] trait AcceptCharsetHeader {
     }
 
     def CharsetRangeDecl: Rule1[CharsetRange] = rule {
-      ("*" ~ CharsetQuality) ~> { q => if (q.intValue != Q.MAX_VALUE) `*`.withQuality(q) else `*` } |
-      ((Token ~ CharsetQuality) ~> { (s: String, q: Q) =>
+      ("*" ~ CharsetQuality) ~> { q => if (q != org.http4s.QValue.One) `*`.withQValue(q) else `*` } |
+      ((Token ~ CharsetQuality) ~> { (s: String, q: QValue) =>
         val c = Charset.fromString(s).valueOr(throw _)
-        if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c.toRange
+        if (q != org.http4s.QValue.One) c.withQuality(q) else c.toRange
       })
     }
 
-    def CharsetQuality: Rule1[Q] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(Q.Unity)
+    def CharsetQuality: Rule1[QValue] = rule {
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(org.http4s.QValue.One)
     }
   }
 

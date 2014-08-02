@@ -25,13 +25,13 @@ class AcceptCharsetSpec extends Specification with ScalaCheck with TestInstances
 
     "is satisfied by a charset if the q value is > 0" in {
       prop { (h: `Accept-Charset`, cs: Charset) =>
-        h.qValue(cs) > Q.fromString("0") ==> { h isSatisfiedBy cs }
+        h.qValue(cs) > QValue.Zero ==> { h isSatisfiedBy cs }
       }
     }
 
     "is not satisfied by a charset if the q value is 0" in {
       prop { (h: `Accept-Charset`, cs: Charset) =>
-        h.qValue(cs) == Q.fromString("0") ==> { !(h isSatisfiedBy cs) }
+        h.qValue(cs) == QValue.Zero ==> { !(h isSatisfiedBy cs) }
       }
     }
   }

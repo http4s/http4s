@@ -127,9 +127,9 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   /* 3.9 Quality Values */
 
-  def QValue: Rule1[Q] = rule {
+  def QValue: Rule1[QValue] = rule {
     // more loose than the spec which only allows 1 to max. 3 digits/zeros
-    (capture(ch('0') ~ optional(ch('.') ~ oneOrMore(Digit))) ~> (Q.fromString(_))) |
-    (ch('1') ~ optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(Q.Unity))
+    (capture(ch('0') ~ optional(ch('.') ~ oneOrMore(Digit))) ~> (org.http4s.QValue.fromString(_))) |
+    (ch('1') ~ optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(org.http4s.QValue.One))
   }
 }

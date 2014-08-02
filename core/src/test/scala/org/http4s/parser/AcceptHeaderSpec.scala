@@ -53,7 +53,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
       val accept = Accept(`audio/*`, `video/*`)
       parse(accept.value) must be_==(accept)
 
-      val accept2 = Accept(`audio/*`.withQuality(0.2), `video/*`)
+      val accept2 = Accept(`audio/*`.withQValue(0.2), `video/*`)
       parse(accept2.value) must be_==(accept2)
 
 
@@ -71,7 +71,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
       {
         val ranges = MediaRange.snapshot.values.toArray
         foreach(0 until (ranges.length-1)) { i =>
-          val subrange = ranges.slice(i, i + 4).map(_.withQuality(0.2f).withExtensions(ext))
+          val subrange = ranges.slice(i, i + 4).map(_.withQValue(0.2f).withExtensions(ext))
           val h = Accept(subrange.head, subrange.tail:_*)
           parse(h.value) must be_==(h)
         }
@@ -96,15 +96,15 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] {
     "Deal with q and extensions" in {
       val value = "text/*;q=0.3, text/html;q=0.7, text/html;level=1"
       parse(value) must be_==(Accept(
-        `text/*`.withQuality(0.3),
-        `text/html`.withQuality(0.7),
+        `text/*`.withQValue(0.3),
+        `text/html`.withQValue(0.7),
         `text/html`.withExtensions(Map("level" -> "1"))
       ))
 
       // Go through all of them
       val ranges = MediaType.snapshot.values.toArray
       foreach(0 until (ranges.length-1)) { i =>
-        val subrange = ranges.slice(i, i + 4).map(_.withQuality(0.2f).withExtensions(ext))
+        val subrange = ranges.slice(i, i + 4).map(_.withQValue(0.2f).withExtensions(ext))
         val h = Accept(subrange.head, subrange.tail:_*)
         parse(h.value) must be_==(h)
       }

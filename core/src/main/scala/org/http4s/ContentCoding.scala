@@ -21,19 +21,19 @@ package org.http4s
 import org.http4s.util._
 import string._
 
-final case class ContentCoding (coding: CaseInsensitiveString, q: Q = Q.Unity) extends QualityFactor with ValueRenderable {
+final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with ValueRenderable {
 
-  def withQuality(q: Q): ContentCoding = copy(coding, q)
+  def withQValue(q: QValue): ContentCoding = copy(coding, q)
   def satisfies(encoding: ContentCoding) = encoding.satisfiedBy(this)
   def satisfiedBy(encoding: ContentCoding) = {
     (this.coding.toString == "*" || this.coding == encoding.coding) &&
-    !(q.unacceptable || encoding.q.unacceptable)
+    qValue.isAcceptable && encoding.qValue.isAcceptable
   }
 
-  def renderValue[W <: Writer](writer: W): writer.type = writer ~ coding ~ q
+  def renderValue[W <: Writer](writer: W): writer.type = writer ~ coding ~ qValue
 
   // We want the normal case class generated methods except copy
-  private def copy(coding: CaseInsensitiveString = this.coding, q: Q = this.q) = ContentCoding(coding, q)
+  private def copy(coding: CaseInsensitiveString = this.coding, q: QValue = this.qValue) = ContentCoding(coding, q)
 }
 
 object ContentCoding extends Registry {

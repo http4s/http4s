@@ -13,20 +13,20 @@ class CharsetRangeSpec extends Http4sSpec {
   "*" should {
     "be satisfied by any charset when q > 0" in {
       prop { (range: CharsetRange.`*`, cs: Charset) =>
-        range.q.doubleValue != Q.MIN_VALUE ==> { range isSatisfiedBy cs must beTrue }
+        range.qValue > QValue.Zero ==> { range isSatisfiedBy cs must beTrue }
       }
     }
 
     "not be satisfied when q = 0" in {
       prop { cs: Charset =>
-        `*`.withQuality(Q.fromString("0")) isSatisfiedBy cs must beFalse
+        `*`.withQValue(QValue.fromString("0")) isSatisfiedBy cs must beFalse
       }
     }
   }
 
   "atomic charset ranges" should {
     "be satisfied by themselves if q > 0" in {
-      forAll (arbitrary[CharsetRange.Atom] suchThat (_.q.doubleValue != Q.MIN_VALUE)) { range =>
+      forAll (arbitrary[CharsetRange.Atom] suchThat (_.qValue > QValue.Zero)) { range =>
         range isSatisfiedBy range.charset must beTrue
       }
     }
@@ -45,13 +45,13 @@ class CharsetRangeSpec extends Http4sSpec {
 
     "prefer higher q values" in {
       prop { (x: CharsetRange, y: CharsetRange) =>
-        x.q > y.q ==> x < y
+        x.qValue > y.qValue ==> x < y
       }
     }
 
     "equally prefer equal q values" in {
-      prop { (x: CharsetRange, y: CharsetRange, q: Q) =>
-        x.withQuality(q) === y.withQuality(q)
+      prop { (x: CharsetRange, y: CharsetRange, q: QValue) =>
+        x.withQValue(q) === y.withQValue(q)
       }
     }
   }

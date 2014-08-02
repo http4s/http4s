@@ -37,9 +37,9 @@ private[parser] trait AcceptEncodingHeader {
     }
 
     def EncodingRangeDecl: Rule1[ContentCoding] = rule {
-      (EncodingRangeDef ~ EncodingQuality) ~> { (coding: ContentCoding, q: Q) =>
-        if (q eq Q.Unity) coding
-        else coding.withQuality(q)
+      (EncodingRangeDef ~ EncodingQuality) ~> { (coding: ContentCoding, q: QValue) =>
+        if (q eq org.http4s.QValue.One) coding
+        else coding.withQValue(q)
       }
     }
 
@@ -50,8 +50,8 @@ private[parser] trait AcceptEncodingHeader {
       }
     }
 
-    def EncodingQuality: Rule1[Q] = rule {
-      ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(Q.Unity)
+    def EncodingQuality: Rule1[QValue] = rule {
+      ";" ~ OptWS ~ "q" ~ "=" ~ QValue | push(org.http4s.QValue.One)
     }
   }
 }

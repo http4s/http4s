@@ -20,7 +20,7 @@ package org.http4s.parser
 import org.parboiled2._
 
 import org.http4s.Header.`Accept-Language`
-import org.http4s.{LanguageTag, Q}
+import org.http4s.{LanguageTag, QValue}
 
 private[parser] trait AcceptLanguageHeader {
 
@@ -36,12 +36,12 @@ private[parser] trait AcceptLanguageHeader {
 
     def languageTag: Rule1[LanguageTag] = rule {
       capture(oneOrMore(Alpha)) ~ zeroOrMore("-" ~ Token) ~ TagQuality ~>
-        { (main: String, sub: Seq[String], q: Q) => LanguageTag(main, q, sub) }
+        { (main: String, sub: Seq[String], q: QValue) => LanguageTag(main, q, sub) }
     }
 
 
-    def TagQuality: Rule1[Q] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(Q.Unity)
+    def TagQuality: Rule1[QValue] = rule {
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(org.http4s.QValue.One)
     }
 
   }

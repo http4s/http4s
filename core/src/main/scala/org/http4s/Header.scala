@@ -122,20 +122,20 @@ object Header {
     type Value = CharsetRange
 
     def qValue(charset: Charset) = {
-      def specific = values.list.collectFirst { case cs: CharsetRange.Atom => cs.q }
-      def splatted = values.list.collectFirst { case cs: CharsetRange.`*` => cs.q }
-      def default = if (charset == Charset.`ISO-8859-1`) Q.Unity else Q.fromString("0")
+      def specific = values.list.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
+      def splatted = values.list.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
+      def default = if (charset == Charset.`ISO-8859-1`) QValue.One else QValue.fromString("0")
       specific orElse splatted getOrElse default
     }
 
-    def isSatisfiedBy(charset: Charset) = qValue(charset) > Q.fromString("0")
+    def isSatisfiedBy(charset: Charset) = qValue(charset) > QValue.fromString("0")
   }
 
   object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring
   final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) extends RecurringRenderable {
     def key = `Accept-Encoding`
     type Value = ContentCoding
-    def preferred: ContentCoding = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
+    def preferred: ContentCoding = values.tail.fold(values.head)((a, b) => if (a.qValue >= b.qValue) a else b)
     def satisfiedBy(coding: ContentCoding): Boolean = values.list.find(_.satisfiedBy(coding)).isDefined
   }
 

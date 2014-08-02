@@ -25,8 +25,8 @@ import scalaz.\/
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def satisfies(charsetRange: CharsetRange): Boolean = charsetRange isSatisfiedBy this
 
-  def withQuality(q: Q): CharsetRange.Atom = CharsetRange.Atom(this, q)
-  def toRange: CharsetRange.Atom = withQuality(Q.Unity)
+  def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
+  def toRange: CharsetRange.Atom = withQuality(QValue.One)
 
   def render[W <: Writer](writer: W): writer.type = writer ~ nioCharset.name
 }

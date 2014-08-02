@@ -24,12 +24,12 @@ import scala.util.hashing.MurmurHash3
 import org.http4s.util.{Registry, Writer, ValueRenderable}
 
 sealed class MediaRange private[http4s](val mainType: String,
-                                        val q: Q = Q.Unity,
+                                        val qValue: QValue = QValue.One,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends QualityFactor with ValueRenderable {
+                                        extends HasQValue with ValueRenderable {
 
   def renderValue[W <: Writer](writer: W): writer.type = {
-    writer ~ mainType ~ "/*"~ q
+    writer ~ mainType ~ "/*"~ qValue
     renderExtensions(writer)
     writer
   }
@@ -50,9 +50,9 @@ sealed class MediaRange private[http4s](val mainType: String,
   def isText        = mainType == "text"
   def isVideo       = mainType == "video"
 
-  def withQuality(q: Q): MediaRange = new MediaRange(mainType, q, Map.empty)
+  def withQValue(q: QValue): MediaRange = new MediaRange(mainType, q, Map.empty)
 
-  def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, q, ext)
+  def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, qValue, ext)
 
   override def toString = "MediaRange(" + value + ')'
 
@@ -61,7 +61,7 @@ sealed class MediaRange private[http4s](val mainType: String,
     case x: MediaRange =>
       (this eq x) ||
       mainType == x.mainType      &&
-      q == x.q                    &&
+      qValue == x.qValue                    &&
       extensions == x.extensions
     case _ =>
       false
@@ -71,7 +71,7 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   @inline
   final def qualityMatches(that: MediaRange): Boolean = {
-    q.intValue <= that.q.intValue && !(q.unacceptable || that.q.unacceptable)
+    qValue <= that.qValue && qValue.isAcceptable && that.qValue.isAcceptable
   }
 
   protected def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
@@ -111,7 +111,7 @@ sealed class MediaType(mainType: String,
                        val compressible: Boolean = false,
                        val binary: Boolean = false,
                        val fileExtensions: Seq[String] = Nil,
-                       q: Q = Q.Unity,
+                       q: QValue = QValue.One,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
@@ -121,7 +121,7 @@ sealed class MediaType(mainType: String,
     writer
   }
 
-  override def withQuality(q: Q): MediaType = {
+  override def withQValue(q: QValue): MediaType = {
     new MediaType(mainType, subType, compressible,binary, fileExtensions, q, Map.empty)
   }
 
@@ -143,7 +143,7 @@ sealed class MediaType(mainType: String,
     case x: MediaType => (this eq x) ||
                           mainType == x.mainType      &&
                           subType == x.subType        &&
-                          q.intValue == x.q.intValue  &&
+                          qValue == x.qValue  &&
                           extensions == x.extensions
     case _ => false
   }
