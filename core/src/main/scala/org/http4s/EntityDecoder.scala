@@ -40,7 +40,7 @@ sealed trait EntityDecoder[+T] { self =>
     else false
   }
 
-  def matchesMediaType(mediaType: MediaType): Boolean = consumes.isEmpty || {
+  def matchesMediaType(mediaType: MediaType): Boolean = !consumes.isEmpty && {
     consumes.find(_.satisfiedBy(mediaType)).isDefined
   }
 }
