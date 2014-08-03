@@ -4,16 +4,17 @@ package parser
 import org.http4s.Header.`Accept-Encoding`
 import org.specs2.mutable.Specification
 import scalaz.Validation
+import Http4s._
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
   def hparse(value: String): Validation[ParseErrorInfo, `Accept-Encoding`] = HttpParser.ACCEPT_ENCODING(value)
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
-  val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(0.5))
-  val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQValue(0.55))
-  val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQValue(0.555))
+  val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.5"))
+  val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.55"))
+  val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.555"))
 
-  val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(1.0))
+  val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"1.0"))
 
   "Accept-Encoding parser" should {
 
@@ -44,8 +45,8 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
   }
 
   "Offer preferred" in {
-    val unordered = `Accept-Encoding`(ContentCoding.gzip.withQValue(0.5),
-      ContentCoding.compress.withQValue(0.1),
+    val unordered = `Accept-Encoding`(ContentCoding.gzip.withQValue(qValue"0.5"),
+      ContentCoding.compress.withQValue(qValue"0.1"),
       ContentCoding.deflate)
 
     unordered.preferred must be_==(ContentCoding.deflate)
@@ -53,7 +54,7 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
   "Be satisfied correctly" in {
     `Accept-Encoding`(ContentCoding.`*`) satisfiedBy ContentCoding.gzip should beTrue
-    `Accept-Encoding`(ContentCoding.`*` withQValue 0.0) satisfiedBy ContentCoding.gzip should beFalse
+    `Accept-Encoding`(ContentCoding.`*` withQValue QValue.Zero) satisfiedBy ContentCoding.gzip should beFalse
     gzip satisfiedBy ContentCoding.gzip should beTrue
     gzip satisfiedBy ContentCoding.deflate should beFalse
   }

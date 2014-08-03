@@ -1,7 +1,6 @@
-package org.http4s.parser
+package org.http4s
 
 import org.http4s.scalacheck.ScalazProperties
-import org.http4s.{QValue, Http4sSpec}
 
 class QValueSpec extends Http4sSpec {
   "ordering" should {
@@ -25,8 +24,17 @@ class QValueSpec extends Http4sSpec {
 
     "fromString should be consistent with fromThousandths" in {
       forall (0 to 1000) { i =>
-        QValue.fromDouble(i / 1000.0) must_== QValue.fromThousandths(i)
+        QValue.fromString((i / 1000.0).toString) must_== QValue.fromThousandths(i)
       }
+    }
+  }
+
+  "qValueLiterals" should {
+    "match toString" in {
+      qValue"1.0" must_== QValue.One
+      qValue"0.5" must_== QValue.fromString("0.5").fold(throw _, identity)
+      qValue"0.0" must_== QValue.Zero
+      // qValue"2.0" // doesn't, and shouldn't, compile
     }
   }
 }

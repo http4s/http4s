@@ -6,4 +6,4 @@ import org.specs2.mutable.Specification
 /**
  * Common stack for http4s' own specs.
  */
-trait Http4sSpec extends Specification with ScalaCheck with TestInstances
+trait Http4sSpec extends Specification with Http4s with ScalaCheck with TestInstances

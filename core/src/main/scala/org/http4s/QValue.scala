@@ -2,11 +2,13 @@ package org.http4s
 
 import org.http4s.util.{Renderable, StringWriter, Writer, ValueRenderable}
 
+import scala.language.experimental.macros
+import scala.reflect.macros.Context
 import scala.util.control.NoStackTrace
 import scalaz.{Validation, Order}
 import scalaz.syntax.validation._
 
-final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
+final class QValue (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
 
   def toDouble: Double = 0.001 * thousandths
 
@@ -68,24 +70,45 @@ object QValue {
   def fromThousandths(thousandths: Int): Validation[InvalidQValue, QValue] =
     mkQValue(thousandths, (thousandths * .001).toString)
 
-  //the 0.0005 is to round up else  0.7f -> 699
   def fromDouble(d: Double): Validation[InvalidQValue, QValue] =
-    mkQValue((QValue.MaxThousandths * d + 0.0005).toInt, d.toString)
+    mkQValue(Math.round(QValue.MaxThousandths * d).toInt, d.toString)
   
   def fromString(s: String): Validation[InvalidQValue, QValue] =
     try fromDouble(s.toDouble)
     catch { case e: NumberFormatException => InvalidQValue(s).fail }
 
-  private[http4s] def checkBounds(q: Int): Unit = {
-    if (q > MaxThousandths || q < 0)
-      throw new IllegalArgumentException(s"Invalid qValue. 0.0 <= q <= 1.0, specified: $q")
-  }
+  object macros {
+    def qValueLiteral(c: Context)(): c.Expr[QValue] = {
+      import c.universe._
 
-  @deprecated("fromDouble and deal with validation.  Consider macro for literals?", "0.3")
-  implicit def doubleToQ(d: Double): QValue = QValue.fromDouble(d).fold(throw _, identity)
+      val Apply(_, List(Apply(_, List(Literal(Constant(s: String)))))) = c.prefix.tree
+
+      QValue.fromString(s).fold(
+        e => c.abort(c.enclosingPosition, e.getMessage),
+        // TODO I think we could just use qValue if we had a Liftable[QValue], but I can't
+        // figure it out for Scala 2.10.
+        qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).fold(throw _, identity)")
+      )
+    }
+  }
 }
 
-case class InvalidQValue(s: String) extends Http4sException(s) with NoStackTrace
+trait QValueSyntax {
+  /**
+   * Supports a literal syntax for valid QValues.
+   *
+   * Example:
+   * {{{
+   * qValue"0.5" == QValue.fromString("0.5").fold(throw _, identity)
+   * qValue"1.1" // does not compile
+   * }}}
+   */
+  implicit class QValueLiteral(sc: StringContext) {
+    def qValue(): QValue = macro QValue.macros.qValueLiteral
+  }
+}
+
+case class InvalidQValue(string: String) extends Http4sException(s"Invalid QValue: ${string}") with NoStackTrace
 
 trait HasQValue {
   def qValue: QValue
