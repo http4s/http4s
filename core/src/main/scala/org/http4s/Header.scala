@@ -128,6 +128,8 @@ object Header {
     }
 
     def isSatisfiedBy(charset: Charset) = qValue(charset) > QValue.Zero
+
+    def map(f: CharsetRange => CharsetRange): `Accept-Charset` = `Accept-Charset`(values.map(f))
   }
 
   object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring

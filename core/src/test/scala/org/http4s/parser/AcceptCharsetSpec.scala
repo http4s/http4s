@@ -30,9 +30,7 @@ class AcceptCharsetSpec extends Http4sSpec with HeaderParserHelper[`Accept-Chars
     }
 
     "is not satisfied by a charset if the q value is 0" in {
-      prop { (h: `Accept-Charset`, cs: Charset) =>
-        h.qValue(cs) == QValue.Zero ==> { !(h isSatisfiedBy cs) }
-      }
+      prop { (h: `Accept-Charset`, cs: Charset) => !(h.map(_.withQValue(QValue.Zero)) isSatisfiedBy cs) }
     }
   }
 }
