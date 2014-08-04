@@ -1,0 +1,187 @@
+<?xml version='1.0' encoding='UTF-8'?>
+<!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.1//EN" "http://www.w3.org/TR/xhtml11/DTD/xhtml11.dtd">
+<html>
+        <head>
+          <title>websocket - org.http4s.server.websocket</title>
+          <meta name="description" content="websocket - org.http4s.server.websocket" />
+          <meta name="keywords" content="websocket org.http4s.server.websocket" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'org.http4s.server.websocket.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.server">server</a></p>
+        <h1>websocket</h1>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">websocket</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="org.http4s.server.websocket"><span>websocket</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.server.websocket.Binary" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BinaryextendsWSFramewithProductwithSerializable"></a>
+      <a id="Binary:Binary"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Binary.html"><span class="name">Binary</span></a><span class="params">(<span name="msg">msg: <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Byte" class="extype" target="_top">Byte</a>]</span>)</span><span class="result"> extends <a href="WSFrame.html" class="extype" name="org.http4s.server.websocket.WSFrame">WSFrame</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.server.websocket.Text" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TextextendsWSFramewithProductwithSerializable"></a>
+      <a id="Text:Text"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Text.html"><span class="name">Text</span></a><span class="params">(<span name="msg">msg: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="WSFrame.html" class="extype" name="org.http4s.server.websocket.WSFrame">WSFrame</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.server.websocket.WSFrame" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WSFrameextendsAnyRef"></a>
+      <a id="WSFrame:WSFrame"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WSFrame.html"><span class="name">WSFrame</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="org.http4s.server.websocket.package#WS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="WS(source:scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.server.websocket.WSFrame],sink:scalaz.stream.Process.Sink[scalaz.concurrent.Task,org.http4s.server.websocket.WSFrame],status:scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="WS(Process[Task,WSFrame],Sink[Task,WSFrame],Task[Response]):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">WS</span><span class="params">(<span name="source">source: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="WSFrame.html" class="extype" name="org.http4s.server.websocket.WSFrame">WSFrame</a>] = <span class="symbol"><span class="name"><a href="../../../../scalaz/package.html">halt</a></span></span></span>, <span name="sink">sink: <span class="extype" name="scalaz.stream.Process.Sink">Sink</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="WSFrame.html" class="extype" name="org.http4s.server.websocket.WSFrame">WSFrame</a>] = <span class="symbol"><span class="name"><a href="../../../../scalaz/package.html">halt</a></span></span></span>, <span name="status">status: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>] = <span class="defval" name='<span class="name"><a href="../../Writable$.html">Status.NotImplemented(&quot;This is a WebSocket route.&quot;)</a></span>'>...</span></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4>
+      
+    </li><li name="org.http4s.server.websocket.package#websocketKey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="websocketKey:org.http4s.AttributeKey[org.http4s.server.websocket.Websocket]"></a>
+      <a id="websocketKey:AttributeKey[Websocket]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">websocketKey</span><span class="result">: <a href="../../AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.server.websocket.Websocket">Websocket</span>]</span>
+      </span>
+      </h4>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.10.4/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+      <script defer="defer" type="text/javascript" id="jquery-js" src="../../../../lib/jquery.js"></script><script defer="defer" type="text/javascript" id="jquery-ui-js" src="../../../../lib/jquery-ui.js"></script><script defer="defer" type="text/javascript" id="tools-tooltip-js" src="../../../../lib/tools.tooltip.js"></script><script defer="defer" type="text/javascript" id="template-js" src="../../../../lib/template.js"></script>
+    </body>
+      </html>
