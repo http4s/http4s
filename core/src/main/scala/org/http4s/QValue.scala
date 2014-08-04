@@ -1,11 +1,11 @@
 package org.http4s
 
-import org.http4s.util.{Renderable, StringWriter, Writer, ValueRenderable}
+import org.http4s.util.{Renderable, Writer}
 
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 import scala.util.control.NoStackTrace
-import scalaz.{Show, Equal, Validation, Order}
+import scalaz.{Show, Equal, Validation}
 import scalaz.syntax.validation._
 
 /**
@@ -13,8 +13,9 @@ import scalaz.syntax.validation._
  * decimal places.
  *
  * @param thousandths betweeen 0 (for q=0) and 1000 (for q=1)
+ * @see [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.9 RFC 2616, Section 3.9]]
  */
-final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
+final class QValue private[QValue] (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
   def toDouble: Double = 0.001 * thousandths
 
   def isAcceptable: Boolean = thousandths > 0
@@ -90,7 +91,7 @@ object QValue extends QValueInstances with QValueFunctions {
             e => c.abort(c.enclosingPosition, e.getMessage),
             // TODO I think we could just use qValue if we had a Liftable[QValue], but I can't
             // figure it out for Scala 2.10.
-            qValue => c.Expr(q"new QValue(${qValue.thousandths})")
+            qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).fold(throw _, identity)")
           )
         case _ =>
           c.abort(c.enclosingPosition, s"q syntax only works for literal doubles: ${showRaw(d.tree)}")
