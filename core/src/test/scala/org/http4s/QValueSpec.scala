@@ -31,10 +31,11 @@ class QValueSpec extends Http4sSpec {
 
   "qValueLiterals" should {
     "match toString" in {
-      qValue"1.0" must_== QValue.One
-      qValue"0.5" must_== QValue.fromString("0.5").fold(throw _, identity)
-      qValue"0.0" must_== QValue.Zero
-      // qValue"2.0" // doesn't, and shouldn't, compile
+      q(1.0) must_== QValue.One
+      q(0.5) must_== QValue.fromString("0.5").fold(throw _, identity)
+      q(0.0) must_== QValue.Zero
+      // q(2.0) // doesn't compile: out of range
+      // q(0.5 + 0.1) // doesn't compile, not a literal
     }
   }
 }

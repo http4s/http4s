@@ -78,34 +78,38 @@ object QValue {
     catch { case e: NumberFormatException => InvalidQValue(s).fail }
 
   object macros {
-    def qValueLiteral(c: Context)(): c.Expr[QValue] = {
+    def qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
       import c.universe._
 
-      val Apply(_, List(Apply(_, List(Literal(Constant(s: String)))))) = c.prefix.tree
-
-      QValue.fromString(s).fold(
-        e => c.abort(c.enclosingPosition, e.getMessage),
-        // TODO I think we could just use qValue if we had a Liftable[QValue], but I can't
-        // figure it out for Scala 2.10.
-        qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).fold(throw _, identity)")
-      )
+      d.tree match {
+        // TODO Seems like I should be able to quasiquote here.
+        case Literal(Constant(d: Double)) =>
+          QValue.fromDouble(d).fold(
+            e => c.abort(c.enclosingPosition, e.getMessage),
+            // TODO I think we could just use qValue if we had a Liftable[QValue], but I can't
+            // figure it out for Scala 2.10.
+            qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).fold(throw _, identity)")
+          )
+        case _ =>
+          c.abort(c.enclosingPosition, s"q syntax only works for literal doubles: ${showRaw(d.tree)}")
+      }
     }
   }
 }
 
-trait QValueSyntax {
+trait QValueFunctions {
   /**
-   * Supports a literal syntax for valid QValues.
+   * Supports a literal syntax for validated QValues.
    *
    * Example:
    * {{{
-   * qValue"0.5" == QValue.fromString("0.5").fold(throw _, identity)
-   * qValue"1.1" // does not compile
+   * q(0.5).success == QValue.fromDouble(0.5)
+   * q(1.1) // does not compile: out of range
+   * val d = 0.5
+   * q(d) // does not compile: not a literal
    * }}}
    */
-  implicit class QValueLiteral(sc: StringContext) {
-    def qValue(): QValue = macro QValue.macros.qValueLiteral
-  }
+  def q(d: Double): QValue = macro QValue.macros.qValueLiteral
 }
 
 case class InvalidQValue(string: String) extends Http4sException(s"Invalid QValue: ${string}") with NoStackTrace

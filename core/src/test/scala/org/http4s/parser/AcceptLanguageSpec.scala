@@ -12,7 +12,7 @@ class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-L
 
   val en = `Accept-Language`(LanguageTag("en"))
   val fr = `Accept-Language`(LanguageTag("fr"))
-  val enq5 = `Accept-Language`(LanguageTag("en").withQuality(qValue"0.5"))
+  val enq5 = `Accept-Language`(LanguageTag("en").withQuality(q(0.5)))
   val en_cool = `Accept-Language`(LanguageTag("en", "cool"))
 
   val all = `Accept-Language`(LanguageTag.`*`)
@@ -31,8 +31,8 @@ class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-L
     }
 
     "Offer preferred" in {
-      val unordered = `Accept-Language`(en.values.head.withQuality(qValue"0.2"),
-                                        fr.values.head.withQuality(qValue"0.1"),
+      val unordered = `Accept-Language`(en.values.head.withQuality(q(0.2)),
+                                        fr.values.head.withQuality(q(0.1)),
                                         en_cool.values.head)
       unordered.preferred must be_==(en_cool.values.head)
     }

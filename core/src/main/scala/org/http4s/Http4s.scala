@@ -5,7 +5,7 @@ trait Http4s extends EntityDecoderInstances
   with WritableInstances
   with StatusInstances
   with CharsetRangeInstances
-  with QValueSyntax
+  with QValueFunctions
   with util.CaseInsensitiveStringSyntax
   with util.TaskInstances
   with scalaz.std.AllInstances
