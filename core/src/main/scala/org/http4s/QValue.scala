@@ -5,11 +5,16 @@ import org.http4s.util.{Renderable, StringWriter, Writer, ValueRenderable}
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 import scala.util.control.NoStackTrace
-import scalaz.{Validation, Order}
+import scalaz.{Show, Equal, Validation, Order}
 import scalaz.syntax.validation._
 
-final class QValue (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
-
+/**
+ * A Quality Value.  Represented as thousandths for an exact representation rounded to three
+ * decimal places.
+ *
+ * @param thousandths betweeen 0 (for q=0) and 1000 (for q=1)
+ */
+final class QValue private (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {
   def toDouble: Double = 0.001 * thousandths
 
   def isAcceptable: Boolean = thousandths > 0
@@ -55,15 +60,12 @@ final class QValue (val thousandths: Int) extends AnyVal with Ordered[QValue] wi
   }
 }
 
-object QValue {
-  private val MaxThousandths = 1000
-  private val MinThousandths = 0
-
-  val One: QValue = fromThousandths(1000).fold(throw _, identity)
-  val Zero: QValue = fromThousandths(0).fold(throw _, identity)
+object QValue extends QValueInstances with QValueFunctions {
+  val One: QValue = new QValue(1000)
+  val Zero: QValue = new QValue(0)
 
   private def mkQValue(thousandths: Int, s: => String): Validation[InvalidQValue, QValue] = {
-    if (thousandths < MinThousandths || thousandths > MaxThousandths) InvalidQValue(s).fail
+    if (thousandths < 0 || thousandths > 1000) InvalidQValue(s).fail
     else new QValue(thousandths).success
   }
 
@@ -71,7 +73,7 @@ object QValue {
     mkQValue(thousandths, (thousandths * .001).toString)
 
   def fromDouble(d: Double): Validation[InvalidQValue, QValue] =
-    mkQValue(Math.round(QValue.MaxThousandths * d).toInt, d.toString)
+    mkQValue(Math.round(1000 * d).toInt, d.toString)
   
   def fromString(s: String): Validation[InvalidQValue, QValue] =
     try fromDouble(s.toDouble)
@@ -88,13 +90,18 @@ object QValue {
             e => c.abort(c.enclosingPosition, e.getMessage),
             // TODO I think we could just use qValue if we had a Liftable[QValue], but I can't
             // figure it out for Scala 2.10.
-            qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).fold(throw _, identity)")
+            qValue => c.Expr(q"new QValue(${qValue.thousandths})")
           )
         case _ =>
           c.abort(c.enclosingPosition, s"q syntax only works for literal doubles: ${showRaw(d.tree)}")
       }
     }
   }
+}
+
+trait QValueInstances {
+  implicit val QValueEqual = Equal.equalA[QValue]
+  implicit val QValueShow = Show.showA[QValue]
 }
 
 trait QValueFunctions {
@@ -118,4 +125,3 @@ trait HasQValue {
   def qValue: QValue
   def withQValue(q: QValue): HasQValue
 }
-

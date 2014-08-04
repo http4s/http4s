@@ -8,6 +8,8 @@ class QValueSpec extends Http4sSpec {
 
   checkAll(ScalazProperties.order.laws[QValue])
 
+  checkAll(ScalazProperties.equal.laws[QValue])
+
   "sort by descending q-value" in {
     prop { (x: QValue, y: QValue) =>
       x.thousandths > y.thousandths ==> (x > y)
