@@ -117,7 +117,8 @@ resolvers in ThisBuild ++= Seq(
 libraryDependencies in ThisBuild ++= Seq(
   scalameter % "test",
   scalazScalacheckBinding % "test",
-  specs2 % "test"
+  specs2 % "test",
+  scalazSpecs2 % "test"
 )
 
 logLevel := Level.Warn

@@ -5,7 +5,7 @@ import java.util.Locale
 import scalaz.syntax.id._
 
 class CharsetSpec extends Http4sSpec {
-  "Charset.fromString" should {
+  "fromString" should {
     "be case insensitive" in {
       prop { cs: NioCharset =>
         val upper = cs.name.toUpperCase(Locale.ROOT)

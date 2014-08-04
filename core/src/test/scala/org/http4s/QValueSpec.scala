@@ -1,41 +1,36 @@
 package org.http4s
 
 import org.http4s.scalacheck.ScalazProperties
+import scalaz.syntax.validation._
 
 class QValueSpec extends Http4sSpec {
-  "ordering" should {
-    "be lawful" in {
-      check(ScalazProperties.order.laws[QValue])
-    }
+  import QValue._
 
-    "prefer higher q values" in {
-      prop { (x: QValue, y: QValue) =>
-        x.thousandths > y.thousandths ==> (x > y)
-      }
+  checkAll(ScalazProperties.order.laws[QValue])
+
+  "sort by descending q-value" in {
+    prop { (x: QValue, y: QValue) =>
+      x.thousandths > y.thousandths ==> (x > y)
     }
   }
 
-  "QValues" should {
-    "fromDouble should be consistent with fromThousandths" in {
-      forall (0 to 1000) { i =>
-        QValue.fromDouble(i / 1000.0) must_== QValue.fromThousandths(i)
-      }
-    }
-
-    "fromString should be consistent with fromThousandths" in {
-      forall (0 to 1000) { i =>
-        QValue.fromString((i / 1000.0).toString) must_== QValue.fromThousandths(i)
-      }
+  "fromDouble should be consistent with fromThousandths" in {
+    forall (0 to 1000) { i =>
+      fromDouble(i / 1000.0) must_== fromThousandths(i)
     }
   }
 
-  "qValueLiterals" should {
-    "match toString" in {
-      q(1.0) must_== QValue.One
-      q(0.5) must_== QValue.fromString("0.5").fold(throw _, identity)
-      q(0.0) must_== QValue.Zero
-      // q(2.0) // doesn't compile: out of range
-      // q(0.5 + 0.1) // doesn't compile, not a literal
+  "fromString should be consistent with fromThousandths" in {
+    forall (0 to 1000) { i =>
+      fromString((i / 1000.0).toString) must_== fromThousandths(i)
     }
+  }
+
+  "literal syntax should be consistent with successful fromDouble" in {
+    q(1.0).success must_== fromDouble(1.0)
+    q(0.5).success must_== fromDouble(0.5)
+    q(0.0).success must_== fromDouble(0.0)
+    // q(2.0) // doesn't compile: out of range
+    // q(0.5 + 0.1) // doesn't compile, not a literal
   }
 }

@@ -12,14 +12,14 @@ import org.http4s.CharsetRange._
 import scalaz.syntax.id._
 import scalaz.syntax.validation._
 
-class AcceptCharsetSpec extends Specification with ScalaCheck with TestInstances with HeaderParserHelper[`Accept-Charset`] {
+class AcceptCharsetSpec extends Http4sSpec with HeaderParserHelper[`Accept-Charset`] {
 
   def hparse(value: String): Validation[ParseErrorInfo, `Accept-Charset`] = HttpParser.ACCEPT_CHARSET(value)
 
   "Accept-Charset" should {
     "parse any list of CharsetRanges to itself" in {
       prop { h: `Accept-Charset` =>
-        hparse(h.value) must_== h.success
+        hparse(h.value) must beSuccessful(h)
       }
     }
 

@@ -13,13 +13,13 @@ class CharsetRangeSpec extends Http4sSpec {
   "*" should {
     "be satisfied by any charset when q > 0" in {
       prop { (range: CharsetRange.`*`, cs: Charset) =>
-        range.qValue > QValue.Zero ==> { range isSatisfiedBy cs must beTrue }
+        range.qValue > QValue.Zero ==> { range isSatisfiedBy cs }
       }
     }
 
     "not be satisfied when q = 0" in {
       prop { cs: Charset =>
-        `*`.withQValue(QValue.Zero) isSatisfiedBy cs must beFalse
+        !(`*`.withQValue(QValue.Zero) isSatisfiedBy cs)
       }
     }
   }
@@ -27,32 +27,28 @@ class CharsetRangeSpec extends Http4sSpec {
   "atomic charset ranges" should {
     "be satisfied by themselves if q > 0" in {
       forAll (arbitrary[CharsetRange.Atom] suchThat (_.qValue > QValue.Zero)) { range =>
-        range isSatisfiedBy range.charset must beTrue
+        range isSatisfiedBy range.charset
       }
     }
 
     "not be satisfied by any other charsets" in {
       prop { (range: CharsetRange.Atom, cs: Charset) =>
-        range.charset != cs ==> { range isSatisfiedBy cs must beFalse }
+        range.charset != cs ==> { !(range isSatisfiedBy cs) }
       }
     }
   }
 
-  "ordering" should {
-    "be lawful" in {
-      check(ScalazProperties.order.laws[CharsetRange])
-    }
+  checkAll(ScalazProperties.order.laws[CharsetRange])
 
-    "prefer higher q values" in {
-      prop { (x: CharsetRange, y: CharsetRange) =>
-        x.qValue > y.qValue ==> x < y
-      }
+  "sort by descending q-values" in {
+    prop { (x: CharsetRange, y: CharsetRange) =>
+      x.qValue > y.qValue ==> x < y
     }
+  }
 
-    "equally prefer equal q values" in {
-      prop { (x: CharsetRange, y: CharsetRange, q: QValue) =>
-        x.withQValue(q) === y.withQValue(q)
-      }
+  "have no preference among equal q-values" in {
+    prop { (x: CharsetRange, y: CharsetRange, q: QValue) =>
+      x.withQValue(q) === y.withQValue(q)
     }
   }
 }
