@@ -5,7 +5,7 @@ import org.http4s.util.{Renderable, Writer}
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 import scala.util.control.NoStackTrace
-import scalaz.{Show, Equal, Validation}
+import scalaz.{Order, Show, Equal, Validation}
 import scalaz.syntax.validation._
 
 /**
@@ -101,8 +101,8 @@ object QValue extends QValueInstances with QValueFunctions {
 }
 
 trait QValueInstances {
-  implicit val QValueEqual = Equal.equalA[QValue]
-  implicit val QValueShow = Show.showA[QValue]
+  implicit val qValueOrder = Order.fromScalaOrdering[QValue]
+  implicit val qValueShow = Show.showA[QValue]
 }
 
 trait QValueFunctions {
