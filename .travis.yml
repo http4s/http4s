@@ -18,6 +18,6 @@ before_script:
 script: sbt ++$TRAVIS_SCALA_VERSION test
 after_success: 
 - test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "develop" && sbt ++$TRAVIS_SCALA_VERSION publish
-- test $TRAVIS_SCALA_VERSION == "2.11.1" && test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "develop" && sbt ++$TRAVIS_SCALA_VERSION make-site ghpagesPushSite
+- test $TRAVIS_SCALA_VERSION == "2.11.2" && test $TRAVIS_PULL_REQUEST == "false" && test $TRAVIS_BRANCH == "develop" && sbt ++$TRAVIS_SCALA_VERSION make-site ghpagesPushSite
 notifications:
   irc: "chat.freenode.net#http4s"
