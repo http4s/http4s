@@ -12,8 +12,12 @@ import scalaz.stream.processes
 import scalaz.stream.io
 
 // TODO: Need to handle failure in a more uniform manner
-
-/** Decoder that describes the MediaTypes it can decode */
+/** A type that can be used to decode an [[EntityBody]]
+  * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
+  * entire resulting T. If an error occurs it will result in a failed Task
+  * These are not streaming constructs.
+  * @tparam T result type produced by the decoder
+  */
 sealed trait EntityDecoder[+T] { self =>
 
   final def apply(msg: Message): Task[T] = decode(msg)
@@ -45,6 +49,10 @@ sealed trait EntityDecoder[+T] { self =>
   }
 }
 
+/** EntityDecoder is used to attempt to decode an [[EntityBody]]
+  * This companion object provides a way to create `new EntityDecoder`s along
+  * with some commonly used instances which can be resolved implicitly.
+  */
 object EntityDecoder extends EntityDecoderInstances {
   def apply[T](f: Message => Task[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): Task[T] = {
@@ -64,11 +72,12 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
   }
 
+  // Helper method which simply gathers the body into a single Array[Byte]
   def collectBinary(msg: Message): Task[Array[Byte]] =
     msg.body.runLog.map(_.reduce(_ ++ _).toArray)
 }
 
-/** Various instances of common decoders */
+/** Implementations of the EntityDecoder instances */
 trait EntityDecoderInstances {
   import EntityDecoder._
 
