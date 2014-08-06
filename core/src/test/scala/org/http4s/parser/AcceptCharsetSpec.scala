@@ -1,16 +1,8 @@
 package org.http4s.parser
 
 import org.http4s.Header.`Accept-Charset`
-import org.http4s.scalacheck.ScalazProperties
 import org.http4s._
-import org.scalacheck.Prop
-import org.specs2.ScalaCheck
-import org.specs2.mutable.Specification
 import scalaz.Validation
-import org.http4s.Charset._
-import org.http4s.CharsetRange._
-import scalaz.syntax.id._
-import scalaz.syntax.validation._
 
 class AcceptCharsetSpec extends Http4sSpec with HeaderParserHelper[`Accept-Charset`] {
 

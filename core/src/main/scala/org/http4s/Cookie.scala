@@ -111,7 +111,7 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
   }
 
   override def toString(): String = {
-    s"RequestCookieJar(${map(_.value).mkString("\n")})"
+    s"RequestCookieJar(${map(_.stringValue).mkString("\n")})"
   }
 }
 
@@ -129,7 +129,7 @@ case class Cookie(
   extension: Option[String] = None
 ) extends ValueRenderable {
 
-  override lazy val value: String = super.value
+  override lazy val stringValue: String = super.stringValue
 
   def renderValue[W <: Writer](writer: W): writer.type = {
     writer.append(name).append("=\"").append(content).append('"')
@@ -143,5 +143,5 @@ case class Cookie(
     writer
   }
 
-  override def toString = value
+  override def toString = stringValue
 }

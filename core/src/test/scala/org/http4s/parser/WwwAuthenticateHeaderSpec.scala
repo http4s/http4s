@@ -21,7 +21,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
 
   "WWW-Authenticate Header parser" should {
     "Render challenge correctly" in {
-      c.value must be_==(str)
+      c.stringValue must be_==(str)
     }
 
     "Parse a basic authentication" in {
@@ -29,7 +29,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
     }
 
     "Parse a basic authentication with params" in {
-      parse(wparams.value) must be_==(`WWW-Authenticate`(wparams))
+      parse(wparams.stringValue) must be_==(`WWW-Authenticate`(wparams))
     }
 
     "Parse multiple concatenated authentications" in {

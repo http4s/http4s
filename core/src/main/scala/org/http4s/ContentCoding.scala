@@ -22,7 +22,6 @@ import org.http4s.util._
 import string._
 
 final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with ValueRenderable {
-
   def withQValue(q: QValue): ContentCoding = copy(coding, q)
   def satisfies(encoding: ContentCoding) = encoding.satisfiedBy(this)
   def satisfiedBy(encoding: ContentCoding) = {
