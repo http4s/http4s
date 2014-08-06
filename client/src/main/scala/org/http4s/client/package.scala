@@ -3,7 +3,20 @@ package org.http4s
 import org.http4s.client.Client.BadResponse
 import scalaz.concurrent.Task
 
-/** Provides extension methods for using the http4s [[org.http4s.client.Client]] */
+/** Provides extension methods for using the a http4s [[org.http4s.client.Client]]
+  * {{{
+  *   import org.http4s.Status._
+  *   import org.http4s.Method._
+  *   import org.http4s.EntityDecoder
+  *
+  *   implicit def client: Client = ???
+  *
+  *   val r: Task[Result[String]] = Get("https://www.foo.bar/").on(Ok)(EntityDecoder.text)
+  *   val req1 = r.run
+  *   val req2 = r.run  // Each run is fetches a new result based on the behavior of the Client
+  *
+  * }}}
+  */
 package object client {
 
   import Client.Result
