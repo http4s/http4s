@@ -12,7 +12,7 @@ trait ValueRenderable extends Renderable {
 
   override def render[W <: Writer](writer: W): writer.type = renderValue(writer)
 
-  def value: String = renderValue(new StringWriter).result()
+  def stringValue: String = renderValue(new StringWriter).result()
 }
 
 trait Writer {

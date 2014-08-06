@@ -35,6 +35,8 @@ sealed trait Header extends ValueRenderable with Product {
 
   def parsed: Header
 
+  def value = stringValue
+
   def is(key: HeaderKey): Boolean = key.matchHeader(this).isDefined
 
   def isNot(key: HeaderKey): Boolean = !is(key)
@@ -61,7 +63,7 @@ sealed trait Header extends ValueRenderable with Product {
 }
 
 object Header {
-  def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
+  def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.stringValue))
 
   def apply(name: String, value: String): Raw = Raw(name.ci, value)
 
@@ -74,8 +76,9 @@ object Header {
    * @param value String representation of the header value
    */
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
+    override def stringValue = value
     override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
-    def renderValue[W <: Writer](writer: W): writer.type = writer.append(value)
+    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(stringValue)
   }
 
   /** A Header that is already parsed from its String representation. */
@@ -217,7 +220,7 @@ object Header {
   // see http://tools.ietf.org/html/rfc2183
   final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Parsed {
     def key = `Content-Disposition`
-    override lazy val value = super.value
+    override lazy val stringValue = super.stringValue
     def renderValue[W <: Writer](writer: W): writer.type = {
       writer.append(dispositionType)
       parameters.foreach(p =>  writer ~ "; "~ p._1~ "=\""~ p._2 ~ '"')
@@ -294,15 +297,15 @@ object Header {
   object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton
   final case class Date(date: DateTime) extends Parsed {
     def key = `Date`
-    override def value = date.toRfc1123DateTimeString
-    def renderValue[W <: Writer](writer: W): writer.type = writer.append(value)
+    override def stringValue = date.toRfc1123DateTimeString
+    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(stringValue)
   }
 
   object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton
   final case class ETag(tag: String) extends Parsed {
     def key: HeaderKey = ETag
-    override def value: String = tag
-    def renderValue[W <: Writer](writer: W): writer.type = writer.append(tag)
+    override def stringValue: String = tag
+    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(tag)
   }
 
   object Expect extends HeaderKey.Default
@@ -330,15 +333,15 @@ object Header {
   object `If-Modified-Since` extends HeaderKey.Internal[`If-Modified-Since`] with HeaderKey.Singleton
   final case class `If-Modified-Since`(date: DateTime) extends Parsed {
     def key: HeaderKey = `If-Modified-Since`
-    override def value: String = date.toRfc1123DateTimeString
-    def renderValue[W <: Writer](writer: W): writer.type = writer.append(value)
+    override def stringValue: String = date.toRfc1123DateTimeString
+    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(stringValue)
   }
 
   object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKey.Singleton
   case class `If-None-Match`(tag: String) extends Parsed {
     def key: HeaderKey = `If-None-Match`
-    override def value: String = tag
-    def renderValue[W <: Writer](writer: W): writer.type = writer.append(tag)
+    override def stringValue: String = tag
+    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(tag)
   }
 
   object `If-Range` extends HeaderKey.Default
@@ -348,16 +351,16 @@ object Header {
   object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton
   final case class `Last-Modified`(date: DateTime) extends Parsed {
     def key = `Last-Modified`
-    override def value = date.toRfc1123DateTimeString
-    def renderValue[W <: Writer](writer: W): writer.type = writer.append(value)
+    override def stringValue = date.toRfc1123DateTimeString
+    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(stringValue)
   }
 
   object Location extends HeaderKey.Internal[Location] with HeaderKey.Singleton
 
   final case class Location(absoluteUri: String) extends Parsed {
     def key = `Location`
-    override def value = absoluteUri
-    def renderValue[W <: Writer](writer: W): writer.type = writer.append(absoluteUri)
+    override def stringValue = absoluteUri
+    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(absoluteUri)
   }
 
   object `Max-Forwards` extends HeaderKey.Default
@@ -407,7 +410,7 @@ object Header {
   object `Transfer-Encoding` extends HeaderKey.Internal[`Transfer-Encoding`] with HeaderKey.Recurring
   final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends RecurringRenderable {
     def key = `Transfer-Encoding`
-    def hasChunked = values.list.exists(_.value.equalsIgnoreCase("chunked"))
+    def hasChunked = values.list.exists(_.stringValue.equalsIgnoreCase("chunked"))
     type Value = TransferCoding
   }
 
@@ -437,8 +440,7 @@ object Header {
   final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends Recurring {
     def key = `X-Forwarded-For`
     type Value = Option[InetAddress]
-    override lazy val value = super.value
-
+    override lazy val stringValue = super.stringValue
     def renderValue[W <: Writer](writer: W): writer.type = {
       values.head.fold(writer.append("unknown"))(i => writer.append(i.getHostAddress))
       values.tail.foreach(append(writer, _))

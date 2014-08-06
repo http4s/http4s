@@ -26,20 +26,20 @@ import net.iharder.Base64
 
 sealed abstract class Credentials extends ValueRenderable {
   def authScheme: AuthScheme
-  override def toString = value
+  override def toString = stringValue
 }
 
 case class BasicCredentials(username: String, password: String) extends Credentials {
   val authScheme = AuthScheme.Basic
 
-  override lazy val value = {
+  override lazy val stringValue = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(StandardCharsets.ISO_8859_1)
     val cookie = Base64.encodeBytes(bytes)
     "Basic " + cookie
   }
 
-  def renderValue[W <: Writer](writer: W): writer.type = writer.append(value)
+  def renderValue[W <: Writer](writer: W): writer.type = writer.append(stringValue)
 }
 
 object BasicCredentials {
@@ -62,7 +62,7 @@ case class OAuth2BearerToken(token: String) extends Credentials {
 
 
 case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
-  override lazy val value = super.value
+  override lazy val stringValue = super.stringValue
 
   def renderValue[W <: Writer](writer: W): writer.type = {
     if (params.isEmpty) writer.append(authScheme.toString)

@@ -54,7 +54,7 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, qValue, ext)
 
-  override def toString = "MediaRange(" + value + ')'
+  override def toString = "MediaRange(" + stringValue + ')'
 
   override def equals(obj: Any) = obj match {
     case _: MediaType => false
@@ -67,7 +67,7 @@ sealed class MediaRange private[http4s](val mainType: String,
       false
   }
 
-  override def hashCode(): Int = value.##
+  override def hashCode(): Int = stringValue.##
 
   @inline
   final def qualityMatches(that: MediaRange): Boolean = {
@@ -148,8 +148,8 @@ sealed class MediaType(mainType: String,
     case _ => false
   }
 
-  override def hashCode() = value.##
-  override def toString = "MediaType(" + value + ')'
+  override def hashCode() = stringValue.##
+  override def toString = "MediaType(" + stringValue + ')'
 }
 
 

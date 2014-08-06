@@ -24,7 +24,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
       // Parse the rest
       foreach(MediaRange.snapshot.values) { m =>
-        val r = parse(m.value).values.head
+        val r = parse(m.stringValue).values.head
         r must be_==(m)           // Structural equality
         (r eq m) must be_==(true) // Reference equality
       }
@@ -43,7 +43,7 @@ class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] wit
 
       // Parse the rest
       foreach(MediaType.snapshot.values) { m =>
-        val r = parse(m.value).values.head
+        val r = parse(m.stringValue).values.head
         r must be_==(m)           // Structural equality
         (r eq m) must be_==(true) // Reference equality
       }

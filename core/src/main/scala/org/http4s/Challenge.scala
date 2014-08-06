@@ -23,7 +23,7 @@ import org.http4s.util.{Writer, ValueRenderable}
 case class Challenge(scheme: String,
                      realm: String,
                      params: Map[String, String] = Map.empty) extends ValueRenderable {
-  override lazy val value = super.value
+  override lazy val stringValue = super.stringValue
 
   def renderValue[W <: Writer](writer: W): writer.type = {
     writer.append(scheme).append(' ')
@@ -37,5 +37,5 @@ case class Challenge(scheme: String,
     b.append(',').append(k).append("=\"").append(v).append('"')
   }
 
-  override def toString = value
+  override def toString = stringValue
 }
