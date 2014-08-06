@@ -26,15 +26,14 @@ trait Client { self: Logging =>
   def shutdown(): Task[Unit]
 
   /** Generate a Task which, when executed, will perform the request and decode the result */
-  final def decode[A](req: Task[Request])(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
+  final def decode[A](req: Task[Request])(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
     req.flatMap(req => decode(req)(onResponse))
 
   /** Generate a Task which, when executed, will perform the request and decode the result */
-  final def decode[A](req: Request)(onResponse: PartialFunction[Status, EntityDecoder[A]]): Task[Result[A]] =
+  final def decode[A](req: Request)(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
     prepare(req).flatMap { resp =>
-      onResponse
-        .andThen(_.apply(resp))
-        .applyOrElse(resp.status, {status: Status => Task.fail(BadResponse(status, "Invalid status")) })
+      onResponse(resp)
+        .apply(resp)
         .map(Result(resp.status, resp.headers, _))
     }
 }
