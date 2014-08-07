@@ -20,15 +20,14 @@ package org.http4s
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
-import scala.util.hashing.MurmurHash3
-import org.http4s.util.{Registry, Writer, ValueRenderable}
+import org.http4s.util.{Renderable, Registry, Writer}
 
 sealed class MediaRange private[http4s](val mainType: String,
                                         val qValue: QValue = QValue.One,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends HasQValue with ValueRenderable {
+                                        extends HasQValue with Renderable {
 
-  def renderValue[W <: Writer](writer: W): writer.type = {
+  override def render[W <: Writer](writer: W): writer.type = {
     writer ~ mainType ~ "/*"~ qValue
     renderExtensions(writer)
     writer
@@ -54,7 +53,7 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, qValue, ext)
 
-  override def toString = "MediaRange(" + stringValue + ')'
+  override def toString = "MediaRange(" + renderString + ')'
 
   override def equals(obj: Any) = obj match {
     case _: MediaType => false
@@ -67,7 +66,7 @@ sealed class MediaRange private[http4s](val mainType: String,
       false
   }
 
-  override def hashCode(): Int = stringValue.##
+  override def hashCode(): Int = renderString.##
 
   @inline
   final def qualityMatches(that: MediaRange): Boolean = {
@@ -115,7 +114,7 @@ sealed class MediaType(mainType: String,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override def renderValue[W <: Writer](writer: W): writer.type = {
+  override def render[W <: Writer](writer: W): writer.type = {
     writer ~ mainType ~ '/' ~ subType ~ q
     renderExtensions(writer)
     writer
@@ -148,8 +147,8 @@ sealed class MediaType(mainType: String,
     case _ => false
   }
 
-  override def hashCode() = stringValue.##
-  override def toString = "MediaType(" + stringValue + ')'
+  override def hashCode() = renderString.##
+  override def toString = "MediaType(" + renderString + ')'
 }
 
 

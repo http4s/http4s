@@ -141,7 +141,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
     rr ~ req.protocol.value.toString ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'
 
     val respTransferCoding = encodeHeaders(resp.headers, rr)    // kind of tricky method returns Option[Transfer-Encoding]
-    val respConn =   Connection.from(resp.headers)
+    val respConn = Connection.from(resp.headers)
 
     // Need to decide which encoder and if to close on finish
     val closeOnFinish = respConn.map(_.hasClose).orElse {

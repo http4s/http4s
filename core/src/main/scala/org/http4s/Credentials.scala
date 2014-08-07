@@ -20,26 +20,25 @@ package org.http4s
 
 import java.nio.charset.StandardCharsets
 
-import Charset._
-import org.http4s.util.{Writer, ValueRenderable}
+import org.http4s.util.{Renderable, Writer}
 import net.iharder.Base64
 
-sealed abstract class Credentials extends ValueRenderable {
+sealed abstract class Credentials extends Renderable {
   def authScheme: AuthScheme
-  override def toString = stringValue
+  def value: String
 }
 
 case class BasicCredentials(username: String, password: String) extends Credentials {
   val authScheme = AuthScheme.Basic
 
-  override lazy val stringValue = {
+  override lazy val value = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(StandardCharsets.ISO_8859_1)
     val cookie = Base64.encodeBytes(bytes)
     "Basic " + cookie
   }
 
-  def renderValue[W <: Writer](writer: W): writer.type = writer.append(stringValue)
+  override def render[W <: Writer](writer: W): writer.type = writer.append(value)
 }
 
 object BasicCredentials {
@@ -57,14 +56,16 @@ object BasicCredentials {
 case class OAuth2BearerToken(token: String) extends Credentials {
   val authScheme = AuthScheme.Bearer
 
-  def renderValue[W <: Writer](writer: W): writer.type = writer.append("Bearer ").append(token)
+  override def value = renderString
+
+  override def render[W <: Writer](writer: W): writer.type = writer.append("Bearer ").append(token)
 }
 
 
 case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
-  override lazy val stringValue = super.stringValue
+  override lazy val value = renderString
 
-  def renderValue[W <: Writer](writer: W): writer.type = {
+  override def render[W <: Writer](writer: W): writer.type = {
     if (params.isEmpty) writer.append(authScheme.toString)
     else {
       formatParams(writer)

@@ -18,14 +18,15 @@
  */
 package org.http4s
 
-import org.http4s.util.{Writer, ValueRenderable}
+import org.http4s.util.{StringWriter, Writer, Renderable}
 
 case class Challenge(scheme: String,
                      realm: String,
-                     params: Map[String, String] = Map.empty) extends ValueRenderable {
-  override lazy val stringValue = super.stringValue
+                     params: Map[String, String] = Map.empty) extends Renderable {
 
-  def renderValue[W <: Writer](writer: W): writer.type = {
+  lazy val value = renderString
+
+  override def render[W <: Writer](writer: W): writer.type = {
     writer.append(scheme).append(' ')
     writer.append("realm=\"").append(realm).append('"')
     params.foreach{ case (k, v) => addPair(writer, k, v )}
@@ -37,5 +38,5 @@ case class Challenge(scheme: String,
     b.append(',').append(k).append("=\"").append(v).append('"')
   }
 
-  override def toString = stringValue
+  override def toString = value
 }
