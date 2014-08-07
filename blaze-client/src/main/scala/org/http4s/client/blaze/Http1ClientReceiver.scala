@@ -18,7 +18,7 @@ abstract class Http1ClientReceiver extends Http1ClientParser
 
   private val _headers = new ListBuffer[Header]
   private var _status: Status = null
-  private var _protocol: ServerProtocol = null
+  private var _httpVersion: HttpVersion = null
   @volatile private var closed = false
 
   override def isClosed(): Boolean = closed
@@ -32,19 +32,18 @@ abstract class Http1ClientReceiver extends Http1ClientParser
                                             scheme: String,
                                             majorversion: Int, minorversion: Int): Unit = {
     _status = Status(code)
-    _protocol = {
-      if      (majorversion == 1 && minorversion == 1)  ServerProtocol.`HTTP/1.1`
-      else if (majorversion == 1 && minorversion == 0)  ServerProtocol.`HTTP/1.0`
-      else ServerProtocol.ExtensionVersion(CaseInsensitiveString(s"HTTP/$majorversion.$minorversion"))
+    _httpVersion = {
+      if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
+      else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`
+      else HttpVersion.fromVersion(majorversion, minorversion).fold(throw _, identity)
     }
   }
 
   protected def collectMessage(body: EntityBody): Response = {
     val status   = if (_status == null) Status.InternalServerError else _status
     val headers  = if (_headers.isEmpty) Headers.empty else Headers(_headers.result())
-    val protocol = if (_protocol == null) ServerProtocol.ExtensionVersion(CaseInsensitiveString("Not received"))
-                   else _protocol
-    Response(status, protocol, headers, body)
+    val httpVersion = if (_httpVersion == null) HttpVersion.`HTTP/1.0` else _httpVersion // TODO Questionable default
+    Response(status, httpVersion, headers, body)
   }
 
   override protected def headerComplete(name: String, value: String): Boolean = {

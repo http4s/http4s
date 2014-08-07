@@ -83,7 +83,7 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
     Request(
       requestMethod = Method.getOrElse(req.getMethod, Method.fromKey(req.getMethod)),
       requestUri = Uri.fromString(req.getRequestURI).get,
-      protocol = ServerProtocol.getOrElseCreate(req.getProtocol.ci),
+      httpVersion = HttpVersion.fromString(req.getProtocol).fold(throw _, identity),
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize)).eval,
       attributes = AttributeMap(

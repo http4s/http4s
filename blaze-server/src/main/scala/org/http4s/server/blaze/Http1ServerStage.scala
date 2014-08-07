@@ -103,7 +103,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
     Uri.fromString(this.uri) match {
       case Success(uri) =>
         val method = Method.getOrElseCreate(this.method)
-        val protocol = if (minor == 1) ServerProtocol.`HTTP/1.1` else ServerProtocol.`HTTP/1.0`
+        val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
         Request(method, uri, protocol, h, body, requestAttrs)
 
       case Failure(_: ParseError) =>
@@ -138,7 +138,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
   protected def renderResponse(req: Request, resp: Response) {
     val rr = new StringWriter(512)
-    rr ~ req.protocol.value.toString ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'
+    rr ~ req.httpVersion ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'
 
     val respTransferCoding = encodeHeaders(resp.headers, rr)    // kind of tricky method returns Option[Transfer-Encoding]
     val respConn =   Connection.from(resp.headers)

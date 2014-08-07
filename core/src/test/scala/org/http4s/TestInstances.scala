@@ -14,6 +14,14 @@ import org.http4s.scalacheck.ScalazArbitrary._
 import scalaz.NonEmptyList
 
 trait TestInstances {
+  def nonNeg: Gen[Int] = sized(max => choose(0, max))
+
+  implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
+    Arbitrary { for {
+      major <- choose(0, 9)
+      minor <- choose(0, 9)
+    } yield HttpVersion.fromVersion(major, minor).fold(throw _, identity) }
+
   implicit val aribtraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
 
