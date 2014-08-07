@@ -66,7 +66,7 @@ trait ClientRouteTests { self: Specification =>
   private def checkResponse(rec: Response, expected: Response) = {
     (rec.headers.toSet must be_==(expected.headers.toSet)) &&   // Have to do set to avoid order problems
       (rec.status must be_==(expected.status)) &&
-      (rec.protocol must be_==(expected.protocol)) &&
+      (rec.httpVersion must be_==(expected.httpVersion)) &&
       (collectBody(rec.body) must be_==(collectBody(expected.body)))
   }
 

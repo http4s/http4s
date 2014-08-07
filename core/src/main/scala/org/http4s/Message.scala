@@ -15,7 +15,7 @@ import MessageSyntax.ResponseSyntax
 trait Message {
   type Self <: Message
 
-  def protocol: ServerProtocol
+  def httpVersion: HttpVersion
   
   def headers: Headers
   
@@ -58,7 +58,7 @@ object Message {
   *
   * @param requestMethod [[Method.Get]], [[Method.Post]], etc.
   * @param requestUri representation of the request URI
-  * @param protocol HTTP protocol, eg ServerProtocol.`HTTP/1.1`
+  * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
   * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
@@ -66,7 +66,7 @@ object Message {
 case class Request(
   requestMethod: Method = Method.Get,
   requestUri: Uri = Uri(path = "/"),
-  protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
+  httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
@@ -166,7 +166,7 @@ object Request {
  */
 case class Response(
   status: Status = Status.Ok,
-  protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
+  httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseSyntax[Response] {

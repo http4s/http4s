@@ -11,6 +11,7 @@ trait Http4sInstances
   extends scalaz.std.AllInstances
   with util.TaskInstances
   with EntityDecoderInstances
+  with HttpVersionInstances
   with WritableInstances
   with StatusInstances
   with CharsetRangeInstances

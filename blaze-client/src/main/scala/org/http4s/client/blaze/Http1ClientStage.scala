@@ -3,12 +3,11 @@ package org.http4s.client.blaze
 import java.nio.ByteBuffer
 
 import org.http4s.Header.{Host, `Content-Length`}
-import org.http4s.ServerProtocol.HttpVersion
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.util.ProcessWriter
 import org.http4s.util.{StringWriter, Writer}
-import org.http4s.{Header, Request, Response, ServerProtocol}
+import org.http4s.{Header, Request, Response, HttpVersion}
 
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
@@ -68,7 +67,7 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
       // If we are HTTP/1.0, make sure HTTP/1.0 has no body or a Content-Length header
     if (minor == 0 && !req.body.isHalt && `Content-Length`.from(req.headers).isEmpty) {
       logger.warn(s"Request ${req.copy(body = halt)} is HTTP/1.0 but lacks a length header. Transforming to HTTP/1.1")
-      validateRequest(req.copy(protocol = ServerProtocol.`HTTP/1.1`))
+      validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.1`))
     }
       // Ensure we have a host header for HTTP/1.1
     else if (minor == 1 && req.requestUri.host.isEmpty) { // this is unlikely if not impossible
@@ -81,7 +80,7 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
         validateRequest(req.copy(requestUri = req.requestUri.copy(authority = Some(newAuth))))
       }
       else if (req.body.isHalt || `Content-Length`.from(req.headers).nonEmpty) {  // translate to HTTP/1.0
-        validateRequest(req.copy(protocol = ServerProtocol.`HTTP/1.0`))
+        validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.0`))
       } else {
         Left(new Exception("Host header required for HTTP/1.1 request"))
       }
@@ -89,10 +88,7 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
     else Right(req) // All appears to be well
   }
 
-  private def getHttpMinor(req: Request): Int = req.protocol match {
-    case HttpVersion(_, minor) => minor
-    case p => sys.error(s"Don't know the server protocol: $p")
-  }
+  private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 
   private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): ProcessWriter = {
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
@@ -100,7 +96,7 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
 
   private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
     val uri = req.requestUri
-    writer ~ req.requestMethod ~ ' ' ~ uri.path ~ ' ' ~ req.protocol ~ '\r' ~ '\n'
+    writer ~ req.requestMethod ~ ' ' ~ uri.path ~ ' ' ~ req.httpVersion ~ '\r' ~ '\n'
     if (getHttpMinor(req) == 1 && Host.from(req.headers).isEmpty) { // need to add the host header for HTTP/1.1
       uri.host match {
         case Some(host) =>

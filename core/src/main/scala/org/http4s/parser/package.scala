@@ -7,7 +7,7 @@ import shapeless.{HNil, ::}
 
 package object parser {
 
-  private[parser] def validationScheme[H] = new DeliveryScheme[H::HNil] {
+  private[http4s] def validationScheme[H] = new DeliveryScheme[H::HNil] {
     type Result = Validation[ParseErrorInfo, H]
 
     def success(result: H::HNil) = Success(result.head)
