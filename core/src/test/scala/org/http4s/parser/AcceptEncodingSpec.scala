@@ -20,7 +20,7 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
     "parse all encodings" in {
       foreach(ContentCoding.snapshot) { case (name, coding) =>
-        parse(coding.value).values.head should be_==(coding)
+        parse(coding.renderString).values.head should be_==(coding)
       }
     }
   }

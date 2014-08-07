@@ -20,7 +20,7 @@ package org.http4s
 
 import collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
-import org.http4s.util.{Writer, ValueRenderable}
+import org.http4s.util.{Renderable, Writer}
 
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)
@@ -111,7 +111,7 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
   }
 
   override def toString(): String = {
-    s"RequestCookieJar(${map(_.value).mkString("\n")})"
+    s"RequestCookieJar(${map(_.renderString).mkString("\n")})"
   }
 }
 
@@ -127,11 +127,11 @@ case class Cookie(
   secure: Boolean = false,
   httpOnly: Boolean = false,
   extension: Option[String] = None
-) extends ValueRenderable {
+) extends Renderable {
 
-  override lazy val value: String = super.value
+  override lazy val renderString: String = super.renderString
 
-  def renderValue[W <: Writer](writer: W): writer.type = {
+  override def render[W <: Writer](writer: W): writer.type = {
     writer.append(name).append("=\"").append(content).append('"')
     expires.foreach{ e => writer.append("; Expires=").append(e.toRfc1123DateTimeString) }
     maxAge.foreach(writer.append("; Max-Age=").append(_))
@@ -142,6 +142,4 @@ case class Cookie(
     extension.foreach(writer.append("; ").append(_))
     writer
   }
-
-  override def toString = value
 }

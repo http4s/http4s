@@ -21,8 +21,7 @@ package org.http4s
 import org.http4s.util._
 import string._
 
-final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with ValueRenderable {
-
+final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with Renderable {
   def withQValue(q: QValue): ContentCoding = copy(coding, q)
   def satisfies(encoding: ContentCoding) = encoding.satisfiedBy(this)
   def satisfiedBy(encoding: ContentCoding) = {
@@ -30,7 +29,7 @@ final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = 
     qValue.isAcceptable && encoding.qValue.isAcceptable
   }
 
-  def renderValue[W <: Writer](writer: W): writer.type = writer ~ coding ~ qValue
+  override def render[W <: Writer](writer: W): writer.type = writer ~ coding ~ qValue
 
   // We want the normal case class generated methods except copy
   private def copy(coding: CaseInsensitiveString = this.coding, q: QValue = this.qValue) = ContentCoding(coding, q)
