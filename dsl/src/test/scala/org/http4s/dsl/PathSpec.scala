@@ -43,7 +43,7 @@ class PathSpec extends Specification {
     }
 
     "-> extractor /test.json" in {
-      val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/test.json").get)
+      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/test.json").get)
       (req match {
         case GET -> Root / "test.json" => true
         case _                         => false
@@ -51,7 +51,7 @@ class PathSpec extends Specification {
     }
 
     "-> extractor /foo/test.json" in {
-      val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/foo/test.json").get)
+      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/foo/test.json").get)
       (req match {
         case GET -> Root / "foo" / "test.json" => true
         case _                         => false
@@ -59,7 +59,7 @@ class PathSpec extends Specification {
     }
 
    "request path info extractor for /" in {
-      val req = Request(requestMethod = Method.Get, requestUri = Uri.fromString("/").get)
+      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/").get)
       (req match {
         case _ -> Root => true
         case _ => false

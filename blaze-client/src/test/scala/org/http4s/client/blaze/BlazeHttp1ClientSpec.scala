@@ -15,14 +15,14 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
     implicit def client = SimpleHttp1Client
 
     "Make simple http requests" in {
-      val resp = Get("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
+      val resp = GET("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
 //      println(resp.copy(body = halt))
 
       resp.status.code must be_==(200)
     }
 
     "Make simple https requests" in {
-      val resp = Get("https://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
+      val resp = GET("https://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.status.code must be_==(200)
@@ -35,7 +35,7 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
     implicit val client = new PooledHttp1Client()
 
     "Make simple http requests" in {
-      val resp = Get("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
+      val resp = GET("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
 
       resp.status.code must be_==(200)
@@ -44,7 +44,7 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
     "Repeat a simple http request" in {
       val f = 0 until 10 map { _ =>
         Future {
-          val resp = Get("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
+          val resp = GET("http://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
           //      println(resp.copy(body = halt))
 
           resp.status.code must be_==(200)
@@ -55,7 +55,7 @@ class BlazeHttp1ClientSpec extends Specification with NoTimeConversions {
     }
 
     "Make simple https requests" in {
-      val resp = Get("https://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
+      val resp = GET("https://www.google.com/").on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
       //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.status.code must be_==(200)

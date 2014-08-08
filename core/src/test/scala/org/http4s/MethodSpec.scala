@@ -1,30 +1,37 @@
 package org.http4s
 
-import org.specs2.mutable.Specification
+import java.util.Locale
 
-class MethodSpec extends Specification {
+import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.scalacheck.ScalazProperties
+import org.scalacheck.Prop.forAll
 
-  def resolve(str: String) = Method.getOrElseCreate(str)
+class MethodSpec extends Http4sSpec {
+  import Method._
 
-  "A standard method" should {
-    "be findable by name" in {
-      resolve("GET") must be (Method.Get)
-    }
-
-    "be case sensitive" in {
-      resolve("get") must_!= (Method.Get)
-    }
+  "fromString is inverse of renderString" in {
+    forAll(tokens) { token => fromString(token).map(_.renderString) must beSuccessful(token) }
   }
 
-  "PATCH" should {
-    "be registered" in {
-      resolve("PATCH") must be (Method.Patch)
-    }
+  "only tokens are valid methods" in {
+    prop { s: String => fromString(s).isSuccess must equal (Rfc2616BasicRules.isToken(s)) }
   }
 
-  "Extension methods" should {
-    "be non-idempotent" in {
-      resolve("huh").isIdempotent should beFalse
-    }
+  "standard methods are memoized" in {
+    forAll(standardMethods) { m => fromString(m.name) must beSuccessful.like { case m1 => m1 must be (m) } }
+  }
+
+  "name is case sensitive" in {
+    prop { m: Method => {
+      val upper = m.name.toUpperCase(Locale.ROOT)
+      val lower = m.name.toLowerCase(Locale.ROOT)
+      (upper != lower) ==> { fromString(upper) must_!= fromString(lower) }
+    }}
+  }
+
+  checkAll(ScalazProperties.equal.laws[Method])
+
+  "methods are equal by name" in {
+    prop { m: Method => Method.fromString(m.name) must beSuccessful(m) }
   }
 }

@@ -14,7 +14,20 @@ import org.http4s.scalacheck.ScalazArbitrary._
 import scalaz.NonEmptyList
 
 trait TestInstances {
-  def nonNeg: Gen[Int] = sized(max => choose(0, max))
+  val tchars: Gen[Char] = Gen.oneOf {
+    Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
+      ('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
+  }
+  val tokens: Gen[String] = nonEmptyListOf(tchars).map(_.mkString)
+
+  val standardMethods: Gen[Method] = Gen.oneOf {
+    import Method._
+    Seq(GET, POST, PUT, DELETE, OPTIONS, TRACE, CONNECT, PATCH)
+  }
+  implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
+    8 -> standardMethods,
+    1 -> tokens.map(Method.fromString(_).valueOr(throw _))
+  ))
 
   implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {

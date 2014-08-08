@@ -81,7 +81,7 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
 
   protected def toRequest(req: HttpServletRequest): Request =
     Request(
-      requestMethod = Method.getOrElse(req.getMethod, Method.fromKey(req.getMethod)),
+      requestMethod = Method.fromString(req.getMethod).valueOr(throw _),
       requestUri = Uri.fromString(req.getRequestURI).get,
       httpVersion = HttpVersion.fromString(req.getProtocol).fold(throw _, identity),
       headers = toHeaders(req),

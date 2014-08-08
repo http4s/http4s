@@ -16,7 +16,7 @@ class MiddlewareSpec extends Specification {
   val awareReq = Request(requestUri = Uri.fromString("/rootPath/checktranslate").get)
 
   val echoBody = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
-  val echoReq = Request(requestMethod = Method.Post,
+  val echoReq = Request(requestMethod = Method.POST,
                           requestUri = Uri.fromString("/rootPath/echo").get,
                           body = echoBody)
 
@@ -34,7 +34,7 @@ class MiddlewareSpec extends Specification {
     }
 
     "Be undefined at non-matching address" in {
-      val req = Request(requestMethod = Method.Post,requestUri = Uri.fromString("/foo/echo").get)
+      val req = Request(requestMethod = Method.POST,requestUri = Uri.fromString("/foo/echo").get)
       val badpingReq1 = Request(requestUri = Uri.fromString("/rootPat/ping").get)
       val badpingReq2 = Request(requestUri = Uri.fromString("/rootPathh/ping").get)
 

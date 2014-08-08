@@ -28,7 +28,7 @@ trait ClientRouteTests { self: Specification =>
   protected def runAllTests() {
     val address = new InetSocketAddress("localhost", 0)
     val server = getServer(address)
-    val gets = translateTests(address.getPort, Method.Get, getPaths)
+    val gets = translateTests(address.getPort, Method.GET, getPaths)
 
     gets.foreach{ case (req, resp) => internamRunTest(req, resp, address) }
   }

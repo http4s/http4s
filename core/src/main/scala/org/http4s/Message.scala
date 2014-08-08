@@ -56,7 +56,7 @@ object Message {
   * status line, headers, and a possible request body. A Request will be the only argument
   * for a [[HttpService]].
   *
-  * @param requestMethod [[Method.Get]], [[Method.Post]], etc.
+  * @param requestMethod [[Method.GET]], [[Method.Post]], etc.
   * @param requestUri representation of the request URI
   * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
@@ -64,7 +64,7 @@ object Message {
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 case class Request(
-  requestMethod: Method = Method.Get,
+  requestMethod: Method = Method.GET,
   requestUri: Uri = Uri(path = "/"),
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,

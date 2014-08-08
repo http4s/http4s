@@ -1,7 +1,7 @@
 package org.http4s
 package client
 
-import org.http4s.Method.Get
+import org.http4s.Method.GET
 import org.http4s.client.Client.BadResponse
 import org.http4s.server.HttpService
 import org.http4s.Status.{Ok, NotFound}
@@ -20,21 +20,21 @@ class ClientSyntaxSpec extends Specification {
 
   "Client syntax" should {
     "be simple to use" in {
-      val resp = Get("http://www.foo.bar/").on(Ok)(EntityDecoder.text).run
+      val resp = GET("http://www.foo.bar/").on(Ok)(EntityDecoder.text).run
       println(resp.body)
 
       resp.body.isEmpty must be_==(false)
     }
 
     "be simple to use for any status" in {
-      val resp = Get("http://www.foo.bar/").decode{ case Response(Ok,_,_,_,_) => EntityDecoder.text}.run
+      val resp = GET("http://www.foo.bar/").decode{ case Response(Ok,_,_,_,_) => EntityDecoder.text}.run
       println(resp.body)
 
       resp.body.isEmpty must be_==(false)
     }
 
     "fail on bad status" in {
-      Get("http://www.google.com/")
+      GET("http://www.google.com/")
         .on(NotFound)(EntityDecoder.text)
         .run must throwA[BadResponse]
     }

@@ -102,7 +102,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
     Uri.fromString(this.uri) match {
       case Success(uri) =>
-        val method = Method.getOrElseCreate(this.method)
+        val method = Method.fromString(this.method).valueOr(throw _)
         val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
         Request(method, uri, protocol, h, body, requestAttrs)
 

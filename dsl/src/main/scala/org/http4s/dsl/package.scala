@@ -1,13 +1,13 @@
 package org.http4s
 
 package object dsl {
-  val OPTIONS = Method.Options
-  val GET = Method.Get
-  val HEAD = Method.Head
-  val POST = Method.Post
-  val PUT = Method.Put
-  val DELETE = Method.Delete
-  val TRACE = Method.Trace
-  val CONNECT = Method.Connect
-  val PATCH = Method.Patch
+  val OPTIONS = Method.OPTIONS
+  val GET = Method.GET
+  val HEAD = Method.HEAD
+  val POST = Method.POST
+  val PUT = Method.PUT
+  val DELETE = Method.DELETE
+  val TRACE = Method.TRACE
+  val CONNECT = Method.CONNECT
+  val PATCH = Method.PATCH
 }

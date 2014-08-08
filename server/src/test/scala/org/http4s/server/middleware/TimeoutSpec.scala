@@ -19,13 +19,13 @@ class TimeoutSpec extends Specification with NoTimeConversions {
 
   "Timeout Middleware" should {
     "Have no effect if the response is not delayed" in {
-      val req = Method.Get("/fast").run
+      val req = Method.GET("/fast").run
 
       timeoutService.apply(req).run.status must_==(Status.Ok)
     }
 
     "return a timeout if the result takes too long" in {
-      val req = Method.Get("/slow").run
+      val req = Method.GET("/slow").run
 
       timeoutService.apply(req).run.status must_==(Status.RequestTimeOut)
     }
@@ -33,7 +33,7 @@ class TimeoutSpec extends Specification with NoTimeConversions {
     "Handle infinite durations" in {
       val service = Timeout(Duration.Inf)(myservice)
 
-      service(Method.Get("/slow").run).run.status must_==(Status.Ok)
+      service(Method.GET("/slow").run).run.status must_==(Status.Ok)
     }
   }
 

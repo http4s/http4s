@@ -10,7 +10,7 @@ object MockRoute extends Http4s {
     case req: Request if req.requestUri.path ==  "/ping" =>
       Ok("pong")
 
-    case req: Request if req.requestMethod == Method.Post && req.requestUri.path == "/echo" =>
+    case req: Request if req.requestMethod == Method.POST && req.requestUri.path == "/echo" =>
       Task.now(Response(body = req.body))
 
     case req: Request if req.requestUri.path == "/fail" =>

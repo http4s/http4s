@@ -1,18 +1,20 @@
 package org.http4s
 
-import org.http4s.util.Registry
+import scala.util.control.NoStackTrace
+import scalaz.{Equal, Show, Validation, Success}
+
+import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.util.{Writer, Renderable}
 import scalaz.concurrent.Task
 
 /**
  * An HTTP method.
  *
  * @param name the name of the method.
+ * @see [http://tools.ietf.org/html/rfc7231#section-4 RFC7321, Section 4]
  */
-sealed abstract case class Method (name: String) {
-  override def toString = name
-
-  def isSafe: Boolean
-  def isIdempotent: Boolean
+final case class Method private (name: String) extends Renderable {
+  override def render[W <: Writer](writer: W): writer.type = writer ~ name
 
   /** Make a [[org.http4s.Request]] using this Method */
   def apply(uri: Uri): Task[Request] = Task.now(Request(this, uri))
@@ -24,29 +26,29 @@ sealed abstract case class Method (name: String) {
   }
 }
 
-object Method extends Registry {
-  type Key = String
-  type Value = Method
+object Method extends MethodInstances {
+  def fromString(s: String): Validation[InvalidMethod, Method] =
+    registry.getOrElse(s, Rfc2616BasicRules.token(s).bimap(_ => InvalidMethod(s), new Method(_)))
 
-  implicit def fromKey(k: String): Method = notIdempotent(k)
-  implicit def fromValue(m: Method): String = m.name
+  val GET = new Method("GET")
+  val HEAD = new Method("HEAD")
+  val POST = new Method("POST")
+  val PUT = new Method("PUT")
+  val DELETE = new Method("DELETE")
+  val CONNECT = new Method("CONNECT")
+  val OPTIONS = new Method("OPTIONS")
+  val TRACE = new Method("TRACE")
+  val PATCH = new Method("PATCH")
 
-  private def notIdempotent(name: String): Method = new MethodImpl(name, false, false)
-  private def idempotent(name: String): Method = new MethodImpl(name, false, true)
-  private def safe(name: String): Method = new MethodImpl(name, true, true)
-
-  private class MethodImpl(name: String, val isSafe: Boolean, val isIdempotent: Boolean) extends Method(name)
-
-  val Options = registerValue(idempotent("OPTIONS"))
-  val Get = registerValue(safe("GET"))
-  val Head = registerValue(safe("HEAD"))
-  val Post = registerValue(notIdempotent("POST"))
-  val Put = registerValue(idempotent("PUT"))
-  val Delete = registerValue(idempotent("DELETE"))
-  val Trace = registerValue(idempotent("TRACE"))
-  val Connect = registerValue(notIdempotent("CONNECT"))
-  val Patch = registerValue(notIdempotent("PATCH"))
-
-  /** Returns a set of all registered methods. */
-  def methods: Iterable[Method] = registry.values
+  private val registry: Map[String, Success[Nothing, Method]] =
+    Seq(GET, HEAD, POST, PUT, DELETE, CONNECT, OPTIONS, TRACE, PATCH).map { m =>
+      m.name -> Success(m)
+    }.toMap
 }
+
+trait MethodInstances {
+  implicit val MethodShow: Show[Method] = Show.shows(_.renderString)
+  implicit val MethodEqual: Equal[Method] = Equal.equalA
+}
+
+case class InvalidMethod(s: String) extends Http4sException(s) with NoStackTrace

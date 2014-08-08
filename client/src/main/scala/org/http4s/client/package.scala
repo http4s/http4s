@@ -11,7 +11,7 @@ import scalaz.concurrent.Task
   *
   *   implicit def client: Client = ???
   *
-  *   val r: Task[Result[String]] = Get("https://www.foo.bar/").on(Ok)(EntityDecoder.text)
+  *   val r: Task[Result[String]] = GET("https://www.foo.bar/").on(Ok)(EntityDecoder.text)
   *   val req1 = r.run
   *   val req2 = r.run  // Each run is fetches a new result based on the behavior of the Client
   *

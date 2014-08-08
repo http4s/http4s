@@ -98,7 +98,7 @@ object -> {
   /**
    * HttpMethod extractor:
    *   (request.method, Path(request.path)) match {
-   *     case Method.Get -> Root / "test.json" => ...
+   *     case Method.GET -> Root / "test.json" => ...
    */
   def unapply(req: Request): Option[(Method, Path)] = {
     Some((req.requestMethod, Path(req.pathInfo)))

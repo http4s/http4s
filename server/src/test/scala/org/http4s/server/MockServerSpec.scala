@@ -21,7 +21,7 @@ class MockServerSpec extends Specification {
   "A mock server" should {
     "handle matching routes" in {
       val body = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
-      val req = Request(requestMethod = Method.Post, requestUri = Uri.fromString("/echo").get, body = body)
+      val req = Request(requestMethod = Method.POST, requestUri = Uri.fromString("/echo").get, body = body)
 
       server(req).getString must_== ("onetwothree")
     }

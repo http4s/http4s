@@ -110,23 +110,23 @@ object ServerTestRoutes {
   )
 
   def apply(): HttpService = {
-    case req if req.requestMethod == Method.Get && req.pathInfo == "/get" => Ok("get")
-    case req if req.requestMethod == Method.Get && req.pathInfo == "/chunked" =>
+    case req if req.requestMethod == Method.GET && req.pathInfo == "/get" => Ok("get")
+    case req if req.requestMethod == Method.GET && req.pathInfo == "/chunked" =>
       Ok(eval(Task("chu")) ++ eval(Task("nk"))).addHeader(Header.`Transfer-Encoding`(TransferCoding.chunked))
 
-    case req if req.requestMethod == Method.Get && req.pathInfo == "/cachechunked" =>
+    case req if req.requestMethod == Method.GET && req.pathInfo == "/cachechunked" =>
       Ok(eval(Task("chu")) ++ eval(Task("nk")))
 
-    case req if req.requestMethod == Method.Post && req.pathInfo == "/post" => Ok("post")
+    case req if req.requestMethod == Method.POST && req.pathInfo == "/post" => Ok("post")
 
-    case req if req.requestMethod == Method.Get && req.pathInfo == "/twocodings" =>
+    case req if req.requestMethod == Method.GET && req.pathInfo == "/twocodings" =>
       Ok("Foo").addHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
-    case req if req.requestMethod == Method.Post && req.pathInfo == "/echo" =>
+    case req if req.requestMethod == Method.POST && req.pathInfo == "/echo" =>
       Ok(emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.nioCharset)))
 
       // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
-    case req if req.requestMethod == Method.Get && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))
+    case req if req.requestMethod == Method.GET && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))
   }
 
 }

@@ -18,6 +18,7 @@
 package org.http4s.parser
 
 import scala.reflect.ClassTag
+import scalaz.Validation
 import org.parboiled2._
 import shapeless._
 
@@ -79,4 +80,12 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
   def IPv6Address = rule { oneOrMore(Hex | anyOf(":.")) }
 
   def IPv6Reference: Rule1[String] = rule { capture("[" ~ IPv6Address ~ "]") }
+}
+
+private [http4s] object Rfc2616BasicRules {
+  def token(in: ParserInput): Validation[ParseErrorInfo, String] = new Rfc2616BasicRules {
+    override def input: ParserInput = in
+  }.Token.run()(validationScheme)
+
+  def isToken(in: ParserInput) = token(in).isSuccess
 }
