@@ -8,9 +8,8 @@ import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 
 import org.http4s.Uri.{Authority, RegName}
-import org.specs2.mutable.Specification
 
-trait ClientRouteTests { self: Specification =>
+trait ClientRouteTests { self: Http4sSpec =>
 
   import org.http4s.Http4s._
 
@@ -72,7 +71,7 @@ trait ClientRouteTests { self: Specification =>
 
   private def translateTests(port: Int, method: Method, paths: Map[String, Response]): Map[Request, Response] = {
     paths.map { case (s, r) =>
-      (Request(method, requestUri = Uri.fromString(s"http://localhost:$port/$s").get), r)
+      (Request(method, requestUri = Uri.fromString(s"http://localhost:$port/$s").yolo), r)
     }
   }
 

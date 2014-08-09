@@ -7,9 +7,7 @@
 package org.http4s
 package dsl
 
-import org.specs2.mutable.Specification
-
-class PathSpec extends Specification {
+class PathSpec extends Http4sSpec {
   "Path" should {
 
     "/foo/bar" in {
@@ -43,7 +41,7 @@ class PathSpec extends Specification {
     }
 
     "-> extractor /test.json" in {
-      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/test.json").get)
+      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/test.json").yolo)
       (req match {
         case GET -> Root / "test.json" => true
         case _                         => false
@@ -51,7 +49,7 @@ class PathSpec extends Specification {
     }
 
     "-> extractor /foo/test.json" in {
-      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/foo/test.json").get)
+      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/foo/test.json").yolo)
       (req match {
         case GET -> Root / "foo" / "test.json" => true
         case _                         => false
@@ -59,7 +57,7 @@ class PathSpec extends Specification {
     }
 
    "request path info extractor for /" in {
-      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/").get)
+      val req = Request(requestMethod = Method.GET, requestUri = Uri.fromString("/").yolo)
       (req match {
         case _ -> Root => true
         case _ => false

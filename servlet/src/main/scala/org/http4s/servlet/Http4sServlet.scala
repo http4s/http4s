@@ -88,10 +88,11 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
   protected def toRequest(req: HttpServletRequest): ParseResult[Request] =
     for {
       method <- Method.fromString(req.getMethod)
+      uri <- Uri.fromString(req.getRequestURI)
       version <- HttpVersion.fromString(req.getProtocol)
     } yield Request(
       requestMethod = method,
-      requestUri = Uri.fromString(req.getRequestURI).get,
+      requestUri = uri,
       httpVersion = version,
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize)).eval,

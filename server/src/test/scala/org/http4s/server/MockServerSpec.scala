@@ -3,13 +3,13 @@ package server
 
 import org.http4s.server.MockServer._
 import org.http4s.server.middleware.PushSupport
-import org.specs2.mutable.Specification
+import org.specs2.matcher.OptionMatchers
 import scodec.bits.ByteVector
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 
-class MockServerSpec extends Specification {
+class MockServerSpec extends Http4sSpec with OptionMatchers {
 
   val server = new MockServer(PushSupport(MockRoute.route()))
 
@@ -21,23 +21,23 @@ class MockServerSpec extends Specification {
   "A mock server" should {
     "handle matching routes" in {
       val body = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
-      val req = Request(requestMethod = Method.POST, requestUri = Uri.fromString("/echo").get, body = body)
+      val req = Request(requestMethod = Method.POST, requestUri = Uri.fromString("/echo").yolo, body = body)
 
       server(req).getString must_== ("onetwothree")
     }
 
     "give a 'not found' for a match error" in {
-      val req = Request(requestUri = Uri.fromString("/doesntexist/neverwill").get)
+      val req = Request(requestUri = Uri.fromString("/doesntexist/neverwill").yolo)
       server(req).getStatus must_== (Status.NotFound)
     }
 
     "handle exceptions with an InternalServiceError" in {
-      val req = Request(requestUri = Uri.fromString("/fail").get)
+      val req = Request(requestUri = Uri.fromString("/fail").yolo)
       server(req).getStatus must_== (Status.InternalServerError)
     }
 
     "Get middleware attributes (For PushSupport)" in {
-      val req = Request(requestUri = Uri.fromString("/push").get)
+      val req = Request(requestUri = Uri.fromString("/push").yolo)
       val returned = server(req).run
       val pushOptions = returned.attributes.get(PushSupport.pushResponsesKey)
 

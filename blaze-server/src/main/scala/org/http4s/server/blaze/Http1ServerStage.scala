@@ -23,7 +23,6 @@ import org.http4s.Header.{Connection, `Content-Length`}
 
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.{\/-, -\/}
-import org.parboiled2.ParseError
 import java.util.concurrent.ExecutorService
 
 
@@ -99,25 +98,15 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
   protected def collectMessage(body: EntityBody): Request = {
     val h = Headers(headers.result())
     headers.clear()
-
-    Uri.fromString(this.uri) match {
-      case Success(uri) =>
-        Method.fromString(this.method) match {
-          case \/-(method) =>
-            val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
-            Request(method, uri, protocol, h, body, requestAttrs)
-          case -\/(e) =>
-            throw new ParseException(e) // TODO this is inappropriate
-        }
-
-      case Failure(_: ParseError) =>
-        val req = Request(requestUri = Uri(Some(this.uri.ci)), headers = h)
-        badMessage("Error parsing Uri", new BadRequest(s"Bad request URI: ${this.uri}"), req)
-        null
-
-      case Failure(t) =>
-        fatalError(t, s"Failed to generate response during Uri parsing phase: ${this.uri}")
-        null
+    val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
+    (for {
+      method <- Method.fromString(this.method)
+      uri <- Uri.fromString(this.uri)
+    } yield {
+      Request(method, uri, protocol, h, body, requestAttrs)
+    }).valueOr { e =>
+      badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
+      null // TODO null??????!!!!!??????????????!
     }
   }
 

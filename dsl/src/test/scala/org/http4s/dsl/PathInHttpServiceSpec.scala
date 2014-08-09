@@ -10,7 +10,7 @@ import org.specs2.mutable.Specification
 
 import scalaz.concurrent.Task
 
-object PathInHttpServiceSpec extends Specification {
+object PathInHttpServiceSpec extends Http4sSpec {
 
   private implicit class responseToString(t: Task[MockResponse]) {
     def body = new String(t.run.body)
@@ -61,12 +61,12 @@ object PathInHttpServiceSpec extends Specification {
       response.body must equalTo("id: 12345")
     }
     "GET /?{start}" in {
-      val response = server(Request(GET, Uri.fromString("/?start=1").get))
+      val response = server(Request(GET, Uri.fromString("/?start=1").yolo))
       response.status must equalTo(Ok)
       response.body must equalTo("start: 1")
     }
     "GET /?{start,limit}" in {
-      val response = server(Request(GET, Uri.fromString("/?start=1&limit=2").get))
+      val response = server(Request(GET, Uri.fromString("/?start=1&limit=2").yolo))
       response.status must equalTo(Ok)
       response.body must equalTo("start: 1, limit: 2")
     }

@@ -8,7 +8,7 @@ import scala.collection.{ immutable, mutable }
 import mutable.ListBuffer
 import scala.util.Try
 
-import org.http4s.parser.{ QueryParser, RequestUriParser }
+import org.http4s.parser.{ScalazDeliverySchemes, QueryParser, RequestUriParser}
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
@@ -192,7 +192,8 @@ case class Uri(
 
 object Uri {
 
-  def fromString(s: String): Try[Uri] = (new RequestUriParser(s, StandardCharsets.UTF_8)).RequestUri.run()
+  def fromString(s: String): ParseResult[Uri] = (new RequestUriParser(s, StandardCharsets.UTF_8)).RequestUri
+    .run()(ScalazDeliverySchemes.Disjunction)
 
   type Scheme = CaseInsensitiveString
 
