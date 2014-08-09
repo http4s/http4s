@@ -61,12 +61,12 @@ object PathInHttpServiceSpec extends Http4sSpec {
       response.body must equalTo("id: 12345")
     }
     "GET /?{start}" in {
-      val response = server(Request(GET, Uri.fromString("/?start=1").yolo))
+      val response = server(Request(GET, uri("/?start=1")))
       response.status must equalTo(Ok)
       response.body must equalTo("start: 1")
     }
     "GET /?{start,limit}" in {
-      val response = server(Request(GET, Uri.fromString("/?start=1&limit=2").yolo))
+      val response = server(Request(GET, uri("/?start=1&limit=2")))
       response.status must equalTo(Ok)
       response.body must equalTo("start: 1, limit: 2")
     }

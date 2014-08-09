@@ -21,23 +21,23 @@ class MockServerSpec extends Http4sSpec with OptionMatchers {
   "A mock server" should {
     "handle matching routes" in {
       val body = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
-      val req = Request(requestMethod = Method.POST, requestUri = Uri.fromString("/echo").yolo, body = body)
+      val req = Request(requestMethod = Method.POST, requestUri = uri("/echo"))
 
       server(req).getString must_== ("onetwothree")
     }
 
     "give a 'not found' for a match error" in {
-      val req = Request(requestUri = Uri.fromString("/doesntexist/neverwill").yolo)
+      val req = Request(requestUri = uri("/doesntexist/neverwill"))
       server(req).getStatus must_== (Status.NotFound)
     }
 
     "handle exceptions with an InternalServiceError" in {
-      val req = Request(requestUri = Uri.fromString("/fail").yolo)
+      val req = Request(requestUri = uri("/fail"))
       server(req).getStatus must_== (Status.InternalServerError)
     }
 
     "Get middleware attributes (For PushSupport)" in {
-      val req = Request(requestUri = Uri.fromString("/push").yolo)
+      val req = Request(requestUri = uri("/push"))
       val returned = server(req).run
       val pushOptions = returned.attributes.get(PushSupport.pushResponsesKey)
 

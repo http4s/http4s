@@ -11,13 +11,13 @@ import scalaz.stream.Process._
 class MiddlewareSpec extends Http4sSpec {
   import org.http4s.server.middleware.URITranslation._
 
-  val pingReq     = Request(requestUri = Uri.fromString("/rootPath/ping").yolo)
+  val pingReq     = Request(requestUri = uri("/rootPath/ping"))
 
-  val awareReq = Request(requestUri = Uri.fromString("/rootPath/checktranslate").yolo)
+  val awareReq = Request(requestUri = uri("/rootPath/checktranslate"))
 
   val echoBody = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
   val echoReq = Request(requestMethod = Method.POST,
-                          requestUri = Uri.fromString("/rootPath/echo").yolo,
+                          requestUri = uri("/rootPath/echo"),
                           body = echoBody)
 
   "TranslateRoot" should {
@@ -34,9 +34,9 @@ class MiddlewareSpec extends Http4sSpec {
     }
 
     "Be undefined at non-matching address" in {
-      val req = Request(requestMethod = Method.POST,requestUri = Uri.fromString("/foo/echo").yolo)
-      val badpingReq1 = Request(requestUri = Uri.fromString("/rootPat/ping").yolo)
-      val badpingReq2 = Request(requestUri = Uri.fromString("/rootPathh/ping").yolo)
+      val req = Request(requestMethod = Method.POST,requestUri = uri("/foo/echo"))
+      val badpingReq1 = Request(requestUri = uri("/rootPat/ping"))
+      val badpingReq2 = Request(requestUri = uri("/rootPathh/ping"))
 
       server.apply(req).run.statusLine must_== (Status.NotFound)
       server.apply(badpingReq1).run.statusLine must_== (Status.NotFound)

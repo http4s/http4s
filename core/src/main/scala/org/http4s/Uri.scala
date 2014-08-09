@@ -2,6 +2,9 @@ package org.http4s
 
 import java.nio.charset.StandardCharsets
 
+import scala.language.experimental.macros
+import scala.reflect.macros.Context
+
 import Uri._
 
 import scala.collection.{ immutable, mutable }
@@ -190,7 +193,22 @@ case class Uri(
 
 }
 
-object Uri {
+object Uri extends UriFunctions {
+  object macros {
+    def uriLiteral(c: Context)(s: c.Expr[String]): c.Expr[Uri] = {
+      import c.universe._
+
+      s.tree match {
+        case Literal(Constant(s: String)) =>
+          Uri.fromString(s).fold(
+            e => c.abort(c.enclosingPosition, e.details),
+            qValue => c.Expr(q"Uri.fromString(${s}).valueOr(e => throw new ParseException(e))")
+          )
+        case _ =>
+          c.abort(c.enclosingPosition, s"only supports literal Strings")
+      }
+    }
+  }
 
   def fromString(s: String): ParseResult[Uri] = (new RequestUriParser(s, StandardCharsets.UTF_8)).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
@@ -316,5 +334,12 @@ object Uri {
     implicit object ShortOk extends AcceptableParamType[Short]
     implicit object StringOk extends AcceptableParamType[String]
   }
+}
 
+trait UriFunctions {
+  /**
+   * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
+   * at compile time.
+   */
+  def uri(s: String): Uri = macro Uri.macros.uriLiteral
 }

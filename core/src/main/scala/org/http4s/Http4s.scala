@@ -22,6 +22,7 @@ object Http4sInstances extends Http4sInstances
 
 trait Http4sFunctions
   extends QValueFunctions
+  with UriFunctions
 
 object Http4sFunctions extends Http4sFunctions
 
