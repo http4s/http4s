@@ -63,17 +63,9 @@ private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends 
 
 private[http4s] object QueryParser {
   type Param = (String,Option[String])
-  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): Either[ParseErrorInfo, Seq[Param]] = {
-    try new QueryParser(queryString, codec)
+  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Seq[Param]] = {
+    new QueryParser(queryString, codec)
       .QueryString
-      .run()(Parser.DeliveryScheme.Either)
-      .left.map {
-        case ParseError(_, traces) => ParseErrorInfo(s"Illegal query string: '$queryString'", traces.map(_.format).mkString("; "))
-        case e => ParseErrorInfo("Illegal query string", e.getMessage)
-      }
-    catch {
-      case e: ParseErrorInfo => println("------------"); Left(e)
-      case e: Throwable      => Left(ParseErrorInfo(s"Illegal query string: '$queryString'", e.getMessage))
-    }
+      .run()(ScalazDeliverySchemes.Disjunction)
   }
 }

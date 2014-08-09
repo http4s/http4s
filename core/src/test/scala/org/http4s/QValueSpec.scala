@@ -1,7 +1,7 @@
 package org.http4s
 
 import org.http4s.scalacheck.ScalazProperties
-import scalaz.syntax.validation._
+import scalaz.syntax.id._
 
 class QValueSpec extends Http4sSpec {
   import QValue._
@@ -29,9 +29,9 @@ class QValueSpec extends Http4sSpec {
   }
 
   "literal syntax should be consistent with successful fromDouble" in {
-    q(1.0).success must_== fromDouble(1.0)
-    q(0.5).success must_== fromDouble(0.5)
-    q(0.0).success must_== fromDouble(0.0)
+    q(1.0).right must_== fromDouble(1.0)
+    q(0.5).right must_== fromDouble(0.5)
+    q(0.0).right must_== fromDouble(0.0)
     // q(2.0) // doesn't compile: out of range
     // q(0.5 + 0.1) // doesn't compile, not a literal
   }

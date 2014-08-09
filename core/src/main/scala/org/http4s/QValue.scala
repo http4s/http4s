@@ -65,33 +65,30 @@ object QValue extends QValueInstances with QValueFunctions {
   val One: QValue = new QValue(1000)
   val Zero: QValue = new QValue(0)
 
-  private def mkQValue(thousandths: Int, s: => String): Validation[InvalidQValue, QValue] = {
-    if (thousandths < 0 || thousandths > 1000) InvalidQValue(s).fail
-    else new QValue(thousandths).success
+  private def mkQValue(thousandths: Int, s: => String): ParseResult[QValue] = {
+    if (thousandths < 0 || thousandths > 1000) ParseResult.fail("Invalid q-value", s"${s} must be between 0.0 and 1.0")
+    else ParseResult.success(new QValue(thousandths))
   }
 
-  def fromThousandths(thousandths: Int): Validation[InvalidQValue, QValue] =
+  def fromThousandths(thousandths: Int): ParseResult[QValue] =
     mkQValue(thousandths, (thousandths * .001).toString)
 
-  def fromDouble(d: Double): Validation[InvalidQValue, QValue] =
+  def fromDouble(d: Double): ParseResult[QValue] =
     mkQValue(Math.round(1000 * d).toInt, d.toString)
   
-  def fromString(s: String): Validation[InvalidQValue, QValue] =
+  def fromString(s: String): ParseResult[QValue] =
     try fromDouble(s.toDouble)
-    catch { case e: NumberFormatException => InvalidQValue(s).fail }
+    catch { case e: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number") }
 
   object macros {
     def qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
       import c.universe._
 
       d.tree match {
-        // TODO Seems like I should be able to quasiquote here.
         case Literal(Constant(d: Double)) =>
           QValue.fromDouble(d).fold(
-            e => c.abort(c.enclosingPosition, e.getMessage),
-            // TODO I think we could just use qValue if we had a Liftable[QValue], but I can't
-            // figure it out for Scala 2.10.
-            qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).fold(throw _, identity)")
+            e => c.abort(c.enclosingPosition, e.details),
+            qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).valueOr(e => throw new ParseException(e))")
           )
         case _ =>
           c.abort(c.enclosingPosition, s"q syntax only works for literal doubles: ${showRaw(d.tree)}")
@@ -119,8 +116,6 @@ trait QValueFunctions {
    */
   def q(d: Double): QValue = macro QValue.macros.qValueLiteral
 }
-
-case class InvalidQValue(string: String) extends Http4sException(s"Invalid QValue: ${string}") with NoStackTrace
 
 trait HasQValue {
   def qValue: QValue

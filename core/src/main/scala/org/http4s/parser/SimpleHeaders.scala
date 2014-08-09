@@ -28,7 +28,7 @@ import org.http4s.util.CaseInsensitiveString._
  */
 private[parser] trait SimpleHeaders { self: HttpParser =>
 
-  def CONNECTION(value: String): HeaderValidation = {
+  def CONNECTION(value: String): ParseResult[Connection] = {
     new Http4sHeaderParser[Connection](value) {
       def entry = rule (
             oneOrMore(Token).separatedBy(ListSep) ~ EOL ~>

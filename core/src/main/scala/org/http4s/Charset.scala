@@ -41,8 +41,9 @@ object Charset {
 
   def fromNioCharset(nioCharset: NioCharset): Charset = Charset(nioCharset)
 
-  def fromString(name: String): InvalidCharset \/ Charset =
-    \/.fromTryCatch(NioCharset.forName(name)).bimap(_ => InvalidCharset.apply(name), Charset.apply)
+  def fromString(name: String): ParseResult[Charset] =
+    \/.fromTryCatch(NioCharset.forName(name)).bimap(
+      _ => ParseFailure("Invalid charset", s"${name} is not a supported Charset"),
+      Charset.apply
+    )
 }
-
-case class InvalidCharset(name: String) extends Http4sException(s"Invalid charset: $name")

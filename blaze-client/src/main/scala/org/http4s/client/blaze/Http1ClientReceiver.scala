@@ -35,7 +35,7 @@ abstract class Http1ClientReceiver extends Http1ClientParser
     _httpVersion = {
       if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
       else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`
-      else HttpVersion.fromVersion(majorversion, minorversion).fold(throw _, identity)
+      else HttpVersion.fromVersion(majorversion, minorversion).getOrElse(HttpVersion.`HTTP/1.0`)
     }
   }
 

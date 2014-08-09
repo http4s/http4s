@@ -19,7 +19,7 @@ class CharsetSpec extends Http4sSpec {
     }
 
     "return InvalidCharset for unregistered names" in {
-      Charset.fromString("blah") must_== InvalidCharset("blah").left
+      Charset.fromString("blah") must beLeftDisjunction
     }
   }
 }

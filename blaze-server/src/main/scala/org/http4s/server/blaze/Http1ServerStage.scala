@@ -102,9 +102,13 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
     Uri.fromString(this.uri) match {
       case Success(uri) =>
-        val method = Method.fromString(this.method).valueOr(throw _)
-        val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
-        Request(method, uri, protocol, h, body, requestAttrs)
+        Method.fromString(this.method) match {
+          case \/-(method) =>
+            val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
+            Request(method, uri, protocol, h, body, requestAttrs)
+          case -\/(e) =>
+            throw new ParseException(e) // TODO this is inappropriate
+        }
 
       case Failure(_: ParseError) =>
         val req = Request(requestUri = Uri(Some(this.uri.ci)), headers = h)

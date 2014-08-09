@@ -26,14 +26,14 @@ trait TestInstances {
   }
   implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
     8 -> standardMethods,
-    1 -> tokens.map(Method.fromString(_).valueOr(throw _))
+    1 -> tokens.map(Method.fromString(_).valueOr(e => throw ParseException(e)))
   ))
 
   implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {
       major <- choose(0, 9)
       minor <- choose(0, 9)
-    } yield HttpVersion.fromVersion(major, minor).fold(throw _, identity) }
+    } yield HttpVersion.fromVersion(major, minor).valueOr(e => throw ParseException(e)) }
 
   implicit val aribtraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
@@ -42,7 +42,7 @@ trait TestInstances {
     Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
 
   implicit val qValues: Arbitrary[QValue] =
-    Arbitrary { Gen.oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).fold(throw _, identity)) }
+    Arbitrary { Gen.oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).valueOr(e => throw ParseException(e))) }
 
   implicit val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { frequency((10, arbitrary[CharsetRange.Atom]), (1, arbitrary[CharsetRange.`*`])) }

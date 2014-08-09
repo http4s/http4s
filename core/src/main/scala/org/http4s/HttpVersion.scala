@@ -2,11 +2,10 @@ package org.http4s
 
 import scala.language.experimental.macros
 import scala.math.Ordered.orderingToOrdered
-import scala.reflect.macros.Context
-import scala.util.control.NoStackTrace
-import scalaz._
+import scalaz.{\/-, Order, Show, -\/}
+import scalaz.\/._
 
-import org.http4s.parser.Rfc2616BasicRules
+import org.http4s.parser.{ScalazDeliverySchemes, Rfc2616BasicRules}
 import org.http4s.util.{Renderable, Writer}
 import org.parboiled2._
 
@@ -24,10 +23,12 @@ object HttpVersion extends HttpVersionInstances {
   val `HTTP/1.0` = new HttpVersion(1, 0)
   val `HTTP/1.1` = new HttpVersion(1, 1)
 
-  def fromString(s: String): Validation[InvalidHttpVersion, HttpVersion] = s match {
-    case "HTTP/1.1" => Success(`HTTP/1.1`)
-    case "HTTP/1.0" => Success(`HTTP/1.0`)
-    case other => new Parser(s).HttpVersion.run()(parser.validationScheme).leftMap(_ => InvalidHttpVersion(s))
+  def fromString(s: String): ParseResult[HttpVersion] = s match {
+    case "HTTP/1.1" => right(`HTTP/1.1`)
+    case "HTTP/1.0" => right(`HTTP/1.0`)
+    case other => new Parser(s).HttpVersion.run()(ScalazDeliverySchemes.Disjunction).leftMap { _ =>
+      ParseFailure("Invalid charset", s"${s} is not a supported CharSet on this system")
+    }
   }
 
   private class Parser(val input: ParserInput) extends org.parboiled2.Parser with Rfc2616BasicRules {
@@ -36,10 +37,12 @@ object HttpVersion extends HttpVersionInstances {
     }
   }
 
-  def fromVersion(major: Int, minor: Int): Validation[InvalidHttpVersion, HttpVersion] = {
-    if (major < 0 || major > 9) Failure(InvalidHttpVersion(s"${major}.${minor}"))
-    else if (minor < 0 || minor > 9) Failure(InvalidHttpVersion(s"${major}.${minor}"))
-    else Success(new HttpVersion(major, minor))
+  def fromVersion(major: Int, minor: Int): ParseResult[HttpVersion] = {
+    if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: ${major}")
+    else if (major > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: ${major}")
+    else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: ${minor}")
+    else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: ${minor}")
+    else ParseResult.success(new HttpVersion(major, minor))
   }
 }
 
@@ -47,6 +50,3 @@ trait HttpVersionInstances {
   implicit val HttpVersionShow = Show.showFromToString[HttpVersion]
   implicit val HttpVersionOrder = Order.fromScalaOrdering[HttpVersion]
 }
-
-case class InvalidHttpVersion(string: String) extends Http4sException(s"Invalid HTTP version: ${string}") with NoStackTrace
-

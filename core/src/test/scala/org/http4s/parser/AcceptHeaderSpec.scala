@@ -11,7 +11,7 @@ import scalaz.Validation
 class AcceptHeaderSpec extends Specification with HeaderParserHelper[Accept] with Http4s {
 
 
-  def hparse(value: String): Validation[ParseErrorInfo, Accept] = HttpParser.ACCEPT(value)
+  def hparse(value: String): ParseResult[Accept] = HttpParser.ACCEPT(value)
 
   def ext = Map("foo" -> "bar", "baz" -> "whatever")
 

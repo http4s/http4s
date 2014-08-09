@@ -39,7 +39,8 @@ private[parser] trait AcceptCharsetHeader {
     def CharsetRangeDecl: Rule1[CharsetRange] = rule {
       ("*" ~ CharsetQuality) ~> { q => if (q != org.http4s.QValue.One) `*`.withQValue(q) else `*` } |
       ((Token ~ CharsetQuality) ~> { (s: String, q: QValue) =>
-        val c = Charset.fromString(s).valueOr(throw _)
+        // TODO handle tokens that aren't charsets
+        val c = Charset.fromString(s).valueOr(e => throw new ParseException(e))
         if (q != org.http4s.QValue.One) c.withQuality(q) else c.toRange
       })
     }

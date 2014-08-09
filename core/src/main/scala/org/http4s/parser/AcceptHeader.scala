@@ -24,7 +24,7 @@ import org.http4s.Header.Accept
 
 private[parser] trait AcceptHeader {
 
-  def ACCEPT(value: String): Validation[ParseErrorInfo, Accept] = new AcceptParser(value).parse
+  def ACCEPT(value: String): ParseResult[Accept] = new AcceptParser(value).parse
 
   private class AcceptParser(value: String) extends Http4sHeaderParser[Accept](value) with MediaParser {
 

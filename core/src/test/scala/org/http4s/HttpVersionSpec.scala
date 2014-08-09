@@ -16,17 +16,17 @@ class HttpVersionSpec extends Http4sSpec {
 
   "sort by descending minor version if major versions equal" in {
     forAll(choose(0, 9), choose(0, 9), choose(0, 9)) { (major, xMinor, yMinor) =>
-      val x = HttpVersion.fromVersion(major, xMinor).fold(throw _, identity)
-      val y = HttpVersion.fromVersion(major, yMinor).fold(throw _, identity)
+      val x = HttpVersion.fromVersion(major, xMinor).yolo
+      val y = HttpVersion.fromVersion(major, yMinor).yolo
       (xMinor > yMinor) ==> (x > y)
     }
   }
 
   "fromString is consistent with toString" in {
-    prop { v: HttpVersion => fromString(v.toString) must beSuccessful(v) }
+    prop { v: HttpVersion => fromString(v.toString) must beRightDisjunction(v) }
   }
 
   "protocol is case sensitive" in {
-    HttpVersion.fromString("http/1.0") must beFailing(InvalidHttpVersion("http/1.0"))
+    HttpVersion.fromString("http/1.0") must beLeftDisjunction
   }
 }

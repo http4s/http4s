@@ -38,9 +38,7 @@ private[parser] trait HttpParser extends SimpleHeaders
                     with AuthorizationHeader
                     with WwwAuthenticateHeader {
 
-  type HeaderValidation = Validation[ParseErrorInfo, Header]
-
-  type HeaderParser = String => HeaderValidation
+  type HeaderParser = String => ParseResult[Header]
 
   val rules: Map[CaseInsensitiveString, HeaderParser] =
     this
@@ -53,33 +51,19 @@ private[parser] trait HttpParser extends SimpleHeaders
         }.asInstanceOf[HeaderParser]
       }.toMap
 
-  def parseHeader(header: Header.Raw): HeaderValidation = {
+  def parseHeader(header: Header.Raw): ParseResult[Header] = {
     rules.get(header.name) match {
       case Some(parser) => parser(header.value)
-      case None => Success(header) // if we don't have a rule for the header we leave it unparsed
+      case None => ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
     }
-  }
-
-  def parseHeaders(headers: List[Header]): (List[String], List[Header]) = {
-    val errors = List.newBuilder[String]
-    val parsedHeaders = headers.map {   // Only attempt to parse the raw headers
-      case header: Header.Raw =>
-        parseHeader(header) match {
-          case Success(parsed) => parsed
-          case Failure(error: ParseErrorInfo) => errors += error.detail; header
-        }
-
-      case header => header
-    }
-    (errors.result(), parsedHeaders)
   }
 
   /**
-   * Warms up the spray.http module by triggering the loading of most classes in this package,
+   * Warm up the header parsers by triggering the loading of most classes in this package,
    * so as to increase the speed of the first usage.
    */
   def warmUp() {
-    val results = HttpParser.parseHeaders(List(
+    val results = List(
       Header("Accept", "*/*,text/plain,custom/custom"),
       Header("Accept-Charset", "*,UTF-8"),
       Header("Accept-Encoding", "gzip,custom"),
@@ -95,8 +79,7 @@ private[parser] trait HttpParser extends SimpleHeaders
       Header("Host", "http4s.org"),
       Header("X-Forwarded-For", "1.2.3.4"),
       Header("Fancy-Custom-Header", "yeah")
-    ))
-
-    assert(results._1.isEmpty)
+    ) map parseHeader
+    assert(results.forall(_.isRight))
   }
 }

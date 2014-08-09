@@ -1,4 +1,5 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.Header.`Cache-Control`
 import org.specs2.mutable.Specification
@@ -12,10 +13,9 @@ import org.http4s.CacheDirective.`max-age`
 import org.http4s.CacheDirective.`private`
 import scala.concurrent.duration._
 import org.http4s.util.string._
-import org.http4s.CacheDirective
 
 class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] with NoTimeConversions {
-  def hparse(value: String): Validation[ParseErrorInfo, `Cache-Control`] = HttpParser.CACHE_CONTROL(value)
+  def hparse(value: String): ParseResult[`Cache-Control`] = HttpParser.CACHE_CONTROL(value)
 
   // Default values
   val valueless = List(`no-store`, `no-transform`, `only-if-cached`,

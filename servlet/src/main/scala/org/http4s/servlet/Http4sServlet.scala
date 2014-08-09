@@ -34,9 +34,15 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     try {
       val request = toRequest(servletRequest)
-      val ctx = servletRequest.startAsync()
-      ctx.setTimeout(asyncTimeoutMillis)
-      handle(request, ctx)
+      request match {
+        case -\/(e) =>
+          // TODO make more http4sy
+          servletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, e.sanitized)
+        case \/-(req) =>
+          val ctx = servletRequest.startAsync()
+          ctx.setTimeout(asyncTimeoutMillis)
+          handle(req, ctx)
+      }
     } catch {
       case NonFatal(e) => handleError(e, servletResponse)
     }
@@ -79,11 +85,14 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
     }
   }
 
-  protected def toRequest(req: HttpServletRequest): Request =
-    Request(
-      requestMethod = Method.fromString(req.getMethod).valueOr(throw _),
+  protected def toRequest(req: HttpServletRequest): ParseResult[Request] =
+    for {
+      method <- Method.fromString(req.getMethod)
+      version <- HttpVersion.fromString(req.getProtocol)
+    } yield Request(
+      requestMethod = method,
       requestUri = Uri.fromString(req.getRequestURI).get,
-      httpVersion = HttpVersion.fromString(req.getProtocol).fold(throw _, identity),
+      httpVersion = version,
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize)).eval,
       attributes = AttributeMap(

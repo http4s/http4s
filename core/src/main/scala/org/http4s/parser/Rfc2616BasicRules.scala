@@ -19,8 +19,10 @@ package org.http4s.parser
 
 import scala.reflect.ClassTag
 import scalaz.Validation
+import org.http4s.ParseResult
 import org.parboiled2._
 import shapeless._
+import shapeless.tag.@@
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {
@@ -83,9 +85,9 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 }
 
 private [http4s] object Rfc2616BasicRules {
-  def token(in: ParserInput): Validation[ParseErrorInfo, String] = new Rfc2616BasicRules {
+  def token(in: ParserInput): ParseResult[String] = new Rfc2616BasicRules {
     override def input: ParserInput = in
-  }.Token.run()(validationScheme)
+  }.Token.run()(ScalazDeliverySchemes.Disjunction)
 
-  def isToken(in: ParserInput) = token(in).isSuccess
+  def isToken(in: ParserInput) = token(in).isRight
 }

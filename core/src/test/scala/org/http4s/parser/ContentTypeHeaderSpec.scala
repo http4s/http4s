@@ -1,14 +1,13 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.Header.`Content-Type`
 import org.http4s.MediaType._
-import org.http4s.Charset
 import org.specs2.mutable.Specification
-import scalaz.Validation
 
 class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Content-Type`] {
 
-  def hparse(value: String): Validation[ParseErrorInfo, `Content-Type`] = HttpParser.CONTENT_TYPE(value)
+  def hparse(value: String): ParseResult[`Content-Type`] = HttpParser.CONTENT_TYPE(value)
 
   def simple = `Content-Type`(`text/html`)
   def charset = `Content-Type`(`text/html`, Charset.`UTF-8`)
