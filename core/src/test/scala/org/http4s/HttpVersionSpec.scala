@@ -1,6 +1,7 @@
 package org.http4s
 
-import org.http4s.scalacheck.ScalazProperties
+import scalaz.scalacheck.ScalazProperties
+
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
 

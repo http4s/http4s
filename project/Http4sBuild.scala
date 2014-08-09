@@ -33,7 +33,7 @@ object Http4sKeys {
 }
 
 object Http4sDependencies {
-  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.0.4"
+  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.2.0"
   lazy val config              = "com.typesafe"              % "config"                  % "1.0.0"
@@ -52,12 +52,10 @@ object Http4sDependencies {
   lazy val scalaloggingSlf4j   = "com.typesafe.scala-logging" %% "scala-logging-slf4j"   % "2.1.2"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.5-M2"
-  lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "1.10.1" force() // without this, get a NoSuchMethodError on Buildable.buildableList()
-  lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.0.6"
-  lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.2"
-  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4.1"
-  lazy val scodecCore          = "org.typelevel"            %% "scodec-core"             % "1.1.0"
-  lazy val specs2              = "org.specs2"               %% "specs2"                  % "2.3.11"
+  lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.1.0"
+  lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.3.0"
+  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4.1a"
+  lazy val scodecCore          = "org.typelevel"            %% "scodec-core"             % "1.2.0"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "7.0.53"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
 }
