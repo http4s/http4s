@@ -86,16 +86,6 @@ class WritableSpec extends Specification with Http4s {
       writeToString(reader) must_== "string reader"
     }
 
-    "render text ropes" in {
-      val rope = Rope.fromString("text rope")
-      writeToString(rope) must_== "text rope"
-    }
-
-    "render binary ropes" in {
-      val rope = Rope.fromArray("binary rope".getBytes(StandardCharsets.UTF_8))
-      writeToString(rope) must_== "binary rope"
-    }
-
     "give the media type" in {
       implicitly[Writable[String]].contentType must_== Some(MediaType.`text/plain`)
       implicitly[Writable[ByteVector]].contentType must_== Some(MediaType.`application/octet-stream`)

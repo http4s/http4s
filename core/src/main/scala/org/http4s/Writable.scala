@@ -137,10 +137,4 @@ trait WritableInstances extends WritableInstances0 {
 
   def chunkedWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
     processWritable[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
-
-  implicit def charRopeWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Rope[Char]] =
-    stringWritable.contramap(_.asString)
-
-  implicit def byteRopeWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Rope[Byte]] =
-     byteArrayWritable.contramap(_.toArray)
 }
