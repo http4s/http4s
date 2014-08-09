@@ -90,7 +90,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
     "parse relative URI with empty query string" in {
       val u = Uri.fromString("/foo/bar?")
-      u must be_==(Uri(path = "/foo/bar", query = Some("")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some("")))
     }
 
     "parse relative URI with empty query string followed by empty fragement" in {

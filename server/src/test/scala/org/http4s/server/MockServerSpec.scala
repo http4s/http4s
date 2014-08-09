@@ -21,8 +21,7 @@ class MockServerSpec extends Http4sSpec with OptionMatchers {
   "A mock server" should {
     "handle matching routes" in {
       val body = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
-      val req = Request(requestMethod = Method.POST, requestUri = uri("/echo"))
-
+      val req = Request(requestMethod = Method.POST, requestUri = uri("/echo"), body = body)
       server(req).getString must_== ("onetwothree")
     }
 
