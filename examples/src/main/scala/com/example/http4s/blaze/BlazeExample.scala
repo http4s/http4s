@@ -1,8 +1,7 @@
-package org.http4s.examples.blaze
-
+package com.example.http4s
+package blaze
 
 import org.http4s.server.blaze.BlazeServer
-import org.http4s.examples.ExampleService
 
 object BlazeExample extends App {
   println("Starting Http4s-blaze example")

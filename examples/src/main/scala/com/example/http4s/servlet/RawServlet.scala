@@ -1,4 +1,4 @@
-package org.http4s.examples
+package com.example.http4s
 package servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}

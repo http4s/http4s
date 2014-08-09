@@ -1,4 +1,4 @@
-package org.http4s.examples
+package com.example.http4s
 package blaze
 
 import org.http4s._
