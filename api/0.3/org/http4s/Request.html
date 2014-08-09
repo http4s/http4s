@@ -43,17 +43,17 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Request</span><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.Get</a></span></span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol"><span class="name"><a href="ServerProtocol$.html">ServerProtocol.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol"><span class="name"><a href="HttpBody$.html">HttpBody.empty</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="MessageSyntax$.html#MessageSyntax[T,M&lt;:org.http4s.Message]extendsAnyRef" class="extmbr" name="org.http4s.MessageSyntax.MessageSyntax">http4s.MessageSyntax.MessageSyntax</a>[<a href="" class="extype" name="org.http4s.Request">Request</a>, <a href="" class="extype" name="org.http4s.Request">Request</a>] with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">Request</span><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="package.html#EmptyBody:scalaz.stream.Process[Nothing,Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="MessageSyntax$.html#MessageSyntax[T,M&lt;:org.http4s.Message]extendsAnyRef" class="extmbr" name="org.http4s.MessageSyntax.MessageSyntax">http4s.MessageSyntax.MessageSyntax</a>[<a href="" class="extype" name="org.http4s.Request">Request</a>, <a href="" class="extype" name="org.http4s.Request">Request</a>] with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body. A Request will be the only argument
 for a <span class="extype" name="HttpService">HttpService</span>.
-</p></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">protocol</dt><dd class="cmt"><p>HTTP protocol, eg ServerProtocol.<code>HTTP/1.1</code></p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
+</p></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Method" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <span class="extype" name="Method.Post">Method.Post</span>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
 </p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="MessageSyntax$.html#MessageSyntax[T,M&lt;:org.http4s.Message]extendsAnyRef" class="extmbr" name="org.http4s.MessageSyntax.MessageSyntax">MessageSyntax.MessageSyntax</a>[<a href="" class="extype" name="org.http4s.Request">Request</a>, <a href="" class="extype" name="org.http4s.Request">Request</a>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="MessageSyntax$.html#MessageSyntax[T,M&lt;:org.http4s.Message]extendsAnyRef" class="extmbr" name="org.http4s.MessageSyntax.MessageSyntax">MessageSyntax.MessageSyntax</a>[<a href="" class="extype" name="org.http4s.Request">Request</a>, <a href="" class="extype" name="org.http4s.Request">Request</a>], <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -92,7 +92,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.Request#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(requestMethod:org.http4s.Method,requestUri:org.http4s.Uri,protocol:org.http4s.ServerProtocol,headers:org.http4s.Headers,body:org.http4s.HttpBody,attributes:org.http4s.AttributeMap):org.http4s.Request"></a>
+      <a id="&lt;init&gt;(requestMethod:org.http4s.Method,requestUri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody,attributes:org.http4s.AttributeMap):org.http4s.Request"></a>
       <a id="&lt;init&gt;:Request"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -100,14 +100,14 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Request</span><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.Get</a></span></span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="protocol">protocol: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a> = <span class="symbol"><span class="name"><a href="ServerProtocol$.html">ServerProtocol.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a> = <span class="symbol"><span class="name"><a href="HttpBody$.html">HttpBody.empty</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span>
+        <span class="name">Request</span><span class="params">(<span name="requestMethod">requestMethod: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="requestUri">requestUri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="package.html#EmptyBody:scalaz.stream.Process[Nothing,Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@&lt;init&gt;(requestMethod:org.http4s.Method,requestUri:org.http4s.Uri,protocol:org.http4s.ServerProtocol,headers:org.http4s.Headers,body:org.http4s.HttpBody,attributes:org.http4s.AttributeMap):org.http4s.Request" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@&lt;init&gt;(requestMethod:org.http4s.Method,requestUri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody,attributes:org.http4s.AttributeMap):org.http4s.Request" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">protocol</dt><dd class="cmt"><p>HTTP protocol, eg ServerProtocol.<code>HTTP/1.1</code></p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">requestMethod</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Method" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <span class="extype" name="Method.Post">Method.Post</span>, etc.</p></dd><dt class="param">requestUri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
 </p></dd></dl></div>
     </li></ol>
             </div>
@@ -147,7 +147,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -164,7 +164,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@##():Int" title="Permalink" target="_top">
@@ -181,7 +181,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -302,7 +302,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">authType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="package.html#AuthScheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.AuthScheme">AuthScheme</a>]</span>
+        <span class="name">authType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="package.html#AuthScheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.AuthScheme">AuthScheme</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@authType:Option[org.http4s.AuthScheme]" title="Permalink" target="_top">
@@ -311,35 +311,35 @@ for a <span class="extype" name="HttpService">HttpService</span>.
     </span>
       
     </li><li name="org.http4s.Request#body" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="body:org.http4s.HttpBody"></a>
-      <a id="body:HttpBody"></a>
+      <a id="body:org.http4s.EntityBody"></a>
+      <a id="body:EntityBody"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">body</span><span class="result">: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>
+        <span class="name">body</span><span class="result">: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@body:org.http4s.HttpBody" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@body:org.http4s.EntityBody" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">scalaz.</p><div class="fullcomment"><div class="comment cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">scalaz.stream.Process[Task,Chunk] defining the body of the request</p><div class="fullcomment"><div class="comment cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Message#charset" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="charset:org.http4s.CharacterSet"></a>
-      <a id="charset:CharacterSet"></a>
+      <a id="charset:org.http4s.Charset"></a>
+      <a id="charset:Charset"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">charset</span><span class="result">: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a></span>
+        <span class="name">charset</span><span class="result">: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@charset:org.http4s.CharacterSet" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@charset:org.http4s.Charset" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -353,7 +353,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@clone():Object" title="Permalink" target="_top">
@@ -376,7 +376,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
+        <span class="name">contentLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@contentLength:Option[Int]" title="Permalink" target="_top">
@@ -393,7 +393,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>
+        <span class="name">contentType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@contentType:Option[org.http4s.Header.Content-Type]" title="Permalink" target="_top">
@@ -410,7 +410,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -427,7 +427,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
+        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@filterHeaders(f:org.http4s.Header=&gt;Boolean):T" title="Permalink" target="_top">
@@ -444,7 +444,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@finalize():Unit" title="Permalink" target="_top">
@@ -492,6 +492,23 @@ for a <span class="extype" name="HttpService">HttpService</span>.
       </a>
     </span>
       <p class="shortcomment cmt">collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p><div class="fullcomment"><div class="comment cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Request#httpVersion" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="httpVersion:org.http4s.HttpVersion"></a>
+      <a id="httpVersion:HttpVersion"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">httpVersion</span><span class="result">: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Request@httpVersion:org.http4s.HttpVersion" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">the HTTP version</p><div class="fullcomment"><div class="comment cmt"><p>the HTTP version</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Message#isChunked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isChunked:Boolean"></a>
       <a id="isChunked:Boolean"></a>
@@ -501,7 +518,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isChunked</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isChunked</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@isChunked:Boolean" title="Permalink" target="_top">
@@ -518,7 +535,7 @@ for a <span class="extype" name="HttpService">HttpService</span>.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -563,7 +580,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -580,7 +597,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@notify():Unit" title="Permalink" target="_top">
@@ -597,7 +614,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@notifyAll():Unit" title="Permalink" target="_top">
@@ -650,7 +667,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">pathTranslated</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">pathTranslated</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.io.File">File</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@pathTranslated:Option[java.io.File]" title="Permalink" target="_top">
@@ -658,23 +675,6 @@ an empty <code>Map</code> is returned.
       </a>
     </span>
       
-    </li><li name="org.http4s.Request#protocol" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="protocol:org.http4s.ServerProtocol"></a>
-      <a id="protocol:ServerProtocol"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">protocol</span><span class="result">: <a href="ServerProtocol.html" class="extype" name="org.http4s.ServerProtocol">ServerProtocol</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@protocol:org.http4s.ServerProtocol" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">HTTP protocol, eg ServerProtocol.</p><div class="fullcomment"><div class="comment cmt"><p>HTTP protocol, eg ServerProtocol.<code>HTTP/1.1</code></p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.MessageSyntax.MessageSyntax#putHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="putHeader(header:org.http4s.Header):T"></a>
       <a id="putHeader(Header):Request"></a>
@@ -735,7 +735,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remote</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
+        <span class="name">remote</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remote:Option[java.net.InetAddress]" title="Permalink" target="_top">
@@ -752,7 +752,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteAddr</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteAddr</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remoteAddr:Option[String]" title="Permalink" target="_top">
@@ -769,7 +769,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteHost</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteHost</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remoteHost:Option[String]" title="Permalink" target="_top">
@@ -786,7 +786,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteUser</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteUser</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remoteUser:Option[String]" title="Permalink" target="_top">
@@ -827,7 +827,7 @@ an empty <code>Map</code> is returned.
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt"><a href="Method$.html#Get:org.http4s.Method" class="extmbr" name="org.http4s.Method#Get">Method.Get</a>, <a href="Method$.html#Post:org.http4s.Method" class="extmbr" name="org.http4s.Method#Post">Method.Post</a>, etc.</p>
+      <p class="shortcomment cmt"><a href="Method$.html#GET:org.http4s.Method" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <span class="extype" name="Method.Post">Method.Post</span>, etc.</p>
     </li><li name="org.http4s.Request#requestUri" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="requestUri:org.http4s.Uri"></a>
       <a id="requestUri:Uri"></a>
@@ -888,7 +888,7 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">serverPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">serverPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@serverPort:Int" title="Permalink" target="_top">
@@ -897,7 +897,7 @@ an empty <code>Map</code> is returned.
     </span>
       
     </li><li name="org.http4s.Request#serverSoftware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="serverSoftware:org.http4s.ServerSoftware"></a>
+      <a id="serverSoftware:org.http4s.server.ServerSoftware"></a>
       <a id="serverSoftware:ServerSoftware"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -905,10 +905,10 @@ an empty <code>Map</code> is returned.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">serverSoftware</span><span class="result">: <a href="ServerSoftware.html" class="extype" name="org.http4s.ServerSoftware">ServerSoftware</a></span>
+        <span class="name">serverSoftware</span><span class="result">: <a href="server/ServerSoftware.html" class="extype" name="org.http4s.server.ServerSoftware">ServerSoftware</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@serverSoftware:org.http4s.ServerSoftware" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@serverSoftware:org.http4s.server.ServerSoftware" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -946,7 +946,7 @@ an empty <code>Map</code> is returned.
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">The trailer headers, as specified in Section 3.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
+      <p class="shortcomment cmt">The trailer headers, as specified in Section 3.6.1 of RFC 2616.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
 task might not complete unless the entire body has been consumed.
 </p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Request#translateMessage" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -992,7 +992,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@wait():Unit" title="Permalink" target="_top">
@@ -1015,7 +1015,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
@@ -1038,7 +1038,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@wait(x$1:Long):Unit" title="Permalink" target="_top">
@@ -1073,18 +1073,18 @@ task might not complete unless the entire body has been consumed.
 </p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageSyntax$MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax.MessageSyntax">MessageSyntax</a></dd></dl></div>
     </li><li name="org.http4s.MessageSyntax.MessageSyntax#withBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withBody(body:org.http4s.HttpBody):T"></a>
-      <a id="withBody(HttpBody):Request"></a>
+      <a id="withBody(body:org.http4s.EntityBody):T"></a>
+      <a id="withBody(EntityBody):Request"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withBody</span><span class="params">(<span name="body">body: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
+        <span class="name">withBody</span><span class="params">(<span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@withBody(body:org.http4s.HttpBody):T" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@withBody(body:org.http4s.EntityBody):T" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -1093,18 +1093,18 @@ task might not complete unless the entire body has been consumed.
 </p></div><dl class="paramcmts block"><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] representing the new body</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageSyntax$MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax.MessageSyntax">MessageSyntax</a></dd></dl></div>
     </li><li name="org.http4s.MessageSyntax.MessageSyntax#withBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withBody[B](body:B,contentType:org.http4s.Header.Content-Type)(implicitw:org.http4s.Writable[B]):scalaz.concurrent.Task[M#Self]"></a>
-      <a id="withBody[B](B,Content-Type)(Writable[B]):Task[Self]"></a>
+      <a id="withBody[B](body:B,headers:org.http4s.Headers)(implicitw:org.http4s.Writable[B]):scalaz.concurrent.Task[M#Self]"></a>
+      <a id="withBody[B](B,Headers)(Writable[B]):Task[Self]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withBody</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.MessageSyntax.MessageSyntax.withBody.B">B</span></span>, <span name="contentType">contentType: <a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.MessageSyntax.MessageSyntax.withBody.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a>]</span>
+        <span class="name">withBody</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.MessageSyntax.MessageSyntax.withBody.B">B</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.MessageSyntax.MessageSyntax.withBody.B">B</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@withBody[B](body:B,contentType:org.http4s.Header.Content-Type)(implicitw:org.http4s.Writable[B]):scalaz.concurrent.Task[M#Self]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@withBody[B](body:B,headers:org.http4s.Headers)(implicitw:org.http4s.Writable[B]):scalaz.concurrent.Task[M#Self]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -1138,7 +1138,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Header$$Content$minusType.html" class="extype" name="org.http4s.Header.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.Request">Request</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withContentType(contentType:Option[org.http4s.Header.Content-Type]):T" title="Permalink" target="_top">
@@ -1244,21 +1244,21 @@ task might not complete unless the entire body has been consumed.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
             </div><div class="parent" name="org.http4s.MessageSyntax.MessageSyntax">
               <h3>Inherited from <a href="MessageSyntax$.html#MessageSyntax[T,M&lt;:org.http4s.Message]extendsAnyRef" class="extmbr" name="org.http4s.MessageSyntax.MessageSyntax">MessageSyntax.MessageSyntax</a>[<a href="" class="extype" name="org.http4s.Request">Request</a>, <a href="" class="extype" name="org.http4s.Request">Request</a>]</h3>
             </div><div class="parent" name="org.http4s.Message">
               <h3>Inherited from <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

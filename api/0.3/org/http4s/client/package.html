@@ -47,9 +47,17 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Provides extension methods for using the a http4s <a href="Client.html" class="extype" name="org.http4s.client.Client">org.http4s.client.Client</a></p><pre><span class="kw">import</span> org.http4s.Status._
+<span class="kw">import</span> org.http4s.Method._
+<span class="kw">import</span> org.http4s.EntityDecoder
+
+<span class="kw">implicit</span> <span class="kw">def</span> client: Client = ???
+
+<span class="kw">val</span> r: Task[Result[<span class="std">String</span>]] = GET(<span class="lit">"https://www.foo.bar/"</span>).on(Ok)(EntityDecoder.text)
+<span class="kw">val</span> req1 = r.run
+<span class="kw">val</span> req2 = r.run  <span class="cmt">// Each run is fetches a new result based on the behavior of the Client</span></pre></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -98,7 +106,7 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="Client.html"><span class="name">Client</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="Client.html"><span class="name">Client</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.client.package@ClientextendsAnyRef" title="Permalink" target="_top">
@@ -115,14 +123,15 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="package$$ClientSyntax.html"><span class="name">ClientSyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="package$$ClientSyntax.html"><span class="name">ClientSyntax</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.client.package@ClientSyntaxextendsAnyRef" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Some syntactic sugar for making requests</p>
+      <p class="shortcomment cmt">ClientSyntax provides the most convenient way to transform a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a> into a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>
+</p>
     </li></ol>
             </div>
 
@@ -174,9 +183,9 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

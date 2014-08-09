@@ -43,13 +43,13 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">ContentCoding</span><span class="params">(<span name="coding">coding: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="q">q: <a href="Q.html" class="extype" name="org.http4s.Q">Q</a> = <span class="symbol"><span class="name"><a href="Q$.html">Q.Unity</a></span></span></span>)</span><span class="result"> extends <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a> with <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">ContentCoding</span><span class="params">(<span name="coding">coding: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="qValue">qValue: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a> = <span class="symbol"><span class="name"><a href="QValue$.html">QValue.One</a></span></span></span>)</span><span class="result"> extends <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -67,7 +67,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.ContentCoding"><span>ContentCoding</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.util.ValueRenderable"><span>ValueRenderable</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="org.http4s.QualityFactor"><span>QualityFactor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.ContentCoding"><span>ContentCoding</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="org.http4s.HasQValue"><span>HasQValue</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.ContentCoding#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(coding:org.http4s.util.CaseInsensitiveString,q:org.http4s.Q):org.http4s.ContentCoding"></a>
+      <a id="&lt;init&gt;(coding:org.http4s.util.CaseInsensitiveString,qValue:org.http4s.QValue):org.http4s.ContentCoding"></a>
       <a id="&lt;init&gt;:ContentCoding"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">ContentCoding</span><span class="params">(<span name="coding">coding: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="q">q: <a href="Q.html" class="extype" name="org.http4s.Q">Q</a> = <span class="symbol"><span class="name"><a href="Q$.html">Q.Unity</a></span></span></span>)</span>
+        <span class="name">ContentCoding</span><span class="params">(<span name="coding">coding: <a href="util/CaseInsensitiveString.html" class="extype" name="org.http4s.util.CaseInsensitiveString">CaseInsensitiveString</a></span>, <span name="qValue">qValue: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a> = <span class="symbol"><span class="name"><a href="QValue$.html">QValue.One</a></span></span></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.ContentCoding@&lt;init&gt;(coding:org.http4s.util.CaseInsensitiveString,q:org.http4s.Q):org.http4s.ContentCoding" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.ContentCoding@&lt;init&gt;(coding:org.http4s.util.CaseInsensitiveString,qValue:org.http4s.QValue):org.http4s.ContentCoding" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -122,7 +122,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -139,7 +139,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@##():Int" title="Permalink" target="_top">
@@ -156,7 +156,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -190,7 +190,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@clone():Object" title="Permalink" target="_top">
@@ -230,7 +230,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -247,7 +247,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@finalize():Unit" title="Permalink" target="_top">
@@ -287,7 +287,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -304,7 +304,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -321,7 +321,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@notify():Unit" title="Permalink" target="_top">
@@ -338,7 +338,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@notifyAll():Unit" title="Permalink" target="_top">
@@ -346,24 +346,24 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.ContentCoding#q" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="q:org.http4s.Q"></a>
-      <a id="q:Q"></a>
+    </li><li name="org.http4s.ContentCoding#qValue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="qValue:org.http4s.QValue"></a>
+      <a id="qValue:QValue"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">q</span><span class="result">: <a href="Q.html" class="extype" name="org.http4s.Q">Q</a></span>
+        <span class="name">qValue</span><span class="result">: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.ContentCoding@q:org.http4s.Q" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.ContentCoding@qValue:org.http4s.QValue" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a></dd></dl></div>
-    </li><li name="org.http4s.util.ValueRenderable#render" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a></dd></dl></div>
+    </li><li name="org.http4s.ContentCoding#render" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="render[W&lt;:org.http4s.util.Writer](writer:W):writer.type"></a>
       <a id="render[W&lt;:Writer](W):writer.type"></a>
       <h4 class="signature">
@@ -372,31 +372,31 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">render</span><span class="tparams">[<span name="W">W &lt;: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.util.ValueRenderable.render.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.util.ValueRenderable.render.writer">writer</span>.type</span>
+        <span class="name">render</span><span class="tparams">[<span name="W">W &lt;: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.ContentCoding.render.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.ContentCoding.render.writer">writer</span>.type</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@render[W&lt;:org.http4s.util.Writer](writer:W):writer.type" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
-    </li><li name="org.http4s.ContentCoding#renderValue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="renderValue[W&lt;:org.http4s.util.Writer](writer:W):writer.type"></a>
-      <a id="renderValue[W&lt;:Writer](W):writer.type"></a>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
+    </li><li name="org.http4s.util.Renderable#renderString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="renderString:String"></a>
+      <a id="renderString:String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">renderValue</span><span class="tparams">[<span name="W">W &lt;: <a href="util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>]</span><span class="params">(<span name="writer">writer: <span class="extype" name="org.http4s.ContentCoding.renderValue.W">W</span></span>)</span><span class="result">: <span class="extype" name="org.http4s.ContentCoding.renderValue.writer">writer</span>.type</span>
+        <span class="name">renderString</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.ContentCoding@renderValue[W&lt;:org.http4s.util.Writer](writer:W):writer.type" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.ContentCoding@renderString:String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
     </li><li name="org.http4s.ContentCoding#satisfiedBy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="satisfiedBy(encoding:org.http4s.ContentCoding):Boolean"></a>
       <a id="satisfiedBy(ContentCoding):Boolean"></a>
@@ -406,7 +406,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">satisfiedBy</span><span class="params">(<span name="encoding">encoding: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">satisfiedBy</span><span class="params">(<span name="encoding">encoding: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@satisfiedBy(encoding:org.http4s.ContentCoding):Boolean" title="Permalink" target="_top">
@@ -423,7 +423,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">satisfies</span><span class="params">(<span name="encoding">encoding: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">satisfies</span><span class="params">(<span name="encoding">encoding: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@satisfies(encoding:org.http4s.ContentCoding):Boolean" title="Permalink" target="_top">
@@ -448,23 +448,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.util.ValueRenderable#value" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="value:String"></a>
-      <a id="value:String"></a>
+    </li><li name="org.http4s.util.Renderable#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">value</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.ContentCoding@value:String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.ContentCoding@toString():String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -474,7 +474,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@wait():Unit" title="Permalink" target="_top">
@@ -497,7 +497,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
@@ -520,7 +520,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.ContentCoding@wait(x$1:Long):Unit" title="Permalink" target="_top">
@@ -534,23 +534,23 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.ContentCoding#withQuality" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withQuality(q:org.http4s.Q):org.http4s.ContentCoding"></a>
-      <a id="withQuality(Q):ContentCoding"></a>
+    </li><li name="org.http4s.ContentCoding#withQValue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withQValue(q:org.http4s.QValue):org.http4s.ContentCoding"></a>
+      <a id="withQValue(QValue):ContentCoding"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withQuality</span><span class="params">(<span name="q">q: <a href="Q.html" class="extype" name="org.http4s.Q">Q</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>
+        <span class="name">withQValue</span><span class="params">(<span name="q">q: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.ContentCoding@withQuality(q:org.http4s.Q):org.http4s.ContentCoding" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.ContentCoding@withQValue(q:org.http4s.QValue):org.http4s.ContentCoding" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.ContentCoding">ContentCoding</a> → <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -561,23 +561,21 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
-            </div><div class="parent" name="org.http4s.util.ValueRenderable">
-              <h3>Inherited from <a href="util/ValueRenderable.html" class="extype" name="org.http4s.util.ValueRenderable">ValueRenderable</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
             </div><div class="parent" name="org.http4s.util.Renderable">
               <h3>Inherited from <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
-            </div><div class="parent" name="org.http4s.QualityFactor">
-              <h3>Inherited from <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a></h3>
+            </div><div class="parent" name="org.http4s.HasQValue">
+              <h3>Inherited from <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

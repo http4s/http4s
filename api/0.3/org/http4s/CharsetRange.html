@@ -43,16 +43,16 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">CharsetRange</span><span class="result"> extends <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
+        <span class="name">CharsetRange</span><span class="result"> extends <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a> with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="CharsetRange$$$times$.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="CharsetRange$$$times.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="CharsetRange$$Atom.html" class="extype" name="org.http4s.CharsetRange.Atom">Atom</a></div>
+            <div class="subClasses hiddenContent"><a href="CharsetRange$$$times.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="CharsetRange$$$times$.html" class="extype" name="org.http4s.CharsetRange.*">*</a>, <a href="CharsetRange$$Atom.html" class="extype" name="org.http4s.CharsetRange.Atom">Atom</a></div>
           </div></div>
         
 
@@ -70,7 +70,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.CharsetRange"><span>CharsetRange</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="org.http4s.QualityFactor"><span>QualityFactor</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.CharsetRange"><span>CharsetRange</span></li><li class="in" name="org.http4s.util.Renderable"><span>Renderable</span></li><li class="in" name="org.http4s.HasQValue"><span>HasQValue</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -123,7 +123,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isSatisfiedBy</span><span class="params">(<span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isSatisfiedBy</span><span class="params">(<span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@isSatisfiedBy(charset:org.http4s.Charset):Boolean" title="Permalink" target="_top">
@@ -131,23 +131,23 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.CharsetRange#q" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="q:org.http4s.Q"></a>
-      <a id="q:Q"></a>
+    </li><li name="org.http4s.CharsetRange#qValue" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="qValue:org.http4s.QValue"></a>
+      <a id="qValue:QValue"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">q</span><span class="result">: <a href="Q.html" class="extype" name="org.http4s.Q">Q</a></span>
+        <span class="name">qValue</span><span class="result">: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.CharsetRange@q:org.http4s.Q" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.CharsetRange@qValue:org.http4s.QValue" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.CharsetRange">CharsetRange</a> → <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.CharsetRange">CharsetRange</a> → <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a></dd></dl></div>
     </li><li name="org.http4s.util.Renderable#render" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="render[W&lt;:org.http4s.util.Writer](writer:W):writer.type"></a>
       <a id="render[W&lt;:Writer](W):writer.type"></a>
@@ -165,23 +165,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
-    </li><li name="org.http4s.CharsetRange#withQuality" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="withQuality(q:org.http4s.Q):org.http4s.CharsetRange"></a>
-      <a id="withQuality(Q):CharsetRange"></a>
+    </li><li name="org.http4s.CharsetRange#withQValue" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="withQValue(q:org.http4s.QValue):org.http4s.CharsetRange"></a>
+      <a id="withQValue(QValue):CharsetRange"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withQuality</span><span class="params">(<span name="q">q: <a href="Q.html" class="extype" name="org.http4s.Q">Q</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.CharsetRange">CharsetRange</a></span>
+        <span class="name">withQValue</span><span class="params">(<span name="q">q: <a href="QValue.html" class="extype" name="org.http4s.QValue">QValue</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.CharsetRange">CharsetRange</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.CharsetRange@withQuality(q:org.http4s.Q):org.http4s.CharsetRange" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.CharsetRange@withQValue(q:org.http4s.QValue):org.http4s.CharsetRange" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.CharsetRange">CharsetRange</a> → <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.CharsetRange">CharsetRange</a> → <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -196,7 +196,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -213,7 +213,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@##():Int" title="Permalink" target="_top">
@@ -230,7 +230,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -264,7 +264,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@clone():Object" title="Permalink" target="_top">
@@ -287,7 +287,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -304,7 +304,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@equals(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -321,7 +321,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@finalize():Unit" title="Permalink" target="_top">
@@ -361,7 +361,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@hashCode():Int" title="Permalink" target="_top">
@@ -378,7 +378,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -395,7 +395,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -412,7 +412,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@notify():Unit" title="Permalink" target="_top">
@@ -429,7 +429,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@notifyAll():Unit" title="Permalink" target="_top">
@@ -437,6 +437,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.util.Renderable#renderString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="renderString:String"></a>
+      <a id="renderString:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">renderString</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.CharsetRange@renderString:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -470,7 +487,7 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -480,7 +497,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@wait():Unit" title="Permalink" target="_top">
@@ -503,7 +520,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
@@ -526,7 +543,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.CharsetRange@wait(x$1:Long):Unit" title="Permalink" target="_top">
@@ -551,12 +568,12 @@
         <div id="inheritedMembers">
         <div class="parent" name="org.http4s.util.Renderable">
               <h3>Inherited from <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a></h3>
-            </div><div class="parent" name="org.http4s.QualityFactor">
-              <h3>Inherited from <a href="QualityFactor.html" class="extype" name="org.http4s.QualityFactor">QualityFactor</a></h3>
+            </div><div class="parent" name="org.http4s.HasQValue">
+              <h3>Inherited from <a href="HasQValue.html" class="extype" name="org.http4s.HasQValue">HasQValue</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

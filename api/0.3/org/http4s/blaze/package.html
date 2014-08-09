@@ -66,24 +66,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.blaze.BlazeServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="BlazeServerextendsServer"></a>
-      <a id="BlazeServer:BlazeServer"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="BlazeServer.html"><span class="name">BlazeServer</span></a><span class="result"> extends <a href="../server/Server.html" class="extype" name="org.http4s.server.Server">Server</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@BlazeServerextendsServer" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.blaze.BodylessWriter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.blaze.BodylessWriter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="BodylessWriterextendsProcessWriter"></a>
       <a id="BodylessWriter:BodylessWriter"></a>
       <h4 class="signature">
@@ -92,7 +75,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="BodylessWriter.html"><span class="name">BodylessWriter</span></a><span class="result"> extends <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></span>
+        <a href="BodylessWriter.html"><span class="name">BodylessWriter</span></a><span class="result"> extends <a href="util/ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.blaze.package@BodylessWriterextendsProcessWriter" title="Permalink" target="_top">
@@ -101,87 +84,19 @@
     </span>
       <p class="shortcomment cmt">Discards the body, killing it so as to clean up resources
 </p>
-    </li><li name="org.http4s.blaze.CachingChunkWriter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CachingChunkWriterextendsChunkProcessWriter"></a>
-      <a id="CachingChunkWriter:CachingChunkWriter"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="CachingChunkWriter.html"><span class="name">CachingChunkWriter</span></a><span class="result"> extends <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.ChunkProcessWriter">ChunkProcessWriter</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@CachingChunkWriterextendsChunkProcessWriter" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.blaze.CachingStaticWriter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CachingStaticWriterextendsProcessWriterwithLazyLogging"></a>
-      <a id="CachingStaticWriter:CachingStaticWriter"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="CachingStaticWriter.html"><span class="name">CachingStaticWriter</span></a><span class="result"> extends <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a> with <span class="extype" name="com.typesafe.scalalogging.slf4j.LazyLogging">LazyLogging</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@CachingStaticWriterextendsProcessWriterwithLazyLogging" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.blaze.ChunkProcessWriter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ChunkProcessWriterextendsProcessWriter"></a>
-      <a id="ChunkProcessWriter:ChunkProcessWriter"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="ChunkProcessWriter.html"><span class="name">ChunkProcessWriter</span></a><span class="result"> extends <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@ChunkProcessWriterextendsProcessWriter" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.blaze.Http1Stage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http1StageextendsHttp1ServerParserwithTailStage[java.nio.ByteBuffer]"></a>
+    </li><li name="org.http4s.blaze.Http1Stage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Http1StageextendsAnyRef"></a>
       <a id="Http1Stage:Http1Stage"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Http1Stage.html"><span class="name">Http1Stage</span></a><span class="result"> extends <span class="extype" name="org.http4s.blaze.http.http_parser.Http1ServerParser">Http1ServerParser</span> with <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@Http1StageextendsHttp1ServerParserwithTailStage[java.nio.ByteBuffer]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.blaze.ProcessWriter" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ProcessWriterextendsAnyRef"></a>
-      <a id="ProcessWriter:ProcessWriter"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="ProcessWriter.html"><span class="name">ProcessWriter</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="Http1Stage.html"><span class="name">Http1Stage</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@ProcessWriterextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.blaze.package@Http1StageextendsAnyRef" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>
@@ -195,7 +110,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="StaticWriter.html"><span class="name">StaticWriter</span></a><span class="result"> extends <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.ProcessWriter">ProcessWriter</a> with <span class="extype" name="com.typesafe.scalalogging.slf4j.LazyLogging">LazyLogging</span></span>
+        <a href="StaticWriter.html"><span class="name">StaticWriter</span></a><span class="result"> extends <a href="util/ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a> with <span class="extype" name="com.typesafe.scalalogging.slf4j.LazyLogging">LazyLogging</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.blaze.package@StaticWriterextendsProcessWriterwithLazyLogging" title="Permalink" target="_top">
@@ -210,36 +125,19 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.blaze.BlazeServer" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="BlazeServer"></a>
-      <a id="BlazeServer:BlazeServer"></a>
+              <ol><li name="org.http4s.blaze.util" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="util"></a>
+      <a id="util:util"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">object</span>
+        <span class="kind">package</span>
       </span>
       <span class="symbol">
-        <a href="BlazeServer$.html"><span class="name">BlazeServer</span></a>
+        <a href="util/package.html"><span class="name">util</span></a>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@BlazeServer" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.blaze.ChunkProcessWriter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ChunkProcessWriter"></a>
-      <a id="ChunkProcessWriter:ChunkProcessWriter"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="ChunkProcessWriter$.html"><span class="name">ChunkProcessWriter</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.package@ChunkProcessWriter" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.blaze.package@util" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" />
       </a>
     </span>

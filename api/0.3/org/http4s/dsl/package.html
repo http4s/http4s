@@ -49,7 +49,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -98,7 +98,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="$div.html"><span title="gt4s: $div" class="name">/</span></a><span class="params">(<span name="parent">parent: <a href="Path.html" class="extype" name="org.http4s.dsl.Path">Path</a></span>, <span name="child">child: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Path.html" class="extype" name="org.http4s.dsl.Path">Path</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="$div.html"><span title="gt4s: $div" class="name">/</span></a><span class="params">(<span name="parent">parent: <a href="Path.html" class="extype" name="org.http4s.dsl.Path">Path</a></span>, <span name="child">child: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Path.html" class="extype" name="org.http4s.dsl.Path">Path</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@/extendsPathwithProductwithSerializable" title="Permalink" target="_top">
@@ -106,7 +106,7 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.dsl.DoubleParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.dsl.DoubleParamMatcher" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="DoubleParamMatcherextendsAnyRef"></a>
       <a id="DoubleParamMatcher:DoubleParamMatcher"></a>
       <h4 class="signature">
@@ -115,7 +115,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="DoubleParamMatcher.html"><span class="name">DoubleParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="DoubleParamMatcher.html"><span class="name">DoubleParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@DoubleParamMatcherextendsAnyRef" title="Permalink" target="_top">
@@ -125,12 +125,8 @@
       <p class="shortcomment cmt">Double param extractor:
   object Latitude extends DoubleParamMatcher(&quot;lat&quot;)
   val service: HttpService = {
-    case GET -&gt; Root / &quot;closest&quot; :? Latitude(&quot;lat&quot;) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Double param extractor:
-  object Latitude extends DoubleParamMatcher(&quot;lat&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;closest&quot; :? Latitude(&quot;lat&quot;) =&gt; ...
-</p></div></div>
-    </li><li name="org.http4s.dsl.IntParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+    case GET -&gt; Root / &quot;closest&quot; :? Latitude(&quot;lat&quot;) =&gt; ...</p>
+    </li><li name="org.http4s.dsl.IntParamMatcher" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="IntParamMatcherextendsAnyRef"></a>
       <a id="IntParamMatcher:IntParamMatcher"></a>
       <h4 class="signature">
@@ -139,7 +135,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="IntParamMatcher.html"><span class="name">IntParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="IntParamMatcher.html"><span class="name">IntParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@IntParamMatcherextendsAnyRef" title="Permalink" target="_top">
@@ -149,12 +145,8 @@
       <p class="shortcomment cmt">IntParam param extractor:
   object Page extends IntParamMatcher(&quot;page&quot;)
   val service: HttpService = {
-    case GET -&gt; Root / &quot;blog&quot; :? Page(page) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>IntParam param extractor:
-  object Page extends IntParamMatcher(&quot;page&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;blog&quot; :? Page(page) =&gt; ...
-</p></div></div>
-    </li><li name="org.http4s.dsl.LongParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+    case GET -&gt; Root / &quot;blog&quot; :? Page(page) =&gt; ...</p>
+    </li><li name="org.http4s.dsl.LongParamMatcher" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="LongParamMatcherextendsAnyRef"></a>
       <a id="LongParamMatcher:LongParamMatcher"></a>
       <h4 class="signature">
@@ -163,7 +155,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="LongParamMatcher.html"><span class="name">LongParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="LongParamMatcher.html"><span class="name">LongParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@LongParamMatcherextendsAnyRef" title="Permalink" target="_top">
@@ -173,11 +165,7 @@
       <p class="shortcomment cmt">LongParam param extractor:
   object UserId extends LongParamMatcher(&quot;user_id&quot;)
   val service: HttpService = {
-    case GET -&gt; Root / &quot;user&quot; :? UserId(userId) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>LongParam param extractor:
-  object UserId extends LongParamMatcher(&quot;user_id&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;user&quot; :? UserId(userId) =&gt; ...
-</p></div></div>
+    case GET -&gt; Root / &quot;user&quot; :? UserId(userId) =&gt; ...</p>
     </li><li name="org.http4s.dsl.NumericPathVar" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="NumericPathVar[A&lt;:AnyVal]extendsAnyRef"></a>
       <a id="NumericPathVar[A&lt;:AnyVal]:NumericPathVar[A]"></a>
@@ -187,7 +175,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="NumericPathVar.html"><span class="name">NumericPathVar</span></a><span class="tparams">[<span name="A">A &lt;: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="NumericPathVar.html"><span class="name">NumericPathVar</span></a><span class="tparams">[<span name="A">A &lt;: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@NumericPathVar[A&lt;:AnyVal]extendsAnyRef" title="Permalink" target="_top">
@@ -195,7 +183,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
-    </li><li name="org.http4s.dsl.ParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.dsl.ParamMatcher" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="ParamMatcherextendsAnyRef"></a>
       <a id="ParamMatcher:ParamMatcher"></a>
       <h4 class="signature">
@@ -204,7 +192,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="ParamMatcher.html"><span class="name">ParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="ParamMatcher.html"><span class="name">ParamMatcher</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@ParamMatcherextendsAnyRef" title="Permalink" target="_top">
@@ -214,11 +202,7 @@
       <p class="shortcomment cmt">Param extractor:
   object ScreenName extends ParamMatcher(&quot;screen_name&quot;)
   val service: HttpService = {
-    case GET -&gt; Root / &quot;user&quot; :? ScreenName(screenName) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Param extractor:
-  object ScreenName extends ParamMatcher(&quot;screen_name&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;user&quot; :? ScreenName(screenName) =&gt; ...
-</p></div></div>
+    case GET -&gt; Root / &quot;user&quot; :? ScreenName(screenName) =&gt; ...</p>
     </li><li name="org.http4s.dsl.Path" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="PathextendsAnyRef"></a>
       <a id="Path:Path"></a>
@@ -228,7 +212,7 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Path.html"><span class="name">Path</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="Path.html"><span class="name">Path</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@PathextendsAnyRef" title="Permalink" target="_top">
@@ -243,7 +227,7 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.dsl.+&amp;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.dsl.+&amp;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="+&amp;"></a>
       <a id="+&amp;:+&amp;"></a>
       <h4 class="signature">
@@ -263,12 +247,7 @@
   object A extends ParamMatcher(&quot;a&quot;)
   object B extends ParamMatcher(&quot;b&quot;)
   val service: HttpService = {
-    case GET -&gt; Root / &quot;user&quot; :? A(a) +&amp; B(b) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Multiple param extractor:
-  object A extends ParamMatcher(&quot;a&quot;)
-  object B extends ParamMatcher(&quot;b&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;user&quot; :? A(a) +&amp; B(b) =&gt; ...
-</p></div></div>
+    case GET -&gt; Root / &quot;user&quot; :? A(a) +&amp; B(b) =&gt; ...</p>
     </li><li name="org.http4s.dsl.-&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="-&gt;"></a>
       <a id="-&gt;:-&gt;"></a>
@@ -371,7 +350,7 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.dsl.IntVar" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.dsl.IntVar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IntVar"></a>
       <a id="IntVar:IntVar"></a>
       <h4 class="signature">
@@ -380,7 +359,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="IntVar$.html"><span class="name">IntVar</span></a><span class="result"> extends <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
+        <a href="IntVar$.html"><span class="name">IntVar</span></a><span class="result"> extends <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@IntVar" title="Permalink" target="_top">
@@ -389,11 +368,8 @@
     </span>
       <p class="shortcomment cmt">Integer extractor of a path variable:
   Path(&quot;/user/123&quot;) match {
-     case Root / &quot;user&quot; / IntParam(userId) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Integer extractor of a path variable:
-  Path(&quot;/user/123&quot;) match {
-     case Root / &quot;user&quot; / IntParam(userId) =&gt; ...
-</p></div></div>
-    </li><li name="org.http4s.dsl.LongVar" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+     case Root / &quot;user&quot; / IntParam(userId) =&gt; ...</p>
+    </li><li name="org.http4s.dsl.LongVar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="LongVar"></a>
       <a id="LongVar:LongVar"></a>
       <h4 class="signature">
@@ -402,7 +378,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="LongVar$.html"><span class="name">LongVar</span></a><span class="result"> extends <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a>]</span>
+        <a href="LongVar$.html"><span class="name">LongVar</span></a><span class="result"> extends <a href="NumericPathVar.html" class="extype" name="org.http4s.dsl.NumericPathVar">NumericPathVar</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@LongVar" title="Permalink" target="_top">
@@ -411,10 +387,7 @@
     </span>
       <p class="shortcomment cmt">Long extractor of a path variable:
   Path(&quot;/user/123&quot;) match {
-     case Root / &quot;user&quot; / LongParam(userId) =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Long extractor of a path variable:
-  Path(&quot;/user/123&quot;) match {
-     case Root / &quot;user&quot; / LongParam(userId) =&gt; ...
-</p></div></div>
+     case Root / &quot;user&quot; / LongParam(userId) =&gt; ...</p>
     </li><li name="org.http4s.dsl#OPTIONS" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="OPTIONS:org.http4s.Method"></a>
       <a id="OPTIONS:Method"></a>
@@ -509,7 +482,7 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Root$.html"><span class="name">Root</span></a><span class="result"> extends <a href="Path.html" class="extype" name="org.http4s.dsl.Path">Path</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Root$.html"><span class="name">Root</span></a><span class="result"> extends <a href="Path.html" class="extype" name="org.http4s.dsl.Path">Path</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.dsl.package@Root" title="Permalink" target="_top">
@@ -518,7 +491,7 @@
     </span>
       <p class="shortcomment cmt">Root extractor:
   Path(&quot;/&quot;) match {
-    case Root =&gt; .</p><div class="fullcomment"><div class="comment cmt"><p>Root extractor:
+    case Root =&gt; ...</p><div class="fullcomment"><div class="comment cmt"><p>Root extractor:
   Path(&quot;/&quot;) match {
     case Root =&gt; ...
   }
@@ -567,9 +540,9 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

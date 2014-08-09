@@ -28,7 +28,7 @@
         </head>
         <body class="value">
       <div id="definition">
-        <a href="Writable.html" title="Go to companion"><img src="../../lib/object_to_trait_big.png" /></a>
+        <a href="Writable.html" title="Go to companion"><img src="../../lib/object_to_class_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="org">org</a>.<a href="package.html" class="extype" name="org.http4s">http4s</a></p>
         <h1><a href="Writable.html" title="Go to companion">Writable</a></h1> <span class="permalink">
       <a href="../../index.html#org.http4s.Writable$" title="Permalink" target="_top">
@@ -43,13 +43,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Writable</span><span class="result"> extends <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></span>
+        <span class="name">Writable</span><span class="result"> extends <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a>, <a href="WritableInstances0.html" class="extype" name="org.http4s.WritableInstances0">WritableInstances0</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -67,7 +67,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.Writable"><span>Writable</span></li><li class="in" name="org.http4s.WritableInstances"><span>WritableInstances</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.Writable"><span>Writable</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="org.http4s.WritableInstances"><span>WritableInstances</span></li><li class="in" name="org.http4s.WritableInstances0"><span>WritableInstances0</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -87,7 +87,27 @@
         <div id="allMembers">
         
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.Writable.Entity" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EntityextendsProductwithSerializable"></a>
+      <a id="Entity:Entity"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Writable$$Entity.html"><span class="name">Entity</span></a><span class="params">(<span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></span>, <span name="length">length: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@EntityextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
 
         
 
@@ -102,7 +122,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -119,7 +139,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@##():Int" title="Permalink" target="_top">
@@ -136,7 +156,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -144,19 +164,19 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Writable#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[A](body:A)(implicitw:org.http4s.Writable[A]):scalaz.concurrent.Task[(org.http4s.HttpBody,Option[Int])]"></a>
-      <a id="apply[A](A)(Writable[A]):Task[(HttpBody,Option[Int])]"></a>
+    </li><li name="org.http4s.Writable.Entity" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Entity"></a>
+      <a id="Entity:Entity"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">def</span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.Writable.apply.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.Writable.apply.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[(<a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a>, <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a>])]</span>
+        <a href="Writable$$Entity$.html"><span class="name">Entity</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@apply[A](body:A)(implicitw:org.http4s.Writable[A]):scalaz.concurrent.Task[(org.http4s.HttpBody,Option[Int])]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@Entity" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -178,19 +198,138 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.WritableInstances#byteWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="byteWritable:org.http4s.SimpleWritable[Array[Byte]]"></a>
-      <a id="byteWritable:SimpleWritable[Array[Byte]]"></a>
+    </li><li name="org.http4s.WritableInstances#byteArrayWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="byteArrayWritable:org.http4s.Writable[Array[Byte]]"></a>
+      <a id="byteArrayWritable:Writable[Array[Byte]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">byteArrayWritable</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Byte" class="extype" target="_top">Byte</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@byteArrayWritable:org.http4s.Writable[Array[Byte]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#byteBufferWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="byteBufferWritable:org.http4s.Writable[java.nio.ByteBuffer]"></a>
+      <a id="byteBufferWritable:Writable[ByteBuffer]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">byteBufferWritable</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@byteBufferWritable:org.http4s.Writable[java.nio.ByteBuffer]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#byteRopeWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="byteRopeWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[scalaz.Rope[Byte]]"></a>
+      <a id="byteRopeWritable(Charset):Writable[Rope[Byte]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">byteWritable</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Byte" class="extype" target="_top">Byte</a>]]</span>
+        <span class="name">byteRopeWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.Rope">Rope</span>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Byte" class="extype" target="_top">Byte</a>]]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@byteWritable:org.http4s.SimpleWritable[Array[Byte]]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@byteRopeWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[scalaz.Rope[Byte]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#byteVectorWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="byteVectorWritable:org.http4s.Writable[scodec.bits.ByteVector]"></a>
+      <a id="byteVectorWritable:Writable[ByteVector]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">byteVectorWritable</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scodec.bits.ByteVector">ByteVector</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@byteVectorWritable:org.http4s.Writable[scodec.bits.ByteVector]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#charArrayWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="charArrayWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[Array[Char]]"></a>
+      <a id="charArrayWritable(Charset):Writable[Array[Char]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">charArrayWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Char" class="extype" target="_top">Char</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@charArrayWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[Array[Char]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#charRopeWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="charRopeWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[scalaz.Rope[Char]]"></a>
+      <a id="charRopeWritable(Charset):Writable[Rope[Char]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">charRopeWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.Rope">Rope</span>[<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Char" class="extype" target="_top">Char</a>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@charRopeWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[scalaz.Rope[Char]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#charSequenceWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="charSequenceWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[CharSequence]"></a>
+      <a id="charSequenceWritable(Charset):Writable[CharSequence]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">charSequenceWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="java.lang.CharSequence">CharSequence</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@charSequenceWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[CharSequence]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#chunkedWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="chunkedWritable[A](f:A=&gt;scalaz.stream.Channel[scalaz.concurrent.Task,Int,scodec.bits.ByteVector],chunkSize:Int):org.http4s.Writable[A]"></a>
+      <a id="chunkedWritable[A]((A)⇒Channel[Task,Int,ByteVector],Int):Writable[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">chunkedWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.WritableInstances.chunkedWritable.A">A</span>) ⇒ <span class="extype" name="scalaz.stream.Channel">Channel</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a>, <span class="extype" name="scodec.bits.ByteVector">ByteVector</span>]</span>, <span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">4096</span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances.chunkedWritable.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@chunkedWritable[A](f:A=&gt;scalaz.stream.Channel[scalaz.concurrent.Task,Int,scodec.bits.ByteVector],chunkSize:Int):org.http4s.Writable[A]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -204,7 +343,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@clone():Object" title="Permalink" target="_top">
@@ -227,7 +366,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -244,7 +383,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -252,6 +391,40 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#filePathWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="filePathWritable:org.http4s.Writable[java.nio.file.Path]"></a>
+      <a id="filePathWritable:Writable[Path]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">filePathWritable</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="java.nio.file.Path">Path</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@filePathWritable:org.http4s.Writable[java.nio.file.Path]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#fileWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fileWritable:org.http4s.Writable[java.io.File]"></a>
+      <a id="fileWritable:Writable[File]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fileWritable</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="java.io.File">File</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@fileWritable:org.http4s.Writable[java.io.File]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -261,7 +434,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@finalize():Unit" title="Permalink" target="_top">
@@ -275,40 +448,6 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.WritableInstances#futureWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="futureWritable[A](implicitec:scala.concurrent.ExecutionContext,implicitwritable:org.http4s.Writable[A]):org.http4s.Writable[scala.concurrent.Future[A]]"></a>
-      <a id="futureWritable[A](ExecutionContext,Writable[A]):Writable[Future[A]]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">futureWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>, <span name="writable">writable: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances.futureWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scala.concurrent.Future">Future</span>[<span class="extype" name="org.http4s.WritableInstances.futureWritable.A">A</span>]]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@futureWritable[A](implicitec:scala.concurrent.ExecutionContext,implicitwritable:org.http4s.Writable[A]):org.http4s.Writable[scala.concurrent.Future[A]]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
-    </li><li name="org.http4s.Writable#get" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="get[A](body:A)(implicitw:org.http4s.Writable[A]):org.http4s.HttpBody"></a>
-      <a id="get[A](A)(Writable[A]):HttpBody"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">get</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="body">body: <span class="extype" name="org.http4s.Writable.get.A">A</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.Writable.get.A">A</span>]</span>)</span><span class="result">: <a href="package.html#HttpBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.HttpBody">HttpBody</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@get[A](body:A)(implicitw:org.http4s.Writable[A]):org.http4s.HttpBody" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -335,7 +474,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@hashCode():Int" title="Permalink" target="_top">
@@ -344,35 +483,35 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.WritableInstances#htmlWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="htmlWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[scala.xml.Elem]"></a>
-      <a id="htmlWritable(CharacterSet):SimpleWritable[Elem]"></a>
+      <a id="htmlWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[scala.xml.Elem]"></a>
+      <a id="htmlWritable(Charset):Writable[Elem]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">htmlWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> = <span class="symbol"><span class="name"><a href="CharacterSet$.html">CharacterSet.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="scala.xml.Elem">Elem</span>]</span>
+        <span class="name">htmlWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scala.xml.Elem">Elem</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@htmlWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[scala.xml.Elem]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@htmlWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[scala.xml.Elem]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
-    </li><li name="org.http4s.WritableInstances#intWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="intWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[Int]"></a>
-      <a id="intWritable(CharacterSet):SimpleWritable[Int]"></a>
+    </li><li name="org.http4s.WritableInstances#inputStreamWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inputStreamWritable:org.http4s.Writable[java.io.InputStream]"></a>
+      <a id="inputStreamWritable:Writable[InputStream]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">def</span>
+        <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">intWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> = <span class="symbol"><span class="name"><a href="CharacterSet$.html">CharacterSet.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
+        <span class="name">inputStreamWritable</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="java.io.InputStream">InputStream</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@intWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[Int]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@inputStreamWritable:org.http4s.Writable[java.io.InputStream]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -386,7 +525,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -394,6 +533,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.WritableInstances0#naturalTransformationWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="naturalTransformationWritable[F[_],A](implicitN:scalaz.~&gt;[F,scalaz.concurrent.Task],implicitW:org.http4s.Writable[A]):org.http4s.Writable[F[A]]"></a>
+      <a id="naturalTransformationWritable[F[_],A](~&gt;[F,Task],Writable[A]):Writable[F[A]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">naturalTransformationWritable</span><span class="tparams">[<span name="F">F<span class="tparams">[<span name="_">_</span>]</span></span>, <span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="N">N: <a href="../../scalaz/package.html#~&gt;[-F[_],+G[_]]=scalaz.NaturalTransformation[F,G]" class="extmbr" name="scalaz.~&gt;">~&gt;</a>[<span class="extype" name="org.http4s.WritableInstances0.naturalTransformationWritable.F">F</span>, <span class="extype" name="scalaz.concurrent.Task">Task</span>]</span>, <span name="W">W: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances0.naturalTransformationWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances0.naturalTransformationWritable.F">F</span>[<span class="extype" name="org.http4s.WritableInstances0.naturalTransformationWritable.A">A</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@naturalTransformationWritable[F[_],A](implicitN:scalaz.~&gt;[F,scalaz.concurrent.Task],implicitW:org.http4s.Writable[A]):org.http4s.Writable[F[A]]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances0.html" class="extype" name="org.http4s.WritableInstances0">WritableInstances0</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -403,7 +559,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -420,7 +576,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@notify():Unit" title="Permalink" target="_top">
@@ -437,7 +593,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@notifyAll():Unit" title="Permalink" target="_top">
@@ -445,53 +601,91 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.WritableInstances#processWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="processWritable[A](implicitw:org.http4s.SimpleWritable[A]):org.http4s.Writable[scalaz.stream.Process[scalaz.concurrent.Task,A]]"></a>
-      <a id="processWritable[A](SimpleWritable[A]):Writable[Process[Task,A]]"></a>
+    </li><li name="org.http4s.WritableInstances0#processWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="processWritable[A](implicitW:org.http4s.Writable[A]):org.http4s.Writable[scalaz.stream.Process[scalaz.concurrent.Task,A]]"></a>
+      <a id="processWritable[A](Writable[A]):Writable[Process[Task,A]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">processWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="org.http4s.WritableInstances.processWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.WritableInstances.processWritable.A">A</span>]]</span>
+        <span class="name">processWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="W">W: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances0.processWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.WritableInstances0.processWritable.A">A</span>]]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@processWritable[A](implicitw:org.http4s.SimpleWritable[A]):org.http4s.Writable[scalaz.stream.Process[scalaz.concurrent.Task,A]]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@processWritable[A](implicitW:org.http4s.Writable[A]):org.http4s.Writable[scalaz.stream.Process[scalaz.concurrent.Task,A]]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
-    </li><li name="org.http4s.WritableInstances#seqWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="seqWritable[A](implicitw:org.http4s.SimpleWritable[A]):org.http4s.Writable[Seq[A]]"></a>
-      <a id="seqWritable[A](SimpleWritable[A]):Writable[Seq[A]]"></a>
+      <p class="shortcomment cmt">A process writable is intended for streaming, and does not calculate its bodies in
+advance.</p><div class="fullcomment"><div class="comment cmt"><p>A process writable is intended for streaming, and does not calculate its bodies in
+advance.  As such, it does not calculate the Content-Length in advance.  This is for
+use with chunked transfer encoding.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances0.html" class="extype" name="org.http4s.WritableInstances0">WritableInstances0</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances#readerWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="readerWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[java.io.Reader]"></a>
+      <a id="readerWritable(Charset):Writable[Reader]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">seqWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="org.http4s.WritableInstances.seqWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="org.http4s.WritableInstances.seqWritable.A">A</span>]]</span>
+        <span class="name">readerWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="java.io.Reader">Reader</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@seqWritable[A](implicitw:org.http4s.SimpleWritable[A]):org.http4s.Writable[Seq[A]]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@readerWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[java.io.Reader]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></dd></dl></div>
+    </li><li name="org.http4s.WritableInstances0#showWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="showWritable[A](implicitcharset:org.http4s.Charset,implicitshow:scalaz.Show[A]):org.http4s.Writable[A]"></a>
+      <a id="showWritable[A](Charset,Show[A]):Writable[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">showWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>, <span name="show">show: <span class="extype" name="scalaz.Show">Show</span>[<span class="extype" name="org.http4s.WritableInstances0.showWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances0.showWritable.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@showWritable[A](implicitcharset:org.http4s.Charset,implicitshow:scalaz.Show[A]):org.http4s.Writable[A]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="WritableInstances0.html" class="extype" name="org.http4s.WritableInstances0">WritableInstances0</a></dd></dl></div>
+    </li><li name="org.http4s.Writable#simple" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="simple[A](toChunk:A=&gt;scodec.bits.ByteVector,headers:org.http4s.Headers):org.http4s.Writable[A]"></a>
+      <a id="simple[A]((A)⇒ByteVector,Headers):Writable[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">simple</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="toChunk">toChunk: (<span class="extype" name="org.http4s.Writable.simple.A">A</span>) ⇒ <span class="extype" name="scodec.bits.ByteVector">ByteVector</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.Writable.simple.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Writable$@simple[A](toChunk:A=&gt;scodec.bits.ByteVector,headers:org.http4s.Headers):org.http4s.Writable[A]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.WritableInstances#stringWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="stringWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[String]"></a>
-      <a id="stringWritable(CharacterSet):SimpleWritable[String]"></a>
+      <a id="stringWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[String]"></a>
+      <a id="stringWritable(Charset):Writable[String]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">stringWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="CharacterSet.html" class="extype" name="org.http4s.CharacterSet">CharacterSet</a> = <span class="symbol"><span class="name"><a href="CharacterSet$.html">CharacterSet.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="SimpleWritable.html" class="extype" name="org.http4s.SimpleWritable">SimpleWritable</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">stringWritable</span><span class="params">(<span class="implicit">implicit </span><span name="charset">charset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="Charset$.html">Charset.`UTF-8`</a></span></span></span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@stringWritable(implicitcharset:org.http4s.CharacterSet):org.http4s.SimpleWritable[String]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@stringWritable(implicitcharset:org.http4s.Charset):org.http4s.Writable[String]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -514,7 +708,7 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
     </li><li name="org.http4s.WritableInstances#taskWritable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="taskWritable[A](implicitwritable:org.http4s.Writable[A]):org.http4s.Writable[scalaz.concurrent.Task[A]]"></a>
+      <a id="taskWritable[A](implicitW:org.http4s.Writable[A]):org.http4s.Writable[scalaz.concurrent.Task[A]]"></a>
       <a id="taskWritable[A](Writable[A]):Writable[Task[A]]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -522,10 +716,10 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">taskWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="writable">writable: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances.taskWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.WritableInstances.taskWritable.A">A</span>]]</span>
+        <span class="name">taskWritable</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="W">W: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="org.http4s.WritableInstances.taskWritable.A">A</span>]</span>)</span><span class="result">: <a href="Writable.html" class="extype" name="org.http4s.Writable">Writable</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.WritableInstances.taskWritable.A">A</span>]]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Writable$@taskWritable[A](implicitwritable:org.http4s.Writable[A]):org.http4s.Writable[scalaz.concurrent.Task[A]]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Writable$@taskWritable[A](implicitW:org.http4s.Writable[A]):org.http4s.Writable[scalaz.concurrent.Task[A]]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -556,7 +750,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@wait():Unit" title="Permalink" target="_top">
@@ -579,7 +773,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
@@ -602,7 +796,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Writable$@wait(x$1:Long):Unit" title="Permalink" target="_top">
@@ -625,12 +819,18 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.WritableInstances">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
+            </div><div class="parent" name="java.io.Serializable">
+              <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
+            </div><div class="parent" name="org.http4s.WritableInstances">
               <h3>Inherited from <a href="WritableInstances.html" class="extype" name="org.http4s.WritableInstances">WritableInstances</a></h3>
+            </div><div class="parent" name="org.http4s.WritableInstances0">
+              <h3>Inherited from <a href="WritableInstances0.html" class="extype" name="org.http4s.WritableInstances0">WritableInstances0</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.1/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>
