@@ -6,6 +6,7 @@ import org.http4s.tomcat.TomcatServer
 
 object TomcatExample extends App {
   val tomcat = TomcatServer.newBuilder
+    .withHost("0.0.0.0")
     .mountService(ExampleService.service, "/http4s")
     .mountServlet(new RawServlet, "/raw/*")
     .run()

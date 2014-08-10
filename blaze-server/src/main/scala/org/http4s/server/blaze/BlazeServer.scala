@@ -40,6 +40,7 @@ object BlazeServer {
     private var aggregateService = HttpService.empty
     private var port = 8080
     private var idleTimeout: Duration = Duration.Inf
+    private var host = "0.0.0.0"
 
     override def mountService(service: HttpService, prefix: String): this.type = {
       val prefixedService =
@@ -48,6 +49,12 @@ object BlazeServer {
       aggregateService =
         if (aggregateService eq HttpService.empty) prefixedService
         else prefixedService orElse aggregateService
+      this
+    }
+
+
+    override def withHost(host: String): this.type = {
+      this.host = host
       this
     }
 
@@ -68,7 +75,11 @@ object BlazeServer {
         else leaf
       }
       val factory = new SocketServerChannelFactory(stage, 12, 8 * 1024)
-      val channel = factory.bind(new InetSocketAddress(port))
+
+      val address = new InetSocketAddress(host, port)
+      if (address.isUnresolved) throw new Exception(s"Unresolved hostname: $host")
+
+      val channel = factory.bind(address)
       new BlazeServer(channel)
     }
   }

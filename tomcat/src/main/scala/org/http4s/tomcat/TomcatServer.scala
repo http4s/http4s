@@ -57,6 +57,11 @@ object TomcatServer {
       this
     }
 
+    override def withHost(host: String): this.type = {
+      tomcat.getConnector.setAttribute("address", host)
+      this
+    }
+
     /** Add timeout for idle connections
       * '''WARNING:''' Tomcat maintains connections on a fixed interval determined by the global
       * attribute worker.maintain with a default interval of 60 seconds. In the worst case the connection

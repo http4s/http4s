@@ -42,10 +42,16 @@ object JettyServer {
 
     private val server = new JServer()
     private var port = 8080
+    private var host = "0.0.0.0"
     private var timeout: Duration = Duration.Inf
 
     override def withPort(port: Int): this.type = {
       this.port = port
+      this
+    }
+
+    override def withHost(host: String): this.type = {
+      this.host = host
       this
     }
 
@@ -55,6 +61,7 @@ object JettyServer {
 
     def build: To = {
       val connector = new ServerConnector(server)
+      connector.setHost(host)
       connector.setPort(port)
       server.addConnector(connector)
       val dur = if (timeout.isFinite) timeout.toMillis else -1
