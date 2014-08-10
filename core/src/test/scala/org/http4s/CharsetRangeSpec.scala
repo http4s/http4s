@@ -1,8 +1,7 @@
 package org.http4s
 
-import scalaz.scalacheck.ScalazProperties
-
 import org.http4s.CharsetRange.`*`
+import org.http4s.scalacheck.ScalazProperties
 import org.scalacheck.{Gen, Prop}
 import org.scalacheck.Prop.forAll
 import org.scalacheck.Arbitrary._

@@ -1,8 +1,7 @@
 package org.http4s
 
-import scalaz.scalacheck.ScalazProperties
-
-import scalaz.syntax.either._
+import org.http4s.scalacheck.ScalazProperties
+import scalaz.syntax.id._
 
 class QValueSpec extends Http4sSpec {
   import QValue._

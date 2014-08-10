@@ -3,8 +3,8 @@ package org.http4s.util
 import scala.concurrent.{ExecutionContext, Future, Promise}
 import scala.util.{Success, Failure}
 import scalaz.{~>, \/-, -\/}
-import scalaz.\/._
 import scalaz.concurrent.Task
+import scalaz.syntax.id._
 
 trait TaskInstances {
   implicit val taskToFuture: Task ~> Future = new (Task ~> Future) {
@@ -22,8 +22,8 @@ trait TaskInstances {
     def apply[A](future: Future[A]): Task[A] = {
       Task.async { f =>
         future.onComplete {
-          case Success(a) => f(right(a))
-          case Failure(t) => f(left(t))
+          case Success(a) => f(a.right)
+          case Failure(t) => f(t.left)
         }
       }
     }

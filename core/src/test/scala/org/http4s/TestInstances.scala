@@ -1,5 +1,7 @@
 package org.http4s
 
+import java.lang.Enum
+
 import org.http4s.Header.`Accept-Charset`
 
 import scala.collection.JavaConverters._
@@ -7,9 +9,9 @@ import java.nio.charset.{Charset => NioCharset}
 import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
+import org.http4s.scalacheck.ScalazArbitrary._
 
 import scalaz.NonEmptyList
-import scalaz.scalacheck.ScalazArbitrary._
 
 trait TestInstances {
   val tchars: Gen[Char] = Gen.oneOf {
