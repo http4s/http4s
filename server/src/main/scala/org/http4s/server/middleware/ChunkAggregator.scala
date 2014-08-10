@@ -26,10 +26,10 @@ object ChunkAggregator extends LazyLogging {
 
   def apply(route: HttpService): HttpService = route andThen (_.map { response =>
     val chunks = compact(response.body)
-    if (!chunks.isEmpty)
-      response.putHeader(`Content-Length`(chunks.head.length))
-        .withBody(emitSeq(chunks))
-
+    if (!chunks.isEmpty) {
+      val h = response.headers :+ `Content-Length`(chunks.head.length)
+      response.copy(body = emitSeq(chunks), headers = h)
+    }
     else response
   })
 }

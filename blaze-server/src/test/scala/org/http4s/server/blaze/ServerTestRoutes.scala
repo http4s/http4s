@@ -112,7 +112,7 @@ object ServerTestRoutes {
   def apply(): HttpService = {
     case req if req.requestMethod == Method.GET && req.pathInfo == "/get" => Ok("get")
     case req if req.requestMethod == Method.GET && req.pathInfo == "/chunked" =>
-      Ok(eval(Task("chu")) ++ eval(Task("nk"))).addHeader(Header.`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(eval(Task("chu")) ++ eval(Task("nk"))).addHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.requestMethod == Method.GET && req.pathInfo == "/cachechunked" =>
       Ok(eval(Task("chu")) ++ eval(Task("nk")))

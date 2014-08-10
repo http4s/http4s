@@ -1,6 +1,6 @@
 package org.http4s
 
-import scala.collection.{mutable, immutable}
+import scala.collection.{immutable, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
 import org.http4s.HeaderKey.StringKey
@@ -10,6 +10,8 @@ import org.http4s.util.CaseInsensitiveString
 final class Headers private (headers: List[Header])
   extends immutable.Seq[Header]
   with collection.SeqLike[Header, Headers] {
+
+  override def toList: List[Header] = headers
 
   override protected def newBuilder: mutable.Builder[Header, Headers] = Headers.newBuilder
 

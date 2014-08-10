@@ -128,7 +128,8 @@ trait StatusInstances {
     // TODO type this header
     def apply[A](range: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("Range", range))) { _.addHeader(_) }
+        val hs = Header("Range", range)::headers.toList
+        r.addHeaders(hs:_*)
       }
   }
   val MultiStatus = new Status(207, "Multi-Status") with EntityResponseGenerator
@@ -152,7 +153,8 @@ trait StatusInstances {
     def apply[A](wwwAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
     // TODO type this header
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
+        val hs = Header("WWW-Authenticate", wwwAuthenticate)::headers.toList
+        r.addHeaders(hs:_*)
       }
   }
   val PaymentRequired = new Status(402, "Payment Required") with EntityResponseGenerator
@@ -163,15 +165,17 @@ trait StatusInstances {
   object MethodNotAllowed extends Status(405, "Method Not Allowed") with EntityResponseGenerator {
     def apply[A](allowed: TraversableOnce[Method], body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
+        val hs = Header("Allowed", allowed.mkString(", "))::headers.toList
+        r.addHeaders(hs:_*)
       }
   }
   val NotAcceptable = new Status(406, "Not Acceptable") with EntityResponseGenerator
   object ProxyAuthenticationRequired extends Status(407, "Proxy Authentication Required") with EntityResponseGenerator {
     // TODO type this header
-    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
+    def apply[A](proxyAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
-        headers.foldLeft(r.addHeader(Header("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
+        val hs = Header("Proxy-Authenticate", proxyAuthenticate)::headers.toList
+        r.addHeaders(hs:_*)
       }
   }
   val RequestTimeOut = new Status(408, "Request Time-out") with EntityResponseGenerator

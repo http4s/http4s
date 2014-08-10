@@ -13,5 +13,5 @@ package object websocket {
   def WS(source: Process[Task, WSFrame] = halt,
          sink: Sink[Task, WSFrame] = halt,
          status: Task[Response] = Status.NotImplemented("This is a WebSocket route.")): Task[Response] =
-    status.map(_.addAttribute(websocketKey, Websocket(source, sink)))
+    status.map(_.withAttribute(websocketKey, Websocket(source, sink)))
 }
