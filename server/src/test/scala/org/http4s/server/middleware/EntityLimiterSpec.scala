@@ -11,7 +11,6 @@ import scalaz.stream.Process.emit
 
 class EntityLimiterSpec extends Specification {
   import Http4s._
-  import Method._
 
   val s: HttpService = {
     case r: Request if r.requestUri.path == "/echo" => EntityDecoder.text(r).flatMap(Ok(_))

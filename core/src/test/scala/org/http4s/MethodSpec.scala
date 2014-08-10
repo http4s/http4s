@@ -6,6 +6,8 @@ import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.scalacheck.ScalazProperties
 import org.scalacheck.Prop.forAll
 
+import Http4s._
+
 class MethodSpec extends Http4sSpec {
   import Method._
 

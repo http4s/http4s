@@ -5,7 +5,7 @@ import org.http4s.util.{Renderable, Writer}
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 import scala.util.control.NoStackTrace
-import scalaz.{Order, Show, Equal, Validation}
+import scalaz._
 import scalaz.syntax.validation._
 
 /**
@@ -62,8 +62,8 @@ final class QValue private[QValue] (val thousandths: Int) extends AnyVal with Or
 }
 
 object QValue extends QValueInstances with QValueFunctions {
-  val One: QValue = new QValue(1000)
-  val Zero: QValue = new QValue(0)
+  lazy val One: QValue = new QValue(1000)
+  lazy val Zero: QValue = new QValue(0)
 
   private def mkQValue(thousandths: Int, s: => String): ParseResult[QValue] = {
     if (thousandths < 0 || thousandths > 1000) ParseResult.fail("Invalid q-value", s"${s} must be between 0.0 and 1.0")

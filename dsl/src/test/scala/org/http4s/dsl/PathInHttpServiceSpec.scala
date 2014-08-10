@@ -4,9 +4,6 @@ package dsl
 import server.MockServer
 import server.HttpService
 import server.MockServer.MockResponse
-import Status._
-
-import org.specs2.mutable.Specification
 
 import scalaz.concurrent.Task
 
