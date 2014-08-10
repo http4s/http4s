@@ -4,6 +4,7 @@ import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
 import org.specs2.mutable.Specification
+import scodec.bits.ByteVector
 
 import scala.concurrent.Future
 import scalaz.Rope
@@ -93,6 +94,12 @@ class WritableSpec extends Specification with Http4s {
     "render binary ropes" in {
       val rope = Rope.fromArray("binary rope".getBytes(StandardCharsets.UTF_8))
       writeToString(rope) must_== "binary rope"
+    }
+
+    "give the media type" in {
+      implicitly[Writable[String]].contentType must_== Some(MediaType.`text/plain`)
+      implicitly[Writable[ByteVector]].contentType must_== Some(MediaType.`application/octet-stream`)
+      implicitly[Writable[Array[Byte]]].contentType must_== Some(MediaType.`application/octet-stream`)
     }
   }
 }

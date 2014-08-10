@@ -20,6 +20,10 @@ case class Writable[-A](
 ) {
   def contramap[B](f: B => A): Writable[B] = copy(toEntity = f andThen toEntity)
 
+  def contentType: Option[MediaType] = headers.get(`Content-Type`).map(_.mediaType)
+
+  def charset: Option[Charset] = headers.get(`Content-Type`).map(_.charset)
+
   def withContentType(contentType: `Content-Type`): Writable[A] =
     copy(headers = headers.put(contentType))
 }
