@@ -4,8 +4,7 @@ import org.http4s.Header.{`Set-Cookie`, `Content-Type`}
 
 import scalaz.concurrent.Task
 
-
-trait MessageMethods {
+trait MessageOps extends Any {
   type Self
 
   /** Remove headers that satisfy the predicate
@@ -62,8 +61,7 @@ trait MessageMethods {
     withAttribute(Message.Keys.TrailerHeaders, trailerHeaders)
 }
 
-
-trait ResponseMethods extends MessageMethods {
+trait ResponseOps extends Any with MessageOps {
 
   /** Change the status of this response object
     *

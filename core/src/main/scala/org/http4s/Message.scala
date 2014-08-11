@@ -8,10 +8,10 @@ import scalaz.concurrent.Task
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
- * while most of the functionality is found in [[MessageSyntax]] and [[ResponseMethods]]
- * @see [[MessageSyntax]], [[ResponseMethods]]
+ * while most of the functionality is found in [[MessageSyntax]] and [[ResponseOps]]
+ * @see [[MessageSyntax]], [[ResponseOps]]
  */
-trait Message extends MessageMethods {
+trait Message extends MessageOps {
   type Self <: Message
 
   def httpVersion: HttpVersion
@@ -113,7 +113,7 @@ case class Request(
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message with MessageMethods {
+) extends Message with MessageOps {
   import Request._
 
   type Self = Request
@@ -209,7 +209,7 @@ case class Response(
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
-  attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseMethods {
+  attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseOps {
   type Self = Response
 
   /** Response specific extension methods */

@@ -28,14 +28,12 @@ object CaseInsensitiveString extends CaseInsensitiveStringSyntax {
   def apply(cs: CharSequence) = new CaseInsensitiveString(cs.toString)
 }
 
-trait CaseInsensitiveStringOps extends Ops[CharSequence] {
+final class CaseInsensitiveStringOps(val self: CharSequence) extends AnyVal {
   def ci: CaseInsensitiveString = CaseInsensitiveString(self)
 }
 
 trait CaseInsensitiveStringSyntax {
   implicit def ToCaseInsensitiveStringSyntax(cs: CharSequence): CaseInsensitiveStringOps =
-    new CaseInsensitiveStringOps {
-      def self = cs
-    }
+    new CaseInsensitiveStringOps(cs)
 }
 
