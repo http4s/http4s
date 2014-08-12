@@ -5,9 +5,9 @@ import scodec.bits.ByteVector
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 import scalaz.concurrent.Task
-import scalaz.stream.Process
+import scalaz.stream.{Cause, Process}
 import scalaz.stream.Process._
-import scalaz.stream.Cause.{Terminated, Error}
+import scalaz.stream.Cause.{Kill, End, Error}
 import scalaz.{-\/, \/, \/-}
 
 trait ProcessWriter {
@@ -16,7 +16,7 @@ trait ProcessWriter {
 
   type CBType = Throwable \/ Unit => Unit
 
-  /** write a BodyChunk to the wire
+  /** write a ByteVector to the wire
     * If a request is cancelled, or the stream is closed this method should
     * return a failed Future with Cancelled as the exception
     *
@@ -41,23 +41,59 @@ trait ProcessWriter {
 
   /** Creates a Task that writes the contents the Process to the output.
     * Cancelled exceptions fall through to the Task cb
-    * This method will halt writing the process once a trailer is encountered
     *
-    * @param p Process[Task, Chunk] to write out
+    * @param p Process[Task, ByteVector] to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = {
-    val channel = scalaz.stream.io.channel { chunk: ByteVector => Task.async { cb: CBType =>
-      writeBodyChunk(chunk, false).onComplete(completionListener(_, cb))
-    }}
-    val finish = eval(Task.async { cb: CBType =>
-      writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
-    })
-    (p.through(channel) ++ finish).run
+  def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async(go(p, Vector.empty, _))
+
+  final private def go(p: Process[Task, ByteVector], stack: Vector[Cause => Trampoline[Process[Task,ByteVector]]], cb: CBType): Unit = p match {
+    case Emit(seq) if seq.isEmpty =>
+      if (stack.isEmpty) writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
+      else go(Try(stack.head.apply(End).run), stack.tail, cb)
+
+    case Emit(seq) =>
+      val buff = seq.reduce(_ ++ _)
+      if (stack.isEmpty) writeEnd(buff).onComplete(completionListener(_, cb))
+      else writeBodyChunk(buff, false).onComplete {
+        case Success(_) => go(Try(stack.head(End).run), stack.tail, cb)
+        case Failure(t) => go(Try(stack.head(Cause.Error(t)).run), stack.tail, cb)
+      }
+
+    case Await(t, f) => t.runAsync {  // Wait for it to finish, then continue to unwind
+      case r@ \/-(_) => go(Try(f(r).run), stack, cb)
+      case -\/(t)    =>
+        if (stack.isEmpty) go(Halt(Error(t)), stack, cb)
+        else go(stack.head(Error(t)).run, stack.tail, cb)
+    }
+
+    case Append(head, tail) =>
+      if (stack.nonEmpty) go(head, stack ++ tail, cb)
+      else go(head, tail, cb)
+
+    case Halt(cause) if stack.nonEmpty => go(Try(stack.head(cause).run), stack.tail, cb)
+
+    // Rest are terminal cases
+    case Halt(End) => writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
+
+    case Halt(Kill) => writeEnd(ByteVector.empty)
+                         .flatMap(_ => exceptionFlush())
+                         .onComplete(completionListener(_, cb))
+
+    case Halt(Error(t)) => exceptionFlush().onComplete {
+      case Success(_) => cb(-\/(t))
+      case Failure(_) => cb(-\/(t))
+    }
   }
 
   private def completionListener(t: Try[_], cb: CBType): Unit = t match {
     case Success(_) =>  cb(\/-(()))
     case Failure(t) =>  cb(-\/(t))
+  }
+
+  @inline
+  private def Try(p: => Process[Task, ByteVector]): Process[Task, ByteVector] = {
+    try p
+    catch { case t: Throwable => Process.fail(t) }
   }
 }
