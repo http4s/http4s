@@ -8,8 +8,7 @@ import org.xml.sax.InputSource
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 import scalaz.concurrent.Task
-import scalaz.stream.processes
-import scalaz.stream.io
+import scalaz.stream.{io, process1, Process}
 
 // TODO: Need to handle failure in a more uniform manner
 /** A type that can be used to decode an [[EntityBody]]
@@ -85,7 +84,7 @@ trait EntityDecoderInstances {
 
   /** Provides a mechanism to fail decoding */
   def error(t: Throwable) = new EntityDecoder[Nothing] {
-    override def decode(msg: Message): Task[Nothing] = { msg.body.killBy(t); Task.fail(t) }
+    override def decode(msg: Message): Task[Nothing] = { msg.body.kill.run; Task.fail(t) }
     override def consumes: Set[MediaRange] = Set.empty
   }
 
@@ -96,7 +95,7 @@ trait EntityDecoderInstances {
   implicit val text: EntityDecoder[String] = {
     def decodeString(msg: Message): Task[String] = {
       val buff = new StringBuilder
-      (msg.body |> processes.fold(buff) { (b, c) => {
+      (msg.body |> process1.fold(buff) { (b, c) => {
         b.append(new String(c.toArray, (msg.charset.nioCharset)))
       }}).map(_.result()).runLastOr("")
     }

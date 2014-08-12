@@ -1,6 +1,8 @@
 package com.example.http4s
 package blaze
 
+import scalaz.concurrent.Strategy
+
 import org.http4s._
 import org.http4s.Status._
 import org.http4s.blaze.pipeline.LeafBuilder
@@ -13,6 +15,7 @@ import java.nio.ByteBuffer
 import java.net.InetSocketAddress
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.websocket.{Text, WSFrame}
+import scalaz.stream.DefaultScheduler
 
 
 object BlazeWebSocketExample extends App {
@@ -20,8 +23,7 @@ object BlazeWebSocketExample extends App {
   import dsl._
   import org.http4s.server.websocket._
   import scala.concurrent.duration._
-  import scalaz.stream.Process
-  import Process.Sink
+  import scalaz.stream.{Process, Sink}
   import scalaz.concurrent.Task
   import scalaz.stream.async.topic
 
@@ -31,7 +33,7 @@ object BlazeWebSocketExample extends App {
       Ok("Hello world.")
 
     case req@ GET -> Root / "ws" =>
-      val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
+      val src = Process.awakeEvery(1.seconds)(Strategy.DefaultStrategy, DefaultScheduler).map{ d => Text(s"Ping! $d") }
       val sink: Sink[Task, WSFrame] = Process.constant {
         case Text(t) => Task.delay( println(t))
         case f       => Task.delay(println(s"Unknown type: $f"))

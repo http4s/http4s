@@ -7,8 +7,9 @@ import scala.language.implicitConversions
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.option._
+import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.{Channel, io, Process}
-import scalaz.stream.Process.{End, emit}
+import scalaz.stream.Process.emit
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
@@ -123,7 +124,7 @@ trait WritableInstances extends WritableInstances0 {
           val m = src.read(buf)
           println("BUFFER = "+buf.subSequence(0, m))
           if (m == buf.length) buf
-          else if (m == -1) throw End
+          else if (m == -1) throw Terminated(End)
           else buf.slice(0, m)
         }}
       }
@@ -131,11 +132,11 @@ trait WritableInstances extends WritableInstances0 {
         val buf = new Array[Char](n)
         f(buf)
       })
-      Process.constant(4096).through(chunkR)
+      Process.constant(4096).toSource.through(chunkR)
     }
 
   def chunkedWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
-    processWritable[ByteVector].contramap { a => Process.constant(chunkSize).through(f(a)) }
+    processWritable[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
 
   implicit def charRopeWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Rope[Char]] =
     stringWritable.contramap(_.asString)

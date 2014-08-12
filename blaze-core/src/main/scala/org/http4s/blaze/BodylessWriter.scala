@@ -31,7 +31,7 @@ class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Bo
   override def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async[Unit] { cb =>
     pipe.channelWrite(headers).onComplete {
       case Success(_) => p.kill.run.runAsync(cb)
-      case Failure(t) => p.killBy(t).run.runAsync(cb)
+      case Failure(t) => p.kill.onComplete(Process.fail(t)).run.runAsync(cb)
     }
   }
 

@@ -3,6 +3,7 @@ package server
 package middleware
 
 import scalaz.stream.Process._
+import scalaz.stream.Cause.End
 import scala.annotation.tailrec
 import org.http4s.Header.`Content-Length`
 import scodec.bits.ByteVector
@@ -28,7 +29,7 @@ object ChunkAggregator extends LazyLogging {
     val chunks = compact(response.body)
     if (!chunks.isEmpty) {
       val h = response.headers :+ `Content-Length`(chunks.head.length)
-      response.copy(body = emitSeq(chunks), headers = h)
+      response.copy(body = emitAll(chunks), headers = h)
     }
     else response
   })

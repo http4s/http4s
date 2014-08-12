@@ -55,7 +55,7 @@ object Http4sDependencies {
   lazy val scalatest           = "org.scalatest"            %% "scalatest"               % "1.10.1" force() // without this, get a NoSuchMethodError on Buildable.buildableList()
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.0.6"
   lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.2"
-  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.4.1"
+  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.5"
   lazy val scodecCore          = "org.typelevel"            %% "scodec-core"             % "1.1.0"
   lazy val specs2              = "org.specs2"               %% "specs2"                  % "2.3.11"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "7.0.53"

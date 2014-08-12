@@ -16,6 +16,7 @@ import scodec.bits.ByteVector
 import scala.concurrent.{Future, ExecutionContext}
 import scala.util.{Failure, Success}
 import scalaz.stream.Process._
+import scalaz.stream.Cause.{Terminated, End}
 import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
 
@@ -131,7 +132,7 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
         def go(): Unit = try {
           val result = doParseContent(currentbuffer)
           if (result != null) cb(\/-(ByteVector(result))) // we have a chunk
-          else if (parserContentComplete()) cb(-\/(End))
+          else if (parserContentComplete()) cb(-\/(Terminated(End)))
           else channelRead().onComplete {
             case Success(b) =>       // Need more data...
               currentbuffer = b
@@ -149,7 +150,7 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
         }
         go()
       }
-      else cb(-\/(End))
+      else cb(-\/(Terminated(End)))
     }
 
     val cleanup = Task.async[Unit](cb =>

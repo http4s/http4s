@@ -3,7 +3,7 @@ package server
 
 import org.http4s.websocket.{WSFrame, Websocket}
 
-import scalaz.stream.Process
+import scalaz.stream.{Process, Sink}
 import scalaz.concurrent.Task
 import Process._
 
