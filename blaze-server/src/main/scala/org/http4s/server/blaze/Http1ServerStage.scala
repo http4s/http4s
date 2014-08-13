@@ -52,7 +52,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
   // TODO: Its stupid that I have to have these methods
   override protected def parserContentComplete(): Boolean = contentComplete()
 
-  override protected def doParseContent(buffer: ByteBuffer): ByteBuffer = parseContent(buffer)
+  override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
   // Will act as our loop
   override def stageStartup() {
@@ -95,7 +95,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
     case Failure(t)       => fatalError(t, "Error in requestLoop()")
   }
 
-  protected def collectMessage(body: EntityBody): Request = {
+  protected def collectMessage(body: EntityBody): Option[Request] = {
     val h = Headers(headers.result())
     headers.clear()
     val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
@@ -103,29 +103,30 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
       method <- Method.fromString(this.method)
       uri <- Uri.fromString(this.uri)
     } yield {
-      Request(method, uri, protocol, h, body, requestAttrs)
+      Some(Request(method, uri, protocol, h, body, requestAttrs))
     }).valueOr { e =>
       badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
-      null // TODO null??????!!!!!??????????????!
+      None
     }
   }
 
   private def runRequest(buffer: ByteBuffer): Unit = {
     val body = collectBodyFromParser(buffer)
-    val req = collectMessage(body)
 
-    // if we get a non-null response, process the route. Else, error has already been dealt with.
-    if (req != null) {
-      Task.fork(service.applyOrElse(req, NotFound(_: Request)))(pool)
-        .runAsync {
+    collectMessage(body) match {
+      case Some(req) =>
+        Task.fork(service.applyOrElse(req, NotFound(_: Request)))(pool)
+          .runAsync {
           case \/-(resp) => renderResponse(req, resp)
           case -\/(t)    =>
             logger.error(s"Error running route: $req", t)
             val resp = InternalServerError("500 Internal Service Error\n" + t.getMessage)
-                         .run
-                         .withHeaders(Connection("close".ci))
+              .run
+              .withHeaders(Connection("close".ci))
             renderResponse(req, resp)   // will terminate the connection due to connection: close header
         }
+
+      case None => // NOOP
     }
   }
 

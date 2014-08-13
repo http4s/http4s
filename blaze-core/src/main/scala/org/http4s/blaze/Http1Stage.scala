@@ -28,7 +28,7 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
 
   protected def parserContentComplete(): Boolean
 
-  protected def doParseContent(buffer: ByteBuffer): ByteBuffer
+  protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer]
 
   /** Encodes the headers into the Writer, except the Transfer-Encoding header which may be returned
     * Note: this method is very niche but useful for both server and client. */
@@ -130,14 +130,14 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
       if (!parserContentComplete()) {
 
         def go(): Unit = try {
-          val result = doParseContent(currentbuffer)
-          if (result != null) cb(\/-(ByteVector(result))) // we have a chunk
-          else if (parserContentComplete()) cb(-\/(Terminated(End)))
-          else channelRead().onComplete {
-            case Success(b) =>       // Need more data...
-              currentbuffer = b
-              go()
-            case Failure(t) => cb(-\/(t))
+          doParseContent(currentbuffer) match {
+            case Some(result) => cb(\/-(ByteVector(result)))
+            case None if parserContentComplete() => cb(-\/(Terminated(End)))
+            case None =>
+              channelRead().onComplete {
+                case Success(b) => currentbuffer = b; go() // Need more data...
+                case Failure(t) => cb(-\/(t))
+              }
           }
         } catch {
           case t: ParserException =>
