@@ -8,16 +8,16 @@ import scalaz.stream.Process._
 import org.http4s.Header.`Content-Type`
 import org.http4s._
 import org.http4s.dsl._
-import org.http4s.json4s.jackson.Json4sJacksonSupport
+import org.http4s.json4s.jackson.Json4sJacksonSupport._
 import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
+import org.http4s.server.middleware.PushSupport._
 import org.json4s.JsonDSL._
 import org.json4s.JValue
 import scodec.bits.ByteVector
 
-object ExampleService extends Http4s with Json4sJacksonSupport {
-  import org.http4s.server.middleware.PushSupport._
+object ExampleService {
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
   val MyVar = AttributeKey[Int]("org.http4s.examples.myVar")

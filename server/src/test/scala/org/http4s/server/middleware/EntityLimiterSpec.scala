@@ -8,10 +8,11 @@ import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 import scalaz.stream.Process.emit
+import Method._
+import Status._
 
 class EntityLimiterSpec extends Specification {
   import Http4s._
-  import Method._
 
   val s: HttpService = {
     case r: Request if r.requestUri.path == "/echo" => EntityDecoder.text(r).flatMap(Ok(_))

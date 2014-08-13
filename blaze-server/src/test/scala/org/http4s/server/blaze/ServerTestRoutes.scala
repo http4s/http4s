@@ -2,7 +2,7 @@ package org.http4s.server.blaze
 
 import org.http4s.Header._
 import org.http4s.Http4s._
-import org.http4s.Status.Ok
+import org.http4s.Status._
 import org.http4s._
 import org.http4s.server.HttpService
 
