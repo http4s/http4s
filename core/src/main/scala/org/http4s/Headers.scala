@@ -1,12 +1,13 @@
 package org.http4s
 
 import org.http4s.Header.Recurring
+import org.http4s.HeaderKey.StringKey
+import org.http4s.util.CaseInsensitiveString
 
 import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
-import org.http4s.HeaderKey.StringKey
-import org.http4s.util.CaseInsensitiveString
+
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
@@ -77,14 +78,16 @@ final class Headers private (headers: List[Header])
         val hs = that.toList.asInstanceOf[List[Header]]
         val acc = new ListBuffer[Header]
         val recurring = new mutable.HashSet[HeaderKey.Recurring]
-        this.headers.foreach {
+        this.headers.foreach(_.parsed match {
           case h: Header.Recurring                 => acc += h; recurring += h.key
           case h if (!hs.exists(_.name == h.name)) => acc += h
           case _                                   => // NOOP, drop non recurring header that already exists
-        }
+        })
 
-        val result = acc.prependToList(hs)
-        val h = if (recurring.nonEmpty) concatRecurrent(recurring, result) else new Headers(result)
+        val h = if (recurring.nonEmpty) {
+          val result = acc.prependToList(hs.map(_.parsed))
+          concatRecurrent(recurring, result)
+        } else new Headers(acc.prependToList(hs))
 
         h.asInstanceOf[That]
       }

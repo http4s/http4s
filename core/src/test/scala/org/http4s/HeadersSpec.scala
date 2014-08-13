@@ -43,6 +43,15 @@ class HeadersSpec extends Specification {
       hs.exists(_ == clength) must_== true
     }
 
+    "Work with Raw headers (++)" in {
+      val h1 = `Accept-Encoding`(ContentCoding("foo".ci)).toRaw
+      val h2 = `Accept-Encoding`(ContentCoding("bar".ci)).toRaw
+      val hs = Headers(clength.toRaw) ++ Headers(h1) ++ Headers(h2)
+      hs.length must_== 2
+      hs.exists(_ == `Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci))) must_== true
+      hs.exists(_ == clength) must_== true
+    }
+
     "Avoid making copies if there are duplicate collections" in {
       base ++ Headers.empty eq base must_== true
       Headers.empty ++ base eq base must_== true
