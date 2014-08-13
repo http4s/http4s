@@ -1,12 +1,10 @@
 package org.http4s
 
-import org.http4s.util.{Renderable, Writer}
-
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
-import scala.util.control.NoStackTrace
-import scalaz.{Order, Show, Equal, Validation}
-import scalaz.syntax.validation._
+import scalaz.{Order, Show}
+
+import org.http4s.util.{Renderable, Writer}
 
 /**
  * A Quality Value.  Represented as thousandths for an exact representation rounded to three
@@ -80,7 +78,10 @@ object QValue extends QValueInstances with QValueFunctions {
     try fromDouble(s.toDouble)
     catch { case e: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number") }
 
-  object macros {
+  object Macros {
+    /** Exists to support compile-time verified literals. Do not call directly. */
+    def ☠(thousandths: Int) = new QValue(thousandths)
+
     def qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
       import c.universe._
 
@@ -88,10 +89,10 @@ object QValue extends QValueInstances with QValueFunctions {
         case Literal(Constant(d: Double)) =>
           QValue.fromDouble(d).fold(
             e => c.abort(c.enclosingPosition, e.details),
-            qValue => c.Expr(q"QValue.fromThousandths(${qValue.thousandths}).valueOr(e => throw new ParseException(e))")
+            qValue => c.Expr(q"org.http4s.QValue.Macros.☠(${qValue.thousandths})")
           )
         case _ =>
-          c.abort(c.enclosingPosition, s"q syntax only works for literal doubles: ${showRaw(d.tree)}")
+          c.abort(c.enclosingPosition, s"literal Double value required")
       }
     }
   }
@@ -114,7 +115,7 @@ trait QValueFunctions {
    * q(d) // does not compile: not a literal
    * }}}
    */
-  def q(d: Double): QValue = macro QValue.macros.qValueLiteral
+  def q(d: Double): QValue = macro QValue.Macros.qValueLiteral
 }
 
 trait HasQValue {
