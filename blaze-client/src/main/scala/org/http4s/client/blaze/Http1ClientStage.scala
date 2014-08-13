@@ -26,7 +26,7 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
 
   override protected def parserContentComplete(): Boolean = contentComplete()
 
-  override protected def doParseContent(buffer: ByteBuffer): ByteBuffer = parseContent(buffer)
+  override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
   def runRequest(req: Request): Task[Response] = {
     logger.debug(s"Beginning request: $req")

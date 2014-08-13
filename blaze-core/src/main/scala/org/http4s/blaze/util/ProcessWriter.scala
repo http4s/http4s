@@ -64,7 +64,7 @@ trait ProcessWriter {
       case r@ \/-(_) => go(Try(f(r).run), stack, cb)
       case -\/(t)    =>
         if (stack.isEmpty) go(Halt(Error(t)), stack, cb)
-        else go(stack.head(Error(t)).run, stack.tail, cb)
+        else go(Try(stack.head(Error(t)).run), stack.tail, cb)
     }
 
     case Append(head, tail) =>
