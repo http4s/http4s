@@ -28,7 +28,34 @@ class HeadersSpec extends Specification {
       base.put(newlen.toRaw).get(newlen.key) should beSome (newlen)
     }
 
+    "Remove duplicate headers which are not of type Recurring on concatenation (++)" in {
+      val hs = Headers(clength) ++ Headers(clength)
+      hs.length must_== 1
+      hs.head must_== clength
+    }
+
+    "Fuse duplicate headers which are of type Recurring on concatenation (++)" in {
+      val h1 = `Accept-Encoding`(ContentCoding("foo".ci))
+      val h2 = `Accept-Encoding`(ContentCoding("bar".ci))
+      val hs = Headers(clength) ++ Headers(h1) ++ Headers(h2)
+      hs.length must_== 2
+      hs.exists(_ == `Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci))) must_== true
+      hs.exists(_ == clength) must_== true
+    }
+
+    "Work with Raw headers (++)" in {
+      val h1 = `Accept-Encoding`(ContentCoding("foo".ci)).toRaw
+      val h2 = `Accept-Encoding`(ContentCoding("bar".ci)).toRaw
+      val hs = Headers(clength.toRaw) ++ Headers(h1) ++ Headers(h2)
+      hs.length must_== 2
+      hs.exists(_ == `Accept-Encoding`(ContentCoding("foo".ci), ContentCoding("bar".ci))) must_== true
+      hs.exists(_ == clength) must_== true
+    }
+
+    "Avoid making copies if there are duplicate collections" in {
+      base ++ Headers.empty eq base must_== true
+      Headers.empty ++ base eq base must_== true
+    }
+
   }
-
-
 }

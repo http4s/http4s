@@ -1,10 +1,13 @@
 package org.http4s
 
-import scala.collection.{immutable, mutable}
-import scala.collection.generic.CanBuildFrom
-import scala.collection.mutable.ListBuffer
+import org.http4s.Header.Recurring
 import org.http4s.HeaderKey.StringKey
 import org.http4s.util.CaseInsensitiveString
+
+import scala.collection.{GenTraversableOnce, immutable, mutable}
+import scala.collection.generic.CanBuildFrom
+import scala.collection.mutable.ListBuffer
+
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
@@ -12,6 +15,8 @@ final class Headers private (headers: List[Header])
   with collection.SeqLike[Header, Headers] {
 
   override def toList: List[Header] = headers
+
+  override def isEmpty: Boolean = headers.isEmpty
 
   override protected def newBuilder: mutable.Builder[Header, Headers] = Headers.newBuilder
 
@@ -64,6 +69,39 @@ final class Headers private (headers: List[Header])
       new Headers(n)
     }
   }
+
+  override def ++[B >: Header, That](that: GenTraversableOnce[B])(implicit bf: CanBuildFrom[Headers, B, That]): That = {
+    if (bf eq Headers.canBuildFrom) {   // Making a new Headers collection from a collection of Header's
+      if (that.isEmpty) this.asInstanceOf[That]
+      else if (this.isEmpty) that.asInstanceOf[That]
+      else {
+        val hs = that.toList.asInstanceOf[List[Header]]
+        val acc = new ListBuffer[Header]
+        val recurring = new mutable.HashSet[HeaderKey.Recurring]
+        this.headers.foreach(_.parsed match {
+          case h: Header.Recurring                 => acc += h; recurring += h.key
+          case h if (!hs.exists(_.name == h.name)) => acc += h
+          case _                                   => // NOOP, drop non recurring header that already exists
+        })
+
+        val h = if (recurring.nonEmpty) {
+          val result = acc.prependToList(hs.map(_.parsed))
+          concatRecurrent(recurring, result)
+        } else new Headers(acc.prependToList(hs))
+
+        h.asInstanceOf[That]
+      }
+    }
+    else super.++(that)
+  }
+
+  private def concatRecurrent(keys: mutable.Set[HeaderKey.Recurring], headers: List[Header]): Headers = {
+    val (singles, recurring) = headers.partition { case _: Recurring => false; case _ => true }
+    val recacc = new ListBuffer[Header]
+    val recurringHeaders = Headers(recurring)
+    keys.foreach(_.from(recurringHeaders).foreach(recacc += _))
+    new Headers(recacc.prependToList(singles))
+  }
 }
 
 object Headers {
@@ -75,7 +113,7 @@ object Headers {
   /** Create a new Headers collection from the headers */
   def apply(headers: List[Header]): Headers = new Headers(headers)
 
-  implicit def canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
+  implicit val canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
     new CanBuildFrom[TraversableOnce[Header], Header, Headers] {
       def apply(from: TraversableOnce[Header]): mutable.Builder[Header, Headers] = newBuilder
 

@@ -106,7 +106,7 @@ object Header {
   /** Simple helper trait that provides a default way of rendering the value */
   trait RecurringRenderable extends Recurring {
     type Value <: Renderable
-    def renderValue[W <: Writer](writer: W): writer.type = {
+    override def renderValue[W <: Writer](writer: W): writer.type = {
       values.head.render(writer)
       values.tail.foreach( writer ~ ", " ~ _ )
       writer
