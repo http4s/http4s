@@ -18,10 +18,6 @@ class MethodSpec extends Http4sSpec {
     prop { s: String => fromString(s).isRight must equal (Rfc2616BasicRules.isToken(s)) }
   }
 
-  "standard methods are memoized" in {
-    forAll(standardMethods) { m => fromString(m.name) must beRightDisjunction.like { case m1 => m1 must be (m) } }
-  }
-
   "name is case sensitive" in {
     prop { m: Method => {
       val upper = m.name.toUpperCase(Locale.ROOT)

@@ -13,7 +13,7 @@ import scalaz.concurrent.Task
  * @param name the name of the method.
  * @see [http://tools.ietf.org/html/rfc7231#section-4 RFC7321, Section 4]
  */
-final case class Method private (name: String) extends Renderable {
+final case class Method private (val name: String) extends AnyVal with Renderable {
   override def render[W <: Writer](writer: W): writer.type = writer ~ name
 
   /** Make a [[org.http4s.Request]] using this Method */
