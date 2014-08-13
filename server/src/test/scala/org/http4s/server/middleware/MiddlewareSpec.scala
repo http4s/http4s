@@ -15,7 +15,7 @@ class MiddlewareSpec extends Http4sSpec {
 
   val awareReq = Request(requestUri = uri("/rootPath/checktranslate"))
 
-  val echoBody = emitSeq(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
+  val echoBody = emitAll(List("one", "two", "three")).map(s => ByteVector(s.getBytes))
   val echoReq = Request(requestMethod = Method.POST,
                           requestUri = uri("/rootPath/echo"),
                           body = echoBody)
