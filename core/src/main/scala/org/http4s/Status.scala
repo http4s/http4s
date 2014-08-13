@@ -58,7 +58,7 @@ object Status extends StatusInstances {
     def apply(): Task[Response] = Task.now(StatusResponder)
 
     def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
-      apply(body, w.headers)(w)
+      apply(body, Headers.empty)(w)
 
     def apply[A](body: A, headers: Headers)(implicit w: Writable[A]): Task[Response] = {
       var h = headers ++ w.headers
