@@ -1,8 +1,7 @@
 package org.http4s
 
 trait Http4s
-  extends Http4sConstants
-  with Http4sInstances
+  extends Http4sInstances
   with Http4sFunctions
   with Http4sSyntax
 

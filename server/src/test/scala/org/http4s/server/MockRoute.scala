@@ -3,8 +3,10 @@ package server
 
 import scalaz.concurrent.Task
 
+import middleware.PushSupport._
+import Status._
+
 object MockRoute extends Http4s {
-  import middleware.PushSupport._
 
   def route(): HttpService = {
     case req: Request if req.requestUri.path ==  "/ping" =>

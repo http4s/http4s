@@ -8,6 +8,7 @@ import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 
 import org.http4s.Uri.{Authority, RegName}
+import Status._
 
 trait ClientRouteTests { self: Http4sSpec =>
 
