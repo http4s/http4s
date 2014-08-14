@@ -40,9 +40,6 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
   override def putHeaders(headers: Header*): Self = self.map(_.putHeaders(headers:_*))
 
   override def filterHeaders(f: (Header) => Boolean): Self = self.map(_.filterHeaders(f))
-
-  /** Add the provided headers to the existing headers */
-  override def addHeaders(headers: Header*): Self = self.map(_.addHeaders(headers:_*))
 }
 
 final class TaskRequestOps(val self: Task[Request]) extends AnyVal with TaskMessageOps[Request]

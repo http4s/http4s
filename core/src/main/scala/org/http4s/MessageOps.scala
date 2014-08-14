@@ -51,10 +51,9 @@ trait MessageOps extends Any {
   /** Replace the existing headers with those provided */
   def withHeaders(headers: Header*): Self = withHeaders(Headers(headers.toList))
 
-  /** Add the provided headers to the existing headers */
-  def addHeaders(headers: Header*): Self
-
-  /** Add the provided headers to the existing headers, replacing those of the same header name */
+  /** Add the provided headers to the existing headers, replacing those of the same header name
+    * The passed headers are assumed to contain no duplicate Singleton headers.
+    */
   def putHeaders(headers: Header*): Self
 
   def withTrailerHeaders(trailerHeaders: Task[Headers]): Self =
@@ -72,7 +71,7 @@ trait ResponseOps extends Any with MessageOps {
   def withStatus[S <% Status](status: S): Self
 
   /** Add a Set-Cookie header for the provided [[Cookie]] */
-  def addCookie(cookie: Cookie): Self = addHeaders(Header.`Set-Cookie`(cookie))
+  def addCookie(cookie: Cookie): Self = putHeaders(Header.`Set-Cookie`(cookie))
 
   /** Add a Set-Cookie header with the provided values */
   def addCookie(name: String,
@@ -80,11 +79,11 @@ trait ResponseOps extends Any with MessageOps {
                 expires: Option[DateTime] = None): Self = addCookie(Cookie(name, content, expires))
 
   /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
-  def removeCookie(cookie: Cookie): Self = addHeaders(`Set-Cookie`(cookie.copy(content = "",
+  def removeCookie(cookie: Cookie): Self = putHeaders(`Set-Cookie`(cookie.copy(content = "",
     expires = Some(DateTime.UnixEpoch), maxAge = Some(0))))
 
   /** Add a Set-Cookie which will remove the specified cookie from the client */
-  def removeCookie(name: String): Self = addHeaders(Header.`Set-Cookie`(
+  def removeCookie(name: String): Self = putHeaders(Header.`Set-Cookie`(
     Cookie(name, "", expires = Some(DateTime.UnixEpoch), maxAge = Some(0))
   ))
 }

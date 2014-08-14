@@ -62,7 +62,7 @@ object Status extends StatusConstants {
     def apply[A](body: A, headers: Headers)(implicit w: Writable[A]): Task[Response] = {
       var h = headers ++ w.headers
       w.toEntity(body).flatMap { case Entity(proc, len) =>
-        len foreach { h +:= Header.`Content-Length`(_) }
+        len foreach(l => h = h.put(Header.`Content-Length`(l)))
         Task.now(Response(status = self, headers = h, body = proc))
       }
     }
@@ -113,7 +113,7 @@ trait StatusConstants {
   object SwitchingProtocols extends Status(101, "Switching Protocols") {
     // TODO type this header
     def apply(protocols: String, headers: Headers = Headers.empty): Response =
-      Response(status = this, headers = Header("Upgrade", protocols) +: headers, body = EmptyBody)
+      Response(status = this, headers = headers.put(Header("Upgrade", protocols)), body = EmptyBody)
   }
   val Processing = new Status(102, "Processing") with NoEntityResponseGenerator
 
@@ -128,7 +128,7 @@ trait StatusConstants {
     def apply[A](range: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
         val hs = Header("Range", range)::headers.toList
-        r.addHeaders(hs:_*)
+        r.putHeaders(hs:_*)
       }
   }
   val MultiStatus = new Status(207, "Multi-Status") with EntityResponseGenerator
@@ -153,7 +153,7 @@ trait StatusConstants {
     // TODO type this header
       apply(body).map { r =>
         val hs = Header("WWW-Authenticate", wwwAuthenticate)::headers.toList
-        r.addHeaders(hs:_*)
+        r.putHeaders(hs:_*)
       }
   }
   val PaymentRequired = new Status(402, "Payment Required") with EntityResponseGenerator
@@ -165,7 +165,7 @@ trait StatusConstants {
     def apply[A](allowed: TraversableOnce[Method], body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
         val hs = Header("Allowed", allowed.mkString(", "))::headers.toList
-        r.addHeaders(hs:_*)
+        r.putHeaders(hs:_*)
       }
   }
   val NotAcceptable = new Status(406, "Not Acceptable") with EntityResponseGenerator
@@ -174,7 +174,7 @@ trait StatusConstants {
     def apply[A](proxyAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
       apply(body).map { r =>
         val hs = Header("Proxy-Authenticate", proxyAuthenticate)::headers.toList
-        r.addHeaders(hs:_*)
+        r.putHeaders(hs:_*)
       }
   }
   val RequestTimeOut = new Status(408, "Request Time-out") with EntityResponseGenerator

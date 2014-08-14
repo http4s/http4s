@@ -11,8 +11,9 @@ import scala.collection.mutable.ListBuffer
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
-  extends immutable.Seq[Header]
-  with collection.SeqLike[Header, Headers] {
+  extends immutable.Iterable[Header]
+  with collection.IterableLike[Header, Headers]
+{
 
   override def toList: List[Header] = headers
 
@@ -20,19 +21,11 @@ final class Headers private (headers: List[Header])
 
   override protected def newBuilder: mutable.Builder[Header, Headers] = Headers.newBuilder
 
-  override def tail: Headers = new Headers(headers.tail)
+  override def drop(n: Int): Headers = if (n == 0) this else new Headers(headers.drop(n))
 
   override def head: Header = headers.head
 
   override def foreach[B](f: Header => B): Unit = headers.foreach(f)
-
-  def +: (header: Header): Headers = new Headers(header::headers)
-
-  override def drop(n: Int): Headers = new Headers(headers.drop(n))
-  
-  def length: Int = headers.length
-
-  def apply(idx: Int): Header = headers(idx)
 
   def iterator: Iterator[Header] = headers.iterator
 
@@ -56,51 +49,48 @@ final class Headers private (headers: List[Header])
     get(k).map(_.toRaw)
   }
 
-  /** Make a new collection adding the specified headers, replacing existing headers of the same name
+  /** Make a new collection adding the specified headers, replacing existing headers of singleton type
+    * The passed headers are assumed to contain no duplicate Singleton headers.
     *
     * @param in multiple [[Header]] to append to the new collection
     * @return a new [[Headers]] containing the sum of the initial and input headers
     */
   def put(in: Header*): Headers = {
     if (in.isEmpty) this
-    else {
-      val b = new ListBuffer[Header] ++= in
-      val n = b.prependToList(headers.filterNot(h => in.exists(_.name == h.name)))
-      new Headers(n)
-    }
+    else if (this.isEmpty) new Headers(in.toList)
+    else this ++ in
   }
 
+  /** Concatenate the two collections
+    * If the resulting collection is of Headers type, duplicate Singleton headers will be removed from
+    * this Headers collection.
+    *
+    * @param that collection to append
+    * @tparam B type contained in collection `that`
+    * @tparam That resulting type of the new collection
+    */
   override def ++[B >: Header, That](that: GenTraversableOnce[B])(implicit bf: CanBuildFrom[Headers, B, That]): That = {
     if (bf eq Headers.canBuildFrom) {   // Making a new Headers collection from a collection of Header's
       if (that.isEmpty) this.asInstanceOf[That]
-      else if (this.isEmpty) that.asInstanceOf[That]
+      else if (this.isEmpty) that match {
+        case hs: Headers => hs.asInstanceOf[That]
+        case hs => new Headers(hs.toList.asInstanceOf[List[Header]]).asInstanceOf[That]
+      }
       else {
         val hs = that.toList.asInstanceOf[List[Header]]
         val acc = new ListBuffer[Header]
-        val recurring = new mutable.HashSet[HeaderKey.Recurring]
         this.headers.foreach(_.parsed match {
-          case h: Header.Recurring                 => acc += h; recurring += h.key
+          case h: Header.Recurring                 => acc += h
+          case h: Header.`Set-Cookie`              => acc += h
           case h if (!hs.exists(_.name == h.name)) => acc += h
           case _                                   => // NOOP, drop non recurring header that already exists
         })
 
-        val h = if (recurring.nonEmpty) {
-          val result = acc.prependToList(hs.map(_.parsed))
-          concatRecurrent(recurring, result)
-        } else new Headers(acc.prependToList(hs))
-
+        val h =  new Headers(acc.prependToList(hs))
         h.asInstanceOf[That]
       }
     }
     else super.++(that)
-  }
-
-  private def concatRecurrent(keys: mutable.Set[HeaderKey.Recurring], headers: List[Header]): Headers = {
-    val (singles, recurring) = headers.partition { case _: Recurring => false; case _ => true }
-    val recacc = new ListBuffer[Header]
-    val recurringHeaders = Headers(recurring)
-    keys.foreach(_.from(recurringHeaders).foreach(recacc += _))
-    new Headers(recacc.prependToList(singles))
   }
 }
 

@@ -50,10 +50,6 @@ trait Message extends MessageOps {
   override def filterHeaders(f: (Header) => Boolean): Self =
     change(headers = headers.filter(f))
 
-  /** Add the provided headers to the existing headers */
-  override def addHeaders(headers: Header*): Self =
-    change(headers = this.headers ++ Headers(headers.toList))
-
   /** Replace the body of this message with a new body
     *
     * @param b body to attach to this method
@@ -64,7 +60,7 @@ trait Message extends MessageOps {
   def withBody[T](b: T)(implicit w: Writable[T]): Task[Self] = {
     w.toEntity(b).map { entity =>
       val hs = entity.length match {
-        case Some(l) => `Content-Length`(l) +:w.headers
+        case Some(l) => `Content-Length`(l)::w.headers.toList
         case None    => w.headers
       }
       change(body = entity.body, headers = headers ++ hs)

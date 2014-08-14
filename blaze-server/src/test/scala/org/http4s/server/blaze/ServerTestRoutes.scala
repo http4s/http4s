@@ -112,7 +112,8 @@ object ServerTestRoutes {
   def apply(): HttpService = {
     case req if req.method == Method.GET && req.pathInfo == "/get" => Ok("get")
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
-      Ok(eval(Task("chu")) ++ eval(Task("nk"))).addHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(eval(Task("chu")) ++ eval(Task("nk"))).putHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+
 
     case req if req.method == Method.GET && req.pathInfo == "/cachechunked" =>
       Ok(eval(Task("chu")) ++ eval(Task("nk")))
@@ -120,7 +121,8 @@ object ServerTestRoutes {
     case req if req.method == Method.POST && req.pathInfo == "/post" => Ok("post")
 
     case req if req.method == Method.GET && req.pathInfo == "/twocodings" =>
-      Ok("Foo").addHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok("Foo").putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+
 
     case req if req.method == Method.POST && req.pathInfo == "/echo" =>
       Ok(emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.nioCharset)))
