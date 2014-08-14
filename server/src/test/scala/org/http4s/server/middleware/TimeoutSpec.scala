@@ -2,13 +2,13 @@ package org.http4s
 package server
 package middleware
 
-import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
+import Method._
 
-class TimeoutSpec extends Specification with NoTimeConversions {
+class TimeoutSpec extends Http4sSpec with NoTimeConversions {
 
   val myservice: HttpService = {
     case req if req.requestUri.path == "/fast" => Status.Ok("Fast")
@@ -19,13 +19,13 @@ class TimeoutSpec extends Specification with NoTimeConversions {
 
   "Timeout Middleware" should {
     "Have no effect if the response is not delayed" in {
-      val req = Method.GET("/fast").run
+      val req = Request(GET, uri("/fast"))
 
       timeoutService.apply(req).run.status must_==(Status.Ok)
     }
 
     "return a timeout if the result takes too long" in {
-      val req = Method.GET("/slow").run
+      val req = Request(GET, uri("/slow"))
 
       timeoutService.apply(req).run.status must_==(Status.RequestTimeOut)
     }
@@ -33,7 +33,7 @@ class TimeoutSpec extends Specification with NoTimeConversions {
     "Handle infinite durations" in {
       val service = Timeout(Duration.Inf)(myservice)
 
-      service(Method.GET("/slow").run).run.status must_==(Status.Ok)
+      service(Request(GET, uri("/slow"))).run.status must_==(Status.Ok)
     }
   }
 

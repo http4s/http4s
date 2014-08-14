@@ -23,13 +23,13 @@ class EntityLimiterSpec extends Specification {
   "EntityLimiter" should {
 
     "Allow reasonable entities" in {
-      EntityLimiter(s, 100).apply(POST("/echo").run.copy(body = b))
+      EntityLimiter(s, 100).apply(Request(POST, uri("/echo"), body = b))
         .map(_ => -1)
         .run must be_==(-1)
     }
 
     "Limit the maximum size of an EntityBody" in {
-      EntityLimiter(s, 3).apply(POST("/echo").run.copy(body = b))
+      EntityLimiter(s, 3).apply(Request(POST, uri("/echo"), body = b))
         .map(_ => -1)
         .handle { case EntityTooLarge(i) => i }
         .run must be_==(3)
@@ -41,10 +41,10 @@ class EntityLimiterSpec extends Specification {
       }
 
       val st = EntityLimiter(s, 3) orElse s2
-      (st.apply(POST("/echo2").run.copy(body = b))
+      (st.apply(Request(POST, uri("/echo2"), body = b))
         .map(_ => -1)
         .run must be_==(-1)) &&
-        (st.apply(POST("/echo").run.copy(body = b))
+        (st.apply(Request(POST, uri("/echo"), body = b))
           .map(_ => -1)
           .handle { case EntityTooLarge(i) => i }
           .run must be_==(3))
