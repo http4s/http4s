@@ -41,7 +41,7 @@ class PathSpec extends Http4sSpec {
     }
 
     "-> extractor /test.json" in {
-      val req = Request(requestMethod = Method.GET, requestUri = uri("/test.json"))
+      val req = Request(method = Method.GET, uri = uri("/test.json"))
       (req match {
         case GET -> Root / "test.json" => true
         case _                         => false
@@ -49,7 +49,7 @@ class PathSpec extends Http4sSpec {
     }
 
     "-> extractor /foo/test.json" in {
-      val req = Request(requestMethod = Method.GET, requestUri = uri("/foo/test.json"))
+      val req = Request(method = Method.GET, uri = uri("/foo/test.json"))
       (req match {
         case GET -> Root / "foo" / "test.json" => true
         case _                         => false
@@ -57,7 +57,7 @@ class PathSpec extends Http4sSpec {
     }
 
    "request path info extractor for /" in {
-      val req = Request(requestMethod = Method.GET, requestUri = uri("/"))
+      val req = Request(method = Method.GET, uri = uri("/"))
       (req match {
         case _ -> Root => true
         case _ => false

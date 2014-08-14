@@ -37,12 +37,12 @@ trait Http1SSLSupport extends Http1Support {
   protected lazy val sslContext = defaultTrustManagerSSLContext()
 
   override protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
-    req.requestUri.scheme match {
-      case Some(ci) if ci == "https".ci && req.requestUri.authority.isDefined =>
+    req.uri.scheme match {
+      case Some(ci) if ci == "https".ci && req.uri.authority.isDefined =>
         val eng = sslContext.createSSLEngine()
         eng.setUseClientMode(true)
 
-        val auth = req.requestUri.authority.get
+        val auth = req.uri.authority.get
         val t = new Http1ClientStage()
         val b = LeafBuilder(t).prepend(new SSLStage(eng))
         val port = auth.port.getOrElse(443)
@@ -54,9 +54,9 @@ trait Http1SSLSupport extends Http1Support {
   }
 
   override protected def getAddress(req: Request): AddressResult = {
-    val addr = req.requestUri.scheme match {
-      case Some(ci) if ci == "https".ci && req.requestUri.authority.isDefined =>
-        val auth = req.requestUri.authority.get
+    val addr = req.uri.scheme match {
+      case Some(ci) if ci == "https".ci && req.uri.authority.isDefined =>
+        val auth = req.uri.authority.get
         val host = auth.host.value
         val port = auth.port.getOrElse(443)
         \/-(new InetSocketAddress(host, port))

@@ -70,14 +70,14 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
       validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.1`))
     }
       // Ensure we have a host header for HTTP/1.1
-    else if (minor == 1 && req.requestUri.host.isEmpty) { // this is unlikely if not impossible
+    else if (minor == 1 && req.uri.host.isEmpty) { // this is unlikely if not impossible
       if (Host.from(req.headers).isDefined) {
         val host = Host.from(req.headers).get
-        val newAuth = req.requestUri.authority match {
+        val newAuth = req.uri.authority match {
           case Some(auth) => auth.copy(host = RegName(host.host), port = host.port)
           case None => Authority(host = RegName(host.host), port = host.port)
         }
-        validateRequest(req.copy(requestUri = req.requestUri.copy(authority = Some(newAuth))))
+        validateRequest(req.copy(uri = req.uri.copy(authority = Some(newAuth))))
       }
       else if (req.body.isHalt || `Content-Length`.from(req.headers).nonEmpty) {  // translate to HTTP/1.0
         validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.0`))
@@ -95,8 +95,8 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
   }
 
   private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
-    val uri = req.requestUri
-    writer ~ req.requestMethod ~ ' ' ~ uri.path ~ ' ' ~ req.httpVersion ~ '\r' ~ '\n'
+    val uri = req.uri
+    writer ~ req.method ~ ' ' ~ uri.path ~ ' ' ~ req.httpVersion ~ '\r' ~ '\n'
     if (getHttpMinor(req) == 1 && Host.from(req.headers).isEmpty) { // need to add the host header for HTTP/1.1
       uri.host match {
         case Some(host) =>

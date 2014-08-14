@@ -16,12 +16,12 @@ trait Http1Support extends PipelineBuilder {
   implicit protected def ec: ExecutionContext
 
   override protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
-    val isHttp = req.requestUri.scheme match {
+    val isHttp = req.uri.scheme match {
       case Some(s) if s != "http".ci => false
       case _ => true
     }
 
-    if (isHttp && req.requestUri.authority.isDefined) {
+    if (isHttp && req.uri.authority.isDefined) {
       val t = new Http1ClientStage()
       PipelineResult(LeafBuilder(t), t)
     }
@@ -29,7 +29,7 @@ trait Http1Support extends PipelineBuilder {
   }
 
   override protected def getAddress(req: Request): AddressResult = {
-    req.requestUri
+    req.uri
      .authority
      .fold[AddressResult](-\/(new Exception("Request must have an authority"))){ auth =>
       val port = auth.port.getOrElse(80)

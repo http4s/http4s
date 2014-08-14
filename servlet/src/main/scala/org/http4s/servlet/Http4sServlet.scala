@@ -91,8 +91,8 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
       uri <- Uri.fromString(req.getRequestURI)
       version <- HttpVersion.fromString(req.getProtocol)
     } yield Request(
-      requestMethod = method,
-      requestUri = uri,
+      method = method,
+      uri = uri,
       httpVersion = version,
       headers = toHeaders(req),
       body = chunkR(req.getInputStream).map(f => f(chunkSize)).eval,

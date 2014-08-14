@@ -99,16 +99,16 @@ object Message {
   * A Request encapsulates the entirety of the incoming HTTP request including the
   * status line, headers, and a possible request body.
   *
-  * @param requestMethod [[Method.GET]], [[Method.POST]], etc.
-  * @param requestUri representation of the request URI
+  * @param method [[Method.GET]], [[Method.POST]], etc.
+  * @param uri representation of the request URI
   * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
   * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 case class Request(
-  requestMethod: Method = Method.GET,
-  requestUri: Uri = Uri(path = "/"),
+  method: Method = Method.GET,
+  uri: Uri = Uri(path = "/"),
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
@@ -126,14 +126,14 @@ case class Request(
 
   lazy val (scriptName, pathInfo) = {
     val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
-    requestUri.path.splitAt(caret)
+    uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String) = copy(requestUri = requestUri.withPath(scriptName + pi))
+  def withPathInfo(pi: String) = copy(uri = uri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  def queryString: String = requestUri.query.getOrElse("")
+  def queryString: String = uri.query.getOrElse("")
 
   /**
    * Representation of the query string as a map
@@ -155,7 +155,7 @@ case class Request(
    * The query string is lazily parsed. If an error occurs during parsing
    * an empty `Map` is returned.
    */
-  def multiParams: Map[String, Seq[String]] = requestUri.multiParams
+  def multiParams: Map[String, Seq[String]] = uri.multiParams
 
   /**
    * View of the head elements of the URI parameters in query string.
@@ -164,7 +164,7 @@ case class Request(
    *
    * @see multiParams
    */
-  def params: Map[String, String] = requestUri.params
+  def params: Map[String, String] = uri.params
 
   lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)
   lazy val remoteAddr: Option[String] = remote.map(_.getHostAddress)
@@ -173,13 +173,13 @@ case class Request(
   lazy val remoteUser: Option[String] = None
 
   lazy val serverName: String = {
-    requestUri.host.map(_.value)
+    uri.host.map(_.value)
       .orElse(headers.get(Header.Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
   }
 
   lazy val serverPort: Int = {
-    requestUri.port
+    uri.port
       .orElse(headers.get(Header.Host).flatMap(_.port))
       .getOrElse(80)
   }

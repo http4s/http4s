@@ -13,7 +13,7 @@ trait PipelineBuilder {
   protected case class PipelineResult(builder: LeafBuilder[ByteBuffer], tail: BlazeClientStage)
 
   protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
-    sys.error(s"Unsupported request: ${req.requestUri}")
+    sys.error(s"Unsupported request: ${req.uri}")
   }
 
   protected def getAddress(req: Request): \/[Throwable, InetSocketAddress] = {

@@ -20,7 +20,7 @@ trait ClientRouteTests { self: Http4sSpec =>
 
   // The main entry method for this
   protected def runTest(req: Request, address: InetSocketAddress): Response = {
-    val newreq = req.copy(requestUri = req.requestUri.copy(authority = Some(Authority(host = RegName(address.getHostName),
+    val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
                                                                                       port = Some(address.getPort)))))
     client.prepare(newreq).run
   }
@@ -57,7 +57,7 @@ trait ClientRouteTests { self: Http4sSpec =>
   }
 
   private def internamRunTest(req: Request, expected: Response, address: InetSocketAddress): Unit = {
-    s"Execute ${req.requestMethod}: ${req.requestUri}: " in {
+    s"Execute ${req.method}: ${req.uri}: " in {
       val received = runTest(req, address)
       checkResponse(received, expected)
     }
@@ -72,7 +72,7 @@ trait ClientRouteTests { self: Http4sSpec =>
 
   private def translateTests(port: Int, method: Method, paths: Map[String, Response]): Map[Request, Response] = {
     paths.map { case (s, r) =>
-      (Request(method, requestUri = Uri.fromString(s"http://localhost:$port/$s").yolo), r)
+      (Request(method, uri = Uri.fromString(s"http://localhost:$port/$s").yolo), r)
     }
   }
 

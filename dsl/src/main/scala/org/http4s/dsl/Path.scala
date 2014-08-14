@@ -101,7 +101,7 @@ object -> {
    *     case Method.GET -> Root / "test.json" => ...
    */
   def unapply(req: Request): Option[(Method, Path)] = {
-    Some((req.requestMethod, Path(req.pathInfo)))
+    Some((req.method, Path(req.pathInfo)))
   }
 }
 
