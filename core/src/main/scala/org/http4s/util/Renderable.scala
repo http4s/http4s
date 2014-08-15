@@ -1,16 +1,11 @@
 package org.http4s.util
 
-trait Renderable {
+trait Renderable extends Any {
   def render[W <: Writer](writer: W): writer.type
-}
 
-trait ValueRenderable extends Renderable {
+  override def toString: String = renderString
 
-  def renderValue[W <: Writer](writer: W): writer.type
-
-  override def render[W <: Writer](writer: W): writer.type = renderValue(writer)
-
-  def value: String = renderValue(new StringWriter).result()
+  def renderString = render(new StringWriter).result
 }
 
 trait Writer {

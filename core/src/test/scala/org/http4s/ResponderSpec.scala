@@ -19,9 +19,9 @@ class ResponderSpec extends Specification {
     "Replace content type" in {
       import Header._
       resp.contentType should be (None)
-      val c1 = resp.addHeader(Header.`Content-Length`(4))
+      val c1 = resp.putHeaders(Header.`Content-Length`(4))
         .withContentType(Some(`Content-Type`.`text/plain`))
-        .addHeader(Header.Host("foo"))
+        .putHeaders(Header.Host("foo"))
 
       c1.headers.count(_ is `Content-Type`) must_== (1)
       c1.headers.count(_ is `Content-Length`) must_== (1)
@@ -37,7 +37,7 @@ class ResponderSpec extends Specification {
     }
 
     "Replace headers" in {
-      val wHeader = resp.addHeader(Header.Connection("close".ci))
+      val wHeader = resp.putHeaders(Header.Connection("close".ci))
       wHeader.headers.get(Header.Connection) must beSome(Header.Connection("close".ci))
 
       val newHeaders = wHeader.removeHeader(Header.Connection)

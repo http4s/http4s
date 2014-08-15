@@ -8,12 +8,15 @@ import org.xml.sax.InputSource
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 import scalaz.concurrent.Task
-import scalaz.stream.processes
-import scalaz.stream.io
+import scalaz.stream.{io, process1, Process}
 
 // TODO: Need to handle failure in a more uniform manner
-
-/** Decoder that describes the MediaTypes it can decode */
+/** A type that can be used to decode an [[EntityBody]]
+  * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
+  * entire resulting T. If an error occurs it will result in a failed Task
+  * These are not streaming constructs.
+  * @tparam T result type produced by the decoder
+  */
 sealed trait EntityDecoder[+T] { self =>
 
   final def apply(msg: Message): Task[T] = decode(msg)
@@ -32,14 +35,23 @@ sealed trait EntityDecoder[+T] { self =>
 
   def matchesMediaType(msg: Message): Boolean = {
     if (!consumes.isEmpty) {
-      msg.headers.get(Header.`Content-Type`).flatMap {
-        h => consumes.find(_.satisfiedBy(h.mediaType))
-      }.isDefined
+      msg.headers.get(Header.`Content-Type`) match {
+        case Some(h) => matchesMediaType(h.mediaType)
+        case None    => false
+      }
     }
     else false
   }
+
+  def matchesMediaType(mediaType: MediaType): Boolean = !consumes.isEmpty && {
+    consumes.find(_.satisfiedBy(mediaType)).isDefined
+  }
 }
 
+/** EntityDecoder is used to attempt to decode an [[EntityBody]]
+  * This companion object provides a way to create `new EntityDecoder`s along
+  * with some commonly used instances which can be resolved implicitly.
+  */
 object EntityDecoder extends EntityDecoderInstances {
   def apply[T](f: Message => Task[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): Task[T] = {
@@ -59,15 +71,23 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
   }
 
+  // Helper method which simply gathers the body into a single Array[Byte]
   def collectBinary(msg: Message): Task[Array[Byte]] =
     msg.body.runLog.map(_.reduce(_ ++ _).toArray)
 }
 
-/** Various instances of common decoders */
+/** Implementations of the EntityDecoder instances */
 trait EntityDecoderInstances {
   import EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////
+
+  /** Provides a mechanism to fail decoding */
+  def error(t: Throwable) = new EntityDecoder[Nothing] {
+    override def decode(msg: Message): Task[Nothing] = { msg.body.kill.run; Task.fail(t) }
+    override def consumes: Set[MediaRange] = Set.empty
+  }
+
   implicit val binary: EntityDecoder[Array[Byte]] = {
     EntityDecoder(collectBinary, MediaRange.`*/*`)
   }
@@ -75,11 +95,11 @@ trait EntityDecoderInstances {
   implicit val text: EntityDecoder[String] = {
     def decodeString(msg: Message): Task[String] = {
       val buff = new StringBuilder
-      (msg.body |> processes.fold(buff) { (b, c) => {
-        b.append(new String(c.toArray, (msg.charset.charset)))
+      (msg.body |> process1.fold(buff) { (b, c) => {
+        b.append(new String(c.toArray, (msg.charset.nioCharset)))
       }}).map(_.result()).runLastOr("")
     }
-    EntityDecoder(msg => collectBinary(msg).map(new String(_, msg.charset.charset)),
+    EntityDecoder(msg => collectBinary(msg).map(new String(_, msg.charset.nioCharset)),
       MediaRange.`text/*`)
   }
 
@@ -93,7 +113,7 @@ trait EntityDecoderInstances {
    */
   implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder(msg => {
     collectBinary(msg).map { arr =>
-      val source = new InputSource(new StringReader(new String(arr, msg.charset.charset)))
+      val source = new InputSource(new StringReader(new String(arr, msg.charset.nioCharset)))
       XML.loadXML(source, parser)
     }
   }, MediaType.`text/xml`)

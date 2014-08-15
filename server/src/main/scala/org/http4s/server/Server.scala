@@ -24,6 +24,8 @@ trait ServerBuilder { self =>
   def build: To
 
   def withPort(port: Int): this.type
+  
+  def withHost(host: String): this.type
 
   def start: Task[To] = build.start
 

@@ -18,13 +18,14 @@
  */
 package org.http4s
 
-import CharacterSet._
-import org.http4s.util.{Writer, ValueRenderable}
+import java.nio.charset.StandardCharsets
+
+import org.http4s.util.{Renderable, Writer}
 import net.iharder.Base64
 
-sealed abstract class Credentials extends ValueRenderable {
+sealed abstract class Credentials extends Renderable {
   def authScheme: AuthScheme
-  override def toString = value
+  def value: String
 }
 
 case class BasicCredentials(username: String, password: String) extends Credentials {
@@ -32,18 +33,18 @@ case class BasicCredentials(username: String, password: String) extends Credenti
 
   override lazy val value = {
     val userPass = username + ':' + password
-    val bytes = userPass.getBytes(`ISO-8859-1`.charset)
+    val bytes = userPass.getBytes(StandardCharsets.ISO_8859_1)
     val cookie = Base64.encodeBytes(bytes)
     "Basic " + cookie
   }
 
-  def renderValue[W <: Writer](writer: W): writer.type = writer.append(value)
+  override def render[W <: Writer](writer: W): writer.type = writer.append(value)
 }
 
 object BasicCredentials {
   def apply(credentials: String): BasicCredentials = {
     val bytes = Base64.decode(credentials)
-    val userPass = new String(bytes, `ISO-8859-1`.charset)
+    val userPass = new String(bytes, StandardCharsets.ISO_8859_1)
     userPass.indexOf(':') match {
       case -1 => apply(userPass, "")
       case ix => apply(userPass.substring(0, ix), userPass.substring(ix + 1))
@@ -55,14 +56,16 @@ object BasicCredentials {
 case class OAuth2BearerToken(token: String) extends Credentials {
   val authScheme = AuthScheme.Bearer
 
-  def renderValue[W <: Writer](writer: W): writer.type = writer.append("Bearer ").append(token)
+  override def value = renderString
+
+  override def render[W <: Writer](writer: W): writer.type = writer.append("Bearer ").append(token)
 }
 
 
 case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
-  override lazy val value = super.value
+  override lazy val value = renderString
 
-  def renderValue[W <: Writer](writer: W): writer.type = {
+  override def render[W <: Writer](writer: W): writer.type = {
     if (params.isEmpty) writer.append(authScheme.toString)
     else {
       formatParams(writer)

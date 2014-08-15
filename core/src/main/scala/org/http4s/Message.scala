@@ -2,36 +2,76 @@ package org.http4s
 
 import java.io.File
 import java.net.InetAddress
-import org.http4s.Header.`Content-Type`
+import org.http4s.Header.{`Content-Length`, `Content-Type`}
 import org.http4s.server.ServerSoftware
 import scalaz.concurrent.Task
-import MessageSyntax.ResponseSyntax
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
- * while most of the functionality is found in [[MessageSyntax]] and [[MessageSyntax.ResponseSyntax]]
- * @see [[MessageSyntax]], [[MessageSyntax.ResponseSyntax]]
+ * while most of the functionality is found in [[MessageSyntax]] and [[ResponseOps]]
+ * @see [[MessageSyntax]], [[ResponseOps]]
  */
-trait Message {
+trait Message extends MessageOps {
   type Self <: Message
 
-  def protocol: ServerProtocol
+  def httpVersion: HttpVersion
   
   def headers: Headers
   
   def body: EntityBody
   
   def attributes: AttributeMap
+  
+  protected def change(body: EntityBody = body,
+                       headers: Headers = headers,
+                       attributes: AttributeMap = attributes): Self
 
-  private[http4s] def withBHA(body: EntityBody = body,
-                              headers: Headers = headers,
-                              attributes: AttributeMap = attributes): Self
+  /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
+    *
+    * @param key [[AttributeKey]] with which to associate the value
+    * @param value value associated with the key
+    * @tparam A type of the value to store
+    * @return a new message object with the key/value pair appended
+    */
+  override def withAttribute[A](key: AttributeKey[A], value: A): Self =
+    change(attributes = attributes.put(key, value))
+
+  /** Replaces the [[Header]]s of the incoming Request object
+    *
+    * @param headers [[Headers]] containing the desired headers
+    * @return a new Request object
+    */
+  override def withHeaders(headers: Headers): Self = change(headers = headers)
+
+  /** Add the provided headers to the existing headers, replacing those of the same header name */
+  override def putHeaders(headers: Header*): Self =
+    change(headers = this.headers.put(headers:_*))
+
+  override def filterHeaders(f: (Header) => Boolean): Self =
+    change(headers = headers.filter(f))
+
+  /** Replace the body of this message with a new body
+    *
+    * @param b body to attach to this method
+    * @param w [[Writable]] with which to convert the body to an [[EntityBody]]
+    * @tparam T type of the Body
+    * @return a new message with the new body
+    */
+  def withBody[T](b: T)(implicit w: Writable[T]): Task[Self] = {
+    w.toEntity(b).map { entity =>
+      val hs = entity.length match {
+        case Some(l) => `Content-Length`(l)::w.headers.toList
+        case None    => w.headers
+      }
+      change(body = entity.body, headers = headers ++ hs)
+    }
+  }
 
   def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
 
   def contentType: Option[`Content-Type`] = headers.get(Header.`Content-Type`)
 
-  def charset: CharacterSet = contentType.map(_.charset) getOrElse CharacterSet.`ISO-8859-1`
+  def charset: Charset = contentType.map(_.charset) getOrElse Charset.`ISO-8859-1`
 
   def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`)
     .map(_.values.list.contains(TransferCoding.chunked))
@@ -53,44 +93,43 @@ object Message {
 /** Representation of an incoming HTTP message
   *
   * A Request encapsulates the entirety of the incoming HTTP request including the
-  * status line, headers, and a possible request body. A Request will be the only argument
-  * for a [[HttpService]].
+  * status line, headers, and a possible request body.
   *
-  * @param requestMethod [[Method.Get]], [[Method.Post]], etc.
-  * @param requestUri representation of the request URI
-  * @param protocol HTTP protocol, eg ServerProtocol.`HTTP/1.1`
+  * @param method [[Method.GET]], [[Method.POST]], etc.
+  * @param uri representation of the request URI
+  * @param httpVersion the HTTP version
   * @param headers collection of [[Header]]s
   * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
 case class Request(
-  requestMethod: Method = Method.Get,
-  requestUri: Uri = Uri(path = "/"),
-  protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
+  method: Method = Method.GET,
+  uri: Uri = Uri(path = "/"),
+  httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message with MessageSyntax.MessageSyntax[Request, Request] {
+) extends Message with MessageOps {
   import Request._
 
   type Self = Request
 
-  override protected def translateMessage(f: (Request) => Request): Request = f(this)
 
-  override protected def translateWithTask(f: (Request) => Task[Request]): Task[Request] = f(this)
+  override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
+    copy(body = body, headers = headers, attributes = attributes)
 
   lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
 
   lazy val (scriptName, pathInfo) = {
     val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
-    requestUri.path.splitAt(caret)
+    uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String) = copy(requestUri = requestUri.withPath(scriptName + pi))
+  def withPathInfo(pi: String) = copy(uri = uri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  def queryString: String = requestUri.query.getOrElse("")
+  def queryString: String = uri.query.getOrElse("")
 
   /**
    * Representation of the query string as a map
@@ -112,7 +151,7 @@ case class Request(
    * The query string is lazily parsed. If an error occurs during parsing
    * an empty `Map` is returned.
    */
-  def multiParams: Map[String, Seq[String]] = requestUri.multiParams
+  def multiParams: Map[String, Seq[String]] = uri.multiParams
 
   /**
    * View of the head elements of the URI parameters in query string.
@@ -121,7 +160,7 @@ case class Request(
    *
    * @see multiParams
    */
-  def params: Map[String, String] = requestUri.params
+  def params: Map[String, String] = uri.params
 
   lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)
   lazy val remoteAddr: Option[String] = remote.map(_.getHostAddress)
@@ -130,21 +169,18 @@ case class Request(
   lazy val remoteUser: Option[String] = None
 
   lazy val serverName: String = {
-    requestUri.host.map(_.value)
+    uri.host.map(_.value)
       .orElse(headers.get(Header.Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
   }
 
   lazy val serverPort: Int = {
-    requestUri.port
+    uri.port
       .orElse(headers.get(Header.Host).flatMap(_.port))
       .getOrElse(80)
   }
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
-
-  override private[http4s] def withBHA(body: EntityBody, headers: Headers, attributes: AttributeMap): Request =
-    copy(body = body, headers = headers, attributes = attributes)
 }
 
 object Request {
@@ -166,17 +202,16 @@ object Request {
  */
 case class Response(
   status: Status = Status.Ok,
-  protocol: ServerProtocol = ServerProtocol.`HTTP/1.1`,
+  httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
-  attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseSyntax[Response] {
+  attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseOps {
   type Self = Response
 
-  override protected def translateMessage(f: (Response) => Response): Response = f(this)
+  /** Response specific extension methods */
+  override def withStatus[S <% Status](status: S): Self = copy(status = status)
 
-  override protected def translateWithTask(f: (Response) => Task[Response]): Task[Response] = f(this)
-
-  override private[http4s] def withBHA(body: EntityBody, headers: Headers, attributes: AttributeMap): Response =
+  override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
 }
 

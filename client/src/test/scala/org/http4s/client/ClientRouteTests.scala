@@ -8,9 +8,9 @@ import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 
 import org.http4s.Uri.{Authority, RegName}
-import org.specs2.mutable.Specification
+import Status._
 
-trait ClientRouteTests { self: Specification =>
+trait ClientRouteTests { self: Http4sSpec =>
 
   import org.http4s.Http4s._
 
@@ -20,7 +20,7 @@ trait ClientRouteTests { self: Specification =>
 
   // The main entry method for this
   protected def runTest(req: Request, address: InetSocketAddress): Response = {
-    val newreq = req.copy(requestUri = req.requestUri.copy(authority = Some(Authority(host = RegName(address.getHostName),
+    val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
                                                                                       port = Some(address.getPort)))))
     client.prepare(newreq).run
   }
@@ -28,7 +28,7 @@ trait ClientRouteTests { self: Specification =>
   protected def runAllTests() {
     val address = new InetSocketAddress("localhost", 0)
     val server = getServer(address)
-    val gets = translateTests(address.getPort, Method.Get, getPaths)
+    val gets = translateTests(address.getPort, Method.GET, getPaths)
 
     gets.foreach{ case (req, resp) => internamRunTest(req, resp, address) }
   }
@@ -57,7 +57,7 @@ trait ClientRouteTests { self: Specification =>
   }
 
   private def internamRunTest(req: Request, expected: Response, address: InetSocketAddress): Unit = {
-    s"Execute ${req.requestMethod}: ${req.requestUri}: " in {
+    s"Execute ${req.method}: ${req.uri}: " in {
       val received = runTest(req, address)
       checkResponse(received, expected)
     }
@@ -66,13 +66,13 @@ trait ClientRouteTests { self: Specification =>
   private def checkResponse(rec: Response, expected: Response) = {
     (rec.headers.toSet must be_==(expected.headers.toSet)) &&   // Have to do set to avoid order problems
       (rec.status must be_==(expected.status)) &&
-      (rec.protocol must be_==(expected.protocol)) &&
+      (rec.httpVersion must be_==(expected.httpVersion)) &&
       (collectBody(rec.body) must be_==(collectBody(expected.body)))
   }
 
   private def translateTests(port: Int, method: Method, paths: Map[String, Response]): Map[Request, Response] = {
     paths.map { case (s, r) =>
-      (Request(method, requestUri = Uri.fromString(s"http://localhost:$port/$s").get), r)
+      (Request(method, uri = Uri.fromString(s"http://localhost:$port/$s").yolo), r)
     }
   }
 

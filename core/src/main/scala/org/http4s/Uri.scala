@@ -1,12 +1,17 @@
 package org.http4s
 
+import java.nio.charset.StandardCharsets
+
+import scala.language.experimental.macros
+import scala.reflect.macros.Context
+
 import Uri._
 
 import scala.collection.{ immutable, mutable }
 import mutable.ListBuffer
 import scala.util.Try
 
-import org.http4s.parser.{ QueryParser, RequestUriParser }
+import org.http4s.parser.{ScalazDeliverySchemes, QueryParser, RequestUriParser}
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
@@ -45,16 +50,14 @@ case class Uri(
    */
   lazy val multiParams: Map[String, Seq[String]] = {
     query.fold(Map.empty[String, Seq[String]]) { query =>
-      QueryParser.parseQueryString(query) match {
-        case Right(params) =>
-          val m = mutable.Map.empty[String, ListBuffer[String]]
-          params.foreach {
-            case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
-            case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
-          }
-          m.map { case (k, lst) => (k, lst.toSeq) }.toMap
-        case Left(e) => throw e
-      }
+      QueryParser.parseQueryString(query).fold(_ => Map.empty, params => {
+        val m = mutable.Map.empty[String, ListBuffer[String]]
+        params.foreach {
+          case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
+          case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
+        }
+        m.map { case (k, lst) => (k, lst.toSeq) }.toMap
+      })
     }
   }
 
@@ -190,9 +193,25 @@ case class Uri(
 
 }
 
-object Uri {
+object Uri extends UriFunctions {
+  object macros {
+    def uriLiteral(c: Context)(s: c.Expr[String]): c.Expr[Uri] = {
+      import c.universe._
 
-  def fromString(s: String): Try[Uri] = (new RequestUriParser(s, CharacterSet.`UTF-8`.charset)).RequestUri.run()
+      s.tree match {
+        case Literal(Constant(s: String)) =>
+          Uri.fromString(s).fold(
+            e => c.abort(c.enclosingPosition, e.details),
+            qValue => c.Expr(q"Uri.fromString(${s}).valueOr(e => throw new ParseException(e))")
+          )
+        case _ =>
+          c.abort(c.enclosingPosition, s"only supports literal Strings")
+      }
+    }
+  }
+
+  def fromString(s: String): ParseResult[Uri] = (new RequestUriParser(s, StandardCharsets.UTF_8)).RequestUri
+    .run()(ScalazDeliverySchemes.Disjunction)
 
   type Scheme = CaseInsensitiveString
 
@@ -315,5 +334,12 @@ object Uri {
     implicit object ShortOk extends AcceptableParamType[Short]
     implicit object StringOk extends AcceptableParamType[String]
   }
+}
 
+trait UriFunctions {
+  /**
+   * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
+   * at compile time.
+   */
+  def uri(s: String): Uri = macro Uri.macros.uriLiteral
 }

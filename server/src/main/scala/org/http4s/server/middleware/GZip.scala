@@ -39,7 +39,7 @@ object GZip extends StrictLogging {
                         resp.body.pipe(scalaz.stream.compress.deflate(level = level, nowrap = true))
               
               resp.removeHeader(`Content-Length`)
-                .addHeader(`Content-Encoding`(ContentCoding.gzip))
+                .putHeaders(`Content-Encoding`(ContentCoding.gzip))
                 .copy(body = b)
             }
             else resp  // Don't touch it, Content-Encoding already set

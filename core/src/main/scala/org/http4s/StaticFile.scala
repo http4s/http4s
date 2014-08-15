@@ -8,6 +8,7 @@ import java.nio.channels.{CompletionHandler, AsynchronousFileChannel}
 import java.nio.file.Files
 import java.util.concurrent.ExecutorService
 
+import scalaz.stream.Cause.{End, Terminated}
 import scalaz.{\/-, -\/}
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.Process
@@ -122,7 +123,7 @@ object StaticFile extends LazyLogging {
 
       val innerTask = Task.async[ByteVector]{ cb =>
         // Check for ending condition
-        if (!ch.isOpen) cb(-\/(End))
+        if (!ch.isOpen) cb(-\/(Terminated(End)))
 
         else {
           val remaining = end - position
@@ -154,13 +155,13 @@ object StaticFile extends LazyLogging {
         }
       }
 
-      val cleanup: Process[Task, Nothing] = await(Task[Unit]{
+      val cleanup: Process[Task, Nothing] = eval_(Task[Unit]{
         logger.trace(s"Cleaning up file: ensuring ${f.toURI} is closed")
         if (ch.isOpen) ch.close()
-      })()
+      })
 
       def go(c: ByteVector): Process[Task, ByteVector] = {
-        Emit(c::Nil, await(innerTask)(go, cleanup, cleanup))
+        emit(c) ++ awaitOr(innerTask)(_ => cleanup)(go)
       }
 
       await(innerTask)(go)

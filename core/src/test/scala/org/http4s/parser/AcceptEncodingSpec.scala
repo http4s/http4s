@@ -4,31 +4,32 @@ package parser
 import org.http4s.Header.`Accept-Encoding`
 import org.specs2.mutable.Specification
 import scalaz.Validation
+import Http4s._
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
-  def hparse(value: String): Validation[ParseErrorInfo, `Accept-Encoding`] = HttpParser.ACCEPT_ENCODING(value)
+  def hparse(value: String): ParseResult[`Accept-Encoding`] = HttpParser.ACCEPT_ENCODING(value)
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
-  val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQuality(0.5))
-  val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQuality(0.55))
-  val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQuality(0.555))
+  val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.5)))
+  val gzip55 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.55)))
+  val gzip555 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.555)))
 
-  val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQuality(1.0))
+  val gzip1 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(1.0)))
 
   "Accept-Encoding parser" should {
 
     "parse all encodings" in {
       foreach(ContentCoding.snapshot) { case (name, coding) =>
-        parse(coding.value).values.head should be_==(coding)
+        parse(coding.renderString).values.head should be_==(coding)
       }
     }
   }
 
   "Give correct value" in {
     gzip.value must be_==("gzip")
-    gzip5.value must be_==("gzip; q=0.5")
-    gzip55.value must be_==("gzip; q=0.55")
-    gzip555.value must be_==("gzip; q=0.555")
+    gzip5.value must be_==("gzip;q=0.5")
+    gzip55.value must be_==("gzip;q=0.55")
+    gzip555.value must be_==("gzip;q=0.555")
 
     gzip1.value must be_==("gzip")
   }
@@ -44,8 +45,8 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
   }
 
   "Offer preferred" in {
-    val unordered = `Accept-Encoding`(ContentCoding.gzip.withQuality(0.5),
-      ContentCoding.compress.withQuality(0.1),
+    val unordered = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.5)),
+      ContentCoding.compress.withQValue(q(0.1)),
       ContentCoding.deflate)
 
     unordered.preferred must be_==(ContentCoding.deflate)
@@ -53,7 +54,7 @@ class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-E
 
   "Be satisfied correctly" in {
     `Accept-Encoding`(ContentCoding.`*`) satisfiedBy ContentCoding.gzip should beTrue
-    `Accept-Encoding`(ContentCoding.`*` withQuality 0.0) satisfiedBy ContentCoding.gzip should beFalse
+    `Accept-Encoding`(ContentCoding.`*` withQValue QValue.Zero) satisfiedBy ContentCoding.gzip should beFalse
     gzip satisfiedBy ContentCoding.gzip should beTrue
     gzip satisfiedBy ContentCoding.deflate should beFalse
   }

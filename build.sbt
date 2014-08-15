@@ -5,15 +5,15 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 lazy val core = project
 
-lazy val server = project.dependsOn(core % "compile; test->test")
+lazy val server = project.dependsOn(core % "compile;test->test")
 
-lazy val client = project.dependsOn(core, server % "test->compile")
+lazy val client = project.dependsOn(core % "compile;test->test", server % "test->compile")
 
-lazy val blazecore = project.dependsOn(core)
+lazy val `blaze-core` = project.dependsOn(core)
 
-lazy val blazeserver = project.dependsOn(blazecore % "compile;test->test", server)
+lazy val `blaze-server` = project.dependsOn(`blaze-core` % "compile;test->test", server)
 
-lazy val blazeclient = project.dependsOn(blazecore, client)
+lazy val `blaze-client` = project.dependsOn(`blaze-core`, client % "compile;test->test")
 
 lazy val servlet = project.dependsOn(server)
 
@@ -21,17 +21,17 @@ lazy val jetty = project.dependsOn(servlet)
 
 lazy val tomcat = project.dependsOn(servlet)
 
-lazy val dsl = project.dependsOn(core, server % "test->compile")
+lazy val dsl = project.dependsOn(core % "compile;test->test", server % "test->compile")
 
 lazy val json4s = project.dependsOn(core)
 
-lazy val json4sNative = project.dependsOn(json4s)
+lazy val `json4s-native` = project.dependsOn(json4s)
 
-lazy val json4sJackson = project.dependsOn(json4s)
+lazy val `json4s-jackson` = project.dependsOn(json4s)
 
 lazy val argonaut = project.dependsOn(core % "compile;test->test")
 
-lazy val examples = project.dependsOn(blazeserver, jetty, tomcat, dsl, json4sJackson)
+lazy val examples = project.dependsOn(`blaze-server`, jetty, tomcat, dsl, `json4s-jackson`)
 
 organization in ThisBuild := "org.http4s"
 
@@ -116,7 +116,8 @@ resolvers in ThisBuild ++= Seq(
 /* These test dependencies applied to all projects under the http4s umbrella */
 libraryDependencies in ThisBuild ++= Seq(
   scalameter % "test",
-  specs2 % "test"
+  scalazScalacheckBinding % "test",
+  scalazSpecs2 % "test"
 )
 
 logLevel := Level.Warn

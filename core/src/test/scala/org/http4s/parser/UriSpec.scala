@@ -1,20 +1,21 @@
 package org.http4s.parser
 
-import java.nio.charset.Charset
+import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 
 import org.http4s.Uri._
 import org.http4s.util.string._
-import org.http4s.{ CharacterSet, Uri }
+import org.http4s.{Http4sSpec, Charset, Uri}
+import org.specs2.matcher.MustThrownMatchers
 import org.specs2.mutable.Specification
 
 import scala.util.Success
 import org.parboiled2._
 
-class IPV6Parser(val input: ParserInput, val charset: Charset) extends Parser with Rfc3986Parser {
+class IPV6Parser(val input: ParserInput, val charset: NioCharset) extends Parser with Rfc3986Parser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
 }
 
-class UriSpec extends Specification {
+class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri" should {
 
@@ -33,13 +34,13 @@ class UriSpec extends Specification {
       } yield (f + "::" + b))
 
       foreach(v) { s =>
-        new IPV6Parser(s, CharacterSet.`UTF-8`.charset).CaptureIPv6.run() must be_==(Success((s)))
+        new IPV6Parser(s, StandardCharsets.UTF_8).CaptureIPv6.run() must be_==(Success((s)))
       }
     }
 
     "parse a short IPv6 address" in {
       val s = "01ab::32ba:32ba"
-      Uri.fromString("01ab::32ba:32ba").get must be_==(Uri(authority = Some(Authority(host = IPv6("01ab::32ba:32ba")))))
+      Uri.fromString("01ab::32ba:32ba") must beRightDisjunction(Uri(authority = Some(Authority(host = IPv6("01ab::32ba:32ba")))))
     }
 
     "handle port configurations" in {
@@ -78,48 +79,48 @@ class UriSpec extends Specification {
     }
 
     "parse absolute URI with fragment" in {
-      val u = Uri.fromString("http://foo.bar/foo#Examples").get
-      u must be_==(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", None, Some("Examples")))
+      val u = Uri.fromString("http://foo.bar/foo#Examples")
+      u must beRightDisjunction(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", None, Some("Examples")))
     }
 
     "parse absolute URI with parameters and fragment" in {
-      val u = Uri.fromString("http://foo.bar/foo?bar=baz#Example-Fragment").get
-      u must be_==(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Some("bar=baz"), Some("Example-Fragment")))
+      val u = Uri.fromString("http://foo.bar/foo?bar=baz#Example-Fragment")
+      u must beRightDisjunction(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Some("bar=baz"), Some("Example-Fragment")))
     }
 
     "parse relative URI with empty query string" in {
-      val u = Uri.fromString("/foo/bar?").get
-      u must be_==(Uri(path = "/foo/bar", query = Some("")))
+      val u = Uri.fromString("/foo/bar?")
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some("")))
     }
 
     "parse relative URI with empty query string followed by empty fragement" in {
-      val u = Uri.fromString("/foo/bar?#").get
-      u must be_==(Uri(path = "/foo/bar", query = Some(""), fragment = Some("")))
+      val u = Uri.fromString("/foo/bar?#")
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some(""), fragment = Some("")))
     }
 
     "parse relative URI with empty query string followed by fragement" in {
-      val u = Uri.fromString("/foo/bar?#Example_of_Fragment").get
-      u must be_==(Uri(path = "/foo/bar", query = Some(""), fragment = Some("Example_of_Fragment")))
+      val u = Uri.fromString("/foo/bar?#Example_of_Fragment")
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some(""), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with fragment" in {
-      val u = Uri.fromString("/foo/bar#Examples_of_Fragment").get
-      u must be_==(Uri(path = "/foo/bar", fragment = Some("Examples_of_Fragment")))
+      val u = Uri.fromString("/foo/bar#Examples_of_Fragment")
+      u must beRightDisjunction(Uri(path = "/foo/bar", fragment = Some("Examples_of_Fragment")))
     }
 
     "parse relative URI with single parameter without a value followed by a fragment" in {
-      val u = Uri.fromString("/foo/bar?bar#Example_of_Fragment").get
-      u must be_==(Uri(path = "/foo/bar", query = Some("bar"), fragment = Some("Example_of_Fragment")))
+      val u = Uri.fromString("/foo/bar?bar#Example_of_Fragment")
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some("bar"), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with parameters and fragment" in {
-      val u = Uri.fromString("/foo/bar?bar=baz#Example_of_Fragment").get
-      u must be_==(Uri(path = "/foo/bar", query = Some("bar=baz"), fragment = Some("Example_of_Fragment")))
+      val u = Uri.fromString("/foo/bar?bar=baz#Example_of_Fragment")
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some("bar=baz"), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with slash and fragment" in {
-      val u = Uri.fromString("/#Example_Fragment").get
-      u must be_==(Uri(path = "/", fragment = Some("Example_Fragment")))
+      val u = Uri.fromString("/#Example_Fragment")
+      u must beRightDisjunction(Uri(path = "/", fragment = Some("Example_Fragment")))
     }
 
     {
@@ -135,20 +136,22 @@ class UriSpec extends Specification {
     }
 
     "deal with an invalid Query" in {
-      val u = Uri.fromString("/hello/world?bad=enc%ode").get
-      u.params must be_==(Map("bad" -> "enc"))
-      u.fragment must be_==(None)
-      u.path must be_==("/hello/world")
+      Uri.fromString("/hello/world?bad=enc%ode") must beRightDisjunction.like { case u =>
+        u.params must be_==(Map("bad" -> "enc"))
+        u.fragment must be_==(None)
+        u.path must be_==("/hello/world")
+      }
     }
 
     "deal with an invalid Uri" in {
-      val u = Uri.fromString("/hello/wo%2rld").get
-      u.path must be_==("/hello/wo")
+      Uri.fromString("/hello/wo%2rld") must beRightDisjunction.like { case u =>
+        u.path must be_==("/hello/wo")
+      }
     }
 
     def check(items: Seq[(String, Uri)]) = foreach(items) {
       case (str, uri) =>
-        Uri.fromString(str).get must be_==(uri)
+        Uri.fromString(str) must beRightDisjunction(uri)
     }
 
   }
@@ -298,7 +301,7 @@ class UriSpec extends Specification {
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt")
       foreach (examples) { e =>
-        Uri.fromString(e).get.toString must be_==(e)
+        Uri.fromString(e) must beRightDisjunction.like { case u => u.toString must be_==(e) }
       }
     }
 

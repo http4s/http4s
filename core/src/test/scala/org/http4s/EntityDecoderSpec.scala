@@ -107,6 +107,15 @@ class EntityDecoderSpec extends Specification {
       EntityDecoder.text.matchesMediaType(req) must_== true
     }
 
+    "Match with consistent behavior" in {
+      val tpe = MediaType.`text/css`
+      val req = Request(headers = Headers(`Content-Type`(tpe)))
+      (EntityDecoder.text.matchesMediaType(req) must_== true)   and
+      (EntityDecoder.text.matchesMediaType(tpe) must_== true)   and
+      (EntityDecoder.xml().matchesMediaType(req) must_== false) and
+      (EntityDecoder.xml().matchesMediaType(tpe) must_== false)
+    }
+
   }
 
 }

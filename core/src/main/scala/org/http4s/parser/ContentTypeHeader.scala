@@ -32,16 +32,14 @@ private[parser] trait ContentTypeHeader {
         val mediaType = range match {
           case m: MediaType => m
           case m =>
-            val err = new ParseErrorInfo("ContentType header doesn't accept MediaRanges", s"${m.getClass}, $m")
-            throw new ParseException(err)
+            throw new ParseException(ParseFailure("Invalid Content-Type header", "Content-Type header doesn't support media ranges"))
         }
 
-        var charset: Option[CharacterSet] = None
+        var charset: Option[Charset] = None
         var ext = Map.empty[String, String]
 
         exts.foreach(_.foreach { case p @ (k, v) =>
-          val civalue = CaseInsensitiveString(v)
-          if (k == "charset") charset = Some(CharacterSet.getOrElseCreate(civalue))
+          if (k == "charset") charset = Charset.fromString(v).toOption
           else ext += p
         })
 

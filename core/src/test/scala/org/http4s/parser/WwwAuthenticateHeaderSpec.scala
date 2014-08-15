@@ -1,14 +1,13 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.Header.`WWW-Authenticate`
 import org.specs2.mutable.Specification
 import scalaz.Validation
-import org.http4s.Challenge
 import scala.Predef._
-import org.http4s.Challenge
 
 class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`WWW-Authenticate`] {
-  def hparse(value: String): Validation[ParseErrorInfo, `WWW-Authenticate`] = HttpParser.WWW_AUTHENTICATE(value)
+  def hparse(value: String): ParseResult[`WWW-Authenticate`] = HttpParser.WWW_AUTHENTICATE(value)
 
   override def parse(value: String) =  hparse(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
 
@@ -21,7 +20,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
 
   "WWW-Authenticate Header parser" should {
     "Render challenge correctly" in {
-      c.value must be_==(str)
+      c.renderString must be_==(str)
     }
 
     "Parse a basic authentication" in {
@@ -29,7 +28,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
     }
 
     "Parse a basic authentication with params" in {
-      parse(wparams.value) must be_==(`WWW-Authenticate`(wparams))
+      parse(wparams.renderString) must be_==(`WWW-Authenticate`(wparams))
     }
 
     "Parse multiple concatenated authentications" in {

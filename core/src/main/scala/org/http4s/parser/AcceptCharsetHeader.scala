@@ -19,7 +19,8 @@ package org.http4s
 package parser
 
 import org.parboiled2._
-import CharacterSet._
+import Charset._
+import CharsetRange._
 import Header.`Accept-Charset`
 import org.http4s.util.CaseInsensitiveString._
 
@@ -30,21 +31,22 @@ private[parser] trait AcceptCharsetHeader {
 
   private class AcceptCharsetParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Charset`](input) {
     def entry: Rule1[`Accept-Charset`] = rule {
-      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> {xs: Seq[CharacterSet] =>
+      oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> {xs: Seq[CharsetRange] =>
         Header.`Accept-Charset`(xs.head, xs.tail: _*)
       }
     }
 
-    def CharsetRangeDecl: Rule1[CharacterSet] = rule {
-      ("*" ~ CharsetQuality) ~> { q => if (q.intValue != Q.MAX_VALUE) `*`.withQuality(q) else `*` } |
-        ((Token ~ CharsetQuality) ~> { (s: String, q: Q) =>
-          val c = CharacterSet.getOrElseCreate(s.ci)
-          if (q.intValue != Q.MAX_VALUE) c.withQuality(q) else c
-        })
+    def CharsetRangeDecl: Rule1[CharsetRange] = rule {
+      ("*" ~ CharsetQuality) ~> { q => if (q != org.http4s.QValue.One) `*`.withQValue(q) else `*` } |
+      ((Token ~ CharsetQuality) ~> { (s: String, q: QValue) =>
+        // TODO handle tokens that aren't charsets
+        val c = Charset.fromString(s).valueOr(e => throw new ParseException(e))
+        if (q != org.http4s.QValue.One) c.withQuality(q) else c.toRange
+      })
     }
 
-    def CharsetQuality: Rule1[Q] = rule {
-      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(Q.Unity)
+    def CharsetQuality: Rule1[QValue] = rule {
+      (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(org.http4s.QValue.One)
     }
   }
 

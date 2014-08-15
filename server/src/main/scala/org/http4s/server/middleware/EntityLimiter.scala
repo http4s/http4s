@@ -6,8 +6,8 @@ import scodec.bits.ByteVector
 
 import scala.util.control.NoStackTrace
 import scalaz.concurrent.Task
+import scalaz.stream.{Process1, process1}
 import scalaz.stream.Process._
-import scalaz.stream.process1
 
 object EntityLimiter {
 
@@ -29,7 +29,7 @@ object EntityLimiter {
     def go(taken: Int, chunk: ByteVector): Process1[ByteVector, ByteVector] = {
       val sz = taken + chunk.length
       if (sz > n) fail(EntityTooLarge(n))
-      else Emit(Seq(chunk), await(Get[ByteVector])(go(sz, _)))
+      else emit(chunk) ++ receive1(go(sz, _))
     }
     await(Get[ByteVector])(go(0,_))
   }

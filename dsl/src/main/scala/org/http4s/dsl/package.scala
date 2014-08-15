@@ -1,22 +1,18 @@
 package org.http4s
 
+import java.net.{URL, URI}
+import scalaz.concurrent.Task
+
 import org.http4s.Status.{RedirectResponder, EntityResponse, NoEntityResponse}
 import org.http4s.Writable.Entity
 
-import java.net.{URL, URI}
+package object dsl extends Http4s with Http4sConstants {
 
-import scalaz.concurrent.Task
+  implicit final class MethodSyntax(val self: Method) extends AnyVal {
+    /** Make a [[org.http4s.Request]] using this Method */
+    def apply(uri: Uri): Task[Request] = Task.now(Request(self, uri))
 
-package object dsl {
-  val OPTIONS = Method.Options
-  val GET = Method.Get
-  val HEAD = Method.Head
-  val POST = Method.Post
-  val PUT = Method.Put
-  val DELETE = Method.Delete
-  val TRACE = Method.Trace
-  val CONNECT = Method.Connect
-  val PATCH = Method.Patch
+  }
 
   def notFound(req: Request): Task[Response] = ResponseBuilder.notFound(req)
 
@@ -26,8 +22,8 @@ package object dsl {
     * offer shortcut syntax to make intention clear and concise.
     *
     * @example {{{
-    * val resp: Task[Response] = Status.Continue()
-    * }}}
+    *           val resp: Task[Response] = Status.Continue()
+    *          }}}
     *
     * @see [[org.http4s.Status.EntityResponse]]
     */
@@ -56,7 +52,7 @@ package object dsl {
     def apply[A](body: A, headers: Headers)(implicit w: Writable[A]): Task[Response] = {
       var h = headers ++ w.headers
       w.toEntity(body).flatMap { case Entity(proc, len) =>
-        len foreach { h +:= Header.`Content-Length`(_) }
+        len foreach { h put Header.`Content-Length`(_) }
         Task.now(Response(status = status, headers = h, body = proc))
       }
     }
@@ -68,9 +64,9 @@ package object dsl {
     * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
     * offer shortcut syntax to make intention clear and concise.
     *
-    * @example {{{
-    * val resp: Task[Response] = MovedPermanently("http://foo.com")
-    * }}}
+    * @example {{{* val resp: Task[Response] = MovedPermanently("http://foo.com")
+    *
+               }}}
     *
     * @see [[NoEntityResponse]]
     */

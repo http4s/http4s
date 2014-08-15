@@ -12,7 +12,7 @@ object ResponseBuilder {
   def apply[A](status: Status, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] = {
     var h = headers ++ w.headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
-      len foreach { h +:= Header.`Content-Length`(_) }
+      for (l <- len) { h = h put Header.`Content-Length`(l) }
       basic(status = status, headers = h, body = proc)
     }
   }

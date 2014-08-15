@@ -1,30 +1,36 @@
 package org.http4s
 
-import org.specs2.mutable.Specification
+import java.util.Locale
 
-class MethodSpec extends Specification {
+import scalaz.scalacheck.ScalazProperties
 
-  def resolve(str: String) = Method.getOrElseCreate(str)
+import org.http4s.parser.Rfc2616BasicRules
+import org.scalacheck.Prop.forAll
 
-  "A standard method" should {
-    "be findable by name" in {
-      resolve("GET") must be (Method.Get)
-    }
+import Http4s._
 
-    "be case sensitive" in {
-      resolve("get") must_!= (Method.Get)
-    }
+class MethodSpec extends Http4sSpec {
+  import Method._
+
+  "fromString is inverse of renderString" in {
+    forAll(tokens) { token => fromString(token).map(_.renderString) must beRightDisjunction(token) }
   }
 
-  "PATCH" should {
-    "be registered" in {
-      resolve("PATCH") must be (Method.Patch)
-    }
+  "only tokens are valid methods" in {
+    prop { s: String => fromString(s).isRight must equal (Rfc2616BasicRules.isToken(s)) }
   }
 
-  "Extension methods" should {
-    "be non-idempotent" in {
-      resolve("huh").isIdempotent should beFalse
-    }
+  "name is case sensitive" in {
+    prop { m: Method => {
+      val upper = m.name.toUpperCase(Locale.ROOT)
+      val lower = m.name.toLowerCase(Locale.ROOT)
+      (upper != lower) ==> { fromString(upper) must_!= fromString(lower) }
+    }}
+  }
+
+  checkAll(ScalazProperties.equal.laws[Method])
+
+  "methods are equal by name" in {
+    prop { m: Method => Method.fromString(m.name) must beRightDisjunction(m) }
   }
 }

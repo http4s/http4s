@@ -23,8 +23,7 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
   }
 }
 
-object Status extends StatusInstances {
-
+object Status extends StatusConstants {
   /** Helper for the generation of a [[org.http4s.Response]] which will not contain a body
     *
     * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
@@ -104,7 +103,7 @@ object Status extends StatusInstances {
   implicit def tuple2statusCode(tup: (Int, String)) = apply(tup._1, tup._2)
 }
 
-trait StatusInstances {
+trait StatusConstants {
   import Status.{NoEntityResponse, EntityResponse, RedirectResponder}
 
   /**

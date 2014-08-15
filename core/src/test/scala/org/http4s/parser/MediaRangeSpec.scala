@@ -1,10 +1,11 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.MediaRange._
 import org.http4s.MediaType._
 import org.specs2.mutable.Specification
 
-class MediaRangeSpec extends Specification {
+class MediaRangeSpec extends Specification with Http4s {
 
   def ext = Map("foo" -> "bar")
 
@@ -13,27 +14,27 @@ class MediaRangeSpec extends Specification {
     "Perform equality correctly" in {
       `text/*` must be_==(`text/*`)
 
-      `text/*`.withQuality(0.4) must be_==(`text/*`.withQuality(0.4))
-      `text/*`.withQuality(0.4).withExtensions(ext) must be_==(`text/*`.withQuality(0.4).withExtensions(ext))
-      `text/*`.withQuality(0.4).withExtensions(ext) must be_!=(`text/*`.withQuality(0.4))
+      `text/*`.withQValue(q(0.4)) must be_==(`text/*`.withQValue(q(0.4)))
+      `text/*`.withQValue(q(0.4)).withExtensions(ext) must be_==(`text/*`.withQValue(q(0.4)).withExtensions(ext))
+      `text/*`.withQValue(q(0.4)).withExtensions(ext) must be_!=(`text/*`.withQValue(q(0.4)))
 
-      `text/*`.withQuality(0.1) must be_!=(`text/*`.withQuality(0.4))
-      `text/*`.withQuality(0.4) must be_!=(`text/*`.withQuality(0.1))
+      `text/*`.withQValue(q(0.1)) must be_!=(`text/*`.withQValue(q(0.4)))
+      `text/*`.withQValue(q(0.4)) must be_!=(`text/*`.withQValue(q(0.1)))
 
       `text/*` must be_!=(`audio/*`)
     }
 
     "Be satisfiedBy MediaRanges correctly" in {
-      `text/*`.withQuality(0.5).satisfiedBy(`text/*`.withQuality(0.4)) must be_==(false)
-      `text/*`.withQuality(0.3).satisfiedBy(`text/*`.withQuality(0.4)) must be_==(true)
+      `text/*`.withQValue(q(0.5)).satisfiedBy(`text/*`.withQValue(q(0.4))) must be_==(false)
+      `text/*`.withQValue(q(0.3)).satisfiedBy(`text/*`.withQValue(q(0.4))) must be_==(true)
 
       `text/*`.satisfiedBy(`image/*`) must be_==(false)
     }
 
     "Be satisfiedBy MediaTypes correctly" in {
       `text/*`.satisfiedBy(`text/css`) must be_==(true)
-      `text/*`.satisfiedBy(`text/css`.withQuality(0.2)) must be_==(false)
-      `text/*`.withQuality(0.2).satisfiedBy(`text/css`) must be_==(true)
+      `text/*`.satisfiedBy(`text/css`.withQValue(q(0.2))) must be_==(false)
+      `text/*`.withQValue(q(0.2)).satisfiedBy(`text/css`) must be_==(true)
       `text/*`.satisfiedBy(`audio/aiff`) must be_==(false)
     }
 
@@ -47,26 +48,26 @@ class MediaRangeSpec extends Specification {
 
     "Perform equality correctly" in {
       `text/html` must be_==(`text/html`)
-      `text/html`.withQuality(0.4) must be_==(`text/html`.withQuality(0.4))
+      `text/html`.withQValue(q(0.4)) must be_==(`text/html`.withQValue(q(0.4)))
 
-      `text/html`.withQuality(0.4).withExtensions(ext) must be_!=(`text/html`.withQuality(0.4))
-      `text/html`.withQuality(0.4) must be_!=(`text/html`.withQuality(0.4).withExtensions(ext))
+      `text/html`.withQValue(q(0.4)).withExtensions(ext) must be_!=(`text/html`.withQValue(q(0.4)))
+      `text/html`.withQValue(q(0.4)) must be_!=(`text/html`.withQValue(q(0.4)).withExtensions(ext))
 
 
-      `text/html`.withQuality(0.1) must be_!=(`text/html`.withQuality(0.4))
-      `text/html`.withQuality(0.4) must be_!=(`text/html`.withQuality(0.1))
+      `text/html`.withQValue(q(0.1)) must be_!=(`text/html`.withQValue(q(0.4)))
+      `text/html`.withQValue(q(0.4)) must be_!=(`text/html`.withQValue(q(0.1)))
 
       `text/html` must be_!=(`text/css`)
     }
 
     "Be satisfiedBy MediaTypes correctly" in {
       `text/html`.satisfiedBy(`text/css`) must be_==(false)
-      `text/html`.withQuality(0.5).satisfiedBy(`text/html`.withQuality(0.4)) must be_==(false)
-      `text/html`.withQuality(0.3).satisfiedBy(`text/html`.withQuality(0.4)) must be_==(true)
+      `text/html`.withQValue(q(0.5)).satisfiedBy(`text/html`.withQValue(q(0.4))) must be_==(false)
+      `text/html`.withQValue(q(0.3)).satisfiedBy(`text/html`.withQValue(q(0.4))) must be_==(true)
 
       `text/html`.satisfies(`text/css`) must be_==(false)
-      `text/html`.withQuality(0.5).satisfies(`text/html`.withQuality(0.4)) must be_==(true)
-      `text/html`.withQuality(0.3).satisfies(`text/html`.withQuality(0.4)) must be_==(false)
+      `text/html`.withQValue(q(0.5)).satisfies(`text/html`.withQValue(q(0.4))) must be_==(true)
+      `text/html`.withQValue(q(0.3)).satisfies(`text/html`.withQValue(q(0.4))) must be_==(false)
     }
 
     "Not be satisfied by MediaRanges" in {
@@ -95,19 +96,11 @@ class MediaRangeSpec extends Specification {
       r must be_!=(t)
       t must be_!=(r)
 
-      r.withQuality(0.1) must be_!=(t.withQuality(0.1))
-      t.withQuality(0.1) must be_!=(r.withQuality(0.1))
+      r.withQValue(q(0.1)) must be_!=(t.withQValue(q(0.1)))
+      t.withQValue(q(0.1)) must be_!=(r.withQValue(q(0.1)))
 
       r.withExtensions(ext) must be_!=(t.withExtensions(ext))
       t.withExtensions(ext) must be_!=(r.withExtensions(ext))
-    }
-
-    "Not accept illegal q values" in {
-      `text/*`.withQuality(2.0) must throwAn [IllegalArgumentException]
-      `text/*`.withQuality(-2.0) must throwAn [IllegalArgumentException]
-
-      `text/html`.withQuality(2.0) must throwAn [IllegalArgumentException]
-      `text/html`.withQuality(-2.0) must throwAn [IllegalArgumentException]
     }
   }
 }

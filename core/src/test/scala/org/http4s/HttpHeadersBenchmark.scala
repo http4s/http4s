@@ -36,7 +36,7 @@ object HttpHeadersBenchmark extends PerformanceTest.Quickbenchmark {
       using (headerses) in { headers =>
         var target: Headers = Headers.empty
         for (header <- headers) {
-          target :+= header
+          target = target.put(header)
         }
       }
     }
