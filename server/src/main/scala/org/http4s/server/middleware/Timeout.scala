@@ -13,7 +13,7 @@ object Timeout {
   private val ec = new ScheduledThreadPoolExecutor(1)
 
   private def timeoutResp(timeout: Duration): Task[Response] = Task.async { cb =>
-    val r = new Runnable { override def run(): Unit = cb(\/-(Response(Status.RequestTimeOut))) }
+    val r = new Runnable { override def run(): Unit = cb(\/-(Response(Status.RequestTimeout))) }
     ec.schedule(r, timeout.toNanos, TimeUnit.NANOSECONDS)
   }
 

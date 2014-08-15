@@ -358,10 +358,10 @@ object Header {
 
   object Location extends HeaderKey.Internal[Location] with HeaderKey.Singleton
 
-  final case class Location(absoluteUri: String) extends Parsed {
-    override def key = `Location`
-    override def value = absoluteUri
-    override def renderValue[W <: Writer](writer: W): writer.type = writer.append(value)
+  final case class Location(uri: Uri) extends Parsed {
+    def key = `Location`
+    override def value = uri.toString
+    def renderValue[W <: Writer](writer: W): writer.type = writer ~ uri.toString
   }
 
   object `Max-Forwards` extends HeaderKey.Default

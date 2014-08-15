@@ -16,7 +16,7 @@ import java.nio.charset.StandardCharsets
 import scala.collection.mutable.ListBuffer
 import scala.util.{Try, Success, Failure}
 
-import org.http4s.Status.{NoEntityResponse, InternalServerError, NotFound}
+import org.http4s.Status.{InternalServerError}
 import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{Connection, `Content-Length`}
@@ -146,7 +146,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
     val lengthHeader = `Content-Length`.from(resp.headers)
 
     val bodyEncoder = {
-      if (resp.status.isInstanceOf[NoEntityResponse] && lengthHeader.isEmpty && respTransferCoding.isEmpty) {
+      if (resp.status.isInstanceOf[Status.EntityProhibited] && lengthHeader.isEmpty && respTransferCoding.isEmpty) {
         // We don't have a body so we just get the headers
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present

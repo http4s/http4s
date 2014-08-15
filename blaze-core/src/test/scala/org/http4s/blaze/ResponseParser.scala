@@ -37,7 +37,7 @@ class ResponseParser extends Http1ClientParser {
 
     val headers = this.headers.result.map{case (k,v) => Header(k,v): Header}.toSet
 
-    (Status.apply(this.code, this.reason), headers, bp)
+    (Status(this.code, this.reason), headers, bp)
   }
 
 

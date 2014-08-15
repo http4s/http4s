@@ -1,17 +1,15 @@
 package org.http4s
 
-import org.http4s.Writable.Entity
-
-import scalaz.concurrent.Task
-import java.net.{URL, URI}
-import org.http4s.Header.`Content-Type`
+import org.http4s.Status.ResponseConstraints
 
 /** Representation of the HTTP response code and reason
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
   */
-case class Status(code: Int, reason: String) extends Ordered[Status] {
+sealed abstract case class Status(code: Int, reason: String) extends Ordered[Status] {
+  self: ResponseConstraints[_] =>
+
   def compare(that: Status) = code.compareTo(that.code)
 
   def line = {
@@ -24,69 +22,15 @@ case class Status(code: Int, reason: String) extends Ordered[Status] {
 }
 
 object Status extends StatusConstants {
-  /** Helper for the generation of a [[org.http4s.Response]] which will not contain a body
-    *
-    * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
-    * offer shortcut syntax to make intention clear and concise.
-    *
-    * @example {{{
-    * val resp: Task[Response] = Status.Continue()
-    * }}}
-    *
-    * @see [[EntityResponse]]
-    */
-  trait NoEntityResponse// { self: Status =>
-//    private[this] val StatusResponder = Response(this)
-//    def apply(): Task[Response] = Task.now(StatusResponder)
-//  }
-
-  /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
-    *
-    * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
-    * offer shortcut syntax to make intention clear and concise.
-    *
-    * @example {{{
-    * val resp: Task[Response] = Ok("Hello world!")
-    * }}}
-    *
-    * @see [[NoEntityResponse]]
-    */
-  trait EntityResponse //{ self: Status =>
-//    private[this] val StatusResponder = Response(this)
-//
-//    def apply(): Task[Response] = Task.now(StatusResponder)
-//
-//    def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
-//      apply(body, w.headers)(w)
-//
-//    def apply[A](body: A, headers: Headers)(implicit w: Writable[A]): Task[Response] = {
-//      var h = headers ++ w.headers
-//      w.toEntity(body).flatMap { case Entity(proc, len) =>
-//        len foreach { h +:= Header.`Content-Length`(_) }
-//        Task.now(Response(status = self, headers = h, body = proc))
-//      }
-//    }
-//  }
-
-  /** Helper for the generation of a [[org.http4s.Response]] which points to another HTTP location
-    *
-    * The RedirectResponseGenerator aids in adding the appropriate headers for Redirect actions.
-    * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
-    * offer shortcut syntax to make intention clear and concise.
-    *
-    * @example {{{
-    * val resp: Task[Response] = MovedPermanently("http://foo.com")
-    * }}}
-    *
-    * @see [[NoEntityResponse]]
-    */
-  trait RedirectResponder //{ self: Status =>
-//    def apply(uri: String): Response = Response(status = self, headers = Headers(Header.Location(uri)))
-//
-//    def apply(uri: URI): Response = apply(uri.toString)
-//
-//    def apply(url: URL): Response = apply(url.toString)
-//  }
+  sealed trait ResponseConstraints[A <: ResponseConstraints[A]]
+  trait NoConstraints extends ResponseConstraints[NoConstraints]
+  trait EntityProhibited extends ResponseConstraints[EntityProhibited]
+  trait HeaderRequired[H] extends ResponseConstraints[HeaderRequired[H]] {
+    def mkRequiredHeader: H => Header
+  }
+  trait LocationRequired extends HeaderRequired[Uri] {
+    def mkRequiredHeader = Header.Location(_)
+  }
 
   private[this] val ReasonMap = Map(
     (for {
@@ -96,117 +40,84 @@ object Status extends StatusConstants {
     } yield status.code -> status.reason):_*
   )
 
-  def apply(code: Int): Status =
-    Status(code, ReasonMap.getOrElse(code, ""))
-
-  implicit def int2statusCode(i: Int): Status = apply(i)
-  implicit def tuple2statusCode(tup: (Int, String)) = apply(tup._1, tup._2)
+  def apply(code: Int): Status = new Status(code, ReasonMap.getOrElse(code, "")) with NoConstraints
+  def apply(code: Int, reason: String): Status = new Status(code, reason) with NoConstraints
 }
 
 trait StatusConstants {
-  import Status.{NoEntityResponse, EntityResponse, RedirectResponder}
+  import Status.{NoConstraints, EntityProhibited, HeaderRequired, LocationRequired}
 
   /**
    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
    */
-  val Continue = new Status(100, "Continue") with NoEntityResponse
-  val SwitchingProtocols = new Status(101, "Switching Protocols") //{
-//    // TODO type this header
-//    def apply(protocols: String, headers: Headers = Headers.empty): Response =
-//      Response(status = this, headers = Header("Upgrade", protocols) +: headers, body = EmptyBody)
-//  }
-  val Processing = new Status(102, "Processing") with NoEntityResponse
+  val Continue = new Status(100, "Continue") with NoConstraints
+  val SwitchingProtocols = new Status(101, "Switching Protocols") with HeaderRequired[String] {
+    def mkRequiredHeader = Header.Raw(Header.Upgrade.name, _)
+  }
+  val Processing = new Status(102, "Processing") with NoConstraints
 
-  val Ok = new Status(200, "OK") with EntityResponse
-  val Created = new Status(201, "Created") with EntityResponse
-  val Accepted = new Status(202, "Accepted") with EntityResponse
-  val NonAuthoritativeInformation = new Status(203, "Non-Authoritative Information") with EntityResponse
-  val NoContent = new Status(204, "No Content") with NoEntityResponse
-  val ResetContent = new Status(205, "Reset Content") with NoEntityResponse
-  val PartialContent = new Status(206, "Partial Content") with EntityResponse //{
-//    // TODO type this header
-//    def apply[A](range: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
-//      apply(body).map { r =>
-//        headers.foldLeft(r.addHeader(Header("Range", range))) { _.addHeader(_) }
-//      }
-//  }
-  val MultiStatus = new Status(207, "Multi-Status") with EntityResponse
-  val AlreadyReported = new Status(208, "Already Reported") with EntityResponse
-  val IMUsed = new Status(226, "IM Used") with EntityResponse
+  val Ok = new Status(200, "OK") with NoConstraints
+  val Created = new Status(201, "Created") with NoConstraints
+  val Accepted = new Status(202, "Accepted") with NoConstraints
+  val NonAuthoritativeInformation = new Status(203, "Non-Authoritative Information") with NoConstraints
+  val NoContent = new Status(204, "No Content") with EntityProhibited
+  val ResetContent = new Status(205, "Reset Content") with EntityProhibited
+  val PartialContent = new Status(206, "Partial Content") with NoConstraints
+  val MultiStatus = new Status(207, "Multi-Status") with NoConstraints
+  val AlreadyReported = new Status(208, "Already Reported") with NoConstraints
+  val IMUsed = new Status(226, "IM Used") with NoConstraints
 
-  val MultipleChoices = new Status(300, "Multiple Choices") with EntityResponse
-  val MovedPermanently = new Status(301, "Moved Permanently") with RedirectResponder
-  val Found = new Status(302, "Found") with RedirectResponder
-  val SeeOther = new Status(303, "See Other") with RedirectResponder
+  val MultipleChoices = new Status(300, "Multiple Choices") with NoConstraints
+  val MovedPermanently = new Status(301, "Moved Permanently") with LocationRequired
+  val Found = new Status(302, "Found") with LocationRequired
+  val SeeOther = new Status(303, "See Other") with LocationRequired
+  val NotModified = new Status(304, "Not Modified") with EntityProhibited
+  val UseProxy = new Status(305, "Use Proxy") with LocationRequired
+  val TemporaryRedirect = new Status(306, "Temporary Redirect") with LocationRequired
 
-  val NotModified = new Status(304, "Not Modified") with NoEntityResponse //{
-//    override def apply(): Task[Response] = Task.now(Response(status = this, headers = Headers(Header.Date(DateTime.now))))
-//  }
+  val BadRequest = new Status(400, "Bad Request") with NoConstraints
+  val Unauthorized = new Status(401, "Unauthorized") with HeaderRequired[Challenge] {
+    def mkRequiredHeader = Header.`WWW-Authenticate`(_)
+  }
+  val PaymentRequired = new Status(402, "Payment Required") with NoConstraints
+  val Forbidden = new Status(403, "Forbidden") with NoConstraints
+  val NotFound = new Status(404, "Not Found") with NoConstraints
+  val MethodNotAllowed = new Status(405, "Method Not Allowed") with HeaderRequired[String] {
+    def mkRequiredHeader = Header.Raw(Header.Allow.name, _)
+  }
+  val NotAcceptable = new Status(406, "Not Acceptable") with NoConstraints
+  val ProxyAuthenticationRequired = new Status(407, "Proxy Authentication Required") with HeaderRequired[String] {
+    def mkRequiredHeader = Header.Raw(Header.`Proxy-Authenticate`.name, _)
+  }
+  val RequestTimeout = new Status(408, "Request Timeout") with NoConstraints
+  val Conflict = new Status(409, "Conflict") with NoConstraints
+  val Gone = new Status(410, "Gone") with NoConstraints
+  val LengthRequired = new Status(411, "Length Required") with NoConstraints
+  val PreconditionFailed = new Status(412, "Precondition Failed") with NoConstraints
+  val RequestEntityTooLarge = new Status(413, "Request Entity Too Large") with NoConstraints
+  val RequestUriTooLarge = new Status(414, "Request-URI Too Large") with NoConstraints
+  val UnsupportedMediaType = new Status(415, "Unsupported Media Type") with NoConstraints
+  val RequestedRangeNotSatisfiable = new Status(416, "Requested Range Not Satisfiable") with NoConstraints
+  val ExpectationFailed = new Status(417, "ExpectationFailed") with NoConstraints
+  val ImATeapot = new Status(418, "I'm a teapot") with NoConstraints
+  val UnprocessableEntity = new Status(422, "Unprocessable Entity") with NoConstraints
+  val Locked = new Status(423, "Locked") with NoConstraints
+  val FailedDependency = new Status(424, "Failed Dependency") with NoConstraints
+  val UnorderedCollection = new Status(425, "Unordered Collection") with NoConstraints
+  val UpgradeRequired = new Status(426, "Upgrade Required") with NoConstraints
+  val PreconditionRequired = new Status(428, "Precondition Required") with NoConstraints
+  val TooManyRequests = new Status(429, "Too Many Requests") with NoConstraints
+  val RequestHeaderFieldsTooLarge = new Status(431, "Request Header Fields Too Large") with NoConstraints
 
-  val UseProxy = new Status(305, "Use Proxy") with RedirectResponder
-  val TemporaryRedirect = new Status(306, "Temporary Redirect") with RedirectResponder
-
-  val BadRequest = new Status(400, "Bad Request") with EntityResponse
-  val Unauthorized = new Status(401, "Unauthorized") with EntityResponse //{
-//    def apply[A](wwwAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
-//    // TODO type this header
-//      apply(body).map { r =>
-//        headers.foldLeft(r.addHeader(Header("WWW-Authenticate", wwwAuthenticate))) { _.addHeader(_) }
-//      }
-//  }
-  val PaymentRequired = new Status(402, "Payment Required") with EntityResponse
-  val Forbidden = new Status(403, "Forbidden") with EntityResponse
-  val NotFound = new Status(404, "Not Found") with EntityResponse //{
-//    def apply(request: Request): Task[Response] = apply(s"${request.pathInfo} not found")
-//  }
-  val MethodNotAllowed = new Status(405, "Method Not Allowed") with EntityResponse //{
-//    def apply[A](allowed: TraversableOnce[Method], body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
-//      apply(body).map { r =>
-//        headers.foldLeft(r.addHeader(Header("Allowed", allowed.mkString(", ")))) { _.addHeader(_) }
-//      }
-//  }
-  val NotAcceptable = new Status(406, "Not Acceptable") with EntityResponse
-  val ProxyAuthenticationRequired = new Status(407, "Proxy Authentication Required") with EntityResponse //{
-//    // TODO type this header
-//    def apply[F[_], A](proxyAuthenticate: String, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
-//      apply(body).map { r =>
-//        headers.foldLeft(r.addHeader(Header("Proxy-Authenticate", proxyAuthenticate))) { _.addHeader(_) }
-//      }
-//  }
-  val RequestTimeOut = new Status(408, "Request Time-out") with EntityResponse
-  val Conflict = new Status(409, "Conflict") with EntityResponse
-  val Gone = new Status(410, "Gone") with EntityResponse
-  val LengthRequred = new Status(411, "Length Required") with EntityResponse
-  val PreconditionFailed = new Status(412, "Precondition Failed") with EntityResponse
-  val RequestEntityTooLarge = new Status(413, "Request Entity Too Large") with EntityResponse
-  val RequestUriTooLarge = new Status(414, "Request-URI Too Large") with EntityResponse
-  val UnsupportedMediaType = new Status(415, "Unsupported Media Type") with EntityResponse
-  val RequestedRangeNotSatisfiable = new Status(416, "Requested Range Not Satisfiable") with EntityResponse
-  val ExpectationFailed = new Status(417, "ExpectationFailed") with EntityResponse
-  val ImATeapot = new Status(418, "I'm a teapot") with EntityResponse
-  val UnprocessableEntity = new Status(422, "Unprocessable Entity") with EntityResponse
-  val Locked = new Status(423, "Locked") with EntityResponse
-  val FailedDependency = new Status(424, "Failed Dependency") with EntityResponse
-  val UnorderedCollection = new Status(425, "Unordered Collection") with EntityResponse
-  val UpgradeRequired = new Status(426, "Upgrade Required") with EntityResponse
-  val PreconditionRequired = new Status(428, "Precondition Required") with EntityResponse
-  val TooManyRequests = new Status(429, "Too Many Requests") with EntityResponse
-  val RequestHeaderFieldsTooLarge = new Status(431, "Request Header Fields Too Large") with EntityResponse
-
-  val InternalServerError = new Status(500, "Internal Server Error") with EntityResponse //{
-//    /*
-//        // TODO Bad in production.  Development mode?  Implicit renderer?
-//        def apply(t: Throwable): Response = apply(s"${t.getMessage}\n\nStacktrace:\n${t.getStackTraceString}")
-//    */
-//  }
-  val NotImplemented = new Status(501, "Not Implemented") with EntityResponse
-  val BadGateway = new Status(502, "Bad Gateway") with EntityResponse
-  val ServiceUnavailable = new Status(503, "Service Unavailable") with EntityResponse
-  val GatewayTimeOut = new Status(504, "Gateway Time-out") with EntityResponse
-  val HttpVersionNotSupported = new Status(505, "HTTP Version not supported") with EntityResponse
-  val VariantAlsoNegotiates = new Status(506, "Variant Also Negotiates") with EntityResponse
-  val InsufficientStorage = new Status(507, "Insufficient Storage") with EntityResponse
-  val LoopDetected = new Status(508, "Loop Detected") with EntityResponse
-  val NotExtended = new Status(510, "Not Extended") with EntityResponse
-  val NetworkAuthenticationRequired = new Status(511, "Network Authentication Required") with EntityResponse
+  val InternalServerError = new Status(500, "Internal Server Error") with NoConstraints
+  val NotImplemented = new Status(501, "Not Implemented") with NoConstraints
+  val BadGateway = new Status(502, "Bad Gateway") with NoConstraints
+  val ServiceUnavailable = new Status(503, "Service Unavailable") with NoConstraints
+  val GatewayTimeout = new Status(504, "Gateway Timeout") with NoConstraints
+  val HttpVersionNotSupported = new Status(505, "HTTP Version not supported") with NoConstraints
+  val VariantAlsoNegotiates = new Status(506, "Variant Also Negotiates") with NoConstraints
+  val InsufficientStorage = new Status(507, "Insufficient Storage") with NoConstraints
+  val LoopDetected = new Status(508, "Loop Detected") with NoConstraints
+  val NotExtended = new Status(510, "Not Extended") with NoConstraints
+  val NetworkAuthenticationRequired = new Status(511, "Network Authentication Required") with NoConstraints
 }

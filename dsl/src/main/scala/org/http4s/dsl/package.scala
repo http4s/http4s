@@ -1,9 +1,8 @@
 package org.http4s
 
-import java.net.{URL, URI}
 import scalaz.concurrent.Task
 
-import org.http4s.Status.{RedirectResponder, EntityResponse, NoEntityResponse}
+import org.http4s.Status.{HeaderRequired, NoConstraints, EntityProhibited}
 import org.http4s.Writable.Entity
 
 package object dsl extends Http4s with Http4sConstants {
@@ -22,12 +21,10 @@ package object dsl extends Http4s with Http4sConstants {
     * offer shortcut syntax to make intention clear and concise.
     *
     * @example {{{
-    *           val resp: Task[Response] = Status.Continue()
-    *          }}}
-    *
-    * @see [[org.http4s.Status.EntityResponse]]
+    * val resp: Task[Response] = Status.Continue()
+    * }}}
     */
-  implicit class NoEntityResponseGenerator(status: Status with NoEntityResponse) {
+  implicit class EntityProhibitedResponseGenerator(status: Status with EntityProhibited) {
     private[this] val StatusResponder = Response(status)
     def apply(): Task[Response] = Task.now(StatusResponder)
   }
@@ -40,10 +37,8 @@ package object dsl extends Http4s with Http4sConstants {
     * @example {{{
     * val resp: Task[Response] = Ok("Hello world!")
     * }}}
-    *
-    * @see [[NoEntityResponse]]
     */
-  implicit class EntityResponseGenerator(status: Status with EntityResponse) {
+  implicit class UnconstrainedResponseGenerator(status: Status with NoConstraints) {
     def apply(): Task[Response] = Task.now(Response(status))
 
     def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
@@ -52,29 +47,36 @@ package object dsl extends Http4s with Http4sConstants {
     def apply[A](body: A, headers: Headers)(implicit w: Writable[A]): Task[Response] = {
       var h = headers ++ w.headers
       w.toEntity(body).flatMap { case Entity(proc, len) =>
-        len foreach { h put Header.`Content-Length`(_) }
+        len foreach { l => h = h put Header.`Content-Length`(l) }
         Task.now(Response(status = status, headers = h, body = proc))
       }
     }
   }
 
-  /** Helper for the generation of a [[org.http4s.Response]] which points to another HTTP location
+  /** Helper for the generation of a [[org.http4s.Response]] which have a required header.
     *
-    * The RedirectResponseGenerator aids in adding the appropriate headers for Redirect actions.
+    * The RequiredHeaderResponseGenerator aids in adding the appropriate headers for certain statuses.
     * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
     * offer shortcut syntax to make intention clear and concise.
     *
-    * @example {{{* val resp: Task[Response] = MovedPermanently("http://foo.com")
-    *
-               }}}
-    *
-    * @see [[NoEntityResponse]]
+    * @example {{{
+    * val resp: Task[Response] = MovedPermanently(uri("http://foo.com"))
+    * }}}
     */
-  implicit class RedirectResponseGenerator(self: Status with RedirectResponder) {
-    def apply(uri: String): Response = Response(status = self, headers = Headers(Header.Location(uri)))
+  implicit class RequiredHeaderResponseGenerator[H](self: Status with HeaderRequired[H]) {
+    def apply[A](requiredHeaderValue: H): Task[Response] = apply(requiredHeaderValue, Headers.empty)
 
-    def apply(uri: URI): Response = apply(uri.toString)
+    def apply[A](requiredHeaderValue: H, headers: Headers): Task[Response] = {
+      var h = headers.put(self.mkRequiredHeader(requiredHeaderValue))
+      Task.now(Response(status = self, headers = h))
+    }
 
-    def apply(url: URL): Response = apply(url.toString)
+    def apply[A](requiredHeaderValue: H, body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] = {
+      var h = headers.put(self.mkRequiredHeader(requiredHeaderValue)) ++ w.headers
+      w.toEntity(body).flatMap { case Entity(proc, len) =>
+        len foreach { l => h = h put Header.`Content-Length`(l) }
+        Task.now(Response(status = self, headers = h, body = proc))
+      }
+    }
   }
 }

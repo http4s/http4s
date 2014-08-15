@@ -143,6 +143,9 @@ object ExampleService {
     case req @ GET -> Root / "ip" =>
       Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
 
+    case req @ GET -> Root / "redirect" =>
+      TemporaryRedirect(uri("/"))
+
     case req => notFound(req)
   }
 

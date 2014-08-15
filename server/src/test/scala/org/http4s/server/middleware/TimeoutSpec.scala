@@ -27,7 +27,7 @@ class TimeoutSpec extends Http4sSpec with NoTimeConversions {
     "return a timeout if the result takes too long" in {
       val req = Request(GET, uri("/slow"))
 
-      timeoutService.apply(req).run.status must_==(Status.RequestTimeOut)
+      timeoutService.apply(req).run.status must_==(Status.RequestTimeout)
     }
 
     "Handle infinite durations" in {

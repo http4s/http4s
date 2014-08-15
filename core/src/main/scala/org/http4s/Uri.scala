@@ -16,6 +16,7 @@ import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
 /** Representation of the [[Request]] URI  */
+// TODO make Renderable, fix Location header
 case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
   authority: Option[Authority] = None,
