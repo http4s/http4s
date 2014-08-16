@@ -37,7 +37,7 @@ object ExampleService {
     case req @ GET -> Root / "image.jpg" =>   // Crude: stream doesn't have a binary stream helper yet
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
         .map(Task.now)
-        .getOrElse(notFound(req))
+        .getOrElse(NotFound())
 
     case req @ POST -> Root / "echo" =>
       Task.now(Response(body = req.body))
@@ -146,7 +146,7 @@ object ExampleService {
     case req @ GET -> Root / "redirect" =>
       TemporaryRedirect(uri("/"))
 
-    case req => notFound(req)
+    case req => NotFound()
   }
 
   def service2: HttpService = {

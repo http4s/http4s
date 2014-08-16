@@ -370,7 +370,11 @@ object Header {
 
   object Pragma extends HeaderKey.Default
 
-  object `Proxy-Authenticate` extends HeaderKey.Default
+  object `Proxy-Authenticate` extends HeaderKey.Internal[`Proxy-Authenticate`] with HeaderKey.Recurring
+  final case class `Proxy-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringRenderable {
+    override def key = `WWW-Authenticate`
+    type Value = Challenge
+  }
 
   object `Proxy-Authorization` extends HeaderKey.Default
 

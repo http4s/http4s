@@ -146,7 +146,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
     val lengthHeader = `Content-Length`.from(resp.headers)
 
     val bodyEncoder = {
-      if (resp.status.isInstanceOf[Status.EntityProhibited] && lengthHeader.isEmpty && respTransferCoding.isEmpty) {
+      if (!resp.status.isEntityAllowed && lengthHeader.isEmpty && respTransferCoding.isEmpty) {
         // We don't have a body so we just get the headers
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present

@@ -10,6 +10,8 @@ package dsl
 
 import scala.util.control.Exception.catching
 
+import org.http4s.dsl.impl.RequestGenerator
+
 /** Base class for path extractors. */
 abstract class Path {
   def /(child: String) = new /(this, child)

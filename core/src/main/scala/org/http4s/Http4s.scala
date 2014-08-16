@@ -16,6 +16,7 @@ trait Http4sInstances
   with CharsetRangeInstances
   with QValueInstances
   with MethodInstances
+  with StatusInstances
 
 object Http4sInstances extends Http4sInstances
 
@@ -30,10 +31,3 @@ trait Http4sSyntax
   with MessageSyntax
 
 object Http4sSyntax extends Http4sSyntax
-
-trait Http4sConstants
-  extends MethodConstants
-  with StatusConstants
-
-object Http4sConstants extends Http4sConstants
-

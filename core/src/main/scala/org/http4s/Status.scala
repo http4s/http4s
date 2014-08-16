@@ -1,15 +1,15 @@
 package org.http4s
 
-import org.http4s.Status.ResponseConstraints
+import java.util.NoSuchElementException
+import java.util.concurrent.atomic.AtomicReferenceArray
+import scalaz.{Show, Equal}
 
 /** Representation of the HTTP response code and reason
   *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
   */
-sealed abstract case class Status(code: Int, reason: String) extends Ordered[Status] {
-  self: ResponseConstraints[_] =>
-
+sealed abstract case class Status (code: Int, reason: String)(val isEntityAllowed: Boolean) extends Ordered[Status] {
   def compare(that: Status) = code.compareTo(that.code)
 
   def line = {
@@ -21,103 +21,87 @@ sealed abstract case class Status(code: Int, reason: String) extends Ordered[Sta
   }
 }
 
-object Status extends StatusConstants {
-  sealed trait ResponseConstraints[A <: ResponseConstraints[A]]
-  trait NoConstraints extends ResponseConstraints[NoConstraints]
-  trait EntityProhibited extends ResponseConstraints[EntityProhibited]
-  trait HeaderRequired[H] extends ResponseConstraints[HeaderRequired[H]] {
-    def mkRequiredHeader: H => Header
+object Status {
+  // TODO bring up to non-throwing standard
+  def apply(code: Int): Status = Option(registry.get(code)).getOrElse(throw new NoSuchElementException)
+
+  def apply(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
+    new Status(code, reason)(isEntityAllowed) {}
+
+  private val registry = new AtomicReferenceArray[Status](600)
+
+  def register(status: Status): status.type = {
+    registry.set(status.code, status)
+    status
   }
-  trait LocationRequired extends HeaderRequired[Uri] {
-    def mkRequiredHeader = Header.Location(_)
-  }
-
-  private[this] val ReasonMap = Map(
-    (for {
-      line <- getClass.getMethods
-      if line.getReturnType.isAssignableFrom(classOf[Status]) && line.getParameterTypes.isEmpty
-      status = line.invoke(this).asInstanceOf[Status]
-    } yield status.code -> status.reason):_*
-  )
-
-  def apply(code: Int): Status = new Status(code, ReasonMap.getOrElse(code, "")) with NoConstraints
-  def apply(code: Int, reason: String): Status = new Status(code, reason) with NoConstraints
-}
-
-trait StatusConstants {
-  import Status.{NoConstraints, EntityProhibited, HeaderRequired, LocationRequired}
 
   /**
    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
    */
-  val Continue = new Status(100, "Continue") with NoConstraints
-  val SwitchingProtocols = new Status(101, "Switching Protocols") with HeaderRequired[String] {
-    def mkRequiredHeader = Header.Raw(Header.Upgrade.name, _)
-  }
-  val Processing = new Status(102, "Processing") with NoConstraints
+  val Continue = register(Status(100, "Continue", false))
+  val SwitchingProtocols = register(Status(101, "Switching Protocols", false))
+  val Processing = register(Status(102, "Processing", false))
 
-  val Ok = new Status(200, "OK") with NoConstraints
-  val Created = new Status(201, "Created") with NoConstraints
-  val Accepted = new Status(202, "Accepted") with NoConstraints
-  val NonAuthoritativeInformation = new Status(203, "Non-Authoritative Information") with NoConstraints
-  val NoContent = new Status(204, "No Content") with EntityProhibited
-  val ResetContent = new Status(205, "Reset Content") with EntityProhibited
-  val PartialContent = new Status(206, "Partial Content") with NoConstraints
-  val MultiStatus = new Status(207, "Multi-Status") with NoConstraints
-  val AlreadyReported = new Status(208, "Already Reported") with NoConstraints
-  val IMUsed = new Status(226, "IM Used") with NoConstraints
+  val Ok = register(Status(200, "OK"))
+  val Created = register(Status(201, "Created"))
+  val Accepted = register(Status(202, "Accepted"))
+  val NonAuthoritativeInformation = register(Status(203, "Non-Authoritative Information"))
+  val NoContent = register(Status(204, "No Content", false))
+  val ResetContent = register(Status(205, "Reset Content", false))
+  val PartialContent = register(Status(206, "Partial Content"))
+  val MultiStatus = register(Status(207, "Multi-Status"))
+  val AlreadyReported = register(Status(208, "Already Reported"))
+  val IMUsed = register(Status(226, "IM Used"))
 
-  val MultipleChoices = new Status(300, "Multiple Choices") with NoConstraints
-  val MovedPermanently = new Status(301, "Moved Permanently") with LocationRequired
-  val Found = new Status(302, "Found") with LocationRequired
-  val SeeOther = new Status(303, "See Other") with LocationRequired
-  val NotModified = new Status(304, "Not Modified") with EntityProhibited
-  val UseProxy = new Status(305, "Use Proxy") with LocationRequired
-  val TemporaryRedirect = new Status(306, "Temporary Redirect") with LocationRequired
+  val MultipleChoices = register(Status(300, "Multiple Choices"))
+  val MovedPermanently = register(Status(301, "Moved Permanently"))
+  val Found = register(Status(302, "Found"))
+  val SeeOther = register(Status(303, "See Other"))
+  val NotModified = register(Status(304, "Not Modified", false))
+  val UseProxy = register(Status(305, "Use Proxy"))
+  val TemporaryRedirect = register(Status(307, "Temporary Redirect"))
+  val PermanentRedirect = register(Status(308, "Permanent Redirect"))
 
-  val BadRequest = new Status(400, "Bad Request") with NoConstraints
-  val Unauthorized = new Status(401, "Unauthorized") with HeaderRequired[Challenge] {
-    def mkRequiredHeader = Header.`WWW-Authenticate`(_)
-  }
-  val PaymentRequired = new Status(402, "Payment Required") with NoConstraints
-  val Forbidden = new Status(403, "Forbidden") with NoConstraints
-  val NotFound = new Status(404, "Not Found") with NoConstraints
-  val MethodNotAllowed = new Status(405, "Method Not Allowed") with HeaderRequired[String] {
-    def mkRequiredHeader = Header.Raw(Header.Allow.name, _)
-  }
-  val NotAcceptable = new Status(406, "Not Acceptable") with NoConstraints
-  val ProxyAuthenticationRequired = new Status(407, "Proxy Authentication Required") with HeaderRequired[String] {
-    def mkRequiredHeader = Header.Raw(Header.`Proxy-Authenticate`.name, _)
-  }
-  val RequestTimeout = new Status(408, "Request Timeout") with NoConstraints
-  val Conflict = new Status(409, "Conflict") with NoConstraints
-  val Gone = new Status(410, "Gone") with NoConstraints
-  val LengthRequired = new Status(411, "Length Required") with NoConstraints
-  val PreconditionFailed = new Status(412, "Precondition Failed") with NoConstraints
-  val RequestEntityTooLarge = new Status(413, "Request Entity Too Large") with NoConstraints
-  val RequestUriTooLarge = new Status(414, "Request-URI Too Large") with NoConstraints
-  val UnsupportedMediaType = new Status(415, "Unsupported Media Type") with NoConstraints
-  val RequestedRangeNotSatisfiable = new Status(416, "Requested Range Not Satisfiable") with NoConstraints
-  val ExpectationFailed = new Status(417, "ExpectationFailed") with NoConstraints
-  val ImATeapot = new Status(418, "I'm a teapot") with NoConstraints
-  val UnprocessableEntity = new Status(422, "Unprocessable Entity") with NoConstraints
-  val Locked = new Status(423, "Locked") with NoConstraints
-  val FailedDependency = new Status(424, "Failed Dependency") with NoConstraints
-  val UnorderedCollection = new Status(425, "Unordered Collection") with NoConstraints
-  val UpgradeRequired = new Status(426, "Upgrade Required") with NoConstraints
-  val PreconditionRequired = new Status(428, "Precondition Required") with NoConstraints
-  val TooManyRequests = new Status(429, "Too Many Requests") with NoConstraints
-  val RequestHeaderFieldsTooLarge = new Status(431, "Request Header Fields Too Large") with NoConstraints
+  val BadRequest = register(Status(400, "Bad Request"))
+  val Unauthorized = register(Status(401, "Unauthorized"))
+  val PaymentRequired = register(Status(402, "Payment Required"))
+  val Forbidden = register(Status(403, "Forbidden"))
+  val NotFound = register(Status(404, "Not Found"))
+  val MethodNotAllowed = register(Status(405, "Method Not Allowed"))
+  val NotAcceptable = register(Status(406, "Not Acceptable"))
+  val ProxyAuthenticationRequired = register(Status(407, "Proxy Authentication Required"))
+  val RequestTimeout = register(Status(408, "Request Timeout"))
+  val Conflict = register(Status(409, "Conflict"))
+  val Gone = register(Status(410, "Gone"))
+  val LengthRequired = register(Status(411, "Length Required"))
+  val PreconditionFailed = register(Status(412, "Precondition Failed"))
+  val PayloadTooLarge = register(Status(413, "Payload Too Large"))
+  val UriTooLong = register(Status(414, "URI Too Long"))
+  val UnsupportedMediaType = register(Status(415, "Unsupported Media Type"))
+  val RangeNotSatisfiable = register(Status(416, "Range Not Satisfiable"))
+  val ExpectationFailed = register(Status(417, "Expectation Failed"))
+  val UnprocessableEntity = register(Status(422, "Unprocessable Entity"))
+  val Locked = register(Status(423, "Locked"))
+  val FailedDependency = register(Status(424, "Failed Dependency"))
+  val UpgradeRequired = register(Status(426, "Upgrade Required"))
+  val PreconditionRequired = register(Status(428, "Precondition Required"))
+  val TooManyRequests = register(Status(429, "Too Many Requests"))
+  val RequestHeaderFieldsTooLarge = register(Status(431, "Request Header Fields Too Large"))
 
-  val InternalServerError = new Status(500, "Internal Server Error") with NoConstraints
-  val NotImplemented = new Status(501, "Not Implemented") with NoConstraints
-  val BadGateway = new Status(502, "Bad Gateway") with NoConstraints
-  val ServiceUnavailable = new Status(503, "Service Unavailable") with NoConstraints
-  val GatewayTimeout = new Status(504, "Gateway Timeout") with NoConstraints
-  val HttpVersionNotSupported = new Status(505, "HTTP Version not supported") with NoConstraints
-  val VariantAlsoNegotiates = new Status(506, "Variant Also Negotiates") with NoConstraints
-  val InsufficientStorage = new Status(507, "Insufficient Storage") with NoConstraints
-  val LoopDetected = new Status(508, "Loop Detected") with NoConstraints
-  val NotExtended = new Status(510, "Not Extended") with NoConstraints
-  val NetworkAuthenticationRequired = new Status(511, "Network Authentication Required") with NoConstraints
+  val InternalServerError = register(Status(500, "Internal Server Error"))
+  val NotImplemented = register(Status(501, "Not Implemented"))
+  val BadGateway = register(Status(502, "Bad Gateway"))
+  val ServiceUnavailable = register(Status(503, "Service Unavailable"))
+  val GatewayTimeout = register(Status(504, "Gateway Timeout"))
+  val HttpVersionNotSupported = register(Status(505, "HTTP Version not supported"))
+  val VariantAlsoNegotiates = register(Status(506, "Variant Also Negotiates"))
+  val InsufficientStorage = register(Status(507, "Insufficient Storage"))
+  val LoopDetected = register(Status(508, "Loop Detected"))
+  val NotExtended = register(Status(510, "Not Extended"))
+  val NetworkAuthenticationRequired = register(Status(511, "Network Authentication Required"))
+}
+
+trait StatusInstances {
+  implicit val StatusShow = Show.showFromToString[Status]
+  implicit val StatusEqual = Equal.equalA[Status]
 }
