@@ -43,13 +43,13 @@
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Status</span><span class="result"> extends <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">Status</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -67,7 +67,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.Status"><span>Status</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="org.http4s.StatusInstances"><span>StatusInstances</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.Status"><span>Status</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -87,77 +87,7 @@
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.Status.EntityResponseGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="EntityResponseGeneratorextendsAnyRef"></a>
-      <a id="EntityResponseGenerator:EntityResponseGenerator"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Status$$EntityResponseGenerator.html"><span class="name">EntityResponseGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@EntityResponseGeneratorextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><p>While it is possible to for the <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
-offer shortcut syntax to make intention clear and concise.
-</p></div><dl class="attributes block"> <div class="block">Example:
-               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = Ok(<span class="lit">"Hello world!"</span>)</pre></li></ol>
-            </div><dt>See also</dt><dd><span class="cmt"><p><a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a>
-</p></span></dd></dl></div>
-    </li><li name="org.http4s.Status.NoEntityResponseGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="NoEntityResponseGeneratorextendsAnyRef"></a>
-      <a id="NoEntityResponseGenerator:NoEntityResponseGenerator"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Status$$NoEntityResponseGenerator.html"><span class="name">NoEntityResponseGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NoEntityResponseGeneratorextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><p>While it is possible to for the <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
-offer shortcut syntax to make intention clear and concise.
-</p></div><dl class="attributes block"> <div class="block">Example:
-               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = Status.Continue()</pre></li></ol>
-            </div><dt>See also</dt><dd><span class="cmt"><p><a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a>
-</p></span></dd></dl></div>
-    </li><li name="org.http4s.Status.RedirectResponderGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="RedirectResponderGeneratorextendsAnyRef"></a>
-      <a id="RedirectResponderGenerator:RedirectResponderGenerator"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Status$$RedirectResponderGenerator.html"><span class="name">RedirectResponderGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@RedirectResponderGeneratorextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which points to another HTTP location</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which points to another HTTP location</p><p>The RedirectResponseGenerator aids in adding the appropriate headers for Redirect actions.
-While it is possible to for the <a href="Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
-offer shortcut syntax to make intention clear and concise.
-</p></div><dl class="attributes block"> <div class="block">Example:
-               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = MovedPermanently(<span class="lit">"http://foo.com"</span>)</pre></li></ol>
-            </div><dt>See also</dt><dd><span class="cmt"><p><a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a>
-</p></span></dd></dl></div>
-    </li></ol>
-            </div>
+        
 
         
 
@@ -214,994 +144,993 @@ offer shortcut syntax to make intention clear and concise.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Accepted" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Accepted:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="Accepted:StatuswithEntityResponseGenerator"></a>
+    </li><li name="org.http4s.Status#Accepted" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Accepted:org.http4s.Status"></a>
+      <a id="Accepted:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Accepted</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Accepted</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Accepted:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Accepted:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#AlreadyReported" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="AlreadyReported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="AlreadyReported:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#AlreadyReported" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AlreadyReported:org.http4s.Status"></a>
+      <a id="AlreadyReported:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">AlreadyReported</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">AlreadyReported</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@AlreadyReported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@AlreadyReported:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#BadGateway" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="BadGateway:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="BadGateway:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#BadGateway" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BadGateway:org.http4s.Status"></a>
+      <a id="BadGateway:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">BadGateway</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">BadGateway</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@BadGateway:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@BadGateway:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#BadRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="BadRequest:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="BadRequest:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#BadRequest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BadRequest:org.http4s.Status"></a>
+      <a id="BadRequest:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">BadRequest</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">BadRequest</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@BadRequest:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@BadRequest:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Conflict" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Conflict:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="Conflict:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Conflict" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Conflict:org.http4s.Status"></a>
+      <a id="Conflict:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Conflict</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Conflict</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Conflict:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Conflict:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Continue" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Continue:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
-      <a id="Continue:StatuswithNoEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Continue" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Continue:org.http4s.Status"></a>
+      <a id="Continue:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Continue</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
+        <span class="name">Continue</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Continue:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Continue:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
       <p class="shortcomment cmt">Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
-</p><div class="fullcomment"><div class="comment cmt"><p>Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Created" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Created:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="Created:StatuswithEntityResponseGenerator"></a>
+</p>
+    </li><li name="org.http4s.Status#Created" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Created:org.http4s.Status"></a>
+      <a id="Created:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Created</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Created</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Created:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Created:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#ExpectationFailed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ExpectationFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="ExpectationFailed:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#ExpectationFailed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ExpectationFailed:org.http4s.Status"></a>
+      <a id="ExpectationFailed:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">ExpectationFailed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">ExpectationFailed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@ExpectationFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@ExpectationFailed:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#FailedDependency" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="FailedDependency:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="FailedDependency:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#FailedDependency" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="FailedDependency:org.http4s.Status"></a>
+      <a id="FailedDependency:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">FailedDependency</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">FailedDependency</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@FailedDependency:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@FailedDependency:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Forbidden" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Forbidden:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="Forbidden:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Forbidden" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Forbidden:org.http4s.Status"></a>
+      <a id="Forbidden:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Forbidden</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Forbidden</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Forbidden:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Forbidden:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Found" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Found:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
-      <a id="Found:StatuswithRedirectResponderGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Found" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Found:org.http4s.Status"></a>
+      <a id="Found:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Found</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
+        <span class="name">Found</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Found:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Found:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#GatewayTimeOut" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="GatewayTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="GatewayTimeOut:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#GatewayTimeout" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="GatewayTimeout:org.http4s.Status"></a>
+      <a id="GatewayTimeout:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">GatewayTimeOut</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">GatewayTimeout</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@GatewayTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@GatewayTimeout:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Gone" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Gone:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="Gone:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Gone" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Gone:org.http4s.Status"></a>
+      <a id="Gone:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Gone</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Gone</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Gone:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Gone:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#HttpVersionNotSupported" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpVersionNotSupported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="HttpVersionNotSupported:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#HttpVersionNotSupported" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="HttpVersionNotSupported:org.http4s.Status"></a>
+      <a id="HttpVersionNotSupported:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpVersionNotSupported</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">HttpVersionNotSupported</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@HttpVersionNotSupported:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@HttpVersionNotSupported:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#IMUsed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="IMUsed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="IMUsed:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#IMUsed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="IMUsed:org.http4s.Status"></a>
+      <a id="IMUsed:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">IMUsed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">IMUsed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@IMUsed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@IMUsed:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#ImATeapot" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ImATeapot:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="ImATeapot:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#InsufficientStorage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="InsufficientStorage:org.http4s.Status"></a>
+      <a id="InsufficientStorage:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">ImATeapot</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">InsufficientStorage</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@ImATeapot:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@InsufficientStorage:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#InsufficientStorage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="InsufficientStorage:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="InsufficientStorage:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#InternalServerError" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="InternalServerError:org.http4s.Status"></a>
+      <a id="InternalServerError:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">InsufficientStorage</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">InternalServerError</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@InsufficientStorage:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@InternalServerError:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#InternalServerError" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="InternalServerError:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="InternalServerError:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#LengthRequired" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LengthRequired:org.http4s.Status"></a>
+      <a id="LengthRequired:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">InternalServerError</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">LengthRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@InternalServerError:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@LengthRequired:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#LengthRequred" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="LengthRequred:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="LengthRequred:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Locked" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Locked:org.http4s.Status"></a>
+      <a id="Locked:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">LengthRequred</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Locked</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@LengthRequred:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Locked:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Locked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Locked:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="Locked:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#LoopDetected" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="LoopDetected:org.http4s.Status"></a>
+      <a id="LoopDetected:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Locked</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">LoopDetected</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Locked:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@LoopDetected:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#LoopDetected" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="LoopDetected:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="LoopDetected:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#MethodNotAllowed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MethodNotAllowed:org.http4s.Status"></a>
+      <a id="MethodNotAllowed:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">LoopDetected</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">MethodNotAllowed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@LoopDetected:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@MethodNotAllowed:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances.MethodNotAllowed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="MethodNotAllowed"></a>
-      <a id="MethodNotAllowed:MethodNotAllowed"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="StatusInstances$MethodNotAllowed$.html"><span class="name">MethodNotAllowed</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.StatusInstances@MethodNotAllowed" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#MovedPermanently" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="MovedPermanently:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
-      <a id="MovedPermanently:StatuswithRedirectResponderGenerator"></a>
+      
+    </li><li name="org.http4s.Status#MovedPermanently" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MovedPermanently:org.http4s.Status"></a>
+      <a id="MovedPermanently:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">MovedPermanently</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
+        <span class="name">MovedPermanently</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@MovedPermanently:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@MovedPermanently:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#MultiStatus" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="MultiStatus:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="MultiStatus:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#MultiStatus" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MultiStatus:org.http4s.Status"></a>
+      <a id="MultiStatus:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">MultiStatus</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">MultiStatus</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@MultiStatus:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@MultiStatus:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#MultipleChoices" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="MultipleChoices:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="MultipleChoices:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#MultipleChoices" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MultipleChoices:org.http4s.Status"></a>
+      <a id="MultipleChoices:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">MultipleChoices</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">MultipleChoices</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@MultipleChoices:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@MultipleChoices:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#NetworkAuthenticationRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NetworkAuthenticationRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="NetworkAuthenticationRequired:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NetworkAuthenticationRequired" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NetworkAuthenticationRequired:org.http4s.Status"></a>
+      <a id="NetworkAuthenticationRequired:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">NetworkAuthenticationRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">NetworkAuthenticationRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NetworkAuthenticationRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NetworkAuthenticationRequired:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#NoContent" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NoContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
-      <a id="NoContent:StatuswithNoEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NoContent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NoContent:org.http4s.Status"></a>
+      <a id="NoContent:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">NoContent</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
+        <span class="name">NoContent</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NoContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NoContent:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#NonAuthoritativeInformation" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NonAuthoritativeInformation:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="NonAuthoritativeInformation:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NonAuthoritativeInformation" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NonAuthoritativeInformation:org.http4s.Status"></a>
+      <a id="NonAuthoritativeInformation:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">NonAuthoritativeInformation</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">NonAuthoritativeInformation</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NonAuthoritativeInformation:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NonAuthoritativeInformation:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#NotAcceptable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NotAcceptable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="NotAcceptable:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NotAcceptable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NotAcceptable:org.http4s.Status"></a>
+      <a id="NotAcceptable:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">NotAcceptable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">NotAcceptable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NotAcceptable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NotAcceptable:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#NotExtended" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NotExtended:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="NotExtended:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NotExtended" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NotExtended:org.http4s.Status"></a>
+      <a id="NotExtended:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">NotExtended</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">NotExtended</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NotExtended:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NotExtended:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances.NotFound" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NotFound"></a>
-      <a id="NotFound:NotFound"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="StatusInstances$NotFound$.html"><span class="name">NotFound</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.StatusInstances@NotFound" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#NotImplemented" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NotImplemented:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="NotImplemented:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NotFound" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NotFound:org.http4s.Status"></a>
+      <a id="NotFound:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">NotImplemented</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">NotFound</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NotImplemented:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NotFound:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#NotModified" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="NotModified:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
-      <a id="NotModified:StatuswithNoEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NotImplemented" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NotImplemented:org.http4s.Status"></a>
+      <a id="NotImplemented:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">NotModified</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
+        <span class="name">NotImplemented</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@NotModified:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NotImplemented:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Ok" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Ok:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="Ok:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#NotModified" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NotModified:org.http4s.Status"></a>
+      <a id="NotModified:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Ok</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">NotModified</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Ok:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@NotModified:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances.PartialContent" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="PartialContent"></a>
-      <a id="PartialContent:PartialContent"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="StatusInstances$PartialContent$.html"><span class="name">PartialContent</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.StatusInstances@PartialContent" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#PaymentRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="PaymentRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="PaymentRequired:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Ok" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Ok:org.http4s.Status"></a>
+      <a id="Ok:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">PaymentRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Ok</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@PaymentRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Ok:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#PreconditionFailed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="PreconditionFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="PreconditionFailed:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#PartialContent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PartialContent:org.http4s.Status"></a>
+      <a id="PartialContent:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">PreconditionFailed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">PartialContent</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@PreconditionFailed:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@PartialContent:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#PreconditionRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="PreconditionRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="PreconditionRequired:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#PayloadTooLarge" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PayloadTooLarge:org.http4s.Status"></a>
+      <a id="PayloadTooLarge:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">PreconditionRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">PayloadTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@PreconditionRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@PayloadTooLarge:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#Processing" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Processing:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
-      <a id="Processing:StatuswithNoEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#PaymentRequired" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PaymentRequired:org.http4s.Status"></a>
+      <a id="PaymentRequired:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">Processing</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
+        <span class="name">PaymentRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@Processing:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@PaymentRequired:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances.ProxyAuthenticationRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ProxyAuthenticationRequired"></a>
-      <a id="ProxyAuthenticationRequired:ProxyAuthenticationRequired"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="StatusInstances$ProxyAuthenticationRequired$.html"><span class="name">ProxyAuthenticationRequired</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.StatusInstances@ProxyAuthenticationRequired" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#RequestEntityTooLarge" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="RequestEntityTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="RequestEntityTooLarge:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#PermanentRedirect" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PermanentRedirect:org.http4s.Status"></a>
+      <a id="PermanentRedirect:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">RequestEntityTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">PermanentRedirect</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@RequestEntityTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@PermanentRedirect:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#RequestHeaderFieldsTooLarge" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="RequestHeaderFieldsTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="RequestHeaderFieldsTooLarge:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#PreconditionFailed" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PreconditionFailed:org.http4s.Status"></a>
+      <a id="PreconditionFailed:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">RequestHeaderFieldsTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">PreconditionFailed</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@RequestHeaderFieldsTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@PreconditionFailed:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#RequestTimeOut" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="RequestTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="RequestTimeOut:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#PreconditionRequired" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PreconditionRequired:org.http4s.Status"></a>
+      <a id="PreconditionRequired:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">RequestTimeOut</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">PreconditionRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@RequestTimeOut:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@PreconditionRequired:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#RequestUriTooLarge" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="RequestUriTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="RequestUriTooLarge:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Processing" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Processing:org.http4s.Status"></a>
+      <a id="Processing:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">RequestUriTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">Processing</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@RequestUriTooLarge:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Processing:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#RequestedRangeNotSatisfiable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="RequestedRangeNotSatisfiable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="RequestedRangeNotSatisfiable:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#ProxyAuthenticationRequired" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ProxyAuthenticationRequired:org.http4s.Status"></a>
+      <a id="ProxyAuthenticationRequired:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">RequestedRangeNotSatisfiable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">ProxyAuthenticationRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@RequestedRangeNotSatisfiable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@ProxyAuthenticationRequired:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#ResetContent" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ResetContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator"></a>
-      <a id="ResetContent:StatuswithNoEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#RangeNotSatisfiable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RangeNotSatisfiable:org.http4s.Status"></a>
+      <a id="RangeNotSatisfiable:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">ResetContent</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$NoEntityResponseGenerator.html" class="extype" name="org.http4s.Status.NoEntityResponseGenerator">NoEntityResponseGenerator</a></span>
+        <span class="name">RangeNotSatisfiable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@ResetContent:org.http4s.Statuswithorg.http4s.Status.NoEntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@RangeNotSatisfiable:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#SeeOther" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="SeeOther:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
-      <a id="SeeOther:StatuswithRedirectResponderGenerator"></a>
+      
+    </li><li name="org.http4s.Status#RequestHeaderFieldsTooLarge" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestHeaderFieldsTooLarge:org.http4s.Status"></a>
+      <a id="RequestHeaderFieldsTooLarge:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">SeeOther</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
+        <span class="name">RequestHeaderFieldsTooLarge</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@SeeOther:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@RequestHeaderFieldsTooLarge:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#ServiceUnavailable" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ServiceUnavailable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="ServiceUnavailable:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#RequestTimeout" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestTimeout:org.http4s.Status"></a>
+      <a id="RequestTimeout:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">ServiceUnavailable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">RequestTimeout</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@ServiceUnavailable:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@RequestTimeout:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances.SwitchingProtocols" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="SwitchingProtocols"></a>
-      <a id="SwitchingProtocols:SwitchingProtocols"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="StatusInstances$SwitchingProtocols$.html"><span class="name">SwitchingProtocols</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.StatusInstances@SwitchingProtocols" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#TemporaryRedirect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="TemporaryRedirect:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
-      <a id="TemporaryRedirect:StatuswithRedirectResponderGenerator"></a>
+      
+    </li><li name="org.http4s.Status#ResetContent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ResetContent:org.http4s.Status"></a>
+      <a id="ResetContent:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">TemporaryRedirect</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
+        <span class="name">ResetContent</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@TemporaryRedirect:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@ResetContent:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#TooManyRequests" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="TooManyRequests:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="TooManyRequests:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#SeeOther" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SeeOther:org.http4s.Status"></a>
+      <a id="SeeOther:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">TooManyRequests</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">SeeOther</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@TooManyRequests:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@SeeOther:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances.Unauthorized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Unauthorized"></a>
-      <a id="Unauthorized:Unauthorized"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="StatusInstances$Unauthorized$.html"><span class="name">Unauthorized</span></a><span class="result"> extends <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.StatusInstances@Unauthorized" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#UnorderedCollection" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="UnorderedCollection:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="UnorderedCollection:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#ServiceUnavailable" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServiceUnavailable:org.http4s.Status"></a>
+      <a id="ServiceUnavailable:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">UnorderedCollection</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">ServiceUnavailable</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@UnorderedCollection:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@ServiceUnavailable:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#UnprocessableEntity" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="UnprocessableEntity:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="UnprocessableEntity:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#SwitchingProtocols" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SwitchingProtocols:org.http4s.Status"></a>
+      <a id="SwitchingProtocols:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">UnprocessableEntity</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">SwitchingProtocols</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@UnprocessableEntity:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@SwitchingProtocols:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#UnsupportedMediaType" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="UnsupportedMediaType:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="UnsupportedMediaType:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#TemporaryRedirect" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TemporaryRedirect:org.http4s.Status"></a>
+      <a id="TemporaryRedirect:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">UnsupportedMediaType</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">TemporaryRedirect</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@UnsupportedMediaType:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@TemporaryRedirect:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#UpgradeRequired" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="UpgradeRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="UpgradeRequired:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#TooManyRequests" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="TooManyRequests:org.http4s.Status"></a>
+      <a id="TooManyRequests:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">UpgradeRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">TooManyRequests</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@UpgradeRequired:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@TooManyRequests:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#UseProxy" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="UseProxy:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator"></a>
-      <a id="UseProxy:StatuswithRedirectResponderGenerator"></a>
+      
+    </li><li name="org.http4s.Status#Unauthorized" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Unauthorized:org.http4s.Status"></a>
+      <a id="Unauthorized:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">UseProxy</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$RedirectResponderGenerator.html" class="extype" name="org.http4s.Status.RedirectResponderGenerator">RedirectResponderGenerator</a></span>
+        <span class="name">Unauthorized</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@UseProxy:org.http4s.Statuswithorg.http4s.Status.RedirectResponderGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@Unauthorized:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
-    </li><li name="org.http4s.StatusInstances#VariantAlsoNegotiates" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="VariantAlsoNegotiates:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator"></a>
-      <a id="VariantAlsoNegotiates:StatuswithEntityResponseGenerator"></a>
+      
+    </li><li name="org.http4s.Status#UnprocessableEntity" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UnprocessableEntity:org.http4s.Status"></a>
+      <a id="UnprocessableEntity:Status"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">VariantAlsoNegotiates</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> with <a href="Status$$EntityResponseGenerator.html" class="extype" name="org.http4s.Status.EntityResponseGenerator">EntityResponseGenerator</a></span>
+        <span class="name">UnprocessableEntity</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@VariantAlsoNegotiates:org.http4s.Statuswithorg.http4s.Status.EntityResponseGenerator" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Status$@UnprocessableEntity:org.http4s.Status" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></dd></dl></div>
+      
+    </li><li name="org.http4s.Status#UnsupportedMediaType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UnsupportedMediaType:org.http4s.Status"></a>
+      <a id="UnsupportedMediaType:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">UnsupportedMediaType</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UnsupportedMediaType:org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Status#UpgradeRequired" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UpgradeRequired:org.http4s.Status"></a>
+      <a id="UpgradeRequired:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">UpgradeRequired</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UpgradeRequired:org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Status#UriTooLong" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UriTooLong:org.http4s.Status"></a>
+      <a id="UriTooLong:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">UriTooLong</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UriTooLong:org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Status#UseProxy" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="UseProxy:org.http4s.Status"></a>
+      <a id="UseProxy:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">UseProxy</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@UseProxy:org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Status#VariantAlsoNegotiates" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="VariantAlsoNegotiates:org.http4s.Status"></a>
+      <a id="VariantAlsoNegotiates:Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">VariantAlsoNegotiates</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@VariantAlsoNegotiates:org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Status#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply(code:Int,reason:String,isEntityAllowed:Boolean):org.http4s.Status"></a>
+      <a id="apply(Int,String,Boolean):Status"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="code">code: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="reason">reason: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="isEntityAllowed">isEntityAllowed: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">true</span></span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@apply(code:Int,reason:String,isEntityAllowed:Boolean):org.http4s.Status" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.Status#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="apply(code:Int):org.http4s.Status"></a>
       <a id="apply(Int):Status"></a>
@@ -1350,23 +1279,6 @@ offer shortcut syntax to make intention clear and concise.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Status#int2statusCode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="int2statusCode(i:Int):org.http4s.Status"></a>
-      <a id="int2statusCode(Int):Status"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">int2statusCode</span><span class="params">(<span name="i">i: <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@int2statusCode(i:Int):org.http4s.Status" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -1435,6 +1347,23 @@ offer shortcut syntax to make intention clear and concise.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.Status#register" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="register(status:org.http4s.Status):status.type"></a>
+      <a id="register(Status):status.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">register</span><span class="params">(<span name="status">status: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>)</span><span class="result">: <span class="extype" name="org.http4s.Status.register.status">status</span>.type</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Status$@register(status:org.http4s.Status):status.type" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -1469,23 +1398,6 @@ offer shortcut syntax to make intention clear and concise.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Status#tuple2statusCode" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="tuple2statusCode(tup:(Int,String)):org.http4s.Status"></a>
-      <a id="tuple2statusCode((Int,String)):Status"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">tuple2statusCode</span><span class="params">(<span name="tup">tup: (<a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Int" class="extype" target="_top">Int</a>, <span class="extype" name="scala.Predef.String">String</span>)</span>)</span><span class="result">: <a href="Status.html" class="extype" name="org.http4s.Status">Status</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Status$@tuple2statusCode(tup:(Int,String)):org.http4s.Status" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -1568,8 +1480,6 @@ offer shortcut syntax to make intention clear and concise.
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
-            </div><div class="parent" name="org.http4s.StatusInstances">
-              <h3>Inherited from <a href="StatusInstances.html" class="extype" name="org.http4s.StatusInstances">StatusInstances</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

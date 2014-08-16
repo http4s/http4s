@@ -570,10 +570,10 @@
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">write a BodyChunk to the wire
+      <p class="shortcomment cmt">write a ByteVector to the wire
 If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
-</p><div class="fullcomment"><div class="comment cmt"><p>write a BodyChunk to the wire
+</p><div class="fullcomment"><div class="comment cmt"><p>write a ByteVector to the wire
 If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue
@@ -617,8 +617,7 @@ return a failed Future with Cancelled as the exception
     </span>
       <p class="shortcomment cmt">Creates a Task that writes the contents the Process to the output.</p><div class="fullcomment"><div class="comment cmt"><p>Creates a Task that writes the contents the Process to the output.
 Cancelled exceptions fall through to the Task cb
-This method will halt writing the process once a trailer is encountered
-</p></div><dl class="paramcmts block"><dt class="param">p</dt><dd class="cmt"><p>Process[Task, Chunk] to write out</p></dd><dt>returns</dt><dd class="cmt"><p>the Task which when run will unwind the Process
+</p></div><dl class="paramcmts block"><dt class="param">p</dt><dd class="cmt"><p>Process[Task, ByteVector] to write out</p></dd><dt>returns</dt><dd class="cmt"><p>the Task which when run will unwind the Process
 </p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li></ol>
             </div>

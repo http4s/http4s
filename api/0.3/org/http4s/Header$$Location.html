@@ -43,7 +43,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Location</span><span class="params">(<span name="absoluteUri">absoluteUri: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">Location</span><span class="params">(<span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="result"> extends <a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -88,7 +88,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.Header.Location#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(absoluteUri:String):org.http4s.Header.Location"></a>
+      <a id="&lt;init&gt;(uri:org.http4s.Uri):org.http4s.Header.Location"></a>
       <a id="&lt;init&gt;:Location"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -96,10 +96,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Location</span><span class="params">(<span name="absoluteUri">absoluteUri: <span class="extype" name="scala.Predef.String">String</span></span>)</span>
+        <span class="name">Location</span><span class="params">(<span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Header$$Location@&lt;init&gt;(absoluteUri:String):org.http4s.Header.Location" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Header$$Location@&lt;init&gt;(uri:org.http4s.Uri):org.http4s.Header.Location" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" />
       </a>
     </span>
@@ -164,23 +164,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Header.Location#absoluteUri" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="absoluteUri:String"></a>
-      <a id="absoluteUri:String"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">absoluteUri</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Header$$Location@absoluteUri:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
-      </a>
-    </span>
-      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -567,6 +550,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Header.html" class="extype" name="org.http4s.Header">Header</a> → <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> → AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Header.Location#uri" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="uri:org.http4s.Uri"></a>
+      <a id="uri:Uri"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">uri</span><span class="result">: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Header$$Location@uri:org.http4s.Uri" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.Header.Location#value" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="value:String"></a>
       <a id="value:String"></a>

@@ -421,7 +421,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Header$$Location.html"><span class="name">Location</span></a><span class="params">(<span name="absoluteUri">absoluteUri: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Header$$Location.html"><span class="name">Location</span></a><span class="params">(<span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="result"> extends <a href="Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Header$@LocationextendsHeader.ParsedwithProductwithSerializable" title="Permalink" target="_top">
@@ -446,6 +446,23 @@
       </a>
     </span>
       <p class="shortcomment cmt">A Header that is already parsed from its String representation.</p>
+    </li><li name="org.http4s.Header.Proxy-Authenticate" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Proxy-AuthenticateextendsHeader.RecurringRenderablewithProductwithSerializable"></a>
+      <a id="Proxy-Authenticate:Proxy-Authenticate"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Header$$Proxy$minusAuthenticate.html"><span title="gt4s: Proxy$minusAuthenticate" class="name">Proxy-Authenticate</span></a><span class="params">(<span name="values">values: <span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<a href="Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a>]</span>)</span><span class="result"> extends <a href="Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Header$@Proxy-AuthenticateextendsHeader.RecurringRenderablewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.Header.Raw" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="RawextendsHeaderwithProductwithSerializable"></a>
       <a id="Raw:Raw"></a>
@@ -1437,7 +1454,7 @@ of the message, by appending each subsequent field-value to the first, each sepa
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Header$$Proxy$minusAuthenticate$.html"><span title="gt4s: Proxy$minusAuthenticate" class="name">Proxy-Authenticate</span></a><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>] with <span class="extype" name="org.http4s.HeaderKey.Default">Default</span></span>
+        <a href="Header$$Proxy$minusAuthenticate$.html"><span title="gt4s: Proxy$minusAuthenticate" class="name">Proxy-Authenticate</span></a><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Header$$Proxy$minusAuthenticate.html" class="extype" name="org.http4s.Header.Proxy-Authenticate">Proxy-Authenticate</a>] with <a href="HeaderKey$$Recurring.html" class="extype" name="org.http4s.HeaderKey.Recurring">HeaderKey.Recurring</a> with <a href="http://www.scala-lang.org/api/2.11.2/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Header$@Proxy-Authenticate" title="Permalink" target="_top">
