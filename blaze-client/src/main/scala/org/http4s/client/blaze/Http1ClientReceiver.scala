@@ -31,7 +31,11 @@ abstract class Http1ClientReceiver extends Http1ClientParser
   override protected def submitResponseLine(code: Int, reason: String,
                                             scheme: String,
                                             majorversion: Int, minorversion: Int): Unit = {
-    _status = Status(code)
+    _status = Status.get(code) match {
+        case Some(c) if c.reason.equalsIgnoreCase(reason) => c
+        case Some(c)                                      => Status(code, reason, c.isEntityAllowed)
+        case None                                         => Status(code, reason, true)
+      }
     _httpVersion = {
       if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
       else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`
