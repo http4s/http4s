@@ -18,12 +18,9 @@ trait TestInstances {
   }
   val tokens: Gen[String] = nonEmptyListOf(tchars).map(_.mkString)
 
-  val standardMethods: Gen[Method] = Gen.oneOf {
-    import Method._
-    Seq(GET, POST, PUT, DELETE, OPTIONS, TRACE, CONNECT, PATCH)
-  }
+  val standardMethods: Gen[Method] = Gen.oneOf(Method.registered.toSeq)
   implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
-    8 -> standardMethods,
+    10 -> standardMethods,
     1 -> tokens.map(Method.fromString(_).valueOr(e => throw ParseException(e)))
   ))
 
