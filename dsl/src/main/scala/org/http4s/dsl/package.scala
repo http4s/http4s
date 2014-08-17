@@ -97,7 +97,7 @@ package object dsl extends Http4s {
   implicit class MovedPermanentlySyntax(val status: MovedPermanently.type) extends AnyVal with LocationResponseGenerator
   implicit class FoundSyntax(val status: Found.type) extends AnyVal with LocationResponseGenerator
   implicit class SeeOtherSyntax(val status: SeeOther.type) extends AnyVal with LocationResponseGenerator
-  implicit class NotModifiedSyntax(val status: NotModified.type) extends AnyVal with EntityResponseGenerator
+  implicit class NotModifiedSyntax(val status: NotModified.type) extends AnyVal with EmptyResponseGenerator
   // Note: UseProxy is deprecated in RFC7231, so we will not ease its creation here.
   implicit class TemporaryRedirectSyntax(val status: TemporaryRedirect.type) extends AnyVal with LocationResponseGenerator
   implicit class PermanentRedirectSyntax(val status: PermanentRedirect.type) extends AnyVal with LocationResponseGenerator
