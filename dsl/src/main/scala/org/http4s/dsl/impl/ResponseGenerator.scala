@@ -6,7 +6,7 @@ import scalaz.concurrent.Task
 
 import org.http4s.Writable.Entity
 
-trait ResponseGenerator {
+trait ResponseGenerator extends Any {
   def status: Status
 }
 
@@ -20,9 +20,8 @@ trait ResponseGenerator {
  * val resp: Task[Response] = Status.Continue()
  * }}}
  */
-trait EmptyResponseGenerator extends ResponseGenerator {
-  private[this] val StatusResponder = Response(status)
-  def apply(): Task[Response] = Task.now(StatusResponder)
+trait EmptyResponseGenerator extends Any with ResponseGenerator {
+  def apply(): Task[Response] = Task.now(Response(status))
 }
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
@@ -34,7 +33,7 @@ trait EmptyResponseGenerator extends ResponseGenerator {
   * val resp: Task[Response] = Ok("Hello world!")
   * }}}
   */
-trait EntityResponseGenerator extends EmptyResponseGenerator {
+trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
   def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
     apply(body, w.headers)(w)
 
@@ -47,16 +46,16 @@ trait EntityResponseGenerator extends EmptyResponseGenerator {
   }
 }
 
-trait LocationResponseGenerator extends ResponseGenerator {
+trait LocationResponseGenerator extends Any with ResponseGenerator {
   def apply(location: Uri): Task[Response] = Task.now(Response(status).putHeaders(Header.Location(location)))
 }
 
-trait WwwAuthenticateResponseGenerator extends ResponseGenerator {
+trait WwwAuthenticateResponseGenerator extends Any with ResponseGenerator {
   def apply(challenge: Challenge, challenges: Challenge*): Task[Response] =
     Task.now(Response(status).putHeaders(Header.`WWW-Authenticate`(challenge, challenges: _*)))
 }
 
-trait ProxyAuthenticateResponseGenerator extends ResponseGenerator {
+trait ProxyAuthenticateResponseGenerator extends Any with ResponseGenerator {
   def apply(challenge: Challenge, challenges: Challenge*): Task[Response] =
     Task.now(Response(status).putHeaders(Header.`Proxy-Authenticate`(challenge, challenges: _*)))
 }

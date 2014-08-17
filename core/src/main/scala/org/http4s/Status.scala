@@ -9,7 +9,7 @@ import scalaz.{Show, Equal}
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
   */
-sealed abstract case class Status (code: Int, reason: String)(val isEntityAllowed: Boolean) extends Ordered[Status] {
+sealed abstract case class Status (code: Int, reason: String, isEntityAllowed: Boolean = true) extends Ordered[Status] {
   def compare(that: Status) = code.compareTo(that.code)
 
   def line = {
@@ -26,7 +26,7 @@ object Status {
   def apply(code: Int): Status = Option(registry.get(code)).getOrElse(throw new NoSuchElementException)
 
   def apply(code: Int, reason: String, isEntityAllowed: Boolean = true): Status =
-    new Status(code, reason)(isEntityAllowed) {}
+    new Status(code, reason, isEntityAllowed) {}
 
   private val registry = new AtomicReferenceArray[Status](600)
 
