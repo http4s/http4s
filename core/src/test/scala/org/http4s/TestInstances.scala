@@ -24,6 +24,18 @@ trait TestInstances {
     1 -> tokens.map(Method.fromString(_).valueOr(e => throw ParseException(e)))
   ))
 
+  val validStatusCodes = Gen.choose(100, 599)
+  val standardStatuses = Gen.oneOf(Status.registered.toSeq)
+  val customStatuses = for {
+    code <- validStatusCodes
+    reason <- arbString.arbitrary
+  } yield Status.fromIntAndReason(code, reason).valueOr(e => throw ParseException(e))
+  implicit val arbitraryStatuses: Arbitrary[Status] = Arbitrary(frequency(
+    10 -> standardStatuses,
+    1 -> customStatuses
+  ))
+
+
   implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {
       major <- choose(0, 9)

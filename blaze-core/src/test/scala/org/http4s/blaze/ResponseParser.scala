@@ -1,6 +1,8 @@
 package org.http4s
 package blaze
 
+import scalaz.\/-
+
 import http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
 import java.nio.ByteBuffer
@@ -37,11 +39,7 @@ class ResponseParser extends Http1ClientParser {
 
     val headers = this.headers.result.map{case (k,v) => Header(k,v): Header}.toSet
 
-    val status = Status.get(this.code) match {
-      case Some(c) if c.reason == this.reason =>  c
-      case Some(c)                            => Status(this.code, this.reason, c.isEntityAllowed)
-      case None                               => Status(this.code, this.reason, true)
-    }
+    val status = Status.fromIntAndReason(this.code, reason).valueOr(e => throw new ParseException(e))
 
     (status, headers, bp)
   }
