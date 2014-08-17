@@ -31,7 +31,7 @@ abstract class Http1ClientReceiver extends Http1ClientParser
   override protected def submitResponseLine(code: Int, reason: String,
                                             scheme: String,
                                             majorversion: Int, minorversion: Int): Unit = {
-    _status = Status(code)
+    _status = Status.fromIntAndReason(code, reason).valueOr(e => throw new ParseException(e))
     _httpVersion = {
       if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
       else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`

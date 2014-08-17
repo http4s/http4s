@@ -12,7 +12,7 @@ import Http4s._
 class MethodSpec extends Http4sSpec {
   import Method._
 
-  "fromString is inverse of renderString" in {
+  "parses own string rendering to equal value" in {
     forAll(tokens) { token => fromString(token).map(_.renderString) must beRightDisjunction(token) }
   }
 
@@ -32,5 +32,9 @@ class MethodSpec extends Http4sSpec {
 
   "methods are equal by name" in {
     prop { m: Method => Method.fromString(m.name) must beRightDisjunction(m) }
+  }
+
+  "safety implies idempotence" in {
+    foreach(Method.registered.filter(_.isSafe)) { _.isIdempotent }
   }
 }
