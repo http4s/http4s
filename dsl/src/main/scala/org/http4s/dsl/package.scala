@@ -13,6 +13,16 @@ package object dsl extends Http4s {
   val TRACE: Method.TRACE.type = Method.TRACE
   val PATCH: Method.PATCH.type = Method.PATCH
 
+  implicit class GetSyntax(val method: GET.type) extends AnyVal with EmptyRequestGenerator
+  implicit class HeadSyntax(val method: HEAD.type) extends AnyVal with EmptyRequestGenerator
+  implicit class PostSyntax(val method: POST.type) extends AnyVal with EntityRequestGenerator
+  implicit class PutSyntax(val method: PUT.type) extends AnyVal with EntityRequestGenerator
+  implicit class DeleteSyntax(val method: DELETE.type) extends AnyVal with EmptyRequestGenerator
+  implicit class ConnectSyntax(val method: CONNECT.type) extends AnyVal with EmptyRequestGenerator
+  implicit class OptionsSyntax(val method: OPTIONS.type) extends AnyVal with EntityRequestGenerator
+  implicit class TraceSyntax(val method: TRACE.type) extends AnyVal with EmptyRequestGenerator
+  implicit class PatchSyntax(val method: PATCH.type) extends AnyVal with EntityRequestGenerator
+
   val Continue: Status.Continue.type = Status.Continue
   val SwitchingProtocols: Status.SwitchingProtocols.type = Status.SwitchingProtocols
   val Processing: Status.Processing.type = Status.Processing
