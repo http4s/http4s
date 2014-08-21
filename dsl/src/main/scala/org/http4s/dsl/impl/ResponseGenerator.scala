@@ -38,7 +38,7 @@ trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
     apply(body, Headers.empty)(w)
 
   def apply[A](body: A, headers: Headers)(implicit w: Writable[A]): Task[Response] = {
-    var h = headers ++ w.headers
+    var h = w.headers ++ headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
       len foreach { l => h = h put Header.`Content-Length`(l) }
       Task.now(Response(status = status, headers = h, body = proc))
