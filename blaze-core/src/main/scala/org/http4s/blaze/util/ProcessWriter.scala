@@ -7,7 +7,7 @@ import scala.util.{Failure, Success, Try}
 import scalaz.concurrent.Task
 import scalaz.stream.{Cause, Process}
 import scalaz.stream.Process._
-import scalaz.stream.Cause.{Kill, End, Error}
+import scalaz.stream.Cause._
 import scalaz.{-\/, \/, \/-}
 
 trait ProcessWriter {
@@ -62,13 +62,11 @@ trait ProcessWriter {
 
     case Await(t, f) => t.runAsync {  // Wait for it to finish, then continue to unwind
       case r@ \/-(_) => go(Try(f(r).run), stack, cb)
-      case -\/(t)    =>
-        if (stack.isEmpty) go(Halt(Error(t)), stack, cb)
-        else go(Try(stack.head(Error(t)).run), stack.tail, cb)
+      case -\/(t)    => go(Try(f(-\/(Error(t))).run), stack, cb)
     }
 
     case Append(head, tail) =>
-      if (stack.nonEmpty) go(head, stack ++ tail, cb)
+      if (stack.nonEmpty) go(head, tail ++ stack, cb)
       else go(head, tail, cb)
 
     case Halt(cause) if stack.nonEmpty => go(Try(stack.head(cause).run), stack.tail, cb)
@@ -79,6 +77,8 @@ trait ProcessWriter {
     case Halt(Kill) => writeEnd(ByteVector.empty)
                          .flatMap(_ => exceptionFlush())
                          .onComplete(completionListener(_, cb))
+
+    case Halt(Error(Terminated(cause))) => go(Halt(cause), stack, cb)
 
     case Halt(Error(t)) => exceptionFlush().onComplete {
       case Success(_) => cb(-\/(t))

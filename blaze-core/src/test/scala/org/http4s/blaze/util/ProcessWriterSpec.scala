@@ -15,7 +15,7 @@ import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process
+import scalaz.stream.{Cause, Process}
 
 
 
@@ -82,6 +82,19 @@ class ProcessWriterSpec extends Specification {
       }
       writeProcess(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
       clean must_== true
+    }
+
+    "Write tasks that repeat eval" in {
+      val t = {
+        var counter = 2
+        Task {
+          counter -= 1
+          if (counter >= 0) ByteVector("foo".getBytes(StandardCharsets.US_ASCII))
+          else throw Cause.Terminated(Cause.End)
+        }
+      }
+      val p = Process.repeatEval(t) ++ emit(ByteVector("bar".getBytes(StandardCharsets.US_ASCII)))
+      writeProcess(p)(builder) must_== "Content-Length: 9\r\n\r\n" + "foofoobar"
     }
   }
 
