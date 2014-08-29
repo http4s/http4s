@@ -1,16 +1,14 @@
 # v0.3.0 (2014-08-29)
 
-* Major under the covers changes for response generators.
-* Removed exception throwing methods for the construction of Uri and QValue and 
-  other similar methods in favor of disjunction and macro enforced literals.
-* Refactored the Http Message types to be more flexible to other frameworks 
-  syntax needs.
-* Refactored imports to match the structure followed by [scalaz](https://github.com/scalaz/scalaz).
+* New client API with Blaze implementation
 * Upgrade to scalaz-7.1.0 and scalaz-stream 0.5a
-* Numerous changes to HTTP values.
-* Add EntityDecoders.
-* Add json support through the [jawn](https://github.com/non/jawn) library
-* New Writable structure.
+* JSON Writable support through Argonaut and json4s.
+* Add EntityDecoders for parsing bodies.
+* Moved request and response generators to http4s-dsl to be more flexible to 
+  other frameworks'' syntax needs.
+* Phased out exception-throwing methods for the construction of various
+  model objects in favor of disjunctions and macro-enforced literals.
+* Refactored imports to match the structure followed by [scalaz](https://github.com/scalaz/scalaz).
 
 # v0.2.0 (2014-07-15)
 
