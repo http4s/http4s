@@ -65,7 +65,7 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
   private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
-      service.applyOrElse(request, ResponseBuilder.notFound(_: Request)).flatMap { response =>
+      service(request).getOrElse(ResponseBuilder.notFound(request)).flatMap { response =>
         servletResponse.setStatus(response.status.code, response.status.reason)
         for (header <- response.headers)
           servletResponse.addHeader(header.name.toString, header.value)

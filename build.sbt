@@ -21,7 +21,7 @@ lazy val jetty = project.dependsOn(servlet)
 
 lazy val tomcat = project.dependsOn(servlet)
 
-lazy val dsl = project.dependsOn(core % "compile;test->test", server % "test->compile")
+lazy val dsl = project.dependsOn(core % "compile;test->test", server)
 
 lazy val json4s = project.dependsOn(core)
 

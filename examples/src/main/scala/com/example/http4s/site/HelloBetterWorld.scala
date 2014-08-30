@@ -6,7 +6,7 @@ import org.http4s.server.HttpService
 
 object HelloBetterWorld {
   /// code_ref: service
-  val service: HttpService = {
+  val service = DslService {
     //  We use http4s-dsl to match the path of the Request to the familiar URI form
     case GET -> Root / "hello" =>
       // We could make a Task[Response] manually, but we use the

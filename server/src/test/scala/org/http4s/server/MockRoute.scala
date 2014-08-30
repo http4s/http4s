@@ -10,14 +10,14 @@ object MockRoute extends Http4s {
 
   def route(): HttpService = {
     case req: Request if req.uri.path ==  "/ping" =>
-      ResponseBuilder(Ok, "pong")
+      Some(ResponseBuilder(Ok, "pong"))
 
     case req: Request if req.method == Method.POST && req.uri.path == "/echo" =>
-      Task.now(Response(body = req.body))
+      Some(Task.now(Response(body = req.body)))
 
     case req: Request if req.uri.path == "/fail" =>
       sys.error("Problem!")
-      ResponseBuilder(Ok, "No problem...")
+      Some(ResponseBuilder(Ok, "No problem..."))
 
     /** For testing the UrlTranslation middleware */
     case req: Request if req.uri.path == "/checktranslate" =>
@@ -26,10 +26,12 @@ object MockRoute extends Http4s {
         .map(f => f("foo"))
         .getOrElse("bar!")
 
-      ResponseBuilder(Ok, newpath)
+      Some(ResponseBuilder(Ok, newpath))
 
     /** For testing the PushSupport middleware */
     case req: Request if req.uri.path == "/push" =>
-      ResponseBuilder(Ok, "Hello").push("/ping")(req)
+      Some(ResponseBuilder(Ok, "Hello").push("/ping")(req))
+
+    case _ => None
   }
 }

@@ -11,9 +11,8 @@ class MockServer(service: HttpService) {
 
   def apply(request: Request): Task[MockResponse] = {
     val task = for {
-      response <- try service.applyOrElse(request, ResponseBuilder.notFound(_: Request)) catch {
-                    case _: Throwable  => ResponseBuilder.basic(Status.InternalServerError)
-                  }
+      response <- try service(request).getOrElse(ResponseBuilder.notFound(request))
+                  catch { case _: Throwable  => ResponseBuilder.basic(Status.InternalServerError) }
       body <- response.body.collect{ case c: ByteVector => c.toArray }.runLog
     } yield MockResponse(
       response.status,

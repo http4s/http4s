@@ -44,7 +44,8 @@ class Http4sStageSpec extends Specification {
   "Http4sStage: Errors" should {
     val exceptionService: HttpService = {
       case r if r.uri.path == "/sync" => sys.error("Synchronous error!")
-      case r if r.uri.path == "/async" => Task.fail(new Exception("Asynchronous error!"))
+      case r if r.uri.path == "/async" => Some(Task.fail(new Exception("Asynchronous error!")))
+      case _ => None
     }
 
     def runError(path: String) = runRequest(List(path), exceptionService)

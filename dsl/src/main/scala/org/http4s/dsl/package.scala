@@ -1,6 +1,9 @@
 package org.http4s
 
 import org.http4s.dsl.impl._
+import org.http4s.server.HttpService
+
+import scalaz.concurrent.Task
 
 package object dsl extends Http4s {
   val GET: Method.GET.type = Method.GET
@@ -12,6 +15,8 @@ package object dsl extends Http4s {
   val OPTIONS: Method.OPTIONS.type = Method.OPTIONS
   val TRACE: Method.TRACE.type = Method.TRACE
   val PATCH: Method.PATCH.type = Method.PATCH
+
+  def DslService(pf: PartialFunction[Request, Task[Response]]): HttpService = pf.lift
 
   implicit class GetSyntax(val method: GET.type) extends AnyVal with EmptyRequestGenerator
   implicit class HeadSyntax(val method: HEAD.type) extends AnyVal with EmptyRequestGenerator
