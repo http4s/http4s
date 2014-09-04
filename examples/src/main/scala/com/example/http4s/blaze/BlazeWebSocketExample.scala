@@ -27,7 +27,7 @@ object BlazeWebSocketExample extends App {
   import scalaz.stream.async.topic
 
 
-  val route: HttpService = DslService {
+  val route: HttpService = HttpService {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 

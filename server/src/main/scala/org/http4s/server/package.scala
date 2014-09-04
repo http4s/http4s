@@ -1,15 +1,21 @@
 package org.http4s
 
+import scalaz.OptionT
 import scalaz.concurrent.Task
+import scalaz.syntax.bind._
 
 package object server {
   /** A PartialFunction which defines the transformation of [[Request]] to a scalaz.concurrent.Task[Response]
     * containing the [[Response]]
     */
-  type HttpService = Request => Option[Task[Response]]
+  type HttpService = Request => OptionT[Task, Response]
 
   implicit class HttpServiceSyntax(val service: HttpService) extends AnyVal {
-    def orElse[T >: Task[Response]](f: Request => Option[T]): Request => Option[T] =
-      req => service(req) orElse f(req)
+    def or(req: Request, resp: Task[Response]): Task[Response] =
+      service(req).fold(Task.now, resp).join
+
+    def orElse(fallback: HttpService): HttpService = { req: Request =>
+      service(req) orElse fallback(req)
+    }
   }
 }

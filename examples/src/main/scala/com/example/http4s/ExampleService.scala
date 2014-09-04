@@ -26,7 +26,7 @@ object ExampleService {
     service1(executionContext) orElse EntityLimiter(service2, 3)
   }
 
-  def service1(implicit executionContext: ExecutionContext): HttpService = DslService {
+  def service1(implicit executionContext: ExecutionContext): HttpService = HttpService {
 
     case GET -> Root / "ping" =>
       Ok("pong")
@@ -150,7 +150,7 @@ object ExampleService {
     case req => NotFound()
   }
 
-  def service2: HttpService = DslService {
+  def service2: HttpService = HttpService {
     case req @ POST -> Root / "shortsum"  =>
       text(req).flatMap { s =>
         val sum = s.split('\n').map(_.toInt).sum

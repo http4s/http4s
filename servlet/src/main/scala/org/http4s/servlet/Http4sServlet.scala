@@ -17,6 +17,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.io._
 import scalaz.{-\/, \/-}
 import scala.util.control.NonFatal
+import scalaz.syntax.bind._
 import org.parboiled2.ParseError
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
@@ -65,7 +66,7 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
   private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
-      service(request).getOrElse(ResponseBuilder.notFound(request)).flatMap { response =>
+      service(request).fold(Task.now, ResponseBuilder.notFound(request)).join.flatMap { response =>
         servletResponse.setStatus(response.status.code, response.status.reason)
         for (header <- response.headers)
           servletResponse.addHeader(header.name.toString, header.value)

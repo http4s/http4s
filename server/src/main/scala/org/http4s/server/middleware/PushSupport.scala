@@ -4,9 +4,7 @@ package middleware
 
 import scalaz.concurrent.Task
 import URITranslation.translateRootKey
-import scalaz.syntax.Ops
 import com.typesafe.scalalogging.slf4j.LazyLogging
-
 
 object PushSupport extends LazyLogging {
 
@@ -38,26 +36,21 @@ object PushSupport extends LazyLogging {
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try route(newReq) match {
-            case Some(response) => response.flatMap { response => // Inside the future result of this pushed resource
-              response.attributes.get(pushLocationKey)
-                .map { pushed =>
-                collectResponse(pushed, req, verify, route)
-                  .map(accumulated ++ _ :+ PushResponse(v.location, response))
-              }.getOrElse(Task.now(accumulated :+ PushResponse(v.location, response)))
-            }
-            case None => Task.now(accumulated)
-          }
+          try route(newReq).run.flatMap { _.fold(facc) { response =>
+            response.attributes.get(pushLocationKey)
+              .map { pushed =>
+              collectResponse(pushed, req, verify, route)
+                .map(accumulated ++ _ :+ PushResponse(v.location, response))
+            }.getOrElse(Task.now(accumulated :+ PushResponse(v.location, response)))
+          }}
           catch { case t: Throwable => handleException(t); facc }
         } else {
-          try route(newReq) match { // Need to make sure to catch exceptions
-            case Some(resp) => resp.flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
-            case None       => facc
+          try route(newReq).run.flatMap { // Need to make sure to catch exceptions
+            _.fold(facc) { resp => facc.map(_ :+ PushResponse(v.location, resp)) }
           }
           catch { case t: Throwable => handleException(t); facc }
         }
       }
-
       else facc
     }
   
@@ -70,14 +63,13 @@ object PushSupport extends LazyLogging {
    */
   def apply(route: HttpService, verify: String => Boolean = _ => true): HttpService = {
 
-    def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
-      resp.attributes.get(pushLocationKey).map { fresource =>
+    def gather(req: Request, resp: Response): Response =
+      resp.attributes.get(pushLocationKey).fold(resp) { fresource =>
         val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, verify, route)
         resp.copy(
           body = resp.body,
           attributes = resp.attributes.put(pushResponsesKey, collected))
-      }.getOrElse(resp)
-    }
+      }
 
     req => route(req).map(gather(req, _))
   }

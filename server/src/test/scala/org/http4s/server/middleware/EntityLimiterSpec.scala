@@ -14,9 +14,8 @@ import Status._
 class EntityLimiterSpec extends Specification {
   import Http4s._
 
-  val s: HttpService = {
-    case r: Request if r.uri.path == "/echo" => Some(EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _)))
-    case _ => None
+  val s: HttpService = HttpService {
+    case r: Request if r.uri.path == "/echo" => EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _))
   }
 
   val b = emit(ByteVector.view("hello".getBytes(StandardCharsets.UTF_8)))
@@ -25,36 +24,32 @@ class EntityLimiterSpec extends Specification {
 
     "Allow reasonable entities" in {
       EntityLimiter(s, 100).apply(Request(POST, uri("/echo"), body = b))
-        .get
         .map(_ => -1)
-        .run must be_==(-1)
+        .run.run must beSome(-1)
     }
 
     "Limit the maximum size of an EntityBody" in {
       EntityLimiter(s, 3).apply(Request(POST, uri("/echo"), body = b))
-        .get
         .map(_ => -1)
-        .handle { case EntityTooLarge(i) => i }
-        .run must be_==(3)
+        .run
+        .handle { case EntityTooLarge(i) => Some(i) }
+        .run must beSome(3)
     }
 
     "Chain correctly with other HttpServices" in {
-      val s2: HttpService = {
-        case r: Request if r.uri.path == "/echo2" => Some(EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _)))
-        case _ => None
+      val s2: HttpService = HttpService {
+        case r: Request if r.uri.path == "/echo2" => EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _))
       }
 
       val st: HttpService = req => EntityLimiter(s, 3)(req) orElse s2(req)
       (st.apply(Request(POST, uri("/echo2"), body = b))
-        .get
         .map(_ => -1)
-        .run must be_==(-1)) &&
+        .run.run must beSome(-1)) &&
         (st.apply(Request(POST, uri("/echo"), body = b))
-          .get
           .map(_ => -1)
-          .handle { case EntityTooLarge(i) => i }
-          .run must be_==(3))
+          .run
+          .handle { case EntityTooLarge(i) => Some(i) }
+          .run must beSome(3))
     }
   }
-
 }

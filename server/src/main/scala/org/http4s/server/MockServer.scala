@@ -6,12 +6,14 @@ import org.http4s.server.MockServer._
 import scodec.bits.ByteVector
 
 import scalaz.concurrent.Task
+import scalaz.OptionT
+import scalaz.syntax.monad._
 
 class MockServer(service: HttpService) {
 
   def apply(request: Request): Task[MockResponse] = {
     val task = for {
-      response <- try service(request).getOrElse(ResponseBuilder.notFound(request))
+      response <- try service.or(request, ResponseBuilder.notFound(request))
                   catch { case _: Throwable  => ResponseBuilder.basic(Status.InternalServerError) }
       body <- response.body.collect{ case c: ByteVector => c.toArray }.runLog
     } yield MockResponse(
