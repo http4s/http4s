@@ -26,11 +26,13 @@ object URITranslation {
 
     def apply(r: Request): Task[Response] = service.apply(transReq(r))
 
-    override def applyOrElse[A1 <: Request, B1 >: Task[Response]](x: A1, default: (A1) => B1): B1 =
-      if (isDefinedAt(x))
-        service(transReq(x))
-      else
-        default(x)
+    override def applyOrElse[A1 <: Request, B1 >: Task[Response]](x: A1, default: (A1) => B1): B1 = {
+      if (x.pathInfo.startsWith(newPrefix)) {
+        val req = transReq(x)
+        if (service.isDefinedAt(req)) service.apply(req)
+        else default(x)
+      } else default(x)
+    }
   }
 
   val translateRootKey = AttributeKey.http4s[String => String]("translateRoot")
