@@ -15,9 +15,8 @@ object EntityLimiter {
 
   val DefaultMaxEntitySize: Int = Http4sConfig.getInt("org.http4s.default-max-entity-size")
 
-  def apply(route: HttpService, limit: Int = DefaultMaxEntitySize): HttpService = { req =>
-      route.apply(req.copy(body = req.body |> takeBytes(limit)))
-  }
+  def apply(service: HttpService, limit: Int = DefaultMaxEntitySize): HttpService =
+    service.compose { req: Request => req.copy(body = req.body |> takeBytes(limit)) }
 
   private def takeBytes(n: Int): Process1[ByteVector, ByteVector] = {
     def go(taken: Int, chunk: ByteVector): Process1[ByteVector, ByteVector] = {
