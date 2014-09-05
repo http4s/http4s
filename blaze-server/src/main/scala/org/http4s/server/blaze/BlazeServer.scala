@@ -48,7 +48,7 @@ object BlazeServer {
         else URITranslation.translateRoot(prefix)(service)
       aggregateService =
         if (aggregateService eq HttpService.empty) prefixedService
-        else req => prefixedService(req) orElse aggregateService(req)
+        else prefixedService orElse aggregateService
       this
     }
 
