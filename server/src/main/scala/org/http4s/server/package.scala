@@ -6,8 +6,14 @@ import scalaz.syntax.bind._
 
 package object server {
   /**
-   * An HttpService transforms a [[Request]] into a [[Response]] optionally and
-   * asynchronously.
+   * An HTTP service transforms a [[Request]] into a [[Response]] optionally
+   * and asynchronously.
+   *
+   * An HTTP service may choose not to respond by returning [[NoResponse]].  [[HttpServiceSyntax]]
+   * provides methods to provide a fallback response from another HTTP service or a fixed response
+   * when this service returns [[NoResponse]].
+   *
+   * @see [[HttpService.apply]] to create an HTTP service from a [[PartialFunction]]
    */
   type HttpService = Request => OptionT[Task, Response]
 
@@ -23,4 +29,9 @@ package object server {
       service(req) orElse fallback(req)
     }
   }
+
+  /**
+   * Signifies that an HTTP service has declined to respond to the request.
+   */
+  val NoResponse: OptionT[Task, Response] = OptionT.none
 }
