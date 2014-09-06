@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 import javax.servlet.{ServletConfig, AsyncContext}
 
 import Http4sServlet._
-import util.CaseInsensitiveString._
+import org.http4s.server._
 
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
@@ -65,7 +65,7 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
   private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
-      service(request).getOrElse(ResponseBuilder.notFound(request)).flatMap { response =>
+      service.orNotFound(request).flatMap { response =>
         servletResponse.setStatus(response.status.code, response.status.reason)
         for (header <- response.headers)
           servletResponse.addHeader(header.name.toString, header.value)

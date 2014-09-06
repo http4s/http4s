@@ -16,7 +16,7 @@ package object dsl extends Http4s {
   val TRACE: Method.TRACE.type = Method.TRACE
   val PATCH: Method.PATCH.type = Method.PATCH
 
-  def DslService(pf: PartialFunction[Request, Task[Response]]): HttpService = pf.lift
+  def DslService(pf: PartialFunction[Request, Task[Response]]): HttpService = req => pf.applyOrElse(req, HttpService.empty)
 
   implicit class GetSyntax(val method: GET.type) extends AnyVal with EmptyRequestGenerator
   implicit class HeadSyntax(val method: HEAD.type) extends AnyVal with EmptyRequestGenerator

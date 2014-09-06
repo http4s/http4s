@@ -130,7 +130,7 @@ object ServerTestRoutes {
       case req if req.method == Method.GET && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))
     }
 
-    f.lift
+    req => f.applyOrElse(req, HttpService.empty)
   }
 
 }

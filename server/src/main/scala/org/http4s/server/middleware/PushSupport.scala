@@ -38,22 +38,17 @@ object PushSupport extends LazyLogging {
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try route(newReq) match {
-            case Some(response) => response.flatMap { response => // Inside the future result of this pushed resource
+          try route(newReq).flatMap { response => // Inside the future result of this pushed resource
               response.attributes.get(pushLocationKey)
                 .map { pushed =>
                 collectResponse(pushed, req, verify, route)
                   .map(accumulated ++ _ :+ PushResponse(v.location, response))
               }.getOrElse(Task.now(accumulated :+ PushResponse(v.location, response)))
-            }
-            case None => Task.now(accumulated)
-          }
+            }.handle { case Pass => accumulated }
           catch { case t: Throwable => handleException(t); facc }
         } else {
-          try route(newReq) match { // Need to make sure to catch exceptions
-            case Some(resp) => resp.flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
-            case None       => facc
-          }
+          try route(newReq).flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
+                           .handle { case Pass => Vector.empty }
           catch { case t: Throwable => handleException(t); facc }
         }
       }
@@ -79,7 +74,7 @@ object PushSupport extends LazyLogging {
       }.getOrElse(resp)
     }
 
-    req => route(req).map(gather(req, _))
+    req => gather(req, route(req))
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)

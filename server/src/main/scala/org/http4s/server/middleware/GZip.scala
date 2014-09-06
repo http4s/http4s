@@ -19,9 +19,9 @@ object GZip extends StrictLogging {
   // TODO      zipping and buffering all the input. Just a thought.
   def apply(route: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = { req =>
       //Header.`Accept-Encoding` req.prelude.headers
-      route(req).map{ t =>
-      req.headers.get(`Accept-Encoding`).fold(t) { h =>
-        if (h.satisfiedBy(ContentCoding.gzip) || h.satisfiedBy(ContentCoding.`x-gzip`)) t.map { resp =>
+      route(req).map { resp =>
+        req.headers.get(`Accept-Encoding`).fold(resp) { h =>
+        if (h.satisfiedBy(ContentCoding.gzip) || h.satisfiedBy(ContentCoding.`x-gzip`)) {
           // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
           val contentType = resp.headers.get(`Content-Type`)
           if (resp.headers.get(`Content-Encoding`).isEmpty &&
@@ -38,7 +38,7 @@ object GZip extends StrictLogging {
               .copy(body = b)
           }
           else resp // Don't touch it, Content-Encoding already set
-        } else t
+        } else resp
       }
     }
   }
