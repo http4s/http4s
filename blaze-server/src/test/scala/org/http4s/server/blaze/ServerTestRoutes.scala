@@ -109,7 +109,7 @@ object ServerTestRoutes {
       (Status.NotModified, Set[Header](connKeep), ""))
   )
 
-  def apply(): HttpService = {
+  def apply(): HttpService = HttpService {
     case req if req.method == Method.GET && req.pathInfo == "/get" => ResponseBuilder(Ok, "get")
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
       ResponseBuilder(Ok, eval(Task("chu")) ++ eval(Task("nk"))).putHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
@@ -125,8 +125,7 @@ object ServerTestRoutes {
     case req if req.method == Method.POST && req.pathInfo == "/echo" =>
       ResponseBuilder(Ok, emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.nioCharset)))
 
-      // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
+    // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
     case req if req.method == Method.GET && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))
   }
-
 }

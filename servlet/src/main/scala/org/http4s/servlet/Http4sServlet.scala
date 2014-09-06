@@ -17,6 +17,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.io._
 import scalaz.{-\/, \/-}
 import scala.util.control.NonFatal
+import scalaz.syntax.bind._
 import org.parboiled2.ParseError
 import com.typesafe.scalalogging.slf4j.LazyLogging
 

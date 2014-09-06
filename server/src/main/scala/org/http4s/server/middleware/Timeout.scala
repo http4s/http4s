@@ -5,7 +5,7 @@ package middleware
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import java.util.concurrent.{TimeUnit, ScheduledThreadPoolExecutor}
-import scalaz.\/-
+import scalaz.{OptionT, \/-}
 
 object Timeout {
 
@@ -22,8 +22,10 @@ object Timeout {
       * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
       * @param service [[org.http4s.server.HttpService]] to transform
       */
-  def apply(r: Task[Response]) (service: HttpService): HttpService = service.andThen { resp =>
-    Task.taskInstance.chooseAny(resp, r::Nil).map(_._1)
+  def apply(r: Task[Response]) (service: HttpService): HttpService = { req =>
+    val optResp = service(req).run
+    val timeoutResp = r.map(Some(_))
+    OptionT.optionT(Task.taskInstance.chooseAny(optResp, timeoutResp :: Nil).map(_._1))
   }
 
   /** Transform the service to return a RequestTimeOut [[Status]] after the supplied Duration
