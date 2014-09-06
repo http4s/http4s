@@ -1,7 +1,7 @@
 package org.http4s
 package servlet
 
-import server.{HttpService, ServerSoftware}
+import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import java.net.InetAddress

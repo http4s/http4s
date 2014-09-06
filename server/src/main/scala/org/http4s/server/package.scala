@@ -10,6 +10,8 @@ package object server {
   type HttpService = Request => Task[Response]
 
   implicit class HttpServiceSyntax(val service: HttpService) extends AnyVal {
+    def map(f: Response => Response): HttpService = service.andThen(_.map(f))
+
     def orElse[T >: Task[Response]](s2: HttpService): HttpService =
       req => service(req).handleWith { case Pass => s2(req) }
 
