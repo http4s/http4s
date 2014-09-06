@@ -115,7 +115,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
     collectMessage(body) match {
       case Some(req) =>
-        Task.fork(service.applyOrElse(req, ResponseBuilder.notFound(_: Request)))(pool)
+        Task.fork(service.orNotFound(req))(pool)
           .runAsync {
           case \/-(resp) => renderResponse(req, resp)
           case -\/(t)    =>
