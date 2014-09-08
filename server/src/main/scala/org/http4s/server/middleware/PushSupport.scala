@@ -38,18 +38,17 @@ object PushSupport extends LazyLogging {
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try route(newReq)
-            .flatMap { response =>                  // Inside the future result of this pushed resource
+          try route(newReq).flatMap { response => // Inside the future result of this pushed resource
               response.attributes.get(pushLocationKey)
-              .map { pushed =>
+                .map { pushed =>
                 collectResponse(pushed, req, verify, route)
                   .map(accumulated ++ _ :+ PushResponse(v.location, response))
-              }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
-            }
+              }.getOrElse(Task.now(accumulated :+ PushResponse(v.location, response)))
+            }.handle { case Pass => accumulated }
           catch { case t: Throwable => handleException(t); facc }
         } else {
-          try route(newReq)   // Need to make sure to catch exceptions
-            .flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
+          try route(newReq).flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
+                           .handle { case Pass => Vector.empty }
           catch { case t: Throwable => handleException(t); facc }
         }
       }
@@ -64,13 +63,9 @@ object PushSupport extends LazyLogging {
    * @param verify method that determines if the location should be pushed
    * @return      Transformed route
    */
-  def apply(route: HttpService, verify: String => Boolean = _ => true): HttpService = new HttpService {
+  def apply(route: HttpService, verify: String => Boolean = _ => true): HttpService = {
 
-    def apply(v1: Request): Task[Response] = gather(v1, route(v1))
-
-    def isDefinedAt(x: Request): Boolean = route.isDefinedAt(x)
-
-    private def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
+    def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
       resp.attributes.get(pushLocationKey).map { fresource =>
         val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, verify, route)
         resp.copy(
@@ -78,6 +73,8 @@ object PushSupport extends LazyLogging {
           attributes = resp.attributes.put(pushResponsesKey, collected))
       }.getOrElse(resp)
     }
+
+    req => gather(req, route(req))
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)

@@ -4,7 +4,6 @@ package blaze
 import scalaz.concurrent.Strategy
 
 import org.http4s._
-import org.http4s.Status._
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.server.HttpService
 import org.http4s.server.blaze.{WebSocketSupport, Http1ServerStage}
@@ -28,7 +27,7 @@ object BlazeWebSocketExample extends App {
   import scalaz.stream.async.topic
 
 
-  val route: HttpService = {
+  val route: HttpService = HttpService {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 

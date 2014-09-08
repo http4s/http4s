@@ -17,6 +17,8 @@ object ServerTestRoutes {
   val connKeep = Connection("keep-alive".ci)
   val chunked = `Transfer-Encoding`(TransferCoding.chunked)
 
+  private val date = DateTime(1410175705000L)
+
   def length(i: Int) = `Content-Length`(i)
 
   def testRequestResults: Seq[(String, (Status,Set[Header], String))] = Seq(
@@ -104,12 +106,12 @@ object ServerTestRoutes {
       (Status.Ok, Set(textPlain, length(3), connClose), "Foo")),
     ///////////////// Work with examples that don't have a body //////////////////////
     ("GET /notmodified HTTP/1.1\r\n\r\n",
-      (Status.NotModified, Set[Header](), "")),
+      (Status.NotModified, Set[Header](Header.Date(date)), "")),
     ("GET /notmodified HTTP/1.0\r\nConnection: Keep-Alive\r\n\r\n",
-      (Status.NotModified, Set[Header](connKeep), ""))
+      (Status.NotModified, Set[Header](connKeep, Header.Date(date)), ""))
   )
 
-  def apply(): HttpService = {
+  def apply(): HttpService = HttpService {
     case req if req.method == Method.GET && req.pathInfo == "/get" => ResponseBuilder(Ok, "get")
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
       ResponseBuilder(Ok, eval(Task("chu")) ++ eval(Task("nk"))).putHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
@@ -125,8 +127,7 @@ object ServerTestRoutes {
     case req if req.method == Method.POST && req.pathInfo == "/echo" =>
       ResponseBuilder(Ok, emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.nioCharset)))
 
-      // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
-    case req if req.method == Method.GET && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))
+    case req if req.method == Method.GET && req.pathInfo == "/notmodified" =>
+      Task.now(Response(NotModified)).putHeaders(Header.Date(date))
   }
-
 }

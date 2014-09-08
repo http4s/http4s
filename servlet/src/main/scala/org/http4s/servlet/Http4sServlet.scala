@@ -10,7 +10,7 @@ import scala.collection.JavaConverters._
 import javax.servlet.{ServletConfig, AsyncContext}
 
 import Http4sServlet._
-import util.CaseInsensitiveString._
+import org.http4s.server._
 
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task

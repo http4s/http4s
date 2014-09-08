@@ -1,5 +1,6 @@
 package org.http4s
-package server.middleware
+package server
+package middleware
 
 import java.nio.charset.StandardCharsets
 
@@ -16,6 +17,7 @@ class EntityLimiterSpec extends Specification {
 
   val s: HttpService = {
     case r: Request if r.uri.path == "/echo" => EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _))
+    case r => ResponseBuilder.notFound(r)
   }
 
   val b = emit(ByteVector.view("hello".getBytes(StandardCharsets.UTF_8)))
@@ -38,9 +40,10 @@ class EntityLimiterSpec extends Specification {
     "Chain correctly with other HttpServices" in {
       val s2: HttpService = {
         case r: Request if r.uri.path == "/echo2" => EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _))
+        case r => ResponseBuilder.notFound(r)
       }
 
-      val st = EntityLimiter(s, 3) orElse s2
+      val st: HttpService = EntityLimiter(s, 3) orElse s2
       (st.apply(Request(POST, uri("/echo2"), body = b))
         .map(_ => -1)
         .run must be_==(-1)) &&

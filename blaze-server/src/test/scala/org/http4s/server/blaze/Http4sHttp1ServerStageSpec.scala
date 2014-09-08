@@ -4,6 +4,7 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
+import org.http4s.ResponseBuilder
 import org.http4s.Status._
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
@@ -42,7 +43,7 @@ class Http4sStageSpec extends Specification {
   }
 
   "Http4sStage: Errors" should {
-    val exceptionService: HttpService = {
+    val exceptionService: HttpService = HttpService {
       case r if r.uri.path == "/sync" => sys.error("Synchronous error!")
       case r if r.uri.path == "/async" => Task.fail(new Exception("Asynchronous error!"))
     }

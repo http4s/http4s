@@ -1,6 +1,9 @@
 package org.http4s
 
 import org.http4s.dsl.impl._
+import org.http4s.server.HttpService
+
+import scalaz.concurrent.Task
 
 package object dsl extends Http4s {
   val GET: Method.GET.type = Method.GET
