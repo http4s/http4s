@@ -74,7 +74,7 @@ object PushSupport extends LazyLogging {
       }.getOrElse(resp)
     }
 
-    HttpService.httpService(req => gather(req, route(req)))
+    req => gather(req, route(req))
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)

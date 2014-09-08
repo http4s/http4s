@@ -32,5 +32,5 @@ object ChunkAggregator extends LazyLogging {
       response.copy(body = emitAll(chunks), headers = h)
     }
     else response
-  }
+  }.run
 }

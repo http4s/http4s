@@ -22,7 +22,7 @@ object Timeout {
     * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
     * @param service [[org.http4s.server.HttpService]] to transform
     */
-  def apply(r: Task[Response])(service: HttpService): HttpService = HttpService.httpService { req =>
+  def apply(r: Task[Response])(service: HttpService): HttpService = { req =>
     Task.taskInstance.chooseAny(service(req), r::Nil).map(_._1)
   }
 

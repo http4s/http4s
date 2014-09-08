@@ -15,7 +15,7 @@ import Status._
 class EntityLimiterSpec extends Specification {
   import Http4s._
 
-  val s: HttpService = Service {
+  val s: HttpService = {
     case r: Request if r.uri.path == "/echo" => EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _))
     case r => ResponseBuilder.notFound(r)
   }
@@ -38,7 +38,7 @@ class EntityLimiterSpec extends Specification {
     }
 
     "Chain correctly with other HttpServices" in {
-      val s2: HttpService = Service {
+      val s2: HttpService = {
         case r: Request if r.uri.path == "/echo2" => EntityDecoder.text(r).flatMap(ResponseBuilder(Ok, _))
         case r => ResponseBuilder.notFound(r)
       }

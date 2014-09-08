@@ -19,7 +19,7 @@ object URITranslation {
         .withPathInfo(req.pathInfo.substring(newPrefix.length))
     }
 
-    service.contramap(transReq)
+    service.compose(transReq)
   }
 
   val translateRootKey = AttributeKey.http4s[String => String]("translateRoot")
