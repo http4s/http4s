@@ -4,5 +4,9 @@ package server
 import scalaz.concurrent.Task
 
 object HttpService {
-  val empty: HttpService = _ => Task.fail(Pass)
+  def apply(pf: PartialFunction[Request, Task[Response]]): HttpService = Service.apply(pf)
+
+  def httpService(run: Request => Task[Response]): HttpService = Service.service(run)
+
+  val empty: HttpService = Service.service(_ => Task.fail(Pass))
 }

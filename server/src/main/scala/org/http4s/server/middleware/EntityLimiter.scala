@@ -1,11 +1,10 @@
-package org.http4s.server.middleware
+package org.http4s
+package server
+package middleware
 
-import org.http4s._
-import org.http4s.server._
 import scodec.bits.ByteVector
 
 import scala.util.control.NoStackTrace
-import scalaz.concurrent.Task
 import scalaz.stream.{Process1, process1}
 import scalaz.stream.Process._
 
@@ -15,9 +14,8 @@ object EntityLimiter {
 
   val DefaultMaxEntitySize: Int = Http4sConfig.getInt("org.http4s.default-max-entity-size")
 
-  def apply(route: HttpService, limit: Int = DefaultMaxEntitySize): HttpService = { req =>
-      route.apply(req.copy(body = req.body |> takeBytes(limit)))
-  }
+  def apply(service: HttpService, limit: Int = DefaultMaxEntitySize): HttpService =
+    service.contramap { req: Request => req.copy(body = req.body |> takeBytes(limit)) }
 
   private def takeBytes(n: Int): Process1[ByteVector, ByteVector] = {
     def go(taken: Int, chunk: ByteVector): Process1[ByteVector, ByteVector] = {

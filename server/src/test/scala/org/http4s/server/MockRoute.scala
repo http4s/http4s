@@ -8,7 +8,7 @@ import Status._
 
 object MockRoute extends Http4s {
 
-  def route(): HttpService = {
+  def route(): HttpService = HttpService {
     case req: Request if req.uri.path ==  "/ping" =>
       ResponseBuilder(Ok, "pong")
 
@@ -31,7 +31,5 @@ object MockRoute extends Http4s {
     /** For testing the PushSupport middleware */
     case req: Request if req.uri.path == "/push" =>
       ResponseBuilder(Ok, "Hello").push("/ping")(req)
-
-    case r => ResponseBuilder.notFound(r)
   }
 }

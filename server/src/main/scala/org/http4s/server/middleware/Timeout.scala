@@ -17,14 +17,14 @@ object Timeout {
     ec.schedule(r, timeout.toNanos, TimeUnit.NANOSECONDS)
   }
 
-    /** Transform the service such to return whichever resolves first:
-      * the provided Task[Response], or the result of the service
-      * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
-      * @param service [[org.http4s.server.HttpService]] to transform
-      */
-  def apply(r: Task[Response]) (service: HttpService): HttpService = { req =>
-        Task.taskInstance.chooseAny(service(req), r::Nil).map(_._1)
-    }
+  /** Transform the service such to return whichever resolves first:
+    * the provided Task[Response], or the result of the service
+    * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
+    * @param service [[org.http4s.server.HttpService]] to transform
+    */
+  def apply(r: Task[Response])(service: HttpService): HttpService = HttpService.httpService { req =>
+    Task.taskInstance.chooseAny(service(req), r::Nil).map(_._1)
+  }
 
   /** Transform the service to return a RequestTimeOut [[Status]] after the supplied Duration
     * @param timeout Duration to wait before returning the RequestTimeOut

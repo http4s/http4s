@@ -11,7 +11,7 @@ import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
-  val route: HttpService = {
+  val route: HttpService = HttpService {
     case r if r.pathInfo == "/" => ResponseBuilder(Ok, "hello")
     case r => sys.error("Path not found: " + r.pathInfo)
   }

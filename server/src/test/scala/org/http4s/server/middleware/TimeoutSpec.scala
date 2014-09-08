@@ -10,7 +10,7 @@ import Method._
 
 class TimeoutSpec extends Http4sSpec with NoTimeConversions {
 
-  val myservice: HttpService = {
+  val myservice: HttpService = HttpService {
     case req if req.uri.path == "/fast" => ResponseBuilder(Status.Ok, "Fast")
     case req if req.uri.path == "/slow" => Task(Thread.sleep(1000)).flatMap(_ => ResponseBuilder(Status.Ok, "Slow"))
     case req => ResponseBuilder.notFound(req)

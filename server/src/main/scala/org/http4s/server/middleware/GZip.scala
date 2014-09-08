@@ -17,7 +17,8 @@ object GZip extends StrictLogging {
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply(route: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = { req =>
+  def apply(route: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService =
+    HttpService.httpService { req =>
       //Header.`Accept-Encoding` req.prelude.headers
       route(req).map { resp =>
         req.headers.get(`Accept-Encoding`).fold(resp) { h =>
