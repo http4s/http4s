@@ -44,7 +44,7 @@ object BlazeServer {
 
     override def mountService(service: HttpService, prefix: String): this.type = {
       val prefixedService =
-        if (prefix.isEmpty) service
+        if (prefix.isEmpty || prefix == "/") service
         else URITranslation.translateRoot(prefix)(service)
       aggregateService =
         if (aggregateService eq HttpService.empty) prefixedService
