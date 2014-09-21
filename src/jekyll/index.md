@@ -112,6 +112,13 @@ object JettyExample extends App {
 }
 ```
 
+## Projects using http4s ##
+
+If you have a project you would like to include in this list, let us know on IRC or submit an issue.
+
+* [httpize](http://httpize.herokuapp.com/): a [httpbin](http://httpbin.org/) built with http4s
+
+
 ## Get it! ##
 
 Artifacts for scala 2.10 and 2.11 are available from Maven Central:
