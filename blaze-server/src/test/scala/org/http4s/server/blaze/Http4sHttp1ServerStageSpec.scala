@@ -22,7 +22,7 @@ class Http4sStageSpec extends Specification {
     new String(a)
   }
 
-  def runRequest(req: Seq[String], service: Service): Future[ByteBuffer] = {
+  def runRequest(req: Seq[String], service: HttpService): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
     val httpStage = new Http1ServerStage(service, None) {
       override def reset(): Unit = head.stageShutdown()     // shutdown the stage after a complete request
@@ -42,7 +42,7 @@ class Http4sStageSpec extends Specification {
   }
 
   "Http4sStage: Errors" should {
-    val exceptionService: Service = {
+    val exceptionService = HttpService {
       case r if r.uri.path == "/sync" => sys.error("Synchronous error!")
       case r if r.uri.path == "/async" => Task.fail(new Exception("Asynchronous error!"))
     }

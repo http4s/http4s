@@ -7,12 +7,12 @@ import org.http4s.{ResponseBuilder, Response, Request, Status}
 import scalaz.concurrent.Task
 
 
-class MockClient(service: Service) extends Client with LazyLogging {
+class MockClient(service: HttpService) extends Client with LazyLogging {
   /** Prepare a single request
     * @param req [[Request]] containing the headers, URI, etc.
     * @return Task which will generate the Response
     */
-  override def prepare(req: Request): Task[Response] = service.orNotFound(req)
+  override def prepare(req: Request): Task[Response] = service.or(req, ResponseBuilder.notFound(req))
 
   /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = Task.now(())

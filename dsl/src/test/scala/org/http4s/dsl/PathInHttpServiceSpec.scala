@@ -1,8 +1,7 @@
 package org.http4s
 package dsl
 
-import server.MockServer
-import server.Service
+import org.http4s.server.{HttpService, MockServer, Service}
 import server.MockServer.MockResponse
 
 import scalaz.concurrent.Task
@@ -23,7 +22,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
   object P extends DoubleParamMatcher("decimal")
   object T extends ParamMatcher("term")
 
-  val service: Service = {
+  val service = HttpService {
     case GET -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: $limit")
     case GET -> Root / LongVar(id) =>

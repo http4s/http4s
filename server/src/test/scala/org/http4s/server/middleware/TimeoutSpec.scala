@@ -10,7 +10,7 @@ import Method._
 
 class TimeoutSpec extends Http4sSpec with NoTimeConversions {
 
-  val myservice: Service = {
+  val myservice = HttpService {
     case req if req.uri.path == "/fast" => ResponseBuilder(Status.Ok, "Fast")
     case req if req.uri.path == "/slow" => Task(Thread.sleep(1000)).flatMap(_ => ResponseBuilder(Status.Ok, "Slow"))
   }
@@ -21,19 +21,19 @@ class TimeoutSpec extends Http4sSpec with NoTimeConversions {
     "Have no effect if the response is not delayed" in {
       val req = Request(GET, uri("/fast"))
 
-      timeoutService.apply(req).run.status must_==(Status.Ok)
+      timeoutService.apply(req).run.get.status must_==(Status.Ok)
     }
 
     "return a timeout if the result takes too long" in {
       val req = Request(GET, uri("/slow"))
 
-      timeoutService.apply(req).run.status must_==(Status.RequestTimeout)
+      timeoutService.apply(req).run.get.status must_==(Status.RequestTimeout)
     }
 
     "Handle infinite durations" in {
       val service = Timeout(Duration.Inf)(myservice)
 
-      service(Request(GET, uri("/slow"))).run.status must_==(Status.Ok)
+      service(Request(GET, uri("/slow"))).run.get.status must_==(Status.Ok)
     }
   }
 
