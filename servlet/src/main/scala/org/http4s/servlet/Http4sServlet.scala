@@ -20,7 +20,7 @@ import scala.util.control.NonFatal
 import org.parboiled2.ParseError
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-class Http4sServlet(service: Service, asyncTimeout: Duration = Duration.Inf, chunkSize: Int = DefaultChunkSize)
+class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf, chunkSize: Int = DefaultChunkSize)
             extends HttpServlet with LazyLogging {
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1  // -1 == Inf
@@ -65,16 +65,19 @@ class Http4sServlet(service: Service, asyncTimeout: Duration = Duration.Inf, chu
   private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
-      service.orNotFound(request).flatMap { response =>
-        servletResponse.setStatus(response.status.code, response.status.reason)
-        for (header <- response.headers)
-          servletResponse.addHeader(header.name.toString, header.value)
-        val out = servletResponse.getOutputStream
-        val isChunked = response.isChunked
-        response.body.map { chunk =>
-          out.write(chunk.toArray)
-          if (isChunked) servletResponse.flushBuffer()
+      service(request).flatMap {
+        case Some(response) =>
+          servletResponse.setStatus(response.status.code, response.status.reason)
+          for (header <- response.headers)
+            servletResponse.addHeader(header.name.toString, header.value)
+          val out = servletResponse.getOutputStream
+          val isChunked = response.isChunked
+          response.body.map { chunk =>
+            out.write(chunk.toArray)
+            if (isChunked) servletResponse.flushBuffer()
         }.run
+
+        case None => ResponseBuilder.notFound(request)
       }
     }.runAsync {
       case \/-(_) =>

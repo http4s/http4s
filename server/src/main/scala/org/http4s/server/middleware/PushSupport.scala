@@ -39,17 +39,22 @@ object PushSupport extends LazyLogging {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
           try route(newReq)
-            .flatMap { response =>                  // Inside the future result of this pushed resource
-              response.attributes.get(pushLocationKey)
-              .map { pushed =>
-                collectResponse(pushed, req, verify, route)
-                  .map(accumulated ++ _ :+ PushResponse(v.location, response))
-              }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
+            .flatMap {
+              case Some(response) =>                  // Inside the future result of this pushed resource
+                response.attributes.get(pushLocationKey)
+                  .map { pushed =>
+                    collectResponse(pushed, req, verify, route)
+                      .map(accumulated ++ _ :+ PushResponse(v.location, response))
+                  }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
+
+              case None => Task.now(accumulated)
             }
           catch { case t: Throwable => handleException(t); facc }
         } else {
-          try route(newReq)   // Need to make sure to catch exceptions
-            .flatMap( resp => facc.map(_ :+ PushResponse(v.location, resp)))
+          try route(newReq).flatMap {    // Need to make sure to catch exceptions
+            case Some(resp) => facc.map(_ :+ PushResponse(v.location, resp))
+            case None       => facc
+          }
           catch { case t: Throwable => handleException(t); facc }
         }
       }
@@ -60,24 +65,27 @@ object PushSupport extends LazyLogging {
 
   /** Transform the route such that requests will gather pushed resources
    *
-   * @param route Route to transform
+   * @param service HttpService to transform
    * @param verify method that determines if the location should be pushed
    * @return      Transformed route
    */
-  def apply(route: HttpService, verify: String => Boolean = _ => true): HttpService = new HttpService {
+  def apply(service: HttpService, verify: String => Boolean = _ => true): HttpService = {
 
-    def apply(v1: Request): Task[Response] = gather(v1, route(v1))
-
-    def isDefinedAt(x: Request): Boolean = route.isDefinedAt(x)
-
-    private def gather(req: Request, i: Task[Response]): Task[Response] = i map { resp =>
+    def gather(req: Request, resp: Response): Response = {
       resp.attributes.get(pushLocationKey).map { fresource =>
-        val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, verify, route)
+        val collected: Task[Vector[PushResponse]] = collectResponse(fresource, req, verify, service)
         resp.copy(
           body = resp.body,
-          attributes = resp.attributes.put(pushResponsesKey, collected))
+          attributes = resp.attributes.put(pushResponsesKey, collected)
+        )
       }.getOrElse(resp)
     }
+
+    def go(req: Request): Task[Option[Response]] = service(req).map {
+      case Some(resp) => Some(gather(req, resp))
+      case None       => None
+    }
+    Service.lift(go)
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)

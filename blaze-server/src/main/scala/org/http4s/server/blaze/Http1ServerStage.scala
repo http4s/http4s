@@ -26,7 +26,7 @@ import scalaz.{\/-, -\/}
 import java.util.concurrent.ExecutorService
 
 
-class Http1ServerStage(service: Service, conn: Option[SocketConnection])
+class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
                 (implicit pool: ExecutorService = Strategy.DefaultExecutorService)
                   extends Http1ServerParser
                   with TailStage[ByteBuffer]
@@ -115,9 +115,10 @@ class Http1ServerStage(service: Service, conn: Option[SocketConnection])
 
     collectMessage(body) match {
       case Some(req) =>
-        Task.fork(service.orNotFound(req))(pool)
+        Task.fork(service(req))(pool)
           .runAsync {
-          case \/-(resp) => renderResponse(req, resp)
+          case \/-(Some(resp)) => renderResponse(req, resp)
+          case \/-(None)       => ResponseBuilder.notFound(req)
           case -\/(t)    =>
             logger.error(s"Error running route: $req", t)
             val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)

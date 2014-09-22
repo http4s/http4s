@@ -20,13 +20,10 @@ object GZip extends StrictLogging {
   def apply(service: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = {
     Service.lift { req: Request =>
       req.headers.get(`Accept-Encoding`) match {
-        case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`) =>
+        case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip)
+                                  || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`) =>
           service.map { resp =>
-            val contentType = resp.headers.get(`Content-Type`)
-            if (resp.headers.get(`Content-Encoding`).isEmpty &&
-              (contentType.isEmpty ||
-                contentType.get.mediaType.compressible ||
-                (contentType.get.mediaType eq MediaType.`application/octet-stream`))) {
+            if (isZipable(resp)) {
               logger.trace("GZip middleware encoding content")
               // Need to add the Gzip header
               val b = emit(ByteVector.view(header)) ++
@@ -37,13 +34,21 @@ object GZip extends StrictLogging {
                 .copy(body = b)
             }
             else resp  // Don't touch it, Content-Encoding already set
-          }
+          }(req)
 
-        case None =>
-          service(req)
+        case None =>  service(req)
       }
     }
   }
+
+  private def isZipable(resp: Response): Boolean = {
+    val contentType = resp.headers.get(`Content-Type`)
+    resp.headers.get(`Content-Encoding`).isEmpty &&
+      (contentType.isEmpty || contentType.get.mediaType.compressible ||
+      (contentType.get.mediaType eq MediaType.`application/octet-stream`))
+  }
+
+
 
   private val GZIP_MAGIC_NUMBER = 0x8b1f
   private val TRAILER_LENGTH = 8
