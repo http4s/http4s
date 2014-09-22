@@ -23,7 +23,7 @@ object GZip extends StrictLogging {
         case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip)
                                   || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`) =>
           service.map { resp =>
-            if (isZipable(resp)) {
+            if (isZippable(resp)) {
               logger.trace("GZip middleware encoding content")
               // Need to add the Gzip header
               val b = emit(ByteVector.view(header)) ++
@@ -41,7 +41,7 @@ object GZip extends StrictLogging {
     }
   }
 
-  private def isZipable(resp: Response): Boolean = {
+  private def isZippable(resp: Response): Boolean = {
     val contentType = resp.headers.get(`Content-Type`)
     resp.headers.get(`Content-Encoding`).isEmpty &&
       (contentType.isEmpty || contentType.get.mediaType.compressible ||
