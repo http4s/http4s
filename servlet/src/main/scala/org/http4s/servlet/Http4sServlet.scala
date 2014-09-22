@@ -20,7 +20,7 @@ import scala.util.control.NonFatal
 import org.parboiled2.ParseError
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
-class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf, chunkSize: Int = DefaultChunkSize)
+class Http4sServlet(service: Service, asyncTimeout: Duration = Duration.Inf, chunkSize: Int = DefaultChunkSize)
             extends HttpServlet with LazyLogging {
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1  // -1 == Inf

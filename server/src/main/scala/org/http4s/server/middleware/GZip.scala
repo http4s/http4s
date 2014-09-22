@@ -17,17 +17,11 @@ object GZip extends StrictLogging {
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply(route: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = {
-
-    new HttpService {
-      override def isDefinedAt(x: Request): Boolean = route.isDefinedAt(x)
-
-      override def apply(req: Request): Task[Response] = {
-        //Header.`Accept-Encoding` req.prelude.headers
-        val t = route(req)
-        req.headers.get(`Accept-Encoding`).fold(t){ h =>
-          if (h.satisfiedBy(ContentCoding.gzip) || h.satisfiedBy(ContentCoding.`x-gzip`)) t.map { resp =>
-          // Accepts encoding. Make sure Content-Encoding is not set and transform body and add the header
+  def apply(service: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = {
+    Service.lift { req: Request =>
+      req.headers.get(`Accept-Encoding`) match {
+        case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip) || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`) =>
+          service.map { resp =>
             val contentType = resp.headers.get(`Content-Type`)
             if (resp.headers.get(`Content-Encoding`).isEmpty &&
               (contentType.isEmpty ||
@@ -37,14 +31,16 @@ object GZip extends StrictLogging {
               // Need to add the Gzip header
               val b = emit(ByteVector.view(header)) ++
                         resp.body.pipe(scalaz.stream.compress.deflate(level = level, nowrap = true))
-              
+
               resp.removeHeader(`Content-Length`)
                 .putHeaders(`Content-Encoding`(ContentCoding.gzip))
                 .copy(body = b)
             }
             else resp  // Don't touch it, Content-Encoding already set
-          } else t
-        }
+          }
+
+        case None =>
+          service(req)
       }
     }
   }

@@ -1,7 +1,7 @@
 package org.http4s
 package servlet
 
-import org.http4s.server.{HttpService, HasAsyncTimeout, ServerBuilder, Server}
+import org.http4s.server.{Service, HasAsyncTimeout, ServerBuilder, Server}
 
 import javax.servlet.http.HttpServlet
 
@@ -17,7 +17,7 @@ trait ServletContainerBuilder extends ServerBuilder with HasAsyncTimeout {
   protected def defaultServletName(servlet: HttpServlet): String =
     s"${servlet.getClass.getName}-${System.identityHashCode(servlet)}"
 
-  def mountService(service: HttpService, prefix: String): this.type = {
+  def mountService(service: Service, prefix: String): this.type = {
     val pathMapping = s"${prefix}/*"
     mountServlet(new Http4sServlet(service, asyncTimeout), pathMapping)
   }

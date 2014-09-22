@@ -8,7 +8,7 @@ import Status._
 
 object MockRoute extends Http4s {
 
-  def route(): HttpService = {
+  def route(): Service = {
     case req: Request if req.uri.path ==  "/ping" =>
       ResponseBuilder(Ok, "pong")
 

@@ -22,10 +22,10 @@ object ExampleService {
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
   val MyVar = AttributeKey[Int]("org.http4s.examples.myVar")
 
-  def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService =
+  def service(implicit executionContext: ExecutionContext = ExecutionContext.global): Service =
     service1(executionContext) orElse EntityLimiter(service2, 3)
 
-  def service1(implicit executionContext: ExecutionContext): HttpService = {
+  def service1(implicit executionContext: ExecutionContext): Service = {
 
     case GET -> Root / "ping" =>
       Ok("pong")
@@ -149,7 +149,7 @@ object ExampleService {
     case req => NotFound()
   }
 
-  def service2: HttpService = {
+  def service2: Service = {
     case req @ POST -> Root / "shortsum"  =>
       text(req).flatMap { s =>
         val sum = s.split('\n').map(_.toInt).sum

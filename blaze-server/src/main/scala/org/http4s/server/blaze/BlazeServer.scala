@@ -37,17 +37,17 @@ object BlazeServer {
   class Builder extends ServerBuilder with HasIdleTimeout {
     type To = BlazeServer
 
-    private var aggregateService = HttpService.empty
+    private var aggregateService = Service.empty
     private var port = 8080
     private var idleTimeout: Duration = Duration.Inf
     private var host = "0.0.0.0"
 
-    override def mountService(service: HttpService, prefix: String): this.type = {
+    override def mountService(service: Service, prefix: String): this.type = {
       val prefixedService =
         if (prefix.isEmpty) service
         else URITranslation.translateRoot(prefix)(service)
       aggregateService =
-        if (aggregateService eq HttpService.empty) prefixedService
+        if (aggregateService eq Service.empty) prefixedService
         else prefixedService orElse aggregateService
       this
     }

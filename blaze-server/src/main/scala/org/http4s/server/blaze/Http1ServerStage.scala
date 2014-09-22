@@ -26,7 +26,7 @@ import scalaz.{\/-, -\/}
 import java.util.concurrent.ExecutorService
 
 
-class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
+class Http1ServerStage(service: Service, conn: Option[SocketConnection])
                 (implicit pool: ExecutorService = Strategy.DefaultExecutorService)
                   extends Http1ServerParser
                   with TailStage[ByteBuffer]
