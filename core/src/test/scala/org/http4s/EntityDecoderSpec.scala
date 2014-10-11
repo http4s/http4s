@@ -12,6 +12,7 @@ import org.xml.sax.SAXParseException
 
 import java.io.{FileInputStream,File,InputStreamReader}
 
+import scala.util.control.NonFatal
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
 import scodec.bits.ByteVector
@@ -20,6 +21,8 @@ import scodec.bits.ByteVector
 class EntityDecoderSpec extends Specification {
 
   def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
+
+  def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
 
   "xml" should {
 
@@ -35,10 +38,36 @@ class EntityDecoderSpec extends Specification {
     }
 
     "handle a parse failure" in {
-      val body = emit("This is not XML.").map(s => ByteVector(s.getBytes))
+      val body = strBody("This is not XML.")
       val resp = server(Request(body = body)).run
       resp.status must_== (Status.BadRequest)
     }
+  }
+
+  "application/x-www-form-urlencoded" should {
+
+    val server: Request => Task[Response] = { req =>
+      formEncoded(req).flatMap{ form => ResponseBuilder(Ok, form("Name").head) }
+        .handle{ case NonFatal(t) => ResponseBuilder.basic(Status.BadRequest).run }
+    }
+
+    "Decode form encoded body" in {
+      val body = strBody("Name=Jonathan+Doe&Age=23&Formula=a+%2B+b+%3D%3D+13%25%21")
+      val result = Map(("Formula",Seq("a + b == 13%!")),
+        ("Age",Seq("23")),
+        ("Name",Seq("Jonathan Doe")))
+
+      val resp = server(Request(body = body)).run
+      resp.status must_== Ok
+      getBody(resp.body) must_== "Jonathan Doe".getBytes
+    }
+
+    "handle a parse failure" in {
+      val body = strBody("%C")
+      val resp = server(Request(body = body)).run
+      resp.status must_== Status.BadRequest
+    }
+
   }
 
   "A File EntityDecoder" should {

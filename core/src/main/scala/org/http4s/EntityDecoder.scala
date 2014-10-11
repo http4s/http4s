@@ -10,6 +10,8 @@ import scala.xml.{Elem, XML}
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1, Process}
 
+import util.UrlFormCodec.{ decode => formDecode }
+
 // TODO: Need to handle failure in a more uniform manner
 /** A type that can be used to decode an [[EntityBody]]
   * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
@@ -71,9 +73,17 @@ object EntityDecoder extends EntityDecoderInstances {
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
   }
 
-  // Helper method which simply gathers the body into a single Array[Byte]
+  /** Helper method which simply gathers the body into a single Array[Byte] */
   def collectBinary(msg: Message): Task[Array[Byte]] =
     msg.body.runLog.map(_.reduce(_ ++ _).toArray)
+
+  /** Decodes a message to a String */
+  def decodeString(msg: Message): Task[String] = {
+    val buff = new StringBuilder
+    (msg.body |> process1.fold(buff) { (b, c) => {
+      b.append(new String(c.toArray, (msg.charset.nioCharset)))
+    }}).map(_.result()).runLastOr("")
+  }
 }
 
 /** Implementations of the EntityDecoder instances */
@@ -93,14 +103,17 @@ trait EntityDecoderInstances {
   }
 
   implicit val text: EntityDecoder[String] = {
-    def decodeString(msg: Message): Task[String] = {
-      val buff = new StringBuilder
-      (msg.body |> process1.fold(buff) { (b, c) => {
-        b.append(new String(c.toArray, (msg.charset.nioCharset)))
-      }}).map(_.result()).runLastOr("")
-    }
     EntityDecoder(msg => collectBinary(msg).map(new String(_, msg.charset.nioCharset)),
       MediaRange.`text/*`)
+  }
+
+  // application/x-www-form-urlencoded
+  implicit val formEncoded: EntityDecoder[Map[String, Seq[String]]] = {
+    val fn = decodeString(_: Message).flatMap { s =>
+      formDecode(s).fold(f => Task.fail(new Exception(f.details)), Task.now)
+    }
+
+    EntityDecoder(fn, MediaType.`application/x-www-form-urlencoded`)
   }
 
   /**

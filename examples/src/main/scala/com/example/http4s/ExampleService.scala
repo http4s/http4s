@@ -61,6 +61,25 @@ object ExampleService {
         Ok("Got a nonfatal Exception, but its OK")
       }
 
+    case req @ POST -> Root / "formencoded" =>
+      formEncoded(req).flatMap { m =>
+        val s = m.mkString("\n")
+        Ok(s"Form Encoded Data\n$s")
+      }
+
+    //------- Testing form encoded data --------------------------
+    case req @ GET -> Root / "formencoded" =>
+      val html = <html><body>
+        <p>Submit something.</p>
+        <form name="input" method="post">
+          <p>First name: <input type="text" name="firstname"/></p>
+          <p>Last name: <input type="text" name="lastname"/></p>
+          <p><input type="submit" value="Submit"/></p>
+        </form>
+      </body></html>
+
+      Ok(html)
+
 /*
     case req @ Post -> Root / "trailer" =>
       trailer(t => Ok(t.headers.length))
