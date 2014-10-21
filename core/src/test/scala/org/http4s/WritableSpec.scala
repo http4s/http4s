@@ -13,6 +13,9 @@ import scalaz.stream.text.utf8Decode
 import scalaz.stream.Process
 
 object WritableSpec {
+
+  implicit val byteVectorMonoid: scalaz.Monoid[ByteVector] = scalaz.Monoid.instance(_ ++ _, ByteVector.empty)
+
   def writeToString[A](a: A)(implicit W: Writable[A]): String =
     Process.eval(W.toEntity(a))
       .collect { case Writable.Entity(body, _ ) => body }

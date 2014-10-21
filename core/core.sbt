@@ -13,7 +13,7 @@ libraryDependencies ++= Seq(
   rl,
   scalazStream,
   scalaloggingSlf4j,
-  scodecCore,
+  scodecBits,
   Http4sDependencies.config
 )
 
