@@ -16,14 +16,14 @@ class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After 
     implicit def client = SimpleHttp1Client
 
     "Make simple http requests" in {
-      val resp = Request(GET, uri("http://www.google.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
 //      println(resp.copy(body = halt))
 
       resp.status.code must be_==(200)
     }
 
     "Make simple https requests" in {
-      val resp = Request(GET, uri("https://www.google.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.status.code must be_==(200)
@@ -35,7 +35,7 @@ class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After 
   "RecyclingHttp1Client" should {
 
     "Mate simple http requests" in {
-      val resp = Request(GET, uri("http://www.google.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
 
       resp.status.code must be_==(200)
@@ -43,7 +43,7 @@ class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After 
 
     "Repeat a simple http request" in {
       val f = (0 until 10).map(_ => Task.fork {
-        val req = Request(GET, uri("http://www.google.com/"))
+        val req = Request(GET, uri("https://github.com/"))
         val resp = req.on(Status.Ok)(EntityDecoder.text)
         resp.map(_.status)
       })
@@ -53,7 +53,7 @@ class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After 
     }
 
     "Make simple https requests" in {
-      val resp = Request(GET, uri("https://www.google.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
       //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.status.code must be_==(200)
