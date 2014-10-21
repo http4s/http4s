@@ -55,7 +55,7 @@ object Http4sDependencies {
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.1.0"
   lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.3.0"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.5a"
-  lazy val scodecCore          = "org.typelevel"            %% "scodec-core"             % "1.2.0"
+  lazy val scodecBits          = "org.typelevel"            %% "scodec-bits"             % "1.0.4"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "7.0.53"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
 }
