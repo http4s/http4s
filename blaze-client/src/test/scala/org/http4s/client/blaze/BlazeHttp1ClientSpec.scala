@@ -10,6 +10,7 @@ import org.specs2.time.NoTimeConversions
 
 import scala.concurrent.duration._
 
+// TODO: this should have a more comprehensive test suite
 class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After {
 
   "Blaze Simple Http1 Client" should {
@@ -38,7 +39,7 @@ class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After 
       val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
 
-      resp.status.code must be_==(200)
+      resp.status.code must_==(200)
     }
 
     "Repeat a simple http request" in {

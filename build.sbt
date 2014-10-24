@@ -13,7 +13,7 @@ lazy val `blaze-core` = project.dependsOn(core)
 
 lazy val `blaze-server` = project.dependsOn(`blaze-core` % "compile;test->test", server)
 
-lazy val `blaze-client` = project.dependsOn(`blaze-core`, client % "compile;test->test")
+lazy val `blaze-client` = project.dependsOn(`blaze-core` % "compile;test->test", client % "compile;test->test")
 
 lazy val servlet = project.dependsOn(server)
 
