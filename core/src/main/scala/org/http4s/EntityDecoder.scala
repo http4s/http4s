@@ -4,6 +4,7 @@ import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
 
 import org.xml.sax.InputSource
+import scodec.bits.ByteVector
 
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
@@ -75,7 +76,7 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** Helper method which simply gathers the body into a single Array[Byte] */
   def collectBinary(msg: Message): Task[Array[Byte]] =
-    msg.body.runLog.map(_.reduce(_ ++ _).toArray)
+    msg.body.runLog.map(_.foldLeft(ByteVector.empty)(_ ++ _).toArray)
 
   /** Decodes a message to a String */
   def decodeString(msg: Message): Task[String] = {

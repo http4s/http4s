@@ -147,5 +147,23 @@ class EntityDecoderSpec extends Specification {
 
   }
 
+  "binary EntityDecoder" should {
+    "yield an empty array on a bodyless message" in {
+      val msg = Request()
+      binary.decode(msg).run.length should_== 0
+    }
+
+    "concat ByteVectors" in {
+      val d1 = Array[Byte](1,2,3); val d2 = Array[Byte](4,5,6)
+      val body = emit(d1) ++ emit(d2)
+      val msg = Request(body = body.map(ByteVector(_)))
+
+      val result = binary.decode(msg).run
+
+      result.length should_== 6
+      result should_== Array[Byte](1,2,3,4,5,6)
+    }
+  }
+
 }
 
