@@ -5,13 +5,13 @@ import scalaz.concurrent.Task
 
 import org.http4s.Method.GET
 import org.http4s.client.Client.BadResponse
-import org.http4s.server.HttpService
+import org.http4s.server.{HttpService, Service}
 import org.http4s.Status.{Ok, NotFound}
 import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
-  val route: HttpService = {
+  val route = HttpService {
     case r if r.pathInfo == "/" => ResponseBuilder(Ok, "hello")
     case r => sys.error("Path not found: " + r.pathInfo)
   }

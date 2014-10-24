@@ -1,7 +1,7 @@
 package org.http4s
 package servlet
 
-import org.http4s.server.{HttpService, HasAsyncTimeout, ServerBuilder, Server}
+import org.http4s.server._
 
 import javax.servlet.http.HttpServlet
 

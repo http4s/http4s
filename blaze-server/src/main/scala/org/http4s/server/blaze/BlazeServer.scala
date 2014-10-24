@@ -37,7 +37,7 @@ object BlazeServer {
   class Builder extends ServerBuilder with HasIdleTimeout {
     type To = BlazeServer
 
-    private var aggregateService = HttpService.empty
+    private var aggregateService = Service.empty[Request, Response]
     private var port = 8080
     private var idleTimeout: Duration = Duration.Inf
     private var host = "0.0.0.0"
@@ -47,7 +47,7 @@ object BlazeServer {
         if (prefix.isEmpty || prefix == "/") service
         else URITranslation.translateRoot(prefix)(service)
       aggregateService =
-        if (aggregateService eq HttpService.empty) prefixedService
+        if (aggregateService.run eq Service.empty.run) prefixedService
         else prefixedService orElse aggregateService
       this
     }
