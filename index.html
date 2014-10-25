@@ -63,14 +63,13 @@
     <div class="container">
       <h1 id="toc_0">http4s</h1>
 
-<p>http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Scala&#39;s answer to Ruby&#39;s Rack, Python&#39;s WSGI, Haskell&#39;s WAI, and Java&#39;s Servlets.</p>
+<p>http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Scala&#39;s answer to Ruby&#39;s 
+Rack, Python&#39;s WSGI, Haskell&#39;s WAI, and Java&#39;s Servlets.</p>
 
 <h2 id="toc_1">HttpService</h2>
 
-<p>An <code>HttpService</code> is just a <code>PartialFunction[Request, Task[Response]]</code>.  http4s provides a variety
+<p>An <code>HttpService</code> transforms a <code>Request</code> into an asynchronous <code>Task[Response]</code>. http4s provides a variety
 of helpers to facilitate the creation of the <code>Task[Response]</code> from common results.</p>
-
-<p>Code ref file &#39;../../examples/src/main/scala/org/http4s/examples/site/HelloBetterWorld.scala&#39; does not exist.</p>
 
 <p>HttpServices are <em>type safe</em>, <em>composable</em>, and <em>asynchronous</em>.</p>
 
@@ -85,8 +84,8 @@ of helpers to facilitate the creation of the <code>Task[Response]</code> from co
 
 <h3 id="toc_3">Composable</h3>
 
-<p>Not only does making an <code>HttpService</code> a <code>PartialFunction</code> make it simple to define a service,
-it also makes it easy to compose them.  Adding gzip compression or rewriting URIs is
+<p>Building on the FP tools of scalaz not only makes an <code>HttpService</code> simple to define,
+it also makes them easy to compose.  Adding gzip compression or rewriting URIs is
 as simple as applying a middleware to an <code>HttpService</code>.</p>
 <div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wcompression</span> <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">GZip</span><span class="o">(</span><span class="n">service</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">translated</span>   <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">URITranslation</span><span class="o">.</span><span class="n">translateRoot</span><span class="o">(</span><span class="s">&quot;/http4s&quot;</span><span class="o">)(</span><span class="n">service</span><span class="o">)</span>
@@ -94,11 +93,12 @@ as simple as applying a middleware to an <code>HttpService</code>.</p>
 <h3 id="toc_4">Asynchronous</h3>
 
 <p>Any http4s response can be streamed from an asynchronous source. http4s offers a variety
-of helpers to help you get your data out the door in the fastest way possible.</p>
+of helpers to help you get your data out the door in the fastest way possible without
+tying up too many threads.</p>
 <div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="c1">// Make your model safe and streaming by using a scalaz-stream Process</span>
 <span class="k">def</span> <span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="k">:</span> <span class="kt">Request</span><span class="o">)</span><span class="k">:</span> <span class="kt">Process</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
 
-<span class="k">val</span> <span class="n">service</span><span class="k">:</span> <span class="kt">HttpService</span> <span class="o">=</span> <span class="o">{</span>
+<span class="k">val</span> <span class="n">service</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span>
   <span class="c1">// Wire your data into your service</span>
   <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;streaming&quot;</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="o">))</span>
 
@@ -107,7 +107,7 @@ of helpers to help you get your data out the door in the fastest way possible.</
 <span class="o">}</span>
 </code></pre></div>
 <p>http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.</p>
-<div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">val</span> <span class="n">route</span><span class="k">:</span> <span class="kt">HttpService</span> <span class="o">=</span> <span class="o">{</span>
+<div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span>
   <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;ws&quot;</span> <span class="k">=&gt;</span>
     <span class="c1">// Send a Text message with payload &#39;Ping!&#39; every second</span>
     <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="nc">Process</span><span class="o">.</span><span class="n">awakeEvery</span><span class="o">(</span><span class="mf">1.</span><span class="n">seconds</span><span class="o">).</span><span class="n">map</span><span class="o">{</span> <span class="n">d</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Ping! $d&quot;</span><span class="o">)</span> <span class="o">}</span>
@@ -131,25 +131,22 @@ of helpers to help you get your data out the door in the fastest way possible.</
 </code></pre></div>
 <h2 id="toc_5">Choose your backend</h2>
 
-<p>http4s supports running the same service on multiple backends.  Pick the deployment model that fits your needs now, and easily port if and when your needs change.</p>
+<p>http4s supports running the same service on multiple backends.  Pick the deployment model that fits your 
+needs now, and easily port if and when your needs change.</p>
 
 <h3 id="toc_6">blaze</h3>
 
 <p><a href="http://github.com/http4s/blaze">blaze</a> is an NIO framework.  Run http4s on blaze for maximum throughput.</p>
 <div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">BlazeWebSocketExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
-  <span class="c1">// Provides a template for the blaze pipeline</span>
-  <span class="k">def</span> <span class="n">pipebuilder</span><span class="o">()</span><span class="k">:</span> <span class="kt">LeafBuilder</span><span class="o">[</span><span class="kt">ByteBuffer</span><span class="o">]</span> <span class="k">=</span>
-    <span class="k">new</span> <span class="nc">Http1Stage</span><span class="o">(</span><span class="nc">URITranslation</span><span class="o">.</span><span class="n">translateRoot</span><span class="o">(</span><span class="s">&quot;/http4s&quot;</span><span class="o">)(</span><span class="n">route</span><span class="o">))</span> <span class="k">with</span> <span class="nc">WebSocketSupport</span>
-
-  <span class="c1">// Bind the socket and begin serving</span>
-  <span class="k">new</span> <span class="nc">SocketServerChannelFactory</span><span class="o">(</span><span class="n">pipebuilder</span><span class="o">,</span> <span class="mi">12</span><span class="o">,</span> <span class="mi">8</span><span class="o">*</span><span class="mi">1024</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">bind</span><span class="o">(</span><span class="k">new</span> <span class="nc">InetSocketAddress</span><span class="o">(</span><span class="mi">8080</span><span class="o">))</span>
-    <span class="o">.</span><span class="n">run</span><span class="o">()</span>
+  <span class="nc">BlazeServer</span><span class="o">.</span><span class="n">newBuilder</span>
+      <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">&quot;/http4s&quot;</span><span class="o">)</span>
+      <span class="o">.</span><span class="n">run</span><span class="o">()</span>
 <span class="o">}</span>
 </code></pre></div>
 <h3 id="toc_7">Servlets</h3>
 
-<p>http4s is committed to first-class support of the Servlet API.  Develop and deploy services on your existing infrastructure, and take full advantage of the mature JVM ecosystem.</p>
+<p>http4s is committed to first-class support of the Servlet API.  Develop and deploy services 
+on your existing infrastructure, and take full advantage of the mature JVM ecosystem.</p>
 <div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">JettyExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
   <span class="nc">JettyServer</span><span class="o">.</span><span class="n">newBuilder</span>
     <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">&quot;/http4s&quot;</span><span class="o">)</span>
@@ -163,6 +160,7 @@ of helpers to help you get your data out the door in the fastest way possible.</
 
 <ul>
 <li><a href="http://httpize.herokuapp.com/">httpize</a>: a <a href="http://httpbin.org/">httpbin</a> built with http4s</li>
+<li><a href="https://github.com/http4s/rho">Project ρ</a>: a self-documenting HTTP server DSL built upon http4s</li>
 </ul>
 
 <h2 id="toc_9">Get it!</h2>
@@ -184,7 +182,14 @@ resolvers += &quot;Scalaz Bintray Repo&quot; at &quot;http://dl.bintray.com/scal
 <span class="nv">$ </span><span class="nb">cd </span>http4s
 <span class="nv">$ </span>sbt examples/run
 </code></pre></div>
-<h2 id="toc_11">Project info</h2>
+<h2 id="toc_11">Contributions</h2>
+
+<p>The http4s project appreciates contributions of all kinds! In this early phase of development bug reports, 
+feature requests, and reporting usability problems are particularly appreciated. Code contributions from their 
+original authors and consistent with the project&#39;s <a href="https://github.com/http4s/http4s/blob/develop/LICENSE">open source license</a>
+are welcome.</p>
+
+<h2 id="toc_12">Project info</h2>
 
 <ul>
 <li><a href="http://github.com/http4s/http4s">GitHub</a></li>
@@ -194,7 +199,7 @@ resolvers += &quot;Scalaz Bintray Repo&quot; at &quot;http://dl.bintray.com/scal
 <li><a href="http://twitter.com/http4s">Twitter</a></li>
 </ul>
 
-<h2 id="toc_12">Credits</h2>
+<h2 id="toc_13">Credits</h2>
 
 <ul>
 <li><a href="https://github.com/http4s/http4s/graphs/contributors?from=2013-01-01&amp;type=c">The Contributors</a>, as calculated by GitHub.</li>
