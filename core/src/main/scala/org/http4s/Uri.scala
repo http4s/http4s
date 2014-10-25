@@ -194,18 +194,24 @@ case class Uri(
   override def render[W <: Writer](writer: W): writer.type = this match {
     case Uri(Some(s), Some(a), "/", None, None) =>
       renderSchemeAndAuthority(writer, s, a)
+
     case Uri(Some(s), Some(a), path, params, fragment) =>
       renderSchemeAndAuthority(writer, s, a)
       writer.append(path)
       renderParamsAndFragment(writer, params, fragment)
+
     case Uri(Some(s), None, path, params, fragment) =>
       renderScheme(writer, s)
       writer.append(path)
       renderParamsAndFragment(writer, params, fragment)
+
+    case Uri(None, Some(a), path, params, fragment) =>
+      writer ~ a ~ path
+      renderParamsAndFragment(writer, params, fragment)
+      
     case Uri(None, None, path, params, fragment) =>
       writer.append(path)
       renderParamsAndFragment(writer, params, fragment)
-    case _ => writer
   }
 }
 
@@ -240,14 +246,29 @@ object Uri extends UriFunctions {
   case class Authority(
     userInfo: Option[UserInfo] = None,
     host: Host = RegName("localhost"),
-    port: Option[Int] = None) {
+    port: Option[Int] = None) extends Renderable {
+
+    override def render[W <: Writer](writer: W): writer.type = this match {
+      case Authority(Some(u), h, None)    => writer ~ u ~ '@' ~ h
+      case Authority(Some(u), h, Some(p)) => writer ~ u ~ '@' ~ h ~ ':' ~ p
+      case Authority(None, h, Some(p))    => writer ~ h ~ ':' ~ p
+      case Authority(_, h, _)             => writer ~ h
+      case _                              => writer
+    }
   }
 
-  sealed trait Host {
+  sealed trait Host extends Renderable {
     final def value: String = this match {
       case RegName(h) => h.toString
       case IPv4(a)    => a.toString
       case IPv6(a)    => a.toString
+    }
+
+    override def render[W <: Writer](writer: W): writer.type = this match {
+      case RegName(n) => writer ~ n
+      case IPv4(a)    => writer ~ a
+      case IPv6(a)    => writer ~ '[' ~ a ~ ']'
+      case _          => writer
     }
   }
   case class RegName(host: CaseInsensitiveString) extends Host
@@ -258,28 +279,12 @@ object Uri extends UriFunctions {
   object IPv4 { def apply(address: String) = new IPv4(address.ci) }
   object IPv6 { def apply(address: String) = new IPv6(address.ci) }
 
-  private def renderAuthority(writer: Writer, a: Authority): writer.type = a match {
-    case Authority(Some(u), h, None)    => writer ~ u ~ '@'; renderHost(writer, h)
-    case Authority(Some(u), h, Some(p)) => writer ~ u ~ '@'; renderHost(writer, h) ~ ':' ~ p
-    case Authority(None, h, Some(p))    => renderHost(writer, h) ~ ':' ~ p
-    case Authority(_, h, _)             => renderHost(writer, h)
-    case _                              => writer
-  }
-
-  private def renderHost(writer: Writer, h: Host): writer.type = h match {
-    case RegName(n) => writer ~ n
-    case IPv4(a)    => writer ~ a
-    case IPv6(a)    => writer ~ '[' ~ a ~ ']'
-    case _          => writer
-  }
-
   private def renderScheme(writer: Writer, s: Scheme): writer.type =
     writer ~ s ~ ":"
 
-  private def renderSchemeAndAuthority(writer: Writer, s: Scheme, a: Authority): writer.type = {
-    val w = renderScheme(writer, s) ~ "//"
-    renderAuthority(w, a)
-  }
+  private def renderSchemeAndAuthority(writer: Writer, s: Scheme, a: Authority): writer.type =
+    renderScheme(writer, s) ~ "//" ~ a
+
 
   private def renderParamsAndFragment(writer: Writer, p: Option[Query], f: Option[Fragment]): writer.type = {
     if (p.isDefined) writer ~ '?' ~ p.get

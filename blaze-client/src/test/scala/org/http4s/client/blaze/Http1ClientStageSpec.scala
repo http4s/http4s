@@ -32,10 +32,14 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
   }
 
   "Http1ClientStage" should {
+
+    // Common throw away response
+    val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
+
     "Submit a request line with a query" in {
-      val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
-      val uri = "http://www.foo.com/huh?foo=bar"
-      val \/-(parsed) = Uri.fromString(uri)
+
+      val uri = "/huh?foo=bar"
+      val \/-(parsed) = Uri.fromString("http://www.foo.com" + uri)
       val req = Request(uri = parsed)
 
       val response = getSubmission(req, resp).split("\r\n")
