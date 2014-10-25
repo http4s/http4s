@@ -5,14 +5,13 @@ title: http4s
 
 # http4s
 
-http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Scala's answer to Ruby's Rack, Python's WSGI, Haskell's WAI, and Java's Servlets.
+http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Scala's answer to Ruby's 
+Rack, Python's WSGI, Haskell's WAI, and Java's Servlets.
 
 ## HttpService ##
 
-An `HttpService` is just a `PartialFunction[Request, Task[Response]]`.  http4s provides a variety
+An `HttpService` transforms a `Request` into an asynchronous `Task[Response]`. http4s provides a variety
 of helpers to facilitate the creation of the `Task[Response]` from common results.
-
-{% code_ref ../../examples/src/main/scala/org/http4s/examples/site/HelloBetterWorld.scala service %}
 
 HttpServices are _type safe_, _composable_, and _asynchronous_.
 
@@ -25,8 +24,8 @@ HttpServices are _type safe_, _composable_, and _asynchronous_.
 
 ### Composable
 
-Not only does making an `HttpService` a `PartialFunction` make it simple to define a service,
-it also makes it easy to compose them.  Adding gzip compression or rewriting URIs is
+Building on the FP tools of scalaz not only makes an `HttpService` simple to define,
+it also makes them easy to compose.  Adding gzip compression or rewriting URIs is
 as simple as applying a middleware to an `HttpService`.
 
 ```scala
@@ -37,13 +36,14 @@ val translated   = middleware.URITranslation.translateRoot("/http4s")(service)
 ### Asynchronous
 
 Any http4s response can be streamed from an asynchronous source. http4s offers a variety
-of helpers to help you get your data out the door in the fastest way possible.
+of helpers to help you get your data out the door in the fastest way possible without
+tying up too many threads.
 
 ```scala
 // Make your model safe and streaming by using a scalaz-stream Process
 def getData(req: Request): Process[Task, String] = ???
 
-val service: HttpService = {
+val service = HttpService {
   // Wire your data into your service
   case GET -> Root / "streaming" => Ok(getData(req))
 
@@ -55,7 +55,7 @@ val service: HttpService = {
 http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.
 
 ```scala
-val route: HttpService = {
+val route = HttpService {
   case req@ GET -> Root / "ws" =>
     // Send a Text message with payload 'Ping!' every second
     val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
@@ -80,28 +80,24 @@ val route: HttpService = {
 
 ## Choose your backend
 
-http4s supports running the same service on multiple backends.  Pick the deployment model that fits your needs now, and easily port if and when your needs change.
-
+http4s supports running the same service on multiple backends.  Pick the deployment model that fits your 
+needs now, and easily port if and when your needs change.
 ### blaze
 
 [blaze](http://github.com/http4s/blaze) is an NIO framework.  Run http4s on blaze for maximum throughput.
 
 ```scala
 object BlazeWebSocketExample extends App {
-  // Provides a template for the blaze pipeline
-  def pipebuilder(): LeafBuilder[ByteBuffer] =
-    new Http1Stage(URITranslation.translateRoot("/http4s")(route)) with WebSocketSupport
-
-  // Bind the socket and begin serving
-  new SocketServerChannelFactory(pipebuilder, 12, 8*1024)
-    .bind(new InetSocketAddress(8080))
-    .run()
+  BlazeServer.newBuilder
+      .mountService(ExampleService.service, "/http4s")
+      .run()
 }
 ```
 
 ### Servlets
 
-http4s is committed to first-class support of the Servlet API.  Develop and deploy services on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
+http4s is committed to first-class support of the Servlet API.  Develop and deploy services 
+on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
 
 ```scala
 object JettyExample extends App {
@@ -117,6 +113,7 @@ object JettyExample extends App {
 If you have a project you would like to include in this list, let us know on IRC or submit an issue.
 
 * [httpize](http://httpize.herokuapp.com/): a [httpbin](http://httpbin.org/) built with http4s
+* [Project ρ](https://github.com/http4s/rho): a self-documenting HTTP server DSL built upon http4s
 
 
 ## Get it! ##
@@ -140,6 +137,13 @@ $ git clone https://github.com/http4s/http4s.git
 $ cd http4s
 $ sbt examples/run
 ```
+
+## Contributions ##
+
+The http4s project appreciates contributions of all kinds! In this early phase of development bug reports, 
+feature requests, and reporting usability problems are particularly appreciated. Code contributions from their 
+original authors and consistent with the project's [open source license](https://github.com/http4s/http4s/blob/develop/LICENSE)
+are welcome.
 
 ## Project info ##
 
