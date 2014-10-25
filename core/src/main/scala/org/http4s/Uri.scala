@@ -7,22 +7,21 @@ import scala.reflect.macros.Context
 
 import Uri._
 
-import scala.collection.{ immutable, mutable }
+import scala.collection.mutable
 import mutable.ListBuffer
-import scala.util.Try
 
 import org.http4s.parser.{ScalazDeliverySchemes, QueryParser, RequestUriParser}
-import org.http4s.util.CaseInsensitiveString
+import org.http4s.util.{Writer, Renderable, CaseInsensitiveString}
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
 /** Representation of the [[Request]] URI  */
-// TODO make Renderable, fix Location header
+// TODO fix Location header, add unit tests
 case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
   authority: Option[Authority] = None,
   path: Path = "/",
   query: Option[Query] = None,
-  fragment: Option[Fragment] = None) {
+  fragment: Option[Fragment] = None) extends Renderable {
   def withPath(path: Path): Uri = copy(path = path)
 
   def host: Option[Host] = authority.map(_.host)
@@ -71,6 +70,9 @@ case class Uri(
    */
   lazy val params: Map[String, String] = new ParamsView(multiParams)
 
+  override lazy val renderString: String =
+    super.renderString
+
   private class ParamsView(wrapped: Map[String, Seq[String]]) extends Map[String, String] {
     override def +[B1 >: String](kv: (String, B1)): Map[String, B1] = {
       val m = wrapped + (kv)
@@ -85,9 +87,6 @@ case class Uri(
     override def get(key: String): Option[String] =
       wrapped.get(key).flatMap(_.headOption)
   }
-
-  override lazy val toString =
-    renderUri(this)
 
   /**
    * Checks if a specified parameter exists in query string. A parameter
@@ -137,8 +136,8 @@ case class Uri(
    */
   def containsQueryParam(name: String): Boolean = query match {
     case Some("") => if (name == "") true else false
-    case Some(_) => multiParams.contains(name)
-    case None => false
+    case Some(_)  => multiParams.contains(name)
+    case None     => false
   }
 
   /**
@@ -192,6 +191,22 @@ case class Uri(
     }
   }
 
+  override def render[W <: Writer](writer: W): writer.type = this match {
+    case Uri(Some(s), Some(a), "/", None, None) =>
+      renderSchemeAndAuthority(writer, s, a)
+    case Uri(Some(s), Some(a), path, params, fragment) =>
+      renderSchemeAndAuthority(writer, s, a)
+      writer.append(path)
+      renderParamsAndFragment(writer, params, fragment)
+    case Uri(Some(s), None, path, params, fragment) =>
+      renderScheme(writer, s)
+      writer.append(path)
+      renderParamsAndFragment(writer, params, fragment)
+    case Uri(None, None, path, params, fragment) =>
+      writer.append(path)
+      renderParamsAndFragment(writer, params, fragment)
+    case _ => writer
+  }
 }
 
 object Uri extends UriFunctions {
@@ -216,6 +231,12 @@ object Uri extends UriFunctions {
 
   type Scheme = CaseInsensitiveString
 
+  type UserInfo = String
+
+  type Path = String
+  type Query = String
+  type Fragment = String
+
   case class Authority(
     userInfo: Option[UserInfo] = None,
     host: Host = RegName("localhost"),
@@ -237,79 +258,47 @@ object Uri extends UriFunctions {
   object IPv4 { def apply(address: String) = new IPv4(address.ci) }
   object IPv6 { def apply(address: String) = new IPv6(address.ci) }
 
-  type UserInfo = String
-
-  type Path = String
-  type Query = String
-  type Fragment = String
-
-  protected def renderAuthority(a: Authority): String = a match {
-    case Authority(Some(u), h, None) => u + "@" + renderHost(h)
-    case Authority(Some(u), h, Some(p)) => u + "@" + renderHost(h) + ":" + p
-    case Authority(None, h, Some(p)) => renderHost(h) + ":" + p
-    case Authority(_, h, _) => renderHost(h)
-    case _ => ""
+  private def renderAuthority(writer: Writer, a: Authority): writer.type = a match {
+    case Authority(Some(u), h, None)    => writer ~ u ~ '@'; renderHost(writer, h)
+    case Authority(Some(u), h, Some(p)) => writer ~ u ~ '@'; renderHost(writer, h) ~ ':' ~ p
+    case Authority(None, h, Some(p))    => renderHost(writer, h) ~ ':' ~ p
+    case Authority(_, h, _)             => renderHost(writer, h)
+    case _                              => writer
   }
 
-  protected def renderHost(h: Host): String = h match {
-    case RegName(n) => n.toString
-    case IPv4(a) => a.toString
-    case IPv6(a) => "[" + a.toString + "]"
-    case _ => ""
+  private def renderHost(writer: Writer, h: Host): writer.type = h match {
+    case RegName(n) => writer ~ n
+    case IPv4(a)    => writer ~ a
+    case IPv6(a)    => writer ~ '[' ~ a ~ ']'
+    case _          => writer
   }
 
-  protected def renderScheme(s: Scheme): String =
-    s + ":"
+  private def renderScheme(writer: Writer, s: Scheme): writer.type =
+    writer ~ s ~ ":"
 
-  protected def renderSchemeAndAuthority(s: Scheme, a: Authority): String =
-    renderScheme(s) + "//" + renderAuthority(a)
-
-  protected def renderParamsAndFragment(p: Option[Query], f: Option[Fragment]): String = {
-    val b = new StringBuilder
-    if (p.isDefined) {
-      b.append("?")
-      b.append(p.get)
-    }
-    if (f.isDefined) {
-      b.append("#")
-      b.append(f.get)
-    }
-    b.toString
+  private def renderSchemeAndAuthority(writer: Writer, s: Scheme, a: Authority): writer.type = {
+    val w = renderScheme(writer, s) ~ "//"
+    renderAuthority(w, a)
   }
 
-  protected def renderUri(uri: Uri): String = {
-    val b = new StringBuilder
-    uri match {
-      case Uri(Some(s), Some(a), "/", None, None) =>
-        b.append(renderSchemeAndAuthority(s, a))
-      case Uri(Some(s), Some(a), path, params, fragment) =>
-        b.append(renderSchemeAndAuthority(s, a))
-        b.append(path)
-        b.append(renderParamsAndFragment(params, fragment))
-      case Uri(Some(s), None, path, params, fragment) =>
-        b.append(renderScheme(s))
-        b.append(path)
-        b.append(renderParamsAndFragment(params, fragment))
-      case Uri(None, None, path, params, fragment) =>
-        b.append(path)
-        b.append(renderParamsAndFragment(params, fragment))
-      case _ =>
-    }
-    b.toString
+  private def renderParamsAndFragment(writer: Writer, p: Option[Query], f: Option[Fragment]): writer.type = {
+    if (p.isDefined) writer ~ '?' ~ p.get
+    if (f.isDefined) writer ~ '#' ~ f.get
+    writer
   }
 
-  protected def renderQueryString(params: Map[String, Seq[String]]): Option[String] = {
+  private def renderQueryString(params: Map[String, Seq[String]]): Option[String] = {
     if (params.isEmpty) None
     else {
       val b = new StringBuilder
       params.foreach {
         case (n, vs) =>
           if (vs.isEmpty) {
-            if (b.nonEmpty) b.append("&")
+            if (b.nonEmpty) b.append('&')
             b.append(n)
           } else {
             vs.foldLeft(b) { (b, v) =>
-              if (b.nonEmpty) b.append("&")
+              if (b.nonEmpty) b.append('&')
               b.append(n + "=" + v)
             }
           }
