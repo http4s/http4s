@@ -113,7 +113,7 @@ object JettyExample extends App {
 If you have a project you would like to include in this list, let us know on IRC or submit an issue.
 
 * [httpize](http://httpize.herokuapp.com/): a [httpbin](http://httpbin.org/) built with http4s
-* [Project ρ](https://github.com/http4s/rho): a self documenting HTTP server dsl built upon http4s
+* [Project ρ](https://github.com/http4s/rho): a self-documenting HTTP server DSL built upon http4s
 
 
 ## Get it! ##
