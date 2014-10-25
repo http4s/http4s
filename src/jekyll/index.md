@@ -138,6 +138,13 @@ $ cd http4s
 $ sbt examples/run
 ```
 
+## Contributions ##
+
+The http4s projects appreciates contributions of all kinds! In this early phase of development bug reports, 
+feature requests, and reporting usability problems are particularly appreciated. Code contributions from their 
+original authors and consistent with the projects [open source license](https://github.com/http4s/http4s/blob/develop/LICENSE)
+are welcome.
+
 ## Project info ##
 
 * [GitHub](http://github.com/http4s/http4s)
