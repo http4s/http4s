@@ -27,7 +27,7 @@ sealed class MediaRange private[http4s](val mainType: String,
                                         val extensions: Map[String, String] = Map.empty)
                                         extends HasQValue with Renderable {
 
-  override def render[W <: Writer](writer: W): writer.type = {
+  override def render(writer: Writer): writer.type = {
     writer ~ mainType ~ "/*"~ qValue
     renderExtensions(writer)
     writer
@@ -114,7 +114,7 @@ sealed class MediaType(mainType: String,
                        extensions: Map[String, String] = Map.empty)
              extends MediaRange(mainType, q, extensions) {
 
-  override def render[W <: Writer](writer: W): writer.type = {
+  override def render(writer: Writer): writer.type = {
     writer ~ mainType ~ '/' ~ subType ~ q
     renderExtensions(writer)
     writer

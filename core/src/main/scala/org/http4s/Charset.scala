@@ -28,7 +28,7 @@ final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def withQuality(q: QValue): CharsetRange.Atom = CharsetRange.Atom(this, q)
   def toRange: CharsetRange.Atom = withQuality(QValue.One)
 
-  def render[W <: Writer](writer: W): writer.type = writer ~ nioCharset.name
+  def render(writer: Writer): writer.type = writer ~ nioCharset.name
 }
 
 object Charset {

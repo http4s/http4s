@@ -38,7 +38,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
     "Basic " + cookie
   }
 
-  override def render[W <: Writer](writer: W): writer.type = writer.append(value)
+  override def render(writer: Writer): writer.type = writer.append(value)
 }
 
 object BasicCredentials {
@@ -58,14 +58,14 @@ case class OAuth2BearerToken(token: String) extends Credentials {
 
   override def value = renderString
 
-  override def render[W <: Writer](writer: W): writer.type = writer.append("Bearer ").append(token)
+  override def render(writer: Writer): writer.type = writer.append("Bearer ").append(token)
 }
 
 
 case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
   override lazy val value = renderString
 
-  override def render[W <: Writer](writer: W): writer.type = {
+  override def render(writer: Writer): writer.type = {
     if (params.isEmpty) writer.append(authScheme.toString)
     else {
       formatParams(writer)

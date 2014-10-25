@@ -23,7 +23,7 @@ import org.http4s.util.{Writer, Renderable}
 sealed abstract class RangeUnit extends Renderable {
   def value: String
   override def toString = value
-  def render[W <: Writer](writer: W): writer.type = writer.append(value)
+  def render(writer: Writer): writer.type = writer.append(value)
 }
 
 object RangeUnit {

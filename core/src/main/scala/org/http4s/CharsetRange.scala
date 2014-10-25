@@ -14,7 +14,7 @@ object CharsetRange extends CharsetRangeInstances {
   sealed case class `*`(qValue: QValue) extends CharsetRange {
     final override def withQValue(q: QValue): CharsetRange.`*` = copy(qValue = q)
     final def isSatisfiedBy(charset: Charset): Boolean = qValue.isAcceptable
-    final def render[W <: Writer](writer: W): writer.type = writer ~ "*" ~ qValue
+    final def render(writer: Writer): writer.type = writer ~ "*" ~ qValue
   }
 
   object `*` extends `*`(QValue.One)
@@ -22,7 +22,7 @@ object CharsetRange extends CharsetRangeInstances {
   final case class Atom protected[http4s] (charset: Charset, qValue: QValue = QValue.One) extends CharsetRange {
     override def withQValue(q: QValue): CharsetRange.Atom = copy(qValue = q)
     def isSatisfiedBy(charset: Charset): Boolean = qValue.isAcceptable && this.charset == charset
-    def render[W <: Writer](writer: W): writer.type = writer ~ charset ~ qValue
+    def render(writer: Writer): writer.type = writer ~ charset ~ qValue
   }
 
   implicit def fromCharset(cs: Charset): CharsetRange.Atom = cs.toRange

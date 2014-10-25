@@ -26,7 +26,7 @@ case class Challenge(scheme: String,
 
   lazy val value = renderString
 
-  override def render[W <: Writer](writer: W): writer.type = {
+  override def render(writer: Writer): writer.type = {
     writer.append(scheme).append(' ')
     writer.append("realm=\"").append(realm).append('"')
     params.foreach{ case (k, v) => addPair(writer, k, v )}

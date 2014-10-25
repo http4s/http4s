@@ -1,11 +1,14 @@
 package org.http4s.util
 
 trait Renderable extends Any {
-  def render[W <: Writer](writer: W): writer.type
+  def render(writer: Writer): writer.type
 
   override def toString: String = renderString
 
-  def renderString = render(new StringWriter).result
+  def renderString = {
+    val w = new StringWriter
+    render(w).result
+  }
 }
 
 trait Writer {

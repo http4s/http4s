@@ -34,7 +34,7 @@ object LanguageTag {
 case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags: Seq[String] = Nil) extends Renderable {
   def withQuality(q: QValue): LanguageTag = LanguageTag(primaryTag, q, subTags)
 
-  def render[W <: Writer](writer: W): writer.type = {
+  def render(writer: Writer): writer.type = {
     writer.append(primaryTag)
     subTags.foreach(s => writer.append('-').append(s))
     q.render(writer)
