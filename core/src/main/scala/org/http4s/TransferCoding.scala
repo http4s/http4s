@@ -22,7 +22,7 @@ import org.http4s.util._
 import org.http4s.util.string._
 
 final case class TransferCoding private (coding: CaseInsensitiveString) extends Renderable {
-  override def render[W <: Writer](writer: W): writer.type = writer.append(coding.toString)
+  override def render(writer: Writer): writer.type = writer.append(coding.toString)
 }
 
 object TransferCoding extends Registry {

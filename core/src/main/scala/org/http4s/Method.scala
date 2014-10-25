@@ -15,7 +15,7 @@ import Method.Semantics
  * @see [http://www.iana.org/assignments/http-methods/http-methods.xhtml IANA HTTP Method Registry]
  */
 final case class Method private (name: String)(semantics: Semantics = Semantics.Default) extends Renderable {
-  override def render[W <: Writer](writer: W): writer.type = writer ~ name
+  override def render(writer: Writer): writer.type = writer ~ name
   def isIdempotent = semantics.isIdempotent
   def isSafe = semantics.isSafe
 }

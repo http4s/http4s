@@ -20,7 +20,7 @@ final class QValue private[QValue] (val thousandths: Int) extends AnyVal with Or
 
   override def compare(that: QValue): Int = thousandths - that.thousandths
 
-  def render[W <: Writer](writer: W): writer.type = {
+  def render(writer: Writer): writer.type = {
     if (thousandths == 1000) writer
     else {
       writer.append(";q=")

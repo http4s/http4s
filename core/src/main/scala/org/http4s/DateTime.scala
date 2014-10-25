@@ -45,7 +45,7 @@ final class DateTime private (val year: Int, // the year
   /**
    * `yyyy-mm-ddThh:mm:ss`
    */
-  override def render[W <: Writer](writer: W): writer.type = renderIsoDateTimeString(writer)
+  override def render(writer: Writer): writer.type = renderIsoDateTimeString(writer)
 
   /**
    * `yyyy-mm-ddThh:mm:ss`

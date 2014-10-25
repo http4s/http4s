@@ -27,7 +27,7 @@ sealed trait CacheDirective extends Product with Renderable {
   val name = productPrefix.replace("$minus", "-").ci
   def value: String = name.toString
   override def toString = value
-  def render[W <: Writer](writer: W): writer.type = writer.append(value)
+  def render(writer: Writer): writer.type = writer.append(value)
 }
 
 /**

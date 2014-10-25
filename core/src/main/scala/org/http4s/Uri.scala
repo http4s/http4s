@@ -191,7 +191,7 @@ case class Uri(
     }
   }
 
-  override def render[W <: Writer](writer: W): writer.type = this match {
+  override def render(writer: Writer): writer.type = this match {
     case Uri(Some(s), Some(a), "/", None, None) =>
       renderSchemeAndAuthority(writer, s, a)
 
@@ -208,7 +208,7 @@ case class Uri(
     case Uri(None, Some(a), path, params, fragment) =>
       writer ~ a ~ path
       renderParamsAndFragment(writer, params, fragment)
-      
+
     case Uri(None, None, path, params, fragment) =>
       writer.append(path)
       renderParamsAndFragment(writer, params, fragment)
@@ -248,7 +248,7 @@ object Uri extends UriFunctions {
     host: Host = RegName("localhost"),
     port: Option[Int] = None) extends Renderable {
 
-    override def render[W <: Writer](writer: W): writer.type = this match {
+    override def render(writer: Writer): writer.type = this match {
       case Authority(Some(u), h, None)    => writer ~ u ~ '@' ~ h
       case Authority(Some(u), h, Some(p)) => writer ~ u ~ '@' ~ h ~ ':' ~ p
       case Authority(None, h, Some(p))    => writer ~ h ~ ':' ~ p
@@ -264,7 +264,7 @@ object Uri extends UriFunctions {
       case IPv6(a)    => a.toString
     }
 
-    override def render[W <: Writer](writer: W): writer.type = this match {
+    override def render(writer: Writer): writer.type = this match {
       case RegName(n) => writer ~ n
       case IPv4(a)    => writer ~ a
       case IPv6(a)    => writer ~ '[' ~ a ~ ']'

@@ -131,7 +131,7 @@ case class Cookie(
 
   override lazy val renderString: String = super.renderString
 
-  override def render[W <: Writer](writer: W): writer.type = {
+  override def render(writer: Writer): writer.type = {
     writer.append(name).append("=\"").append(content).append('"')
     expires.foreach{ e => writer.append("; Expires=").append(e.toRfc1123DateTimeString) }
     maxAge.foreach(writer.append("; Max-Age=").append(_))
