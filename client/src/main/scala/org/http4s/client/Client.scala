@@ -16,11 +16,27 @@ trait Client { self: Logging =>
     */
   def prepare(req: Request): Task[Response]
 
+  /** Prepare a single GET request
+    * @param req [[Uri]] of the request
+    * @return Task which will generate the Response
+    */
+  def prepare(req: Uri): Task[Response] =
+    prepare(Request(uri = req))
+
+  /** Prepare a single GET request
+    * @param req `String` uri of the request
+    * @return Task which will generate the Response
+    */
+  def prepare(req: String): Task[Response] =
+    Uri.fromString(req)
+       .fold(f => Task.fail(new org.http4s.ParseException(f)),prepare(_))
+
   /** Prepare a single request
     * @param req `Task[Request]` containing the headers, URI, etc
     * @return Task which will generate the Response
     */
-  final def prepare(req: Task[Request]): Task[Response] = req.flatMap(prepare(_))
+  final def prepare(req: Task[Request]): Task[Response] =
+    req.flatMap(prepare(_))
 
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]

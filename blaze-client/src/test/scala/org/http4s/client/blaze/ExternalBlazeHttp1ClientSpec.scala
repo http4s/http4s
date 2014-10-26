@@ -8,10 +8,8 @@ import org.http4s.client.ClientSyntax
 import org.specs2.mutable.After
 import org.specs2.time.NoTimeConversions
 
-import scala.concurrent.duration._
-
 // TODO: this should have a more comprehensive test suite
-class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After {
+class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After {
 
   "Blaze Simple Http1 Client" should {
     implicit def client = SimpleHttp1Client
