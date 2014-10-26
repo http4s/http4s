@@ -1,16 +1,46 @@
 package org.http4s.util
 
+/** A type class that describes how to efficiently render a type
+ * @tparam T the type which will be rendered
+ */
+trait Renderer[T] {
+
+  /** Renders the object to the writer
+    * @param writer [[Writer]] to render to
+    * @param t object to render
+    * @return the same [[Writer]] provided
+    */
+  def render(writer: Writer, t: T): writer.type
+}
+
+object Renderer {
+  def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
+}
+
+/** Mixin that makes a type compatible writable by a [[Writer]] without needing a [[Renderer]] instance */
 trait Renderable extends Any {
+
+  /** Base method for rendering this object efficiently */
   def render(writer: Writer): writer.type
 
-  override def toString: String = renderString
+  /** Generates a String rendering of this object */
+  def renderString = Renderer.renderString(this)
 
-  def renderString = {
-    val w = new StringWriter
-    render(w).result
+  override def toString: String = renderString
+}
+
+object Renderable {
+  implicit def renderableInst[T <: Renderable]: Renderer[T] =
+    genericInstance.asInstanceOf[Renderer[T]]
+
+  // Cache the Renderable because GC pauses suck
+  private val genericInstance = new Renderer[Renderable] {
+    override def render(writer: Writer, t: Renderable): writer.type =
+      t.render(writer)
   }
 }
 
+/** Efficiently accumulate [[Renderable]] representations */
 trait Writer {
   def append(s: String):                 this.type
   def append(ci: CaseInsensitiveString): this.type = append(ci.toString)
@@ -20,7 +50,7 @@ trait Writer {
   def append(int: Int):                  this.type = append(int.toString)
   def append(long: Long):                this.type = append(long.toString)
 
-  def append(r: Renderable): this.type = r.render(this)
+  def append[T](r: T)(implicit R: Renderer[T]): this.type = R.render(this, r)
 
   def addStrings(s: Seq[String], sep: String = "", start: String = "", end: String = ""): this.type = {
     append(start)
@@ -31,7 +61,7 @@ trait Writer {
     append(end)
   }
 
-  def addSeq(s: Seq[Renderable], sep: String = "", start: String = "", end: String = ""): this.type = {
+  def addSeq[T: Renderer](s: Seq[T], sep: String = "", start: String = "", end: String = ""): this.type = {
     append(start)
     if (!s.isEmpty) {
       append(s.head)
@@ -47,9 +77,13 @@ trait Writer {
   final def ~(double: Double):           this.type = append(double)
   final def ~(int: Int):                 this.type = append(int)
   final def ~(long: Long):               this.type = append(long)
-  final def ~(r: Renderable):            this.type = append(r)
+  final def ~[T: Renderer](r: T):        this.type = append(r)
+
 }
 
+/** [[Writer]] that will result in a `String`
+  * @param size initial buffer size of the underlying `StringBuilder`
+  */
 class StringWriter(size: Int = 64) extends Writer {
   private val sb = new java.lang.StringBuilder(size)
 

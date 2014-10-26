@@ -10,8 +10,8 @@ import Uri._
 import scala.collection.mutable
 import mutable.ListBuffer
 
-import org.http4s.parser.{ScalazDeliverySchemes, QueryParser, RequestUriParser}
-import org.http4s.util.{Writer, Renderable, CaseInsensitiveString}
+import org.http4s.parser.{ ScalazDeliverySchemes, QueryParser, RequestUriParser }
+import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
 /** Representation of the [[Request]] URI  */
@@ -271,6 +271,7 @@ object Uri extends UriFunctions {
       case _          => writer
     }
   }
+
   case class RegName(host: CaseInsensitiveString) extends Host
   case class IPv4(address: CaseInsensitiveString) extends Host
   case class IPv6(address: CaseInsensitiveString) extends Host
