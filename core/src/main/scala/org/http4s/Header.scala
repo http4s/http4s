@@ -51,7 +51,7 @@ sealed trait Header extends Renderable with Product {
   def toRaw: Header.Raw = Header.Raw(name, value)
 
   override def render(writer: Writer): writer.type = {
-    writer ~ name ~ ':' ~ ' '
+    writer << name << ':' << ' '
     renderValue(writer)
   }
 
@@ -111,7 +111,7 @@ object Header {
     type Value <: Renderable
     override def renderValue(writer: Writer): writer.type = {
       values.head.render(writer)
-      values.tail.foreach( writer ~ ", " ~ _ )
+      values.tail.foreach( writer << ", " << _ )
       writer
     }
   }
@@ -227,7 +227,7 @@ object Header {
     override lazy val value = super.value
     override def renderValue(writer: Writer): writer.type = {
       writer.append(dispositionType)
-      parameters.foreach(p =>  writer ~ "; "~ p._1~ "=\""~ p._2 ~ '"')
+      parameters.foreach(p =>  writer << "; " << p._1 << "=\"" << p._2 << '"')
       writer
     }
   }
@@ -270,7 +270,7 @@ object Header {
   final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[Charset]) extends Parsed {
     override def key = `Content-Type`
     override def renderValue(writer: Writer): writer.type = definedCharset match {
-      case Some(cs) => writer ~ mediaType ~ "; charset=" ~ cs
+      case Some(cs) => writer << mediaType << "; charset=" << cs
       case _        => mediaType.render(writer)
     }
 
@@ -293,7 +293,7 @@ object Header {
     type Value = org.http4s.Cookie
     override def renderValue(writer: Writer): writer.type = {
       values.head.render(writer)
-      values.tail.foreach( writer ~ "; " ~ _ )
+      values.tail.foreach( writer << "; " << _ )
       writer
     }
   }
@@ -327,7 +327,7 @@ object Header {
     def key = `Host`
     def renderValue(writer: Writer): writer.type = {
       writer.append(host)
-      if (port.isDefined) writer ~ ':' ~ port.get
+      if (port.isDefined) writer << ':' << port.get
       writer
     }
   }
@@ -364,7 +364,7 @@ object Header {
   final case class Location(uri: Uri) extends Parsed {
     def key = `Location`
     override def value = uri.toString
-    def renderValue(writer: Writer): writer.type = writer ~ uri.toString
+    def renderValue(writer: Writer): writer.type = writer << uri.toString
   }
 
   object `Max-Forwards` extends HeaderKey.Default

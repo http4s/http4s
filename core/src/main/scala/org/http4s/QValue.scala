@@ -29,7 +29,7 @@ final class QValue private[QValue] (val thousandths: Int) extends AnyVal with Or
   }
 
   // Assumes that q is in the proper bounds, otherwise you get an exception!
-  private def formatq[W <: Writer](b: W): b.type = {
+  private def formatq(b: Writer): b.type = {
     // Skip the rest of the stuff if we are 1.0
     if (thousandths == 1000) b.append("1.0")
     else if (thousandths == 0) b.append('0')

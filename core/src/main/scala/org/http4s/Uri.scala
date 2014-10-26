@@ -206,7 +206,7 @@ case class Uri(
       renderParamsAndFragment(writer, params, fragment)
 
     case Uri(None, Some(a), path, params, fragment) =>
-      writer ~ a ~ path
+      writer << a << path
       renderParamsAndFragment(writer, params, fragment)
 
     case Uri(None, None, path, params, fragment) =>
@@ -249,10 +249,10 @@ object Uri extends UriFunctions {
     port: Option[Int] = None) extends Renderable {
 
     override def render(writer: Writer): writer.type = this match {
-      case Authority(Some(u), h, None)    => writer ~ u ~ '@' ~ h
-      case Authority(Some(u), h, Some(p)) => writer ~ u ~ '@' ~ h ~ ':' ~ p
-      case Authority(None, h, Some(p))    => writer ~ h ~ ':' ~ p
-      case Authority(_, h, _)             => writer ~ h
+      case Authority(Some(u), h, None)    => writer << u << '@' << h
+      case Authority(Some(u), h, Some(p)) => writer << u << '@' << h << ':' << p
+      case Authority(None, h, Some(p))    => writer << h << ':' << p
+      case Authority(_, h, _)             => writer << h
       case _                              => writer
     }
   }
@@ -265,9 +265,9 @@ object Uri extends UriFunctions {
     }
 
     override def render(writer: Writer): writer.type = this match {
-      case RegName(n) => writer ~ n
-      case IPv4(a)    => writer ~ a
-      case IPv6(a)    => writer ~ '[' ~ a ~ ']'
+      case RegName(n) => writer << n
+      case IPv4(a)    => writer << a
+      case IPv6(a)    => writer << '[' << a << ']'
       case _          => writer
     }
   }
@@ -281,15 +281,15 @@ object Uri extends UriFunctions {
   object IPv6 { def apply(address: String) = new IPv6(address.ci) }
 
   private def renderScheme(writer: Writer, s: Scheme): writer.type =
-    writer ~ s ~ ":"
+    writer << s << ':'
 
   private def renderSchemeAndAuthority(writer: Writer, s: Scheme, a: Authority): writer.type =
-    renderScheme(writer, s) ~ "//" ~ a
+    renderScheme(writer, s) << "//" << a
 
 
   private def renderParamsAndFragment(writer: Writer, p: Option[Query], f: Option[Fragment]): writer.type = {
-    if (p.isDefined) writer ~ '?' ~ p.get
-    if (f.isDefined) writer ~ '#' ~ f.get
+    if (p.isDefined) writer << '?' << p.get
+    if (f.isDefined) writer << '#' << f.get
     writer
   }
 

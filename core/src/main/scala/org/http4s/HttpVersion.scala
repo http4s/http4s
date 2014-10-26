@@ -15,7 +15,7 @@ import org.parboiled2._
  * @see [http://tools.ietf.org/html/rfc7230#section-2.6 RFC 7320, Section 2.6
  */
 case class HttpVersion private[HttpVersion] (major: Int, minor: Int) extends Renderable with Ordered[HttpVersion] {
-  override def render(writer: Writer): writer.type = writer ~ "HTTP/" ~ major ~ "." ~ minor
+  override def render(writer: Writer): writer.type = writer << "HTTP/" << major << '.' << minor
   override def compare(that: HttpVersion): Int = ((this.major, this.minor)) compare ((that.major, that.minor))
 }
 

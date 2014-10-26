@@ -30,9 +30,9 @@ class ChunkProcessWriter(private var headers: StringWriter, pipe: TailStage[Byte
       trailer.map { trailerHeaders =>
         if (trailerHeaders.nonEmpty) {
           val rr = new StringWriter(256)
-          rr ~ '0' ~ '\r' ~ '\n'             // Last chunk
-          trailerHeaders.foreach( h =>  rr ~ h.name.toString ~ ": " ~ h ~ '\r' ~ '\n')   // trailers
-          rr ~ '\r' ~ '\n'          // end of chunks
+          rr << '0' << '\r' << '\n'             // Last chunk
+          trailerHeaders.foreach( h =>  rr << h.name.toString << ": " << h << '\r' << '\n')   // trailers
+          rr << '\r' << '\n'          // end of chunks
           ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
         } else ByteBuffer.wrap(ChunkEndBytes)
       }.runAsync {
@@ -48,14 +48,14 @@ class ChunkProcessWriter(private var headers: StringWriter, pipe: TailStage[Byte
 
       if (chunk.nonEmpty) {
         val body = chunk.toByteBuffer
-        h ~ s"Content-Length: ${body.remaining()}\r\n\r\n"
+        h << s"Content-Length: ${body.remaining()}\r\n\r\n"
         
         // Trailers are optional, so dropping because we have no body.
         val hbuff = ByteBuffer.wrap(h.result().getBytes(StandardCharsets.US_ASCII))
         pipe.channelWrite(hbuff::body::Nil)
       }
       else {
-        h ~ s"Content-Length: 0\r\n\r\n"
+        h << s"Content-Length: 0\r\n\r\n"
         val hbuff = ByteBuffer.wrap(h.result().getBytes(StandardCharsets.US_ASCII))
         pipe.channelWrite(hbuff)
       }
@@ -76,7 +76,7 @@ class ChunkProcessWriter(private var headers: StringWriter, pipe: TailStage[Byte
     val list = writeLength(chunk.length)::chunk.toByteBuffer::CRLF::last
     if (headers != null) {
       val i = headers
-      i ~ "Transfer-Encoding: chunked\r\n\r\n"
+      i << "Transfer-Encoding: chunked\r\n\r\n"
       val b = ByteBuffer.wrap(i.result().getBytes(StandardCharsets.US_ASCII))
       headers = null
       b::list

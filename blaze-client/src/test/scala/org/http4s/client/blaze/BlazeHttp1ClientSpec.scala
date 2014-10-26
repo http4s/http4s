@@ -35,7 +35,7 @@ class BlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After 
 
   "RecyclingHttp1Client" should {
 
-    "Mate simple http requests" in {
+    "Make simple http requests" in {
       val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
       //      println(resp.copy(body = halt))
 

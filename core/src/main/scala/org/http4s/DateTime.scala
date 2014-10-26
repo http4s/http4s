@@ -55,47 +55,47 @@ final class DateTime private (val year: Int, // the year
   /**
    * `yyyy-mm-dd`
    */
-  def renderIsoDate[W <: Writer](w: W): w.type = put_##(put_##(w ~ year ~ '-', month) ~ '-', day)
+  def renderIsoDate(w: Writer): w.type = put_##(put_##(w << year << '-', month) << '-', day)
 
   /**
    * `yyyy-mm-dd`
    */
-  def toIsoDateString = renderIsoDate(new StringWriter).result()
+  def toIsoDateString = { val w = new StringWriter; renderIsoDate(w).result() }
 
   /**
    * `yyyy-mm-ddThh:mm:ss`
    */
-  def renderIsoDateTimeString[W <: Writer](w: W): w.type =
-    put_##(put_##(put_##(renderIsoDate(w) ~ 'T', hour) ~ ':', minute) ~ ':', second)
+  def renderIsoDateTimeString(w: Writer): w.type =
+    put_##(put_##(put_##(renderIsoDate(w) << 'T', hour) << ':', minute) << ':', second)
 
   /**
    * `yyyy-mm-ddThh:mm:ss`
    */
-  def toIsoDateTimeString = renderIsoDateTimeString(new StringWriter).result()
+  def toIsoDateTimeString = { val w = new StringWriter; renderIsoDateTimeString(w).result() }
 
   /**
    * `yyyy-mm-dd hh:mm:ss`
    */
-  def renderIsoLikeDateTimeString[W <: Writer](w: W): w.type =
-    put_##(put_##(put_##(renderIsoDate(w) ~ ' ', hour) ~ ':', minute) ~ ':', second)
+  def renderIsoLikeDateTimeString(w: Writer): w.type =
+    put_##(put_##(put_##(renderIsoDate(w) << ' ', hour) << ':', minute) << ':', second)
 
   /**
    * `yyyy-mm-dd hh:mm:ss`
    */
-  def toIsoLikeDateTimeString = renderIsoLikeDateTimeString(new StringWriter).result()
+  def toIsoLikeDateTimeString = { val w = new StringWriter; renderIsoLikeDateTimeString(w).result() }
 
   /**
    * RFC1123 date string, e.g. `Sun, 06 Nov 1994 08:49:37 GMT`
    */
-  def renderRfc1123DateTimeString[W <: Writer](w: W): w.type =
-    put_##(put_##(put_##(put_##(w ~ weekdayStr ~ ',' ~ ' ', day) ~ ' ' ~ monthStr ~ ' ' ~ year ~ ' ', hour) ~ ':', minute) ~ ':', second) ~ " GMT"
+  def renderRfc1123DateTimeString(w: Writer): w.type =
+    put_##(put_##(put_##(put_##(w << weekdayStr << ',' << ' ', day) << ' ' << monthStr << ' ' << year << ' ', hour) << ':', minute) << ':', second) << " GMT"
 
   /**
    * RFC1123 date string, e.g. `Sun, 06 Nov 1994 08:49:37 GMT`
    */
-  def toRfc1123DateTimeString = renderRfc1123DateTimeString(new StringWriter).result()
+  def toRfc1123DateTimeString = { val w = new StringWriter; renderRfc1123DateTimeString(w).result() }
 
-  private def put_##[W <: Writer](w: W, i: Int): w.type = w ~ (i / 10 + '0').toChar ~ (i % 10 + '0').toChar
+  private def put_##(w: Writer, i: Int): w.type = w << (i / 10 + '0').toChar << (i % 10 + '0').toChar
 
   def compare(that: DateTime): Int = math.signum(clicks - that.clicks).toInt
 

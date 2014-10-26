@@ -70,14 +70,14 @@ trait Writer {
     append(end)
   }
 
-  final def ~(s: String):                this.type = append(s)
-  final def ~(s: CaseInsensitiveString): this.type = append(s)
-  final def ~(char: Char):               this.type = append(char)
-  final def ~(float: Float):             this.type = append(float)
-  final def ~(double: Double):           this.type = append(double)
-  final def ~(int: Int):                 this.type = append(int)
-  final def ~(long: Long):               this.type = append(long)
-  final def ~[T: Renderer](r: T):        this.type = append(r)
+  final def <<(s: String):                this.type = append(s)
+  final def <<(s: CaseInsensitiveString): this.type = append(s)
+  final def <<(char: Char):               this.type = append(char)
+  final def <<(float: Float):             this.type = append(float)
+  final def <<(double: Double):           this.type = append(double)
+  final def <<(int: Int):                 this.type = append(int)
+  final def <<(long: Long):               this.type = append(long)
+  final def <<[T: Renderer](r: T):        this.type = append(r)
 
 }
 

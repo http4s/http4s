@@ -28,7 +28,7 @@ final case class Status private (code: Int, reason: String = "")(val isEntityAll
 
   def withReason(reason: String) = new Status(code, reason)(isEntityAllowed)
 
-  override def render(writer: org.http4s.util.Writer): writer.type =  writer ~ code ~ ' ' ~ reason
+  override def render(writer: org.http4s.util.Writer): writer.type =  writer << code << ' ' << reason
 }
 
 object Status {

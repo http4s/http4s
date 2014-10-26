@@ -35,7 +35,7 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
   protected def encodeHeaders(headers: Headers, rr: Writer): Option[`Transfer-Encoding`] = {
     var encoding: Option[`Transfer-Encoding`] = None
     headers.foreach( header =>
-      if (header.name != `Transfer-Encoding`.name) rr ~ header ~ '\r' ~ '\n'
+      if (header.name != `Transfer-Encoding`.name) rr << header << '\r' << '\n'
       else encoding = `Transfer-Encoding`.matchHeader(header)
     )
     encoding
@@ -49,12 +49,12 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
     }
     else if (conn.hasClose) {
       logger.trace("Found Connection:Close header")
-      rr ~ "Connection:close\r\n"
+      rr << "Connection:close\r\n"
       true
     }
     else {
       logger.info(s"Unknown connection header: '${conn.value}'. Closing connection upon completion.")
-      rr ~ "Connection:close\r\n"
+      rr << "Connection:close\r\n"
       true
     }
   }
@@ -87,8 +87,8 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
       logger.trace("Using static encoder")
 
       // add KeepAlive to Http 1.0 responses if the header isn't already present
-      if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) rr ~ "Connection:keep-alive\r\n\r\n"
-      else rr ~ '\r' ~ '\n'
+      if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
+      else rr << '\r' << '\n'
 
       val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
       new StaticWriter(b, h.length, this)
@@ -97,7 +97,7 @@ trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
       if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
         if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
           logger.trace("Using static encoder")
-          rr ~ '\r' ~ '\n'
+          rr << '\r' << '\n'
           val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
           new StaticWriter(b, -1, this)
         }

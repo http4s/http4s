@@ -133,7 +133,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
   protected def renderResponse(req: Request, resp: Response) {
     val rr = new StringWriter(512)
-    rr ~ req.httpVersion ~ ' ' ~ resp.status.code ~ ' ' ~ resp.status.reason ~ '\r' ~ '\n'
+    rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << '\r' << '\n'
 
     val respTransferCoding = encodeHeaders(resp.headers, rr)    // kind of tricky method returns Option[Transfer-Encoding]
     val respConn = Connection.from(resp.headers)
@@ -151,8 +151,8 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
         // We don't have a body so we just get the headers
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
-        if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr ~ "Connection:keep-alive\r\n\r\n"
-        else rr ~ '\r' ~ '\n'
+        if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
+        else rr << '\r' << '\n'
 
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
         new BodylessWriter(b, this, closeOnFinish)
