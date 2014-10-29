@@ -1,28 +1,30 @@
 package org.http4s
 package servlet
 
+import java.util.concurrent.atomic.AtomicReference
+
 import scodec.bits.ByteVector
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import java.net.InetAddress
 
+import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import javax.servlet.{ServletContext, ReadListener, ServletConfig, AsyncContext}
+import javax.servlet.{ ReadListener, ServletConfig, AsyncContext }
 
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
-import scalaz.stream.async.boundedQueue
+import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.io._
-import scalaz.{-\/, \/-}
+import scalaz.{\/, -\/, \/-}
 import scala.util.control.NonFatal
 import org.parboiled2.ParseError
 import com.typesafe.scalalogging.slf4j.LazyLogging
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    chunkSize: Int = 4096,
-                    maxChunks: Int = 8)
+                    chunkSize: Int = 4096)
             extends HttpServlet with LazyLogging
 {
   import Http4sServlet._
@@ -39,7 +41,7 @@ class Http4sServlet(service: HttpService,
     logger.info(s"Detected Servlet API version ${servletApiVersion}")
 
     inputStreamReader = if (servletApiVersion >= ServletApiVersion(3, 1))
-      asyncInputStreamReader(chunkSize, maxChunks)
+      asyncInputStreamReader(chunkSize)
     else
       syncInputStreamReader(chunkSize)
   }
@@ -129,39 +131,84 @@ class Http4sServlet(service: HttpService,
 }
 
 object Http4sServlet extends LazyLogging {
+  import scalaz.stream.Process
+  import scalaz.concurrent.Task
+
   private[servlet] val DefaultChunkSize = Http4sConfig.getInt("org.http4s.servlet.default-chunk-size")
 
   private type BodyReader = HttpServletRequest => EntityBody
+  private type CB = Throwable\/ByteVector => Unit
 
-  private def asyncInputStreamReader(chunkSize: Int, maxChunks: Int)(req: HttpServletRequest): EntityBody = {
-    val queue = boundedQueue[ByteVector](maxChunks)
+  private def asyncInputStreamReader(chunkSize: Int)(req: HttpServletRequest): EntityBody = {
     val in = req.getInputStream
+    val lock: AtomicReference[List[CB]] = new AtomicReference(Nil)
 
-    in.setReadListener(new ReadListener {
-      override def onDataAvailable(): Unit = {
-        logger.debug("data is available on servlet input stream")
-        val buff = new Array[Byte](chunkSize)
-        do {
-          val len = in.read(buff)
-          if (len > 0) {
-            val copy = new Array[Byte](len)
-            System.arraycopy(buff, 0, copy, 0, len)
-            val chunk = ByteVector.view(copy)
-            logger.debug(s"enqueuing ${len} byte chunk to request body")
-            queue.enqueueOne(chunk).run
+    def doRead(): Unit = {
+      val cbs = lock.getAndSet(Nil)
+      if (cbs.nonEmpty) {
+        val cb::xs = cbs
+        var buffers = ByteVector.empty
+        var buff = new Array[Byte](chunkSize)
+        var len = 0
+
+        while(in.isReady) {  // Read buffers until we empty the queue
+          len = in.read(buff)
+          if (len == chunkSize) {
+            buffers = buffers ++ ByteVector.view(buff)
+            buff = new Array[Byte](chunkSize)
           }
-        } while (in.isReady)
+          else if (len > 0) {    // Need to truncate the array
+            val b2 = new Array[Byte](len)
+            System.arraycopy(buff, 0, b2, 0, len)
+            buffers = buffers ++ ByteVector.view(b2)
+          }
+        }
+
+        cb(\/-(buffers))
+        if (xs.nonEmpty) xs.foreach(_(\/-(ByteVector.empty))) // just tell them to read again
+      }
+    }
+
+    if (in.isFinished) Process.halt
+    else {
+      // Initialized the listener
+      in.setReadListener(new ReadListener {
+        override def onError(t: Throwable): Unit = {
+          logger.error("Error during Servlet Async Read", t)
+
+          lock.getAndSet(null) match {
+            case Nil => // NOOP
+            case xs  => xs.foreach(_(-\/(t)))
+          }
+        }
+
+        override def onDataAvailable(): Unit = doRead()
+
+        override def onAllDataRead(): Unit =  {
+          lock.getAndSet(null) match {
+            case Nil => // NOOP
+            case xs =>  xs.foreach(_(-\/(Terminated(End))))
+          }
+        }
+      })
+
+
+      val go = Task.async { cb: CB =>
+        @tailrec
+        def go(): Unit = lock.get match { // submit the callback
+          case null => cb(-\/(Terminated(End))) // over
+          case xs   => if (!lock.compareAndSet(xs, cb::xs)) go()
+        }
+
+        if (in.isFinished) cb(-\/(Terminated(End)))
+        else {
+          go()
+          if (in.isReady) doRead()
+        }
       }
 
-      override def onAllDataRead(): Unit = {
-        logger.debug("closing servlet input stream")
-        queue.close.runAsync { cb => }
-      }
-
-      override def onError(t: Throwable): Unit = queue.fail(t).run
-    })
-
-    queue.dequeue
+      Process.repeatEval(go)
+    }
   }
 
   private def syncInputStreamReader(chunkSize: Int)(req: HttpServletRequest): EntityBody =
