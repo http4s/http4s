@@ -144,9 +144,10 @@ object Http4sServlet extends LazyLogging {
     val lock: AtomicReference[List[CB]] = new AtomicReference(Nil)
 
     def doRead(): Unit = {
+      logger.debug("Reading data.")
       val cbs = lock.getAndSet(Nil)
       if (cbs.nonEmpty) {
-        val cb::xs = cbs
+        val cb = cbs.head
         var buffers = ByteVector.empty
         var buff = new Array[Byte](chunkSize)
         var len = 0
@@ -165,6 +166,8 @@ object Http4sServlet extends LazyLogging {
         }
 
         cb(\/-(buffers))
+
+        val xs = cbs.tail
         if (xs.nonEmpty) xs.foreach(_(\/-(ByteVector.empty))) // just tell them to read again
       }
     }
@@ -176,19 +179,16 @@ object Http4sServlet extends LazyLogging {
         override def onError(t: Throwable): Unit = {
           logger.error("Error during Servlet Async Read", t)
 
-          lock.getAndSet(null) match {
-            case Nil => // NOOP
-            case xs  => xs.foreach(_(-\/(t)))
-          }
+          val cbs = lock.getAndSet(null)
+          if (cbs.nonEmpty) cbs.foreach(_(-\/(t)))
         }
 
         override def onDataAvailable(): Unit = doRead()
 
         override def onAllDataRead(): Unit =  {
-          lock.getAndSet(null) match {
-            case Nil => // NOOP
-            case xs =>  xs.foreach(_(-\/(Terminated(End))))
-          }
+          logger.debug("ReadListener signaled completion")
+          val cbs = lock.getAndSet(null)
+          if (cbs.nonEmpty) cbs.foreach(_(-\/(Terminated(End))))
         }
       })
 
