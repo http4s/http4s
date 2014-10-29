@@ -49,13 +49,13 @@ object Http4sDependencies {
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.0.9"
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.0"
   lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.10"
-  lazy val scalaloggingSlf4j   = "com.typesafe.scala-logging" %% "scala-logging-slf4j"   % "2.1.2"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.5-M2"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.1.0"
   lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.3.0"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.5a"
   lazy val scodecBits          = "org.typelevel"            %% "scodec-bits"             % "1.0.4"
+  lazy val slf4s               = "org.log4s"                %% "log4s"                   % "1.1.1"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "7.0.53"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
 }

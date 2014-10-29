@@ -4,11 +4,10 @@ package middleware
 
 import scalaz.concurrent.Task
 import URITranslation.translateRootKey
-import scalaz.syntax.Ops
-import com.typesafe.scalalogging.slf4j.LazyLogging
+import org.log4s.getLogger
 
-
-object PushSupport extends LazyLogging {
+object PushSupport {
+  private[this] val logger = getLogger
 
   implicit class PushOps(response: Task[Response]) {
     def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
@@ -26,8 +25,8 @@ object PushSupport extends LazyLogging {
     }
   }
 
-  private def handleException(ex: Throwable) {
-    logger.error("Push resource route failure", ex)
+  private def handleException(t: Throwable) {
+    logger.error(t)("Push resource route failure")
   }
 
   private def locToRequest(push: PushLocation, req: Request): Request =

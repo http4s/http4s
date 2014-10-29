@@ -1,6 +1,5 @@
 package org.http4s.client
 
-import com.typesafe.scalalogging.Logging
 import org.http4s.client.Client.{Result, BadResponse}
 import org.http4s._
 
@@ -8,7 +7,7 @@ import scala.util.control.NoStackTrace
 import scalaz.concurrent.Task
 
 
-trait Client { self: Logging =>
+trait Client {
 
   /** Prepare a single request
     * @param req [[Request]] containing the headers, URI, etc.

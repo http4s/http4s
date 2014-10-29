@@ -2,7 +2,6 @@ package org.http4s
 package tomcat
 
 import javax.servlet.http.HttpServlet
-import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.http4s.server.{HasIdleTimeout, HasConnectionTimeout}
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
@@ -12,7 +11,7 @@ import java.nio.file.Paths
 import org.apache.catalina.{LifecycleState, Lifecycle, LifecycleEvent, LifecycleListener}
 import java.util.concurrent.CountDownLatch
 
-class TomcatServer private[tomcat] (tomcat: Tomcat) extends ServletContainer with LazyLogging {
+class TomcatServer private[tomcat] (tomcat: Tomcat) extends ServletContainer {
   def start: Task[this.type] = Task.delay {
     tomcat.start()
     this

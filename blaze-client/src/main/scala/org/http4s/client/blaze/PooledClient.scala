@@ -6,6 +6,7 @@ import java.nio.channels.AsynchronousChannelGroup
 import org.http4s.Request
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.util.Execution
+import org.log4s.getLogger
 
 import scala.collection.mutable.Queue
 import scala.concurrent.{ExecutionContext, Future}
@@ -17,6 +18,7 @@ import scalaz.stream.Process.halt
 abstract class PooledClient(maxPooledConnections: Int,
                             bufferSize: Int,
                             group: Option[AsynchronousChannelGroup]) extends BlazeClient {
+  private[this] val logger = getLogger
 
   assert(maxPooledConnections > 0, "Must have positive collection pool")
 

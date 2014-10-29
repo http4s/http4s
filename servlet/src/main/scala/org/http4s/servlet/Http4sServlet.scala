@@ -18,10 +18,12 @@ import scalaz.stream.io._
 import scalaz.{-\/, \/-}
 import scala.util.control.NonFatal
 import org.parboiled2.ParseError
-import com.typesafe.scalalogging.slf4j.LazyLogging
+import org.log4s.getLogger
 
 class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf, chunkSize: Int = DefaultChunkSize)
-            extends HttpServlet with LazyLogging {
+            extends HttpServlet
+{
+  private[this] val logger = getLogger
 
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1  // -1 == Inf
 
@@ -51,14 +53,14 @@ class Http4sServlet(service: HttpService, asyncTimeout: Duration = Duration.Inf,
   private def handleError(t: Throwable, response: HttpServletResponse) {
     if (!response.isCommitted) t match {
       case ParseError(_, _) =>
-        logger.info("Error during processing phase of request", t)
+        logger.info(t)("Error during processing phase of request")
         response.sendError(HttpServletResponse.SC_BAD_REQUEST)
 
       case _ =>
-        logger.error("Error processing request", t)
+        logger.error(t)("Error processing request")
         response.sendError(HttpServletResponse.SC_INTERNAL_SERVER_ERROR)
     }
-    else logger.error("Error processing request", t)
+    else logger.error(t)("Error processing request")
 
   }
 
