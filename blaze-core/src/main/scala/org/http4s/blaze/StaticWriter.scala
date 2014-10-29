@@ -3,14 +3,15 @@ package blaze
 
 import java.nio.ByteBuffer
 import org.http4s.blaze.util.ProcessWriter
+import org.log4s.getLogger
 import pipeline.TailStage
 import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
-import com.typesafe.scalalogging.slf4j.LazyLogging
 
 class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[ByteBuffer])
                   (implicit val ec: ExecutionContext)
-                              extends ProcessWriter with LazyLogging {
+                              extends ProcessWriter {
+  private[this] val logger = getLogger
 
   private var written = 0
 

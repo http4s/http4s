@@ -7,9 +7,8 @@ import scalaz.stream.Cause.End
 import scala.annotation.tailrec
 import org.http4s.Header.`Content-Length`
 import scodec.bits.ByteVector
-import com.typesafe.scalalogging.slf4j.LazyLogging
 
-object ChunkAggregator extends LazyLogging {
+object ChunkAggregator {
 
   @tailrec
   private[ChunkAggregator] def reduce(acc: ByteVector, chunks: Seq[ByteVector]): List[ByteVector] = {

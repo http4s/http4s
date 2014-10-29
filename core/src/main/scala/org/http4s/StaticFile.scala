@@ -16,11 +16,11 @@ import Process._
 
 import org.http4s.Header._
 import org.http4s.Status.NotModified
+import org.log4s.getLogger
 import scodec.bits.ByteVector
-import com.typesafe.scalalogging.slf4j.LazyLogging
 
-
-object StaticFile extends LazyLogging {
+object StaticFile {
+  private[this] val logger = getLogger
 
   val DEFAULT_BUFFSIZE = Http4sConfig.getInt("org.http4s.staticfile.default-buffersize")    // 10KB
 
@@ -130,10 +130,10 @@ object StaticFile extends LazyLogging {
           if (buff.capacity() > remaining) buff.limit(remaining.toInt)
 
           ch.read(buff, position, null: Null, new CompletionHandler[Integer, Null] {
-            def failed(exc: Throwable, attachment: Null) {
-              logger.error("Static file NIO process failed", exc)
+            def failed(t: Throwable, attachment: Null) {
+              logger.error(t)("Static file NIO process failed")
               ch.close()
-              cb(-\/(exc))
+              cb(-\/(t))
             }
 
             def completed(count: Integer, attachment: Null) {

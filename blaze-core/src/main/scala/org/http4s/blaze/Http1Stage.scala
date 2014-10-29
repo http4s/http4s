@@ -3,7 +3,6 @@ package blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import com.typesafe.scalalogging.Logging
 
 import org.http4s.Header.`Transfer-Encoding`
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
@@ -20,7 +19,7 @@ import scalaz.stream.Cause.{Terminated, End}
 import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
 
-trait Http1Stage { self: Logging with TailStage[ByteBuffer] =>
+trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
