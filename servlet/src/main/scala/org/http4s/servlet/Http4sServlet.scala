@@ -13,6 +13,7 @@ import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import javax.servlet.{ ReadListener, ServletConfig, AsyncContext }
 
+import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
 import scalaz.stream.Cause.{End, Terminated}
@@ -148,24 +149,19 @@ object Http4sServlet extends LazyLogging {
       val cbs = lock.getAndSet(Nil)
       if (cbs.nonEmpty) {
         val cb = cbs.head
-        var buffers = ByteVector.empty
-        var buff = new Array[Byte](chunkSize)
-        var len = 0
-
-        while(in.isReady) {  // Read buffers until we empty the queue
-          len = in.read(buff)
-          if (len == chunkSize) {
-            buffers = buffers ++ ByteVector.view(buff)
-            buff = new Array[Byte](chunkSize)
-          }
+        val buff = new Array[Byte](chunkSize)
+        val len = in.read(buff)
+        val buffer = if (len == chunkSize) ByteVector.view(buff)
           else if (len > 0) {    // Need to truncate the array
             val b2 = new Array[Byte](len)
             System.arraycopy(buff, 0, b2, 0, len)
-            buffers = buffers ++ ByteVector.view(b2)
-          }
-        }
+            ByteVector.view(b2)
+          } else ByteVector.empty
 
-        cb(\/-(buffers))
+        // Without this, we get a stack overflow. I thought Task was trampolined?
+        ExecutionContext.global.execute(new Runnable {
+          override def run(): Unit = cb(\/-(buffer))
+        })
 
         val xs = cbs.tail
         if (xs.nonEmpty) xs.foreach(_(\/-(ByteVector.empty))) // just tell them to read again
