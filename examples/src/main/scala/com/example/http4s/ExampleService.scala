@@ -4,6 +4,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.Process._
+import scalaz.stream.merge._
 
 import org.http4s.Header.`Content-Type`
 import org.http4s._
@@ -40,7 +41,12 @@ object ExampleService {
         .getOrElse(NotFound())
 
     case req @ POST -> Root / "echo" =>
-      Task.now(Response(body = req.body))
+      Ok(req.body).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+
+    case req @ POST -> Root / "ill-advised-echo" =>
+      // This echo tries to read the body on multiple threads.  This is a terrible idea, but we want
+      // to make sure we don't hang.
+      Ok(mergeN(Process(req.body))).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ POST -> Root / "echo2" =>
       Task.now(Response(body = req.body.map { chunk =>
