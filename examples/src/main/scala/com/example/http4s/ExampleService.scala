@@ -1,6 +1,7 @@
 package com.example.http4s
 
 import scala.concurrent.{ExecutionContext, Future}
+import scalaz.{Reducer, Monoid}
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.Process._
@@ -44,9 +45,11 @@ object ExampleService {
       Ok(req.body).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ POST -> Root / "ill-advised-echo" =>
-      // This echo tries to read the body on multiple threads.  This is a terrible idea, but we want
-      // to make sure we don't hang.
-      Ok(mergeN(Process(req.body))).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+      // Reads concurrently from the input.  Don't do this at home.
+      implicit val byteVectorMonoidInstance: Monoid[ByteVector] = Monoid.instance(_ ++ _, ByteVector.empty)
+      val tasks = (1 to Runtime.getRuntime.availableProcessors).map(_ => req.body.foldMonoid.runLastOr(ByteVector.empty))
+      val result = Task.reduceUnordered(tasks)(Reducer.identityReducer)
+      Ok(result)
 
     case req @ POST -> Root / "echo2" =>
       Task.now(Response(body = req.body.map { chunk =>
