@@ -142,66 +142,80 @@ object Http4sServlet extends LazyLogging {
 
   private def asyncInputStreamReader(chunkSize: Int)(req: HttpServletRequest): EntityBody = {
     val in = req.getInputStream
-    val lock: AtomicReference[List[CB]] = new AtomicReference(Nil)
+    val lock = new AnyRef
 
-    def doRead(): Unit = {
-      logger.debug("Reading data.")
-      val cbs = lock.getAndSet(Nil)
-      if (cbs != null && cbs.nonEmpty) {
-        val cb = cbs.head
-        val buff = new Array[Byte](chunkSize)
-        val len = in.read(buff)
-        val buffer = if (len == chunkSize) ByteVector.view(buff)
-          else if (len > 0) {    // Need to truncate the array
-            val b2 = new Array[Byte](len)
-            System.arraycopy(buff, 0, b2, 0, len)
-            ByteVector.view(b2)
-          } else ByteVector.empty
+    var buff: Array[Byte] = null
+    var callbacks: List[CB] = Nil
 
-        // Without this, we get a stack overflow. I thought Task was trampolined?
-        ExecutionContext.global.execute(new Runnable {
-          override def run(): Unit = cb(\/-(buffer))
-        })
+    // will always be called within a lock.synchronized block
+    def doRead(cb: CB): Unit = {
+      if (buff == null) buff = new Array[Byte](chunkSize)
+      val len = in.read(buff)
 
-        val xs = cbs.tail
-        if (xs.nonEmpty) xs.foreach(_(\/-(ByteVector.empty))) // just tell them to read again
+      val buffer = if (len == chunkSize) {
+        val b = ByteVector.view(buff)
+        buff = null
+        b
+      } else if (len > 0) {
+        // Need to truncate the array
+        val b2 = new Array[Byte](len)
+        System.arraycopy(buff, 0, b2, 0, len)
+        ByteVector.view(b2)
+      } else ByteVector.empty
+
+      if (callbacks.nonEmpty) {
+        callbacks.foreach(_(-\/(Terminated(End))))
+        callbacks = Nil
       }
+
+      cb(\/-(buffer))
     }
 
     if (in.isFinished) Process.halt
     else {
       // Initialized the listener
       in.setReadListener(new ReadListener {
-        override def onError(t: Throwable): Unit = {
+        override def onError(t: Throwable): Unit = lock.synchronized {
           logger.error("Error during Servlet Async Read", t)
-
-          val cbs = lock.getAndSet(null)
-          if (cbs.nonEmpty) cbs.foreach(_(-\/(t)))
+          if (callbacks != null && callbacks.nonEmpty) {
+            callbacks.foreach(_(-\/(t)))
+            callbacks = null
+          }
         }
 
-        override def onDataAvailable(): Unit = doRead()
+        override def onDataAvailable(): Unit = lock.synchronized {
+          if (callbacks != null && callbacks.nonEmpty) {
+            val cb = callbacks.head
+            callbacks = callbacks.tail
+            doRead(cb)
+          }
 
-        override def onAllDataRead(): Unit =  {
+        }
+
+        override def onAllDataRead(): Unit = lock.synchronized {
           logger.debug("ReadListener signaled completion")
-          val cbs = lock.getAndSet(null)
-          if (cbs.nonEmpty) cbs.foreach(_(-\/(Terminated(End))))
+          if (callbacks != null && callbacks.nonEmpty) {
+            callbacks.foreach(_(\/-(ByteVector.empty)))
+          }
+          callbacks = null
         }
       })
 
 
-      val go = Task.async { cb: CB =>
-        @tailrec
-        def go(): Unit = lock.get match { // submit the callback
-          case null => cb(-\/(Terminated(End))) // over
-          case xs   => if (!lock.compareAndSet(xs, cb::xs)) go()
+      val go = Task.fork(Task.async { cb: CB =>
+        lock.synchronized {
+          if (in.isFinished || callbacks == null) {
+            logger.debug("Finished.")
+            cb(-\/(Terminated(End)))
+          }
+          else if (in.isReady) {
+            doRead(cb)
+          }
+          else {
+            callbacks = cb::callbacks
+          }
         }
-
-        if (in.isFinished) cb(-\/(Terminated(End)))
-        else {
-          go()
-          if (in.isReady) doRead()
-        }
-      }
+      })
 
       Process.repeatEval(go)
     }
