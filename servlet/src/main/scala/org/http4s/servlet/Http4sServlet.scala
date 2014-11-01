@@ -147,7 +147,7 @@ object Http4sServlet extends LazyLogging {
     def doRead(): Unit = {
       logger.debug("Reading data.")
       val cbs = lock.getAndSet(Nil)
-      if (cbs.nonEmpty) {
+      if (cbs != null && cbs.nonEmpty) {
         val cb = cbs.head
         val buff = new Array[Byte](chunkSize)
         val len = in.read(buff)
