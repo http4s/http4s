@@ -138,17 +138,19 @@ object Http4sServlet extends LazyLogging {
   private[servlet] val DefaultChunkSize = Http4sConfig.getInt("org.http4s.servlet.default-chunk-size")
 
   private type BodyReader = HttpServletRequest => EntityBody
-  private type CB = Throwable\/ByteVector => Unit
 
   private def asyncInputStreamReader(chunkSize: Int)(req: HttpServletRequest): EntityBody = {
+    type Callback = Throwable \/ ByteVector => Unit
+    case object DataAvailable
+    case object AllDataRead
+
     val in = req.getInputStream
 
     var buff: Array[Byte] = null
 
-    @volatile var callbacks: List[CB] = Nil
+    var callbacks: List[Callback] = Nil
 
-    // will always be called within a lock.synchronized block
-    def doRead(cb: CB): Unit = {
+    def doRead(cb: Callback): Unit = {
       if (buff == null) buff = new Array[Byte](chunkSize)
       val len = in.read(buff)
 
@@ -163,43 +165,14 @@ object Http4sServlet extends LazyLogging {
         ByteVector.view(b2)
       } else ByteVector.empty
 
-      if (callbacks.nonEmpty) {
-        callbacks.foreach(_(-\/(Terminated(End))))
-        callbacks = Nil
-      }
-
       cb(\/-(buffer))
     }
 
     if (in.isFinished) Process.halt
     else {
-      case object DataAvailable
-      case object AllDataRead
-
       val actor = Actor.actor[Any] {
-        case DataAvailable =>
-          if (callbacks != null && callbacks.nonEmpty) {
-            val cb = callbacks.head
-            callbacks = callbacks.tail
-            doRead(cb)
-          }
-
-        case AllDataRead =>
-          logger.debug("ReadListener signaled completion")
-          if (callbacks != null && callbacks.nonEmpty) {
-            callbacks.foreach(_(\/-(ByteVector.empty)))
-          }
-          callbacks = null
-
-        case t: Throwable =>
-          logger.error("Error during Servlet Async Read", t)
-          if (callbacks != null && callbacks.nonEmpty) {
-            callbacks.foreach(_(-\/(t)))
-            callbacks = null
-          }
-
-        case cb: CB =>
-          if (in.isFinished || callbacks == null) {
+        case cb: Callback =>
+          if (in.isFinished) {
             logger.debug("Finished.")
             cb(-\/(Terminated(End)))
           }
@@ -207,7 +180,34 @@ object Http4sServlet extends LazyLogging {
             doRead(cb)
           }
           else {
-            callbacks = cb::callbacks
+            // Consuming this stream on multiple threads can lead to multiple
+            // callbacks accruing.  We shouldn't ever see this list grow beyond
+            // one, but in the spirit of defensive programming, we'll try to
+            // fulfill them all.
+            callbacks = cb :: callbacks
+          }
+
+        case DataAvailable =>
+          callbacks match {
+            case head :: losers =>
+              doRead(head)
+              losers.foreach(_(\/-(ByteVector.empty)))
+              callbacks = Nil
+            case _ =>
+          }
+
+        case AllDataRead =>
+          logger.debug("ReadListener signaled completion")
+          if (callbacks.nonEmpty) {
+            callbacks.foreach(_(-\/(Terminated(End))))
+            callbacks = Nil
+          }
+
+        case t: Throwable =>
+          logger.error("Error during Servlet Async Read", t)
+          if (callbacks.nonEmpty) {
+            callbacks.foreach(_(-\/(t)))
+            callbacks = Nil
           }
       }
 
