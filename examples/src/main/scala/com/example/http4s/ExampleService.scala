@@ -51,6 +51,10 @@ object ExampleService {
       val result = Task.reduceUnordered(tasks)(Reducer.identityReducer)
       Ok(result)
 
+    // Reads and discards the entire body.
+    case req @ POST -> Root / "discard" =>
+      Ok(req.body.run.map(_ => ByteVector.empty))
+
     case req @ POST -> Root / "echo2" =>
       Task.now(Response(body = req.body.map { chunk =>
         chunk.slice(6, chunk.length)

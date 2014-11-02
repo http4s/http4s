@@ -15,7 +15,7 @@ import javax.servlet.{ ReadListener, ServletConfig, AsyncContext }
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-import scalaz.concurrent.Task
+import scalaz.concurrent.{Actor, Task}
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.io._
 import scalaz.{\/, -\/, \/-}
@@ -142,10 +142,10 @@ object Http4sServlet extends LazyLogging {
 
   private def asyncInputStreamReader(chunkSize: Int)(req: HttpServletRequest): EntityBody = {
     val in = req.getInputStream
-    val lock = new AnyRef
 
     var buff: Array[Byte] = null
-    var callbacks: List[CB] = Nil
+
+    @volatile var callbacks: List[CB] = Nil
 
     // will always be called within a lock.synchronized block
     def doRead(cb: CB): Unit = {
@@ -173,37 +173,32 @@ object Http4sServlet extends LazyLogging {
 
     if (in.isFinished) Process.halt
     else {
-      // Initialized the listener
-      in.setReadListener(new ReadListener {
-        override def onError(t: Throwable): Unit = lock.synchronized {
-          logger.error("Error during Servlet Async Read", t)
-          if (callbacks != null && callbacks.nonEmpty) {
-            callbacks.foreach(_(-\/(t)))
-            callbacks = null
-          }
-        }
+      case object DataAvailable
+      case object AllDataRead
 
-        override def onDataAvailable(): Unit = lock.synchronized {
+      val actor = Actor.actor[Any] {
+        case DataAvailable =>
           if (callbacks != null && callbacks.nonEmpty) {
             val cb = callbacks.head
             callbacks = callbacks.tail
             doRead(cb)
           }
 
-        }
-
-        override def onAllDataRead(): Unit = lock.synchronized {
+        case AllDataRead =>
           logger.debug("ReadListener signaled completion")
           if (callbacks != null && callbacks.nonEmpty) {
             callbacks.foreach(_(\/-(ByteVector.empty)))
           }
           callbacks = null
-        }
-      })
 
+        case t: Throwable =>
+          logger.error("Error during Servlet Async Read", t)
+          if (callbacks != null && callbacks.nonEmpty) {
+            callbacks.foreach(_(-\/(t)))
+            callbacks = null
+          }
 
-      val go = Task.fork(Task.async { cb: CB =>
-        lock.synchronized {
+        case cb: CB =>
           if (in.isFinished || callbacks == null) {
             logger.debug("Finished.")
             cb(-\/(Terminated(End)))
@@ -214,10 +209,16 @@ object Http4sServlet extends LazyLogging {
           else {
             callbacks = cb::callbacks
           }
-        }
+      }
+
+      // Initialized the listener
+      in.setReadListener(new ReadListener {
+        override def onError(t: Throwable): Unit = actor ! t
+        override def onDataAvailable(): Unit = actor ! DataAvailable
+        override def onAllDataRead(): Unit = actor ! AllDataRead
       })
 
-      Process.repeatEval(go)
+      Process.repeatEval(Task.async[ByteVector] { actor ! _ })
     }
   }
 
