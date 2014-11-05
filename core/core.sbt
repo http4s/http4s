@@ -10,11 +10,11 @@ libraryDependencies <+= scalaVersion(scalaReflect)
 libraryDependencies ++= Seq(
   base64,
   Http4sDependencies.config,
+  log4s,
   rl,
   parboiled,
   scalazStream,
-  scodecBits,
-  slf4s
+  scodecBits
 )
 
 // Lifted from Spire build: https://github.com/non/spire/blob/master/project/Build.scala
