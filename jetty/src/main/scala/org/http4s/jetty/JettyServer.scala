@@ -2,17 +2,19 @@ package org.http4s
 package jetty
 
 import javax.servlet.http.HttpServlet
-import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.http4s.server.HasIdleTimeout
+import org.log4s.getLogger
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
 import org.http4s.servlet.{ServletContainer, ServletContainerBuilder}
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
 
-class JettyServer private[jetty] (server: JServer) extends ServletContainer with LazyLogging {
+class JettyServer private[jetty] (server: JServer) extends ServletContainer {
+  private[this] val logger = getLogger
+
   def start: Task[this.type] = Task.delay {
     server.start()
     this

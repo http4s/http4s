@@ -1,9 +1,9 @@
 package org.http4s.client.blaze
 
-import com.typesafe.scalalogging.slf4j.LazyLogging
 import org.http4s.blaze.pipeline.Command
 import org.http4s.client.Client
 import org.http4s.{Request, Response}
+import org.log4s.getLogger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
@@ -12,7 +12,8 @@ import scalaz.stream.Process.eval_
 import scalaz.{-\/, \/-}
 
 /** Base on which to implement a BlazeClient */
-trait BlazeClient extends PipelineBuilder with Client with LazyLogging {
+trait BlazeClient extends PipelineBuilder with Client {
+  private[this] val logger = getLogger
 
   implicit protected def ec: ExecutionContext
 

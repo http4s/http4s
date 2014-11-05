@@ -5,15 +5,15 @@ package middleware
 import java.util.zip.Deflater
 
 import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
+import org.log4s.getLogger
 
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
 
 import scodec.bits.ByteVector
 
-import com.typesafe.scalalogging.slf4j.StrictLogging
-
-object GZip extends StrictLogging {
+object GZip {
+  private[this] val logger = getLogger
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
