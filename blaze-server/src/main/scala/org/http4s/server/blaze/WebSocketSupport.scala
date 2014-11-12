@@ -52,7 +52,7 @@ trait WebSocketSupport extends Http1ServerStage {
                 this.replaceInline(segment)
 
               case Failure(t) => fatalError(t, "Error writing Websocket upgrade response")
-            }
+            }(ec)
         }
 
       } else super.renderResponse(req, resp)

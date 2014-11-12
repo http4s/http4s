@@ -14,6 +14,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext
 import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError}
@@ -26,16 +27,17 @@ import scalaz.{\/-, -\/}
 import java.util.concurrent.ExecutorService
 
 
-class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
-                (implicit pool: ExecutorService = Strategy.DefaultExecutorService)
+class Http1ServerStage(service: HttpService,
+                       conn: Option[SocketConnection],
+                       pool: ExecutorService = Strategy.DefaultExecutorService)
                   extends Http1ServerParser
                   with TailStage[ByteBuffer]
                   with Http1Stage
 {
 
-  protected implicit def ec = trampoline
+  protected val ec = ExecutionContext.fromExecutorService(pool)
 
-  val name = "Http4sStage"
+  val name = "Http4sServerStage"
 
   private val requestAttrs = conn.flatMap(_.remoteInetAddress).map{ addr =>
     AttributeMap(AttributeEntry(Request.Keys.Remote, addr))
@@ -60,7 +62,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
     requestLoop()
   }
 
-  private def requestLoop(): Unit = channelRead().onComplete(reqLoopCallback)
+  private def requestLoop(): Unit = channelRead().onComplete(reqLoopCallback)(trampoline)
 
   private def reqLoopCallback(buff: Try[ByteBuffer]): Unit = buff match {
     case Success(buff) =>
@@ -155,7 +157,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
         else rr << '\r' << '\n'
 
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-        new BodylessWriter(b, this, closeOnFinish)
+        new BodylessWriter(b, this, closeOnFinish)(ec)
       }
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, minor, closeOnFinish)
     }

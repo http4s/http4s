@@ -2,10 +2,13 @@ package org.http4s
 package server
 package blaze
 
+import java.util.concurrent.ExecutorService
+
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.QuietTimeoutStage
 import org.http4s.blaze.channel.{SocketConnection, ServerChannel}
 import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
+import org.http4s.blaze.channel.nio2.NIO2ServerChannelFactory
 
 import server.middleware.URITranslation
 
@@ -13,7 +16,7 @@ import java.net.InetSocketAddress
 import scala.concurrent.duration.Duration
 import java.nio.ByteBuffer
 
-import scalaz.concurrent.Task
+import scalaz.concurrent.{Strategy, Task}
 
 
 class BlazeServer private (serverChannel: ServerChannel) extends Server {
@@ -41,6 +44,8 @@ object BlazeServer {
     private var port = 8080
     private var idleTimeout: Duration = Duration.Inf
     private var host = "0.0.0.0"
+    private var isnio2 = false
+    private var threadPool: ExecutorService = Strategy.DefaultExecutorService
 
     override def mountService(service: HttpService, prefix: String): this.type = {
       val prefixedService =
@@ -68,13 +73,25 @@ object BlazeServer {
       this
     }
 
+    def withNIO2(usenio2: Boolean): this.type = {
+      this.isnio2 = usenio2
+      this
+    }
+
+    def withThreadPool(pool: ExecutorService): this.type = {
+      this.threadPool = pool
+      this
+    }
+
     override def build: To = {
-      def stage(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
-        val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn)))
+      def pipelineFactory(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
+        val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), threadPool))
         if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
         else leaf
       }
-      val factory = new SocketServerChannelFactory(stage, 12, 8 * 1024)
+
+      val factory = if (isnio2) new NIO2ServerChannelFactory(pipelineFactory)
+                    else new SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
 
       val address = new InetSocketAddress(host, port)
       if (address.isUnresolved) throw new Exception(s"Unresolved hostname: $host")
