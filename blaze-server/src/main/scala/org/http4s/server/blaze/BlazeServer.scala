@@ -78,7 +78,7 @@ object BlazeServer {
       this
     }
 
-    def withThreadPool(pool: ExecutorService): this.type = {
+    override def withThreadPool(pool: ExecutorService): this.type = {
       this.threadPool = pool
       this
     }

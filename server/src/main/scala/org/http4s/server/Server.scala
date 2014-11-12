@@ -1,6 +1,8 @@
 package org.http4s
 package server
 
+import java.util.concurrent.ExecutorService
+
 import scalaz.concurrent.Task
 import scala.concurrent.duration.Duration
 
@@ -26,6 +28,8 @@ trait ServerBuilder { self =>
   def withPort(port: Int): this.type
   
   def withHost(host: String): this.type
+
+  def withThreadPool(pool: ExecutorService): this.type
 
   def start: Task[To] = build.start
 
