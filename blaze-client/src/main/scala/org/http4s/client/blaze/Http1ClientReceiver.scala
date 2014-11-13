@@ -87,7 +87,7 @@ abstract class Http1ClientReceiver extends Http1ClientParser
     cb(\/-(collectMessage(body)))
   } catch {
     case t: Throwable =>
-      logger.error("Error during client request decode loop", t)
+      logger.error(t)("Error during client request decode loop")
       cb(-\/(t))
   }
 }

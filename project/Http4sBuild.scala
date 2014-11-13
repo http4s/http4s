@@ -35,7 +35,7 @@ object Http4sKeys {
 object Http4sDependencies {
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.2.0"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.3.0-SNAPSHOT"
   lazy val config              = "com.typesafe"              % "config"                  % "1.0.0"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.0.1"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.1.4.v20140401"

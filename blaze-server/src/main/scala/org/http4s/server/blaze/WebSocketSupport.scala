@@ -5,7 +5,8 @@ import java.nio.charset.StandardCharsets._
 
 import org.http4s.Header._
 import org.http4s._
-import org.http4s.blaze.http.websocket.{ServerHandshaker, WSFrameAggregator, WebSocketDecoder}
+import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
+import org.http4s.websocket.WebsocketHandshake
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.websocket.Http4sWSStage
 import org.http4s.util.CaseInsensitiveString._
@@ -21,8 +22,8 @@ trait WebSocketSupport extends Http1ServerStage {
 
     if (ws.isDefined) {
       val hdrs =  req.headers.map(h=>(h.name.toString,h.value))
-      if (ServerHandshaker.isWebSocketRequest(hdrs)) {
-        ServerHandshaker.handshakeHeaders(hdrs) match {
+      if (WebsocketHandshake.isWebSocketRequest(hdrs)) {
+        WebsocketHandshake.serverHandshake(hdrs) match {
           case Left((code, msg)) =>
             logger.info(s"Invalid handshake $code, $msg")
             val body = Process.emit(ByteVector(msg.toString.getBytes(req.charset.nioCharset)))
@@ -33,8 +34,7 @@ trait WebSocketSupport extends Http1ServerStage {
             val rsp = Response(status = Status.BadRequest, body = body, headers = headers)
             super.renderResponse(req, rsp)
 
-          case Right(hdrs) =>
-            logger.trace("Successful handshake")
+          case Right(hdrs) =>  // Successful handshake
             val sb = new StringBuilder
             sb.append("HTTP/1.1 101 Switching Protocols\r\n")
             hdrs.foreach { case (k, v) => sb.append(k).append(": ").append(v).append('\r').append('\n') }
@@ -43,7 +43,7 @@ trait WebSocketSupport extends Http1ServerStage {
             // write the accept headers and reform the pipeline
             channelWrite(ByteBuffer.wrap(sb.result().getBytes(US_ASCII))).onComplete {
               case Success(_) =>
-                logger.trace("Switching pipeline segments.")
+                logger.debug("Switching pipeline segments for websocket")
 
                 val segment = LeafBuilder(new Http4sWSStage(ws.get))
                               .prepend(new WSFrameAggregator)

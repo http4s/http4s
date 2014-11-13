@@ -58,7 +58,7 @@ class Http1ServerStage(service: HttpService,
 
   // Will act as our loop
   override def stageStartup() {
-    logger.info("Starting HTTP pipeline")
+    logger.debug("Starting HTTP pipeline")
     requestLoop()
   }
 
@@ -122,7 +122,7 @@ class Http1ServerStage(service: HttpService,
           case \/-(Some(resp)) => renderResponse(req, resp)
           case \/-(None)       => ResponseBuilder.notFound(req)
           case -\/(t)    =>
-            logger.error(s"Error running route: $req", t)
+            logger.error(t)(s"Error running route: $req")
             val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)
               .run
               .withHeaders(Connection("close".ci))
@@ -172,7 +172,7 @@ class Http1ServerStage(service: HttpService,
           requestLoop()
         }  // Serve another connection
 
-      case -\/(t) => logger.error("Error writing body", t)
+      case -\/(t) => logger.error(t)("Error writing body")
     }
   }
 
@@ -183,7 +183,7 @@ class Http1ServerStage(service: HttpService,
   }
 
   override protected def stageShutdown(): Unit = {
-    logger.info("Shutting down HttpPipeline")
+    logger.debug("Shutting down HttpPipeline")
     shutdownParser()
     super.stageShutdown()
   }
@@ -191,7 +191,7 @@ class Http1ServerStage(service: HttpService,
   /////////////////// Error handling /////////////////////////////////////////
 
   private def parsingError(t: ParserException, message: String) {
-    logger.debug(s"Parsing error: $message", t)
+    logger.debug(t)(s"Parsing error: $message")
     stageShutdown()
     stageShutdown()
     sendOutboundCommand(Cmd.Disconnect)
@@ -199,7 +199,7 @@ class Http1ServerStage(service: HttpService,
 
   protected def badMessage(msg: String, t: ParserException, req: Request) {
     renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close".ci), `Content-Length`(0)))
-    logger.debug(s"Bad Request: $msg", t)
+    logger.debug(t)(s"Bad Request: $msg")
   }
 
   /////////////////// Stateful methods for the HTTP parser ///////////////////

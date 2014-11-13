@@ -50,7 +50,7 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
               case e@ -\/(t) => cb(e)
             }
           } catch { case t: Throwable =>
-            logger.error("Error during request submission", t)
+            logger.error(t)("Error during request submission")
             cb(-\/(t))
           }
         }

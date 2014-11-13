@@ -2,6 +2,8 @@ package org.http4s
 package blaze
 package websocket
 
+import org.http4s.websocket.WebsocketBits._
+
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
@@ -15,8 +17,6 @@ import scalaz.concurrent.Task
 
 import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import pipeline.Command.EOF
-import http.websocket.WebSocketDecoder
-import http.websocket.WebSocketDecoder._
 
 class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
@@ -102,7 +102,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
           sendOutboundCommand(Command.Disconnect)
         }
       case -\/(t) =>
-        logger.trace("WebSocket Exception", t)
+        logger.trace(t)("WebSocket Exception")
         sendOutboundCommand(Command.Disconnect)
     }
 
@@ -129,7 +129,6 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
 
 object Http4sWSStage {
   def bufferingSegment(stage: Http4sWSStage): LeafBuilder[WebSocketFrame] = {
-    WebSocketDecoder
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
   }
 }
