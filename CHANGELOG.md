@@ -1,3 +1,13 @@
+# v0.4.0 (2014-11-13)
+
+* Change HttpService form a `PartialFunction[Request,Task[Response]]` to `Service[Request, Response]`,
+  a type that encapsulates a `Request => Task[Option[Response]]`
+* Drop scala-logging for log4s
+* Add a way to control the thread pool used for asynchronous execution
+* Modernize the Renderable/Renderer framework
+* Change Renderable append operator from ~ to <<
+* Many bug fixes and slight enhancements
+
 # v0.3.0 (2014-08-29)
 
 * New client API with Blaze implementation
