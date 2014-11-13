@@ -5,7 +5,7 @@ title: http4s
 
 # http4s
 
-http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Scala's answer to Ruby's 
+http4s is a minimal, idiomatic Scala interface for HTTP.  http4s is Scala's answer to Ruby's 
 Rack, Python's WSGI, Haskell's WAI, and Java's Servlets.
 
 ## HttpService ##
