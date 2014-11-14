@@ -67,7 +67,7 @@ object Service {
    */
   def lift[A, B](f: A => Task[Option[B]]): Service[A, B] = new Service[A, B](f)
 
-  private val TaskNone = Task.now(None)
+  private[http4s] val TaskNone = Task.now(None)
 
   /**
    * Lifts a partial function to a service.  The resulting service will

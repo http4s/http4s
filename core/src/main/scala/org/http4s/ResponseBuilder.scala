@@ -6,9 +6,6 @@ import scalaz.concurrent.Task
 
 object ResponseBuilder {
 
-//  def Ok[A](body: A, headers: Headers = Headers.empty)(implicit w: Writable[A]): Task[Response] =
-//    response(Status.Ok, body, headers)
-
   def apply[A](status: Status, body: A, headers: Header*)(implicit w: Writable[A]): Task[Response] = {
     var h = w.headers ++ headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>

@@ -120,7 +120,7 @@ class Http1ServerStage(service: HttpService,
         Task.fork(service(req))(pool)
           .runAsync {
           case \/-(Some(resp)) => renderResponse(req, resp)
-          case \/-(None)       => ResponseBuilder.notFound(req)
+          case \/-(None)       => renderResponse(req, ResponseBuilder.notFound(req).run)
           case -\/(t)    =>
             logger.error(t)(s"Error running route: $req")
             val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)
