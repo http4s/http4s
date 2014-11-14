@@ -3,6 +3,7 @@ package servlet
 
 import java.util.concurrent.ExecutorService
 
+import org.http4s.util.ResponseException
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
@@ -57,6 +58,9 @@ class Http4sServlet(service: HttpService,
 
   private def handleError(t: Throwable, response: HttpServletResponse) {
     if (!response.isCommitted) t match {
+      case t: ResponseException =>
+        renderResponse(t.asResponse(), response)
+
       case ParseError(_, _) =>
         logger.info(t)("Error during processing phase of request")
         response.sendError(HttpServletResponse.SC_BAD_REQUEST)
@@ -73,18 +77,9 @@ class Http4sServlet(service: HttpService,
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
       service(request).flatMap {
-        case Some(response) =>
-          servletResponse.setStatus(response.status.code, response.status.reason)
-          for (header <- response.headers)
-            servletResponse.addHeader(header.name.toString, header.value)
-          val out = servletResponse.getOutputStream
-          val isChunked = response.isChunked
-          response.body.map { chunk =>
-            out.write(chunk.toArray)
-            if (isChunked) servletResponse.flushBuffer()
-        }.run
-
+        case Some(response) => renderResponse(response, servletResponse)
         case None => ResponseBuilder.notFound(request)
+                                    .flatMap(renderResponse(_, servletResponse))
       }
     }(threadPool).runAsync {
       case \/-(_) =>
@@ -93,6 +88,18 @@ class Http4sServlet(service: HttpService,
         handleError(t, servletResponse)
         ctx.complete()
     }
+  }
+
+  private def renderResponse(response: Response, servletResponse: HttpServletResponse): Task[Unit] = {
+    servletResponse.setStatus(response.status.code, response.status.reason)
+    for (header <- response.headers)
+      servletResponse.addHeader(header.name.toString, header.value)
+    val out = servletResponse.getOutputStream
+    val isChunked = response.isChunked
+    response.body.map { chunk =>
+      out.write(chunk.toArray)
+      if (isChunked) servletResponse.flushBuffer()
+    }.run
   }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request] =

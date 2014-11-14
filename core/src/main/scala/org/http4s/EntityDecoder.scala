@@ -3,13 +3,14 @@ package org.http4s
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
 
+import org.http4s.util.ResponseException
 import org.xml.sax.InputSource
 import scodec.bits.ByteVector
 
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 import scalaz.concurrent.Task
-import scalaz.stream.{io, process1, Process}
+import scalaz.stream.{io, process1}
 
 import util.UrlFormCodec.{ decode => formDecode }
 
@@ -111,7 +112,10 @@ trait EntityDecoderInstances {
   // application/x-www-form-urlencoded
   implicit val formEncoded: EntityDecoder[Map[String, Seq[String]]] = {
     val fn = decodeString(_: Message).flatMap { s =>
-      formDecode(s).fold(f => Task.fail(new Exception(f.details)), Task.now)
+      formDecode(s).fold(f => {
+        val msg = "Invalid Form Encoding. Expected format: " + f.details
+        ResponseException.BadRequest(msg)
+      }, Task.now)
     }
 
     EntityDecoder(fn, MediaType.`application/x-www-form-urlencoded`)
