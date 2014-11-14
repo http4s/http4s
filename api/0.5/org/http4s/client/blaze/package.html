@@ -1,0 +1,291 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>blaze - org.http4s.client.blaze</title>
+          <meta name="description" content="blaze - org.http4s.client.blaze" />
+          <meta name="keywords" content="blaze org.http4s.client.blaze" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'org.http4s.client.blaze.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.client">client</a></p>
+        <h1>blaze</h1> <span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">blaze</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.client.blaze.BlazeClient" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BlazeClientextendsPipelineBuilderwithClient"></a>
+      <a id="BlazeClient:BlazeClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BlazeClient.html"><span class="name">BlazeClient</span></a><span class="result"> extends <a href="PipelineBuilder.html" class="extype" name="org.http4s.client.blaze.PipelineBuilder">PipelineBuilder</a> with <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@BlazeClientextendsPipelineBuilderwithClient" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Base on which to implement a BlazeClient</p>
+    </li><li name="org.http4s.client.blaze.BlazeClientStage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BlazeClientStageextendsTailStage[java.nio.ByteBuffer]"></a>
+      <a id="BlazeClientStage:BlazeClientStage"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="BlazeClientStage.html"><span class="name">BlazeClientStage</span></a><span class="result"> extends <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@BlazeClientStageextendsTailStage[java.nio.ByteBuffer]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Http1ClientReceiverextendsHttp1ClientParserwithBlazeClientStage"></a>
+      <a id="Http1ClientReceiver:Http1ClientReceiver"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Http1ClientReceiver.html"><span class="name">Http1ClientReceiver</span></a><span class="result"> extends <span class="extype" name="org.http4s.blaze.http.http_parser.Http1ClientParser">Http1ClientParser</span> with <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientReceiverextendsHttp1ClientParserwithBlazeClientStage" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.Http1ClientStage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http1ClientStageextendsHttp1ClientReceiverwithHttp1Stage"></a>
+      <a id="Http1ClientStage:Http1ClientStage"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="Http1ClientStage.html"><span class="name">Http1ClientStage</span></a><span class="result"> extends <a href="Http1ClientReceiver.html" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> with <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientStageextendsHttp1ClientReceiverwithHttp1Stage" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.Http1SSLSupport" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Http1SSLSupportextendsHttp1Support"></a>
+      <a id="Http1SSLSupport:Http1SSLSupport"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Http1SSLSupport.html"><span class="name">Http1SSLSupport</span></a><span class="result"> extends <a href="Http1Support.html" class="extype" name="org.http4s.client.blaze.Http1Support">Http1Support</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1SSLSupportextendsHttp1Support" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.Http1Support" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Http1SupportextendsPipelineBuilder"></a>
+      <a id="Http1Support:Http1Support"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Http1Support.html"><span class="name">Http1Support</span></a><span class="result"> extends <a href="PipelineBuilder.html" class="extype" name="org.http4s.client.blaze.PipelineBuilder">PipelineBuilder</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1SupportextendsPipelineBuilder" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.PipelineBuilder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PipelineBuilderextendsAnyRef"></a>
+      <a id="PipelineBuilder:PipelineBuilder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="PipelineBuilder.html"><span class="name">PipelineBuilder</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.4/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@PipelineBuilderextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.PooledClient" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="PooledClientextendsBlazeClient"></a>
+      <a id="PooledClient:PooledClient"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PooledClient.html"><span class="name">PooledClient</span></a><span class="result"> extends <a href="BlazeClient.html" class="extype" name="org.http4s.client.blaze.BlazeClient">BlazeClient</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@PooledClientextendsBlazeClient" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a foundation for pooling clients</p>
+    </li><li name="org.http4s.client.blaze.PooledHttp1Client" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="PooledHttp1ClientextendsPooledClientwithHttp1SSLSupport"></a>
+      <a id="PooledHttp1Client:PooledHttp1Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="PooledHttp1Client.html"><span class="name">PooledHttp1Client</span></a><span class="result"> extends <a href="PooledClient.html" class="extype" name="org.http4s.client.blaze.PooledClient">PooledClient</a> with <a href="Http1SSLSupport.html" class="extype" name="org.http4s.client.blaze.Http1SSLSupport">Http1SSLSupport</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@PooledHttp1ClientextendsPooledClientwithHttp1SSLSupport" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.SimpleHttp1Client" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="SimpleHttp1ClientextendsBlazeClientwithHttp1SupportwithHttp1SSLSupport"></a>
+      <a id="SimpleHttp1Client:SimpleHttp1Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="SimpleHttp1Client.html"><span class="name">SimpleHttp1Client</span></a><span class="result"> extends <a href="BlazeClient.html" class="extype" name="org.http4s.client.blaze.BlazeClient">BlazeClient</a> with <a href="Http1Support.html" class="extype" name="org.http4s.client.blaze.Http1Support">Http1Support</a> with <a href="Http1SSLSupport.html" class="extype" name="org.http4s.client.blaze.Http1SSLSupport">Http1SSLSupport</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@SimpleHttp1ClientextendsBlazeClientwithHttp1SupportwithHttp1SSLSupport" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A default implementation of the Blaze Asynchronous client for HTTP/1.x</p>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="org.http4s.client.blaze.SimpleHttp1Client" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="SimpleHttp1Client"></a>
+      <a id="SimpleHttp1Client:SimpleHttp1Client"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="SimpleHttp1Client$.html"><span class="name">SimpleHttp1Client</span></a><span class="result"> extends <a href="SimpleHttp1Client.html" class="extype" name="org.http4s.client.blaze.SimpleHttp1Client">SimpleHttp1Client</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@SimpleHttp1Client" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
