@@ -58,4 +58,5 @@ object Http4sDependencies {
   lazy val scodecBits          = "org.typelevel"            %% "scodec-bits"             % "1.0.4"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "7.0.53"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
+  lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
 }
