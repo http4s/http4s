@@ -164,8 +164,6 @@ object ExampleService {
 
     case req @ GET -> Root / "redirect" =>
       TemporaryRedirect(uri("/"))
-
-    case req => NotFound()
   }
 
   def service2 = HttpService {
