@@ -3,7 +3,7 @@ package servlet
 
 import java.util.concurrent.ExecutorService
 
-import org.http4s.util.ResponseException
+import org.http4s.util.ReplyException
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
@@ -58,8 +58,8 @@ class Http4sServlet(service: HttpService,
 
   private def handleError(t: Throwable, response: HttpServletResponse) {
     if (!response.isCommitted) t match {
-      case t: ResponseException =>
-        renderResponse(t.asResponse(), response)
+      case t: ReplyException =>
+        renderResponse(t.asResponse(HttpVersion.`HTTP/1.0`), response)
 
       case ParseError(_, _) =>
         logger.info(t)("Error during processing phase of request")

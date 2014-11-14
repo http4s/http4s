@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError}
-import org.http4s.util.{StringWriter, ResponseException}
+import org.http4s.util.{ReplyException, StringWriter}
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{Connection, `Content-Length`}
 
@@ -125,7 +125,7 @@ class Http1ServerStage(service: HttpService,
           case \/-(None)       =>
             renderResponse(req, ResponseBuilder.notFound(req).run)
 
-          case -\/(t: ResponseException) =>
+          case -\/(t: ReplyException) =>
             val resp = t.asResponse(req.httpVersion)
                         .withHeaders(Connection("close".ci))
             renderResponse(req, resp)
