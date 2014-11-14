@@ -14,6 +14,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.ExecutionContext
 import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError}
@@ -26,16 +27,17 @@ import scalaz.{\/-, -\/}
 import java.util.concurrent.ExecutorService
 
 
-class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
-                (implicit pool: ExecutorService = Strategy.DefaultExecutorService)
+class Http1ServerStage(service: HttpService,
+                       conn: Option[SocketConnection],
+                       pool: ExecutorService = Strategy.DefaultExecutorService)
                   extends Http1ServerParser
                   with TailStage[ByteBuffer]
                   with Http1Stage
 {
 
-  protected implicit def ec = trampoline
+  protected val ec = ExecutionContext.fromExecutorService(pool)
 
-  val name = "Http4sStage"
+  val name = "Http4sServerStage"
 
   private val requestAttrs = conn.flatMap(_.remoteInetAddress).map{ addr =>
     AttributeMap(AttributeEntry(Request.Keys.Remote, addr))
@@ -56,11 +58,11 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
   // Will act as our loop
   override def stageStartup() {
-    logger.info("Starting HTTP pipeline")
+    logger.debug("Starting HTTP pipeline")
     requestLoop()
   }
 
-  private def requestLoop(): Unit = channelRead().onComplete(reqLoopCallback)
+  private def requestLoop(): Unit = channelRead().onComplete(reqLoopCallback)(trampoline)
 
   private def reqLoopCallback(buff: Try[ByteBuffer]): Unit = buff match {
     case Success(buff) =>
@@ -118,9 +120,9 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
         Task.fork(service(req))(pool)
           .runAsync {
           case \/-(Some(resp)) => renderResponse(req, resp)
-          case \/-(None)       => ResponseBuilder.notFound(req)
+          case \/-(None)       => renderResponse(req, ResponseBuilder.notFound(req).run)
           case -\/(t)    =>
-            logger.error(s"Error running route: $req", t)
+            logger.error(t)(s"Error running route: $req")
             val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)
               .run
               .withHeaders(Connection("close".ci))
@@ -155,7 +157,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
         else rr << '\r' << '\n'
 
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
-        new BodylessWriter(b, this, closeOnFinish)
+        new BodylessWriter(b, this, closeOnFinish)(ec)
       }
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, minor, closeOnFinish)
     }
@@ -170,7 +172,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
           requestLoop()
         }  // Serve another connection
 
-      case -\/(t) => logger.error("Error writing body", t)
+      case -\/(t) => logger.error(t)("Error writing body")
     }
   }
 
@@ -181,7 +183,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
   }
 
   override protected def stageShutdown(): Unit = {
-    logger.info("Shutting down HttpPipeline")
+    logger.debug("Shutting down HttpPipeline")
     shutdownParser()
     super.stageShutdown()
   }
@@ -189,7 +191,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
   /////////////////// Error handling /////////////////////////////////////////
 
   private def parsingError(t: ParserException, message: String) {
-    logger.debug(s"Parsing error: $message", t)
+    logger.debug(t)(s"Parsing error: $message")
     stageShutdown()
     stageShutdown()
     sendOutboundCommand(Cmd.Disconnect)
@@ -197,7 +199,7 @@ class Http1ServerStage(service: HttpService, conn: Option[SocketConnection])
 
   protected def badMessage(msg: String, t: ParserException, req: Request) {
     renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close".ci), `Content-Length`(0)))
-    logger.debug(s"Bad Request: $msg", t)
+    logger.debug(t)(s"Bad Request: $msg")
   }
 
   /////////////////// Stateful methods for the HTTP parser ///////////////////

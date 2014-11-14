@@ -13,8 +13,10 @@ import scala.concurrent.{ExecutionContext, Future, Promise}
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-}
 
-class ChunkProcessWriter(private var headers: StringWriter, pipe: TailStage[ByteBuffer], trailer: Task[Headers])
-                              (implicit val ec: ExecutionContext) extends ProcessWriter {
+class ChunkProcessWriter(private var headers: StringWriter,
+                         pipe: TailStage[ByteBuffer],
+                         trailer: Task[Headers])
+                         (implicit val ec: ExecutionContext) extends ProcessWriter {
 
   import org.http4s.blaze.util.ChunkProcessWriter._
 

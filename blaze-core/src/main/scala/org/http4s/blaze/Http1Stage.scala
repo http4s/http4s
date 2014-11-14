@@ -156,7 +156,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       drainBody(currentbuffer).onComplete {
         case Success(_) => cb(\/-(()))
         case Failure(t) =>
-          logger.warn("Error draining body", t)
+          logger.warn(t)("Error draining body")
           cb(-\/(t))
       }(directec))
 
@@ -169,7 +169,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     * @param msg
     */
   protected def fatalError(t: Throwable, msg: String = "") {
-    logger.error(s"Fatal Error: $msg", t)
+    logger.error(t)(s"Fatal Error: $msg")
     stageShutdown()
     sendOutboundCommand(Command.Error(t))
   }

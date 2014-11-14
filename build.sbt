@@ -37,7 +37,7 @@ organization in ThisBuild := "org.http4s"
 
 name := "http4s"
 
-version in ThisBuild := "0.4.0-SNAPSHOT"
+version in ThisBuild := "0.5.0-SNAPSHOT"
 
 apiVersion in ThisBuild <<= version.map(extractApiVersion)
 
@@ -110,7 +110,8 @@ javacOptions in ThisBuild ++= Seq(
 resolvers in ThisBuild ++= Seq(
   Resolver.typesafeRepo("releases"),
   Resolver.sonatypeRepo("snapshots"),
-  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
+  "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases",
+  "rossabaker Bintray Repo" at "http://dl.bintray.com/rossabaker/maven"
 )
 
 /* These test dependencies applied to all projects under the http4s umbrella */

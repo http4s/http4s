@@ -14,7 +14,8 @@ libraryDependencies ++= Seq(
   rl,
   parboiled,
   scalazStream,
-  scodecBits
+  scodecBits,
+  http4sWebsocket
 )
 
 // Lifted from Spire build: https://github.com/non/spire/blob/master/project/Build.scala

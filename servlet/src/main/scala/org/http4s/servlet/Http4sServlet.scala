@@ -4,6 +4,8 @@ package servlet
 import java.util.concurrent.atomic.AtomicReference
 
 import scodec.bits.ByteVector
+import java.util.concurrent.ExecutorService
+
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
@@ -17,16 +19,18 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scalaz.concurrent.{Actor, Task}
 import scalaz.stream.Cause.{End, Terminated}
+import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.io._
 import scalaz.{\/, -\/, \/-}
 import scala.util.control.NonFatal
 import org.parboiled2.ParseError
 import org.log4s.getLogger
 
-class Http4sServlet(service: HttpService, 
-                    asyncTimeout: Duration = Duration.Inf, 
-                    chunkSize: Int = 4096)
-            extends HttpServlet
+class Http4sServlet(service: HttpService,
+                    asyncTimeout: Duration = Duration.Inf,
+                    chunkSize: Int = 4096,
+                    threadPool: ExecutorService = Strategy.DefaultExecutorService)
+  extends HttpServlet
 {
   import Http4sServlet._
 
@@ -97,7 +101,7 @@ class Http4sServlet(service: HttpService,
 
         case None => ResponseBuilder.notFound(request)
       }
-    }.runAsync {
+    }(threadPool).runAsync {
       case \/-(_) =>
         ctx.complete()
       case -\/(t) =>

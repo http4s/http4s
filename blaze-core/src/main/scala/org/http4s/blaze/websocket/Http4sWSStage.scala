@@ -2,6 +2,8 @@ package org.http4s
 package blaze
 package websocket
 
+import org.http4s.websocket.WebsocketBits._
+
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
@@ -15,37 +17,20 @@ import scalaz.concurrent.Task
 
 import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import pipeline.Command.EOF
-import http.websocket.WebSocketDecoder
-import http.websocket.WebSocketDecoder._
 
 class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
 
   @volatile private var alive = true
 
-  //////////////////////// Translation functions ////////////////////////
-
-  private def ws4sToBlaze(msg: ws4s.WSFrame): WebSocketFrame = msg match {
-    case ws4s.Text(msg) => Text(msg)
-    case ws4s.Binary(msg) => Binary(msg)
-  }
-
-  private def blazeTows4s(msg: WebSocketFrame): ws4s.WSFrame = msg match {
-    case Text(msg, _)   => ws4s.Text(msg)
-    case Binary(msg, _) => ws4s.Binary(msg)
-    case f =>
-      sendOutboundCommand(Command.Disconnect)
-      sys.error(s"Frame type '$f' not understood")
-  }
-
   //////////////////////// Source and Sink generators ////////////////////////
 
-  def sink: Sink[Task, ws4s.WSFrame] = {
-    def go(frame: ws4s.WSFrame): Task[Unit] = {
+  def sink: Sink[Task, WebSocketFrame] = {
+    def go(frame: WebSocketFrame): Task[Unit] = {
       Task.async { cb =>
         if (!alive) cb(-\/(Terminated(End)))
         else {
-          channelWrite(ws4sToBlaze(frame)).onComplete {
+          channelWrite(frame).onComplete {
             case Success(_)           => cb(\/-(()))
             case Failure(Command.EOF) => cb(-\/(Terminated(End)))
             case Failure(t)           => cb(-\/(t))
@@ -57,8 +42,8 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
     Process.constant(go)
   }
 
-  def inputstream: Process[Task, ws4s.WSFrame] = {
-    val t = Task.async[ws4s.WSFrame] { cb =>
+  def inputstream: Process[Task, WebSocketFrame] = {
+    val t = Task.async[WebSocketFrame] { cb =>
       def go(): Unit = channelRead().onComplete {
         case Success(ws) => ws match {
             case Close(_)    =>
@@ -67,14 +52,14 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
               cb(-\/(Terminated(End)))
 
             // TODO: do we expect ping frames here?
-            case Ping(d)     =>  channelWrite(Pong(d)).onComplete{
+            case Ping(d)     =>  channelWrite(Pong(d)).onComplete {
               case Success(_)   => go()
               case Failure(EOF) => cb(-\/(Terminated(End)))
               case Failure(t)   => cb(-\/(t))
             }(trampoline)
 
             case Pong(_)     => go()
-            case f           => cb(\/-(blazeTows4s(f)))
+            case f           => cb(\/-(f))
           }
 
         case Failure(Command.EOF) => cb(-\/(Terminated(End)))
@@ -102,17 +87,17 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
           sendOutboundCommand(Command.Disconnect)
         }
       case -\/(t) =>
-        logger.trace("WebSocket Exception", t)
+        logger.trace(t)("WebSocket Exception")
         sendOutboundCommand(Command.Disconnect)
     }
 
     ws.source.through(sink).run.runAsync(onFinish)
 
     // The sink is a bit more complicated
-    val discard: Sink[Task, ws4s.WSFrame] = Process.constant(_ => Task.now(()))
+    val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))
 
     // if we never expect to get a message, we need to make sure the sink signals closed
-    val routeSink: Sink[Task, ws4s.WSFrame] = ws.sink match {
+    val routeSink: Sink[Task, WebSocketFrame] = ws.sink match {
       case Halt(End) => onFinish(\/-(())); discard
       case Halt(e)   => onFinish(-\/(Terminated(e))); ws.sink
       case s => s ++ await(Task{onFinish(\/-(()))})(_ => discard)
@@ -129,7 +114,6 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
 
 object Http4sWSStage {
   def bufferingSegment(stage: Http4sWSStage): LeafBuilder[WebSocketFrame] = {
-    WebSocketDecoder
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
   }
 }

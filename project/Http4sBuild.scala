@@ -35,7 +35,7 @@ object Http4sKeys {
 object Http4sDependencies {
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.2.0"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.3.0-SNAPSHOT"
   lazy val config              = "com.typesafe"              % "config"                  % "1.0.0"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.2.3.v20140905"
@@ -53,8 +53,9 @@ object Http4sDependencies {
   lazy val scalameter          = "com.github.axel22"        %% "scalameter"              % "0.5-M2"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.1.0"
   lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.3.0"
-  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.5a"
+  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.6a"
   lazy val scodecBits          = "org.typelevel"            %% "scodec-bits"             % "1.0.4"
-  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.14"
+  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.15"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
+  lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
 }
