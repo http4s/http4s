@@ -22,7 +22,7 @@ import scodec.bits.ByteVector
 object StaticFile {
   private[this] val logger = getLogger
 
-  val DEFAULT_BUFFSIZE = Http4sConfig.getInt("org.http4s.staticfile.default-buffersize")    // 10KB
+  val DefaultBufferSize = 10240
 
   def fromString(url: String, req: Option[Request] = None)
                 (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
@@ -45,7 +45,7 @@ object StaticFile {
   }
 
   def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] =
-    fromFile(f, DEFAULT_BUFFSIZE, req)
+    fromFile(f, DefaultBufferSize, req)
 
   def fromFile(f: File, buffsize: Int, req: Option[Request])
            (implicit es: ExecutorService): Option[Response] = {
