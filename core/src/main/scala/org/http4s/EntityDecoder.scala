@@ -58,11 +58,12 @@ sealed trait EntityDecoder[+T] { self =>
   */
 object EntityDecoder extends EntityDecoderInstances {
 
-  case class DecodingException(reason: String) extends Exception with ReplyException with NoStackTrace {
+  case class DecodingException(reason: String) extends Exception(reason)
+                                               with ReplyException
+                                               with NoStackTrace
+  {
     override def asResponse(version: HttpVersion): Response =
-      ResponseBuilder(Status.BadRequest, reason).run
-
-    def asTask: Task[Nothing] = Task.fail(this)
+      ResponseBuilder(Status.BadRequest, version, reason).run
   }
 
   def apply[T](f: Message => Task[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
