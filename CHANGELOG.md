@@ -1,17 +1,19 @@
-# v0.4.0 (2014-11-13)
+# v0.4.0 (coming soon)
 
 * Change HttpService form a `PartialFunction[Request,Task[Response]]` to `Service[Request, Response]`,
   a type that encapsulates a `Request => Task[Option[Response]]`
+* Upgrade to scalaz-stream-0.6a
 * Drop scala-logging for log4s
 * Add a way to control the thread pool used for asynchronous execution
 * Modernize the Renderable/Renderer framework
 * Change Renderable append operator from ~ to <<
 * Many bug fixes and slight enhancements
+* Split out the websocket codec and types into a seperate package
 
 # v0.3.0 (2014-08-29)
 
 * New client API with Blaze implementation
-* Upgrade to scalaz-7.1.0 and scalaz-stream 0.5a
+* Upgrade to scalaz-7.1.0 and scalaz-stream-0.5a
 * JSON Writable support through Argonaut and json4s.
 * Add EntityDecoders for parsing bodies.
 * Moved request and response generators to http4s-dsl to be more flexible to 
