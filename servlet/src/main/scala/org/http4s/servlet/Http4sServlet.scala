@@ -130,5 +130,5 @@ class Http4sServlet(service: HttpService,
 }
 
 object Http4sServlet {
-  private[servlet] val DefaultChunkSize = Http4sConfig.getInt("org.http4s.servlet.default-chunk-size")
+  private[servlet] val DefaultChunkSize = 4096
 }
