@@ -48,7 +48,7 @@ object BlazeExample extends Example {
   override def config = super.config
     // Server configurations are extensible with arbitrary keys.  Use syntax
     // to hide the gory details.
-    .withNio2(true)
+    .withNio2(false)
 
   override def backend = BlazeServer
 }
