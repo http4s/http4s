@@ -5,7 +5,6 @@ import org.http4s.server._
 import scodec.bits.ByteVector
 
 import scala.util.control.NoStackTrace
-import scalaz.concurrent.Task
 import scalaz.stream.{Process1, process1}
 import scalaz.stream.Process._
 

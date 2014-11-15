@@ -4,7 +4,7 @@ import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
 
 import org.http4s.util.ReplyException
-import org.xml.sax.{SAXException, InputSource}
+import org.xml.sax.{SAXException, SAXParseException, InputSource}
 import scodec.bits.ByteVector
 
 import scala.util.control.{NoStackTrace, NonFatal}
@@ -142,7 +142,15 @@ trait EntityDecoderInstances {
     collectBinary(msg).flatMap { arr =>
       val source = new InputSource(new StringReader(new String(arr, msg.charset.nioCharset)))
       try Task.now(XML.loadXML(source, parser))
-      catch { case _: SAXException => DecodingException("Invalid XML").asTask }
+      catch {
+        case e: SAXParseException =>
+          val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
+          DecodingException(msg).asTask
+
+        case e: SAXException => DecodingException("Invalid XML: " + e.getMessage ).asTask
+
+        case NonFatal(e) => Task.fail(e)
+      }
     }
   }, MediaType.`text/xml`)
 
