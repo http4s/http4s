@@ -3,14 +3,12 @@ package server
 
 import java.util.concurrent.ExecutorService
 
-import scalaz.concurrent.Task
-import scala.concurrent.duration.Duration
+import org.http4s.server.ServerConfig.ServiceMount
+
+import scalaz.concurrent.{Strategy, Task}
+import scala.concurrent.duration._
 
 trait Server {
-  def start: Task[this.type]
-
-  def run(): this.type = start.run
-
   def shutdown: Task[this.type]
 
   def shutdownNow(): this.type = shutdown.run
@@ -18,47 +16,56 @@ trait Server {
   def onShutdown(f: => Unit): this.type
 }
 
-trait ServerBuilder { self =>
-  type To <: Server
+sealed case class ServerConfig private (val attributes: AttributeMap) {
+  def map(f: AttributeMap => AttributeMap) = new ServerConfig(f(attributes))
 
-  def mountService(service: HttpService, prefix: String = ""): this.type
+  def get[T](key: AttributeKey[T]): Option[T] = attributes.get(key)
 
-  def build: To
+  def getOrElse[T](key: AttributeKey[T], default: => T) = get(key).getOrElse(default)
 
-  def withPort(port: Int): this.type
-  
-  def withHost(host: String): this.type
+  def put[T](key: AttributeKey[T], value: T) = map(_.put(key, value))
 
-  def withThreadPool(pool: ExecutorService): this.type
+  def add[T](key: AttributeKey[Seq[T]], value: T) = {
+    val oldValue = attributes.get(key).getOrElse(Seq.empty)
+    val newValue = oldValue :+ value
+    put(key, newValue)
+  }
 
-  def start: Task[To] = build.start
+  import ServerConfig.keys
 
-  def run(): To = start.run
+  def host = getOrElse(keys.host, "0.0.0.0")
+  def withHost(host: String) = put(keys.host, host)
+
+  def port = getOrElse(keys.port, 8080)
+  def withPort(port: Int) = put(keys.port, port)
+
+  def executor = getOrElse(keys.executor, Strategy.DefaultExecutorService)
+  def withExecutor(executorService: ExecutorService) = put(keys.executor, executorService)
+
+  def idleTimeout = getOrElse(keys.idleTimeout, 30.seconds)
+  def withIdleTimeout(idleTimeout: Duration) = put(keys.idleTimeout, idleTimeout)
+
+  def serviceMounts: Seq[ServiceMount] = getOrElse(keys.serviceMounts, Seq.empty)
+  def mountService(service: HttpService, prefix: String) = add(keys.serviceMounts, ServiceMount(service, prefix))
 }
 
-/** [[ServerBuilder]]s that implement this trait can set an idle timeout */
-trait HasIdleTimeout { this: ServerBuilder =>
-  /** Add timeout for idle connections
-    * @param timeout Duration to wait for an idle connection before terminating the connection
-    * @return this [[server.ServerBuilder]]
-    */
-  def withIdleTimeout(timeout: Duration): this.type
+object ServerConfig extends ServerConfig(AttributeMap.empty) {
+  private def mkKey[T](name: String)(implicit manifest: Manifest[T]): AttributeKey[T] =
+    AttributeKey.http4s("server.config.${name}")
+
+  object keys {
+    val host = AttributeKey[String]("host")
+    val port = AttributeKey[Int]("port")
+    val executor = AttributeKey[ExecutorService]("executor")
+
+    /** Timeout until an idle connection is closed. */
+    val idleTimeout = AttributeKey[Duration]("idle-timeout")
+
+    val serviceMounts = AttributeKey[Seq[ServiceMount]]("service-mounts")
+  }
+
+  case class ServiceMount(service: HttpService, prefix: String)
+
+  import keys._
 }
 
-/** [[ServerBuilder]]s that implement this trait can set a connection timeout */
-trait HasConnectionTimeout { this: ServerBuilder =>
-  /** Add timeout for the reception of the status line
-    * @param timeout Duration to wait for the reception of the status line before terminating the connection
-    * @return this [[server.ServerBuilder]]
-    */
-  def withConnectionTimeout(timeout: Duration): this.type
-}
-
-/** [[ServerBuilder]]s that implement this trait can set a Servlet asynchronous timeout */
-trait HasAsyncTimeout { this: ServerBuilder =>
-  /** Add timeout for asynchronous operations
-    * @param timeout Duration to wait for asynchronous operations to complete
-    * @return this [[server.ServerBuilder]]
-    */
-  def withAsyncTimeout(timeout: Duration): this.type
-}

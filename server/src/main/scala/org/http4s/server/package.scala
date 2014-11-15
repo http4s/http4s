@@ -8,6 +8,8 @@ package object server {
   object HttpService {
     def apply(pf: PartialFunction[Request, Task[Response]]): HttpService = Service(pf)
   }
+
+  type ServerBackend = ServerConfig => Task[Server]
 }
 
 
