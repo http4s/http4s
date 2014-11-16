@@ -17,8 +17,7 @@ abstract class Example[B <: ServerBuilder[B]] extends App {
   // With type parameterization, it allows composition with backend-specific
   // extensions.
   def baseConfig(builder: B): B = builder
-    .withHost("127.0.0.1")
-    .withPort(8080)
+    .withHttp(8080)
     .mountService(ExampleService.service, "/http4s")
 
   def builder: B

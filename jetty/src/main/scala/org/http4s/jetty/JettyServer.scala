@@ -1,6 +1,7 @@
 package org.http4s
 package jetty
 
+import java.net.InetSocketAddress
 import java.util.concurrent.ExecutorService
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
@@ -13,23 +14,20 @@ import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListe
 import org.eclipse.jetty.util.component.LifeCycle
 
 sealed class JettyBuilder(
-  host: String,
-  port: Int,
+  socketAddress: InetSocketAddress,
   executor: ExecutorService,
   idleTimeout: Duration,
   serviceMounts: Vector[ServiceMount]
 ) extends ServerBuilder[JettyBuilder] {
 
-  private def copy(host: String = host,
-                   port: Int = port,
+  private def copy(socketAddress: InetSocketAddress = socketAddress,
                    executor: ExecutorService = executor,
                    idleTimeout: Duration = idleTimeout,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): JettyBuilder =
-    new JettyBuilder(host, port, executor, idleTimeout, serviceMounts)
+    new JettyBuilder(socketAddress, executor, idleTimeout, serviceMounts)
 
-  override def withHost(host: String): JettyBuilder = copy(host = host)
-
-  override def withPort(port: Int): JettyBuilder = copy(port = port)
+  override def withSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
+    copy(socketAddress = socketAddress)
 
   override def withExecutor(executor: ExecutorService): JettyBuilder = copy(executor = executor)
 
@@ -46,8 +44,8 @@ sealed class JettyBuilder(
     jetty.setHandler(context)
 
     val connector = new ServerConnector(jetty)
-    connector.setHost(host)
-    connector.setPort(port)
+    connector.setHost(socketAddress.getHostString)
+    connector.setPort(socketAddress.getPort)
     connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
     jetty.addConnector(connector)
 
@@ -80,8 +78,7 @@ sealed class JettyBuilder(
 }
 
 object JettyServer extends JettyBuilder(
-  host = "0.0.0.0",
-  port = 8080,
+  socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
   executor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
   serviceMounts = Vector.empty

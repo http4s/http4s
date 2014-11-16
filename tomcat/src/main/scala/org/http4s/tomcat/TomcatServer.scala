@@ -1,6 +1,8 @@
 package org.http4s
 package tomcat
 
+import java.net.InetSocketAddress
+
 import org.http4s.server.ServerBuilder.ServiceMount
 import org.http4s.server._
 import org.http4s.servlet.Http4sServlet
@@ -12,23 +14,21 @@ import org.apache.catalina.{Lifecycle, LifecycleEvent, LifecycleListener}
 import java.util.concurrent.ExecutorService
 
 sealed class TomcatBuilder (
-  host: String,
-  port: Int,
+  socketAddress: InetSocketAddress,
   executor: ExecutorService,
   idleTimeout: Duration,
   serviceMounts: Vector[ServiceMount]
 ) extends ServerBuilder[TomcatBuilder] {
 
-  private def copy(host: String = host,
-           port: Int = port,
+  private def copy(
+           socketAddress: InetSocketAddress = socketAddress,
            executor: ExecutorService = executor,
            idleTimeout: Duration = idleTimeout,
            serviceMounts: Vector[ServiceMount] = serviceMounts): TomcatBuilder =
-    new TomcatBuilder(host, port, executor, idleTimeout, serviceMounts)
+    new TomcatBuilder(socketAddress, executor, idleTimeout, serviceMounts)
 
-  override def withHost(host: String): TomcatBuilder = copy(host = host)
-
-  override def withPort(port: Int): TomcatBuilder = copy(port = port)
+  override def withSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
+    copy(socketAddress = socketAddress)
 
   override def withExecutor(executor: ExecutorService): TomcatBuilder = copy(executor = executor)
 
@@ -48,8 +48,8 @@ sealed class TomcatBuilder (
     val tomcat = new Tomcat
 
     tomcat.addContext("", getClass.getResource("/").getPath)
-    tomcat.getConnector.setAttribute("address", host)
-    tomcat.setPort(port)
+    tomcat.getConnector.setAttribute("address", socketAddress.getHostString)
+    tomcat.setPort(socketAddress.getPort)
 
     tomcat.getConnector.setAttribute("connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
@@ -86,8 +86,7 @@ sealed class TomcatBuilder (
 }
 
 object TomcatServer extends TomcatBuilder(
-  host = "0.0.0.0",
-  port = 8080,
+  socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
   executor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
   serviceMounts = Vector.empty

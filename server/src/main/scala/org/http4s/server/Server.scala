@@ -1,6 +1,7 @@
 package org.http4s
 package server
 
+import java.net.InetSocketAddress
 import java.util.concurrent.ExecutorService
 
 import scalaz.concurrent.Task
@@ -14,13 +15,9 @@ trait Server {
   def onShutdown(f: => Unit): this.type
 }
 
-trait ServerBuilder[Self <: ServerBuilder[Self]] { self: Self =>
-  def configure(f: Self => Self): Self = f(this)
-
-  def withHost(host: String): Self
-
-  def withPort(port: Int): Self
-
+trait ServerBuilder[Self <: ServerBuilder[Self]]
+  extends HasSocketAddress[Self]
+{ self: Self =>
   def withExecutor(executorService: ExecutorService): Self
 
   def withIdleTimeout(idleTimeout: Duration): Self
@@ -30,6 +27,20 @@ trait ServerBuilder[Self <: ServerBuilder[Self]] { self: Self =>
   def start: Task[Server]
 
   final def run: Server = start.run
+}
+
+/**
+ * Bind a server to a port.  Method names inspired by Unfiltered.
+ */
+trait HasSocketAddress[Self <: ServerBuilder[Self]] { self: ServerBuilder[Self] =>
+  def withSocketAddress(socketAddress: InetSocketAddress): Self
+
+  def withHttp(port: Int = 80, host: String = "0.0.0.0") =
+    withSocketAddress(InetSocketAddress.createUnresolved(host, port))
+
+  def withLocal(port: Int) = withHttp(port, "127.0.0.1")
+
+  def withAnyLocal = withLocal(0)
 }
 
 object ServerBuilder {

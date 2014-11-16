@@ -20,24 +20,20 @@ import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 
 class BlazeBuilder(
-  host: String,
-  port: Int,
+  socketAddress: InetSocketAddress,
   executor: ExecutorService,
   idleTimeout: Duration,
   isNio2: Boolean,
   serviceMounts: Vector[ServiceMount]
 ) extends ServerBuilder[BlazeBuilder] {
-  private def copy(host: String = host,
-                   port: Int = port,
+  private def copy(socketAddress: InetSocketAddress = socketAddress,
                    executor: ExecutorService = executor,
                    idleTimeout: Duration = idleTimeout,
                    isNio2: Boolean = isNio2,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(host, port, executor, idleTimeout, isNio2, serviceMounts)
-
-  override def withHost(host: String): BlazeBuilder = copy(host = host)
-
-  override def withPort(port: Int): BlazeBuilder = copy(port = port)
+    new BlazeBuilder(socketAddress, executor, idleTimeout, isNio2, serviceMounts)
+  override def withSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
+    copy(socketAddress = socketAddress)
 
   override def withExecutor(executor: ExecutorService): BlazeBuilder = copy(executor = executor)
 
@@ -74,10 +70,7 @@ class BlazeBuilder(
       else
         new NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
 
-    val address = new InetSocketAddress(host, port)
-    if (address.isUnresolved) throw new Exception(s"Unresolved hostname: ${host}")
-
-    val serverChannel = factory.bind(address)
+    val serverChannel = factory.bind(socketAddress)
     serverChannel.run()
 
     new Server {
@@ -95,8 +88,7 @@ class BlazeBuilder(
 }
 
 object BlazeServer extends BlazeBuilder(
-  host = "0.0.0.0",
-  port = 8080,
+  socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
   executor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
   isNio2 = true,
