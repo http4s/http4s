@@ -199,13 +199,6 @@ class Http1ServerStage(service: HttpService,
 
   /////////////////// Error handling /////////////////////////////////////////
 
-  private def parsingError(t: ParserException, message: String) {
-    logger.debug(t)(s"Parsing error: $message")
-    stageShutdown()
-    stageShutdown()
-    sendOutboundCommand(Cmd.Disconnect)
-  }
-
   protected def badMessage(msg: String, t: ParserException, req: Request) {
     renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close".ci), `Content-Length`(0)))
     logger.debug(t)(s"Bad Request: $msg")
