@@ -3,9 +3,7 @@ package server
 
 import java.util.concurrent.ExecutorService
 
-import org.http4s.server.ServerConfig.ServiceMount
-
-import scalaz.concurrent.{Strategy, Task}
+import scalaz.concurrent.Task
 import scala.concurrent.duration._
 
 trait Server {
@@ -16,56 +14,25 @@ trait Server {
   def onShutdown(f: => Unit): this.type
 }
 
-sealed case class ServerConfig private (val attributes: AttributeMap) {
-  def map(f: AttributeMap => AttributeMap) = new ServerConfig(f(attributes))
+trait ServerBuilder[Self <: ServerBuilder[Self]] { self: Self =>
+  def configure(f: Self => Self): Self = f(this)
 
-  def get[T](key: AttributeKey[T]): Option[T] = attributes.get(key)
+  def withHost(host: String): Self
 
-  def getOrElse[T](key: AttributeKey[T], default: => T) = get(key).getOrElse(default)
+  def withPort(port: Int): Self
 
-  def put[T](key: AttributeKey[T], value: T) = map(_.put(key, value))
+  def withExecutor(executorService: ExecutorService): Self
 
-  def add[T](key: AttributeKey[Seq[T]], value: T) = {
-    val oldValue = attributes.get(key).getOrElse(Seq.empty)
-    val newValue = oldValue :+ value
-    put(key, newValue)
-  }
+  def withIdleTimeout(idleTimeout: Duration): Self
 
-  import ServerConfig.keys
+  def mountService(service: HttpService, prefix: String): Self
 
-  def host = getOrElse(keys.host, "0.0.0.0")
-  def withHost(host: String) = put(keys.host, host)
+  def start: Task[Server]
 
-  def port = getOrElse(keys.port, 8080)
-  def withPort(port: Int) = put(keys.port, port)
-
-  def executor = getOrElse(keys.executor, Strategy.DefaultExecutorService)
-  def withExecutor(executorService: ExecutorService) = put(keys.executor, executorService)
-
-  def idleTimeout = getOrElse(keys.idleTimeout, 30.seconds)
-  def withIdleTimeout(idleTimeout: Duration) = put(keys.idleTimeout, idleTimeout)
-
-  def serviceMounts: Seq[ServiceMount] = getOrElse(keys.serviceMounts, Seq.empty)
-  def mountService(service: HttpService, prefix: String) = add(keys.serviceMounts, ServiceMount(service, prefix))
+  final def run: Server = start.run
 }
 
-object ServerConfig extends ServerConfig(AttributeMap.empty) {
-  private def mkKey[T](name: String)(implicit manifest: Manifest[T]): AttributeKey[T] =
-    AttributeKey.http4s("server.config.${name}")
-
-  object keys {
-    val host = AttributeKey[String]("host")
-    val port = AttributeKey[Int]("port")
-    val executor = AttributeKey[ExecutorService]("executor")
-
-    /** Timeout until an idle connection is closed. */
-    val idleTimeout = AttributeKey[Duration]("idle-timeout")
-
-    val serviceMounts = AttributeKey[Seq[ServiceMount]]("service-mounts")
-  }
-
+object ServerBuilder {
   case class ServiceMount(service: HttpService, prefix: String)
-
-  import keys._
 }
 

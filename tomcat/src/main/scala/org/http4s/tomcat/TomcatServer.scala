@@ -1,48 +1,42 @@
 package org.http4s
 package tomcat
 
-import java.util.concurrent.atomic.AtomicInteger
-import javax.servlet.http.HttpServlet
+import org.http4s.server.ServerBuilder.ServiceMount
 import org.http4s.server._
 import org.http4s.servlet.Http4sServlet
 
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 import org.apache.catalina.startup.Tomcat
-import org.apache.catalina.{LifecycleState, Lifecycle, LifecycleEvent, LifecycleListener}
-import java.util.concurrent.CountDownLatch
+import org.apache.catalina.{Lifecycle, LifecycleEvent, LifecycleListener}
+import java.util.concurrent.ExecutorService
 
-case class TomcatServer private[tomcat] (tomcat: Tomcat) extends Server {
-  def start: Task[this.type] = Task.delay {
-    tomcat.start()
-    this
-  }
+sealed class TomcatBuilder (
+  host: String,
+  port: Int,
+  executor: ExecutorService,
+  idleTimeout: Duration,
+  serviceMounts: Vector[ServiceMount]
+) extends ServerBuilder[TomcatBuilder] {
 
-  def shutdown: Task[this.type] = Task.delay {
-    this
-  }
+  private def copy(host: String = host,
+           port: Int = port,
+           executor: ExecutorService = executor,
+           idleTimeout: Duration = idleTimeout,
+           serviceMounts: Vector[ServiceMount] = serviceMounts): TomcatBuilder =
+    new TomcatBuilder(host, port, executor, idleTimeout, serviceMounts)
 
-  def join(): this.type = {
-    if (tomcat.getServer.getState.ordinal < LifecycleState.STOPPED.ordinal) {
-      val latch = new CountDownLatch(1)
-      onShutdown { latch.countDown() }
-      latch.await()
-    }
-    this
-  }
+  override def withHost(host: String): TomcatBuilder = copy(host = host)
 
-  override def onShutdown(f: => Unit): this.type = {
-    tomcat.getServer.addLifecycleListener(new LifecycleListener {
-      override def lifecycleEvent(event: LifecycleEvent): Unit = {
-        if (Lifecycle.AFTER_STOP_EVENT.equals(event.getLifecycle))
-          f
-      }
-    })
-    this
-  }
-}
+  override def withPort(port: Int): TomcatBuilder = copy(port = port)
 
-object TomcatServer extends ServerBackend {
+  override def withExecutor(executor: ExecutorService): TomcatBuilder = copy(executor = executor)
+
+  override def mountService(service: HttpService, prefix: String): TomcatBuilder =
+    copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
+
+  override def withIdleTimeout(idleTimeout: Duration): TomcatBuilder = copy(idleTimeout = idleTimeout)
+
   /**
    * Returns a Task to start a Tomcat server.
    *
@@ -50,24 +44,22 @@ object TomcatServer extends ServerBackend {
    * attribute worker.maintain with a default interval of 60 seconds. In the worst case the connection
    * may not timeout for an additional 59.999 seconds from the specified Duration
    */
-  def apply(config: ServerConfig): Task[Server] = Task.delay {
+  override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
 
     tomcat.addContext("", getClass.getResource("/").getPath)
-    tomcat.getConnector.setAttribute("address", config.host)
-    tomcat.setPort(config.port)
+    tomcat.getConnector.setAttribute("address", host)
+    tomcat.setPort(port)
 
-    val idleTimeout = config.idleTimeout
     tomcat.getConnector.setAttribute("connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
-    val nameCounter = new AtomicInteger
-    for (serviceMount <- config.serviceMounts) {
+    for ((serviceMount, i) <- serviceMounts.zipWithIndex) {
       val servlet = new Http4sServlet(
         service = serviceMount.service,
-        threadPool = config.executor
+        threadPool = executor
       )
-      val wrapper = tomcat.addServlet("", s"servlet-${nameCounter.getAndIncrement}", servlet)
+      val wrapper = tomcat.addServlet("", s"servlet-${i}", servlet)
       wrapper.addMapping(s"${serviceMount.prefix}/*")
       wrapper.setAsyncSupported(true)
     }
@@ -92,3 +84,11 @@ object TomcatServer extends ServerBackend {
     }
   }
 }
+
+object TomcatServer extends TomcatBuilder(
+  host = "0.0.0.0",
+  port = 8080,
+  executor = Strategy.DefaultExecutorService,
+  idleTimeout = 30.seconds,
+  serviceMounts = Vector.empty
+)
