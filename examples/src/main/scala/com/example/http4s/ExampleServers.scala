@@ -11,7 +11,7 @@ import org.log4s.getLogger
  * http4s' server builders let you run the same configuration on multiple backends.
  */
 abstract class Example[B <: ServerBuilder[B]] extends App {
-  private[this] val logger = getLogger
+  private val logger = getLogger
 
   // Extract common configuration into functions of ServerBuilder => ServerBuilder.
   // With type parameterization, it allows composition with backend-specific
