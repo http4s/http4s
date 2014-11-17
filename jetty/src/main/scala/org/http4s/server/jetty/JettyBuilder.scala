@@ -1,4 +1,5 @@
 package org.http4s
+package server
 package jetty
 
 import java.net.InetSocketAddress
@@ -9,7 +10,7 @@ import org.http4s.server.ServerBuilder.ServiceMount
 import org.http4s.server._
 import org.http4s.servlet.Http4sServlet
 import scala.concurrent.duration._
-import scalaz.concurrent.{Strategy, Task}
+import scalaz.concurrent.Task
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
 
@@ -18,7 +19,11 @@ sealed class JettyBuilder(
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   serviceMounts: Vector[ServiceMount]
-) extends ServerBuilder[JettyBuilder] {
+)
+  extends ServerBuilder
+  with IdleTimeoutSupport
+{
+  type Self = JettyBuilder
 
   private def copy(socketAddress: InetSocketAddress = socketAddress,
                    serviceExecutor: ExecutorService = serviceExecutor,
@@ -26,7 +31,7 @@ sealed class JettyBuilder(
                    serviceMounts: Vector[ServiceMount] = serviceMounts): JettyBuilder =
     new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, serviceMounts)
 
-  override def withSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
+  override def bindSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
     copy(socketAddress = socketAddress)
 
   override def withServiceExecutor(serviceExecutor: ExecutorService): JettyBuilder =
@@ -35,7 +40,8 @@ sealed class JettyBuilder(
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
     copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
 
-  override def withIdleTimeout(idleTimeout: Duration): JettyBuilder = copy(idleTimeout = idleTimeout)
+  override def withIdleTimeout(idleTimeout: Duration): JettyBuilder =
+    copy(idleTimeout = idleTimeout)
 
   def start: Task[Server] = Task.delay {
     val jetty = new JServer()
@@ -78,9 +84,9 @@ sealed class JettyBuilder(
   }
 }
 
-object JettyServer extends JettyBuilder(
-  socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
-  serviceExecutor = Strategy.DefaultExecutorService,
-  idleTimeout = 30.seconds,
+object JettyBuilder extends JettyBuilder(
+  socketAddress = ServerBuilder.DefaultSocketAddress,
+  serviceExecutor = ServerBuilder.DefaultServiceExecutor,
+  idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   serviceMounts = Vector.empty
 )

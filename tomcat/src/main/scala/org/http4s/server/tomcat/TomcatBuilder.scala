@@ -1,10 +1,10 @@
 package org.http4s
+package server
 package tomcat
 
 import java.net.InetSocketAddress
 
 import org.http4s.server.ServerBuilder.ServiceMount
-import org.http4s.server._
 import org.http4s.servlet.Http4sServlet
 
 import scala.concurrent.duration._
@@ -18,7 +18,12 @@ sealed class TomcatBuilder (
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   serviceMounts: Vector[ServiceMount]
-) extends ServerBuilder[TomcatBuilder] {
+)
+  extends ServerBuilder
+  with IdleTimeoutSupport
+{
+  type Self = TomcatBuilder
+
   private def copy(
            socketAddress: InetSocketAddress = socketAddress,
            serviceExecutor: ExecutorService = serviceExecutor,
@@ -26,7 +31,7 @@ sealed class TomcatBuilder (
            serviceMounts: Vector[ServiceMount] = serviceMounts): TomcatBuilder =
     new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, serviceMounts)
 
-  override def withSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
+  override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
     copy(socketAddress = socketAddress)
 
   override def withServiceExecutor(serviceExecutor: ExecutorService): TomcatBuilder =
@@ -35,15 +40,14 @@ sealed class TomcatBuilder (
   override def mountService(service: HttpService, prefix: String): TomcatBuilder =
     copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
 
-  override def withIdleTimeout(idleTimeout: Duration): TomcatBuilder = copy(idleTimeout = idleTimeout)
-
-  /**
-   * Returns a Task to start a Tomcat server.
-   *
-   * idleTimeout: Tomcat maintains connections on a fixed interval determined by the global
+  /*
+   * Tomcat maintains connections on a fixed interval determined by the global
    * attribute worker.maintain with a default interval of 60 seconds. In the worst case the connection
    * may not timeout for an additional 59.999 seconds from the specified Duration
    */
+  override def withIdleTimeout(idleTimeout: Duration): TomcatBuilder =
+    copy(idleTimeout = idleTimeout)
+
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
 
@@ -85,7 +89,7 @@ sealed class TomcatBuilder (
   }
 }
 
-object TomcatServer extends TomcatBuilder(
+object TomcatBuilder extends TomcatBuilder(
   socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,

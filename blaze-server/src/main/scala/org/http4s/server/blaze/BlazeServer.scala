@@ -25,14 +25,20 @@ class BlazeBuilder(
   idleTimeout: Duration,
   isNio2: Boolean,
   serviceMounts: Vector[ServiceMount]
-) extends ServerBuilder[BlazeBuilder] {
+)
+  extends ServerBuilder
+  with IdleTimeoutSupport
+{
+  type Self = BlazeBuilder
+
   private def copy(socketAddress: InetSocketAddress = socketAddress,
                    serviceExecutor: ExecutorService = serviceExecutor,
                    idleTimeout: Duration = idleTimeout,
                    isNio2: Boolean = isNio2,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
     new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, serviceMounts)
-  override def withSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
+
+  override def bindSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
     copy(socketAddress = socketAddress)
 
   override def withServiceExecutor(serviceExecutor: ExecutorService): BlazeBuilder =
@@ -87,7 +93,7 @@ class BlazeBuilder(
   }
 }
 
-object BlazeServer extends BlazeBuilder(
+object BlazeBuilder extends BlazeBuilder(
   socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
