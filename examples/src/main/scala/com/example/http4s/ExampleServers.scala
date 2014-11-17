@@ -30,8 +30,7 @@ abstract class Example[B <: ServerBuilder] extends App {
     server.shutdownNow()
   }
 
-  // Block until shutdown.
-  synchronized { wait() }
+  server.awaitShutdown
 }
 
 object JettyExample extends Example[JettyBuilder] {
