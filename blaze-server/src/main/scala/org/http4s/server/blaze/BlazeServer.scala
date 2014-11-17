@@ -21,21 +21,22 @@ import scalaz.concurrent.{Strategy, Task}
 
 class BlazeBuilder(
   socketAddress: InetSocketAddress,
-  executor: ExecutorService,
+  serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   isNio2: Boolean,
   serviceMounts: Vector[ServiceMount]
 ) extends ServerBuilder[BlazeBuilder] {
   private def copy(socketAddress: InetSocketAddress = socketAddress,
-                   executor: ExecutorService = executor,
+                   serviceExecutor: ExecutorService = serviceExecutor,
                    idleTimeout: Duration = idleTimeout,
                    isNio2: Boolean = isNio2,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(socketAddress, executor, idleTimeout, isNio2, serviceMounts)
+    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, serviceMounts)
   override def withSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
     copy(socketAddress = socketAddress)
 
-  override def withExecutor(executor: ExecutorService): BlazeBuilder = copy(executor = executor)
+  override def withServiceExecutor(serviceExecutor: ExecutorService): BlazeBuilder =
+    copy(serviceExecutor = serviceExecutor)
 
   override def withIdleTimeout(idleTimeout: Duration): BlazeBuilder = copy(idleTimeout = idleTimeout)
 
@@ -43,7 +44,6 @@ class BlazeBuilder(
 
   override def mountService(service: HttpService, prefix: String): BlazeBuilder =
     copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
-
 
   def start: Task[Server] = Task.delay {
     val aggregateService = serviceMounts.foldLeft[HttpService](Service.empty) {
@@ -59,7 +59,7 @@ class BlazeBuilder(
     }
 
     def pipelineFactory(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
-      val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), executor))
+      val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), serviceExecutor))
       if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
       else leaf
     }
@@ -89,7 +89,7 @@ class BlazeBuilder(
 
 object BlazeServer extends BlazeBuilder(
   socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
-  executor = Strategy.DefaultExecutorService,
+  serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
   isNio2 = true,
   serviceMounts = Vector.empty

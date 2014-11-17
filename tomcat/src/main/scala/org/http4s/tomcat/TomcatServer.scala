@@ -15,22 +15,22 @@ import java.util.concurrent.ExecutorService
 
 sealed class TomcatBuilder (
   socketAddress: InetSocketAddress,
-  executor: ExecutorService,
+  serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   serviceMounts: Vector[ServiceMount]
 ) extends ServerBuilder[TomcatBuilder] {
-
   private def copy(
            socketAddress: InetSocketAddress = socketAddress,
-           executor: ExecutorService = executor,
+           serviceExecutor: ExecutorService = serviceExecutor,
            idleTimeout: Duration = idleTimeout,
            serviceMounts: Vector[ServiceMount] = serviceMounts): TomcatBuilder =
-    new TomcatBuilder(socketAddress, executor, idleTimeout, serviceMounts)
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, serviceMounts)
 
   override def withSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
     copy(socketAddress = socketAddress)
 
-  override def withExecutor(executor: ExecutorService): TomcatBuilder = copy(executor = executor)
+  override def withServiceExecutor(serviceExecutor: ExecutorService): TomcatBuilder =
+    copy(serviceExecutor = serviceExecutor)
 
   override def mountService(service: HttpService, prefix: String): TomcatBuilder =
     copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
@@ -57,7 +57,7 @@ sealed class TomcatBuilder (
     for ((serviceMount, i) <- serviceMounts.zipWithIndex) {
       val servlet = new Http4sServlet(
         service = serviceMount.service,
-        threadPool = executor
+        threadPool = serviceExecutor
       )
       val wrapper = tomcat.addServlet("", s"servlet-${i}", servlet)
       wrapper.addMapping(s"${serviceMount.prefix}/*")
@@ -87,7 +87,7 @@ sealed class TomcatBuilder (
 
 object TomcatServer extends TomcatBuilder(
   socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
-  executor = Strategy.DefaultExecutorService,
+  serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
   serviceMounts = Vector.empty
 )

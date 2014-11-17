@@ -15,21 +15,22 @@ import org.eclipse.jetty.util.component.LifeCycle
 
 sealed class JettyBuilder(
   socketAddress: InetSocketAddress,
-  executor: ExecutorService,
+  serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   serviceMounts: Vector[ServiceMount]
 ) extends ServerBuilder[JettyBuilder] {
 
   private def copy(socketAddress: InetSocketAddress = socketAddress,
-                   executor: ExecutorService = executor,
+                   serviceExecutor: ExecutorService = serviceExecutor,
                    idleTimeout: Duration = idleTimeout,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): JettyBuilder =
-    new JettyBuilder(socketAddress, executor, idleTimeout, serviceMounts)
+    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, serviceMounts)
 
   override def withSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
     copy(socketAddress = socketAddress)
 
-  override def withExecutor(executor: ExecutorService): JettyBuilder = copy(executor = executor)
+  override def withServiceExecutor(serviceExecutor: ExecutorService): JettyBuilder =
+    copy(serviceExecutor = serviceExecutor)
 
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
     copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
@@ -52,7 +53,7 @@ sealed class JettyBuilder(
     for ((serviceMount, i) <- serviceMounts.zipWithIndex) {
       val servlet = new Http4sServlet(
         service = serviceMount.service,
-        threadPool = executor
+        threadPool = serviceExecutor
       )
       val servletName = s"servlet-${i}"
       val urlMapping = s"${serviceMount.prefix}/*"
@@ -79,7 +80,7 @@ sealed class JettyBuilder(
 
 object JettyServer extends JettyBuilder(
   socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
-  executor = Strategy.DefaultExecutorService,
+  serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
   serviceMounts = Vector.empty
 )

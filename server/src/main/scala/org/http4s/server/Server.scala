@@ -17,9 +17,8 @@ trait Server {
 
 trait ServerBuilder[Self <: ServerBuilder[Self]]
   extends HasSocketAddress[Self]
+  with HasServiceExecutor[Self]
 { self: Self =>
-  def withExecutor(executorService: ExecutorService): Self
-
   def withIdleTimeout(idleTimeout: Duration): Self
 
   def mountService(service: HttpService, prefix: String): Self
@@ -41,6 +40,14 @@ trait HasSocketAddress[Self <: ServerBuilder[Self]] { self: ServerBuilder[Self] 
   def withLocal(port: Int) = withHttp(port, "127.0.0.1")
 
   def withAnyLocal = withLocal(0)
+}
+
+trait HasServiceExecutor[Self <: ServerBuilder[Self]] { self: ServerBuilder[Self] =>
+  /**
+   * Services will be executed on this executor.  This is distinct from any managed
+   * thread pools the specific backend might maintain for its connectors.
+   */
+  def withServiceExecutor(executorService: ExecutorService): Self
 }
 
 object ServerBuilder {
