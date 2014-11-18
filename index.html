@@ -63,7 +63,7 @@
     <div class="container">
       <h1 id="toc_0">http4s</h1>
 
-<p>http4s is a minimal, idiomatic Scala interface for HTTP.  http4s is Scala&#39;s answer to Ruby&#39;s 
+<p>http4s is a minimal, idiomatic Scala interface for HTTP services.  http4s is Scala&#39;s answer to Ruby&#39;s 
 Rack, Python&#39;s WSGI, Haskell&#39;s WAI, and Java&#39;s Servlets.</p>
 
 <h2 id="toc_1">HttpService</h2>
@@ -137,23 +137,48 @@ needs now, and easily port if and when your needs change.</p>
 <h3 id="toc_6">blaze</h3>
 
 <p><a href="http://github.com/http4s/blaze">blaze</a> is an NIO framework.  Run http4s on blaze for maximum throughput.</p>
-<div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">BlazeWebSocketExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
-  <span class="nc">BlazeServer</span><span class="o">.</span><span class="n">newBuilder</span>
-      <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">&quot;/http4s&quot;</span><span class="o">)</span>
-      <span class="o">.</span><span class="n">run</span><span class="o">()</span>
+
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight">
+<span class="k">import</span> <span class="nn">org.http4s.server.blaze.BlazeBuilder</span>
+
+<span class="k">object</span> <span class="nc">BlazeExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="nc">BlazeBuilder</span><span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">run</span>
+    <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
 <span class="o">}</span>
-</code></pre></div>
+</code></code></pre>
+
 <h3 id="toc_7">Servlets</h3>
 
 <p>http4s is committed to first-class support of the Servlet API.  Develop and deploy services 
-on your existing infrastructure, and take full advantage of the mature JVM ecosystem.</p>
-<div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">object</span> <span class="nc">JettyExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
-  <span class="nc">JettyServer</span><span class="o">.</span><span class="n">newBuilder</span>
-    <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">&quot;/http4s&quot;</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">run</span><span class="o">()</span>
-    <span class="o">.</span><span class="n">join</span><span class="o">()</span>
+on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
+http4s can run in a .war on any Servlet 3.0+ container, and comes with convenient builders
+for embedded Tomcat and Jetty containers.</p>
+
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight">
+<span class="k">import</span> <span class="nn">org.http4s.server.jetty.JettyBuilder</span>
+<span class="k">import</span> <span class="nn">org.http4s.server.tomcat.TomcatBuilder</span>
+<span class="k">import</span> <span class="nn">org.http4s.servlet.ServletContainer</span>
+
+<span class="k">class</span> <span class="nc">ServletExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="k">def</span> <span class="n">go</span><span class="o">(</span><span class="n">builder</span><span class="k">:</span> <span class="kt">ServletContainer</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">builder</span>
+    <span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mountServlet</span><span class="o">(</span><span class="k">new</span> <span class="nc">LegacyServlet</span><span class="o">,</span> <span class="s">"/legacy/*"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">run</span>
+    <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
 <span class="o">}</span>
-</code></pre></div>
+
+<span class="k">object</span> <span class="nc">TomcatExample</span> <span class="k">extends</span> <span class="nc">ServletExample</span> <span class="o">{</span>
+  <span class="n">go</span><span class="o">(</span><span class="nc">TomcatBuilder</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="k">object</span> <span class="nc">JettyExample</span> <span class="k">extends</span> <span class="nc">ServletExample</span> <span class="o">{</span>
+  <span class="n">go</span><span class="o">(</span><span class="nc">JettyBuilder</span><span class="o">)</span>
+<span class="o">}</span>
+</code></code></pre>
+
 <h2 id="toc_8">Projects using http4s</h2>
 
 <p>If you have a project you would like to include in this list, let us know on IRC or submit an issue.</p>
