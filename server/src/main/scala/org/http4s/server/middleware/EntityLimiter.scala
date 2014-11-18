@@ -5,7 +5,6 @@ import org.http4s.server._
 import scodec.bits.ByteVector
 
 import scala.util.control.NoStackTrace
-import scalaz.concurrent.Task
 import scalaz.stream.{Process1, process1}
 import scalaz.stream.Process._
 
@@ -13,7 +12,7 @@ object EntityLimiter {
 
   case class EntityTooLarge(limit: Int) extends Exception with NoStackTrace
 
-  val DefaultMaxEntitySize: Int = Http4sConfig.getInt("org.http4s.default-max-entity-size")
+  val DefaultMaxEntitySize: Int = 2097152
 
   def apply(service: HttpService, limit: Int = DefaultMaxEntitySize): HttpService =
     service.contramap { req: Request => req.copy(body = req.body |> takeBytes(limit)) }

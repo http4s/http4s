@@ -7,8 +7,8 @@ import java.util.concurrent.ExecutorService
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.QuietTimeoutStage
 import org.http4s.blaze.channel.{SocketConnection, ServerChannel}
-import org.http4s.blaze.channel.nio1.SocketServerChannelFactory
-import org.http4s.blaze.channel.nio2.NIO2ServerChannelFactory
+import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
+import org.http4s.blaze.channel.nio2.NIO2SocketServerChannelFactory
 
 import server.middleware.URITranslation
 
@@ -90,8 +90,8 @@ object BlazeServer {
         else leaf
       }
 
-      val factory = if (isnio2) new NIO2ServerChannelFactory(pipelineFactory)
-                    else new SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
+      val factory = if (isnio2) new NIO2SocketServerChannelFactory(pipelineFactory)
+                    else new NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
 
       val address = new InetSocketAddress(host, port)
       if (address.isUnresolved) throw new Exception(s"Unresolved hostname: $host")

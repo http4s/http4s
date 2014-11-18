@@ -3,13 +3,14 @@ package org.http4s
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
 
-import org.xml.sax.InputSource
+import org.http4s.util.ReplyException
+import org.xml.sax.{SAXException, SAXParseException, InputSource}
 import scodec.bits.ByteVector
 
-import scala.util.control.NonFatal
+import scala.util.control.{NoStackTrace, NonFatal}
 import scala.xml.{Elem, XML}
 import scalaz.concurrent.Task
-import scalaz.stream.{io, process1, Process}
+import scalaz.stream.{io, process1}
 
 import util.UrlFormCodec.{ decode => formDecode }
 
@@ -56,6 +57,15 @@ sealed trait EntityDecoder[+T] { self =>
   * with some commonly used instances which can be resolved implicitly.
   */
 object EntityDecoder extends EntityDecoderInstances {
+
+  case class DecodingException(reason: String) extends Exception(reason)
+                                               with ReplyException
+                                               with NoStackTrace
+  {
+    override def asResponse(version: HttpVersion): Response =
+      ResponseBuilder(Status.BadRequest, version, reason).run
+  }
+
   def apply[T](f: Message => Task[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): Task[T] = {
       try f(msg)
@@ -111,7 +121,10 @@ trait EntityDecoderInstances {
   // application/x-www-form-urlencoded
   implicit val formEncoded: EntityDecoder[Map[String, Seq[String]]] = {
     val fn = decodeString(_: Message).flatMap { s =>
-      formDecode(s).fold(f => Task.fail(new Exception(f.details)), Task.now)
+      formDecode(s).fold(f => {
+        val msg = "Invalid Form Encoding. Expected format: " + f.details
+        DecodingException(msg).asTask
+      }, Task.now)
     }
 
     EntityDecoder(fn, MediaType.`application/x-www-form-urlencoded`)
@@ -126,9 +139,18 @@ trait EntityDecoderInstances {
    * @return an XML element
    */
   implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder(msg => {
-    collectBinary(msg).map { arr =>
+    collectBinary(msg).flatMap { arr =>
       val source = new InputSource(new StringReader(new String(arr, msg.charset.nioCharset)))
-      XML.loadXML(source, parser)
+      try Task.now(XML.loadXML(source, parser))
+      catch {
+        case e: SAXParseException =>
+          val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
+          DecodingException(msg).asTask
+
+        case e: SAXException => DecodingException("Invalid XML: " + e.getMessage ).asTask
+
+        case NonFatal(e) => Task.fail(e)
+      }
     }
   }, MediaType.`text/xml`)
 

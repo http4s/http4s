@@ -13,6 +13,7 @@ import org.xml.sax.SAXParseException
 import java.io.{FileInputStream,File,InputStreamReader}
 
 import scala.util.control.NonFatal
+import scalaz.-\/
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
 import scodec.bits.ByteVector
@@ -28,7 +29,6 @@ class EntityDecoderSpec extends Specification {
 
     val server: Request => Task[Response] = { req =>
       xml(req).flatMap{ elem => ResponseBuilder(Ok, elem.label) }
-        .handle{ case t: SAXParseException => ResponseBuilder.basic(Status.BadRequest).run }
     }
 
     "parse the XML" in {
@@ -39,8 +39,13 @@ class EntityDecoderSpec extends Specification {
 
     "handle a parse failure" in {
       val body = strBody("This is not XML.")
-      val resp = server(Request(body = body)).run
-      resp.status must_== (Status.BadRequest)
+      val tresp = server(Request(body = body))
+      tresp.run must throwA[DecodingException]
+
+      val -\/(err) = tresp.attemptRun
+      val asresp = err.asInstanceOf[DecodingException].asResponse(HttpVersion.`HTTP/1.1`)
+      asresp.status must_== Status.BadRequest
+      asresp.httpVersion must_== HttpVersion.`HTTP/1.1`
     }
   }
 

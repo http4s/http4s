@@ -18,7 +18,7 @@ import scala.concurrent.ExecutionContext
 import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError}
-import org.http4s.util.StringWriter
+import org.http4s.util.{ReplyException, StringWriter}
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{Connection, `Content-Length`}
 
@@ -119,8 +119,17 @@ class Http1ServerStage(service: HttpService,
       case Some(req) =>
         Task.fork(service(req))(pool)
           .runAsync {
-          case \/-(Some(resp)) => renderResponse(req, resp)
-          case \/-(None)       => renderResponse(req, ResponseBuilder.notFound(req).run)
+          case \/-(Some(resp)) =>
+            renderResponse(req, resp)
+
+          case \/-(None)       =>
+            renderResponse(req, ResponseBuilder.notFound(req).run)
+
+          case -\/(t: ReplyException) =>
+            val resp = t.asResponse(req.httpVersion)
+                        .withHeaders(Connection("close".ci))
+            renderResponse(req, resp)
+
           case -\/(t)    =>
             logger.error(t)(s"Error running route: $req")
             val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)
@@ -129,7 +138,7 @@ class Http1ServerStage(service: HttpService,
             renderResponse(req, resp)   // will terminate the connection due to connection: close header
         }
 
-      case None => // NOOP
+      case None => // NOOP, this should be handled in the collectMessage method
     }
   }
 
@@ -189,13 +198,6 @@ class Http1ServerStage(service: HttpService,
   }
 
   /////////////////// Error handling /////////////////////////////////////////
-
-  private def parsingError(t: ParserException, message: String) {
-    logger.debug(t)(s"Parsing error: $message")
-    stageShutdown()
-    stageShutdown()
-    sendOutboundCommand(Cmd.Disconnect)
-  }
 
   protected def badMessage(msg: String, t: ParserException, req: Request) {
     renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close".ci), `Content-Length`(0)))
