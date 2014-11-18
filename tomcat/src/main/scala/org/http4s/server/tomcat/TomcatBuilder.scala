@@ -3,9 +3,9 @@ package server
 package tomcat
 
 import java.net.InetSocketAddress
+import javax.servlet.http.HttpServlet
 
-import org.http4s.server.ServerBuilder.ServiceMount
-import org.http4s.servlet.Http4sServlet
+import org.http4s.servlet.{ServletContainer, Http4sServlet}
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
@@ -17,9 +17,10 @@ sealed class TomcatBuilder (
   socketAddress: InetSocketAddress,
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
-  serviceMounts: Vector[ServiceMount]
+  mounts: Vector[Mount]
 )
   extends ServerBuilder
+  with ServletContainer
   with IdleTimeoutSupport
 {
   type Self = TomcatBuilder
@@ -28,8 +29,8 @@ sealed class TomcatBuilder (
            socketAddress: InetSocketAddress = socketAddress,
            serviceExecutor: ExecutorService = serviceExecutor,
            idleTimeout: Duration = idleTimeout,
-           serviceMounts: Vector[ServiceMount] = serviceMounts): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, serviceMounts)
+           mounts: Vector[Mount] = mounts): TomcatBuilder =
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, mounts)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
     copy(socketAddress = socketAddress)
@@ -37,8 +38,24 @@ sealed class TomcatBuilder (
   override def withServiceExecutor(serviceExecutor: ExecutorService): TomcatBuilder =
     copy(serviceExecutor = serviceExecutor)
 
+  override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): TomcatBuilder =
+    copy(mounts = mounts :+ Mount { (tomcat, index, _) =>
+      val servletName = name.getOrElse(s"servlet-${index}")
+      val wrapper = tomcat.addServlet("", servletName, servlet)
+      wrapper.addMapping(urlMapping)
+      wrapper.setAsyncSupported(true)
+    })
+
   override def mountService(service: HttpService, prefix: String): TomcatBuilder =
-    copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
+    copy(mounts = mounts :+ Mount { (tomcat, index, serviceExecutor) =>
+      val servlet = new Http4sServlet(
+        service = service,
+        threadPool = serviceExecutor
+      )
+      val wrapper = tomcat.addServlet("", s"servlet-${index}", servlet)
+      wrapper.addMapping(s"${prefix}/*")
+      wrapper.setAsyncSupported(true)
+    })
 
   /*
    * Tomcat maintains connections on a fixed interval determined by the global
@@ -58,15 +75,8 @@ sealed class TomcatBuilder (
     tomcat.getConnector.setAttribute("connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
-    for ((serviceMount, i) <- serviceMounts.zipWithIndex) {
-      val servlet = new Http4sServlet(
-        service = serviceMount.service,
-        threadPool = serviceExecutor
-      )
-      val wrapper = tomcat.addServlet("", s"servlet-${i}", servlet)
-      wrapper.addMapping(s"${serviceMount.prefix}/*")
-      wrapper.setAsyncSupported(true)
-    }
+    for ((mount, i) <- mounts.zipWithIndex)
+      mount.f(tomcat, i, serviceExecutor)
 
     tomcat.start()
 
@@ -93,5 +103,8 @@ object TomcatBuilder extends TomcatBuilder(
   socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = 30.seconds,
-  serviceMounts = Vector.empty
+  mounts = Vector.empty
 )
+
+private case class Mount(f: (Tomcat, Int, ExecutorService) => Unit)
+

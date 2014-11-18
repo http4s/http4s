@@ -4,11 +4,10 @@ package jetty
 
 import java.net.InetSocketAddress
 import java.util.concurrent.ExecutorService
+import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
-import org.http4s.server.ServerBuilder.ServiceMount
-import org.http4s.server._
-import org.http4s.servlet.Http4sServlet
+import org.http4s.servlet.{ServletContainer, Http4sServlet}
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
@@ -18,9 +17,10 @@ sealed class JettyBuilder(
   socketAddress: InetSocketAddress,
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
-  serviceMounts: Vector[ServiceMount]
+  mounts: Vector[Mount]
 )
   extends ServerBuilder
+  with ServletContainer
   with IdleTimeoutSupport
 {
   type Self = JettyBuilder
@@ -28,8 +28,8 @@ sealed class JettyBuilder(
   private def copy(socketAddress: InetSocketAddress = socketAddress,
                    serviceExecutor: ExecutorService = serviceExecutor,
                    idleTimeout: Duration = idleTimeout,
-                   serviceMounts: Vector[ServiceMount] = serviceMounts): JettyBuilder =
-    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, serviceMounts)
+                   mounts: Vector[Mount] = mounts): JettyBuilder =
+    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, mounts)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
     copy(socketAddress = socketAddress)
@@ -37,8 +37,22 @@ sealed class JettyBuilder(
   override def withServiceExecutor(serviceExecutor: ExecutorService): JettyBuilder =
     copy(serviceExecutor = serviceExecutor)
 
+  override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): JettyBuilder =
+    copy(mounts = mounts :+ Mount { (context, index, _) =>
+      val servletName = name.getOrElse(s"servlet-${index}")
+      context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
+    })
+
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
-    copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
+    copy(mounts = mounts :+ Mount { (context, index, serviceExecutor) =>
+      val servlet = new Http4sServlet(
+        service = service,
+        threadPool = serviceExecutor
+      )
+      val servletName = s"servlet-${index}"
+      val urlMapping = s"${prefix}/*"
+      context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
+    })
 
   override def withIdleTimeout(idleTimeout: Duration): JettyBuilder =
     copy(idleTimeout = idleTimeout)
@@ -56,15 +70,8 @@ sealed class JettyBuilder(
     connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
     jetty.addConnector(connector)
 
-    for ((serviceMount, i) <- serviceMounts.zipWithIndex) {
-      val servlet = new Http4sServlet(
-        service = serviceMount.service,
-        threadPool = serviceExecutor
-      )
-      val servletName = s"servlet-${i}"
-      val urlMapping = s"${serviceMount.prefix}/*"
-      context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
-    }
+    for ((mount, i) <- mounts.zipWithIndex)
+      mount.f(context, i, serviceExecutor)
 
     jetty.start()
 
@@ -88,5 +95,7 @@ object JettyBuilder extends JettyBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = ServerBuilder.DefaultServiceExecutor,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
-  serviceMounts = Vector.empty
+  mounts = Vector.empty
 )
+
+private case class Mount(f: (ServletContextHandler, Int, ExecutorService) => Unit)

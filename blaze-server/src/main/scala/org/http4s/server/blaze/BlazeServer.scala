@@ -9,7 +9,6 @@ import org.http4s.blaze.pipeline.stages.QuietTimeoutStage
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
 import org.http4s.blaze.channel.nio2.NIO2SocketServerChannelFactory
-import org.http4s.server.ServerBuilder.ServiceMount
 
 import server.middleware.URITranslation
 
@@ -100,4 +99,6 @@ object BlazeBuilder extends BlazeBuilder(
   isNio2 = true,
   serviceMounts = Vector.empty
 )
+
+private case class ServiceMount(service: HttpService, prefix: String)
 

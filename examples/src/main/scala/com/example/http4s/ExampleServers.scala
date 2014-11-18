@@ -1,5 +1,6 @@
 package com.example.http4s
 
+import com.example.http4s.servlet.RawServlet
 import org.http4s.server.ServerBuilder
 import org.http4s.server.jetty.JettyBuilder
 import org.http4s.server.tomcat.TomcatBuilder
@@ -35,13 +36,15 @@ abstract class Example[B <: ServerBuilder] extends App {
 
 object JettyExample extends Example[JettyBuilder] {
   def builder = baseConfig(JettyBuilder)
+    .mountServlet(new RawServlet, "/raw/*")
 }
 
 object TomcatExample extends Example[TomcatBuilder] {
   def builder = baseConfig(TomcatBuilder)
+    .mountServlet(new RawServlet, "/raw/*")
 }
 
 object BlazeExample extends Example[BlazeBuilder] {
-  def builder = baseConfig(BlazeBuilder).withNio2(false)
+  def builder = baseConfig(BlazeBuilder)
 }
 

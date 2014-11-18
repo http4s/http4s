@@ -30,8 +30,6 @@ trait ServerBuilder {
 }
 
 object ServerBuilder {
-  case class ServiceMount(service: HttpService, prefix: String)
-
   // Defaults for core server builder functionality
   val LoopbackAddress = InetAddress.getLoopbackAddress.getHostAddress
   val DefaultHost = LoopbackAddress
