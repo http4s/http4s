@@ -1,17 +1,18 @@
-# v0.4.0 (coming soon)
+# v0.4.0 (2014-11-18)
 
 * Change HttpService form a `PartialFunction[Request,Task[Response]]` to `Service[Request, Response]`,
   a type that encapsulates a `Request => Task[Option[Response]]`
 * Upgrade to scalaz-stream-0.6a
 * Upgrade to blaze-0.3.0
 * Drop scala-logging for log4s
-* Add a way to control the thread pool used for asynchronous execution
+* Refactor ServerBuilders into an immutable builder pattern.
+* Add a way to control the thread pool used for execution of a Service
 * Modernize the Renderable/Renderer framework
 * Change Renderable append operator from ~ to <<
-* Many bug fixes and slight enhancements
 * Split out the websocket codec and types into a seperate package
 * Added ReplyException, an experimental way to allow an Exception to encode
   a default Response on for EntityDecoder etc.
+* Many bug fixes and slight enhancements
 
 # v0.3.0 (2014-08-29)
 
