@@ -86,27 +86,16 @@ needs now, and easily port if and when your needs change.
 
 [blaze](http://github.com/http4s/blaze) is an NIO framework.  Run http4s on blaze for maximum throughput.
 
-```scala
-object BlazeWebSocketExample extends App {
-  BlazeServer.newBuilder
-      .mountService(ExampleService.service, "/http4s")
-      .run()
-}
-```
+{%code_ref ../../examples/src/main/scala/com/example/http4s/blaze/BlazeExample.scala blaze_example %}
 
 ### Servlets
 
 http4s is committed to first-class support of the Servlet API.  Develop and deploy services 
 on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
+http4s can run in a .war on any Servlet 3.0+ container, and comes with convenient builders
+for embedded Tomcat and Jetty containers.
 
-```scala
-object JettyExample extends App {
-  JettyServer.newBuilder
-    .mountService(ExampleService.service, "/http4s")
-    .run()
-    .join()
-}
-```
+{%code_ref ../../examples/src/main/scala/com/example/http4s/servlet/ServletExample.scala servlet_example %}
 
 ## Projects using http4s ##
 

@@ -16,7 +16,7 @@ trait Server {
   /**
    * Blocks until the server shuts down.
    */
-  def awaitShutdown: Unit = {
+  def awaitShutdown(): Unit = {
     val latch = new CountDownLatch(1)
     onShutdown(latch.countDown())
     latch.await()

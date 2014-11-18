@@ -3,7 +3,7 @@ package servlet
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 
-class RawServlet extends HttpServlet {
+class LegacyServlet extends HttpServlet {
   override def service(req: HttpServletRequest, resp: HttpServletResponse) {
     if (req.getPathInfo == "/ping")
       resp.getWriter.write("pong")

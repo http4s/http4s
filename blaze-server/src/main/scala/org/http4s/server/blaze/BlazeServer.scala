@@ -75,7 +75,10 @@ class BlazeBuilder(
       else
         new NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
 
-    val serverChannel = factory.bind(socketAddress)
+    var address = socketAddress
+    if (address.isUnresolved)
+      address = new InetSocketAddress(address.getHostString, address.getPort)
+    val serverChannel = factory.bind(address)
     serverChannel.run()
 
     new Server {
@@ -93,10 +96,10 @@ class BlazeBuilder(
 }
 
 object BlazeBuilder extends BlazeBuilder(
-  socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
+  socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = Strategy.DefaultExecutorService,
-  idleTimeout = 30.seconds,
-  isNio2 = true,
+  idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+  isNio2 = false,
   serviceMounts = Vector.empty
 )
 
