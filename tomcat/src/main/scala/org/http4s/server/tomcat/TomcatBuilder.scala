@@ -100,9 +100,9 @@ sealed class TomcatBuilder (
 }
 
 object TomcatBuilder extends TomcatBuilder(
-  socketAddress = InetSocketAddress.createUnresolved("0.0.0.0", 8080),
+  socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = Strategy.DefaultExecutorService,
-  idleTimeout = 30.seconds,
+  idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   mounts = Vector.empty
 )
 
