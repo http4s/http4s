@@ -6,100 +6,102 @@ import java.util.concurrent.ExecutorService
 
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.QuietTimeoutStage
-import org.http4s.blaze.channel.{SocketConnection, ServerChannel}
+import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
 import org.http4s.blaze.channel.nio2.NIO2SocketServerChannelFactory
 
 import server.middleware.URITranslation
 
 import java.net.InetSocketAddress
-import scala.concurrent.duration.Duration
 import java.nio.ByteBuffer
 
+import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 
+class BlazeBuilder(
+  socketAddress: InetSocketAddress,
+  serviceExecutor: ExecutorService,
+  idleTimeout: Duration,
+  isNio2: Boolean,
+  serviceMounts: Vector[ServiceMount]
+)
+  extends ServerBuilder
+  with IdleTimeoutSupport
+{
+  type Self = BlazeBuilder
 
-class BlazeServer private (serverChannel: ServerChannel) extends Server {
-  override def start: Task[this.type] = Task.delay {
+  private def copy(socketAddress: InetSocketAddress = socketAddress,
+                   serviceExecutor: ExecutorService = serviceExecutor,
+                   idleTimeout: Duration = idleTimeout,
+                   isNio2: Boolean = isNio2,
+                   serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
+    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, serviceMounts)
+
+  override def bindSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
+    copy(socketAddress = socketAddress)
+
+  override def withServiceExecutor(serviceExecutor: ExecutorService): BlazeBuilder =
+    copy(serviceExecutor = serviceExecutor)
+
+  override def withIdleTimeout(idleTimeout: Duration): BlazeBuilder = copy(idleTimeout = idleTimeout)
+
+  def withNio2(isNio2: Boolean): BlazeBuilder = copy(isNio2 = isNio2)
+
+  override def mountService(service: HttpService, prefix: String): BlazeBuilder =
+    copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
+
+  def start: Task[Server] = Task.delay {
+    val aggregateService = serviceMounts.foldLeft[HttpService](Service.empty) {
+      case (aggregate, ServiceMount(service, prefix)) =>
+        val prefixedService =
+          if (prefix.isEmpty || prefix == "/") service
+          else URITranslation.translateRoot(prefix)(service)
+
+        if (aggregate.run eq Service.empty.run)
+          prefixedService
+        else
+          prefixedService orElse aggregate
+    }
+
+    def pipelineFactory(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
+      val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), serviceExecutor))
+      if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
+      else leaf
+    }
+
+    val factory =
+      if (isNio2)
+        new NIO2SocketServerChannelFactory(pipelineFactory)
+      else
+        new NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
+
+    var address = socketAddress
+    if (address.isUnresolved)
+      address = new InetSocketAddress(address.getHostString, address.getPort)
+    val serverChannel = factory.bind(address)
     serverChannel.run()
-    this
-  }
 
-  override def shutdown: Task[this.type] = Task.delay {
-    serverChannel.close()
-    this
-  }
-
-  override def onShutdown(f: => Unit): this.type = {
-    serverChannel.addShutdownHook(() => f)
-    this
-  }
-}
-
-object BlazeServer {
-  class Builder extends ServerBuilder with HasIdleTimeout {
-    type To = BlazeServer
-
-    private var aggregateService = Service.empty[Request, Response]
-    private var port = 8080
-    private var idleTimeout: Duration = Duration.Inf
-    private var host = "0.0.0.0"
-    private var isnio2 = false
-    private var threadPool: ExecutorService = Strategy.DefaultExecutorService
-
-    override def mountService(service: HttpService, prefix: String): this.type = {
-      val prefixedService =
-        if (prefix.isEmpty || prefix == "/") service
-        else URITranslation.translateRoot(prefix)(service)
-      aggregateService =
-        if (aggregateService.run eq Service.empty.run) prefixedService
-        else prefixedService orElse aggregateService
-      this
-    }
-
-
-    override def withHost(host: String): this.type = {
-      this.host = host
-      this
-    }
-
-    override def withPort(port: Int): this.type = {
-      this.port = port
-      this
-    }
-
-    override def withIdleTimeout(timeout: Duration): this.type = {
-      this.idleTimeout = idleTimeout
-      this
-    }
-
-    def withNIO2(usenio2: Boolean): this.type = {
-      this.isnio2 = usenio2
-      this
-    }
-
-    override def withThreadPool(pool: ExecutorService): this.type = {
-      this.threadPool = pool
-      this
-    }
-
-    override def build: To = {
-      def pipelineFactory(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
-        val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), threadPool))
-        if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-        else leaf
+    new Server {
+      override def shutdown: Task[this.type] = Task.delay {
+        serverChannel.close()
+        this
       }
 
-      val factory = if (isnio2) new NIO2SocketServerChannelFactory(pipelineFactory)
-                    else new NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
-
-      val address = new InetSocketAddress(host, port)
-      if (address.isUnresolved) throw new Exception(s"Unresolved hostname: $host")
-
-      val channel = factory.bind(address)
-      new BlazeServer(channel)
+      override def onShutdown(f: => Unit): this.type = {
+        serverChannel.addShutdownHook(() => f)
+        this
+      }
     }
   }
-
-  def newBuilder: Builder = new Builder
 }
+
+object BlazeBuilder extends BlazeBuilder(
+  socketAddress = ServerBuilder.DefaultSocketAddress,
+  serviceExecutor = Strategy.DefaultExecutorService,
+  idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+  isNio2 = false,
+  serviceMounts = Vector.empty
+)
+
+private case class ServiceMount(service: HttpService, prefix: String)
+

@@ -28,6 +28,22 @@ object ExampleService {
     service1(executionContext) orElse EntityLimiter(service2, 3)
 
   def service1(implicit executionContext: ExecutionContext) = HttpService {
+    case req @ GET -> Root =>
+      Ok(
+        <html>
+          <body>
+            <h1>Welcome to http4s.</h1>
+
+            <p>Some examples:</p>
+
+            <ul>
+              <li><a href="ping">Ping route</a></li>
+              <li><a href="push">Server push</a></li>
+              <li><a href="formencoded">A form</a></li>
+            </ul>
+          </body>
+        </html>
+      )
 
     case GET -> Root / "ping" =>
       Ok("pong")
