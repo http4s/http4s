@@ -24,7 +24,6 @@ import scala.io.Codec
 import org.http4s.parser.QueryParser._
 import org.http4s.util.string._
 import org.parboiled2.CharPredicate._
-import org.parboiled2.ParseError
 
 // TODO: this could be made more efficient. For a good example, look at the Jetty impl
 // https://github.com/eclipse/jetty.project/blob/release-9/jetty-util/src/main/java/org/eclipse/jetty/util/UrlEncoded.java
@@ -45,7 +44,7 @@ private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends 
   }
 
   private def decodeParam(str: String): String =
-    try str.urlDecode(codec)
+    try str.formDecode(codec)
     catch {
         case e: IllegalArgumentException     => ""
         case e: UnsupportedEncodingException => ""

@@ -106,7 +106,8 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def Pchar = rule { Unreserved | PctEncoded | SubDelims | ":" | "@" }
 
-  def Query = rule { capture(zeroOrMore(Pchar | "/" | "?")) ~> (decode _) }
+  // NOTE: The query is NOT url decoded.
+  def Query = rule { capture(zeroOrMore(Pchar | "/" | "?")) }
 
   def Fragment = rule { capture(zeroOrMore(Pchar | "/" | "?")) ~> (decode _) }
 
