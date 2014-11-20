@@ -19,7 +19,7 @@ class LegacyServlet extends HttpServlet {
     }
     else if (req.getPathInfo == "/bigstring2") {
       for (i <- 0 to 1000) {
-        resp.getOutputStream.write(s"This is string number $i".getBytes())
+        resp.getOutputStream.write(s"This is string number $i".getBytes)
         resp.flushBuffer()
       }
     }

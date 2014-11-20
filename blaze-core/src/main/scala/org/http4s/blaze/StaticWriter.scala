@@ -32,5 +32,5 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
     else out.channelWrite(b)
   }
 
-  protected def writeEnd(chunk: ByteVector): Future[Unit] = writeBodyChunk(chunk, true)
+  protected def writeEnd(chunk: ByteVector): Future[Unit] = writeBodyChunk(chunk, flush = true)
 }

@@ -43,7 +43,7 @@ object Charset {
 
   def fromString(name: String): ParseResult[Charset] =
     \/.fromTryCatchNonFatal(NioCharset.forName(name)).bimap(
-      _ => ParseFailure("Invalid charset", s"${name} is not a supported Charset"),
+      _ => ParseFailure("Invalid charset", s"$name is not a supported Charset"),
       Charset.apply
     )
 }

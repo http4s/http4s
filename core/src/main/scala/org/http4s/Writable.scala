@@ -53,7 +53,7 @@ trait WritableInstances0 {
   implicit def showWritable[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): Writable[A] =
     simple(
       a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)),
-      Headers(`Content-Type`.`text/plain`.withCharset(charset))
+      Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
     )
 
   implicit def naturalTransformationWritable[F[_], A](implicit N: ~>[F, Task], W: Writable[A]): Writable[F[A]] =
@@ -73,7 +73,7 @@ trait WritableInstances0 {
 trait WritableInstances extends WritableInstances0 {
   implicit def stringWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[String] = simple(
     s => ByteVector.view(s.getBytes(charset.nioCharset)),
-    Headers(`Content-Type`.`text/plain`.withCharset(charset))
+    Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
   )
 
   implicit def charSequenceWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[CharSequence] =
@@ -84,7 +84,7 @@ trait WritableInstances extends WritableInstances0 {
 
   implicit val byteVectorWritable: Writable[ByteVector] = simple(
     identity,
-    Headers(`Content-Type`.`application/octet-stream`)
+    Headers(`Content-Type`(MediaType.`application/octet-stream`))
   )
 
   implicit val byteArrayWritable: Writable[Array[Byte]] = byteVectorWritable.contramap(ByteVector.apply)

@@ -2,6 +2,7 @@ package org.http4s
 
 import Http4s._
 import org.specs2.mutable.Specification
+import org.http4s.Charset._
 
 class ResponderSpec extends Specification {
 
@@ -20,17 +21,17 @@ class ResponderSpec extends Specification {
       import Header._
       resp.contentType should be (None)
       val c1 = resp.putHeaders(Header.`Content-Length`(4))
-        .withContentType(Some(`Content-Type`.`text/plain`))
+        .withContentType(Some(`Content-Type`(MediaType.`text/plain`)))
         .putHeaders(Header.Host("foo"))
 
       c1.headers.count(_ is `Content-Type`) must_== (1)
       c1.headers.count(_ is `Content-Length`) must_== (1)
       c1.headers should have length (3)
-      c1.contentType must beSome(`Content-Type`.`text/plain`)
+      c1.contentType must beSome(`Content-Type`(MediaType.`text/plain`))
 
-      val c2 = c1.withContentType(Some(`Content-Type`.`application/json`))
+      val c2 = c1.withContentType(Some(`Content-Type`(MediaType.`application/json`, `UTF-8`)))
 
-      c2.contentType must beSome(`Content-Type`.`application/json`)
+      c2.contentType must beSome(`Content-Type`(MediaType.`application/json`, `UTF-8`))
       c2.headers.count(_ is `Content-Type`) must_== (1)
       c2.headers.count(_ is `Content-Length`) must_== (1)
       c2.headers.count(_ is Host) must_== (1)

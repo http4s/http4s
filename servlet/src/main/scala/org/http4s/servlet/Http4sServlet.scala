@@ -37,7 +37,7 @@ class Http4sServlet(service: HttpService,
 
   private[this] val logger = getLogger
 
-  private val asyncTimeoutMillis = if (asyncTimeout.isFinite) asyncTimeout.toMillis else -1  // -1 == Inf
+  private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1  // -1 == Inf
 
   private[this] var serverSoftware: ServerSoftware = _
   private[this] var inputStreamReader: BodyReader = _
@@ -46,7 +46,7 @@ class Http4sServlet(service: HttpService,
     val servletContext = config.getServletContext
     serverSoftware = ServerSoftware(servletContext.getServerInfo)
     val servletApiVersion = ServletApiVersion(servletContext)
-    logger.info(s"Detected Servlet API version ${servletApiVersion}")
+    logger.info(s"Detected Servlet API version $servletApiVersion")
 
     inputStreamReader = if (servletApiVersion >= ServletApiVersion(3, 1))
       asyncInputStreamReader(chunkSize)

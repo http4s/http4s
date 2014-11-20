@@ -38,7 +38,7 @@ sealed trait EntityDecoder[+T] { self =>
   def orElse[T2 >: T](other: EntityDecoder[T2]): EntityDecoder[T2] = new EntityDecoder.OrDec(this, other)
 
   def matchesMediaType(msg: Message): Boolean = {
-    if (!consumes.isEmpty) {
+    if (consumes.nonEmpty) {
       msg.headers.get(Header.`Content-Type`) match {
         case Some(h) => matchesMediaType(h.mediaType)
         case None    => false
@@ -47,8 +47,8 @@ sealed trait EntityDecoder[+T] { self =>
     else false
   }
 
-  def matchesMediaType(mediaType: MediaType): Boolean = !consumes.isEmpty && {
-    consumes.find(_.satisfiedBy(mediaType)).isDefined
+  def matchesMediaType(mediaType: MediaType): Boolean = consumes.nonEmpty && {
+    consumes.exists(_.satisfiedBy(mediaType))
   }
 }
 
@@ -92,7 +92,7 @@ object EntityDecoder extends EntityDecoderInstances {
   def decodeString(msg: Message): Task[String] = {
     val buff = new StringBuilder
     (msg.body |> process1.fold(buff) { (b, c) => {
-      b.append(new String(c.toArray, (msg.charset.nioCharset)))
+      b.append(new String(c.toArray, msg.charset.nioCharset))
     }}).map(_.result()).runLastOr("")
   }
 }

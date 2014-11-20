@@ -40,7 +40,7 @@ sealed class TomcatBuilder (
 
   override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): TomcatBuilder =
     copy(mounts = mounts :+ Mount { (tomcat, index, _) =>
-      val servletName = name.getOrElse(s"servlet-${index}")
+      val servletName = name.getOrElse(s"servlet-$index")
       val wrapper = tomcat.addServlet("", servletName, servlet)
       wrapper.addMapping(urlMapping)
       wrapper.setAsyncSupported(true)
@@ -52,8 +52,8 @@ sealed class TomcatBuilder (
         service = service,
         threadPool = serviceExecutor
       )
-      val wrapper = tomcat.addServlet("", s"servlet-${index}", servlet)
-      wrapper.addMapping(s"${prefix}/*")
+      val wrapper = tomcat.addServlet("", s"servlet-$index", servlet)
+      wrapper.addMapping(s"$prefix/*")
       wrapper.setAsyncSupported(true)
     })
 

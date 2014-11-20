@@ -124,7 +124,7 @@ case object Root extends Path {
 // Base class for Integer and LongParam extractors.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] = {
-    if (!str.isEmpty && str.forall(Character.isDigit _))
+    if (!str.isEmpty && str.forall(Character.isDigit))
       try {
         Some(cast(str))
       } catch {

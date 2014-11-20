@@ -39,7 +39,7 @@ sealed class JettyBuilder(
 
   override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): JettyBuilder =
     copy(mounts = mounts :+ Mount { (context, index, _) =>
-      val servletName = name.getOrElse(s"servlet-${index}")
+      val servletName = name.getOrElse(s"servlet-$index")
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
 
@@ -49,8 +49,8 @@ sealed class JettyBuilder(
         service = service,
         threadPool = serviceExecutor
       )
-      val servletName = s"servlet-${index}"
-      val urlMapping = s"${prefix}/*"
+      val servletName = s"servlet-$index"
+      val urlMapping = s"$prefix/*"
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
 
@@ -67,7 +67,7 @@ sealed class JettyBuilder(
     val connector = new ServerConnector(jetty)
     connector.setHost(socketAddress.getHostString)
     connector.setPort(socketAddress.getPort)
-    connector.setIdleTimeout(if (idleTimeout.isFinite) idleTimeout.toMillis else -1)
+    connector.setIdleTimeout(if (idleTimeout.isFinite()) idleTimeout.toMillis else -1)
     jetty.addConnector(connector)
 
     for ((mount, i) <- mounts.zipWithIndex)
