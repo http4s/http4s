@@ -8,6 +8,7 @@ import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.blaze.util.Execution
 import org.log4s.getLogger
 
+import scala.collection.mutable
 import scala.collection.mutable.Queue
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
@@ -25,7 +26,7 @@ abstract class PooledClient(maxPooledConnections: Int,
   override implicit protected def ec: ExecutionContext = Execution.trampoline
 
   private var closed = false
-  private val cs = new Queue[(InetSocketAddress, BlazeClientStage)]()
+  private val cs = new mutable.Queue[(InetSocketAddress, BlazeClientStage)]()
 
   /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = Task {
@@ -36,7 +37,7 @@ abstract class PooledClient(maxPooledConnections: Int,
     }
   }
 
-  protected val connectionManager = new ClientChannelFactory(bufferSize, group.getOrElse(null))
+  protected val connectionManager = new ClientChannelFactory(bufferSize, group.orNull)
 
   override protected def recycleClient(request: Request, stage: BlazeClientStage): Unit = cs.synchronized {
     if (closed) stage.shutdown()
@@ -70,7 +71,7 @@ abstract class PooledClient(maxPooledConnections: Int,
   private def newConnection(request: Request, addr: InetSocketAddress): Future[BlazeClientStage] = {
     logger.debug(s"Generating new connection for request: ${request.copy(body = halt)}")
     connectionManager.connect(addr).map { head =>
-      val PipelineResult(builder, t) = buildPipeline(request, false)
+      val PipelineResult(builder, t) = buildPipeline(request, closeOnFinish = false)
       builder.base(head)
       t
     }

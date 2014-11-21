@@ -73,9 +73,7 @@ trait Message extends MessageOps {
 
   def charset: Charset = contentType.map(_.charset) getOrElse Charset.`ISO-8859-1`
 
-  def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`)
-    .map(_.values.list.contains(TransferCoding.chunked))
-    .getOrElse(false)
+  def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`).exists(_.values.list.contains(TransferCoding.chunked))
 
   /**
    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting

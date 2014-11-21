@@ -82,7 +82,7 @@ final class Headers private (headers: List[Header])
         this.headers.foreach(_.parsed match {
           case h: Header.Recurring                 => acc += h
           case h: Header.`Set-Cookie`              => acc += h
-          case h if (!hs.exists(_.name == h.name)) => acc += h
+          case h if !hs.exists(_.name == h.name)   => acc += h
           case _                                   => // NOOP, drop non recurring header that already exists
         })
 

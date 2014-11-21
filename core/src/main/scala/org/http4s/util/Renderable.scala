@@ -54,7 +54,7 @@ trait Writer {
 
   def addStrings(s: Seq[String], sep: String = "", start: String = "", end: String = ""): this.type = {
     append(start)
-    if (!s.isEmpty) {
+    if (s.nonEmpty) {
       append(s.head)
       s.tail.foreach(s => append(s).append(sep))
     }
@@ -63,7 +63,7 @@ trait Writer {
 
   def addSeq[T: Renderer](s: Seq[T], sep: String = "", start: String = "", end: String = ""): this.type = {
     append(start)
-    if (!s.isEmpty) {
+    if (s.nonEmpty) {
       append(s.head)
       s.tail.foreach(s => append(s).append(sep))
     }

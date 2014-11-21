@@ -44,8 +44,8 @@ object Status {
   }
 
   private def mkStatus(code: Int, reason: String = ""): ParseResult[Status] =
-    if (code >= 100 && code <= 599) ParseResult.success(Status(code)(true))
-    else ParseResult.fail("Invalid status", s"Code ${code} must be between 100 and 599, inclusive")
+    if (code >= 100 && code <= 599) ParseResult.success(Status(code)(isEntityAllowed = true))
+    else ParseResult.fail("Invalid status", s"Code $code must be between 100 and 599, inclusive")
 
   private def lookup(code: Int): Option[\/-[Status]] =
     if (code < 100 || code > 599) None else Option(registry.get(code))
@@ -60,7 +60,7 @@ object Status {
   def registered: Iterable[Status] = for {
     code <- 100 to 599
     status <- Option(registry.get(code)).map(_.b)
-  } yield (status)
+  } yield status
 
   def register(status: Status): status.type = {
     registry.set(status.code, \/-(status))
@@ -70,16 +70,16 @@ object Status {
   /**
    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
    */
-  val Continue = register(Status(100, "Continue")(false))
-  val SwitchingProtocols = register(Status(101, "Switching Protocols")(false))
-  val Processing = register(Status(102, "Processing")(false))
+  val Continue = register(Status(100, "Continue")(isEntityAllowed = false))
+  val SwitchingProtocols = register(Status(101, "Switching Protocols")(isEntityAllowed = false))
+  val Processing = register(Status(102, "Processing")(isEntityAllowed = false))
 
   val Ok = register(Status(200, "OK")())
   val Created = register(Status(201, "Created")())
   val Accepted = register(Status(202, "Accepted")())
   val NonAuthoritativeInformation = register(Status(203, "Non-Authoritative Information")())
-  val NoContent = register(Status(204, "No Content")(false))
-  val ResetContent = register(Status(205, "Reset Content")(false))
+  val NoContent = register(Status(204, "No Content")(isEntityAllowed = false))
+  val ResetContent = register(Status(205, "Reset Content")(isEntityAllowed = false))
   val PartialContent = register(Status(206, "Partial Content")())
   val MultiStatus = register(Status(207, "Multi-Status")())
   val AlreadyReported = register(Status(208, "Already Reported")())
@@ -89,7 +89,7 @@ object Status {
   val MovedPermanently = register(Status(301, "Moved Permanently")())
   val Found = register(Status(302, "Found")())
   val SeeOther = register(Status(303, "See Other")())
-  val NotModified = register(Status(304, "Not Modified")(false))
+  val NotModified = register(Status(304, "Not Modified")(isEntityAllowed = false))
   val UseProxy = register(Status(305, "Use Proxy")())
   val TemporaryRedirect = register(Status(307, "Temporary Redirect")())
   val PermanentRedirect = register(Status(308, "Permanent Redirect")())

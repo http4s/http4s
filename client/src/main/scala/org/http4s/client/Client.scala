@@ -28,14 +28,14 @@ trait Client {
     */
   def prepare(req: String): Task[Response] =
     Uri.fromString(req)
-       .fold(f => Task.fail(new org.http4s.ParseException(f)),prepare(_))
+       .fold(f => Task.fail(new org.http4s.ParseException(f)),prepare)
 
   /** Prepare a single request
     * @param req `Task[Request]` containing the headers, URI, etc
     * @return Task which will generate the Response
     */
   final def prepare(req: Task[Request]): Task[Response] =
-    req.flatMap(prepare(_))
+    req.flatMap(prepare)
 
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]

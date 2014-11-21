@@ -47,7 +47,7 @@ trait BlazeClient extends PipelineBuilder with Client {
             cb(\/-(r.copy(body = r.body.onComplete(endgame))))
 
           case -\/(Command.EOF) if retries > 0 =>
-            getClient(req, true).onComplete(tryClient(_, retries - 1))
+            getClient(req, fresh = true).onComplete(tryClient(_, retries - 1))
 
           case e@ -\/(_) =>
             if (!client.isClosed()) {
@@ -59,6 +59,6 @@ trait BlazeClient extends PipelineBuilder with Client {
       case Failure(t) => cb (-\/(t))
     }
 
-    getClient(req, false).onComplete(tryClient(_, 3))
+    getClient(req, fresh = false).onComplete(tryClient(_, 3))
   }
 }

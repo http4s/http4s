@@ -16,7 +16,7 @@ import org.parboiled2._
  */
 case class HttpVersion private[HttpVersion] (major: Int, minor: Int) extends Renderable with Ordered[HttpVersion] {
   override def render(writer: Writer): writer.type = writer << "HTTP/" << major << '.' << minor
-  override def compare(that: HttpVersion): Int = ((this.major, this.minor)) compare ((that.major, that.minor))
+  override def compare(that: HttpVersion): Int = (this.major, this.minor) compare ((that.major, that.minor))
 }
 
 object HttpVersion extends HttpVersionInstances {
@@ -27,7 +27,7 @@ object HttpVersion extends HttpVersionInstances {
     case "HTTP/1.1" => right(`HTTP/1.1`)
     case "HTTP/1.0" => right(`HTTP/1.0`)
     case other => new Parser(s).HttpVersion.run()(ScalazDeliverySchemes.Disjunction).leftMap { _ =>
-      ParseFailure("Invalid charset", s"${s} is not a supported CharSet on this system")
+      ParseFailure("Invalid charset", s"$s is not a supported CharSet on this system")
     }
   }
 
@@ -38,10 +38,10 @@ object HttpVersion extends HttpVersionInstances {
   }
 
   def fromVersion(major: Int, minor: Int): ParseResult[HttpVersion] = {
-    if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: ${major}")
-    else if (major > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: ${major}")
-    else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: ${minor}")
-    else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: ${minor}")
+    if (major < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $major")
+    else if (major > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $major")
+    else if (minor < 0) ParseResult.fail("Invalid HTTP version", s"major must be > 0: $minor")
+    else if (minor > 9) ParseResult.fail("Invalid HTTP version", s"major must be <= 9: $minor")
     else ParseResult.success(new HttpVersion(major, minor))
   }
 }

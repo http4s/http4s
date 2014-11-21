@@ -37,9 +37,9 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     if (innerWriter == null) {  // We haven't written anything yet
       writer << '\r' << '\n'
       val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.US_ASCII))
-      new InnerWriter(b).writeBodyChunk(c, true)
+      new InnerWriter(b).writeBodyChunk(c, flush = true)
     }
-    else writeBodyChunk(c, true)    // we are already proceeding
+    else writeBodyChunk(c, flush = true)    // we are already proceeding
   }
 
   override protected def writeEnd(chunk: ByteVector): Future[Unit] = {

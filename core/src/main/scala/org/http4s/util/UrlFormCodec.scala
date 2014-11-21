@@ -15,7 +15,7 @@ object UrlFormCodec {
   def encode(formData: Map[String,Seq[String]]): String = {
     val sb = new StringBuilder(formData.size * 20)
     formData.foreach { case (k, vs) =>
-      if (!sb.isEmpty) sb.append('&')
+      if (sb.nonEmpty) sb.append('&')
 
       if (vs.isEmpty) sb.append(formEncode(k))
       else vs.foreach { v =>

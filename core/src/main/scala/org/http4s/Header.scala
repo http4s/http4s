@@ -144,7 +144,7 @@ object Header {
     def key = `Accept-Encoding`
     type Value = ContentCoding
     def preferred: ContentCoding = values.tail.fold(values.head)((a, b) => if (a.qValue >= b.qValue) a else b)
-    def satisfiedBy(coding: ContentCoding): Boolean = values.list.find(_.satisfiedBy(coding)).isDefined
+    def satisfiedBy(coding: ContentCoding): Boolean = values.list.exists(_.satisfiedBy(coding))
   }
 
   object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring
@@ -152,7 +152,7 @@ object Header {
     def key = `Accept-Language`
     type Value = LanguageTag
     def preferred: LanguageTag = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
-    def satisfiedBy(languageTag: LanguageTag) = values.list.find(_.satisfiedBy(languageTag)).isDefined
+    def satisfiedBy(languageTag: LanguageTag) = values.list.exists(_.satisfiedBy(languageTag))
   }
 
   // TODO Interpreting this as not a recurring header, because of "none".
@@ -213,8 +213,8 @@ object Header {
   final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends Recurring {
     override def key = Connection
     type Value = CaseInsensitiveString
-    def hasClose = values.list.exists(_ == "close".ci)
-    def hasKeepAlive = values.list.exists(_ == "keep-alive".ci)
+    def hasClose = values.list.contains("close".ci)
+    def hasKeepAlive = values.list.contains("keep-alive".ci)
     override def renderValue(writer: Writer): writer.type = writer.addStrings(values.list.map(_.toString), ", ")
   }
 
@@ -255,14 +255,6 @@ object Header {
   object `Content-Range` extends HeaderKey.Default
 
   object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
-    val `text/plain` = `Content-Type`(MediaType.`text/plain`)
-    val `application/octet-stream` = `Content-Type`(MediaType.`application/octet-stream`)
-
-    // RFC4627 defines JSON to always be UTF encoded, we always render JSON to UTF-8
-    val `application/json` = `Content-Type`(MediaType.`application/json`, `UTF-8`)
-
-    val `application/xml` = `Content-Type`(MediaType.`application/xml`, `UTF-8`)
-
     def apply(mediaType: MediaType, charset: Charset): `Content-Type` = apply(mediaType, Some(charset))
     implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
   }

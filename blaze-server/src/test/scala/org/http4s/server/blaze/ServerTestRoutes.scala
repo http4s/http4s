@@ -5,13 +5,13 @@ import org.http4s.Http4s._
 import org.http4s.Status._
 import org.http4s._
 import org.http4s.server.{HttpService, Service}
-
+import org.http4s.Charset._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 
 object ServerTestRoutes {
 
-  val textPlain: Header = `Content-Type`.`text/plain`.withCharset(Charset.`UTF-8`)
+  val textPlain: Header = `Content-Type`(MediaType.`text/plain`, `UTF-8`)
 
   val connClose = Connection("close".ci)
   val connKeep = Connection("keep-alive".ci)

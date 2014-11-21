@@ -21,12 +21,12 @@ abstract class SimpleHttp1Client(bufferSize: Int, group: Option[AsynchronousChan
     /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = Task.now(())
 
-  protected val connectionManager = new ClientChannelFactory(bufferSize, group.getOrElse(null))
+  protected val connectionManager = new ClientChannelFactory(bufferSize, group.orNull)
 
   protected def getClient(req: Request, fresh: Boolean): Future[BlazeClientStage] = {
     getAddress(req).fold(Future.failed, addr =>
       connectionManager.connect(addr, bufferSize).map { head =>
-        val PipelineResult(builder, t) = buildPipeline(req, true)
+        val PipelineResult(builder, t) = buildPipeline(req, closeOnFinish = true)
         builder.base(head)
         t
     })

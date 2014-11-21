@@ -118,39 +118,37 @@ object UriTemplate {
   //  protected val subDelims = '!' :: '$' :: '&' :: '\'' :: '(' :: ')' :: '*' :: '+' :: ',' :: ';' :: '=' :: Nil
   //  protected val reserved = genDelims ::: subDelims
 
-  def isUnreserved(s: String) = s.forall(unreserved.contains(_))
+  def isUnreserved(s: String) = s.forall(unreserved.contains)
 
   protected def expandPathN(path: Path, name: String, values: List[String]): Path = {
     val acc = new ArrayBuffer[PathDef]()
     def appendValues() = values foreach { v => acc.append(PathElm(v)) }
-    path foreach { p =>
-      p match {
-        case p @ PathElm(_) => acc.append(p)
-        case VarExp(Seq(n)) =>
-          if (n == name) appendValues
-          else acc.append(p)
-        case VarExp(ns) =>
-          if (ns.contains(name)) {
-            appendValues
-            acc.append(VarExp(ns.filterNot(_ == name)))
-          } else acc.append(p)
-        case ReservedExp(Seq(n)) =>
-          if (n == name) appendValues
-          else acc.append(p)
-        case ReservedExp(ns) =>
-          if (ns.contains(name)) {
-            appendValues
-            acc.append(VarExp(ns.filterNot(_ == name)))
-          } else acc.append(p)
-        case PathExp(Seq(n)) =>
-          if (n == name) appendValues
-          else acc.append(p)
-        case PathExp(ns) =>
-          if (ns.contains(name)) {
-            appendValues
-            acc.append(PathExp(ns.filterNot(_ == name)))
-          } else acc.append(p)
-      }
+    path foreach {
+      case p@PathElm(_) => acc.append(p)
+      case p@VarExp(Seq(n)) =>
+        if (n == name) appendValues()
+        else acc.append(p)
+      case p@VarExp(ns) =>
+        if (ns.contains(name)) {
+          appendValues()
+          acc.append(VarExp(ns.filterNot(_ == name)))
+        } else acc.append(p)
+      case p@ReservedExp(Seq(n)) =>
+        if (n == name) appendValues()
+        else acc.append(p)
+      case p@ReservedExp(ns) =>
+        if (ns.contains(name)) {
+          appendValues()
+          acc.append(VarExp(ns.filterNot(_ == name)))
+        } else acc.append(p)
+      case p@PathExp(Seq(n)) =>
+        if (n == name) appendValues()
+        else acc.append(p)
+      case p@PathExp(ns) =>
+        if (ns.contains(name)) {
+          appendValues()
+          acc.append(PathExp(ns.filterNot(_ == name)))
+        } else acc.append(p)
     }
     acc.toList
   }
@@ -158,42 +156,40 @@ object UriTemplate {
   protected def expandQueryN(query: Option[Query], name: String, values: List[String]): Option[Query] = {
     query.map(f => {
       val acc = new ArrayBuffer[QueryDef]()
-      f.foreach { p =>
-        p match {
-          case p @ ParamElm(_, _) => acc.append(p)
-          case ParamVarExp(r, List(n)) =>
-            if (n == name) acc.append(ParamElm(r, values))
-            else acc.append(p)
-          case ParamVarExp(r, ns) =>
-            if (ns.contains(name)) {
-              acc.append(ParamElm(r, values))
-              acc.append(ParamVarExp(r, ns.filterNot(_ == name)))
-            } else acc.append(p)
-          case ParamReservedExp(r, List(n)) =>
-            if (n == name) acc.append(ParamElm(r, values))
-            else acc.append(p)
-          case ParamReservedExp(r, ns) =>
-            if (ns.contains(name)) {
-              acc.append(ParamElm(r, values))
-              acc.append(ParamReservedExp(r, ns.filterNot(_ == name)))
-            } else acc.append(p)
-          case ParamExp(Seq(n)) =>
-            if (n == name) acc.append(ParamElm(name, values))
-            else acc.append(p)
-          case ParamExp(ns) =>
-            if (ns.contains(name)) {
-              acc.append(ParamElm(name, values))
-              acc.append(ParamExp(ns.filterNot(_ == name)))
-            } else acc.append(p)
-          case ParamContExp(Seq(n)) =>
-            if (n == name) acc.append(ParamElm(name, values))
-            else acc.append(p)
-          case ParamContExp(ns) =>
-            if (ns.contains(name)) {
-              acc.append(ParamElm(name, values))
-              acc.append(ParamContExp(ns.filterNot(_ == name)))
-            } else acc.append(p)
-        }
+      f.foreach {
+        case p@ParamElm(_, _) => acc.append(p)
+        case p@ParamVarExp(r, List(n)) =>
+          if (n == name) acc.append(ParamElm(r, values))
+          else acc.append(p)
+        case p@ParamVarExp(r, ns) =>
+          if (ns.contains(name)) {
+            acc.append(ParamElm(r, values))
+            acc.append(ParamVarExp(r, ns.filterNot(_ == name)))
+          } else acc.append(p)
+        case p@ParamReservedExp(r, List(n)) =>
+          if (n == name) acc.append(ParamElm(r, values))
+          else acc.append(p)
+        case p@ParamReservedExp(r, ns) =>
+          if (ns.contains(name)) {
+            acc.append(ParamElm(r, values))
+            acc.append(ParamReservedExp(r, ns.filterNot(_ == name)))
+          } else acc.append(p)
+        case p@ParamExp(Seq(n)) =>
+          if (n == name) acc.append(ParamElm(name, values))
+          else acc.append(p)
+        case p@ParamExp(ns) =>
+          if (ns.contains(name)) {
+            acc.append(ParamElm(name, values))
+            acc.append(ParamExp(ns.filterNot(_ == name)))
+          } else acc.append(p)
+        case p@ParamContExp(Seq(n)) =>
+          if (n == name) acc.append(ParamElm(name, values))
+          else acc.append(p)
+        case p@ParamContExp(ns) =>
+          if (ns.contains(name)) {
+            acc.append(ParamElm(name, values))
+            acc.append(ParamContExp(ns.filterNot(_ == name)))
+          } else acc.append(p)
       }
       acc.toList
     })
@@ -202,17 +198,15 @@ object UriTemplate {
   protected def expandFragmentN(fragment: Option[Fragment], name: String, value: String): Option[Fragment] = {
     fragment.map(f => {
       val acc = new ArrayBuffer[FragmentDef]()
-      f.foreach { p =>
-        p match {
-          case p @ FragmentElm(_) => acc.append(p)
-          case SimpleFragmentExp(n) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
-          case MultiFragmentExp(Seq(n)) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
-          case MultiFragmentExp(ns) =>
-            if (ns.contains(name)) {
-              acc.append(FragmentElm(value))
-              acc.append(MultiFragmentExp(ns.filterNot(_ == name)))
-            } else acc.append(p)
-        }
+      f.foreach {
+        case p@FragmentElm(_) => acc.append(p)
+        case p@SimpleFragmentExp(n) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
+        case p@MultiFragmentExp(Seq(n)) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
+        case p@MultiFragmentExp(ns) =>
+          if (ns.contains(name)) {
+            acc.append(FragmentElm(value))
+            acc.append(MultiFragmentExp(ns.filterNot(_ == name)))
+          } else acc.append(p)
       }
       acc.toList
     })
@@ -245,13 +239,13 @@ object UriTemplate {
   protected def renderQuery(q: Query): String = q match {
     case Nil => "?"
     case ps =>
-      val parted = ps partition (_ match {
+      val parted = ps partition {
         case ParamElm(_, _) => false
         case ParamVarExp(_, _) => false
         case ParamReservedExp(_, _) => false
         case ParamExp(_) => true
         case ParamContExp(_) => true
-      })
+      }
       val elements = new ArrayBuffer[String]()
       parted._2 foreach {
         case ParamElm(n, Nil) => elements.append(n)

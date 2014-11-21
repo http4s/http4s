@@ -64,7 +64,7 @@ object QValue extends QValueInstances with QValueFunctions {
   lazy val Zero: QValue = new QValue(0)
 
   private def mkQValue(thousandths: Int, s: => String): ParseResult[QValue] = {
-    if (thousandths < 0 || thousandths > 1000) ParseResult.fail("Invalid q-value", s"${s} must be between 0.0 and 1.0")
+    if (thousandths < 0 || thousandths > 1000) ParseResult.fail("Invalid q-value", s"$s must be between 0.0 and 1.0")
     else ParseResult.success(new QValue(thousandths))
   }
 

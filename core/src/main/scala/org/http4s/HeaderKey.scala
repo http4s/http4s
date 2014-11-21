@@ -15,7 +15,7 @@ sealed trait HeaderKey {
   def matchHeader(header: Header): Option[HeaderT]
   def unapply(header: Header): Option[HeaderT] = matchHeader(header)
 
-  override def toString: String = s"HeaderKey(${name}})"
+  override def toString: String = s"HeaderKey($name})"
 }
 
 object HeaderKey {
