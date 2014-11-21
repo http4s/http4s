@@ -12,12 +12,15 @@ import org.http4s.client.testroutes.GetRoutes
 
 import org.specs2.specification.{ Fragment, Step }
 
+import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 
 
 abstract class ClientRouteTestBattery(name: String, client: Client)
   extends Http4sSpec with GetRoutes {
+
+  protected def timeout: Duration = 10.seconds
 
   private val server = new JServer()
 
@@ -42,7 +45,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     initializeServer(address)
     val gets = translateTests(port, Method.GET, getPaths)
     println(gets)
-    gets.map{ case (req, resp) => runTest(req, resp, address) }.toSeq
+    gets.map { case (req, resp) => runTest(req, resp, address) }.toSeq
   }
 
   protected def initializeServer(address: InetSocketAddress): Int = {
@@ -81,7 +84,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   private def runTest(req: Request, address: InetSocketAddress): Response = {
     val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
       port = Some(address.getPort)))))
-    client.prepare(newreq).run
+    client.prepare(newreq).runFor(timeout)
   }
 
   private def checkResponse(rec: Response, expected: Response) = {

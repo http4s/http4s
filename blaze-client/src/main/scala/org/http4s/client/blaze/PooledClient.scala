@@ -9,7 +9,6 @@ import org.http4s.blaze.util.Execution
 import org.log4s.getLogger
 
 import scala.collection.mutable
-import scala.collection.mutable.Queue
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
