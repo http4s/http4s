@@ -8,9 +8,9 @@ env:
 rvm:
   - "1.9.3-p392"
 before_script:
-- openssl aes-256-cbc -k $SECRET -in .travis.secrets.enc -d -a -out .travis.secrets
-- source .travis.secrets
-- rm .travis.secrets
+- 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then openssl aes-256-cbc -k $SECRET -in .travis.secrets.enc -d -a -out .travis.secrets; fi'
+- 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then source .travis.secrets; fi'
+- 'if [ "${TRAVIS_PULL_REQUEST}" = "false" ]; then rm .travis.secrets; fi'
 - echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
 - git config --global user.email "travis-ci@http4s.org"
 - git config --global user.name "Travis CI"
