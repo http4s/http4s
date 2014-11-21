@@ -17,8 +17,6 @@ before_script:
 - "cd $TRAVIS_BUILD_DIR/src/jekyll && bundle install && cd -"
 script: sbt ++$TRAVIS_SCALA_VERSION test
 after_success: 
-- [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release*" ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]] && SBT_COMMAND="publish"
-- [[ $TRAVIS_SCALA_VERSION = "2.11.4" ]] && SBT_COMMAND="$SBT_COMMAND make-site ghpagesPushSite"
-- [[ -z $COMMAND ]] && sbt ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
+- bash bin/travis-publish
 notifications:
   irc: "chat.freenode.net#http4s"
