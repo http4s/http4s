@@ -1,3 +1,6 @@
+# v0.4.1 (2014-11-20)
+* `Uri.query` and `Uri.fragment` are no longer decoded. [#75](https://github.com/http4s/http4s/issues/75)
+
 # v0.4.0 (2014-11-18)
 
 * Change HttpService form a `PartialFunction[Request,Task[Response]]` to `Service[Request, Response]`,
