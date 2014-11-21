@@ -1,12 +1,16 @@
 #!/bin/bash
 
-if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release*" ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+echo "TRAVIS_BRANCH = $TRAVIS_BRANCH"
+echo "TRAVIS_PULL_REQUEST = $TRAVIS_PULL_REQUEST"
+echo "TRAVIS_SCALA_VERSION = $TRAVIS_SCALA_VERSION"
+
+if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
   export SBT_COMMAND="publish"
   if [[ $TRAVIS_SCALA_VERSION = "2.11.4" ]]; then
     export SBT_COMMAND="$SBT_COMMAND make-site ghpagesPushSite"
   fi
 fi
 
-if [[ -n $COMMAND ]]; then
+if [[ -n $SBT_COMMAND ]]; then
   sbt ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 fi
