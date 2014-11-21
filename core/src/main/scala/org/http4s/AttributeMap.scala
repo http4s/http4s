@@ -6,7 +6,7 @@
  */
 package org.http4s
 
-import scala.reflect.Manifest
+import scala.reflect.ClassTag
 
 // T must be invariant to work properly.
 //  Because it is sealed and the only instances go through AttributeKey.apply,
@@ -14,24 +14,24 @@ import scala.reflect.Manifest
 
 /** A key in an [[AttributeMap]] that constrains its associated value to be of type `T`.
   * The key is uniquely defined by its [[name]] and type `T`, represented at runtime by [[manifest]]. */
-final class AttributeKey[T] private (val name: String)(implicit val manifest: Manifest[T]) {
+final class AttributeKey[T] private (val name: String)(implicit val classTag: ClassTag[T]) {
   def apply(value: T): AttributeEntry[T] = AttributeEntry(this, value)
 
   override final def toString = name
   override final def hashCode = name.hashCode
   override final def equals(o: Any) = (this eq o.asInstanceOf[AnyRef]) || (o match {
-    case a: AttributeKey[_] => a.name == this.name && a.manifest == this.manifest
+    case a: AttributeKey[_] => a.name == this.name && a.classTag == this.classTag
     case _ => false
   })
 }
 
 object AttributeKey {
-  def apply[T](name: String)(implicit manifest: Manifest[T]): AttributeKey[T] = new AttributeKey(name)(manifest)
+  def apply[T](name: String)(implicit classTag: ClassTag[T]): AttributeKey[T] = new AttributeKey(name)(classTag)
 
   /**
    * Encourage greater consistency in internal keys by imposing a universal prefix.
    */
-  private[http4s] def http4s[T](name: String)(implicit manifest: Manifest[T]): AttributeKey[T] =
+  private[http4s] def http4s[T](name: String)(implicit classTag: ClassTag[T]): AttributeKey[T] =
     apply("org.http4s."+name)
 }
 
