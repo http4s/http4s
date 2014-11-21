@@ -106,9 +106,11 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def Pchar = rule { Unreserved | PctEncoded | SubDelims | ":" | "@" }
 
-  def Query = rule { capture(zeroOrMore(Pchar | "/" | "?")) ~> (decode _) }
+  // NOTE: The Query is NOT url decoded.
+  def Query = rule { capture(zeroOrMore(Pchar | "/" | "?")) }
 
-  def Fragment = rule { capture(zeroOrMore(Pchar | "/" | "?")) ~> (decode _) }
+  // NOTE: The Fragment is NOT url decoded.
+  def Fragment = rule { capture(zeroOrMore(Pchar | "/" | "?")) }
 
   def PctEncoded = rule { "%" ~ 2.times(HexDigit) }
 

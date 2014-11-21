@@ -45,7 +45,7 @@ private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends 
   }
 
   private def decodeParam(str: String): String =
-    try str.urlDecode(codec)
+    try str.formDecode(codec)
     catch {
         case e: IllegalArgumentException     => ""
         case e: UnsupportedEncodingException => ""

@@ -14,7 +14,16 @@ import org.http4s.parser.{ ScalazDeliverySchemes, QueryParser, RequestUriParser 
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
-/** Representation of the [[Request]] URI  */
+
+/** Representation of the [[Request]] URI
+  * Structure containing information related to a Uri. All fields except the
+  * query are expected to be url decoded.
+  * @param scheme     optional Uri Scheme. eg, http, https
+  * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
+  * @param path       the Uri path
+  * @param query      optional Query. Note that the query should _NOT_ be url decoded
+  * @param fragment   optional Uri Fragment. Note that the fragment should _NOT_ be url decoded
+  */
 // TODO fix Location header, add unit tests
 case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
