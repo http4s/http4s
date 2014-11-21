@@ -21,7 +21,7 @@ import org.http4s.util.string.ToCaseInsensitiveStringSyntax
   * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
   * @param path       the Uri path
   * @param query      optional Query. Note that the query should _NOT_ be url decoded
-  * @param fragment   optional Uri Fragment
+  * @param fragment   optional Uri Fragment. Note that the fragment should _NOT_ be url decoded
   */
 // TODO fix Location header, add unit tests
 case class Uri(
