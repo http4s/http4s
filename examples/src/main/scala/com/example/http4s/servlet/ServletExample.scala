@@ -6,6 +6,8 @@ import org.http4s.server.jetty.JettyBuilder
 import org.http4s.server.tomcat.TomcatBuilder
 import org.http4s.servlet.ServletContainer
 
+import scala.concurrent.duration._
+
 class ServletExample extends App {
   def go(builder: ServletContainer): Unit = builder
     .bindHttp(8080)

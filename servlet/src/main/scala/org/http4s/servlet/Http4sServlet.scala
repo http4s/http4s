@@ -14,7 +14,7 @@ import java.net.InetAddress
 
 import scala.annotation.tailrec
 import scala.collection.JavaConverters._
-import javax.servlet.{ ReadListener, ServletConfig, AsyncContext }
+import javax.servlet._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
@@ -42,6 +42,21 @@ class Http4sServlet(service: HttpService,
   private[this] var serverSoftware: ServerSoftware = _
   private[this] var inputStreamReader: BodyReader = _
 
+  private class Http4sAsyncListener extends AsyncListener {
+    override def onComplete(event: AsyncEvent): Unit = {}
+
+    override def onError(event: AsyncEvent): Unit = logger.error(event.getThrowable)("Async error processing request")
+
+    override def onStartAsync(event: AsyncEvent): Unit = {}
+
+    override def onTimeout(event: AsyncEvent): Unit = {
+      val response = ResponseBuilder(Status.InternalServerError, "Service timed out.").run
+      val ctx = event.getAsyncContext
+      val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
+      Http4sServlet.this.renderResponse(response, servletResponse)
+    }
+  }
+
   override def init(config: ServletConfig) {
     val servletContext = config.getServletContext
     serverSoftware = ServerSoftware(servletContext.getServerInfo)
@@ -54,7 +69,6 @@ class Http4sServlet(service: HttpService,
       syncInputStreamReader(chunkSize)
   }
 
-
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     try {
       val ctx = servletRequest.startAsync()
@@ -63,6 +77,7 @@ class Http4sServlet(service: HttpService,
           // TODO make more http4sy
           servletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, e.sanitized)
         case \/-(req) =>
+          ctx.addListener(new Http4sAsyncListener)
           ctx.setTimeout(asyncTimeoutMillis)
           handle(req, ctx)
       }

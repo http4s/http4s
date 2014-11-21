@@ -193,6 +193,9 @@ object ExampleService {
 
     case req @ GET -> Root / "redirect" =>
       TemporaryRedirect(uri("/"))
+
+    case req @ GET -> Root / "hang" =>
+      Task.async[Response] { cb => }
   }
 
   def service2 = HttpService {
