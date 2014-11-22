@@ -34,15 +34,19 @@ object Http4sKeys {
 
 object Http4sDependencies {
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
+  lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.3.0"
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
+  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.7.0"
+  lazy val jawnStreamz         = "com.rossabaker"           %% "jawn-streamz"            % "0.2.0"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.2.5.v20141112"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.2.11"
   lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sCore.revision
   lazy val json4sNative        = "org.json4s"               %% "json4s-native"           % json4sCore.revision
+  lazy val json4sSupport       = "org.spire-math"           %% "json4s-support"          % jawnParser.revision
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
   lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.1.2"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.1.2"
