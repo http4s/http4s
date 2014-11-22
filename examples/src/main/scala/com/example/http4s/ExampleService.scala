@@ -196,6 +196,10 @@ object ExampleService {
 
     case req @ GET -> Root / "hang" =>
       Task.async[Response] { cb => }
+
+    case req @ GET -> Root / "hanging-body" =>
+      Ok(Process(Task.now(ByteVector(Seq(' '.toByte))), Task.async[ByteVector] { cb => }).eval)
+        .withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
   }
 
   def service2 = HttpService {

@@ -50,10 +50,16 @@ class Http4sServlet(service: HttpService,
     override def onStartAsync(event: AsyncEvent): Unit = {}
 
     override def onTimeout(event: AsyncEvent): Unit = {
-      val response = ResponseBuilder(Status.InternalServerError, "Service timed out.").run
       val ctx = event.getAsyncContext
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-      Http4sServlet.this.renderResponse(response, servletResponse)
+      val response = ResponseBuilder(Status.InternalServerError, "Service timed out.").run
+      if (!servletResponse.isCommitted)
+        Http4sServlet.this.renderResponse(response, servletResponse)
+      else {
+        val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
+        logger.warn(s"Async context timed out after servlet response was already committed on ${servletRequest.getMethod} ${servletRequest.getPathInfo}")
+      }
+      ctx.complete()
     }
   }
 
