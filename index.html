@@ -162,6 +162,8 @@ for embedded Tomcat and Jetty containers.</p>
 <span class="k">import</span> <span class="nn">org.http4s.server.tomcat.TomcatBuilder</span>
 <span class="k">import</span> <span class="nn">org.http4s.servlet.ServletContainer</span>
 
+<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
+
 <span class="k">class</span> <span class="nc">ServletExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
   <span class="k">def</span> <span class="n">go</span><span class="o">(</span><span class="n">builder</span><span class="k">:</span> <span class="kt">ServletContainer</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">builder</span>
     <span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
