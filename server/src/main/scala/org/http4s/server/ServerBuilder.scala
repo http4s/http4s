@@ -44,3 +44,10 @@ trait IdleTimeoutSupport { this: ServerBuilder =>
 object IdleTimeoutSupport {
   val DefaultIdleTimeout = 30.seconds
 }
+
+trait AsyncTimeoutSupport { this: ServerBuilder =>
+  def withAsyncTimeout(asyncTimeout: Duration): Self
+}
+object AsyncTimeoutSupport {
+  val DefaultAsyncTimeout = 30.seconds
+}

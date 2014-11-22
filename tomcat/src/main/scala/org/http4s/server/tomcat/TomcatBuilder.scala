@@ -13,10 +13,11 @@ import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.{Lifecycle, LifecycleEvent, LifecycleListener}
 import java.util.concurrent.ExecutorService
 
-sealed class TomcatBuilder (
+sealed class TomcatBuilder private (
   socketAddress: InetSocketAddress,
-  serviceExecutor: ExecutorService,
-  idleTimeout: Duration,
+  private val serviceExecutor: ExecutorService,
+  private val idleTimeout: Duration,
+  private val asyncTimeout: Duration,
   mounts: Vector[Mount]
 )
   extends ServerBuilder
@@ -29,8 +30,9 @@ sealed class TomcatBuilder (
            socketAddress: InetSocketAddress = socketAddress,
            serviceExecutor: ExecutorService = serviceExecutor,
            idleTimeout: Duration = idleTimeout,
+           asyncTimeout: Duration = asyncTimeout,
            mounts: Vector[Mount] = mounts): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, mounts)
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, mounts)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
     copy(socketAddress = socketAddress)
@@ -47,10 +49,11 @@ sealed class TomcatBuilder (
     })
 
   override def mountService(service: HttpService, prefix: String): TomcatBuilder =
-    copy(mounts = mounts :+ Mount { (tomcat, index, serviceExecutor) =>
+    copy(mounts = mounts :+ Mount { (tomcat, index, builder) =>
       val servlet = new Http4sServlet(
         service = service,
-        threadPool = serviceExecutor
+        asyncTimeout = builder.asyncTimeout,
+        threadPool = builder.serviceExecutor
       )
       val wrapper = tomcat.addServlet("", s"servlet-$index", servlet)
       wrapper.addMapping(s"$prefix/*")
@@ -65,6 +68,9 @@ sealed class TomcatBuilder (
   override def withIdleTimeout(idleTimeout: Duration): TomcatBuilder =
     copy(idleTimeout = idleTimeout)
 
+  override def withAsyncTimeout(asyncTimeout: Duration): TomcatBuilder =
+    copy(asyncTimeout = asyncTimeout)
+
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
 
@@ -76,7 +82,7 @@ sealed class TomcatBuilder (
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
     for ((mount, i) <- mounts.zipWithIndex)
-      mount.f(tomcat, i, serviceExecutor)
+      mount.f(tomcat, i, this)
 
     tomcat.start()
 
@@ -103,8 +109,9 @@ object TomcatBuilder extends TomcatBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+  asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   mounts = Vector.empty
 )
 
-private case class Mount(f: (Tomcat, Int, ExecutorService) => Unit)
+private case class Mount(f: (Tomcat, Int, TomcatBuilder) => Unit)
 

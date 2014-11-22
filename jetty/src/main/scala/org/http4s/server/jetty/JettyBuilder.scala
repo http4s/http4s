@@ -13,10 +13,11 @@ import scalaz.concurrent.Task
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
 
-sealed class JettyBuilder(
+sealed class JettyBuilder private (
   socketAddress: InetSocketAddress,
-  serviceExecutor: ExecutorService,
-  idleTimeout: Duration,
+  private val serviceExecutor: ExecutorService,
+  private val idleTimeout: Duration,
+  private val asyncTimeout: Duration,
   mounts: Vector[Mount]
 )
   extends ServerBuilder
@@ -28,8 +29,9 @@ sealed class JettyBuilder(
   private def copy(socketAddress: InetSocketAddress = socketAddress,
                    serviceExecutor: ExecutorService = serviceExecutor,
                    idleTimeout: Duration = idleTimeout,
+                   asyncTimeout: Duration = asyncTimeout,
                    mounts: Vector[Mount] = mounts): JettyBuilder =
-    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, mounts)
+    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, mounts)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
     copy(socketAddress = socketAddress)
@@ -44,10 +46,11 @@ sealed class JettyBuilder(
     })
 
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
-    copy(mounts = mounts :+ Mount { (context, index, serviceExecutor) =>
+    copy(mounts = mounts :+ Mount { (context, index, builder) =>
       val servlet = new Http4sServlet(
         service = service,
-        threadPool = serviceExecutor
+        asyncTimeout = builder.asyncTimeout,
+        threadPool = builder.serviceExecutor
       )
       val servletName = s"servlet-$index"
       val urlMapping = s"$prefix/*"
@@ -56,6 +59,9 @@ sealed class JettyBuilder(
 
   override def withIdleTimeout(idleTimeout: Duration): JettyBuilder =
     copy(idleTimeout = idleTimeout)
+
+  override def withAsyncTimeout(asyncTimeout: Duration): JettyBuilder =
+    copy(asyncTimeout = asyncTimeout)
 
   def start: Task[Server] = Task.delay {
     val jetty = new JServer()
@@ -71,7 +77,7 @@ sealed class JettyBuilder(
     jetty.addConnector(connector)
 
     for ((mount, i) <- mounts.zipWithIndex)
-      mount.f(context, i, serviceExecutor)
+      mount.f(context, i, this)
 
     jetty.start()
 
@@ -95,7 +101,8 @@ object JettyBuilder extends JettyBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
   serviceExecutor = ServerBuilder.DefaultServiceExecutor,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
+  asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   mounts = Vector.empty
 )
 
-private case class Mount(f: (ServletContextHandler, Int, ExecutorService) => Unit)
+private case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)
