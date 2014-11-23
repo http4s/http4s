@@ -5,7 +5,7 @@ name := "http4s-core"
 
 description := "Core http4s framework"
 
-libraryDependencies <+= scalaVersion(scalaReflect)
+libraryDependencies <+= scalaVersion(scalaReflect(_) % "provided")
 
 libraryDependencies ++= Seq(
   base64,
