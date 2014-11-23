@@ -7,12 +7,12 @@ import org.http4s.MediaType
 import org.http4s.Charset._
 import org.http4s.WritableSpec.writeToString
 
-class ArgonautSupportSpec extends Specification with ArgonautSupport {
+class ArgonautSupportSpec extends Specification with ArgonautSupport with Argonauts {
   "writing JSON" should {
     val json = Json("test" -> jString("ArgonautSupport"))
 
     "have json content type" in {
-      jsonWritable.headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.`application/json`, `UTF-8`))
+      jsonWritable.headers.get(`Content-Type`) must beSome(`Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON" in {
