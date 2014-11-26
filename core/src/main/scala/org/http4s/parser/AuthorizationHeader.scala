@@ -36,7 +36,7 @@ private[parser] trait AuthorizationHeader {
     }
 
     def BasicCredentialDef: Rule1[BasicCredentials] = rule {
-      "Basic" ~ capture(BasicCookie) ~> {s: String => BasicCredentials(s) }
+      "Basic" ~ oneOrMore(LWS) ~ capture(BasicCookie) ~> {s: String => BasicCredentials(s) }
     }
 
     def BasicCookie: Rule0 = rule {
@@ -44,7 +44,7 @@ private[parser] trait AuthorizationHeader {
     }
 
     def OAuth2BearerTokenDef: Rule1[OAuth2BearerToken] = rule {
-      "Bearer" ~ Token ~> (OAuth2BearerToken(_))
+      "Bearer" ~ oneOrMore(LWS) ~ Token ~> (OAuth2BearerToken(_))
     }
 
     def GenericHttpCredentialsDef = rule {
