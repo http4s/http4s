@@ -19,13 +19,14 @@ import scalaz.stream.Process.halt
 abstract class PooledClient(maxPooledConnections: Int,
                                          timeout: Duration,
                                       bufferSize: Int,
+                                        executor: ExecutionContext,
                                            group: Option[AsynchronousChannelGroup]) extends BlazeClient {
 
   private[this] val logger = getLogger
 
   assert(maxPooledConnections > 0, "Must have positive collection pool")
 
-  override implicit protected def ec: ExecutionContext = Execution.trampoline
+  final override implicit protected def ec: ExecutionContext = executor
 
   private var closed = false
   private val cs = new mutable.Queue[(InetSocketAddress, BlazeClientStage)]()

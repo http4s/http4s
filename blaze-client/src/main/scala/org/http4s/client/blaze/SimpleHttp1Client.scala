@@ -12,12 +12,15 @@ import scalaz.concurrent.Task
 
 
 /** A default implementation of the Blaze Asynchronous client for HTTP/1.x */
-class SimpleHttp1Client(timeout: Duration, bufferSize: Int, group: Option[AsynchronousChannelGroup])
+class SimpleHttp1Client(timeout: Duration,
+                     bufferSize: Int,
+                       executor: ExecutionContext,
+                          group: Option[AsynchronousChannelGroup])
        extends BlazeClient
           with Http1Support
           with Http1SSLSupport
 {
-  override implicit protected def ec: ExecutionContext = Execution.trampoline
+  final override implicit protected def ec: ExecutionContext = executor
 
     /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = Task.now(())
@@ -34,4 +37,4 @@ class SimpleHttp1Client(timeout: Duration, bufferSize: Int, group: Option[Asynch
   }
 }
 
-object SimpleHttp1Client extends SimpleHttp1Client(defaultTimeout, defaultBufferSize, None)
+object SimpleHttp1Client extends SimpleHttp1Client(defaultTimeout, defaultBufferSize, defaultEC, None)
