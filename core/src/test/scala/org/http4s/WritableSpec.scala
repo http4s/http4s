@@ -94,6 +94,19 @@ class WritableSpec extends Specification with Http4s {
       implicitly[Writable[ByteVector]].contentType must_== Some(MediaType.`application/octet-stream`)
       implicitly[Writable[Array[Byte]]].contentType must_== Some(MediaType.`application/octet-stream`)
     }
+
+    "work with local defined writables" in {
+      import scodec.bits.ByteVector
+
+      case class ModelA(name: String, color: Int)
+      case class ModelB(name: String, id: Long)
+
+      implicit val w1: Writable[ModelA] = Writable.simple[ModelA](_ => ByteVector.view("A".getBytes))
+      implicit val w2: Writable[ModelB] = Writable.simple[ModelB](_ => ByteVector.view("B".getBytes))
+
+      implicitly[Writable[ModelA]] must_== w1
+      implicitly[Writable[ModelB]] must_== w2
+    }
   }
 }
 
