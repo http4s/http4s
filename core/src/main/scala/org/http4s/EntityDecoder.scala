@@ -105,7 +105,7 @@ trait EntityDecoderInstances {
 
   /** Provides a mechanism to fail decoding */
   def error(t: Throwable) = new EntityDecoder[Nothing] {
-    override def decode(msg: Message): Task[Nothing] = { msg.body.kill.run; Task.fail(t) }
+    override def decode(msg: Message): Task[Nothing] = { msg.body.kill.run.flatMap(_ => Task.fail(t)) }
     override def consumes: Set[MediaRange] = Set.empty
   }
 
