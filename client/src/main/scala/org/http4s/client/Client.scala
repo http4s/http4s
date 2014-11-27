@@ -7,7 +7,6 @@ import scalaz.concurrent.Task
 
 
 trait Client {
-  import Client._
 
   /** Prepare a single request
     * @param req [[Request]] containing the headers, URI, etc.
@@ -15,18 +14,21 @@ trait Client {
     */
   def prepare(req: Request): Task[Response]
 
+  /** Shutdown this client, closing any open connections and freeing resources */
+  def shutdown(): Task[Unit]
+
   /** Prepare a single GET request
     * @param req [[Uri]] of the request
     * @return Task which will generate the Response
     */
-  def prepare(req: Uri): Task[Response] =
+  final def prepare(req: Uri): Task[Response] =
     prepare(Request(uri = req))
 
   /** Prepare a single GET request
     * @param req `String` uri of the request
     * @return Task which will generate the Response
     */
-  def prepare(req: String): Task[Response] =
+  final def prepare(req: String): Task[Response] =
     Uri.fromString(req)
        .fold(f => Task.fail(new org.http4s.ParseException(f)),prepare)
 
@@ -36,21 +38,6 @@ trait Client {
     */
   final def prepare(req: Task[Request]): Task[Response] =
     req.flatMap(prepare)
-
-  /** Shutdown this client, closing any open connections and freeing resources */
-  def shutdown(): Task[Unit]
-
-  /** Generate a Task which, when executed, will perform the request and decode the result */
-  final def decode[A](req: Task[Request])(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
-    req.flatMap(req => decode(req)(onResponse))
-
-  /** Generate a Task which, when executed, will perform the request and decode the result */
-  final def decode[A](req: Request)(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
-    prepare(req).flatMap { resp =>
-      onResponse(resp)
-        .apply(resp)
-        .map(Result(resp.status, resp.headers, _))
-    }
 }
 
 object Client {

@@ -19,6 +19,8 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
   implicit val client = new MockClient(route)
 
   "Client syntax" should {
+    val req = Request(GET, uri("http://www.foo.bar/"))
+
     "be simple to use" in {
       val resp = Task.now(Request(GET, uri("http://www.foo.bar/"))).on(Ok)(EntityDecoder.text).run
       println(resp.body)
@@ -27,10 +29,27 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "be simple to use for any status" in {
-      val resp = Task.now(Request(GET, uri("http://www.foo.bar/"))).decode{ case Response(Ok,_,_,_,_) => EntityDecoder.text}.run
-      println(resp.body)
+      val resp1 = req.decodeStatus {
+        case Ok => EntityDecoder.text
+      }.run
+      resp1.body must_== "hello"
 
-      resp.body.isEmpty must be_==(false)
+      val resp2 = Task(req).decodeStatus {
+        case Ok => EntityDecoder.text
+      }.run
+      resp2.body must_== "hello"
+    }
+
+    "be simple to use for any response" in {
+      val resp1 = req.decode {
+        case Response(Ok,_,_,_,_) => EntityDecoder.text
+      }.run
+      resp1.body must_== "hello"
+
+      val resp2 = Task(req).decode {
+        case Response(Ok,_,_,_,_) => EntityDecoder.text
+      }.run
+      resp2.body must_== "hello"
     }
 
     "fail on bad status" in {
