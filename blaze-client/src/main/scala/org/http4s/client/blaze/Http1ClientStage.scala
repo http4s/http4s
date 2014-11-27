@@ -13,6 +13,7 @@ import org.http4s.{Header, Request, Response, HttpVersion}
 import scala.annotation.tailrec
 import scala.concurrent.{TimeoutException, ExecutionContext}
 import scala.concurrent.duration._
+import scala.util.control.NoStackTrace
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
@@ -41,7 +42,7 @@ class Http1ClientStage(timeout: Duration)
         cancellable = tickWheel.schedule(new Runnable {
           override def run(): Unit = {
             if (complete.compareAndSet(false, true)) {
-              cb(-\/(new TimeoutException(s"Request timed out. Timeout: $timeout")))
+              cb(-\/(new TimeoutException(s"Request timed out. Timeout: $timeout") with NoStackTrace))
               shutdown()
             }
           }
@@ -120,9 +121,8 @@ class Http1ClientStage(timeout: Duration)
 
   private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 
-  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): ProcessWriter = {
+  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): ProcessWriter =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
-  }
 
   private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
     val uri = req.uri

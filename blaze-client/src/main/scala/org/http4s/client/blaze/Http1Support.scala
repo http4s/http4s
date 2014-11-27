@@ -16,7 +16,7 @@ trait Http1Support extends PipelineBuilder {
 
   implicit protected def ec: ExecutionContext
 
-  override protected def buildPipeline(req: Request, closeOnFinish: Boolean, timeout: Duration): PipelineResult = {
+  override protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
     val isHttp = req.uri.scheme match {
       case Some(s) if s != "http".ci => false
       case _ => true
@@ -26,7 +26,7 @@ trait Http1Support extends PipelineBuilder {
       val t = new Http1ClientStage(timeout)
       PipelineResult(LeafBuilder(t), t)
     }
-    else super.buildPipeline(req, closeOnFinish, timeout)
+    else super.buildPipeline(req, closeOnFinish)
   }
 
   override protected def getAddress(req: Request): AddressResult = {

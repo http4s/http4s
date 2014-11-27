@@ -17,7 +17,6 @@ import scalaz.stream.Process.halt
 
 /** Provides a foundation for pooling clients */
 abstract class PooledClient(maxPooledConnections: Int,
-                                         timeout: Duration,
                                       bufferSize: Int,
                                         executor: ExecutionContext,
                                            group: Option[AsynchronousChannelGroup]) extends BlazeClient {
@@ -74,7 +73,7 @@ abstract class PooledClient(maxPooledConnections: Int,
   private def newConnection(request: Request, addr: InetSocketAddress): Future[BlazeClientStage] = {
     logger.debug(s"Generating new connection for request: ${request.copy(body = halt)}")
     connectionManager.connect(addr).map { head =>
-      val PipelineResult(builder, t) = buildPipeline(request, false, timeout)
+      val PipelineResult(builder, t) = buildPipeline(request, false)
       builder.base(head)
       t
     }

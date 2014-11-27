@@ -37,7 +37,7 @@ trait Http1SSLSupport extends Http1Support {
     * Override to provide more specific SSL managers */
   protected lazy val sslContext = defaultTrustManagerSSLContext()
 
-  override protected def buildPipeline(req: Request, closeOnFinish: Boolean, timeout: Duration): PipelineResult = {
+  override protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
     req.uri.scheme match {
       case Some(ci) if ci == "https".ci && req.uri.authority.isDefined =>
         val eng = sslContext.createSSLEngine()
@@ -50,7 +50,7 @@ trait Http1SSLSupport extends Http1Support {
         val address = new InetSocketAddress(auth.host.value, port)
         PipelineResult(b, t)
 
-      case _ => super.buildPipeline(req, closeOnFinish, timeout)
+      case _ => super.buildPipeline(req, closeOnFinish)
     }
   }
 

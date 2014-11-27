@@ -12,13 +12,11 @@ import scalaz.concurrent.Task
 
 
 /** A default implementation of the Blaze Asynchronous client for HTTP/1.x */
-class SimpleHttp1Client(timeout: Duration,
-                     bufferSize: Int,
-                       executor: ExecutionContext,
-                          group: Option[AsynchronousChannelGroup])
-       extends BlazeClient
-          with Http1Support
-          with Http1SSLSupport
+class SimpleHttp1Client(protected val timeout: Duration,
+                                   bufferSize: Int,
+                                     executor: ExecutionContext,
+                                        group: Option[AsynchronousChannelGroup])
+       extends BlazeClient with Http1Support with Http1SSLSupport
 {
   final override implicit protected def ec: ExecutionContext = executor
 
@@ -30,7 +28,7 @@ class SimpleHttp1Client(timeout: Duration,
   protected def getClient(req: Request, fresh: Boolean): Future[BlazeClientStage] = {
     getAddress(req).fold(Future.failed, addr =>
       connectionManager.connect(addr, bufferSize).map { head =>
-        val PipelineResult(builder, t) = buildPipeline(req, true, timeout)
+        val PipelineResult(builder, t) = buildPipeline(req, true)
         builder.base(head)
         t
     })
