@@ -6,13 +6,14 @@ import java.nio.ByteBuffer
 import org.http4s.Request
 import org.http4s.blaze.pipeline.LeafBuilder
 
+import scala.concurrent.duration.Duration
 import scalaz.\/
 
 trait PipelineBuilder {
 
   protected case class PipelineResult(builder: LeafBuilder[ByteBuffer], tail: BlazeClientStage)
 
-  protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
+  protected def buildPipeline(req: Request, closeOnFinish: Boolean, timeout: Duration): PipelineResult = {
     sys.error(s"Unsupported request: ${req.uri}")
   }
 

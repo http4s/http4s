@@ -11,6 +11,7 @@ import org.http4s.blaze.pipeline.stages.SSLStage
 import org.http4s.util.CaseInsensitiveString._
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 import scalaz.\/-
 
 trait Http1SSLSupport extends Http1Support {
@@ -36,20 +37,20 @@ trait Http1SSLSupport extends Http1Support {
     * Override to provide more specific SSL managers */
   protected lazy val sslContext = defaultTrustManagerSSLContext()
 
-  override protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
+  override protected def buildPipeline(req: Request, closeOnFinish: Boolean, timeout: Duration): PipelineResult = {
     req.uri.scheme match {
       case Some(ci) if ci == "https".ci && req.uri.authority.isDefined =>
         val eng = sslContext.createSSLEngine()
         eng.setUseClientMode(true)
 
         val auth = req.uri.authority.get
-        val t = new Http1ClientStage()
+        val t = new Http1ClientStage(timeout)
         val b = LeafBuilder(t).prepend(new SSLStage(eng))
         val port = auth.port.getOrElse(443)
         val address = new InetSocketAddress(auth.host.value, port)
         PipelineResult(b, t)
 
-      case _ => super.buildPipeline(req, closeOnFinish)
+      case _ => super.buildPipeline(req, closeOnFinish, timeout)
     }
   }
 

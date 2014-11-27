@@ -21,7 +21,7 @@ import scalaz.\/-
 class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
   def getSubmission(req: Request, resp: String): String = {
-    val tail = new Http1ClientStage()
+    val tail = new Http1ClientStage(Duration.Inf)
     val h = new SeqTestHead(List(ByteBuffer.wrap(resp.getBytes(StandardCharsets.US_ASCII))))
     LeafBuilder(tail).base(h)
 

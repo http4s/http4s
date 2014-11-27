@@ -16,7 +16,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
 import scalaz.{-\/, \/, \/-}
 
-class Http1ClientStage(protected val timeout: Duration = 60.seconds)
+class Http1ClientStage(protected val timeout: Duration)
                       (implicit protected val ec: ExecutionContext)
                       extends Http1ClientReceiver with Http1Stage {
 

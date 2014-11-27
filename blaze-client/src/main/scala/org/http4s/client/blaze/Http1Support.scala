@@ -7,6 +7,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.util.CaseInsensitiveString._
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 import scalaz.{-\/, \/, \/-}
 
 trait Http1Support extends PipelineBuilder {
@@ -15,17 +16,17 @@ trait Http1Support extends PipelineBuilder {
 
   implicit protected def ec: ExecutionContext
 
-  override protected def buildPipeline(req: Request, closeOnFinish: Boolean): PipelineResult = {
+  override protected def buildPipeline(req: Request, closeOnFinish: Boolean, timeout: Duration): PipelineResult = {
     val isHttp = req.uri.scheme match {
       case Some(s) if s != "http".ci => false
       case _ => true
     }
 
     if (isHttp && req.uri.authority.isDefined) {
-      val t = new Http1ClientStage()
+      val t = new Http1ClientStage(timeout)
       PipelineResult(LeafBuilder(t), t)
     }
-    else super.buildPipeline(req, closeOnFinish)
+    else super.buildPipeline(req, closeOnFinish, timeout)
   }
 
   override protected def getAddress(req: Request): AddressResult = {
