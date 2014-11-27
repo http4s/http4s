@@ -1,6 +1,5 @@
 package org.http4s.client
 
-import org.http4s.client.Client.{Result, BadResponse}
 import org.http4s._
 
 import scala.util.control.NoStackTrace
@@ -8,6 +7,7 @@ import scalaz.concurrent.Task
 
 
 trait Client {
+  import Client._
 
   /** Prepare a single request
     * @param req [[Request]] containing the headers, URI, etc.
@@ -59,4 +59,11 @@ object Client {
   case class BadResponse(status: Status, msg: String) extends Exception with NoStackTrace {
     override def getMessage: String = s"Bad Response, $status: '$msg'"
   }
+
+  def decode[A](resp: Task[Response])(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
+    resp.flatMap { resp =>
+      onResponse(resp)
+        .apply(resp)
+        .map(Result(resp.status, resp.headers, _))
+    }
 }
