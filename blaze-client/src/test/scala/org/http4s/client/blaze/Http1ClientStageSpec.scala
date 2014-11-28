@@ -2,8 +2,9 @@ package org.http4s
 package client.blaze
 
 import java.nio.charset.StandardCharsets
+import java.util.concurrent.TimeoutException
 
-import org.http4s.blaze.SeqTestHead
+import org.http4s.blaze.{SlowTestHead, SeqTestHead}
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.specs2.mutable.Specification
 
@@ -20,32 +21,68 @@ import scalaz.\/-
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
-  def getSubmission(req: Request, resp: String): String = {
-    val tail = new Http1ClientStage()
-    val h = new SeqTestHead(List(ByteBuffer.wrap(resp.getBytes(StandardCharsets.US_ASCII))))
+  // Common throw away response
+  val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
+
+  def mkBuffer(s: String): ByteBuffer =
+    ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))
+
+  def getSubmission(req: Request, resp: String, timeout: Duration): String = {
+    val tail = new Http1ClientStage(timeout)
+    val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)
 
     val result = tail.runRequest(req).run
     h.stageShutdown()
-    val buff = Await.result(h.result, 30.seconds)
+    val buff = Await.result(h.result, timeout + 10.seconds)
     new String(ByteVector(buff).toArray, StandardCharsets.US_ASCII)
   }
 
-  "Http1ClientStage" should {
+  "Http1ClientStage requests" should {
+    "Run a basic request" in {
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
 
-    // Common throw away response
-    val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
+      val response = getSubmission(req, resp, 20.seconds).split("\r\n")
+      val statusline = response(0)
+
+      statusline must_== "GET / HTTP/1.1"
+    }
 
     "Submit a request line with a query" in {
-
       val uri = "/huh?foo=bar"
       val \/-(parsed) = Uri.fromString("http://www.foo.com" + uri)
       val req = Request(uri = parsed)
 
-      val response = getSubmission(req, resp).split("\r\n")
+      val response = getSubmission(req, resp, 20.seconds).split("\r\n")
       val statusline = response(0)
 
       statusline must_== "GET " + uri + " HTTP/1.1"
+    }
+  }
+
+  "Http1ClientStage responses" should {
+    "Timeout on slow response" in {
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
+
+      val tail = new Http1ClientStage(1.second)
+      val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
+      LeafBuilder(tail).base(h)
+
+      tail.runRequest(req).run must throwA[TimeoutException]
+    }
+
+    "Timeout on slow response even if chunks are coming" in {
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
+
+      val tail = new Http1ClientStage(1.second)
+      val buffs = resp.toCharArray.map{ c => mkBuffer(c.toString) }
+      val h = new SlowTestHead(buffs, 100.millis)
+      LeafBuilder(tail).base(h)
+
+      tail.runRequest(req).run must throwA[TimeoutException]
     }
   }
 

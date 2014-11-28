@@ -1,22 +1,25 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicBoolean
 
 import org.http4s.Header.{Host, `Content-Length`}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.Http1Stage
-import org.http4s.blaze.util.ProcessWriter
+import org.http4s.blaze.util.{Cancellable, ProcessWriter}
 import org.http4s.util.{StringWriter, Writer}
 import org.http4s.{Header, Request, Response, HttpVersion}
 
 import scala.annotation.tailrec
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{TimeoutException, ExecutionContext}
 import scala.concurrent.duration._
+import scala.util.control.NoStackTrace
+
 import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
 import scalaz.{-\/, \/, \/-}
 
-class Http1ClientStage(protected val timeout: Duration = 60.seconds)
+class Http1ClientStage(timeout: Duration)
                       (implicit protected val ec: ExecutionContext)
                       extends Http1ClientReceiver with Http1Stage {
 
@@ -28,7 +31,35 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
 
   override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
+  /** Generate a `Task[Response]` that will perform an HTTP 1 request on execution */
   def runRequest(req: Request): Task[Response] = {
+    if (timeout.isFinite()) {
+    // We need to race two Tasks, one that will result in failure, one that gives the Response
+      val complete = new AtomicBoolean(false)
+      @volatile var cancellable: Cancellable = null
+
+      val t2: Task[Nothing] = Task.async { cb =>
+        cancellable = ClientTickWheel.schedule(new Runnable {
+          override def run(): Unit = {
+            if (complete.compareAndSet(false, true)) {
+              cb(-\/(new TimeoutException(s"Request timed out. Timeout: $timeout") with NoStackTrace))
+              shutdown()
+            }
+          }
+        }, timeout)
+      }
+
+      Task.taskInstance.chooseAny(executeRequest(req), t2::Nil).map { case (r,_) =>
+        complete.set(true)
+        val c = cancellable
+        if (c != null) c.cancel()
+        r
+      }
+    }
+    else executeRequest(req)
+  }
+
+  private def executeRequest(req: Request): Task[Response] = {
     logger.debug(s"Beginning request: $req")
     validateRequest(req) match {
       case Left(e)    => Task.fail(e)
@@ -47,7 +78,7 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
 
             enc.writeProcess(req.body).runAsync {
               case \/-(_)    => receiveResponse(cb, closeHeader)
-              case e@ -\/(t) => cb(e)
+              case e@ -\/(_) => cb(e)
             }
           } catch { case t: Throwable =>
             logger.error(t)("Error during request submission")
@@ -90,9 +121,8 @@ class Http1ClientStage(protected val timeout: Duration = 60.seconds)
 
   private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 
-  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): ProcessWriter = {
+  private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): ProcessWriter =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
-  }
 
   private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
     val uri = req.uri

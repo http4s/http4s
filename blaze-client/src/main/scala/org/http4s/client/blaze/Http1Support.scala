@@ -7,6 +7,7 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.util.CaseInsensitiveString._
 
 import scala.concurrent.ExecutionContext
+import scala.concurrent.duration.Duration
 import scalaz.{-\/, \/, \/-}
 
 trait Http1Support extends PipelineBuilder {
@@ -22,7 +23,7 @@ trait Http1Support extends PipelineBuilder {
     }
 
     if (isHttp && req.uri.authority.isDefined) {
-      val t = new Http1ClientStage()
+      val t = new Http1ClientStage(timeout)
       PipelineResult(LeafBuilder(t), t)
     }
     else super.buildPipeline(req, closeOnFinish)
