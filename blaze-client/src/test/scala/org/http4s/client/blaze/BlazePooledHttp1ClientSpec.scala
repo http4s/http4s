@@ -1,6 +1,5 @@
 package org.http4s.client.blaze
 
-
 import org.http4s.client.ClientRouteTestBattery
 
 

@@ -5,7 +5,6 @@ import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import org.http4s.blaze.pipeline.Command
-import org.http4s.util.CaseInsensitiveString
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
@@ -13,8 +12,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.{-\/, \/-}
 
-abstract class Http1ClientReceiver extends Http1ClientParser
-                                      with BlazeClientStage { self: Http1ClientStage =>
+abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientStage { self: Http1ClientStage =>
 
   private val _headers = new ListBuffer[Header]
   private var _status: Status = null
@@ -51,11 +49,12 @@ abstract class Http1ClientReceiver extends Http1ClientParser
     false
   }
 
-  protected def receiveResponse(cb: Callback, close: Boolean): Unit = readAndParse(cb, close, "Initial Read")
+  protected def receiveResponse(cb: Callback, close: Boolean): Unit =
+    readAndParse(cb, close, "Initial Read")
 
   // this method will get some data, and try to continue parsing using the implicit ec
   private def readAndParse(cb: Callback,  closeOnFinish: Boolean, phase: String) {
-    channelRead(timeout = timeout).onComplete {
+    channelRead().onComplete {
       case Success(buff) => requestLoop(buff, closeOnFinish, cb)
       case Failure(t)    =>
         fatalError(t, s"Error during phase: $phase")
