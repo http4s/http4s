@@ -3,10 +3,9 @@ package servlet
 
 import java.util.concurrent.atomic.AtomicReference
 
+import org.http4s.ReplyException
 import scodec.bits.ByteVector
 import java.util.concurrent.ExecutorService
-
-import org.http4s.util.ReplyException
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}

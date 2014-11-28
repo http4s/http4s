@@ -1,5 +1,6 @@
 package org.http4s
-package client.blaze
+package client
+package blaze
 
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
@@ -99,8 +100,6 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
     }
 
     "Alert the user if the body is to short" in {
-      import org.http4s.util.InvalidBodyException
-
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
       val \/-(parsed) = Uri.fromString("http://www.foo.com")
       val req = Request(uri = parsed)

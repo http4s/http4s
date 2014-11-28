@@ -20,7 +20,7 @@ import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError}
-import org.http4s.util.{ReplyException, StringWriter}
+import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{Connection, `Content-Length`}
 

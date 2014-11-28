@@ -1,4 +1,4 @@
-package org.http4s.client.util
+package org.http4s
 
 import scala.util.control.NoStackTrace
 

@@ -1,6 +1,4 @@
-package org.http4s.util
-
-import org.http4s.{HttpVersion, Response}
+package org.http4s
 
 import scalaz.concurrent.Task
 

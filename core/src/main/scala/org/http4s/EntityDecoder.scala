@@ -2,8 +2,6 @@ package org.http4s
 
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
-
-import org.http4s.util.ReplyException
 import org.xml.sax.{SAXException, SAXParseException, InputSource}
 import scodec.bits.ByteVector
 

@@ -5,12 +5,12 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.http4s.Header.`Transfer-Encoding`
-import org.http4s.blaze.util.BufferTools.concatBuffers
+import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util.{ChunkProcessWriter, CachingStaticWriter, CachingChunkWriter, ProcessWriter}
-import org.http4s.util.{InvalidBodyException, Writer, StringWriter}
+import org.http4s.util.{Writer, StringWriter}
 import scodec.bits.ByteVector
 
 import scala.concurrent.{Future, ExecutionContext}
@@ -119,44 +119,45 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       }
   }
 
-  // TODO: what should be the behavior for determining if we have some body coming?
   final protected def collectBodyFromParser(buffer: ByteBuffer): (EntityBody, () => Future[ByteBuffer]) = {
-    if (contentComplete()) return (EmptyBody, () => Future.successful(buffer))
-
-    @volatile var currentBuffer = buffer
-
-    // TODO: we need to work trailers into here somehow
-    val t = Task.async[ByteVector]{ cb =>
-      if (!contentComplete()) {
-
-        def go(): Unit = try {
-          doParseContent(currentBuffer) match {
-            case Some(result) => cb(\/-(ByteVector(result)))
-            case None if contentComplete() => cb(-\/(Terminated(End)))
-            case None =>
-              channelRead().onComplete {
-                case Success(b)   => currentBuffer = b; go() // Need more data...
-                case Failure(EOF) => cb(-\/(InvalidBodyException("Received premature EOF.")))
-                case Failure(t)   => cb(-\/(t))
-              }
-          }
-        } catch {
-          case t: ParserException =>
-            fatalError(t, "Error parsing request body")
-            cb(-\/(InvalidBodyException(t.msg())))
-
-          case t: Throwable =>
-            fatalError(t, "Error collecting body")
-            cb(-\/(t))
-        }
-        go()
-      }
-      else {
-        cb(-\/(Terminated(End)))
-      }
+    if (contentComplete()) {
+      if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
+      else (EmptyBody, () => Future.successful(buffer))
     }
+    else {
+      @volatile var currentBuffer = buffer
 
-    (repeatEval(t), () => drainBody(currentBuffer))
+      // TODO: we need to work trailers into here somehow
+      val t = Task.async[ByteVector]{ cb =>
+        if (!contentComplete()) {
+
+          def go(): Unit = try {
+            doParseContent(currentBuffer) match {
+              case Some(result) => cb(\/-(ByteVector(result)))
+              case None if contentComplete() => cb(-\/(Terminated(End)))
+              case None =>
+                channelRead().onComplete {
+                  case Success(b)   => currentBuffer = b; go() // Need more data...
+                  case Failure(EOF) => cb(-\/(InvalidBodyException("Received premature EOF.")))
+                  case Failure(t)   => cb(-\/(t))
+                }
+            }
+          } catch {
+            case t: ParserException =>
+              fatalError(t, "Error parsing request body")
+              cb(-\/(InvalidBodyException(t.msg())))
+
+            case t: Throwable =>
+              fatalError(t, "Error collecting body")
+              cb(-\/(t))
+          }
+          go()
+        }
+        else cb(-\/(Terminated(End)))
+      }
+
+      (repeatEval(t), () => drainBody(currentBuffer))
+    }
   }
 
   /** Called when a fatal error has occurred
@@ -179,5 +180,12 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       else Future.successful(buffer)
     }
     else Future.successful(buffer)
+  }
+}
+
+private object Http1Stage {
+  val CachedEmptyBody = {
+    val f = Future.successful(emptyBuffer)
+    (EmptyBody, () => f)
   }
 }
