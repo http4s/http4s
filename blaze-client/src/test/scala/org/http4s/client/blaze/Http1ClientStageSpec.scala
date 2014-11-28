@@ -73,16 +73,20 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       tail.runRequest(req).run must throwA[TimeoutException]
     }
 
-    "Timeout on slow response even if chunks are coming" in {
+    "Timeout on slow body" in {
       val \/-(parsed) = Uri.fromString("http://www.foo.com")
       val req = Request(uri = parsed)
 
-      val tail = new Http1ClientStage(1.second)
-      val buffs = resp.toCharArray.map{ c => mkBuffer(c.toString) }
-      val h = new SlowTestHead(buffs, 100.millis)
+      val tail = new Http1ClientStage(2.second)
+      val (f,b) = resp.splitAt(resp.length - 1)
+      val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       LeafBuilder(tail).base(h)
 
-      tail.runRequest(req).run must throwA[TimeoutException]
+      val result = tail.runRequest(req).flatMap { resp =>
+        EntityDecoder.text.apply(resp)
+      }
+
+      result.run must throwA[TimeoutException]
     }
   }
 
