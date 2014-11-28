@@ -28,12 +28,8 @@ final class Http1ClientStage(timeout: Duration)
   protected type Callback = Throwable\/Response => Unit
   
   private val _inProgress = new AtomicReference[Cancellable]()
-  
-  def inProgress(): Boolean = _inProgress.get != null
 
   override def name: String = getClass.getName
-
-  override protected def parserContentComplete(): Boolean = contentComplete()
 
   override def reset(): Unit = {
     val c = _inProgress.getAndSet(null)

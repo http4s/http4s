@@ -84,10 +84,19 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
       return
     }
 
-    val body = collectBodyFromParser(buffer).onComplete(Process.eval_(Task {
-      if (closeOnFinish) stageShutdown()
-      else reset()
-    }))
+    // We are to the point of parsing the body and then cleaning up
+    val (rawBody, cleanup) = collectBodyFromParser(buffer)
+
+    val body = rawBody ++ Process.eval_(Task.async[Unit] { cb =>
+      if (closeOnFinish) {
+        stageShutdown()
+        cb(\/-(()))
+      }
+      else cleanup().onComplete {
+        case Success(_) => reset(); cb(\/-(()))     // we shouldn't have any leftover buffer
+        case Failure(t) => cb(-\/(t))
+      }
+    })
 
     // TODO: we need to detect if the other side has signaled the connection will close.
     cb(\/-(collectMessage(body)))

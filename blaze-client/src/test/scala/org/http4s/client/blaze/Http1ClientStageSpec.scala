@@ -16,7 +16,7 @@ import scodec.bits.ByteVector
 import scala.concurrent.Await
 import scala.concurrent.duration._
 
-import scalaz.\/-
+import scalaz.{-\/, \/-}
 
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Specification with NoTimeConversions {
@@ -46,7 +46,7 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
     (request, result)
   }
 
-  "Http1ClientStage requests" should {
+  "Http1ClientStage" should {
     "Run a basic request" in {
       val \/-(parsed) = Uri.fromString("http://www.foo.com")
       val req = Request(uri = parsed)
@@ -96,6 +96,22 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
       val result = tail.runRequest(req).run
       result.headers.size must_== 1
+    }
+
+    "Alert the user if the body is to short" in {
+      import org.http4s.util.InvalidBodyException
+
+      val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
+
+      val tail = new Http1ClientStage(30.second)
+      val h = new SeqTestHead(List(mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
+
+      val result = tail.runRequest(req).run
+
+      result.body.run.run must throwA[InvalidBodyException]
     }
   }
 
