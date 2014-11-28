@@ -1,8 +1,6 @@
 package org.http4s
 package blaze
 
-import scalaz.\/-
-
 import http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
 import java.nio.ByteBuffer
@@ -21,17 +19,22 @@ class ResponseParser extends Http1ClientParser {
   var majorversion = -1
   var minorversion = -1
 
-  def parseResponse(buff: Seq[ByteBuffer]): (Status, Set[Header], String) = {
-    val b = ByteBuffer.wrap(buff.map(b => ByteVector(b).toArray).toArray.flatten)
-
-    parseResponseLine(b)
-    parseHeaders(b)
+  /** Will not mutate the ByteBuffers in the Seq */
+  def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header], String) = {
+    val b = ByteBuffer.wrap(buffs.map(b => ByteVector(b).toArray).toArray.flatten)
+    parseResponseBuffer(b)
+  }
+    
+  /* Will mutate the ByteBuffer */
+  def parseResponseBuffer(buffer: ByteBuffer): (Status, Set[Header], String) = {
+    parseResponseLine(buffer)
+    parseHeaders(buffer)
 
     if (!headersComplete()) sys.error("Headers didn't complete!")
 
     val body = new ListBuffer[ByteBuffer]
-    while(!this.contentComplete() && b.hasRemaining) {
-      body += parseContent(b)
+    while(!this.contentComplete() && buffer.hasRemaining) {
+      body += parseContent(buffer)
     }
 
     val bp = new String(body.map(ByteVector(_)).foldLeft(ByteVector.empty)((c1,c2) => c1 ++ c2).toArray,
@@ -45,12 +48,12 @@ class ResponseParser extends Http1ClientParser {
   }
 
 
-  override def headerComplete(name: String, value: String): Boolean = {
+  override protected def headerComplete(name: String, value: String): Boolean = {
     headers += ((name,value))
     false
   }
 
-  override def submitResponseLine(code: Int,
+  override protected def submitResponseLine(code: Int,
                                   reason: String,
                                   scheme: String,
                                   majorversion: Int,
@@ -65,4 +68,6 @@ class ResponseParser extends Http1ClientParser {
 object ResponseParser {
   def apply(buff: Seq[ByteBuffer]) = new ResponseParser().parseResponse(buff)
   def apply(buff: ByteBuffer) = new ResponseParser().parseResponse(Seq(buff))
+
+  def parseBuffer(buff: ByteBuffer) = new ResponseParser().parseResponseBuffer(buff)
 }
