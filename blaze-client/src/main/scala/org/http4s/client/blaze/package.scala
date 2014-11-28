@@ -7,9 +7,8 @@ import scala.concurrent.duration._
 package object blaze {
 
   // Centralize some defaults
-  private[blaze] val defaultTimeout: Duration = 60.seconds
-  private[blaze] val defaultBufferSize: Int = 8*1024
-  private[blaze] def defaultEC = Execution.trampoline
-
-  private[blaze] val tickWheel = new TickWheelExecutor()
+  private[blaze] val DefaultTimeout: Duration = 60.seconds
+  private[blaze] val DefaultBufferSize: Int = 8*1024
+  private[blaze] val ClientDefaultEC = Execution.trampoline
+  private[blaze] val ClientTickWheel = new TickWheelExecutor()
 }

@@ -39,7 +39,7 @@ class Http1ClientStage(timeout: Duration)
       @volatile var cancellable: Cancellable = null
 
       val t2: Task[Nothing] = Task.async { cb =>
-        cancellable = tickWheel.schedule(new Runnable {
+        cancellable = ClientTickWheel.schedule(new Runnable {
           override def run(): Unit = {
             if (complete.compareAndSet(false, true)) {
               cb(-\/(new TimeoutException(s"Request timed out. Timeout: $timeout") with NoStackTrace))

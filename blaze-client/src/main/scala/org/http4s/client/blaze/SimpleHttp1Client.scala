@@ -35,4 +35,4 @@ class SimpleHttp1Client(protected val timeout: Duration,
   }
 }
 
-object SimpleHttp1Client extends SimpleHttp1Client(defaultTimeout, defaultBufferSize, defaultEC, None)
+object SimpleHttp1Client extends SimpleHttp1Client(DefaultTimeout, DefaultBufferSize, ClientDefaultEC, None)

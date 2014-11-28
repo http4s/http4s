@@ -6,8 +6,8 @@ import scala.concurrent.ExecutionContext
 import scala.concurrent.duration._
 
 class PooledHttp1Client(maxPooledConnections: Int = 10,
-                       protected val timeout: Duration = defaultTimeout,
-                                  bufferSize: Int = defaultBufferSize,
-                                    executor: ExecutionContext = defaultEC,
+                       protected val timeout: Duration = DefaultTimeout,
+                                  bufferSize: Int = DefaultBufferSize,
+                                    executor: ExecutionContext = ClientDefaultEC,
                                        group: Option[AsynchronousChannelGroup] = None)
   extends PooledClient(maxPooledConnections, bufferSize, executor, group) with Http1SSLSupport
