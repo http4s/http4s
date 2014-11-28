@@ -38,13 +38,13 @@ trait BlazeClient extends PipelineBuilder with Client {
       case Success(client) =>
         client.runRequest(req).runAsync {
           case \/-(r)    =>
-            val endgame = eval_(Task.delay {
+            val recycleProcess = eval_(Task.delay {
               if (!client.isClosed()) {
                 recycleClient(req, client)
               }
             })
 
-            cb(\/-(r.copy(body = r.body.onComplete(endgame))))
+            cb(\/-(r.copy(body = r.body.onComplete(recycleProcess))))
 
           case -\/(Command.EOF) if retries > 0 =>
             getClient(req, fresh = true).onComplete(tryClient(_, retries - 1))

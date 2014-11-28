@@ -27,15 +27,23 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
   def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))
 
-  def getSubmission(req: Request, resp: String, timeout: Duration): String = {
+  def getSubmission(req: Request, resp: String, timeout: Duration): (String, String) = {
     val tail = new Http1ClientStage(timeout)
     val h = new SeqTestHead(List(mkBuffer(resp)))
     LeafBuilder(tail).base(h)
 
-    val result = tail.runRequest(req).run
+    val result = new String(tail.runRequest(req)
+                                .run
+                                .body
+                                .runLog
+                                .run
+                                .foldLeft(ByteVector.empty)(_ ++ _)
+                                .toArray)
+
     h.stageShutdown()
     val buff = Await.result(h.result, timeout + 10.seconds)
-    new String(ByteVector(buff).toArray, StandardCharsets.US_ASCII)
+    val request = new String(ByteVector(buff).toArray, StandardCharsets.US_ASCII)
+    (request, result)
   }
 
   "Http1ClientStage requests" should {
@@ -43,10 +51,11 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       val \/-(parsed) = Uri.fromString("http://www.foo.com")
       val req = Request(uri = parsed)
 
-      val response = getSubmission(req, resp, 20.seconds).split("\r\n")
-      val statusline = response(0)
+      val (request, response) = getSubmission(req, resp, 20.seconds)
+      val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET / HTTP/1.1"
+      response must_== "done"
     }
 
     "Submit a request line with a query" in {
@@ -54,10 +63,39 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       val \/-(parsed) = Uri.fromString("http://www.foo.com" + uri)
       val req = Request(uri = parsed)
 
-      val response = getSubmission(req, resp, 20.seconds).split("\r\n")
-      val statusline = response(0)
+      val (request, response) = getSubmission(req, resp, 20.seconds)
+      val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET " + uri + " HTTP/1.1"
+      response must_== "done"
+    }
+
+    "Fail when attempting to get a second request with one in progress" in {
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
+
+      val tail = new Http1ClientStage(1.second)
+      val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
+
+      tail.runRequest(req).run  // we remain in the body
+
+      tail.runRequest(req).run must throwA[Http1ClientStage.InProgressException]
+    }
+
+    "Reset correctly" in {
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
+
+      val tail = new Http1ClientStage(1.second)
+      val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
+      LeafBuilder(tail).base(h)
+
+      // execute the first request and run the body to reset the stage
+      tail.runRequest(req).run.body.run.run
+
+      val result = tail.runRequest(req).run
+      result.headers.size must_== 1
     }
   }
 
@@ -89,5 +127,4 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       result.run must throwA[TimeoutException]
     }
   }
-
 }

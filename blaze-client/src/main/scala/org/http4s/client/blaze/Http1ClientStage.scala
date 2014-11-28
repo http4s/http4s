@@ -1,6 +1,7 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
+import java.nio.channels.ClosedChannelException
 import java.util.concurrent.atomic.AtomicBoolean
 
 import org.http4s.Header.{Host, `Content-Length`}
@@ -19,15 +20,26 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process.{ halt, eval_ }
 import scalaz.{-\/, \/, \/-}
 
-class Http1ClientStage(timeout: Duration)
+final class Http1ClientStage(timeout: Duration)
                       (implicit protected val ec: ExecutionContext)
                       extends Http1ClientReceiver with Http1Stage {
 
+  import Http1ClientStage._
+
   protected type Callback = Throwable\/Response => Unit
+  
+  private val _inProgress = new AtomicBoolean(false)
+  
+  def inProgress: Boolean = _inProgress.get
 
   override def name: String = getClass.getName
 
   override protected def parserContentComplete(): Boolean = contentComplete()
+
+  override def reset(): Unit = {
+    _inProgress.set(false)
+    super.reset()
+  }
 
   override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
@@ -56,6 +68,7 @@ class Http1ClientStage(timeout: Duration)
           if (complete.compareAndSet(false, true)) {
             val c = cancellable
             if (c != null) c.cancel()
+            _inProgress.set(false)
             cb(\/-(()))
           }
           else cb(-\/(mkTimeoutEx))
@@ -73,7 +86,13 @@ class Http1ClientStage(timeout: Duration)
       case Left(e)    => Task.fail(e)
       case Right(req) =>
         Task.async { cb =>
-          try {
+          if (isClosed()) {
+            cb(-\/(new ClosedChannelException))
+          }
+          else if (!_inProgress.compareAndSet(false, true)) {
+            cb(-\/(new InProgressException))
+          }
+          else try {
             val rr = new StringWriter(512)
             encodeRequestLine(req, rr)
             encodeHeaders(req.headers, rr)
@@ -149,6 +168,10 @@ class Http1ClientStage(timeout: Duration)
       writer
     } else sys.error("Request URI must have a host.") // TODO: do we want to do this by exception?
   }
+}
+
+object Http1ClientStage {
+  class InProgressException extends Exception("Stage has request in progress")
 }
 
 

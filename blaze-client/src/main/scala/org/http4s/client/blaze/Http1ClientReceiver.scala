@@ -13,20 +13,31 @@ import scalaz.stream.Process
 import scalaz.{-\/, \/-}
 
 abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientStage { self: Http1ClientStage =>
-
   private val _headers = new ListBuffer[Header]
-  private var _status: Status = null
-  private var _httpVersion: HttpVersion = null
+  private var _status: Status = _
+  private var _httpVersion: HttpVersion = _
   @volatile private var closed = false
 
-  override def isClosed(): Boolean = closed
+  final override def isClosed(): Boolean = closed
 
-  override def shutdown(): Unit = {
+  final override def shutdown(): Unit = stageShutdown()
+
+  // seal this off, use shutdown()
+  final override def stageShutdown() = {
     closed = true
     sendOutboundCommand(Command.Disconnect)
+    shutdownParser()
+    super.stageShutdown()
   }
 
-  override protected def submitResponseLine(code: Int, reason: String,
+  override def reset(): Unit = {
+    _headers.clear()
+    _status = null
+    _httpVersion = null
+    super.reset()
+  }
+
+  final override protected def submitResponseLine(code: Int, reason: String,
                                             scheme: String,
                                             majorversion: Int, minorversion: Int): Unit = {
     _status = Status.fromIntAndReason(code, reason).valueOr(e => throw new ParseException(e))
@@ -37,19 +48,19 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
     }
   }
 
-  protected def collectMessage(body: EntityBody): Response = {
+  final protected def collectMessage(body: EntityBody): Response = {
     val status   = if (_status == null) Status.InternalServerError else _status
     val headers  = if (_headers.isEmpty) Headers.empty else Headers(_headers.result())
     val httpVersion = if (_httpVersion == null) HttpVersion.`HTTP/1.0` else _httpVersion // TODO Questionable default
     Response(status, httpVersion, headers, body)
   }
 
-  override protected def headerComplete(name: String, value: String): Boolean = {
+  final override protected def headerComplete(name: String, value: String): Boolean = {
     _headers += Header(name, value)
     false
   }
 
-  protected def receiveResponse(cb: Callback, close: Boolean): Unit =
+  final protected def receiveResponse(cb: Callback, close: Boolean): Unit =
     readAndParse(cb, close, "Initial Read")
 
   // this method will get some data, and try to continue parsing using the implicit ec
@@ -74,11 +85,7 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
     }
 
     val body = collectBodyFromParser(buffer).onComplete(Process.eval_(Task {
-      if (closeOnFinish) {
-        closed = true
-        stageShutdown()
-        sendOutboundCommand(Command.Disconnect)
-      }
+      if (closeOnFinish) stageShutdown()
       else reset()
     }))
 
