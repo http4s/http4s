@@ -100,7 +100,7 @@ class EntityDecoderSpec extends Specification {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
         case req =>
-          textFile(tmpFile).decode(req).flatMap { _ =>
+          textFile(tmpFile)(req).flatMap { _ =>
             ResponseBuilder(Ok, "Hello")
           }
       }.run
@@ -113,7 +113,7 @@ class EntityDecoderSpec extends Specification {
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
-        case req => binFile(tmpFile).decode(req).flatMap(_ => ResponseBuilder(Ok, "Hello"))
+        case req => binFile(tmpFile)(req).flatMap(_ => ResponseBuilder(Ok, "Hello"))
       }.run
 
       response.status must_== (Status.Ok)
@@ -155,7 +155,7 @@ class EntityDecoderSpec extends Specification {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request()
-      binary.decode(msg).run.length should_== 0
+      binary(msg).run.length should_== 0
     }
 
     "concat ByteVectors" in {
@@ -163,7 +163,7 @@ class EntityDecoderSpec extends Specification {
       val body = emit(d1) ++ emit(d2)
       val msg = Request(body = body.map(ByteVector(_)))
 
-      val result = binary.decode(msg).run
+      val result = binary(msg).run
 
       result.length should_== 6
       result should_== Array[Byte](1,2,3,4,5,6)
