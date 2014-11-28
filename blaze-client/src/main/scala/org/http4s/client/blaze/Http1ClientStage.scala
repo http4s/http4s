@@ -1,8 +1,7 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
-import java.nio.channels.ClosedChannelException
-import java.util.concurrent.atomic.AtomicBoolean
+import java.util.concurrent.atomic.AtomicReference
 
 import org.http4s.Header.{Host, `Content-Length`}
 import org.http4s.Uri.{Authority, RegName}
@@ -17,7 +16,7 @@ import scala.concurrent.duration._
 import scala.util.control.NoStackTrace
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process.{ halt, eval_ }
+import scalaz.stream.Process.halt
 import scalaz.{-\/, \/, \/-}
 
 final class Http1ClientStage(timeout: Duration)
@@ -28,16 +27,17 @@ final class Http1ClientStage(timeout: Duration)
 
   protected type Callback = Throwable\/Response => Unit
   
-  private val _inProgress = new AtomicBoolean(false)
+  private val _inProgress = new AtomicReference[Cancellable]()
   
-  def inProgress: Boolean = _inProgress.get
+  def inProgress(): Boolean = _inProgress.get != null
 
   override def name: String = getClass.getName
 
   override protected def parserContentComplete(): Boolean = contentComplete()
 
   override def reset(): Unit = {
-    _inProgress.set(false)
+    val c = _inProgress.getAndSet(null)
+    c.cancel()
     super.reset()
   }
 
@@ -47,37 +47,30 @@ final class Http1ClientStage(timeout: Duration)
   def runRequest(req: Request): Task[Response] = {
     if (timeout.isFinite()) {
     // We need to race two Tasks, one that will result in failure, one that gives the Response
-      val complete = new AtomicBoolean(false)
-      @volatile var cancellable: Cancellable = null
 
       val resp = Task.async[Response] { cb =>
-        cancellable = ClientTickWheel.schedule(new Runnable {
+        val c: Cancellable = ClientTickWheel.schedule(new Runnable {
           override def run(): Unit = {
-            if (complete.compareAndSet(false, true)) {
+            if (_inProgress.get() != null) {  // We must still be active, and the stage hasn't reset.
               cb(-\/(mkTimeoutEx))
               shutdown()
             }
           }
         }, timeout)
 
-        executeRequest(req).runAsync ( r => if (!complete.get()) cb(r) )
+        if (!_inProgress.compareAndSet(null, c)) {
+          c.cancel()
+          cb(-\/(new InProgressException))
+        }
+        else executeRequest(req).runAsync(cb)
       }
 
-      resp.map { resp =>
-        val body = resp.body ++ eval_(Task.async[Unit] { cb =>
-          if (complete.compareAndSet(false, true)) {
-            val c = cancellable
-            if (c != null) c.cancel()
-            _inProgress.set(false)
-            cb(\/-(()))
-          }
-          else cb(-\/(mkTimeoutEx))
-        })
-
-        resp.copy(body = body)
-      }
+      resp
     }
-    else executeRequest(req)
+    else Task.suspend {
+      if (!_inProgress.compareAndSet(null, ForeverCancellable)) Task.fail(new InProgressException)
+      else executeRequest(req)
+    }
   }
 
   private def executeRequest(req: Request): Task[Response] = {
@@ -86,13 +79,7 @@ final class Http1ClientStage(timeout: Duration)
       case Left(e)    => Task.fail(e)
       case Right(req) =>
         Task.async { cb =>
-          if (isClosed()) {
-            cb(-\/(new ClosedChannelException))
-          }
-          else if (!_inProgress.compareAndSet(false, true)) {
-            cb(-\/(new InProgressException))
-          }
-          else try {
+          try {
             val rr = new StringWriter(512)
             encodeRequestLine(req, rr)
             encodeHeaders(req.headers, rr)
@@ -172,6 +159,12 @@ final class Http1ClientStage(timeout: Duration)
 
 object Http1ClientStage {
   class InProgressException extends Exception("Stage has request in progress")
+
+  // Acts as a place holder for requests that don't have a timeout set
+  private val ForeverCancellable = new Cancellable {
+    override def isCancelled(): Boolean = false
+    override def cancel(): Unit = ()
+  }
 }
 
 
