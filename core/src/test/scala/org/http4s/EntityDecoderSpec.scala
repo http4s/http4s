@@ -166,7 +166,7 @@ class EntityDecoderSpec extends Specification {
       val result = binary(msg).run
 
       result.length should_== 6
-      result should_== Array[Byte](1,2,3,4,5,6)
+      result should_== ByteVector(1,2,3,4,5,6)
     }
   }
 
