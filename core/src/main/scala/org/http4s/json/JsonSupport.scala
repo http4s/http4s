@@ -11,7 +11,7 @@ import scalaz.concurrent.Task
 trait JsonSupport[J] extends JsonDecodeSupport[J] with JsonEncodeSupport[J]
 
 trait JsonDecodeSupport[J] {
-  def decodeJson(body: EntityBody): EitherT[Task, DecodingException, J]
+  def decodeJson(body: EntityBody): DecodeResult[J]
 
   implicit def json: EntityDecoder[J] = EntityDecoder[J](
     msg => decodeJson(msg.body), MediaType.`application/json`

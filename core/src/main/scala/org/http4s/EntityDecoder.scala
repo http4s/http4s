@@ -29,14 +29,14 @@ sealed trait EntityDecoder[T] { self =>
 
   final def apply(msg: Message): Task[T] = decode(msg).valueOr(throw _)
 
-  def decode(msg: Message): EitherT[Task, DecodingException, T]
+  def decode(msg: Message): DecodeResult[T]
 
   def consumes: Set[MediaRange]
 
   def map[T2](f: T => T2): EntityDecoder[T2] = new EntityDecoder[T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
-    override def decode(msg: Message): EitherT[Task, DecodingException, T2] = self.decode(msg).map(f)
+    override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
   }
 
 //  def orElse[T2 >: T](other: EntityDecoder[T2]): EntityDecoder[T2] = new EntityDecoder.OrDec(this, other)
@@ -61,7 +61,6 @@ sealed trait EntityDecoder[T] { self =>
   * with some commonly used instances which can be resolved implicitly.
   */
 object EntityDecoder extends EntityDecoderInstances {
-
   case class DecodingException(reason: String, cause: Option[Throwable] = None)
     extends Exception(reason, cause.orNull)
     with ReplyException
@@ -71,11 +70,11 @@ object EntityDecoder extends EntityDecoderInstances {
       ResponseBuilder(Status.BadRequest, version, reason).run
   }
 
-  def apply[T](f: Message => EitherT[Task, DecodingException, T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
-    override def decode(msg: Message): EitherT[Task, DecodingException, T] = {
+  def apply[T](f: Message => DecodeResult[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
+    override def decode(msg: Message): DecodeResult[T] = {
       try f(msg)
       catch {
-        case NonFatal(e) => EitherT[Task, DecodingException, T](Task.fail(e))
+        case NonFatal(e) => DecodeResult[T](Task.fail(e))
       }
     }
 
@@ -83,7 +82,7 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   private class OrDec[T](a: EntityDecoder[T], b: EntityDecoder[T]) extends EntityDecoder[T] {
-    override def decode(msg: Message): EitherT[Task, DecodingException, T] = {
+    override def decode(msg: Message): DecodeResult[T] = {
       if (a.matchesMediaType(msg)) a.decode(msg)
       else b.decode(msg)
     }
@@ -92,7 +91,7 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  def collectBinary(msg: Message): EitherT[Task, DecodingException, ByteVector] =
+  def collectBinary(msg: Message): DecodeResult[ByteVector] =
     EitherT.right(msg.body.runFoldMap(identity))
 
   /** Decodes a message to a String */
@@ -112,9 +111,9 @@ trait EntityDecoderInstances {
 
   /** Provides a mechanism to fail decoding */
   def error[T](t: Throwable) = new EntityDecoder[T] {
-    override def decode(msg: Message): EitherT[Task, DecodingException, T] = {
+    override def decode(msg: Message): DecodeResult[T] = {
       msg.body.kill.run
-      EitherT[Task, DecodingException, T](Task.fail(t))
+      DecodeResult[T](Task.fail(t))
     }
     override def consumes: Set[MediaRange] = Set.empty
   }
@@ -160,7 +159,7 @@ trait EntityDecoderInstances {
         case e: SAXException =>
           EitherT.left(Task.now(DecodingException("Invalid XML: " + e.getMessage )))
 
-        case NonFatal(e) => EitherT[Task, DecodingException, Elem](Task.fail(e))
+        case NonFatal(e) => DecodeResult[Elem](Task.fail(e))
       }
     }
   }, MediaType.`text/xml`)
@@ -182,4 +181,8 @@ trait EntityDecoderInstances {
       EitherT.right(msg.body.to(p).run).map(_ => in)
     }, MediaRange.`text/*`)
   }
+}
+
+object DecodeResult {
+  def apply[T](task: Task[DecodingException \/ T]) = EitherT[Task, DecodingException, T](task)
 }

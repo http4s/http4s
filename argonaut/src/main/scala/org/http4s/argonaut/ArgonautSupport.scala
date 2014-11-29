@@ -1,16 +1,14 @@
-package org.http4s.argonaut
+package org.http4s
+package argonaut
 
-import argonaut._
+import _root_.argonaut.{Argonaut, Json}
 import jawn.Facade
 import jawn.support.argonaut.Parser
 import jawnstreamz._
-import org.http4s.EntityBody
-import org.http4s.EntityDecoder.DecodingException
 import org.http4s.json.jawn.JawnDecodeSupport
 import org.http4s.json.JsonSupport
 import scala.util.control.NonFatal
 import scalaz.EitherT
-import scalaz.concurrent.Task
 import scalaz.stream.Process.emit
 import scalaz.stream.text.utf8Encode
 
@@ -23,7 +21,7 @@ trait ArgonautSupport extends JsonSupport[Json] with JawnDecodeSupport[Json] {
     emit(str).pipe(utf8Encode)
   }
 
-  override def decodeJson(body: EntityBody): EitherT[Task, DecodingException, Json] = {
+  override def decodeJson(body: EntityBody): DecodeResult[Json] = {
     EitherT(body.runJson.attempt).leftMap {
       // TODO: What happens when JSON parsing fails on the Argo?
       case NonFatal(t) => throw t
