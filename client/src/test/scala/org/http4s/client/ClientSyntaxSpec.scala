@@ -17,17 +17,11 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   implicit val client = new MockClient(route)
 
+  val req = Request(GET, uri("http://www.foo.bar/"))
+
   "Client syntax" should {
-    val req = Request(GET, uri("http://www.foo.bar/"))
 
-    "be simple to use" in {
-      val resp = Task.now(Request(GET, uri("http://www.foo.bar/"))).on(Ok)(EntityDecoder.text).run
-      println(resp.body)
-
-      resp.body.isEmpty must be_==(false)
-    }
-
-    "be simple to use for any status" in {
+    "decode based on status" in {
       val resp1 = req.decodeStatus {
         case Ok => EntityDecoder.text
       }.run
@@ -39,21 +33,54 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       resp2.body must_== "hello"
     }
 
-    "be simple to use for any response" in {
-      val resp1 = req.decode {
-        case Response(Ok,_,_,_,_) => EntityDecoder.text
-      }.run
-      resp1.body must_== "hello"
+    "give InvalidResponseException on unmatched status" in {
+      val resp1 = req.decodeStatus {
+        case NotFound => ???  // shouldn't match
+      }
+      resp1.run must throwA[InvalidResponseException]
 
-      val resp2 = Task(req).decode {
-        case Response(Ok,_,_,_,_) => EntityDecoder.text
+      val resp2 = Task(req).decodeStatus {
+        case Ok => EntityDecoder.text
       }.run
       resp2.body must_== "hello"
     }
 
+    "be simple to use for any response" in {
+      val resp1 = req.decode {
+        case Response(Ok, _, _, _, _) => EntityDecoder.text
+        case _                        => ???
+      }.run
+      resp1.body must_== "hello"
+
+      val resp2 = Task(req).decode {
+        case Response(Ok, _, _, _, _) => EntityDecoder.text
+        case _                        => ???
+      }.run
+      resp2.body must_== "hello"
+    }
+  }
+
+  "Client on syntax" should {
+
+    "support Uris" in {
+      req.uri.on(Ok)(EntityDecoder.text).run.body must_== "hello"
+    }
+
+    "support Requests" in {
+      req.on(Ok)(EntityDecoder.text).run.body must_== "hello"
+    }
+
+    "support Task[Request]s" in {
+      req.on(Ok)(EntityDecoder.text).run.body must_== "hello"
+    }
+
+    "allow multiple status" in {
+      req.on(NotFound, Ok)(EntityDecoder.text)
+        .run.body must_== "hello"
+    }
+
     "fail on bad status" in {
-      Task.now(Request(GET, uri("http://www.google.com/")))
-        .on(NotFound)(EntityDecoder.text)
+      req.on(NotFound)(EntityDecoder.text)
         .run must throwA[InvalidResponseException]
     }
   }

@@ -29,7 +29,17 @@ package object client {
     override protected val resp: Task[Response] = client.prepare(request)
   }
 
+  /** ClientSyntax provides the most convenient way to transform a [[Request]] into a [[Response]]
+    *
+    * @param request a [[Request]]
+    */
   implicit class ClientSyntax(request: Request)(implicit client: Client) extends ClientSyntaxBase {
     override protected val resp: Task[Response] = client.prepare(request)
   }
+
+  /** ClientSyntax provides the most convenient way to transform a [[Request]] into a [[Response]]
+    *
+    * @param uri a [[Uri]] that will form a GET request
+    */
+  implicit class ClientUriSyntax(uri: Uri)(implicit client: Client) extends ClientSyntax(Request(uri = uri))
 }
