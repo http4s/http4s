@@ -8,9 +8,11 @@ import org.http4s.util.ReplyException
 import org.xml.sax.{SAXException, SAXParseException, InputSource}
 import scodec.bits.ByteVector
 
+import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.{NoStackTrace, NonFatal}
 import scala.xml.{Elem, XML}
-import scalaz.{EitherT, \/}
+import scalaz.Liskov.{<~<, refl}
+import scalaz.{IList, EitherT, \/}
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
@@ -39,7 +41,8 @@ sealed trait EntityDecoder[T] { self =>
     override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
   }
 
-//  def orElse[T2 >: T](other: EntityDecoder[T2]): EntityDecoder[T2] = new EntityDecoder.OrDec(this, other)
+  def orElse[T2](other: EntityDecoder[T2])(implicit ev: T <~< T2): EntityDecoder[T2] =
+    new EntityDecoder.OrDec(widen[T2], other)
 
   def matchesMediaType(msg: Message): Boolean = {
     if (consumes.nonEmpty) {
@@ -54,6 +57,10 @@ sealed trait EntityDecoder[T] { self =>
   def matchesMediaType(mediaType: MediaType): Boolean = consumes.nonEmpty && {
     consumes.exists(_.satisfiedBy(mediaType))
   }
+
+  // shamelessly stolen from IList
+  def widen[B](implicit ev: T <~< B): EntityDecoder[B] =
+    ev.subst[({type λ[-α] = EntityDecoder[α @uncheckedVariance] <~< EntityDecoder[B]})#λ](refl)(this)
 }
 
 /** EntityDecoder is used to attempt to decode an [[EntityBody]]
