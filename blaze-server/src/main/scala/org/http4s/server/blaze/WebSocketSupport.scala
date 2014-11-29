@@ -13,10 +13,12 @@ import org.http4s.util.CaseInsensitiveString._
 import scodec.bits.ByteVector
 
 import scala.util.{Failure, Success}
+import scala.concurrent.Future
+
 import scalaz.stream.Process
 
 trait WebSocketSupport extends Http1ServerStage {
-  override protected def renderResponse(req: Request, resp: Response): Unit = {
+  override protected def renderResponse(req: Request, resp: Response, cleanup: () => Future[ByteBuffer]): Unit = {
     val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey)
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
 
@@ -32,7 +34,7 @@ trait WebSocketSupport extends Http1ServerStage {
                                    Header.Raw(Header.`Sec-WebSocket-Version`.name, "13"))
 
             val rsp = Response(status = Status.BadRequest, body = body, headers = headers)
-            super.renderResponse(req, rsp)
+            super.renderResponse(req, rsp, cleanup)
 
           case Right(hdrs) =>  // Successful handshake
             val sb = new StringBuilder
@@ -55,7 +57,7 @@ trait WebSocketSupport extends Http1ServerStage {
             }(ec)
         }
 
-      } else super.renderResponse(req, resp)
-    } else super.renderResponse(req, resp)
+      } else super.renderResponse(req, resp, cleanup)
+    } else super.renderResponse(req, resp, cleanup)
   }
 }

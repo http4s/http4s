@@ -3,9 +3,11 @@ package server
 package blaze
 
 
+import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.{BodylessWriter, Http1Stage}
 import org.http4s.blaze.pipeline.{Command => Cmd, TailStage}
 import org.http4s.blaze.util.Execution._
+import org.http4s.blaze.util.BufferTools.emptyBuffer
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
 import org.http4s.blaze.http.http_parser.Http1ServerParser
 import org.http4s.blaze.channel.SocketConnection
@@ -14,11 +16,11 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.ExecutionContext
+import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError}
-import org.http4s.util.{ReplyException, StringWriter}
+import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{Connection, `Content-Length`}
 
@@ -51,10 +53,7 @@ class Http1ServerStage(service: HttpService,
 
   logger.trace(s"Http4sStage starting up")
 
-  // TODO: Its stupid that I have to have these methods
-  override protected def parserContentComplete(): Boolean = contentComplete()
-
-  override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
+  final override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
   // Will act as our loop
   override def stageStartup() {
@@ -97,7 +96,7 @@ class Http1ServerStage(service: HttpService,
     case Failure(t)       => fatalError(t, "Error in requestLoop()")
   }
 
-  protected def collectMessage(body: EntityBody): Option[Request] = {
+  final protected def collectMessage(body: EntityBody): Option[Request] = {
     val h = Headers(headers.result())
     headers.clear()
     val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
@@ -113,36 +112,37 @@ class Http1ServerStage(service: HttpService,
   }
 
   private def runRequest(buffer: ByteBuffer): Unit = {
-    val body = collectBodyFromParser(buffer)
+    val (body, cleanup) = collectBodyFromParser(buffer)
 
     collectMessage(body) match {
       case Some(req) =>
         Task.fork(service(req))(pool)
           .runAsync {
           case \/-(Some(resp)) =>
-            renderResponse(req, resp)
+            renderResponse(req, resp, cleanup)
 
           case \/-(None)       =>
-            renderResponse(req, ResponseBuilder.notFound(req).run)
+            renderResponse(req, ResponseBuilder.notFound(req).run, cleanup)
 
           case -\/(t: ReplyException) =>
             val resp = t.asResponse(req.httpVersion)
                         .withHeaders(Connection("close".ci))
-            renderResponse(req, resp)
+            renderResponse(req, resp, cleanup)
 
           case -\/(t)    =>
             logger.error(t)(s"Error running route: $req")
             val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)
               .run
               .withHeaders(Connection("close".ci))
-            renderResponse(req, resp)   // will terminate the connection due to connection: close header
+
+            renderResponse(req, resp, cleanup)   // will terminate the connection due to connection: close header
         }
 
       case None => // NOOP, this should be handled in the collectMessage method
     }
   }
 
-  protected def renderResponse(req: Request, resp: Response) {
+  protected def renderResponse(req: Request, resp: Response, bodyCleanup: () => Future[ByteBuffer]) {
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << '\r' << '\n'
 
@@ -176,12 +176,17 @@ class Http1ServerStage(service: HttpService,
         if (closeOnFinish || bodyEncoder.requireClose()) {
           closeConnection()
           logger.trace("Request/route requested closing connection.")
-        } else {
-          reset()
-          requestLoop()
-        }  // Serve another connection
+        } else bodyCleanup().onComplete {
+          case s@ Success(_) => // Serve another connection
+            reset()
+            reqLoopCallback(s)
 
-      case -\/(t) => logger.error(t)("Error writing body")
+          case Failure(t) => fatalError(t)
+        }(directec)
+
+
+      case -\/(t) =>
+        logger.error(t)("Error writing body")
     }
   }
 
@@ -200,18 +205,19 @@ class Http1ServerStage(service: HttpService,
   /////////////////// Error handling /////////////////////////////////////////
 
   protected def badMessage(msg: String, t: ParserException, req: Request) {
-    renderResponse(req, Response(Status.BadRequest).withHeaders(Connection("close".ci), `Content-Length`(0)))
+    val resp = Response(Status.BadRequest).withHeaders(Connection("close".ci), `Content-Length`(0))
+    renderResponse(req, resp, () => Future.successful(emptyBuffer))
     logger.debug(t)(s"Bad Request: $msg")
   }
 
   /////////////////// Stateful methods for the HTTP parser ///////////////////
-  override protected def headerComplete(name: String, value: String) = {
+  final override protected def headerComplete(name: String, value: String) = {
     logger.trace(s"Received header '$name: $value'")
     headers += Header(name, value)
     false
   }
 
-  override protected def submitRequestLine(methodString: String,
+  final override protected def submitRequestLine(methodString: String,
                                            uri: String,
                                            scheme: String,
                                            majorversion: Int,

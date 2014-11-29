@@ -8,13 +8,15 @@ import org.http4s.util.Renderable
 
 /** Representation of the HTTP response code and reason
   *
+  * '''Note: ''' the reason is not important to the protocol and is not considered in equality checks.
+  *
   * @param code HTTP status code
   * @param reason reason for the response. eg, OK
   *
   * @see [http://tools.ietf.org/html/rfc7231#section-6 RFC7231, Section 6]
   * @see [http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]
   */
-final case class Status private (code: Int, reason: String = "")(val isEntityAllowed: Boolean = true) extends Ordered[Status] with Renderable {
+final case class Status private (code: Int)(val reason: String = "", val isEntityAllowed: Boolean = true) extends Ordered[Status] with Renderable {
   val responseClass: ResponseClass =
     if (code < 200) ResponseClass.Informational
     else if (code < 300) ResponseClass.Successful
@@ -26,7 +28,7 @@ final case class Status private (code: Int, reason: String = "")(val isEntityAll
 
   def isSuccess = responseClass.isSuccess
 
-  def withReason(reason: String) = new Status(code, reason)(isEntityAllowed)
+  def withReason(reason: String) = new Status(code)(reason, isEntityAllowed)
 
   override def render(writer: org.http4s.util.Writer): writer.type =  writer << code << ' ' << reason
 }
@@ -70,67 +72,67 @@ object Status {
   /**
    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
    */
-  val Continue = register(Status(100, "Continue")(isEntityAllowed = false))
-  val SwitchingProtocols = register(Status(101, "Switching Protocols")(isEntityAllowed = false))
-  val Processing = register(Status(102, "Processing")(isEntityAllowed = false))
+  val Continue = register(Status(100)("Continue", isEntityAllowed = false))
+  val SwitchingProtocols = register(Status(101)("Switching Protocols", isEntityAllowed = false))
+  val Processing = register(Status(102)("Processing", isEntityAllowed = false))
 
-  val Ok = register(Status(200, "OK")())
-  val Created = register(Status(201, "Created")())
-  val Accepted = register(Status(202, "Accepted")())
-  val NonAuthoritativeInformation = register(Status(203, "Non-Authoritative Information")())
-  val NoContent = register(Status(204, "No Content")(isEntityAllowed = false))
-  val ResetContent = register(Status(205, "Reset Content")(isEntityAllowed = false))
-  val PartialContent = register(Status(206, "Partial Content")())
-  val MultiStatus = register(Status(207, "Multi-Status")())
-  val AlreadyReported = register(Status(208, "Already Reported")())
-  val IMUsed = register(Status(226, "IM Used")())
+  val Ok = register(Status(200)("OK"))
+  val Created = register(Status(201)("Created"))
+  val Accepted = register(Status(202)("Accepted"))
+  val NonAuthoritativeInformation = register(Status(203)("Non-Authoritative Information"))
+  val NoContent = register(Status(204)("No Content", isEntityAllowed = false))
+  val ResetContent = register(Status(205)("Reset Content", isEntityAllowed = false))
+  val PartialContent = register(Status(206)("Partial Content"))
+  val MultiStatus = register(Status(207)("Multi-Status"))
+  val AlreadyReported = register(Status(208)("Already Reported"))
+  val IMUsed = register(Status(226)("IM Used"))
 
-  val MultipleChoices = register(Status(300, "Multiple Choices")())
-  val MovedPermanently = register(Status(301, "Moved Permanently")())
-  val Found = register(Status(302, "Found")())
-  val SeeOther = register(Status(303, "See Other")())
-  val NotModified = register(Status(304, "Not Modified")(isEntityAllowed = false))
-  val UseProxy = register(Status(305, "Use Proxy")())
-  val TemporaryRedirect = register(Status(307, "Temporary Redirect")())
-  val PermanentRedirect = register(Status(308, "Permanent Redirect")())
+  val MultipleChoices = register(Status(300)("Multiple Choices"))
+  val MovedPermanently = register(Status(301)("Moved Permanently"))
+  val Found = register(Status(302)("Found"))
+  val SeeOther = register(Status(303)("See Other"))
+  val NotModified = register(Status(304)("Not Modified", isEntityAllowed = false))
+  val UseProxy = register(Status(305)("Use Proxy"))
+  val TemporaryRedirect = register(Status(307)("Temporary Redirect"))
+  val PermanentRedirect = register(Status(308)("Permanent Redirect"))
 
-  val BadRequest = register(Status(400, "Bad Request")())
-  val Unauthorized = register(Status(401, "Unauthorized")())
-  val PaymentRequired = register(Status(402, "Payment Required")())
-  val Forbidden = register(Status(403, "Forbidden")())
-  val NotFound = register(Status(404, "Not Found")())
-  val MethodNotAllowed = register(Status(405, "Method Not Allowed")())
-  val NotAcceptable = register(Status(406, "Not Acceptable")())
-  val ProxyAuthenticationRequired = register(Status(407, "Proxy Authentication Required")())
-  val RequestTimeout = register(Status(408, "Request Timeout")())
-  val Conflict = register(Status(409, "Conflict")())
-  val Gone = register(Status(410, "Gone")())
-  val LengthRequired = register(Status(411, "Length Required")())
-  val PreconditionFailed = register(Status(412, "Precondition Failed")())
-  val PayloadTooLarge = register(Status(413, "Payload Too Large")())
-  val UriTooLong = register(Status(414, "URI Too Long")())
-  val UnsupportedMediaType = register(Status(415, "Unsupported Media Type")())
-  val RangeNotSatisfiable = register(Status(416, "Range Not Satisfiable")())
-  val ExpectationFailed = register(Status(417, "Expectation Failed")())
-  val UnprocessableEntity = register(Status(422, "Unprocessable Entity")())
-  val Locked = register(Status(423, "Locked")())
-  val FailedDependency = register(Status(424, "Failed Dependency")())
-  val UpgradeRequired = register(Status(426, "Upgrade Required")())
-  val PreconditionRequired = register(Status(428, "Precondition Required")())
-  val TooManyRequests = register(Status(429, "Too Many Requests")())
-  val RequestHeaderFieldsTooLarge = register(Status(431, "Request Header Fields Too Large")())
+  val BadRequest = register(Status(400)("Bad Request"))
+  val Unauthorized = register(Status(401)("Unauthorized"))
+  val PaymentRequired = register(Status(402)("Payment Required"))
+  val Forbidden = register(Status(403)("Forbidden"))
+  val NotFound = register(Status(404)("Not Found"))
+  val MethodNotAllowed = register(Status(405)("Method Not Allowed"))
+  val NotAcceptable = register(Status(406)("Not Acceptable"))
+  val ProxyAuthenticationRequired = register(Status(407)("Proxy Authentication Required"))
+  val RequestTimeout = register(Status(408)("Request Timeout"))
+  val Conflict = register(Status(409)("Conflict"))
+  val Gone = register(Status(410)("Gone"))
+  val LengthRequired = register(Status(411)("Length Required"))
+  val PreconditionFailed = register(Status(412)("Precondition Failed"))
+  val PayloadTooLarge = register(Status(413)("Payload Too Large"))
+  val UriTooLong = register(Status(414)("URI Too Long"))
+  val UnsupportedMediaType = register(Status(415)("Unsupported Media Type"))
+  val RangeNotSatisfiable = register(Status(416)("Range Not Satisfiable"))
+  val ExpectationFailed = register(Status(417)("Expectation Failed"))
+  val UnprocessableEntity = register(Status(422)("Unprocessable Entity"))
+  val Locked = register(Status(423)("Locked"))
+  val FailedDependency = register(Status(424)("Failed Dependency"))
+  val UpgradeRequired = register(Status(426)("Upgrade Required"))
+  val PreconditionRequired = register(Status(428)("Precondition Required"))
+  val TooManyRequests = register(Status(429)("Too Many Requests"))
+  val RequestHeaderFieldsTooLarge = register(Status(431)("Request Header Fields Too Large"))
 
-  val InternalServerError = register(Status(500, "Internal Server Error")())
-  val NotImplemented = register(Status(501, "Not Implemented")())
-  val BadGateway = register(Status(502, "Bad Gateway")())
-  val ServiceUnavailable = register(Status(503, "Service Unavailable")())
-  val GatewayTimeout = register(Status(504, "Gateway Timeout")())
-  val HttpVersionNotSupported = register(Status(505, "HTTP Version not supported")())
-  val VariantAlsoNegotiates = register(Status(506, "Variant Also Negotiates")())
-  val InsufficientStorage = register(Status(507, "Insufficient Storage")())
-  val LoopDetected = register(Status(508, "Loop Detected")())
-  val NotExtended = register(Status(510, "Not Extended")())
-  val NetworkAuthenticationRequired = register(Status(511, "Network Authentication Required")())
+  val InternalServerError = register(Status(500)("Internal Server Error"))
+  val NotImplemented = register(Status(501)("Not Implemented"))
+  val BadGateway = register(Status(502)("Bad Gateway"))
+  val ServiceUnavailable = register(Status(503)("Service Unavailable"))
+  val GatewayTimeout = register(Status(504)("Gateway Timeout"))
+  val HttpVersionNotSupported = register(Status(505)("HTTP Version not supported"))
+  val VariantAlsoNegotiates = register(Status(506)("Variant Also Negotiates"))
+  val InsufficientStorage = register(Status(507)("Insufficient Storage"))
+  val LoopDetected = register(Status(508)("Loop Detected"))
+  val NotExtended = register(Status(510)("Not Extended"))
+  val NetworkAuthenticationRequired = register(Status(511)("Network Authentication Required"))
 }
 
 trait StatusInstances {
