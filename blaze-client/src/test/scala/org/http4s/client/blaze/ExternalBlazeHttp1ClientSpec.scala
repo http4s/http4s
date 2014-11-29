@@ -4,7 +4,7 @@ import scalaz.concurrent.Task
 
 import org.http4s.Method._
 import org.http4s._
-import org.http4s.client.ClientSyntax
+import org.http4s.client._
 import org.specs2.mutable.After
 import org.specs2.time.NoTimeConversions
 
