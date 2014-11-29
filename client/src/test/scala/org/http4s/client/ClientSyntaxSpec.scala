@@ -22,37 +22,37 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
   "Client syntax" should {
 
     "decode based on status" in {
-      val resp1 = req.decodeStatus {
+      val resp1 = req.onStatus {
         case Ok => EntityDecoder.text
       }.run
       resp1.body must_== "hello"
 
-      val resp2 = Task(req).decodeStatus {
+      val resp2 = Task(req).onStatus {
         case Ok => EntityDecoder.text
       }.run
       resp2.body must_== "hello"
     }
 
     "give InvalidResponseException on unmatched status" in {
-      val resp1 = req.decodeStatus {
+      val resp1 = req.onStatus {
         case NotFound => ???  // shouldn't match
       }
       resp1.run must throwA[InvalidResponseException]
 
-      val resp2 = Task(req).decodeStatus {
+      val resp2 = Task(req).onStatus {
         case Ok => EntityDecoder.text
       }.run
       resp2.body must_== "hello"
     }
 
     "be simple to use for any response" in {
-      val resp1 = req.decode {
+      val resp1 = req.withDecoder {
         case Response(Ok, _, _, _, _) => EntityDecoder.text
         case _                        => ???
       }.run
       resp1.body must_== "hello"
 
-      val resp2 = Task(req).decode {
+      val resp2 = Task(req).withDecoder {
         case Response(Ok, _, _, _, _) => EntityDecoder.text
         case _                        => ???
       }.run
