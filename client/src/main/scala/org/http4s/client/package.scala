@@ -1,6 +1,5 @@
 package org.http4s
 
-import org.http4s.client.Client.BadResponse
 import scalaz.concurrent.Task
 
 /** Provides extension methods for using the a http4s [[org.http4s.client.Client]]

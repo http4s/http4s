@@ -4,8 +4,7 @@ package client
 import scalaz.concurrent.Task
 
 import org.http4s.Method.GET
-import org.http4s.client.Client.BadResponse
-import org.http4s.server.{HttpService, Service}
+import org.http4s.server.HttpService
 import org.http4s.Status.{Ok, NotFound}
 import org.specs2.matcher.MustThrownMatchers
 
@@ -55,7 +54,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     "fail on bad status" in {
       Task.now(Request(GET, uri("http://www.google.com/")))
         .on(NotFound)(EntityDecoder.text)
-        .run must throwA[BadResponse]
+        .run must throwA[InvalidResponseException]
     }
   }
 

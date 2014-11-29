@@ -1,0 +1,88 @@
+[1mdiff --git a/client/src/main/scala/org/http4s/client/Client.scala b/client/src/main/scala/org/http4s/client/Client.scala[m
+[1mindex 52229b3..ff94a6a 100644[m
+[1m--- a/client/src/main/scala/org/http4s/client/Client.scala[m
+[1m+++ b/client/src/main/scala/org/http4s/client/Client.scala[m
+[36m@@ -2,7 +2,6 @@[m [mpackage org.http4s.client[m
+ [m
+ import org.http4s._[m
+ [m
+[31m-import scala.util.control.NoStackTrace[m
+ import scalaz.concurrent.Task[m
+ [m
+ [m
+[36m@@ -42,10 +41,6 @@[m [mtrait Client {[m
+ [m
+ object Client {[m
+   case class Result[T](status: Status, headers: Headers, body: T)[m
+[31m-  [m
+[31m-  case class BadResponse(status: Status, msg: String) extends Exception with NoStackTrace {[m
+[31m-    override def getMessage: String = s"Bad Response, $status: '$msg'"[m
+[31m-  }[m
+ [m
+   def decode[A](resp: Task[Response])(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =[m
+     resp.flatMap { resp =>[m
+[1mdiff --git a/client/src/main/scala/org/http4s/client/ClientSyntaxBase.scala b/client/src/main/scala/org/http4s/client/ClientSyntaxBase.scala[m
+[1mindex 0a84467..c16d8cf 100644[m
+[1m--- a/client/src/main/scala/org/http4s/client/ClientSyntaxBase.scala[m
+[1m+++ b/client/src/main/scala/org/http4s/client/ClientSyntaxBase.scala[m
+[36m@@ -1,7 +1,7 @@[m
+ package org.http4s.client[m
+ [m
+[31m-import org.http4s.client.Client.{BadResponse, Result}[m
+[31m-import org.http4s.{EntityDecoder, Status, Response}[m
+[32m+[m[32mimport org.http4s.client.Client.Result[m
+[32m+[m[32mimport org.http4s.{InvalidResponseException, EntityDecoder, Status, Response}[m
+ [m
+ import scalaz.concurrent.Task[m
+ [m
+[36m@@ -13,11 +13,14 @@[m [mtrait ClientSyntaxBase {[m
+     * is of type `status`, decodes it.[m
+     */[m
+   final def on[T](status: Status)(decoder: EntityDecoder[T])(implicit client: Client): Task[Result[T]] =[m
+[31m-    decodeStatus(s => if (s == status) decoder else EntityDecoder.error(BadResponse(s, "")))[m
+[32m+[m[32m    decodeStatus { s =>[m
+[32m+[m[32m      if (s == status) decoder[m
+[32m+[m[32m      else EntityDecoder.error(InvalidResponseException(s"Wrong Status: $s"))[m
+[32m+[m[32m    }[m
+ [m
+   /** Decode the [[Response]] based on [[Status]] */[m
+   final def decodeStatus[T](f: Status => EntityDecoder[T]): Task[Result[T]] =[m
+[31m-    decode { resp: Response => f(resp.status) }[m
+[32m+[m[32m    decode(resp => f(resp.status))[m
+ [m
+   /** Generate a Task which, when executed, will perform the request and attempt to decode it */[m
+   final def decode[T](f: Response => EntityDecoder[T]): Task[Result[T]] =[m
+[1mdiff --git a/client/src/main/scala/org/http4s/client/package.scala b/client/src/main/scala/org/http4s/client/package.scala[m
+[1mindex df085f3..03e1eff 100644[m
+[1m--- a/client/src/main/scala/org/http4s/client/package.scala[m
+[1m+++ b/client/src/main/scala/org/http4s/client/package.scala[m
+[36m@@ -1,6 +1,5 @@[m
+ package org.http4s[m
+ [m
+[31m-import org.http4s.client.Client.BadResponse[m
+ import scalaz.concurrent.Task[m
+ [m
+ /** Provides extension methods for using the a http4s [[org.http4s.client.Client]][m
+[1mdiff --git a/client/src/test/scala/org/http4s/client/ClientSyntaxSpec.scala b/client/src/test/scala/org/http4s/client/ClientSyntaxSpec.scala[m
+[1mindex e212b52..c6f5fae 100644[m
+[1m--- a/client/src/test/scala/org/http4s/client/ClientSyntaxSpec.scala[m
+[1m+++ b/client/src/test/scala/org/http4s/client/ClientSyntaxSpec.scala[m
+[36m@@ -4,8 +4,7 @@[m [mpackage client[m
+ import scalaz.concurrent.Task[m
+ [m
+ import org.http4s.Method.GET[m
+[31m-import org.http4s.client.Client.BadResponse[m
+[31m-import org.http4s.server.{HttpService, Service}[m
+[32m+[m[32mimport org.http4s.server.HttpService[m
+ import org.http4s.Status.{Ok, NotFound}[m
+ import org.specs2.matcher.MustThrownMatchers[m
+ [m
+[36m@@ -55,7 +54,7 @@[m [mclass ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {[m
+     "fail on bad status" in {[m
+       Task.now(Request(GET, uri("http://www.google.com/")))[m
+         .on(NotFound)(EntityDecoder.text)[m
+[31m-        .run must throwA[BadResponse][m
+[32m+[m[32m        .run must throwA[InvalidResponseException][m
+     }[m
+   }[m
+ [m
