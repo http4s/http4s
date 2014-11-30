@@ -58,14 +58,14 @@ class Http4sStageSpec extends Specification {
       val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       val result = runError(path)
 
-      result.map{ case (s, c, r) => (s, c, r.contains("Synchronous"))} must be_== ((InternalServerError, true, true)).await
+      result.map{ case (s, c, _) => (s, c)} must be_== ((InternalServerError, true)).await
     }
 
     "Deal with asynchronous errors" in {
       val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       val result = runError(path)
 
-      result.map{ case (s, c, r) => (s, c, r.contains("Asynchronous"))} must be_== ((InternalServerError, true, true)).await
+      result.map{ case (s, c, _) => (s, c)} must be_== ((InternalServerError, true)).await
     }
   }
 }

@@ -2,20 +2,16 @@ package org.http4s
 
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
-
-import org.http4s.EntityDecoder.DecodingException
-import org.http4s.util.ReplyException
-import org.xml.sax.{SAXException, SAXParseException, InputSource}
+import org.xml.sax.{SAXParseException, InputSource}
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
-import scala.util.control.{NoStackTrace, NonFatal}
+import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 import scalaz.Liskov.{<~<, refl}
-import scalaz.{IList, EitherT, \/}
+import scalaz.EitherT
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
-import scalaz.syntax.monad._
 
 import util.UrlFormCodec.{ decode => formDecode }
 import util.ByteVectorInstances.byteVectorMonoidInstance
@@ -29,7 +25,7 @@ import util.ByteVectorInstances.byteVectorMonoidInstance
   */
 sealed trait EntityDecoder[T] { self =>
 
-  final def apply(msg: Message): Task[T] = decode(msg).valueOr(throw _)
+  final def apply(msg: Message): Task[T] = decode(msg).valueOr(e => throw ParseException(e))
 
   def decode(msg: Message): DecodeResult[T]
 
@@ -68,15 +64,6 @@ sealed trait EntityDecoder[T] { self =>
   * with some commonly used instances which can be resolved implicitly.
   */
 object EntityDecoder extends EntityDecoderInstances {
-  case class DecodingException(reason: String, cause: Option[Throwable] = None)
-    extends Exception(reason, cause.orNull)
-    with ReplyException
-    with NoStackTrace
-  {
-    override def asResponse(version: HttpVersion): Response =
-      ResponseBuilder(Status.BadRequest, version, reason).run
-  }
-
   def apply[T](f: Message => DecodeResult[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
       try f(msg)
@@ -137,13 +124,10 @@ trait EntityDecoderInstances {
   // application/x-www-form-urlencoded
   implicit val formEncoded: EntityDecoder[Map[String, Seq[String]]] = {
     val fn = decodeString(_: Message).flatMap { s =>
-      Task.now(formDecode(s).leftMap(f => {
-        val msg = "Invalid Form Encoding. Expected format: " + f.details
-        DecodingException(msg)
-      }))
+      Task.now(formDecode(s))
     }
 
-    EntityDecoder(fn.andThen(EitherT.eitherT), MediaType.`application/x-www-form-urlencoded`)
+    EntityDecoder(fn.andThen(DecodeResult.apply), MediaType.`application/x-www-form-urlencoded`)
   }
 
   /**
@@ -157,14 +141,11 @@ trait EntityDecoderInstances {
   implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder(msg => {
     collectBinary(msg).flatMap { arr =>
       val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
-      try EitherT.right(Task.now(XML.loadXML(source, parser)))
+      try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
       catch {
         case e: SAXParseException =>
           val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
-          EitherT.left(Task.now(DecodingException(msg)))
-
-        case e: SAXException =>
-          EitherT.left(Task.now(DecodingException("Invalid XML: " + e.getMessage )))
+          DecodeResult.failure(Task.now(ParseFailure("Invalid XML", msg)))
 
         case NonFatal(e) => DecodeResult[Elem](Task.fail(e))
       }
@@ -191,5 +172,9 @@ trait EntityDecoderInstances {
 }
 
 object DecodeResult {
-  def apply[T](task: Task[DecodingException \/ T]) = EitherT[Task, DecodingException, T](task)
+  def apply[A](task: Task[ParseResult[A]]): DecodeResult[A] = EitherT[Task, ParseFailure, A](task)
+
+  def success[A](a: Task[A]): DecodeResult[A] = EitherT.right(a)
+
+  def failure[A](e: Task[ParseFailure]): DecodeResult[A] = EitherT.left(e)
 }

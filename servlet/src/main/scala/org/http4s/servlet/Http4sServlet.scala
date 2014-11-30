@@ -3,10 +3,9 @@ package servlet
 
 import java.util.concurrent.atomic.AtomicReference
 
+import org.http4s.ReplyException
 import scodec.bits.ByteVector
 import java.util.concurrent.ExecutorService
-
-import org.http4s.util.ReplyException
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
@@ -52,7 +51,7 @@ class Http4sServlet(service: HttpService,
     override def onTimeout(event: AsyncEvent): Unit = {
       val ctx = event.getAsyncContext
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-      val response = ResponseBuilder(Status.InternalServerError, "Service timed out.").run
+      val response = ResponseBuilder(Status.InternalServerError, "Service timed out.")
       if (!servletResponse.isCommitted)
         Http4sServlet.this.renderResponse(response, servletResponse)
       else {
@@ -112,11 +111,8 @@ class Http4sServlet(service: HttpService,
   private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
-      service(request).flatMap {
-        case Some(response) => renderResponse(response, servletResponse)
-        case None => ResponseBuilder.notFound(request)
-                                    .flatMap(renderResponse(_, servletResponse))
-      }
+      val response = service.or(request, ResponseBuilder.notFound(request))
+      renderResponse(response, servletResponse)
     }(threadPool).runAsync {
       case \/-(_) =>
         ctx.complete()
@@ -126,17 +122,18 @@ class Http4sServlet(service: HttpService,
     }
   }
 
-  private def renderResponse(response: Response, servletResponse: HttpServletResponse): Task[Unit] = {
-    servletResponse.setStatus(response.status.code, response.status.reason)
-    for (header <- response.headers)
-      servletResponse.addHeader(header.name.toString, header.value)
-    val out = servletResponse.getOutputStream
-    val isChunked = response.isChunked
-    response.body.map { chunk =>
-      out.write(chunk.toArray)
-      if (isChunked) servletResponse.flushBuffer()
-    }.run
-  }
+  private def renderResponse(response: Task[Response], servletResponse: HttpServletResponse): Task[Unit] =
+    response.map { r =>
+      servletResponse.setStatus(r.status.code, r.status.reason)
+      for (header <- r.headers)
+        servletResponse.addHeader(header.name.toString, header.value)
+      val out = servletResponse.getOutputStream
+      val isChunked = r.isChunked
+      r.body.map { chunk =>
+        out.write(chunk.toArray)
+        if (isChunked) servletResponse.flushBuffer()
+      }
+    }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request] =
     for {

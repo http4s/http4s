@@ -4,6 +4,7 @@ package blaze
 
 
 import org.http4s.blaze.{BodylessWriter, Http1Stage}
+
 import org.http4s.blaze.pipeline.{Command => Cmd, TailStage}
 import org.http4s.blaze.util.Execution._
 import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserException}
@@ -15,10 +16,11 @@ import java.nio.charset.StandardCharsets
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.ExecutionContext
+import scala.util.control.NonFatal
 import scala.util.{Try, Success, Failure}
 
 import org.http4s.Status.{InternalServerError}
-import org.http4s.util.{ReplyException, StringWriter}
+import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.Header.{Connection, `Content-Length`}
 
@@ -117,27 +119,18 @@ class Http1ServerStage(service: HttpService,
 
     collectMessage(body) match {
       case Some(req) =>
-        Task.fork(service(req))(pool)
-          .runAsync {
-          case \/-(Some(resp)) =>
-            renderResponse(req, resp)
-
-          case \/-(None)       =>
-            renderResponse(req, ResponseBuilder.notFound(req).run)
-
-          case -\/(t: ReplyException) =>
-            val resp = t.asResponse(req.httpVersion)
-                        .withHeaders(Connection("close".ci))
-            renderResponse(req, resp)
-
-          case -\/(t)    =>
+        Task.fork(service.or(req, ResponseBuilder.notFound(req)))(pool).handleWith {
+          case t: ReplyException =>
+            t.asResponse(req.httpVersion).map(_.withHeaders(Connection("close".ci)))
+          case NonFatal(t) =>
             logger.error(t)(s"Error running route: $req")
-            val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)
-              .run
-              .withHeaders(Connection("close".ci))
-            renderResponse(req, resp)   // will terminate the connection due to connection: close header
+            ResponseBuilder(InternalServerError, req.httpVersion).map(_.withHeaders(Connection("close".ci)))
+        }.runAsync {
+          case \/-(resp) =>
+            renderResponse(req, resp)
+          case -\/(t) =>
+            logger.error(t)(s"Error responding to request: $req")
         }
-
       case None => // NOOP, this should be handled in the collectMessage method
     }
   }

@@ -4,7 +4,6 @@ package json4s
 import jawn.Facade
 import jawn.support.json4s.Parser
 import jawnstreamz._
-import org.http4s.EntityDecoder.DecodingException
 import org.http4s.json.JsonSupport
 import org.http4s.json.jawn.JawnDecodeSupport
 import org.json4s.JsonAST.JValue
@@ -13,7 +12,6 @@ import org.json4s.ParserUtil.ParseException
 
 import scala.util.control.NonFatal
 import scalaz.EitherT
-import scalaz.concurrent.Task
 import scalaz.stream.Process.emit
 import scalaz.stream.text.utf8Encode
 
@@ -30,7 +28,7 @@ trait Json4sSupport[J] extends JsonSupport[JValue] with JawnDecodeSupport[JValue
 
   override def decodeJson(body: EntityBody): DecodeResult[JValue] = {
     EitherT(body.runJson.attempt).leftMap {
-      case pe: ParseException => DecodingException("Could not decode JSON", Some(pe))
+      case pe: ParseException => ParseFailure("Could not decode JSON", pe.getMessage)
       case NonFatal(t) => throw t
     }
   }

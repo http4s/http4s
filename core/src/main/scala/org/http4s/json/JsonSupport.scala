@@ -1,7 +1,6 @@
 package org.http4s
 package json
 
-import org.http4s.EntityDecoder.DecodingException
 import org.http4s.Header.`Content-Type`
 import scodec.bits.ByteVector
 

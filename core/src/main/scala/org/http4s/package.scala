@@ -1,7 +1,5 @@
 package org
 
-import org.http4s.EntityDecoder.DecodingException
-
 import scalaz.{EitherT, \/}
 
 import scalaz.concurrent.Task
@@ -17,7 +15,7 @@ package object http4s {
 
   def EmptyBody = Process.halt
 
-  type DecodeResult[T] = EitherT[Task, DecodingException, T]
+  type DecodeResult[T] = EitherT[Task, ParseFailure, T]
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 

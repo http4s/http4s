@@ -1,5 +1,6 @@
 package org.http4s
 
+import scalaz.concurrent.Task
 import scalaz.{\/-, -\/}
 
 /**
@@ -11,9 +12,19 @@ import scalaz.{\/-, -\/}
  * @param details Contains any relevant details omitted from the sanitized
  *                version of the error.  This may freely echo a Request.
  */
-case class ParseFailure(sanitized: String, details: String = "")
+final case class ParseFailure(sanitized: String, details: String = "")
 
-case class ParseException(failure: ParseFailure) extends RuntimeException(failure.sanitized)
+final case class ParseException(failure: ParseFailure)
+  extends RuntimeException(failure.sanitized)
+  with ReplyException
+{
+  override def asResponse(version: HttpVersion): Task[Response] =
+    ResponseBuilder(
+      status = Status.BadRequest,
+      version = version,
+      body = failure.sanitized
+    )
+}
 
 object ParseResult {
   def fail(sanitized: String, details: String = "") = -\/(ParseFailure(sanitized, details))

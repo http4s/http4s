@@ -40,12 +40,12 @@ class EntityDecoderSpec extends Specification {
     "handle a parse failure" in {
       val body = strBody("This is not XML.")
       val tresp = server(Request(body = body))
-      tresp.run must throwA[DecodingException]
+      tresp.run must throwA[ParseException]
 
       val -\/(err) = tresp.attemptRun
-      val asresp = err.asInstanceOf[DecodingException].asResponse(HttpVersion.`HTTP/1.1`)
-      asresp.status must_== Status.BadRequest
-      asresp.httpVersion must_== HttpVersion.`HTTP/1.1`
+      val resp = err.asInstanceOf[ParseException].asResponse(HttpVersion.`HTTP/1.1`).run
+      resp.status must_== Status.BadRequest
+      resp.httpVersion must_== HttpVersion.`HTTP/1.1`
     }
   }
 
