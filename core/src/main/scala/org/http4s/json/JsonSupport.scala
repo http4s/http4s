@@ -4,9 +4,6 @@ package json
 import org.http4s.Header.`Content-Type`
 import scodec.bits.ByteVector
 
-import scalaz.EitherT
-import scalaz.concurrent.Task
-
 trait JsonSupport[J] extends JsonDecodeSupport[J] with JsonEncodeSupport[J]
 
 trait JsonDecodeSupport[J] {

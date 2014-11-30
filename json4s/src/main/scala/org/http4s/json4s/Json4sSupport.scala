@@ -25,11 +25,4 @@ trait Json4sSupport[J] extends JsonSupport[JValue] with JawnDecodeSupport[JValue
     val str = jsonMethods.compact(jsonMethods.render(json))
     emit(str).pipe(utf8Encode)
   }
-
-  override def decodeJson(body: EntityBody): DecodeResult[JValue] = {
-    EitherT(body.runJson.attempt).leftMap {
-      case pe: ParseException => ParseFailure("Could not decode JSON", pe.getMessage)
-      case NonFatal(t) => throw t
-    }
-  }
 }

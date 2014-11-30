@@ -23,7 +23,7 @@ import util.ByteVectorInstances.byteVectorMonoidInstance
   * These are not streaming constructs.
   * @tparam T result type produced by the decoder
   */
-sealed trait EntityDecoder[T] { self =>
+sealed trait EntityDecoder[T] extends (Message => Task[T]) { self =>
 
   final def apply(msg: Message): Task[T] = decode(msg).valueOr(e => throw ParseException(e))
 
@@ -86,7 +86,7 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** Helper method which simply gathers the body into a single ByteVector */
   def collectBinary(msg: Message): DecodeResult[ByteVector] =
-    EitherT.right(msg.body.runFoldMap(identity))
+    DecodeResult.success(msg.body.runFoldMap(identity))
 
   /** Decodes a message to a String */
   def decodeString(msg: Message): Task[String] = {
@@ -154,19 +154,18 @@ trait EntityDecoderInstances {
 
   def xml: EntityDecoder[Elem] = xml()
 
-  // File operations
-  // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
+  // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] = {
     EntityDecoder(msg => {
       val p = io.chunkW(new java.io.FileOutputStream(file))
-      EitherT.right(msg.body.to(p).run).map(_ => file)
+      DecodeResult.success(msg.body.to(p).run).map(_ => file)
     }, MediaRange.`*/*`)
   }
 
   def textFile(in: java.io.File): EntityDecoder[File] = {
     EntityDecoder(msg => {
       val p = io.chunkW(new java.io.PrintStream(new FileOutputStream(in)))
-      EitherT.right(msg.body.to(p).run).map(_ => in)
+      DecodeResult.success(msg.body.to(p).run).map(_ => in)
     }, MediaRange.`text/*`)
   }
 }

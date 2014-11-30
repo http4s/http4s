@@ -25,6 +25,20 @@ class EntityDecoderSpec extends Specification {
 
   def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
 
+  val message = ResponseBuilder(status = Status.Ok, body = "whatever").run
+
+  "apply" should {
+    "return the right on a success" in {
+      val happyDecoder = EntityDecoder[String](_ => DecodeResult.success(Task.now("Cool!")), MediaRange.`*/*`)
+      happyDecoder(message).run must_== "Cool!"
+    }
+
+    "wrap the ParseFailure in a ParseException on failure" in {
+      val grumpyDecoder = EntityDecoder[String](_ => DecodeResult.failure(Task.now(ParseFailure("Bah!"))), MediaRange.`*/*`)
+      grumpyDecoder(message).attemptRun must_== -\/(ParseException(ParseFailure("Bah!")))
+    }
+  }
+
   "xml" should {
 
     val server: Request => Task[Response] = { req =>
