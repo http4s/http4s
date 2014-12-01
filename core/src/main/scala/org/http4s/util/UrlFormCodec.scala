@@ -2,7 +2,6 @@ package org.http4s.util
 
 import org.http4s.ParseResult
 import org.http4s.parser.QueryParser
-import rl.UrlCodingUtils
 
 import collection.immutable.BitSet
 import scala.io.Codec
@@ -30,7 +29,7 @@ object UrlFormCodec {
 
   private def formEncode(s: String): String =
     UrlCodingUtils.urlEncode(s, spaceIsPlus = true, toSkip = urlReserved)
-  
+
   private def convert(seq: Seq[(String,Option[String])]): Map[String,Seq[String]] =
     seq.groupBy(_._1).mapValues(_.flatMap(_._2))
 

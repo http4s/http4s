@@ -51,7 +51,6 @@ object Http4sDependencies {
   lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.1.2"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.1.2"
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.1"
-  lazy val rl                  = "org.scalatra.rl"          %% "rl"                      % "0.4.10"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.6"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.1.0"
