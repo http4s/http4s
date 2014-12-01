@@ -83,6 +83,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       req.on(NotFound)(EntityDecoder.text)
         .run must throwA[InvalidResponseException]
     }
+
+    "implicitly resolve an EntityDecoder" in {
+      req.uri.on[String](Ok).run.body must_== "hello"
+    }
   }
 
 }

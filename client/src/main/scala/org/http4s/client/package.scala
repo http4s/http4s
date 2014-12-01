@@ -11,6 +11,7 @@ import scalaz.concurrent.Task
   *   implicit def client: Client = ???
   *
   *   val r: Task[Result[String]] = GET("https://www.foo.bar/").on(Ok)(EntityDecoder.text)
+  *   val r2: Task[Result[String]] = GET("https://www.foo.bar/").on[String](Ok)   // implicitly resolve the decoder
   *   val req1 = r.run
   *   val req2 = r.run  // Each invocation fetches a new Result based on the behavior of the Client
   *
@@ -46,7 +47,7 @@ package object client {
     /** Generate a Task which, when executed, will perform the request and if the response
       * is of type `status`, decodes it.
       */
-    def on[T](status: Status, s2: Status*)(decoder: EntityDecoder[T]): Task[Result[T]] = {
+    def on[T](status: Status, s2: Status*)(implicit decoder: EntityDecoder[T]): Task[Result[T]] = {
       withDecoder { resp =>
         val s = resp.status
         if (s == status || s2.contains(s)) decoder
