@@ -79,7 +79,6 @@ object ExampleService {
       Ok("<h2>This will have an html content type!</h2>")
           .withHeaders(`Content-Type`(`text/html`))
 
-
     ///////////////////////////////////////////////////////////////
     //////////////// Dealing with the message body ////////////////
     case req @ POST -> Root / "echo" =>
@@ -100,7 +99,7 @@ object ExampleService {
 
     case req @ POST -> Root / "sum"  =>
       // EntityDecoders allow turning the body into something useful
-      formEncoded(req).flatMap { data =>
+      formEncoded(req) { data =>
         data.get("sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(' ').filter(_.length > 0).map(_.trim.toInt).sum
@@ -132,7 +131,7 @@ object ExampleService {
 
     case req @ POST -> Root / "form-encoded" =>
       // EntityDecoders return a Task[A] which is easy to sequence
-      formEncoded(req).flatMap { m =>
+      formEncoded(req) { m =>
         val s = m.mkString("\n")
         Ok(s"Form Encoded Data\n$s")
       }
@@ -153,7 +152,7 @@ object ExampleService {
   // Services don't have to be monolithic, and middleware just transforms a service to a service
   def service2 = EntityLimiter(HttpService {
     case req @ POST -> Root / "short-sum"  =>
-      formEncoded(req).flatMap { data =>
+      formEncoded(req) { data =>
         data.get("short-sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(" ").filter(_.length > 0).map(_.trim.toInt).sum

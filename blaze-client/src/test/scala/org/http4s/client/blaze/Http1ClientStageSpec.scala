@@ -136,7 +136,7 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       LeafBuilder(tail).base(h)
 
       val result = tail.runRequest(req).flatMap { resp =>
-        EntityDecoder.text.apply(resp)
+        EntityDecoder.text.decode(resp).run
       }
 
       result.run must throwA[TimeoutException]

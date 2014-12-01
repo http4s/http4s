@@ -4,14 +4,12 @@ package json
 import org.http4s.Header.`Content-Type`
 import scodec.bits.ByteVector
 
-import scalaz.concurrent.Task
-
 trait JsonSupport[J] extends JsonDecodeSupport[J] with JsonEncodeSupport[J]
 
 trait JsonDecodeSupport[J] {
-  def decodeJson(body: EntityBody): Task[J]
+  def decodeJson(body: EntityBody): DecodeResult[J]
 
-  implicit def jsonEntityDecoder: EntityDecoder[J] = EntityDecoder[J](
+  implicit def json: EntityDecoder[J] = EntityDecoder[J](
     msg => decodeJson(msg.body), MediaType.`application/json`
   )
 }

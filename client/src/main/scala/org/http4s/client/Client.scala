@@ -48,8 +48,11 @@ trait Client {
   final def decode[A](req: Request)(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
     prepare(req).flatMap { resp =>
       onResponse(resp)
-        .apply(resp)
-        .map(Result(resp.status, resp.headers, _))
+        .decode(resp)
+        .fold(
+          e => throw new ParseException(e),
+          Result(resp.status, resp.headers, _)
+        )
     }
 }
 

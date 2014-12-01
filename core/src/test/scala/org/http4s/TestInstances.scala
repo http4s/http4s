@@ -12,6 +12,10 @@ import scalaz.NonEmptyList
 import scalaz.scalacheck.ScalazArbitrary._
 
 trait TestInstances {
+  implicit class ParseResultSyntax[A](self: ParseResult[A]) {
+    def yolo: A = self.valueOr(e => sys.error(e.toString))
+  }
+
   val tchars: Gen[Char] = Gen.oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
       ('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
@@ -21,7 +25,7 @@ trait TestInstances {
   val standardMethods: Gen[Method] = Gen.oneOf(Method.registered.toSeq)
   implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
     10 -> standardMethods,
-    1 -> tokens.map(Method.fromString(_).valueOr(e => throw ParseException(e)))
+    1 -> tokens.map(Method.fromString(_).yolo)
   ))
 
   val validStatusCodes = Gen.choose(100, 599)
@@ -29,7 +33,7 @@ trait TestInstances {
   val customStatuses = for {
     code <- validStatusCodes
     reason <- arbString.arbitrary
-  } yield Status.fromIntAndReason(code, reason).valueOr(e => throw ParseException(e))
+  } yield Status.fromIntAndReason(code, reason).yolo
   implicit val arbitraryStatuses: Arbitrary[Status] = Arbitrary(frequency(
     10 -> standardStatuses,
     1 -> customStatuses
@@ -40,7 +44,7 @@ trait TestInstances {
     Arbitrary { for {
       major <- choose(0, 9)
       minor <- choose(0, 9)
-    } yield HttpVersion.fromVersion(major, minor).valueOr(e => throw ParseException(e)) }
+    } yield HttpVersion.fromVersion(major, minor).yolo }
 
   implicit val aribtraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
@@ -49,7 +53,7 @@ trait TestInstances {
     Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
 
   implicit val qValues: Arbitrary[QValue] =
-    Arbitrary { Gen.oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).valueOr(e => throw ParseException(e))) }
+    Arbitrary { Gen.oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).yolo) }
 
   implicit val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { frequency((10, arbitrary[CharsetRange.Atom]), (1, arbitrary[CharsetRange.`*`])) }

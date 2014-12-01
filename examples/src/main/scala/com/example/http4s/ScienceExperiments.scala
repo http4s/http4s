@@ -19,7 +19,7 @@ object ScienceExperiments {
   def service = HttpService {
     ///////////////// Misc //////////////////////
     case req @ POST -> Root / "root-element-name" =>
-      xml(req).flatMap(root => Ok(root.label))
+      xml(req)(root => Ok(root.label))
 
     ///////////////// Massive Data Loads //////////////////////
     case GET -> Root / "bigstring" =>
