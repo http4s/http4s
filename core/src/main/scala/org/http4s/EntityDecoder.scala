@@ -9,9 +9,10 @@ import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 import scalaz.Liskov.{<~<, refl}
-import scalaz.EitherT
+import scalaz.{\/-, EitherT}
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
+import scalaz.syntax.monad._
 
 import util.UrlFormCodec.{ decode => formDecode }
 import util.ByteVectorInstances.byteVectorMonoidInstance
@@ -19,13 +20,17 @@ import util.ByteVectorInstances.byteVectorMonoidInstance
 
 /** A type that can be used to decode an [[EntityBody]]
   * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
-  * entire resulting T. If an error occurs it will result in a failed Task
+  * entire resulting A. If an error occurs it will result in a failed Task
   * These are not streaming constructs.
   * @tparam T result type produced by the decoder
   */
-sealed trait EntityDecoder[T] extends (Message => Task[T]) { self =>
+sealed trait EntityDecoder[T] { self =>
 
-  final def apply(msg: Message): Task[T] = decode(msg).valueOr(e => throw ParseException(e))
+  final def apply(request: Request)(f: T => Task[Response]): Task[Response] =
+    decode(request).fold(
+      e => ResponseBuilder(Status.BadRequest, request.httpVersion, e.sanitized),
+      f
+    ).join
 
   def decode(msg: Message): DecodeResult[T]
 

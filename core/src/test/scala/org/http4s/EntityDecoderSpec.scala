@@ -13,36 +13,41 @@ import org.xml.sax.SAXParseException
 import java.io.{FileInputStream,File,InputStreamReader}
 
 import scala.util.control.NonFatal
-import scalaz.-\/
+import scalaz.{\/-, -\/}
 import scalaz.stream.Process._
-import scalaz.concurrent.Task
+import scalaz.concurrent.{Promise, Task}
 import scodec.bits.ByteVector
 
 
-class EntityDecoderSpec extends Specification {
+class EntityDecoderSpec extends Http4sSpec {
 
   def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
 
   def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
 
-  val message = ResponseBuilder(status = Status.Ok, body = "whatever").run
-
   "apply" should {
-    "return the right on a success" in {
-      val happyDecoder = EntityDecoder[String](_ => DecodeResult.success(Task.now("Cool!")), MediaRange.`*/*`)
-      happyDecoder(message).run must_== "Cool!"
+    val request = Request().withBody("whatever").run
+
+    "invoke the function with  the right on a success" in {
+      Task.async[String] { cb =>
+        val happyDecoder = EntityDecoder[String](
+          _ => DecodeResult.success(Task.now("hooray")),
+          MediaRange.`*/*`)
+        happyDecoder(request) { s => cb(\/-(s)); Task.now(Response()) }
+      }.run must equal ("hooray")
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder = EntityDecoder[String](_ => DecodeResult.failure(Task.now(ParseFailure("Bah!"))), MediaRange.`*/*`)
-      grumpyDecoder(message).attemptRun must_== -\/(ParseException(ParseFailure("Bah!")))
+      val resp = grumpyDecoder(request){ _ => Task.now(Response())}.run
+      resp.status must equal (Status.BadRequest)
     }
   }
 
   "xml" should {
 
     val server: Request => Task[Response] = { req =>
-      xml(req).flatMap{ elem => ResponseBuilder(Ok, elem.label) }
+      xml(req) { elem => ResponseBuilder(Ok, elem.label) }
     }
 
     "parse the XML" in {
@@ -51,22 +56,17 @@ class EntityDecoderSpec extends Specification {
       getBody(resp.body) must_== ("html".getBytes)
     }
 
-    "handle a parse failure" in {
+    "return 400 on parse error" in {
       val body = strBody("This is not XML.")
       val tresp = server(Request(body = body))
-      tresp.run must throwA[ParseException]
-
-      val -\/(err) = tresp.attemptRun
-      val resp = err.asInstanceOf[ParseException].asResponse(HttpVersion.`HTTP/1.1`).run
-      resp.status must_== Status.BadRequest
-      resp.httpVersion must_== HttpVersion.`HTTP/1.1`
+      tresp.run.status must equal (Status.BadRequest)
     }
   }
 
   "application/x-www-form-urlencoded" should {
 
     val server: Request => Task[Response] = { req =>
-      formEncoded(req).flatMap{ form => ResponseBuilder(Ok, form("Name").head) }
+      formEncoded(req) { form => ResponseBuilder(Ok, form("Name").head) }
         .handle{ case NonFatal(t) => ResponseBuilder.basic(Status.BadRequest).run }
     }
 
@@ -114,7 +114,7 @@ class EntityDecoderSpec extends Specification {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
         case req =>
-          textFile(tmpFile)(req).flatMap { _ =>
+          textFile(tmpFile)(req) { _ =>
             ResponseBuilder(Ok, "Hello")
           }
       }.run
@@ -127,7 +127,7 @@ class EntityDecoderSpec extends Specification {
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
-        case req => binFile(tmpFile)(req).flatMap(_ => ResponseBuilder(Ok, "Hello"))
+        case req => binFile(tmpFile)(req)(_ => ResponseBuilder(Ok, "Hello"))
       }.run
 
       response.status must_== (Status.Ok)
@@ -169,7 +169,7 @@ class EntityDecoderSpec extends Specification {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request()
-      binary(msg).run.length should_== 0
+      binary.decode(msg).run.run must beRightDisjunction.like { case ByteVector.empty => ok }
     }
 
     "concat ByteVectors" in {
@@ -177,10 +177,9 @@ class EntityDecoderSpec extends Specification {
       val body = emit(d1) ++ emit(d2)
       val msg = Request(body = body.map(ByteVector(_)))
 
-      val result = binary(msg).run
+      val result = binary.decode(msg).run.run
 
-      result.length should_== 6
-      result should_== ByteVector(1,2,3,4,5,6)
+      result must_== (\/-(ByteVector(1, 2, 3, 4, 5, 6)))
     }
   }
 

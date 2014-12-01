@@ -77,13 +77,13 @@ object ExampleService {
       }))
 
     case req @ POST -> Root / "sum"  =>
-      text(req).flatMap { s =>
+      text(req) { s =>
         val sum = s.split('\n').filter(_.length > 0).map(_.trim.toInt).sum
         Ok(sum)
       }
 
     case req @ POST -> Root / "shortsum"  =>
-      text(req).flatMap { s =>
+      text(req) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       } handleWith { case EntityTooLarge(_) =>
@@ -91,7 +91,7 @@ object ExampleService {
       }
 
     case req @ POST -> Root / "formencoded" =>
-      formEncoded(req).flatMap { m =>
+      formEncoded(req) { m =>
         val s = m.mkString("\n")
         Ok(s"Form Encoded Data\n$s")
       }
@@ -186,7 +186,7 @@ object ExampleService {
       (req.body |> parser).eval.toTask
 
     case req @ GET -> Root / "root-element-name" =>
-      xml(req).flatMap(root => Ok(root.label))
+      xml(req) { root => Ok(root.label) }
 
     case req @ GET -> Root / "ip" =>
       Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
@@ -204,7 +204,7 @@ object ExampleService {
 
   def service2 = HttpService {
     case req @ POST -> Root / "shortsum"  =>
-      text(req).flatMap { s =>
+      text(req) { s =>
         val sum = s.split('\n').map(_.toInt).sum
         Ok(sum)
       } handleWith { case EntityTooLarge(_) =>

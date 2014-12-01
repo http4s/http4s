@@ -1,5 +1,6 @@
 package org.http4s
 
+import scala.util.control.NoStackTrace
 import scalaz.concurrent.Task
 import scalaz.{\/-, -\/}
 
@@ -14,17 +15,7 @@ import scalaz.{\/-, -\/}
  */
 final case class ParseFailure(sanitized: String, details: String = "")
 
-final case class ParseException(failure: ParseFailure)
-  extends RuntimeException(failure.sanitized)
-  with ReplyException
-{
-  override def asResponse(version: HttpVersion): Task[Response] =
-    ResponseBuilder(
-      status = Status.BadRequest,
-      version = version,
-      body = failure.sanitized
-    )
-}
+final case class ParseException(failure: ParseFailure) extends RuntimeException(failure.sanitized)
 
 object ParseResult {
   def fail(sanitized: String, details: String = "") = -\/(ParseFailure(sanitized, details))

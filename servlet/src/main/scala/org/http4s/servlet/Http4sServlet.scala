@@ -1,9 +1,6 @@
 package org.http4s
 package servlet
 
-import java.util.concurrent.atomic.AtomicReference
-
-import org.http4s.ReplyException
 import scodec.bits.ByteVector
 import java.util.concurrent.ExecutorService
 import server._
@@ -11,13 +8,11 @@ import server._
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import java.net.InetAddress
 
-import scala.annotation.tailrec
 import scala.collection.JavaConverters._
 import javax.servlet._
 
-import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
-import scalaz.concurrent.{Actor, Task}
+import scalaz.concurrent.Actor
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.io._
@@ -93,9 +88,6 @@ class Http4sServlet(service: HttpService,
 
   private def handleError(t: Throwable, response: HttpServletResponse) {
     if (!response.isCommitted) t match {
-      case t: ReplyException =>
-        renderResponse(t.asResponse(HttpVersion.`HTTP/1.0`), response)
-
       case ParseError(_, _) =>
         logger.info(t)("Error during processing phase of request")
         response.sendError(HttpServletResponse.SC_BAD_REQUEST)
