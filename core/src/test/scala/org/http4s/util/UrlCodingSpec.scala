@@ -4,11 +4,11 @@
  */
 package org.http4s.util
 
-import org.specs2.Specification
+import org.specs2.{ScalaCheck, Specification}
 import UrlCodingUtils._
 import collection.immutable.BitSet
 
-class UrlCodingSpec extends Specification {
+class UrlCodingSpec extends Specification with ScalaCheck {
   def is =
 
     "Encoding a URI should" ^
@@ -60,5 +60,8 @@ class UrlCodingSpec extends Specification {
       } ^
       "it decodes + as space when the plusIsSpace flag is true" ! {
         urlDecode("+", plusIsSpace = true) must_== " "
-      } ^ end
+      } ^ p ^
+    "urlDecode(urlEncode(s)) == s" ! {
+      prop { (s: String) => urlDecode(urlEncode(s)) must_== s }
+    } ^ end
 }
