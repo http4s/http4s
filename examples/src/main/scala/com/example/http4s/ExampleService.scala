@@ -5,6 +5,7 @@ import scala.concurrent.{ExecutionContext, Future}
 
 import org.http4s.Header.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
+import org.http4s.MediaType._
 import org.http4s.dsl._
 import org.http4s.json4s.jackson.Json4sJacksonSupport._
 import org.http4s.server._
@@ -41,14 +42,14 @@ object ExampleService {
               <li><a href="/http4s/streaming">A streaming result</a></li>
               <li><a href="/http4s/ip">Get your IP address</a></li>
               <li><a href="/http4s/redirect">A redirect url</a></li>
-              <li><a href="/http4s/contentChange">A HTML result written as a String</a></li>
+              <li><a href="/http4s/content-change">A HTML result written as a String</a></li>
 
               <li><a href="/http4s/echo">Echo some form encoded data</a></li>
               <li><a href="/http4s/echo2">Echo some form encoded data minus a few chars</a></li>
               <li><a href="/http4s/sum">Calculate the sum of the submitted numbers</a></li>
-              <li><a href="/http4s/shortsum">Try to calculate a sum, but limit the entity size</a></li>
+              <li><a href="/http4s/short-sum">Try to calculate a sum, but the body will be to large</a></li>
 
-              <li><a href="/http4s/formencoded">A submission form</a></li>
+              <li><a href="/http4s/form-encoded">A submission form</a></li>
               <li><a href="/http4s/push">Server push</a></li>
             </ul>
           </body>
@@ -70,13 +71,13 @@ object ExampleService {
       Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
 
     case req @ GET -> Root / "redirect" =>
-      // Not every response must be Ok using a Writable: some have meaning only for specifc types
+      // Not every response must be Ok using a Writable: some have meaning only for specific types
       TemporaryRedirect(uri("/http4s"))
 
-    case GET -> Root / "contentChange" =>
+    case GET -> Root / "content-change" =>
       // Writable typically deals with appropriate headers, but they can be overridden
       Ok("<h2>This will have an html content type!</h2>")
-          .withHeaders(`Content-Type`(MediaType.`text/html`))
+          .withHeaders(`Content-Type`(`text/html`))
 
 
     ///////////////////////////////////////////////////////////////
@@ -84,16 +85,15 @@ object ExampleService {
     case req @ POST -> Root / "echo" =>
       // The body can be used in the response
       Ok(req.body)
-        .withHeaders(`Content-Type`(MediaType.`text/plain`),
-                     `Transfer-Encoding`(TransferCoding.chunked))
+        .withHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "echo" =>
       Ok(submissionForm("echo data"))
 
     case req @ POST -> Root / "echo2" =>
       // Even more useful, the body can be transformed in the response
-      Ok(req.body.map { chunk => chunk.slice(6, chunk.length) })
-        .withHeaders(`Content-Type`(MediaType.`text/plain`))
+      Ok(req.body.map(_.drop(6)))
+        .withHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo2" =>
       Ok(submissionForm("echo data"))
@@ -117,7 +117,7 @@ object ExampleService {
 
     ///////////////////////////////////////////////////////////////
     //////////////// Form encoding example ////////////////////////
-    case req @ GET -> Root / "formencoded" =>
+    case req @ GET -> Root / "form-encoded" =>
       val html =
         <html><body>
           <p>Submit something.</p>
@@ -130,7 +130,7 @@ object ExampleService {
 
       Ok(html)
 
-    case req @ POST -> Root / "formencoded" =>
+    case req @ POST -> Root / "form-encoded" =>
       // EntityDecoders return a Task[A] which is easy to sequence
       formEncoded(req).flatMap { m =>
         val s = m.mkString("\n")
@@ -152,9 +152,9 @@ object ExampleService {
 
   // Services don't have to be monolithic, and middleware just transforms a service to a service
   def service2 = EntityLimiter(HttpService {
-    case req @ POST -> Root / "shortsum"  =>
+    case req @ POST -> Root / "short-sum"  =>
       formEncoded(req).flatMap { data =>
-        data.get("shortsum") match {
+        data.get("short-sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(" ").filter(_.length > 0).map(_.trim.toInt).sum
             Ok(sum)
@@ -162,11 +162,11 @@ object ExampleService {
           case None => BadRequest(s"Invalid data: " + data)
         }
       } handleWith { // We can use Task functions to manage errors
-        case EntityTooLarge(_)        => Ok("Got a nonfatal Exception, but its OK")
+        case EntityTooLarge(max) => PayloadTooLarge(s"Entity too large. Max size: $max")
       }
 
-    case req @ GET -> Root / "shortsum" =>
-      Ok(submissionForm("shortsum"))
+    case req @ GET -> Root / "short-sum" =>
+      Ok(submissionForm("short-sum"))
   }, 3)
 
   // This is a mock data source, but could be a Process representing results from a database
