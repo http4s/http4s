@@ -2,7 +2,7 @@ package org.http4s
 
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
-import org.xml.sax.{SAXParseException, InputSource}
+import org.xml.sax.{SAXException, SAXParseException, InputSource}
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
@@ -111,8 +111,7 @@ trait EntityDecoderInstances {
   /** Provides a mechanism to fail decoding */
   def error[T](t: Throwable) = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
-      msg.body.kill.run
-      DecodeResult[T](Task.fail(t))
+      DecodeResult(msg.body.kill.run.flatMap(_ => Task.fail(t)))
     }
     override def consumes: Set[MediaRange] = Set.empty
   }

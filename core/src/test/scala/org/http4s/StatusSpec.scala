@@ -1,10 +1,8 @@
 package org.http4s
 
-import java.util.Locale
 
 import scalaz.scalacheck.ScalazProperties
 
-import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Gen
 import org.scalacheck.Prop.forAll
 
@@ -34,7 +32,7 @@ class StatusSpec extends Http4sSpec {
     prop { (s1: Status, s2: Status) => (s1.code != s2.code) ==> (s1 != s2) }
   }
 
-  "status is not equal if reason is not equal" in {
-    prop { (s1: Status, reason: String) => (s1.reason != reason) ==> (s1 != s1.withReason(reason)) }
+  "status is equal if reason is equal" in {
+    prop { (s1: Status, reason: String) => (s1.reason != reason) ==> (s1 == s1.withReason(reason)) }
   }
 }

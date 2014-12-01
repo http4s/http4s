@@ -9,6 +9,7 @@ import org.http4s.blaze.util.Execution
 import org.log4s.getLogger
 
 import scala.collection.mutable
+import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
@@ -16,13 +17,15 @@ import scalaz.stream.Process.halt
 
 /** Provides a foundation for pooling clients */
 abstract class PooledClient(maxPooledConnections: Int,
-                            bufferSize: Int,
-                            group: Option[AsynchronousChannelGroup]) extends BlazeClient {
+                                      bufferSize: Int,
+                                        executor: ExecutionContext,
+                                           group: Option[AsynchronousChannelGroup]) extends BlazeClient {
+
   private[this] val logger = getLogger
 
   assert(maxPooledConnections > 0, "Must have positive collection pool")
 
-  override implicit protected def ec: ExecutionContext = Execution.trampoline
+  final override implicit protected def ec: ExecutionContext = executor
 
   private var closed = false
   private val cs = new mutable.Queue[(InetSocketAddress, BlazeClientStage)]()
@@ -63,14 +66,13 @@ abstract class PooledClient(maxPooledConnections: Int,
           case None            => newConnection(request, addr)
         }
       })
-
     }
   }
 
   private def newConnection(request: Request, addr: InetSocketAddress): Future[BlazeClientStage] = {
     logger.debug(s"Generating new connection for request: ${request.copy(body = halt)}")
     connectionManager.connect(addr).map { head =>
-      val PipelineResult(builder, t) = buildPipeline(request, closeOnFinish = false)
+      val PipelineResult(builder, t) = buildPipeline(request, false)
       builder.base(head)
       t
     }
