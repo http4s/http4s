@@ -11,7 +11,6 @@ libraryDependencies ++= Seq(
   base64,
   http4sWebsocket,
   log4s,
-  rl,
   parboiled,
   scalazStream,
   scodecBits

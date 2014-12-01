@@ -2,7 +2,6 @@ package org.http4s.util
 
 import scalaz.syntax.Ops
 import scala.io.Codec
-import rl.UrlCodingUtils
 import java.util.regex.Pattern
 
 trait StringOps extends Ops[String] {
