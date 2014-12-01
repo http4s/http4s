@@ -29,11 +29,11 @@ class EntityDecoderSpec extends Http4sSpec {
     val request = Request().withBody("whatever").run
 
     "invoke the function with  the right on a success" in {
+      val happyDecoder = EntityDecoder[String](
+        _ => DecodeResult.success(Task.now("hooray")),
+        MediaRange.`*/*`)
       Task.async[String] { cb =>
-        val happyDecoder = EntityDecoder[String](
-          _ => DecodeResult.success(Task.now("hooray")),
-          MediaRange.`*/*`)
-        happyDecoder(request) { s => cb(\/-(s)); Task.now(Response()) }
+        happyDecoder(request) { s => cb(\/-(s)); Task.now(Response()) }.run
       }.run must equal ("hooray")
     }
 
@@ -182,6 +182,4 @@ class EntityDecoderSpec extends Http4sSpec {
       result must_== (\/-(ByteVector(1, 2, 3, 4, 5, 6)))
     }
   }
-
 }
-
