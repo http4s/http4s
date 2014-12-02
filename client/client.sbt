@@ -1,5 +1,3 @@
-import Http4sDependencies._
-
 name := "http4s-client"
 
 description := "Client bindings for http4s"
@@ -8,3 +6,5 @@ description := "Client bindings for http4s"
 libraryDependencies ++= Seq(
   jettyServlet
 ).map(_ % "test")
+
+mimaSettings

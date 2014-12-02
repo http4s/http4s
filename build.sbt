@@ -1,6 +1,3 @@
-import Http4sBuild._
-import Http4sKeys._
-import Http4sDependencies._
 import sbtunidoc.Plugin.UnidocKeys._
 
 lazy val core = project
@@ -40,6 +37,8 @@ organization in ThisBuild := "org.http4s"
 name := "http4s"
 
 version in ThisBuild := "0.5.0-SNAPSHOT"
+
+compatibleVersion in ThisBuild := "0.4.0"
 
 apiVersion in ThisBuild <<= version.map(extractApiVersion)
 

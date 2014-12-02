@@ -15,7 +15,7 @@ before_script:
 - git config --global user.email "travis-ci@http4s.org"
 - git config --global user.name "Travis CI"
 - "cd $TRAVIS_BUILD_DIR/src/jekyll && bundle install && cd -"
-script: sbt ++$TRAVIS_SCALA_VERSION test
+script: sbt ++$TRAVIS_SCALA_VERSION test mimaReportBinaryIssues
 after_success: 
 - bash bin/travis-publish
 notifications:

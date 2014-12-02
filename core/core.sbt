@@ -1,6 +1,3 @@
-import Http4sKeys._
-import Http4sDependencies._
-
 name := "http4s-core"
 
 description := "Core http4s framework"
@@ -38,3 +35,4 @@ buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion)
 
 buildInfoPackage <<= organization
 
+mimaSettings

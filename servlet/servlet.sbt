@@ -1,5 +1,3 @@
-import Http4sDependencies._
-
 name := "http4s-servlet"
 
 description := "Servlet backend for http4s"
@@ -9,3 +7,5 @@ libraryDependencies ++= Seq(
   jettyServer % "test",
   jettyServlet % "test"
 )
+
+mimaSettings
