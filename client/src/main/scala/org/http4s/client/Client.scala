@@ -1,6 +1,6 @@
 package org.http4s.client
 
-import org.http4s.{Request, Response, EntityDecoder, Uri}
+import org.http4s._
 
 import scalaz.concurrent.Task
 
@@ -46,5 +46,5 @@ object Client {
     } yield res
 
   def withDecoder[A](resp: Task[Response])(onResponse: Response => EntityDecoder[A]): Task[A] =
-    toResult(resp)(resp => onResponse(resp).apply(resp))
+    toResult(resp)(resp => onResponse(resp).decode(resp).valueOr(e => throw new ParseException(e)))
 }

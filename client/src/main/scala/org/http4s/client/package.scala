@@ -91,13 +91,13 @@ package object client {
         case None      => resp.status == Status.Ok
       }
 
-      if (validStatus) decoder(resp)
+      if (validStatus) decoder.decode(resp).valueOr(e => throw new ParseException(e))
       else Task.fail(badStatusError(resp.status))
     }
 
     /** Decode the [[Response]] based on [[Status]] */
     def matchStatus[T](f: PartialFunction[Status, EntityDecoder[T]]): Task[T] =
-      withDecoder { resp => f.applyOrElse(resp.status, badStatus) }
+      withDecoder { resp => f.applyOrElse(resp.status, badStatus[T]) }
 
     /** Generate a Task which, when executed, will perform the request and attempt to decode it */
     def withDecoder[T](f: Response => EntityDecoder[T]): Task[T] =
@@ -107,13 +107,13 @@ package object client {
     def toResult[T](f: Response => Task[T]): Task[T] =
       Client.toResult(response)(f)
 
-    private def badStatus(s: Status) = EntityDecoder.error(badStatusError(s))
+    private def badStatus[T](s: Status) = EntityDecoder.error[T](badStatusError(s))
 
     private def badStatusError(s: Status) = InvalidResponseException(s"Unhandled Status: $s")
   }
 
   implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] =
-    EntityDecoder(resp => decoder.apply(resp).map(t => (resp.headers,t)), decoder.consumes.toSeq:_*)
+    EntityDecoder(resp => decoder.decode(resp).map(t => (resp.headers,t)), decoder.consumes.toSeq:_*)
 
   private val statusKey = AttributeKey[Set[Status]]("Valid statuses")
 }

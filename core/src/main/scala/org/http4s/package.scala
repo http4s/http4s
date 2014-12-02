@@ -1,6 +1,6 @@
 package org
 
-import scalaz.\/
+import scalaz.{EitherT, \/}
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -14,6 +14,8 @@ package object http4s {
   type EntityBody = Process[Task, ByteVector]
 
   def EmptyBody = Process.halt
+
+  type DecodeResult[T] = EitherT[Task, ParseFailure, T]
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 

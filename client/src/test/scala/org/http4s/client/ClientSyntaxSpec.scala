@@ -1,6 +1,8 @@
 package org.http4s
 package client
 
+import scodec.bits.ByteVector
+
 import scalaz.\/
 import scalaz.concurrent.Task
 
@@ -104,8 +106,8 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
     "be mappable to multiple result types" in {
       req.matchStatus {
-        case Ok => EntityDecoder.text.map(\/.right)
-        case _  => EntityDecoder.binary.map(\/.left)
+        case Ok => EntityDecoder.text.map[ByteVector \/ String](\/.right)
+        case _  => EntityDecoder.binary.map[ByteVector \/ String](\/.left)
       }.run must beRightDisjunction("hello")
     }
   }

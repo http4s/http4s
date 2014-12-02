@@ -1,13 +1,13 @@
 package org.http4s.client.blaze
 
-import java.net.InetSocketAddress
+import java.io.IOException
 import java.nio.ByteBuffer
 
 import org.http4s.Request
 import org.http4s.blaze.pipeline.LeafBuilder
 
 import scala.concurrent.duration.Duration
-import scalaz.\/
+import scalaz.-\/
 
 trait PipelineBuilder {
 
@@ -22,7 +22,7 @@ trait PipelineBuilder {
   }
 
   /** Find the address from the [[Request]] */
-  protected def getAddress(req: Request): \/[Throwable, InetSocketAddress] = {
-    sys.error(s"Unable to generate address from request: $req")
-  }
+  protected def getAddress(req: Request): AddressResult =
+    -\/(new IOException(s"Unable to generate address from request: $req"))
 }
+

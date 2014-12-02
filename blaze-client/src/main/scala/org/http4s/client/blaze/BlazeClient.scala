@@ -13,7 +13,6 @@ import scalaz.{-\/, \/-}
 
 /** Base on which to implement a BlazeClient */
 trait BlazeClient extends PipelineBuilder with Client {
-  private[this] val logger = getLogger
 
   implicit protected def ec: ExecutionContext
 
@@ -44,7 +43,7 @@ trait BlazeClient extends PipelineBuilder with Client {
               }
             })
 
-            cb(\/-(r.copy(body = r.body.onComplete(recycleProcess))))
+            cb(\/-(r.copy(body = r.body ++ recycleProcess)))
 
           case -\/(Command.EOF) if retries > 0 =>
             getClient(req, fresh = true).onComplete(tryClient(_, retries - 1))

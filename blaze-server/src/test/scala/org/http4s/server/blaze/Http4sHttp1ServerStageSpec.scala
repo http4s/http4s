@@ -19,6 +19,8 @@ import scala.concurrent.duration.FiniteDuration
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 
+import scodec.bits.ByteVector
+
 class Http1ServerStageSpec extends Specification with NoTimeConversions {
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
@@ -63,14 +65,14 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       val result = runError(path)
 
-      result.map{ case (s, c, r) => (s, c, r.contains("Synchronous"))} must be_== ((InternalServerError, true, true)).await
+      result.map{ case (s, c, _) => (s, c)} must be_== ((InternalServerError, true)).await
     }
 
     "Deal with asynchronous errors" in {
       val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
       val result = runError(path)
 
-      result.map{ case (s, c, r) => (s, c, r.contains("Asynchronous"))} must be_== ((InternalServerError, true, true)).await
+      result.map{ case (s, c, _) => (s, c)} must be_== ((InternalServerError, true)).await
     }
   }
 
@@ -94,25 +96,92 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       head.result
     }
 
-    "Handle routes that don't use the full request body for non-chunked" in {
-
+    "Handle routes that consumes the full request body for non-chunked" in {
       val service = HttpService {
-        case req => req.body.toTask.map { bytes =>
-          Response(body = Process.emit(bytes))
-        }
+        case req => Task.now(Response(body = req.body))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val (r11,r12) = req1.splitAt(req1.length - 1)
 
+      val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
+
+      // Both responses must succeed
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+    }
+
+    "Handle routes that ignores the body for non-chunked" in {
+      val service = HttpService {
+        case req => Task.now(Response(body = req.body))
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+      val (r11,r12) = req1.splitAt(req1.length - 1)
+
+      val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
+
+      // Both responses must succeed
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+    }
+
+    "Handle routes that ignores request body for non-chunked" in {
+
+      val service = HttpService {
+        case req =>  Task.now(Response(body = Process.emit(ByteVector.view("foo".getBytes))))
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+      val (r11,r12) = req1.splitAt(req1.length - 1)
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
       val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "don"))
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(5)), "total"))
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+    }
+
+    "Handle routes that runs the request body for non-chunked" in {
+
+      val service = HttpService {
+        case req =>  req.body.run.map { _ =>
+          Response(body = Process.emit(ByteVector.view("foo".getBytes)))
+        }
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+      val (r11,r12) = req1.splitAt(req1.length - 1)
+      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
+
+      val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
+
+      // Both responses must succeed
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+    }
+
+    "Handle routes that kills the request body for non-chunked" in {
+
+      val service = HttpService {
+        case req =>  req.body.kill.run.map { _ =>
+          Response(body = Process.emit(ByteVector.view("foo".getBytes)))
+        }
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+      val (r11,r12) = req1.splitAt(req1.length - 1)
+      val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
+
+      val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
+
+      // Both responses must succeed
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
     }
 
     // Think of this as drunk HTTP pipelineing

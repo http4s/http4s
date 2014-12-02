@@ -66,7 +66,6 @@ abstract class PooledClient(maxPooledConnections: Int,
           case None            => newConnection(request, addr)
         }
       })
-
     }
   }
 
