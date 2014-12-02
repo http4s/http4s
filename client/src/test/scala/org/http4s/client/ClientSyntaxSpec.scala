@@ -7,7 +7,7 @@ import scalaz.\/
 import scalaz.concurrent.Task
 
 import org.http4s.server.HttpService
-import org.http4s.Status.{Ok, NotFound}
+import org.http4s.Status.{Ok, NotFound, Created}
 import org.http4s.Method._
 
 import org.specs2.matcher.MustThrownMatchers
@@ -15,8 +15,9 @@ import org.specs2.matcher.MustThrownMatchers
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   val route = HttpService {
-    case r if r.pathInfo == "/" => ResponseBuilder(Ok, "hello")
-    case r => sys.error("Path not found: " + r.pathInfo)
+    case r if r.method == GET && r.pathInfo == "/"    => ResponseBuilder(Ok, "hello")
+    case r if r.method == PUT && r.pathInfo == "/put" => ResponseBuilder(Created, r.body)
+    case r                                            => sys.error("Path not found: " + r.pathInfo)
   }
 
   implicit val client = new MockClient(route)
@@ -114,7 +115,12 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   "RequestResponseGenerator" should {
     "Generate requests based on Method" in {
-      GET.apply("http://www.foo.com/").on(Ok).as[String].run must_== "hello"
+      GET("http://www.foo.com/").on(Ok).as[String].run must_== "hello"
+//      GET("http://www.foo.com/", "cats").on(Ok).as[String].run must_== "hello"  // Doesn't compile, body not allowed
+
+      // The PUT: /put path just echos the body
+      PUT("http://www.foo.com/put").on(Ok, Created).as[String].run must_== ""
+      PUT("http://www.foo.com/put", "foo").on(Ok, Created).as[String].run must_== "foo" // body allowed
     }
   }
 

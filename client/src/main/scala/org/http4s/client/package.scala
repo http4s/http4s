@@ -23,25 +23,9 @@ import scalaz.concurrent.Task
 package object client {
   import Method._
 
-//  val GET: Method.GET.type = Method.GET
-//  val HEAD: Method.HEAD.type = Method.HEAD
-//  val POST: Method.POST.type = Method.POST
-//  val PUT: Method.PUT.type = Method.PUT
-//  val DELETE: Method.DELETE.type = Method.DELETE
-//  val CONNECT: Method.CONNECT.type = Method.CONNECT
-//  val OPTIONS: Method.OPTIONS.type = Method.OPTIONS
-//  val TRACE: Method.TRACE.type = Method.TRACE
-//  val PATCH: Method.PATCH.type = Method.PATCH
-
-  implicit class GetSyntax(val method: Method.GET.type) extends AnyVal with EmptyRequestGenerator
-  implicit class HeadSyntax(val method: HEAD.type) extends AnyVal with EmptyRequestGenerator
-  implicit class PostSyntax(val method: POST.type) extends AnyVal with EntityRequestGenerator
-  implicit class PutSyntax(val method: PUT.type) extends AnyVal with EntityRequestGenerator
-  implicit class DeleteSyntax(val method: DELETE.type) extends AnyVal with EmptyRequestGenerator
-  implicit class ConnectSyntax(val method: CONNECT.type) extends AnyVal with EmptyRequestGenerator
-  implicit class OptionsSyntax(val method: OPTIONS.type) extends AnyVal with EntityRequestGenerator
-  implicit class TraceSyntax(val method: TRACE.type) extends AnyVal with EmptyRequestGenerator
-  implicit class PatchSyntax(val method: PATCH.type) extends AnyVal with EntityRequestGenerator
+  /** Syntax classes to generate a request directly from a [[Method]] */
+  implicit class WithBodySyntax(val method: Method with HasBody) extends AnyVal with EntityRequestGenerator
+  implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
 
   /** ClientSyntax provides the most convenient way to transform a [[Request]] into a [[Response]]
     *
