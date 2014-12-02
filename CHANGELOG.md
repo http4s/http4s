@@ -1,3 +1,6 @@
+# v0.4.2 (2014-12-01)
+* Fix whitespace parsing in Authorization header [#87](https://github.com/http4s/http4s/issues/87)
+
 # v0.4.1 (2014-11-20)
 * `Uri.query` and `Uri.fragment` are no longer decoded. [#75](https://github.com/http4s/http4s/issues/75)
 
