@@ -40,7 +40,7 @@ object Method extends MethodInstances {
   }
 
   // Type tags for a method allowing a body or not
-  sealed trait HasBody
+  sealed trait PermitsBody
   sealed trait NoBody
 
   def fromString(s: String): ParseResult[Method] =
@@ -60,7 +60,7 @@ object Method extends MethodInstances {
   }
 
   def registered: Iterable[Method] = registry.readOnlySnapshot().values.map(_.b)
-
+  // TODO: find out the rest of the body permissions. http://www.iana.org/assignments/http-methods/http-methods.xhtml#methods
   val ACL                = register(new Method("ACL")               with Idempotent)
   val `BASELINE-CONTROL` = register(new Method("BASELINE-CONTROL")  with Idempotent)
   val BIND               = register(new Method("BIND")              with Idempotent)
@@ -71,7 +71,7 @@ object Method extends MethodInstances {
   val DELETE             = register(new Method("DELETE")            with Idempotent with NoBody)
   val GET                = register(new Method("GET")               with Safe       with NoBody)
   val HEAD               = register(new Method("HEAD")              with Safe       with NoBody)
-  val LABEL              = register(new Method("LABEL")             with Idempotent)
+  val LABEL              = register(new Method("LABEL")             with Idempotent with PermitsBody)
   val LINK               = register(new Method("LINK")              with Idempotent)
   val LOCK               = register(new Method("LOCK")              with Default)
   val MERGE              = register(new Method("MERGE")             with Idempotent)
@@ -81,17 +81,17 @@ object Method extends MethodInstances {
   val MKREDIRECTREF      = register(new Method("MKREDIRECTREF")     with Idempotent)
   val MKWORKSPACE        = register(new Method("MKWORKSPACE")       with Idempotent)
   val MOVE               = register(new Method("MOVE")              with Idempotent)
-  val OPTIONS            = register(new Method("OPTIONS")           with Safe       with HasBody)
+  val OPTIONS            = register(new Method("OPTIONS")           with Safe       with PermitsBody)
   val ORDERPATCH         = register(new Method("ORDERPATCH")        with Idempotent)
-  val PATCH              = register(new Method("PATCH")             with Default    with HasBody)
-  val POST               = register(new Method("POST")              with Default    with HasBody)
+  val PATCH              = register(new Method("PATCH")             with Default    with PermitsBody)
+  val POST               = register(new Method("POST")              with Default    with PermitsBody)
   val PROPFIND           = register(new Method("PROPFIND")          with Safe)
   val PROPPATCH          = register(new Method("PROPPATCH")         with Idempotent)
-  val PUT                = register(new Method("PUT")               with Idempotent with HasBody)
+  val PUT                = register(new Method("PUT")               with Idempotent with PermitsBody)
   val REBIND             = register(new Method("REBIND")            with Idempotent)
   val REPORT             = register(new Method("REPORT")            with Safe)
   val SEARCH             = register(new Method("SEARCH")            with Safe)
-  val TRACE              = register(new Method("TRACE")             with Safe       with HasBody)
+  val TRACE              = register(new Method("TRACE")             with Safe       with PermitsBody)
   val UNBIND             = register(new Method("UNBIND")            with Idempotent)
   val UNCHECKOUT         = register(new Method("UNCHECKOUT")        with Idempotent)
   val UNLINK             = register(new Method("UNLINK")            with Idempotent)

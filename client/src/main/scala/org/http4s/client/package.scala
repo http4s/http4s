@@ -24,7 +24,7 @@ package object client {
   import Method._
 
   /** Syntax classes to generate a request directly from a [[Method]] */
-  implicit class WithBodySyntax(val method: Method with HasBody) extends AnyVal with EntityRequestGenerator
+  implicit class WithBodySyntax(val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator
   implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
 
   /** ClientSyntax provides the most convenient way to transform a [[Request]] into a [[Response]]
