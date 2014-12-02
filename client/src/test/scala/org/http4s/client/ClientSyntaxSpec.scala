@@ -1,11 +1,13 @@
 package org.http4s
 package client
 
+import scalaz.\/
 import scalaz.concurrent.Task
 
-import org.http4s.Method.GET
 import org.http4s.server.HttpService
 import org.http4s.Status.{Ok, NotFound}
+import org.http4s.Method._
+
 import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
@@ -86,6 +88,19 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
     "implicitly resolve an EntityDecoder" in {
       req.uri.on[String](Ok).run.body must_== "hello"
+    }
+
+    "be mappable to multiple result types" in {
+      req.onStatus {
+        case Ok => EntityDecoder.text.map(\/.right)
+        case _  => EntityDecoder.binary.map(\/.left)
+      }.run.body must beRightDisjunction("hello")
+    }
+  }
+
+  "RequestResponseGenerator" should {
+    "Generate requests based on Method" in {
+      GET.apply("http://www.foo.com/").on[String](Ok).run.body must_== "hello"
     }
   }
 
