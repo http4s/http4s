@@ -4,6 +4,8 @@ import scalaz.concurrent.Task
 
 import org.http4s._
 import org.http4s.client._
+import org.http4s.Method._
+import org.http4s.Status._
 import org.specs2.mutable.After
 import org.specs2.time.NoTimeConversions
 
@@ -14,17 +16,19 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     implicit def client = SimpleHttp1Client
 
     "Make simple http requests" in {
-      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = uri("https://github.com/").on(Ok).as[String]
+        .run
 //      println(resp.copy(body = halt))
 
-      resp.status.code must be_==(200)
+      resp.length mustNotEqual 0
     }
 
     "Make simple https requests" in {
-      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = uri("https://github.com/").as[String]
+        .run
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
-      resp.status.code must be_==(200)
+      resp.length mustNotEqual 0
     }
   }
 
@@ -33,28 +37,31 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
   "RecyclingHttp1Client" should {
 
     "Make simple http requests" in {
-      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = uri("https://github.com/").on(Ok).as[String]
+        .run
       //      println(resp.copy(body = halt))
 
-      resp.status.code must_==(200)
+      resp.length mustNotEqual 0
     }
 
     "Repeat a simple http request" in {
       val f = (0 until 10).map(_ => Task.fork {
-        val req = Request(GET, uri("https://github.com/"))
-        val resp = req.on(Status.Ok)(EntityDecoder.text)
-        resp.map(_.status)
+        val req = uri("https://github.com/")
+        val resp = req.on(Status.Ok).as[String]
+        resp.map(_.length)
       })
-      foreach(Task.gatherUnordered(f).run) { status =>
-        status.code must_== 200
+
+      foreach(Task.gatherUnordered(f).run) { length =>
+        length mustNotEqual 0
       }
     }
 
     "Make simple https requests" in {
-      val resp = Request(GET, uri("https://github.com/")).on(Status.Ok)(EntityDecoder.text).run
+      val resp = uri("https://github.com/").as[String]
+        .run
       //      println(resp.copy(body = halt))
       //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
-      resp.status.code must be_==(200)
+      resp.length mustNotEqual 0
     }
   }
 

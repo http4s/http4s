@@ -39,15 +39,12 @@ trait Client {
 }
 
 object Client {
-  def toResult[A](resp: Task[Response])(onResponse: Response => Task[Result[A]]): Task[Result[A]]=
+  def toResult[A](resp: Task[Response])(onResponse: Response => Task[A]): Task[A]=
     for {
       r <- resp
       res <-onResponse(r)
     } yield res
 
-  def withDecoder[A](resp: Task[Response])(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
-    toResult(resp)(resp => onResponse(resp)
-                              .apply(resp)
-                              .map(Result(resp.status, resp.headers, _))
-    )
+  def withDecoder[A](resp: Task[Response])(onResponse: Response => EntityDecoder[A]): Task[A] =
+    toResult(resp)(resp => onResponse(resp).apply(resp))
 }

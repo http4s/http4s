@@ -67,30 +67,53 @@ package object client {
     */
   implicit final class ResultSyntax(val response: Task[Response]) extends AnyVal {
 
-    /** Generate a Task which, when executed, will perform the request and if the response
-      * is of type `status`, decodes it.
-      */
-    def on[T](status: Status, s2: Status*)(implicit decoder: EntityDecoder[T]): Task[Result[T]] = {
-      withDecoder { resp =>
-        val s = resp.status
-        if (s == status || s2.contains(s)) decoder
-        else badStatus(s)
+    /** Fail on a Response which do not match a designated status */
+    def on(status: Status, s2: Status*): Task[Response] = response.map { resp =>
+      val s = resp.status
+      val valid = resp.attributes.get(statusKey) match {
+        case Some(s) => s ++ s2 + status
+        case None    => s2.toSet + status
       }
+
+      resp.withAttribute(statusKey, valid)
+    }
+
+    /** Decode the [[Response]] to the specified type
+      *
+      * If no valid [[Status]] has been described, allow Ok
+      * @param decoder [[EntityDecoder]] used to decode the [[Response]]
+      * @tparam T type of the result
+      * @return the `Task` which will generate the T
+      */
+    def as[T](implicit decoder: EntityDecoder[T]): Task[T] = response.flatMap { resp =>
+      val validStatus = resp.attributes.get(statusKey) match {
+        case Some(set) => set.contains(resp.status)
+        case None      => resp.status == Status.Ok
+      }
+
+      if (validStatus) decoder(resp)
+      else Task.fail(badStatusError(resp.status))
     }
 
     /** Decode the [[Response]] based on [[Status]] */
-    def onStatus[T](f: PartialFunction[Status, EntityDecoder[T]]): Task[Result[T]] =
+    def matchStatus[T](f: PartialFunction[Status, EntityDecoder[T]]): Task[T] =
       withDecoder { resp => f.applyOrElse(resp.status, badStatus) }
 
     /** Generate a Task which, when executed, will perform the request and attempt to decode it */
-    def withDecoder[T](f: Response => EntityDecoder[T]): Task[Result[T]] =
+    def withDecoder[T](f: Response => EntityDecoder[T]): Task[T] =
       Client.withDecoder(response)(f)
 
-    /** Generate a Task which, when executed, will transform the [[Response]] to a [[Result]] */
-    def toResult[T](f: Response => Task[Result[T]]): Task[Result[T]] =
+    /** Generate a Task which, when executed, will transform the [[Response]] to a `T` */
+    def toResult[T](f: Response => Task[T]): Task[T] =
       Client.toResult(response)(f)
 
-    private def badStatus(s: Status) = EntityDecoder.error(InvalidResponseException(s"Unhandled Status: $s"))
+    private def badStatus(s: Status) = EntityDecoder.error(badStatusError(s))
+
+    private def badStatusError(s: Status) = InvalidResponseException(s"Unhandled Status: $s")
   }
 
+  implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] =
+    EntityDecoder(resp => decoder.apply(resp).map(t => (resp.headers,t)), decoder.consumes.toSeq:_*)
+
+  private val statusKey = AttributeKey[Set[Status]]("Valid statuses")
 }

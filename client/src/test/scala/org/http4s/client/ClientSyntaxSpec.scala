@@ -23,28 +23,28 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   "Client syntax" should {
 
-    "decode based on status" in {
-      val resp1 = req.onStatus {
+    "decode based on matched Status" in {
+      val resp1 = req.matchStatus {
         case Ok => EntityDecoder.text
       }.run
-      resp1.body must_== "hello"
+      resp1 must_== "hello"
 
-      val resp2 = Task(req).onStatus {
+      val resp2 = Task(req).matchStatus {
         case Ok => EntityDecoder.text
       }.run
-      resp2.body must_== "hello"
+      resp2 must_== "hello"
     }
 
-    "give InvalidResponseException on unmatched status" in {
-      val resp1 = req.onStatus {
-        case NotFound => ???  // shouldn't match
+    "give InvalidResponseException on unmatched Status" in {
+      val resp1 = req.matchStatus {
+        case NotFound => EntityDecoder.text  // shouldn't match
       }
       resp1.run must throwA[InvalidResponseException]
 
-      val resp2 = Task(req).onStatus {
+      val resp2 = Task(req).matchStatus {
         case Ok => EntityDecoder.text
       }.run
-      resp2.body must_== "hello"
+      resp2 must_== "hello"
     }
 
     "be simple to use for any response" in {
@@ -52,55 +52,67 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
         case Response(Ok, _, _, _, _) => EntityDecoder.text
         case _                        => ???
       }.run
-      resp1.body must_== "hello"
+      resp1 must_== "hello"
 
       val resp2 = Task(req).withDecoder {
         case Response(Ok, _, _, _, _) => EntityDecoder.text
         case _                        => ???
       }.run
-      resp2.body must_== "hello"
+      resp2 must_== "hello"
     }
   }
 
   "Client on syntax" should {
 
     "support Uris" in {
-      req.uri.on(Ok)(EntityDecoder.text).run.body must_== "hello"
+      req.uri.on(Ok).as[String]
+        .run must_== "hello"
     }
 
     "support Requests" in {
-      req.on(Ok)(EntityDecoder.text).run.body must_== "hello"
+      req.on(Ok).as[String]
+        .run must_== "hello"
     }
 
     "support Task[Request]s" in {
-      req.on(Ok)(EntityDecoder.text).run.body must_== "hello"
+      req.on(Ok).as[String]
+        .run must_== "hello"
     }
 
-    "allow multiple status" in {
-      req.on(NotFound, Ok)(EntityDecoder.text)
-        .run.body must_== "hello"
+    "default to Ok if no Status is mentioned" in {
+      req.as[String]
+        .run must_== "hello"
     }
 
-    "fail on bad status" in {
-      req.on(NotFound)(EntityDecoder.text)
-        .run must throwA[InvalidResponseException]
+    "allow multiple Status" in {
+      req.on(NotFound, Ok).as[String]
+        .run must_== "hello"
+    }
+
+    "fail on bad Status" in {
+      req.on(NotFound).as[String].run must throwA[InvalidResponseException]
     }
 
     "implicitly resolve an EntityDecoder" in {
-      req.uri.on[String](Ok).run.body must_== "hello"
+      req.uri.on(Ok).as[String]
+        .run must_== "hello"
+    }
+
+    "implicitly resolve to get headers and body" in {
+      req.uri.on(Ok).as[(Headers, String)].run._2 must_== "hello"
     }
 
     "be mappable to multiple result types" in {
-      req.onStatus {
+      req.matchStatus {
         case Ok => EntityDecoder.text.map(\/.right)
         case _  => EntityDecoder.binary.map(\/.left)
-      }.run.body must beRightDisjunction("hello")
+      }.run must beRightDisjunction("hello")
     }
   }
 
   "RequestResponseGenerator" should {
     "Generate requests based on Method" in {
-      GET.apply("http://www.foo.com/").on[String](Ok).run.body must_== "hello"
+      GET.apply("http://www.foo.com/").on(Ok).as[String].run must_== "hello"
     }
   }
 
