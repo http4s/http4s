@@ -15,6 +15,7 @@ import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
 import scalaz.Maybe
+import scalaz.syntax.std.option._
 
 /** Representation of the [[Request]] URI
   * Structure containing information related to a Uri. All fields except the
@@ -130,6 +131,14 @@ case class Uri(
   def +??[T: QueryParam : QueryParamEncoder](value: Maybe[T]): Uri =
     _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
 
+  /** alias for withMaybeQueryParam */
+  def +??[T: QueryParamEncoder](name: String, value: Option[T]): Uri =
+    _withMaybeQueryParam(QueryParameterKey(name), value.toMaybe map QueryParamEncoder[T].encode)
+
+  /** alias for withMaybeQueryParam */
+  def +??[T: QueryParam : QueryParamEncoder](value: Option[T]): Uri =
+    _withMaybeQueryParam(QueryParam[T].key, value.toMaybe map QueryParamEncoder[T].encode)
+
   /** alias for removeQueryParam */
   def -?(name: String): Uri =
     _removeQueryParam(QueryParameterKey(name))
@@ -224,8 +233,35 @@ case class Uri(
   def withMaybeQueryParam[T: QueryParamEncoder](name: String, value: Maybe[T]): Uri =
     _withMaybeQueryParam(QueryParameterKey(name), value map QueryParamEncoder[T].encode)
 
+  /**
+   * Creates maybe a new `Uri` with the specified parameter in query string.
+   * If the value is empty or if the parameter to be added equal the existing
+   * entry the same instance of `Uri` will be returned.
+   * If a parameter with the given `name` already exists the values will be
+   * replaced.
+   */
   def withMaybeQueryParam[T: QueryParam: QueryParamEncoder](value: Maybe[T]): Uri =
     _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
+
+  /**
+   * Creates maybe a new `Uri` with the specified parameter in query string.
+   * If the value is empty or if the parameter to be added equal the existing
+   * entry the same instance of `Uri` will be returned.
+   * If a parameter with the given `name` already exists the values will be
+   * replaced.
+   */
+  def withMaybeQueryParam[T: QueryParamEncoder](name: String, value: Option[T]): Uri =
+    _withMaybeQueryParam(QueryParameterKey(name), value.toMaybe map QueryParamEncoder[T].encode)
+
+  /**
+   * Creates maybe a new `Uri` with the specified parameter in query string.
+   * If the value is empty or if the parameter to be added equal the existing
+   * entry the same instance of `Uri` will be returned.
+   * If a parameter with the given `name` already exists the values will be
+   * replaced.
+   */
+  def withMaybeQueryParam[T: QueryParam: QueryParamEncoder](value: Option[T]): Uri =
+    _withMaybeQueryParam(QueryParam[T].key, value.toMaybe map QueryParamEncoder[T].encode)
 
   @inline private def _withMaybeQueryParam(name: QueryParameterKey, value: Maybe[QueryParameterValue]): Uri =
     value.cata(v => _withQueryParam(name, List(v)), this)
