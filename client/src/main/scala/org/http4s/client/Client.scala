@@ -16,6 +16,12 @@ trait Client {
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
+  /** Prepare a single request
+    * @param req [[Request]] containing the headers, URI, etc.
+    * @return Task which will generate the Response
+    */
+  final def apply(req: Request): Task[Response] = prepare(req)
+
   /** Prepare a single GET request
     * @param req [[Uri]] of the request
     * @return Task which will generate the Response
@@ -24,11 +30,10 @@ trait Client {
     prepare(Request(uri = req))
 
   /** Prepare a single GET request
-    * @param req `String` uri of the request
+    * @param req [[Uri]] of the request
     * @return Task which will generate the Response
     */
-  final def prepare(req: String): Task[Response] =
-    Uri.fromString(req).fold(f => Task.fail(new org.http4s.ParseException(f)), prepare)
+  final def apply(req: Uri): Task[Response] = prepare(req)
 
   /** Prepare a single request
     * @param req `Task[Request]` containing the headers, URI, etc
@@ -36,15 +41,10 @@ trait Client {
     */
   final def prepare(req: Task[Request]): Task[Response] =
     req.flatMap(prepare)
-}
 
-object Client {
-  def toResult[A](resp: Task[Response])(onResponse: Response => Task[A]): Task[A]=
-    for {
-      r <- resp
-      res <-onResponse(r)
-    } yield res
-
-  def withDecoder[A](resp: Task[Response])(onResponse: Response => EntityDecoder[A]): Task[A] =
-    toResult(resp)(resp => onResponse(resp).decode(resp).valueOr(e => throw new ParseException(e)))
+  /** Prepare a single request
+    * @param req `Task[Request]` containing the headers, URI, etc
+    * @return Task which will generate the Response
+    */
+  final def apply(req: Task[Request]): Task[Response] = prepare(req)
 }

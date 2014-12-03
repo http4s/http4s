@@ -3,9 +3,7 @@ package org.http4s.client.blaze
 import scalaz.concurrent.Task
 
 import org.http4s._
-import org.http4s.client._
-import org.http4s.Method._
-import org.http4s.Status._
+
 import org.specs2.mutable.After
 import org.specs2.time.NoTimeConversions
 
@@ -13,10 +11,10 @@ import org.specs2.time.NoTimeConversions
 class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After {
 
   "Blaze Simple Http1 Client" should {
-    implicit def client = SimpleHttp1Client
+    def client = SimpleHttp1Client
 
     "Make simple http requests" in {
-      val resp = uri("https://github.com/").on(Ok).as[String]
+      val resp = client(uri("https://github.com/")).as[String]
         .run
 //      println(resp.copy(body = halt))
 
@@ -24,7 +22,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     }
 
     "Make simple https requests" in {
-      val resp = uri("https://github.com/").as[String]
+      val resp = client(uri("https://github.com/")).as[String]
         .run
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
@@ -32,12 +30,14 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     }
   }
 
-  implicit val client = new PooledHttp1Client()
+  val client = new PooledHttp1Client()
 
   "RecyclingHttp1Client" should {
 
+
+
     "Make simple http requests" in {
-      val resp = uri("https://github.com/").on(Ok).as[String]
+      val resp = client(uri("https://github.com/")).as[String]
         .run
       //      println(resp.copy(body = halt))
 
@@ -47,7 +47,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     "Repeat a simple http request" in {
       val f = (0 until 10).map(_ => Task.fork {
         val req = uri("https://github.com/")
-        val resp = req.on(Status.Ok).as[String]
+        val resp = client(req).as[String]
         resp.map(_.length)
       })
 
@@ -57,7 +57,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     }
 
     "Make simple https requests" in {
-      val resp = uri("https://github.com/").as[String]
+      val resp = client(uri("https://github.com/")).as[String]
         .run
       //      println(resp.copy(body = halt))
       //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")

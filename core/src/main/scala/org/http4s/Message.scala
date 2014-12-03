@@ -4,6 +4,7 @@ import java.io.File
 import java.net.InetAddress
 import org.http4s.Header.{`Content-Length`, `Content-Type`}
 import org.http4s.server.ServerSoftware
+import scalaz.\/
 import scalaz.concurrent.Task
 
 /**
@@ -80,6 +81,15 @@ trait Message extends MessageOps {
    * task might not complete unless the entire body has been consumed.
    */
   def trailerHeaders: Task[Headers] = attributes.get(Message.Keys.TrailerHeaders).getOrElse(Task.now(Headers.empty))
+
+  /** Decode the [[Message]] to the specified type
+    *
+    * @param decoder [[EntityDecoder]] used to decode the [[Message]]
+    * @tparam T type of the result
+    * @return the `Task` which will generate the `DecodeResult[T]`
+    */
+  override def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T] =
+    decoder.decode(this)
 }
 
 object Message {
