@@ -1,8 +1,20 @@
 import sbt._
+import Keys._
 
 import scala.util.Properties.envOrNone
+import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
+import com.typesafe.tools.mima.plugin.MimaKeys._
 
-object Http4sBuild {
+object Http4sBuild extends Build {
+  lazy val mimaSettings = mimaDefaultSettings ++ {
+    Seq(
+      failOnProblem := compatibleVersion(version.value).isDefined,
+      previousArtifact := compatibleVersion(version.value) map {
+        organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
+      }
+    )
+  }
+
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
     version match {
@@ -26,13 +38,19 @@ object Http4sBuild {
   }
 
   def isSnapshot(version: String): Boolean = version.endsWith("-SNAPSHOT")
-}
 
-object Http4sKeys {
+  def compatibleVersion(version: String) = {
+    val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
+    val (targetMajor, targetMinor) = extractApiVersion(version)
+    val targetVersion = s"${targetMajor}.${targetMinor}.0"
+    if (targetVersion != currentVersionWithoutSnapshot)
+      Some(targetVersion)
+    else
+      None
+  }
+
   val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
-}
 
-object Http4sDependencies {
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"

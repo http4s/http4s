@@ -10,7 +10,7 @@ import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.git.GitRunner
 import sbtunidoc.Plugin._
 
-import Http4sKeys.apiVersion
+import Http4sBuild.apiVersion
 
 import scala.util.Properties
 

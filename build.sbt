@@ -1,6 +1,3 @@
-import Http4sBuild._
-import Http4sKeys._
-import Http4sDependencies._
 import sbtunidoc.Plugin.UnidocKeys._
 
 lazy val core = project
