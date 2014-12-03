@@ -38,8 +38,6 @@ name := "http4s"
 
 version in ThisBuild := "0.5.0-SNAPSHOT"
 
-compatibleVersion in ThisBuild := "0.4.0"
-
 apiVersion in ThisBuild <<= version.map(extractApiVersion)
 
 description := "A minimal, Scala-idiomatic library for HTTP"

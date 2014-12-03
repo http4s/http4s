@@ -6,10 +6,14 @@ import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys._
 
 object Http4sBuild extends Build {
-  lazy val mimaSettings = mimaDefaultSettings ++ Seq(
-    failOnProblem := false, // warn, not error, for now
-    previousArtifact := Some(organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % compatibleVersion.value)
-  )
+  lazy val mimaSettings = mimaDefaultSettings ++ {
+    Seq(
+      failOnProblem := compatibleVersion(version.value).isDefined,
+      previousArtifact := compatibleVersion(version.value) map {
+        organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
+      }
+    )
+  }
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -35,8 +39,17 @@ object Http4sBuild extends Build {
 
   def isSnapshot(version: String): Boolean = version.endsWith("-SNAPSHOT")
 
+  def compatibleVersion(version: String) = {
+    val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
+    val (targetMajor, targetMinor) = extractApiVersion(version)
+    val targetVersion = s"${targetMajor}.${targetMinor}.0"
+    if (targetVersion != currentVersionWithoutSnapshot)
+      Some(targetVersion)
+    else
+      None
+  }
+
   val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
-  val compatibleVersion = SettingKey[String]("compatible-version", "Defines the version against which MiMa will verify compatibility")
 
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
