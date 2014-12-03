@@ -11,6 +11,8 @@ import org.specs2.mutable.Specification
 import scala.util.Success
 import org.parboiled2._
 
+import scalaz.Maybe
+
 class IPV6Parser(val input: ParserInput, val charset: NioCharset) extends Parser with Rfc3986Parser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
 }
@@ -531,6 +533,14 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     "add a query parameter with a QueryParamEncoder and an implicit key" in {
       val u = Uri() +? (Ttl(2))
       u must be_==(Uri(query = Some(s"ttl=2")))
+    }
+    "add an optional query parameter (Just)" in {
+      val u = Uri() +?? ("param1", Maybe.just(2))
+      u must be_==(Uri(query = Some(s"param1=2")))
+    }
+    "add an optional query parameter (Empty)" in {
+      val u = Uri() +?? ("param1", Maybe.empty[Int])
+      u must be_==(Uri(query = None))
     }
     "contains not a parameter" in {
       Uri(query = None) ? "param1" must be_==(false)
