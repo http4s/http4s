@@ -100,13 +100,8 @@ case class Uri(
   def ?(name: String): Boolean =
     _containsQueryParam(QueryParameterKey(name))
 
-  /**
-   * Creates maybe a new `Uri` with the specified parameters. The entire
-   * query string will be replaced with the given one. If a the given
-   * parameters equal the existing the same `Uri` instance will be
-   * returned.
-   */
-  def =?[T: AcceptableParamType](q: Map[String, Seq[T]]): Uri =
+  /** alias for setQueryParams */
+  def =?[T: QueryParamEncoder](q: Map[String, Seq[T]]): Uri =
     setQueryParams(q)
 
   /** alias for withQueryParam */
@@ -174,9 +169,9 @@ case class Uri(
    * query string will be replaced with the given one. If the given parameters
    * equal the existing the same `Uri` instance will be returned.
    */
-  def setQueryParams[T: AcceptableParamType](query: Map[String, Seq[T]]): Uri = {
+  def setQueryParams[T: QueryParamEncoder](query: Map[String, Seq[T]]): Uri = {
     if (multiParams == query) this
-    else copy(query = renderQueryString(query.mapValues(_.map(String.valueOf(_)))))
+    else copy(query = renderQueryString(query.mapValues(_.map(QueryParamEncoder[T].encode).map(_.value))))
   }
 
   /**
@@ -330,24 +325,6 @@ object Uri extends UriFunctions {
       }
       Some(b.toString)
     }
-  }
-
-  /**
-   * Defines acceptable types of values as query parameter. This class should
-   * ensure that a type has a reasonable [[String]] definition. If a class
-   * extends from this type `toString` should be overridden to ensure a valid
-   * representation in `Uri`.
-   */
-  abstract class AcceptableParamType[T]
-  object AcceptableParamType {
-    implicit object BooleanOk extends AcceptableParamType[Boolean]
-    implicit object CharOk extends AcceptableParamType[Char]
-    implicit object DoubleOk extends AcceptableParamType[Double]
-    implicit object FloatOk extends AcceptableParamType[Float]
-    implicit object IntOk extends AcceptableParamType[Int]
-    implicit object LongOk extends AcceptableParamType[Long]
-    implicit object ShortOk extends AcceptableParamType[Short]
-    implicit object StringOk extends AcceptableParamType[String]
   }
 }
 
