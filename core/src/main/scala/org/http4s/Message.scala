@@ -11,7 +11,7 @@ import scalaz.concurrent.Task
  * while most of the functionality is found in [[MessageSyntax]] and [[ResponseOps]]
  * @see [[MessageSyntax]], [[ResponseOps]]
  */
-trait Message extends MessageOps {
+sealed trait Message extends MessageOps {
   type Self <: Message
 
   def httpVersion: HttpVersion
