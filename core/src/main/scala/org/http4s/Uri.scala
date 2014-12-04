@@ -117,11 +117,11 @@ case class Uri(
 
   /** alias for withQueryParam */
   def +?[T: QueryParamEncoder](name: String, values: T*): Uri =
-    _withQueryParam(QueryParameterKey(name), values.toList map QueryParamEncoder[T].encode)
+    _withQueryParam(QueryParameterKey(name), values map QueryParamEncoder[T].encode)
 
   /** alias for withQueryParam */
   def +?[T: QueryParam : QueryParamEncoder](values: T*): Uri =
-    _withQueryParam(QueryParam[T].key, values.toList map QueryParamEncoder[T].encode)
+    _withQueryParam(QueryParam[T].key, values map QueryParamEncoder[T].encode)
 
   /** alias for withMaybeQueryParam */
   def +??[T: QueryParamEncoder](name: String, value: Maybe[T]): Uri =

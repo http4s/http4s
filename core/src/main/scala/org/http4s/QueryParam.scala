@@ -1,7 +1,8 @@
 package org.http4s
 
 import scalaz.std.anyVal._
-import scalaz.{Show, ValidationNel}
+import scalaz.{Validation, Show, ValidationNel}
+import scalaz.syntax.validation._
 
 trait QueryParam[T] {
   def key: QueryParameterKey
@@ -48,7 +49,43 @@ object QueryParamEncoder {
 }
 
 trait QueryParamDecoder[T] {
-  def decode: ValidationNel[ParseFailure, T]
+  def decode(value: QueryParameterValue): ValidationNel[ParseFailure, T]
+}
+
+object QueryParamDecoder {
+  /** summon an implicit [[QueryParamDecoder]] */
+  def apply[T](implicit ev: QueryParamDecoder[T]): QueryParamDecoder[T] = ev
+
+  def fromUnsafeCast[T](cast: QueryParameterValue => T)(typeName: String): QueryParamDecoder[T] = new QueryParamDecoder[T]{
+    def decode(value: QueryParameterValue): ValidationNel[ParseFailure, T] =
+      Validation.fromTryCatchNonFatal(cast(value)).leftMap(t =>
+        ParseFailure(s"Could not parse ${value.value} as a $typeName", t.getMessage)
+      ).toValidationNel
+  }
+
+  implicit val booleanQueryParamDecoder: QueryParamDecoder[Boolean] =
+    fromUnsafeCast[Boolean](_.value.toBoolean)("Boolean")
+  implicit val doubleQueryParamDecoder: QueryParamDecoder[Double] =
+    fromUnsafeCast[Double](_.value.toDouble)("Double")
+  implicit val floatQueryParamDecoder: QueryParamDecoder[Float] =
+    fromUnsafeCast[Float](_.value.toFloat)("Float")
+  implicit val shortQueryParamDecoder: QueryParamDecoder[Short] =
+    fromUnsafeCast[Short](_.value.toShort)("Short")
+  implicit val intQueryParamDecoder: QueryParamDecoder[Int] =
+    fromUnsafeCast[Int](_.value.toInt)("Int")
+  implicit val longQueryParamDecoder: QueryParamDecoder[Long] =
+    fromUnsafeCast[Long](_.value.toLong)("Long")
+
+  implicit val charQueryParamDecoder: QueryParamDecoder[Char] = new QueryParamDecoder[Char]{
+    def decode(value: QueryParameterValue): ValidationNel[ParseFailure, Char] =
+      if(value.value.size == 1) value.value.head.successNel
+      else ParseFailure(s"Could not parse ${value.value} as a Char") .failureNel
+  }
+
+  implicit val stringQueryParamDecoder: QueryParamDecoder[String] = new QueryParamDecoder[String]{
+    def decode(value: QueryParameterValue): ValidationNel[ParseFailure, String] =
+      value.value.successNel
+  }
 }
 
 final case class QueryParameterKey(value: String)

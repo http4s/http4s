@@ -17,10 +17,10 @@ object PathInHttpServiceSpec extends Http4sSpec {
     def unapplySeq(params: Map[String, Seq[String]]) = params.get("list")
     def unapply(params: Map[String, Seq[String]]) = unapplySeq(params)
   }
-  object I extends IntParamMatcher("start")
-  object L extends LongParamMatcher("limit")
-  object P extends DoubleParamMatcher("decimal")
-  object T extends ParamMatcher("term")
+  object I extends QueryParamDecoderMatcher[Int]("start")
+  object L extends QueryParamDecoderMatcher[Long]("limit")
+  object P extends QueryParamDecoderMatcher[Double]("decimal")
+  object T extends QueryParamDecoderMatcher[String]("term")
 
   val service = HttpService {
     case GET -> Root :? I(start) +& L(limit) =>
