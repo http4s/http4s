@@ -1,6 +1,6 @@
 package org.http4s
 
-import scalaz.{\/-, -\/}
+import scalaz.{-\/, Equal, \/-}
 
 /**
  * Indicates an error parsing an HTTP message.
@@ -12,6 +12,10 @@ import scalaz.{\/-, -\/}
  *                version of the error.  This may freely echo a Request.
  */
 case class ParseFailure(sanitized: String, details: String = "")
+
+object ParseFailure {
+  implicit val eq = Equal.equalA[ParseFailure]
+}
 
 case class ParseException(failure: ParseFailure) extends RuntimeException(failure.sanitized)
 
