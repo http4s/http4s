@@ -6,7 +6,7 @@ import org.http4s.Status.ResponseClass._
 import scalaz.concurrent.Task
 
 import org.http4s.server.HttpService
-import org.http4s.Status.{Ok, NotFound, Created}
+import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
 import org.http4s.Method._
 
 import org.specs2.matcher.MustThrownMatchers
@@ -14,8 +14,13 @@ import org.specs2.matcher.MustThrownMatchers
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   val route = HttpService {
-    case r if r.method == GET && r.pathInfo == "/" => ResponseBuilder(Ok, "hello")
-    case r if r.method == PUT && r.pathInfo == "/put" => ResponseBuilder(Created, r.body)
+    case r if r.method == GET && r.pathInfo == "/"            => ResponseBuilder(Ok, "hello")
+    case r if r.method == PUT && r.pathInfo == "/put"         => ResponseBuilder(Created, r.body)
+    case r if r.method == GET && r.pathInfo == "/echoheaders" =>
+      r.headers.get(Header.Accept).fold(ResponseBuilder.basic(BadRequest)){ m =>
+         ResponseBuilder(Ok, m.toString)
+      }
+
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
@@ -23,7 +28,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   val req = Request(GET, uri("http://www.foo.bar/"))
 
-  "Client on syntax" should {
+  "Client" should {
 
     "support Uris" in {
       client(req.uri).as[String]
@@ -82,6 +87,22 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     "attemptAs with failed parsing result" in {
       client(req).attemptAs(EntityDecoder.xml())
         .run.run must beLeftDisjunction
+    }
+
+    "prepAs must add Accept header" in {
+      client.prepAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text)
+        .run must_== "Accept: text/*"
+
+      client.prepAs[String](GET(uri("http://www.foo.com/echoheaders")))
+        .run must_== "Accept: text/*"
+
+      client.prepAs[String](uri("http://www.foo.com/echoheaders"))
+        .run must_== "Accept: text/*"
+
+      // Are we combining our mediatypes correctly? This is more of an EntityDecoder spec
+      val edec = EntityDecoder[String](_ => DecodeResult.success("foo!"), MediaType.`image/jpeg`)
+      client.prepAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec)
+        .run must_== "Accept: text/*, image/jpeg"
     }
   }
 
