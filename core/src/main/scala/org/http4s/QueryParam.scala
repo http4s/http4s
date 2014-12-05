@@ -1,9 +1,18 @@
 package org.http4s
 
 import scalaz.std.anyVal._
-import scalaz.{Validation, Show, ValidationNel}
 import scalaz.syntax.validation._
+import scalaz.{Show, Validation, ValidationNel}
 
+
+final case class QueryParameterKey(value: String)
+
+final case class QueryParameterValue(value: String)
+
+/**
+ * type class defining the key of a query parameter
+ * Usually used in conjunction with [[QueryParamEncoder]] and [[QueryParamDecoder]]
+ */
 trait QueryParam[T] {
   def key: QueryParameterKey
 }
@@ -13,8 +22,10 @@ object QueryParam {
   def apply[T](implicit ev: QueryParam[T]): QueryParam[T] = ev
 }
 
+
 /**
- * Type class defining how to encode a T as a Query Parameter
+ * Type class defining how to encode a `T` as a [[QueryParameterValue]]
+ * @see QueryParamCodecLaws
  */
 trait QueryParamEncoder[T] {
   def encode(value: T): QueryParameterValue
@@ -24,11 +35,6 @@ object QueryParamEncoder {
 
   /** summon an implicit [[QueryParamEncoder]] */
   def apply[T](implicit ev: QueryParamEncoder[T]): QueryParamEncoder[T] = ev
-
-
-  /*****************************************************************************/
-  /** QueryParamEncoder instances                                              */
-  /*****************************************************************************/
 
   def encode[T](f: T => String): QueryParamEncoder[T] = new QueryParamEncoder[T] {
     def encode(value: T): QueryParameterValue =
@@ -48,6 +54,11 @@ object QueryParamEncoder {
 
 }
 
+
+/**
+ * Type class defining how to decode a [[QueryParameterValue]] into a `T`
+ * @see QueryParamCodecLaws
+ */
 trait QueryParamDecoder[T] {
   def decode(value: QueryParameterValue): ValidationNel[ParseFailure, T]
 }
@@ -87,7 +98,3 @@ object QueryParamDecoder {
       value.value.successNel
   }
 }
-
-final case class QueryParameterKey(value: String)
-
-final case class QueryParameterValue(value: String)
