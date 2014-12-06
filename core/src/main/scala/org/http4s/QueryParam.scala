@@ -20,6 +20,13 @@ trait QueryParam[T] {
 object QueryParam {
   /** summon an implicit [[QueryParam]] */
   def apply[T](implicit ev: QueryParam[T]): QueryParam[T] = ev
+
+  def fromKey[T](k: QueryParameterKey): QueryParam[T] = new QueryParam[T] {
+    def key: QueryParameterKey = k
+  }
+
+  def fromKey[T](k: String): QueryParam[T] =
+    fromKey(QueryParameterKey(k))
 }
 
 
@@ -73,6 +80,12 @@ object QueryParamDecoder {
         ParseFailure(s"Could not parse ${value.value} as a $typeName", t.getMessage)
       ).toValidationNel
   }
+
+  def decodeBy[T, U: QueryParamDecoder](f: U => T): QueryParamDecoder[T] = new QueryParamDecoder[T] {
+    def decode(value: QueryParameterValue): ValidationNel[ParseFailure, T] =
+      QueryParamDecoder[U].decode(value) map f
+  }
+
 
   implicit val booleanQueryParamDecoder: QueryParamDecoder[Boolean] =
     fromUnsafeCast[Boolean](_.value.toBoolean)("Boolean")

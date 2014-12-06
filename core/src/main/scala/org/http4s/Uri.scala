@@ -157,7 +157,7 @@ case class Uri(
   def containsQueryParam[T: QueryParam]: Boolean =
     _containsQueryParam(QueryParam[T].key)
 
-  @inline private def _containsQueryParam(name: QueryParameterKey): Boolean = query match {
+  private def _containsQueryParam(name: QueryParameterKey): Boolean = query match {
     case Some("") => if (name.value == "") true else false
     case Some(_)  => multiParams.contains(name.value)
     case None     => false
@@ -181,7 +181,7 @@ case class Uri(
   def removeQueryParam[T: QueryParam]: Uri =
     _removeQueryParam(QueryParam[T].key)
 
-  @inline private def _removeQueryParam(name: QueryParameterKey): Uri = query match {
+  private def _removeQueryParam(name: QueryParameterKey): Uri = query match {
     case Some("") =>
       if (name.value == "") copy(query = None)
       else this
@@ -227,7 +227,7 @@ case class Uri(
   def withQueryParam[T: QueryParamEncoder](name: String, values: Seq[T]): Uri =
     _withQueryParam(QueryParameterKey(name), values map QueryParamEncoder[T].encode)
 
-  @inline private def _withQueryParam(name: QueryParameterKey, values: Seq[QueryParameterValue]): Uri = {
+  private def _withQueryParam(name: QueryParameterKey, values: Seq[QueryParameterValue]): Uri = {
     lazy val stringValues = values.map(_.value)
     if (multiParams.contains(name.value) && multiParams.getOrElse(name.value, Nil) == stringValues) this
     else {
@@ -276,7 +276,7 @@ case class Uri(
   def withOptionQueryParam[T: QueryParam: QueryParamEncoder](value: Option[T]): Uri =
     _withOptionQueryParam(QueryParam[T].key, value.toMaybe map QueryParamEncoder[T].encode)
 
-  @inline private def _withOptionQueryParam(name: QueryParameterKey, value: Maybe[QueryParameterValue]): Uri =
+  private def _withOptionQueryParam(name: QueryParameterKey, value: Maybe[QueryParameterValue]): Uri =
     value.cata(v => _withQueryParam(name, List(v)), this)
 
   override def render(writer: Writer): writer.type = this match {

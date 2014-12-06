@@ -166,12 +166,12 @@ object +& {
 
 /**
  * param extractor using [[QueryParamDecoder]]:
- *   case class Ttl(seconds: Int)
- *   implicit val ttlDecoder: QueryParamDecoder[Ttl] = ...
+ *   case class Foo(i: Int)
+ *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
  *
- *   object TtlMatcher extends QueryParamDecoderMatcher[Ttl]("ttl")
+ *   object FooMatcher extends QueryParamDecoderMatcher[Foo]("foo")
  *   val service: HttpService = {
- *     case GET -> Root / "closest" :? TtlMatcher(2) => ...
+ *     case GET -> Root / "closest" :? FooMatcher(2) => ...
  */
 abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[T]] =
@@ -189,13 +189,13 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
 
 /**
  * param extractor using [[QueryParamDecoder]]:
- *   case class Ttl(seconds: Int)
- *   implicit val ttlDecoder: QueryParamDecoder[Ttl] = ...
- *   implicit val ttlParam: QueryParam[Ttl] = ...
+ *   case class Foo(i: Int)
+ *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+ *   implicit val fooParam: QueryParam[Foo] = ...
  *
- *   object TtlMatcher extends QueryParamDecoderMatcher[Ttl]
+ *   object FooMatcher extends QueryParamDecoderMatcher[Foo]
  *   val service: HttpService = {
- *     case GET -> Root / "closest" :? TtlMatcher(2) => ...
+ *     case GET -> Root / "closest" :? FooMatcher(2) => ...
  */
 abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
   extends QueryParamDecoderMatcher[T](QueryParam[T].key.value)

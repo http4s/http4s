@@ -17,14 +17,20 @@ object PathInHttpServiceSpec extends Http4sSpec {
     def unapplySeq(params: Map[String, Seq[String]]) = params.get("list")
     def unapply(params: Map[String, Seq[String]]) = unapplySeq(params)
   }
+
   object I extends QueryParamDecoderMatcher[Int]("start")
-  object L extends QueryParamDecoderMatcher[Long]("limit")
   object P extends QueryParamDecoderMatcher[Double]("decimal")
   object T extends QueryParamDecoderMatcher[String]("term")
 
+  case class Limit(l: Long)
+  implicit val limitQueryParam = QueryParam.fromKey[Limit]("limit")
+  implicit val limitDecoder    = QueryParamDecoder.decodeBy[Limit, Long](Limit.apply)
+
+  object L extends QueryParamMatcher[Limit]
+
   val service = HttpService {
     case GET -> Root :? I(start) +& L(limit) =>
-      Ok(s"start: $start, limit: $limit")
+      Ok(s"start: $start, limit: ${limit.l}")
     case GET -> Root / LongVar(id) =>
       Ok(s"id: $id")
     case GET -> Root :? I(start) =>
@@ -38,7 +44,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
     case GET -> Root / "search" :? T(search) =>
       Ok(s"term: $search")
     case GET -> Root / "mix" :? T(t) +& List(l) +& P(d) +& I(s) +& L(m) =>
-      Ok(s"list: ${l.mkString(",")}, start: $s, limit: $m, term: $t, decimal=$d")
+      Ok(s"list: ${l.mkString(",")}, start: $s, limit: ${m.l}, term: $t, decimal=$d")
     case r =>
       NotFound("404 Not Found: " + r.pathInfo)
   }
