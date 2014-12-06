@@ -2,7 +2,7 @@ package org.http4s
 
 import scala.util.control.NoStackTrace
 import scalaz.concurrent.Task
-import scalaz.{\/-, -\/}
+import scalaz.{\/-, -\/, Equal}
 
 /**
  * Indicates an error parsing an HTTP message.
@@ -16,6 +16,10 @@ import scalaz.{\/-, -\/}
 final case class ParseFailure(sanitized: String, details: String = "")
 
 final case class ParseException(failure: ParseFailure) extends RuntimeException(failure.sanitized)
+
+object ParseFailure {
+  implicit val eq = Equal.equalA[ParseFailure]
+}
 
 object ParseResult {
   def fail(sanitized: String, details: String = "") = -\/(ParseFailure(sanitized, details))

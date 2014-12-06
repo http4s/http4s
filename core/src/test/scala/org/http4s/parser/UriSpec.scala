@@ -4,18 +4,28 @@ import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 
 import org.http4s.Uri._
 import org.http4s.util.string._
-import org.http4s.{Http4sSpec, Charset, Uri}
+import org.http4s._
 import org.specs2.matcher.MustThrownMatchers
 import org.specs2.mutable.Specification
 
 import scala.util.Success
 import org.parboiled2._
 
+import scalaz.Maybe
+
 class IPV6Parser(val input: ParserInput, val charset: NioCharset) extends Parser with Rfc3986Parser {
   def CaptureIPv6: Rule1[String] = rule { capture(IpV6Address) }
 }
 
 class UriSpec extends Http4sSpec with MustThrownMatchers {
+
+  case class Ttl(seconds: Int)
+  object Ttl {
+    implicit val queryParamInstance = new QueryParamEncoder[Ttl] with QueryParam[Ttl] {
+      def key: QueryParameterKey = QueryParameterKey("ttl")
+      def encode(value: Ttl): QueryParameterValue = QueryParameterValue(value.seconds.toString)
+    }
+  }
 
   "Uri" should {
 
@@ -515,6 +525,22 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     "add a parameter with many long values" in {
       val u = Uri() +? ("param1", 1L, -1L)
       u must be_==(Uri(query = Some(s"param1=1&param1=-1")))
+    }
+    "add a query parameter with a QueryParamEncoder" in {
+      val u = Uri() +? ("test", Ttl(2))
+      u must be_==(Uri(query = Some(s"test=2")))
+    }
+    "add a query parameter with a QueryParamEncoder and an implicit key" in {
+      val u = Uri() +? (Ttl(2))
+      u must be_==(Uri(query = Some(s"ttl=2")))
+    }
+    "add an optional query parameter (Just)" in {
+      val u = Uri() +?? ("param1", Maybe.just(2))
+      u must be_==(Uri(query = Some(s"param1=2")))
+    }
+    "add an optional query parameter (Empty)" in {
+      val u = Uri() +?? ("param1", Maybe.empty[Int])
+      u must be_==(Uri(query = None))
     }
     "contains not a parameter" in {
       Uri(query = None) ? "param1" must be_==(false)
