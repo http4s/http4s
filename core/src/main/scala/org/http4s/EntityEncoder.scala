@@ -15,22 +15,25 @@ import scodec.bits.ByteVector
 
 import org.http4s.Header.`Content-Type`
 
-case class Writable[-A](
-  toEntity: A => Task[Writable.Entity],
+case class EntityEncoder[-A](
+  toEntity: A => Task[EntityEncoder.Entity],
   headers: Headers
 ) {
-  def contramap[B](f: B => A): Writable[B] = copy(toEntity = f andThen toEntity)
+  def contramap[B](f: B => A): EntityEncoder[B] = copy(toEntity = f andThen toEntity)
 
   def contentType: Option[MediaType] = headers.get(`Content-Type`).map(_.mediaType)
 
   def charset: Option[Charset] = headers.get(`Content-Type`).map(_.charset)
 
-  def withContentType(contentType: `Content-Type`): Writable[A] =
+  def withContentType(contentType: `Content-Type`): EntityEncoder[A] =
     copy(headers = headers.put(contentType))
 }
 
-object Writable extends WritableInstances {
+object EntityEncoder extends EntityEncoderInstances {
   case class Entity(body: EntityBody, length: Option[Int] = None)
+
+  /** summon an implicit [[EntityEncoder]] */
+  def apply[A](implicit ev: EntityEncoder[A]): EntityEncoder[A] = ev
 
   object Entity {
     implicit val entityInstance: Monoid[Entity] = Monoid.instance(
@@ -41,83 +44,83 @@ object Writable extends WritableInstances {
     lazy val empty = Entity(EmptyBody, Some(0))
   }
 
-  def simple[A](toChunk: A => ByteVector, headers: Headers = Headers.empty): Writable[A] = Writable(
+  def simple[A](toChunk: A => ByteVector, headers: Headers = Headers.empty): EntityEncoder[A] = EntityEncoder(
     toChunk andThen { chunk => Task.now(Entity(emit(chunk), Some(chunk.size))) },
     headers
   )
 }
 
-import Writable._
+import EntityEncoder._
 
-trait WritableInstances0 {
-  implicit def showWritable[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): Writable[A] =
+trait EntityEncoderInstances0 {
+  implicit def showEncoder[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): EntityEncoder[A] =
     simple(
       a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)),
       Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
     )
 
-  implicit def naturalTransformationWritable[F[_], A](implicit N: ~>[F, Task], W: Writable[A]): Writable[F[A]] =
-    taskWritable[A](W).contramap { f: F[A] => N(f) }
+  implicit def naturalTransformationEncoder[F[_], A](implicit N: ~>[F, Task], W: EntityEncoder[A]): EntityEncoder[F[A]] =
+    taskEncoder[A](W).contramap { f: F[A] => N(f) }
 
   /**
-   * A process writable is intended for streaming, and does not calculate its bodies in
+   * A process encoder is intended for streaming, and does not calculate its bodies in
    * advance.  As such, it does not calculate the Content-Length in advance.  This is for
    * use with chunked transfer encoding.
    */
-  implicit def processWritable[A](implicit W: Writable[A]): Writable[Process[Task, A]] =
+  implicit def processEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Process[Task, A]] =
     W.copy(toEntity = { process =>
       Task.now(Entity(process.flatMap(a => Process.await(W.toEntity(a))(_.body)), None))
     })
 }
 
-trait WritableInstances extends WritableInstances0 {
-  implicit def stringWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[String] = simple(
+trait EntityEncoderInstances extends EntityEncoderInstances0 {
+  implicit def stringEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[String] = simple(
     s => ByteVector.view(s.getBytes(charset.nioCharset)),
     Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
   )
 
-  implicit def charSequenceWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[CharSequence] =
-    stringWritable.contramap(_.toString)
+  implicit def charSequenceEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[CharSequence] =
+    stringEncoder.contramap(_.toString)
 
-  implicit def charArrayWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Array[Char]] =
-    stringWritable.contramap(new String(_))
+  implicit def charArrayEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Array[Char]] =
+    stringEncoder.contramap(new String(_))
 
-  implicit val byteVectorWritable: Writable[ByteVector] = simple(
+  implicit val byteVectorEncoder: EntityEncoder[ByteVector] = simple(
     identity,
     Headers(`Content-Type`(MediaType.`application/octet-stream`))
   )
 
-  implicit val byteArrayWritable: Writable[Array[Byte]] = byteVectorWritable.contramap(ByteVector.apply)
+  implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
 
-  implicit val byteBufferWritable: Writable[ByteBuffer] = byteVectorWritable.contramap(ByteVector.apply)
+  implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
 
   // TODO split off to module to drop scala-xml core dependency
   // TODO infer HTML, XHTML, etc.
-  implicit def htmlWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[xml.Elem] = simple(
+  implicit def htmlEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[xml.Elem] = simple(
     xml => ByteVector.view(xml.buildString(false).getBytes(charset.nioCharset)),
     Headers(`Content-Type`(MediaType.`text/html`).withCharset(charset))
   )
 
-  implicit def taskWritable[A](implicit W: Writable[A]): Writable[Task[A]] =
+  implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] =
     W.copy(toEntity = _.flatMap(W.toEntity))
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit val fileWritable: Writable[File] =
-    chunkedWritable { f: File => io.fileChunkR(f.getAbsolutePath) }
+  implicit val fileEncoder: EntityEncoder[File] =
+    chunkedEncoder { f: File => io.fileChunkR(f.getAbsolutePath) }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit val filePathWritable: Writable[Path] = fileWritable.contramap(_.toFile)
+  implicit val filePathEncoder: EntityEncoder[Path] = fileEncoder.contramap(_.toFile)
 
   // TODO parameterize chunk size
-  implicit val inputStreamWritable: Writable[InputStream] =
-    chunkedWritable { is: InputStream => io.chunkR(is) }
+  implicit val inputStreamEncoder: EntityEncoder[InputStream] =
+    chunkedEncoder { is: InputStream => io.chunkR(is) }
 
   // TODO parameterize chunk size
-  implicit def readerWritable(implicit charset: Charset = Charset.`UTF-8`): Writable[Reader] =
+  implicit def readerEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Reader] =
     // TODO polish and contribute back to scalaz-stream
-    processWritable[Array[Char]].contramap { r: Reader =>
+    processEncoder[Array[Char]].contramap { r: Reader =>
       val unsafeChunkR = io.resource(Task.delay(r))(
         src => Task.delay(src.close())) { src =>
         Task.now { buf: Array[Char] => Task.delay {
@@ -135,6 +138,6 @@ trait WritableInstances extends WritableInstances0 {
       Process.constant(4096).toSource.through(chunkR)
     }
 
-  def chunkedWritable[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): Writable[A] =
-    processWritable[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
+  def chunkedEncoder[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): EntityEncoder[A] =
+    processEncoder[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
 }

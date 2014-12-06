@@ -29,7 +29,7 @@ class EntityDecoderSpec extends Http4sSpec {
     val request = Request().withBody("whatever").run
 
     "invoke the function with  the right on a success" in {
-      val happyDecoder = EntityDecoder[String](
+      val happyDecoder = EntityDecoder.make[String](
         _ => DecodeResult.success(Task.now("hooray")),
         MediaRange.`*/*`)
       Task.async[String] { cb =>
@@ -38,7 +38,7 @@ class EntityDecoderSpec extends Http4sSpec {
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
-      val grumpyDecoder = EntityDecoder[String](_ => DecodeResult.failure(Task.now(ParseFailure("Bah!"))), MediaRange.`*/*`)
+      val grumpyDecoder = EntityDecoder.make[String](_ => DecodeResult.failure(Task.now(ParseFailure("Bah!"))), MediaRange.`*/*`)
       val resp = grumpyDecoder(request){ _ => Task.now(Response())}.run
       resp.status must equal (Status.BadRequest)
     }

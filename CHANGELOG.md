@@ -1,3 +1,6 @@
+# v0.5.0 (???)
+* Renamed Writable to EntityEncoder
+
 # v0.4.2 (2014-12-01)
 * Fix whitespace parsing in Authorization header [#87](https://github.com/http4s/http4s/issues/87)
 

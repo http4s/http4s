@@ -12,13 +12,13 @@ import scalaz.concurrent.Task
 import scalaz.stream.text.utf8Decode
 import scalaz.stream.Process
 
-object WritableSpec {
+object EntityEncoderSpec {
 
   implicit val byteVectorMonoid: scalaz.Monoid[ByteVector] = scalaz.Monoid.instance(_ ++ _, ByteVector.empty)
 
-  def writeToString[A](a: A)(implicit W: Writable[A]): String =
+  def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
     Process.eval(W.toEntity(a))
-      .collect { case Writable.Entity(body, _ ) => body }
+      .collect { case EntityEncoder.Entity(body, _ ) => body }
       .flatMap(identity)
       .fold1Monoid
       .pipe(utf8Decode)
@@ -26,16 +26,16 @@ object WritableSpec {
       .run
 }
 
-class WritableSpec extends Specification with Http4s {
-  import WritableSpec.writeToString
+class EntityEncoderSpec extends Specification with Http4s {
+  import EntityEncoderSpec.writeToString
 
-  "Writable" should {
+  "EntityEncoder" should {
     "render strings" in {
       writeToString("pong") must_== "pong"
     }
 
     "calculate the content length of strings" in {
-      implicitly[Writable[String]].toEntity("pong").run.length must_== Some(4)
+      implicitly[EntityEncoder[String]].toEntity("pong").run.length must_== Some(4)
     }
 
     "render integers" in {
@@ -90,22 +90,22 @@ class WritableSpec extends Specification with Http4s {
     }
 
     "give the media type" in {
-      implicitly[Writable[String]].contentType must_== Some(MediaType.`text/plain`)
-      implicitly[Writable[ByteVector]].contentType must_== Some(MediaType.`application/octet-stream`)
-      implicitly[Writable[Array[Byte]]].contentType must_== Some(MediaType.`application/octet-stream`)
+      implicitly[EntityEncoder[String]].contentType must_== Some(MediaType.`text/plain`)
+      implicitly[EntityEncoder[ByteVector]].contentType must_== Some(MediaType.`application/octet-stream`)
+      implicitly[EntityEncoder[Array[Byte]]].contentType must_== Some(MediaType.`application/octet-stream`)
     }
 
-    "work with local defined writables" in {
+    "work with local defined EntityEncoders" in {
       import scodec.bits.ByteVector
 
       case class ModelA(name: String, color: Int)
       case class ModelB(name: String, id: Long)
 
-      implicit val w1: Writable[ModelA] = Writable.simple[ModelA](_ => ByteVector.view("A".getBytes))
-      implicit val w2: Writable[ModelB] = Writable.simple[ModelB](_ => ByteVector.view("B".getBytes))
+      implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA](_ => ByteVector.view("A".getBytes))
+      implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB](_ => ByteVector.view("B".getBytes))
 
-      implicitly[Writable[ModelA]] must_== w1
-      implicitly[Writable[ModelB]] must_== w2
+      implicitly[EntityEncoder[ModelA]] must_== w1
+      implicitly[EntityEncoder[ModelB]] must_== w2
     }
   }
 }

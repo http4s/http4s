@@ -9,7 +9,7 @@ trait JsonSupport[J] extends JsonDecodeSupport[J] with JsonEncodeSupport[J]
 trait JsonDecodeSupport[J] {
   def decodeJson(body: EntityBody): DecodeResult[J]
 
-  implicit def json: EntityDecoder[J] = EntityDecoder[J](
+  implicit def json: EntityDecoder[J] = EntityDecoder.make(
     msg => decodeJson(msg.body), MediaType.`application/json`
   )
 }
@@ -17,7 +17,7 @@ trait JsonDecodeSupport[J] {
 trait JsonEncodeSupport[J] {
   def encodeJson(json: J): EntityBody
 
-  implicit def jsonWritable: Writable[J] = Writable.processWritable[ByteVector]
+  implicit def jsonEncoder: EntityEncoder[J] = EntityEncoder.processEncoder[ByteVector]
     .contramap[J](encodeJson)
     .withContentType(`Content-Type`(MediaType.`application/json`))
 }

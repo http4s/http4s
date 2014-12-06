@@ -1,15 +1,15 @@
 package org.http4s
 
-import org.http4s.Writable.Entity
+import org.http4s.EntityEncoder.Entity
 
 import scalaz.concurrent.Task
 
 object ResponseBuilder {
 
-  def apply[A](status: Status, body: A, headers: Header*)(implicit w: Writable[A]): Task[Response] =
+  def apply[A](status: Status, body: A, headers: Header*)(implicit w: EntityEncoder[A]): Task[Response] =
     apply(status, HttpVersion.`HTTP/1.1`, body, headers:_*)
 
-  def apply[A](status: Status, version: HttpVersion, body: A, headers: Header*)(implicit w: Writable[A]): Task[Response] = {
+  def apply[A](status: Status, version: HttpVersion, body: A, headers: Header*)(implicit w: EntityEncoder[A]): Task[Response] = {
     var h = w.headers ++ headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
       for (l <- len) { h = h put Header.`Content-Length`(l) }

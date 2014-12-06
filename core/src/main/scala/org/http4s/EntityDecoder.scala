@@ -69,7 +69,11 @@ sealed trait EntityDecoder[T] { self =>
   * with some commonly used instances which can be resolved implicitly.
   */
 object EntityDecoder extends EntityDecoderInstances {
-  def apply[T](f: Message => DecodeResult[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
+
+  /** summon an implicit [[EntityEncoder]] */
+  def apply[T](implicit ev: EntityDecoder[T]): EntityDecoder[T] = ev
+
+  def make[T](f: Message => DecodeResult[T], valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
       try f(msg)
       catch {
@@ -117,11 +121,11 @@ trait EntityDecoderInstances {
   }
 
   implicit val binary: EntityDecoder[ByteVector] = {
-    EntityDecoder(collectBinary, MediaRange.`*/*`)
+    EntityDecoder.make(collectBinary, MediaRange.`*/*`)
   }
 
   implicit val text: EntityDecoder[String] = {
-    EntityDecoder(msg => collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset)),
+    EntityDecoder.make(msg => collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset)),
       MediaRange.`text/*`)
   }
 
@@ -131,7 +135,7 @@ trait EntityDecoderInstances {
       Task.now(formDecode(s))
     }
 
-    EntityDecoder(fn.andThen(DecodeResult.apply), MediaType.`application/x-www-form-urlencoded`)
+    EntityDecoder.make(fn.andThen(DecodeResult.apply), MediaType.`application/x-www-form-urlencoded`)
   }
 
   /**
@@ -142,7 +146,7 @@ trait EntityDecoderInstances {
    * @param parser the SAX parser to use to parse the XML
    * @return an XML element
    */
-  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder(msg => {
+  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder.make( msg => {
     collectBinary(msg).flatMap { arr =>
       val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
       try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
@@ -160,14 +164,14 @@ trait EntityDecoderInstances {
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] = {
-    EntityDecoder(msg => {
+    EntityDecoder.make( msg => {
       val p = io.chunkW(new java.io.FileOutputStream(file))
       DecodeResult.success(msg.body.to(p).run).map(_ => file)
     }, MediaRange.`*/*`)
   }
 
   def textFile(in: java.io.File): EntityDecoder[File] = {
-    EntityDecoder(msg => {
+    EntityDecoder.make( msg => {
       val p = io.chunkW(new java.io.PrintStream(new FileOutputStream(in)))
       DecodeResult.success(msg.body.to(p).run).map(_ => in)
     }, MediaRange.`text/*`)
