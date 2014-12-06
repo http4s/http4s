@@ -10,9 +10,9 @@ package dsl
 
 import org.http4s.QueryParamDecoder
 
-import scala.util.control.Exception.catching
 import scalaz.syntax.traverse._
 import scalaz.std.list._
+import scalaz.std.option._
 
 /** Base class for path extractors. */
 abstract class Path {
@@ -199,3 +199,14 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
  */
 abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
   extends QueryParamDecoderMatcher[T](QueryParam[T].key.value)
+
+
+abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapply(params: Map[String, Seq[String]]): Option[Option[T]] =
+    params.get(name).flatMap(_.headOption).traverseU(s =>
+      QueryParamDecoder[T].decode(QueryParameterValue(s))
+    ).toOption
+}
+
+abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
+  extends OptionalQueryParamDecoderMatcher[T](QueryParam[T].key.value)

@@ -28,6 +28,8 @@ object PathInHttpServiceSpec extends Http4sSpec {
 
   object L extends QueryParamMatcher[Limit]
 
+  object OptCounter extends OptionalQueryParamDecoderMatcher[Int]("counter")
+
   val service = HttpService {
     case GET -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: ${limit.l}")
@@ -45,6 +47,8 @@ object PathInHttpServiceSpec extends Http4sSpec {
       Ok(s"term: $search")
     case GET -> Root / "mix" :? T(t) +& List(l) +& P(d) +& I(s) +& L(m) =>
       Ok(s"list: ${l.mkString(",")}, start: $s, limit: ${m.l}, term: $t, decimal=$d")
+    case GET -> Root / "app":? OptCounter(c) =>
+      Ok(s"counter: $c")
     case r =>
       NotFound("404 Not Found: " + r.pathInfo)
   }
@@ -112,10 +116,19 @@ object PathInHttpServiceSpec extends Http4sSpec {
       response.status must equal (Ok)
       response.body must equalTo("term: http4s")
     }
-    "GET /mix?list=1&list=2&list=3&list=4&list=5&limit=10&start=1&decimal=2&term" in {
-      val response = server(Request(GET, Uri(path = "/mix", query = Some("list=1&list=2&list=3&list=4&list=5&limit=10&start=1&decimal=2&term="))))
+    "optional parameter present" in {
+      val response = server(Request(GET, Uri(path = "/app", query = Some("counter=3"))))
       response.status must equal (Ok)
-      response.body must equalTo("list: 1,2,3,4,5, start: 1, limit: 10, term: , decimal=2.0")
+      response.body must equalTo("counter: Some(3)")
+    }
+    "optional parameter absent" in {
+      val response = server(Request(GET, Uri(path = "/app", query = Some("other=john"))))
+      response.status must equal (Ok)
+      response.body must equalTo("counter: None")
+    }
+    "optional parameter present with incorrect format" in {
+      val response = server(Request(GET, Uri(path = "/app", query = Some("counter=john"))))
+      response.status must equal (NotFound)
     }
   }
 
