@@ -1,23 +1,11 @@
 package org.http4s
 
-import scala.collection.immutable
+import org.http4s.Uri.{Authority, Host, IPv4, IPv6, RegName, Scheme}
+import org.http4s.UriTemplate._
+
 import scala.collection.mutable
-import scala.collection.mutable.ListBuffer
-
-import Uri.AcceptableParamType
-import Uri.Authority
-import Uri.Host
-import Uri.IPv4
-import Uri.IPv6
-import Uri.RegName
-import Uri.Scheme
-import Uri.UserInfo
-import UriTemplate._
-
 import scala.collection.mutable.ArrayBuffer
-import scala.util.Failure
-import scala.util.Success
-import scala.util.Try
+import scala.util.{Failure, Success, Try}
 
 /**
  * Simple representation of a URI Template that can be rendered as RFC6570
@@ -42,7 +30,7 @@ case class UriTemplate(
    * Replaces any expansion type that matches the given `name`. If no matching
    * `expansion` could be found the same instance will be returned.
    */
-  def expandAny[T: AcceptableParamType](name: String, value: T): UriTemplate =
+  def expandAny[T: QueryParamEncoder](name: String, value: T): UriTemplate =
     expandPath(name, value).expandQuery(name, value).expandFragment(name, value)
 
   /**
@@ -50,7 +38,7 @@ case class UriTemplate(
    * If no matching `expansion` could be found the same instance will be
    * returned.
    */
-  def expandFragment[T: AcceptableParamType](name: String, value: T): UriTemplate = {
+  def expandFragment[T: QueryParamEncoder](name: String, value: T): UriTemplate = {
     if (fragment.isEmpty) this
     else copy(fragment = expandFragmentN(fragment, name, String.valueOf(value)))
   }
@@ -59,22 +47,22 @@ case class UriTemplate(
    * Replaces any expansion type in `path` that matches the given `name`. If no
    * matching `expansion` could be found the same instance will be returned.
    */
-  def expandPath[T: AcceptableParamType](name: String, values: List[T]): UriTemplate =
-    copy(path = expandPathN(path, name, values.map(String.valueOf(_))))
+  def expandPath[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate =
+    copy(path = expandPathN(path, name, values.map(QueryParamEncoder[T].encode)))
 
   /**
    * Replaces any expansion type in `path` that matches the given `name`. If no
    * matching `expansion` could be found the same instance will be returned.
    */
-  def expandPath[T: AcceptableParamType](name: String, value: T): UriTemplate =
-    copy(path = expandPathN(path, name, List(String.valueOf(value))))
+  def expandPath[T: QueryParamEncoder](name: String, value: T): UriTemplate =
+    copy(path = expandPathN(path, name, List(QueryParamEncoder[T].encode(value))))
 
   /**
    * Replaces any expansion type in `query` that matches the specified `name`.
    * If no matching `expansion` could be found the same instance will be
    * returned.
    */
-  def expandQuery[T: AcceptableParamType](name: String, values: List[T]): UriTemplate = {
+  def expandQuery[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate = {
     if (query.isEmpty) this
     else copy(query = expandQueryN(query, name, values.map(String.valueOf(_))))
   }
@@ -91,7 +79,8 @@ case class UriTemplate(
    * If no matching `expansion` could be found the same instance will be
    * returned.
    */
-  def expandQuery[T: AcceptableParamType](name: String, values: T*): UriTemplate = expandQuery(name, values.toList)
+  def expandQuery[T: QueryParamEncoder](name: String, values: T*): UriTemplate =
+    expandQuery(name, values.toList)
 
   override lazy val toString =
     renderUriTemplate(this)
@@ -120,9 +109,9 @@ object UriTemplate {
 
   def isUnreserved(s: String) = s.forall(unreserved.contains)
 
-  protected def expandPathN(path: Path, name: String, values: List[String]): Path = {
+  protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()
-    def appendValues() = values foreach { v => acc.append(PathElm(v)) }
+    def appendValues() = values foreach { v => acc.append(PathElm(v.value)) }
     path foreach {
       case p@PathElm(_) => acc.append(p)
       case p@VarExp(Seq(n)) =>
