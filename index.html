@@ -103,7 +103,7 @@ tying up too many threads.</p>
   <span class="c1">// Wire your data into your service</span>
   <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;streaming&quot;</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="o">))</span>
 
-  <span class="c1">// You can use helpers to send any type of data with an available Writable[T]</span>
+  <span class="c1">// You can use helpers to send any type of data with an available EntityEncoder[T]</span>
   <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;synchronous&quot;</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="s">&quot;This is good to go right now.&quot;</span><span class="o">)</span>
 <span class="o">}</span>
 </code></pre></div>
