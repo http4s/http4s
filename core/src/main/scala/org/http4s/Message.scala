@@ -53,11 +53,11 @@ sealed trait Message extends MessageOps {
   /** Replace the body of this message with a new body
     *
     * @param b body to attach to this method
-    * @param w [[Writable]] with which to convert the body to an [[EntityBody]]
+    * @param w [[EntityEncoder]] with which to convert the body to an [[EntityBody]]
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit w: Writable[T]): Task[Self] = {
+  def withBody[T](b: T)(implicit w: EntityEncoder[T]): Task[Self] = {
     w.toEntity(b).map { entity =>
       val hs = entity.length match {
         case Some(l) => `Content-Length`(l)::w.headers.toList

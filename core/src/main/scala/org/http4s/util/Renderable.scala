@@ -17,7 +17,7 @@ object Renderer {
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
 }
 
-/** Mixin that makes a type compatible writable by a [[Writer]] without needing a [[Renderer]] instance */
+/** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */
 trait Renderable extends Any {
 
   /** Base method for rendering this object efficiently */

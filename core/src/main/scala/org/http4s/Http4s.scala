@@ -12,7 +12,7 @@ trait Http4sInstances
   with util.TaskInstances
   with EntityDecoderInstances
   with HttpVersionInstances
-  with WritableInstances
+  with EntityEncoderInstances
   with CharsetRangeInstances
   with QValueInstances
   with MethodInstances

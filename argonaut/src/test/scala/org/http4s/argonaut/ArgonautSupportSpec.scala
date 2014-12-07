@@ -6,14 +6,14 @@ import org.http4s.jawn.JawnDecodeSupportSpec
 import org.specs2.mutable.Specification
 import org.http4s.MediaType
 import org.http4s.Charset._
-import org.http4s.WritableSpec.writeToString
+import org.http4s.EntityEncoderSpec.writeToString
 
 class ArgonautSupportSpec extends JawnDecodeSupportSpec[Json] with ArgonautSupport with Argonauts {
   "writing JSON" should {
     val json = Json("test" -> jString("ArgonautSupport"))
 
     "have json content type" in {
-      jsonWritable.headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
+      jsonEncoder.headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
     }
 
     "write compact JSON" in {
