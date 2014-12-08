@@ -57,7 +57,7 @@ object Http4sBuild extends Build {
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.3.0"
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
-  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.7.0"
+  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.7.1"
   lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.3.1-SNAPSHOT"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.2.5.v20141112"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
