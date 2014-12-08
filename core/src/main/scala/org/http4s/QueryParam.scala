@@ -43,6 +43,11 @@ object QueryParamEncoder {
   /** summon an implicit [[QueryParamEncoder]] */
   def apply[T](implicit ev: QueryParamEncoder[T]): QueryParamEncoder[T] = ev
 
+  def encodeBy[T, U: QueryParamEncoder](f: T => U): QueryParamEncoder[T] = new QueryParamEncoder[T] {
+    def encode(value: T): QueryParameterValue =
+      QueryParamEncoder[U].encode(f(value))
+  }
+
   def encode[T](f: T => String): QueryParamEncoder[T] = new QueryParamEncoder[T] {
     def encode(value: T): QueryParameterValue =
       QueryParameterValue(f(value))
