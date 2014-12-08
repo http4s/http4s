@@ -143,4 +143,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   def chunkedEncoder[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): EntityEncoder[A] =
     sourceEncoder[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
+
+  implicit val entityEncoderContravariant: Contravariant[EntityEncoder] = new Contravariant[EntityEncoder] {
+    override def contramap[A, B](r: EntityEncoder[A])(f: (B) => A): EntityEncoder[B] = r.contramap(f)
+  }
 }
