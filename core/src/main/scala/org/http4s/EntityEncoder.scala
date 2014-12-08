@@ -1,21 +1,23 @@
 package org.http4s
 
-import java.io.{InputStream, File, Reader}
+import java.io.{File, InputStream, Reader}
 import java.nio.ByteBuffer
 import java.nio.file.Path
+
 import scala.language.implicitConversions
+
+import org.http4s.EntityEncoder._
+import org.http4s.Header.`Content-Type`
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.option._
+import scalaz.stream.{Process0, Channel, Process, io}
 import scalaz.stream.Cause.{End, Terminated}
-import scalaz.stream.{Channel, io, Process}
 import scalaz.stream.Process.emit
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
-import org.http4s.Header.`Content-Type`
-
-case class EntityEncoder[-A](
+case class EntityEncoder[A](
   toEntity: A => Task[EntityEncoder.Entity],
   headers: Headers
 ) {
@@ -50,8 +52,6 @@ object EntityEncoder extends EntityEncoderInstances {
   )
 }
 
-import EntityEncoder._
-
 trait EntityEncoderInstances0 {
   implicit def showEncoder[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): EntityEncoder[A] =
     simple(
@@ -67,10 +67,13 @@ trait EntityEncoderInstances0 {
    * advance.  As such, it does not calculate the Content-Length in advance.  This is for
    * use with chunked transfer encoding.
    */
-  implicit def processEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Process[Task, A]] =
+  implicit def sourceEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Process[Task, A]] =
     W.copy(toEntity = { process =>
       Task.now(Entity(process.flatMap(a => Process.await(W.toEntity(a))(_.body)), None))
     })
+
+  implicit def process0Encoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Process0[A]] =
+    sourceEncoder[A].contramap(_.toSource)
 }
 
 trait EntityEncoderInstances extends EntityEncoderInstances0 {
@@ -79,11 +82,11 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
   )
 
-  implicit def charSequenceEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[CharSequence] =
+  implicit def charSequenceEncoder[A <: CharSequence](implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[CharSequence] =
     stringEncoder.contramap(_.toString)
 
   implicit def charArrayEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Array[Char]] =
-    stringEncoder.contramap(new String(_))
+    charSequenceEncoder.contramap(new String(_))
 
   implicit val byteVectorEncoder: EntityEncoder[ByteVector] = simple(
     identity,
@@ -114,13 +117,13 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit val filePathEncoder: EntityEncoder[Path] = fileEncoder.contramap(_.toFile)
 
   // TODO parameterize chunk size
-  implicit val inputStreamEncoder: EntityEncoder[InputStream] =
+  implicit def inputStreamEncoder[A <: InputStream]: EntityEncoder[A] =
     chunkedEncoder { is: InputStream => io.chunkR(is) }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Reader] =
+  implicit def readerEncoder[A <: Reader](implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[A] =
     // TODO polish and contribute back to scalaz-stream
-    processEncoder[Array[Char]].contramap { r: Reader =>
+    sourceEncoder[Array[Char]].contramap { r: Reader =>
       val unsafeChunkR = io.resource(Task.delay(r))(
         src => Task.delay(src.close())) { src =>
         Task.now { buf: Array[Char] => Task.delay {
@@ -139,5 +142,5 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     }
 
   def chunkedEncoder[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): EntityEncoder[A] =
-    processEncoder[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
+    sourceEncoder[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
 }
