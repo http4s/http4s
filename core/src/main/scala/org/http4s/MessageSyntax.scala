@@ -19,7 +19,8 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
   /** Add a body to the message
     * @see [[Message]]
     */
-  def withBody[T](b: T)(implicit w: EntityEncoder[T]): Self = self.flatMap(_.withBody(b)(w))
+  def withBody[T](b: T, replaceHeaders: Boolean = false)(implicit w: EntityEncoder[T]): Self =
+    self.flatMap(_.withBody(b, replaceHeaders)(w))
 
   /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
     *
