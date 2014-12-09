@@ -1,8 +1,20 @@
 import sbt._
+import Keys._
 
 import scala.util.Properties.envOrNone
+import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
+import com.typesafe.tools.mima.plugin.MimaKeys._
 
-object Http4sBuild {
+object Http4sBuild extends Build {
+  lazy val mimaSettings = mimaDefaultSettings ++ {
+    Seq(
+      failOnProblem := compatibleVersion(version.value).isDefined,
+      previousArtifact := compatibleVersion(version.value) map {
+        organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
+      }
+    )
+  }
+
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
     version match {
@@ -26,20 +38,26 @@ object Http4sBuild {
   }
 
   def isSnapshot(version: String): Boolean = version.endsWith("-SNAPSHOT")
-}
 
-object Http4sKeys {
+  def compatibleVersion(version: String) = {
+    val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
+    val (targetMajor, targetMinor) = extractApiVersion(version)
+    val targetVersion = s"${targetMajor}.${targetMinor}.0"
+    if (targetVersion != currentVersionWithoutSnapshot)
+      Some(targetVersion)
+    else
+      None
+  }
+
   val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
-}
 
-object Http4sDependencies {
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.3.0"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.4.0-SNAPSHOT"
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
-  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.7.0"
+  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.7.1"
   lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.3.1-SNAPSHOT"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.2.5.v20141112"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision

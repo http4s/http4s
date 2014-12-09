@@ -1,5 +1,3 @@
-import Http4sDependencies._
-
 name := "http4s-examples"
 
 description := "Examples of using http4s on various backends"

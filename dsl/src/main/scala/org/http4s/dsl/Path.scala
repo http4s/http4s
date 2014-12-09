@@ -8,7 +8,11 @@
 package org.http4s
 package dsl
 
-import scala.util.control.Exception.catching
+import org.http4s.QueryParamDecoder
+
+import scalaz.syntax.traverse._
+import scalaz.std.list._
+import scalaz.std.option._
 
 /** Base class for path extractors. */
 abstract class Path {
@@ -159,64 +163,50 @@ object +& {
   def unapply(params: Map[String, Seq[String]]) = Some((params, params))
 }
 
+
 /**
- * Param extractor:
- *   object ScreenName extends ParamMatcher("screen_name")
+ * param extractor using [[QueryParamDecoder]]:
+ *   case class Foo(i: Int)
+ *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+ *
+ *   object FooMatcher extends QueryParamDecoderMatcher[Foo]("foo")
  *   val service: HttpService = {
- *     case GET -> Root / "user" :? ScreenName(screenName) => ...
+ *     case GET -> Root / "closest" :? FooMatcher(2) => ...
  */
-abstract class ParamMatcher(name: String) {
-  def unapply(params: Map[String, Seq[String]]) = unapplySeq(params).flatMap(_.headOption)
-  def unapplySeq(params: Map[String, Seq[String]]) = params.get(name)
+abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[T]] =
+    params.get(name).flatMap(values =>
+      values.toList.traverseU(s =>
+        QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption
+      )
+    )
+
+  def unapply(params: Map[String, Seq[String]]): Option[T] =
+    params.get(name).flatMap(_.headOption).flatMap(s =>
+      QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption
+    )
 }
 
 /**
- * IntParam param extractor:
- *   object Page extends IntParamMatcher("page")
+ * param extractor using [[QueryParamDecoder]]:
+ *   case class Foo(i: Int)
+ *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+ *   implicit val fooParam: QueryParam[Foo] = ...
+ *
+ *   object FooMatcher extends QueryParamDecoderMatcher[Foo]
  *   val service: HttpService = {
- *     case GET -> Root / "blog" :? Page(page) => ...
+ *     case GET -> Root / "closest" :? FooMatcher(2) => ...
  */
-abstract class IntParamMatcher(name: String) {
-  def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Int]] =
-    params.get(name) map { value =>
-      (value map { v =>
-        catching(classOf[NumberFormatException]) opt v.toInt
-      }).flatten
-    }
+abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
+  extends QueryParamDecoderMatcher[T](QueryParam[T].key.value)
 
-  def unapply(params: Map[String, Seq[String]]): Option[Int] = unapplySeq(params).flatMap(_.headOption)
+
+abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapply(params: Map[String, Seq[String]]): Option[Option[T]] =
+    params.get(name).flatMap(_.headOption).traverseU(s =>
+      QueryParamDecoder[T].decode(QueryParameterValue(s))
+    ).toOption
 }
 
-/**
- * LongParam param extractor:
- *   object UserId extends LongParamMatcher("user_id")
- *   val service: HttpService = {
- *     case GET -> Root / "user" :? UserId(userId) => ...
- */
-abstract class LongParamMatcher(name: String) {
-  def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Long]] =
-    params.get(name) map { value =>
-      (value map { v =>
-        catching(classOf[NumberFormatException]) opt v.toLong
-      }).flatten
-    }
-
-  def unapply(params: Map[String, Seq[String]]): Option[Long] = unapplySeq(params).flatMap(_.headOption)
-}
-
-/**
- * Double param extractor:
- *   object Latitude extends DoubleParamMatcher("lat")
- *   val service: HttpService = {
- *     case GET -> Root / "closest" :? Latitude("lat") => ...
- */
-abstract class DoubleParamMatcher(name: String) {
-  def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[Double]] =
-    params.get(name) map { value =>
-      (value map { v =>
-        catching(classOf[NumberFormatException]) opt v.toDouble
-      }).flatten
-    }
-
-  def unapply(params: Map[String, Seq[String]]): Option[Double] = unapplySeq(params).flatMap(_.headOption)
-}
+abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
+  extends OptionalQueryParamDecoderMatcher[T](QueryParam[T].key.value)

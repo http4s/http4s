@@ -28,7 +28,7 @@ object ExampleService {
   def service1(implicit executionContext: ExecutionContext) = HttpService {
 
     case req @ GET -> Root =>
-      // Writable allows for easy conversion of types to a response body
+      // EntityEncoder allows for easy conversion of types to a response body
       Ok(
         <html>
           <body>
@@ -59,7 +59,7 @@ object ExampleService {
     case GET -> Root / "ping" => Ok("pong")
 
     case GET -> Root / "future" =>
-      // Writable allows rendering asynchronous results as well
+      // EntityEncoder allows rendering asynchronous results as well
       Ok(Future("Hello from the future!"))
 
     case GET -> Root / "streaming" =>
@@ -67,15 +67,15 @@ object ExampleService {
       Ok(dataStream(100)).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "ip" =>
-      // Its possible to define a Writable anywhere so you're not limited to built in types
+      // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
       Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
 
     case req @ GET -> Root / "redirect" =>
-      // Not every response must be Ok using a Writable: some have meaning only for specific types
+      // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
       TemporaryRedirect(uri("/http4s"))
 
     case GET -> Root / "content-change" =>
-      // Writable typically deals with appropriate headers, but they can be overridden
+      // EntityEncoder typically deals with appropriate headers, but they can be overridden
       Ok("<h2>This will have an html content type!</h2>")
           .withHeaders(`Content-Type`(`text/html`))
 

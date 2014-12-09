@@ -79,7 +79,9 @@ class BlazeBuilder(
     if (address.isUnresolved)
       address = new InetSocketAddress(address.getHostString, address.getPort)
     val serverChannel = factory.bind(address)
-    serverChannel.run()
+
+    // Begin the server asynchronously
+    serverChannel.runAsync()
 
     new Server {
       override def shutdown: Task[this.type] = Task.delay {

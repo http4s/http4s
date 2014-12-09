@@ -47,7 +47,7 @@ val service = HttpService {
   // Wire your data into your service
   case GET -> Root / "streaming" => Ok(getData(req))
 
-  // You can use helpers to send any type of data with an available Writable[T]
+  // You can use helpers to send any type of data with an available EntityEncoder[T]
   case GET -> Root / "synchronous" => Ok("This is good to go right now.")
 }
 ```

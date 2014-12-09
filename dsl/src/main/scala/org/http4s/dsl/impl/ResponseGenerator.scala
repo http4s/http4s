@@ -4,7 +4,7 @@ package impl
 
 import scalaz.concurrent.Task
 
-import org.http4s.Writable.Entity
+import org.http4s.EntityEncoder.Entity
 
 trait ResponseGenerator extends Any {
   def status: Status
@@ -34,10 +34,10 @@ trait EmptyResponseGenerator extends Any with ResponseGenerator {
   * }}}
   */
 trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
-  def apply[A](body: A)(implicit w: Writable[A]): Task[Response] =
+  def apply[A](body: A)(implicit w: EntityEncoder[A]): Task[Response] =
     apply(body, Headers.empty)(w)
 
-  def apply[A](body: A, headers: Headers)(implicit w: Writable[A]): Task[Response] = {
+  def apply[A](body: A, headers: Headers)(implicit w: EntityEncoder[A]): Task[Response] = {
     var h = w.headers ++ headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
       len foreach { l => h = h put Header.`Content-Length`(l) }
