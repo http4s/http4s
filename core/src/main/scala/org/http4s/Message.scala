@@ -54,16 +54,21 @@ sealed trait Message extends MessageOps {
     *
     * @param b body to attach to this method
     * @param w [[EntityEncoder]] with which to convert the body to an [[EntityBody]]
+    * @param replaceHeaders if true, the headers of the [[EntityEncoder]] will override any existing body headers
     * @tparam T type of the Body
     * @return a new message with the new body
     */
-  def withBody[T](b: T)(implicit w: EntityEncoder[T]): Task[Self] = {
+  def withBody[T](b: T, replaceHeaders: Boolean = false)(implicit w: EntityEncoder[T]): Task[Self] = {
     w.toEntity(b).map { entity =>
       val hs = entity.length match {
         case Some(l) => `Content-Length`(l)::w.headers.toList
-        case None    => w.headers
+        case None    => w.headers.toList
       }
-      change(body = entity.body, headers = headers ++ hs)
+
+      val allHeaders = if (replaceHeaders) headers ++ hs
+                       else Headers(hs) ++ headers
+
+      change(body = entity.body, headers = allHeaders)
     }
   }
 
