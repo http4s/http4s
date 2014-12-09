@@ -100,7 +100,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
         .run must_== "Accept: text/*"
 
       // Are we combining our mediatypes correctly? This is more of an EntityDecoder spec
-      val edec = EntityDecoder[String]({ _: Message => DecodeResult.success("foo!")}, MediaType.`image/jpeg`)
+      val edec = EntityDecoder.decodeBy(_ => DecodeResult.success("foo!"))(MediaType.`image/jpeg`)
       client.prepAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec)
         .run must_== "Accept: text/*, image/jpeg"
     }
