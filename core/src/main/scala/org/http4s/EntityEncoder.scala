@@ -12,6 +12,7 @@ import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.option._
 import scalaz.stream.{Process0, Channel, Process, io}
+import scalaz.stream.nio.file
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.Process.emit
 import scalaz.syntax.apply._
@@ -110,7 +111,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit val fileEncoder: EntityEncoder[File] =
-    chunkedEncoder { f: File => io.fileChunkR(f.getAbsolutePath) }
+    chunkedEncoder { f: File => file.chunkR(f.getAbsolutePath) }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
