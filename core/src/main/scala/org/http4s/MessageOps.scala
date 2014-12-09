@@ -2,6 +2,7 @@ package org.http4s
 
 import org.http4s.Header.{`Set-Cookie`, `Content-Type`}
 
+import scalaz.\/
 import scalaz.concurrent.Task
 
 trait MessageOps extends Any {
@@ -58,6 +59,24 @@ trait MessageOps extends Any {
 
   def withTrailerHeaders(trailerHeaders: Task[Headers]): Self =
     withAttribute(Message.Keys.TrailerHeaders, trailerHeaders)
+
+  /** Decode the [[Message]] to the specified type
+    *
+    * @param decoder [[EntityDecoder]] used to decode the [[Message]]
+    * @tparam T type of the result
+    * @return the `Task` which will generate the `DecodeResult[T]`
+    */
+  def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T]
+
+  /** Decode the [[Message]] to the specified type
+    *
+    * If no valid [[Status]] has been described, allow Ok
+    * @param decoder [[EntityDecoder]] used to decode the [[Message]]
+    * @tparam T type of the result
+    * @return the `Task` which will generate the T
+    */
+  def as[T](implicit decoder: EntityDecoder[T]): Task[T] =
+    attemptAs(decoder).fold(e => throw ParseException(e), identity)
 }
 
 trait ResponseOps extends Any with MessageOps {

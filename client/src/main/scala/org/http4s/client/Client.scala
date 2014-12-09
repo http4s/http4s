@@ -1,13 +1,13 @@
 package org.http4s.client
 
-import org.http4s.client.Client.{Result, BadResponse}
 import org.http4s._
 
-import scala.util.control.NoStackTrace
 import scalaz.concurrent.Task
 
-
 trait Client {
+
+  /** Shutdown this client, closing any open connections and freeing resources */
+  def shutdown(): Task[Unit]
 
   /** Prepare a single request
     * @param req [[Request]] containing the headers, URI, etc.
@@ -15,20 +15,50 @@ trait Client {
     */
   def prepare(req: Request): Task[Response]
 
+  /** Prepare a single request
+    * @param req [[Request]] containing the headers, URI, etc.
+    * @return Task which will generate the Response
+    */
+  final def apply(req: Request): Task[Response] = prepare(req)
+
+  /** Prepare a single request
+    * @param req [[Request]] containing the headers, URI, etc.
+    * @return Task which will generate the Response
+    */
+  def prepAs[T](req: Request)(implicit d: EntityDecoder[T]): Task[T] = {
+    val r = if (d.consumes.nonEmpty) {
+      val m = d.consumes.toList
+      req.putHeaders(Header.Accept(m.head, m.tail:_*))
+    } else req
+
+    prepare(r).flatMap { resp =>
+      d.decode(resp).fold(e => throw ParseException(e), identity)
+    }
+  }
+
+  /////////////////////////////////////////////////////////////////////////
+
   /** Prepare a single GET request
     * @param req [[Uri]] of the request
     * @return Task which will generate the Response
     */
-  def prepare(req: Uri): Task[Response] =
+  final def prepare(req: Uri): Task[Response] =
     prepare(Request(uri = req))
 
   /** Prepare a single GET request
-    * @param req `String` uri of the request
+    * @param req [[Uri]] of the request
     * @return Task which will generate the Response
     */
-  def prepare(req: String): Task[Response] =
-    Uri.fromString(req)
-       .fold(f => Task.fail(new org.http4s.ParseException(f)),prepare)
+  final def apply(req: Uri): Task[Response] = prepare(req)
+
+  /** Prepare a single GET request
+    * @param req [[Uri]] of the request
+    * @return Task which will generate the Response
+    */
+  final def prepAs[T](req: Uri)(implicit d: EntityDecoder[T]): Task[T] =
+    prepAs(Request(uri = req))(d)
+
+  /////////////////////////////////////////////////////////////////////////
 
   /** Prepare a single request
     * @param req `Task[Request]` containing the headers, URI, etc
@@ -37,29 +67,17 @@ trait Client {
   final def prepare(req: Task[Request]): Task[Response] =
     req.flatMap(prepare)
 
-  /** Shutdown this client, closing any open connections and freeing resources */
-  def shutdown(): Task[Unit]
+  /** Prepare a single request
+    * @param req `Task[Request]` containing the headers, URI, etc
+    * @return Task which will generate the Response
+    */
+  final def apply(req: Task[Request]): Task[Response] =
+    prepare(req)
 
-  /** Generate a Task which, when executed, will perform the request and decode the result */
-  final def decode[A](req: Task[Request])(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
-    req.flatMap(req => decode(req)(onResponse))
-
-  /** Generate a Task which, when executed, will perform the request and decode the result */
-  final def decode[A](req: Request)(onResponse: Response => EntityDecoder[A]): Task[Result[A]] =
-    prepare(req).flatMap { resp =>
-      onResponse(resp)
-        .decode(resp)
-        .fold(
-          e => throw new ParseException(e),
-          Result(resp.status, resp.headers, _)
-        )
-    }
-}
-
-object Client {
-  case class Result[T](status: Status, headers: Headers, body: T)
-  
-  case class BadResponse(status: Status, msg: String) extends Exception with NoStackTrace {
-    override def getMessage: String = s"Bad Response, $status: '$msg'"
-  }
+  /** Prepare a single request
+    * @param req `Task[Request]` containing the headers, URI, etc
+    * @return Task which will generate the Response
+    */
+  final def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
+    req.flatMap(prepAs(_)(d))
 }

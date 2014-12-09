@@ -3,6 +3,7 @@ package org.http4s
 import org.http4s.dsl.impl._
 
 package object dsl extends Http4s {
+
   val GET: Method.GET.type = Method.GET
   val HEAD: Method.HEAD.type = Method.HEAD
   val POST: Method.POST.type = Method.POST
@@ -12,16 +13,6 @@ package object dsl extends Http4s {
   val OPTIONS: Method.OPTIONS.type = Method.OPTIONS
   val TRACE: Method.TRACE.type = Method.TRACE
   val PATCH: Method.PATCH.type = Method.PATCH
-
-  implicit class GetSyntax(val method: GET.type) extends AnyVal with EmptyRequestGenerator
-  implicit class HeadSyntax(val method: HEAD.type) extends AnyVal with EmptyRequestGenerator
-  implicit class PostSyntax(val method: POST.type) extends AnyVal with EntityRequestGenerator
-  implicit class PutSyntax(val method: PUT.type) extends AnyVal with EntityRequestGenerator
-  implicit class DeleteSyntax(val method: DELETE.type) extends AnyVal with EmptyRequestGenerator
-  implicit class ConnectSyntax(val method: CONNECT.type) extends AnyVal with EmptyRequestGenerator
-  implicit class OptionsSyntax(val method: OPTIONS.type) extends AnyVal with EntityRequestGenerator
-  implicit class TraceSyntax(val method: TRACE.type) extends AnyVal with EmptyRequestGenerator
-  implicit class PatchSyntax(val method: PATCH.type) extends AnyVal with EntityRequestGenerator
 
   val Continue: Status.Continue.type = Status.Continue
   val SwitchingProtocols: Status.SwitchingProtocols.type = Status.SwitchingProtocols
@@ -84,8 +75,6 @@ package object dsl extends Http4s {
   val LoopDetected: Status.LoopDetected.type = Status.LoopDetected
   val NotExtended: Status.NotExtended.type = Status.NotExtended
   val NetworkAuthenticationRequired: Status.NetworkAuthenticationRequired.type = Status.NetworkAuthenticationRequired
-
-  implicit class RequestSyntax(val method: Method) extends AnyVal with RequestGenerator
 
   implicit class ContinueSyntax(val status: Continue.type) extends AnyVal with EmptyResponseGenerator
   // TODO support Upgrade header

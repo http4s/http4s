@@ -1,7 +1,8 @@
 package org.http4s
 
-import org.http4s.client.Client.BadResponse
-import scalaz.concurrent.Task
+import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
+import Method.{ PermitsBody, NoBody}
+
 
 /** Provides extension methods for using the a http4s [[org.http4s.client.Client]]
   * {{{
@@ -9,55 +10,22 @@ import scalaz.concurrent.Task
   *   import org.http4s.Method._
   *   import org.http4s.EntityDecoder
   *
-  *   implicit def client: Client = ???
+  *   def client: Client = ???
   *
-  *   val r: Task[Result[String]] = GET("https://www.foo.bar/").on(Ok)(EntityDecoder.text)
+  *   val r: Task[String] = client(GET(uri("https://www.foo.bar/"))).as[String]
+  *   val r2: Task[DecodeResult[String]] = client(GET(uri("https://www.foo.bar/"))).attemptAs[String]   // implicitly resolve the decoder
   *   val req1 = r.run
-  *   val req2 = r.run  // Each run is fetches a new result based on the behavior of the Client
+  *   val req2 = r.run  // Each invocation fetches a new Result based on the behavior of the Client
   *
   * }}}
   */
+
 package object client {
+  /** Syntax classes to generate a request directly from a [[Method]] */
+  implicit class WithBodySyntax(val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator
+  implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
 
-  import Client.Result
 
-  /** ClientSyntax provides the most convenient way to transform a [[Request]] into a [[Response]]
-    *
-    * @param request a `Task` that will generate a Request
-    */
-  implicit class ClientTaskSyntax(request: Task[Request]) {
-    /** Generate a Task which, when executed, will perform the request using the provided client */
-    def build(implicit client: Client): Task[Response] = client.prepare(request)
-
-    /** Generate a Task which, when executed, will perform the request and if the response
-      * is of type `status`, decodes it.
-      */
-    def on[T](status: Status)(decoder: EntityDecoder[T])(implicit client: Client): Task[Result[T]] =
-      client.decode(request){
-        case Response(s,_,_,_,_) if s == status => decoder
-        case Response(s,_,_,b,_)                => EntityDecoder.error(BadResponse(s, ""))
-      }
-
-    /** Generate a Task which, when executed, will perform the request and attempt to decode it */
-    def decode[T](f: Response => EntityDecoder[T])(implicit client: Client): Task[Result[T]] =
-      client.decode(request)(f)
-  }
-
-  implicit class ClientSyntax(request: Request) {
-    /** Generate a Task which, when executed, will perform the request using the provided client */
-    def build(implicit client: Client): Task[Response] = client.prepare(request)
-
-    /** Generate a Task which, when executed, will perform the request and if the response
-      * is of type `status`, decodes it.
-      */
-    def on[T](status: Status)(decoder: EntityDecoder[T])(implicit client: Client): Task[Result[T]] =
-      client.decode(request){
-        case Response(s,_,_,_,_) if s == status => decoder
-        case Response(s,_,_,b,_)                => EntityDecoder.error(BadResponse(s, ""))
-      }
-
-    /** Generate a Task which, when executed, will perform the request and attempt to decode it */
-    def decode[T](f: Response => EntityDecoder[T])(implicit client: Client): Task[Result[T]] =
-      client.decode(request)(f)
-  }
+  implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] =
+    EntityDecoder(resp => decoder.decode(resp).map(t => (resp.headers,t)), decoder.consumes.toSeq:_*)
 }

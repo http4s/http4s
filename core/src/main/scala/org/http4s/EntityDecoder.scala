@@ -2,14 +2,14 @@ package org.http4s
 
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
-import org.xml.sax.{SAXException, SAXParseException, InputSource}
+import org.xml.sax.{SAXParseException, InputSource}
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 import scalaz.Liskov.{<~<, refl}
-import scalaz.{\/-, EitherT}
+import scalaz.{\/, -\/, \/-, EitherT}
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
@@ -183,5 +183,9 @@ object DecodeResult {
 
   def success[A](a: Task[A]): DecodeResult[A] = EitherT.right(a)
 
+  def success[A](a: A): DecodeResult[A] = EitherT(Task.now(\/-(a): ParseFailure\/A))
+
   def failure[A](e: Task[ParseFailure]): DecodeResult[A] = EitherT.left(e)
+
+  def failure[A](e: ParseFailure): DecodeResult[A] = EitherT(Task.now(-\/(e): ParseFailure\/A))
 }

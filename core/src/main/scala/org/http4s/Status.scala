@@ -31,12 +31,22 @@ final case class Status private (code: Int)(val reason: String = "", val isEntit
   def withReason(reason: String) = new Status(code)(reason, isEntityAllowed)
 
   override def render(writer: org.http4s.util.Writer): writer.type =  writer << code << ' ' << reason
+
+  /** Helpers for for matching against a [[Response]] */
+  def unapply(msg: Response): Option[Response] = {
+    if (msg.status == this) Some(msg) else None
+  }
 }
 
 object Status {
   sealed trait ResponseClass {
     def isSuccess: Boolean
+
+    /** Match a [[Response]] based on [[Status]] category */
+    final def unapply(resp: Response): Option[Response] =
+      if (resp.status.responseClass == this) Some(resp) else None
   }
+
   object ResponseClass {
     case object Informational extends ResponseClass { val isSuccess = true }
     case object Successful extends ResponseClass { val isSuccess = true }
