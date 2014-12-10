@@ -2,6 +2,7 @@ package org.http4s.client.blaze
 
 import java.net.InetSocketAddress
 import java.nio.channels.AsynchronousChannelGroup
+import java.util.concurrent.ExecutorService
 
 import org.http4s.Request
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
@@ -18,14 +19,14 @@ import scalaz.stream.Process.halt
 /** Provides a foundation for pooling clients */
 abstract class PooledClient(maxPooledConnections: Int,
                                       bufferSize: Int,
-                                        executor: ExecutionContext,
+                                        executor: ExecutorService,
                                            group: Option[AsynchronousChannelGroup]) extends BlazeClient {
 
   private[this] val logger = getLogger
 
-  assert(maxPooledConnections > 0, "Must have positive collection pool")
+  require(maxPooledConnections > 0, "Must have finite connection pool size")
 
-  final override implicit protected def ec: ExecutionContext = executor
+  final override implicit protected def ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
 
   private var closed = false
   private val cs = new mutable.Queue[(InetSocketAddress, BlazeClientStage)]()
