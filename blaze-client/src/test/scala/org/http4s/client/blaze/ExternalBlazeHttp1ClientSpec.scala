@@ -11,7 +11,7 @@ import org.specs2.time.NoTimeConversions
 class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After {
 
   "Blaze Simple Http1 Client" should {
-    def client = SimpleHttp1Client
+    def client = defaultClient
 
     "Make simple http requests" in {
       val resp = client(uri("https://github.com/")).as[String]
@@ -30,7 +30,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     }
   }
 
-  val client = new PooledHttp1Client()
+  val client = PooledHttp1Client()
 
   "RecyclingHttp1Client" should {
 

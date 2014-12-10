@@ -1,6 +1,7 @@
 package org.http4s.client.blaze
 
 import java.nio.channels.AsynchronousChannelGroup
+import java.util.concurrent.ExecutorService
 
 import org.http4s.Request
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
@@ -12,13 +13,13 @@ import scalaz.concurrent.Task
 
 
 /** A default implementation of the Blaze Asynchronous client for HTTP/1.x */
-class SimpleHttp1Client(protected val timeout: Duration,
+class SimpleHttp1Client protected (protected val timeout: Duration,
                                    bufferSize: Int,
-                                     executor: ExecutionContext,
+                                     executor: ExecutorService,
                                         group: Option[AsynchronousChannelGroup])
        extends BlazeClient with Http1Support with Http1SSLSupport
 {
-  final override implicit protected def ec: ExecutionContext = executor
+  final override implicit protected def ec: ExecutionContext = ExecutionContext.fromExecutor(executor)
 
     /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = Task.now(())
@@ -35,4 +36,10 @@ class SimpleHttp1Client(protected val timeout: Duration,
   }
 }
 
-object SimpleHttp1Client extends SimpleHttp1Client(DefaultTimeout, DefaultBufferSize, ClientDefaultEC, None)
+object SimpleHttp1Client {
+  def apply(timeout: Duration = DefaultTimeout,
+         bufferSize: Int = DefaultBufferSize,
+           executor: ExecutorService = ClientDefaultEC,
+              group: Option[AsynchronousChannelGroup] = None) =
+  new SimpleHttp1Client(timeout, bufferSize, executor, group)
+}
