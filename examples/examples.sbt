@@ -9,15 +9,13 @@ libraryDependencies ++= Seq(
   jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
 )
 
-mainClass in Revolver.reStart := Some("com.example.http4s.blaze.BlazeExample")
-
 fork := true
 
 // Adds NPN to the boot classpath for Spdy support
 javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
    for {
      file <- attList.map(_.data)
-     path = file.getAbsolutePath if path.contains("jetty.npn")
+     path = file.getAbsolutePath if path.contains("jetty.alpn")
    } yield "-Xbootclasspath/p:" + path
 }
 
