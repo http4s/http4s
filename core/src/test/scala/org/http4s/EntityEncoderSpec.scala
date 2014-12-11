@@ -24,22 +24,30 @@ object EntityEncoderSpec {
       .pipe(utf8Decode)
       .runLastOr("")
       .run
+
+  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): ByteVector =
+    Process.eval(W.toEntity(a))
+      .collect { case EntityEncoder.Entity(body, _ ) => body }
+      .flatMap(identity)
+      .fold1Monoid
+      .runLastOr(ByteVector.empty)
+      .run
 }
 
-class EntityEncoderSpec extends Specification with Http4s {
-  import EntityEncoderSpec.writeToString
+class EntityEncoderSpec extends Http4sSpec {
+  import EntityEncoderSpec._
 
   "EntityEncoder" should {
     "render strings" in {
       writeToString("pong") must_== "pong"
     }
 
-    "calculate the content length of strings" in {
-      implicitly[EntityEncoder[String]].toEntity("pong").run.length must_== Some(4)
+    "render single characters" in {
+      prop { char: Char => writeToString(char) must_== Character.toString(char) }
     }
 
-    "render integers" in {
-      writeToString(1) must_== "1"
+    "calculate the content length of strings" in {
+      implicitly[EntityEncoder[String]].toEntity("pong").run.length must_== Some(4)
     }
 
     "render html" in {
@@ -50,6 +58,10 @@ class EntityEncoderSpec extends Specification with Http4s {
     "render byte arrays" in {
       val hello = "hello"
       writeToString(hello.getBytes(StandardCharsets.UTF_8)) must_== hello
+    }
+
+    "render bytes" in {
+      prop { byte: Byte => writeToByteVector(byte) must_== ByteVector(byte) }
     }
 
     "render futures" in {
