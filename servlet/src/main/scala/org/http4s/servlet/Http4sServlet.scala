@@ -64,7 +64,7 @@ class Http4sServlet(service: HttpService,
     logger.info(s"Detected Servlet API version $servletApiVersion")
 
     inputStreamReader = if (servletApiVersion >= ServletApiVersion(3, 1))
-      asyncInputStreamReader(chunkSize)
+      syncInputStreamReader(chunkSize)
     else
       syncInputStreamReader(chunkSize)
   }
