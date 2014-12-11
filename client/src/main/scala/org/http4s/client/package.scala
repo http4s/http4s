@@ -27,5 +27,5 @@ package object client {
 
 
   implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] =
-    EntityDecoder.decodeBy(resp => decoder.decode(resp).map(t => (resp.headers,t)))(decoder.consumes.toSeq:_*)
+    EntityDecoder.decodeBy(decoder.consumes.toSeq:_*)(resp => decoder.decode(resp).map(t => (resp.headers,t)))
 }

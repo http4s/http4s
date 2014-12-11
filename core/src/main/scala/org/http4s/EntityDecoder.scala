@@ -73,7 +73,7 @@ object EntityDecoder extends EntityDecoderInstances {
   /** summon an implicit [[EntityEncoder]] */
   def apply[T](implicit ev: EntityDecoder[T]): EntityDecoder[T] = ev
 
-  def decodeBy[T](f: Message => DecodeResult[T])(valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
+  def decodeBy[T](valid: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
       try f(msg)
       catch {
@@ -121,12 +121,13 @@ trait EntityDecoderInstances {
   }
 
   implicit val binary: EntityDecoder[ByteVector] = {
-    EntityDecoder.decodeBy(collectBinary)(MediaRange.`*/*`)
+    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary)
   }
 
   implicit val text: EntityDecoder[String] =
-    EntityDecoder.decodeBy(msg => collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset)))(
-      MediaRange.`text/*`)
+    EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
+      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset))
+    )
 
 
   // application/x-www-form-urlencoded
@@ -135,7 +136,7 @@ trait EntityDecoderInstances {
       Task.now(formDecode(s))
     }
 
-    EntityDecoder.decodeBy(fn.andThen(DecodeResult.apply))(MediaType.`application/x-www-form-urlencoded`)
+    EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`)(fn.andThen(DecodeResult.apply))
   }
 
   /**
@@ -146,34 +147,35 @@ trait EntityDecoderInstances {
    * @param parser the SAX parser to use to parse the XML
    * @return an XML element
    */
-  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder.decodeBy{ msg =>
-    collectBinary(msg).flatMap[Elem] { arr =>
-      val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
-      try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
-      catch {
-        case e: SAXParseException =>
-          val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
-          DecodeResult.failure(Task.now(ParseFailure("Invalid XML", msg)))
+  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] =
+    EntityDecoder.decodeBy (MediaType.`text/xml`){ msg =>
+      collectBinary(msg).flatMap[Elem] { arr =>
+        val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
+        try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
+        catch {
+          case e: SAXParseException =>
+            val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
+            DecodeResult.failure(Task.now(ParseFailure("Invalid XML", msg)))
 
-        case NonFatal(e) => DecodeResult(Task.fail(e))
+          case NonFatal(e) => DecodeResult(Task.fail(e))
+        }
       }
     }
-  }(MediaType.`text/xml`)
 
   def xml: EntityDecoder[Elem] = xml()
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] =
-    EntityDecoder.decodeBy{ msg =>
+    EntityDecoder.decodeBy(MediaRange.`*/*`){ msg =>
       val p = io.chunkW(new java.io.FileOutputStream(file))
       DecodeResult.success(msg.body.to(p).run).map(_ => file)
-    }(MediaRange.`*/*`)
+    }
 
   def textFile(file: java.io.File): EntityDecoder[File] =
-    EntityDecoder.decodeBy{ msg =>
+    EntityDecoder.decodeBy(MediaRange.`text/*`){ msg =>
       val p = io.chunkW(new java.io.PrintStream(new FileOutputStream(file)))
       DecodeResult.success(msg.body.to(p).run).map(_ => file)
-    }(MediaRange.`text/*`)
+    }
 }
 
 object DecodeResult {

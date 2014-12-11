@@ -12,7 +12,7 @@ trait JsonDecodeSupport[J] {
   def decodeJson(body: EntityBody): DecodeResult[J]
 
   implicit def json: EntityDecoder[J] =
-    EntityDecoder.decodeBy(msg => decodeJson(msg.body))(MediaType.`application/json`)
+    EntityDecoder.decodeBy(MediaType.`application/json`)(msg => decodeJson(msg.body))
 }
 
 trait JsonEncodeSupport[J] {
