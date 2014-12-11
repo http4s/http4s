@@ -1,4 +1,5 @@
 # v0.5.0 (2014-12-11)
+* Client syntax has evloved and now will include Accept headers when used with EntityDecoder
 * Parse JSON with jawn-streamz.
 * EntityDecoder now returns an EitherT to make decoding failure explicit.
 * Renamed Writable to EntityEncoder
