@@ -58,6 +58,6 @@ trait BlazeClient extends PipelineBuilder with Client {
       case Failure(t) => cb (-\/(t))
     }
 
-    getClient(req, fresh = false).onComplete(tryClient(_, 3))
+    getClient(req, fresh = false).onComplete(tryClient(_, 1))
   }
 }
