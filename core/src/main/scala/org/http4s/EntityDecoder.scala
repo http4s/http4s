@@ -62,19 +62,15 @@ sealed trait EntityDecoder[T] { self =>
   /** true if the [[Message]]s Content-Type header contains a [[MediaRange]]
     * this [[EntityDecoder]] knows hot to decode */
   def matchesMediaType(msg: Message): Boolean = {
-    if (consumes.nonEmpty) {
       msg.headers.get(Header.`Content-Type`) match {
         case Some(h) => matchesMediaType(h.mediaType)
-        case None    => false
+        case None => false
       }
-    }
-    else false
   }
 
   /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaRange]] */
-  def matchesMediaType(mediaType: MediaType): Boolean = consumes.nonEmpty && {
+  def matchesMediaType(mediaType: MediaType): Boolean =
     consumes.exists(_.satisfiedBy(mediaType))
-  }
 
   // shamelessly stolen from IList
   def widen[B](implicit ev: T <~< B): EntityDecoder[B] =
@@ -93,11 +89,8 @@ object EntityDecoder extends EntityDecoderInstances {
   /** Create a new [[EntityDecoder]]
     *
     * The new [[EntityEncoder]] will attempt to decoder messages of type `T`
-    * @param valid [[MediaRange]]s that are acceptable to decode
-    * @param f function used to perform decoding
-    * @tparam T type which can be decoded
     */
-  def decodeBy[T](valid: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
+  def decodeBy[T](r1: MediaRange, rs: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
       try f(msg)
       catch {
@@ -105,7 +98,7 @@ object EntityDecoder extends EntityDecoderInstances {
       }
     }
 
-    override val consumes: Set[MediaRange] = valid.toSet
+    override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }
 
   private class OrDec[T](a: EntityDecoder[T], b: EntityDecoder[T]) extends EntityDecoder[T] {
