@@ -115,7 +115,7 @@ class Http4sServlet(service: HttpService,
   }
 
   private def renderResponse(response: Task[Response], servletResponse: HttpServletResponse): Task[Unit] =
-    response.map { r =>
+    response.flatMap { r =>
       servletResponse.setStatus(r.status.code, r.status.reason)
       for (header <- r.headers)
         servletResponse.addHeader(header.name.toString, header.value)
@@ -124,7 +124,7 @@ class Http4sServlet(service: HttpService,
       r.body.map { chunk =>
         out.write(chunk.toArray)
         if (isChunked) servletResponse.flushBuffer()
-      }
+      }.run
     }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request] =
