@@ -6,5 +6,4 @@ libraryDependencies ++= Seq(
   jawnStreamz
 )
 
-// TODO: uncomment after 0.5
-// mimaSettings
+mimaSettings
