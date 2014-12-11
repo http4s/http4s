@@ -24,6 +24,7 @@ trait EntityEncoder[A] { self =>
   def toEntity(a: A): Task[EntityEncoder.Entity]
 
   /** Headers that may be added to a [[Message]]
+    *
     * Examples of such headers would be Content-Type.
     * __NOTE:__ The Content-Length header will be generated from the resulting Entity and thus should not be added.
     */
@@ -76,6 +77,7 @@ object EntityEncoder extends EntityEncoderInstances {
   }
 
   /** Create a new [[EntityEncoder]]
+    *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
   def simple[A](hs: Header*)(toChunk: A => ByteVector): EntityEncoder[A] = encodeBy(hs:_*){ a =>

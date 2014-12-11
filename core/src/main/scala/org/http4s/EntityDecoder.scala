@@ -26,25 +26,41 @@ import util.ByteVectorInstances.byteVectorMonoidInstance
   */
 sealed trait EntityDecoder[T] { self =>
 
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, a BadRequest [[Response]] is generated.
+    */
   final def apply(request: Request)(f: T => Task[Response]): Task[Response] =
     decode(request).fold(
       e => ResponseBuilder(Status.BadRequest, request.httpVersion, e.sanitized),
       f
     ).join
 
+  /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message): DecodeResult[T]
 
+  /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
 
+  /** Make a new [[EntityDecoder]] by mapping the output result */
   def map[T2](f: T => T2): EntityDecoder[T2] = new EntityDecoder[T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
     override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
   }
 
+  /** Combine two [[EntityDecoder]]'s
+    *
+    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
+    * and if not, defer to the second [[EntityDecoder]]
+    * @param other backup [[EntityDecoder]]
+    */
   def orElse[T2](other: EntityDecoder[T2])(implicit ev: T <~< T2): EntityDecoder[T2] =
     new EntityDecoder.OrDec(widen[T2], other)
 
+  /** true if the [[Message]]s Content-Type header contains a [[MediaRange]]
+    * this [[EntityDecoder]] knows hot to decode */
   def matchesMediaType(msg: Message): Boolean = {
     if (consumes.nonEmpty) {
       msg.headers.get(Header.`Content-Type`) match {
@@ -55,6 +71,7 @@ sealed trait EntityDecoder[T] { self =>
     else false
   }
 
+  /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaRange]] */
   def matchesMediaType(mediaType: MediaType): Boolean = consumes.nonEmpty && {
     consumes.exists(_.satisfiedBy(mediaType))
   }
@@ -73,6 +90,13 @@ object EntityDecoder extends EntityDecoderInstances {
   /** summon an implicit [[EntityEncoder]] */
   def apply[T](implicit ev: EntityDecoder[T]): EntityDecoder[T] = ev
 
+  /** Create a new [[EntityDecoder]]
+    *
+    * The new [[EntityEncoder]] will attempt to decoder messages of type `T`
+    * @param valid [[MediaRange]]s that are acceptable to decode
+    * @param f function used to perform decoding
+    * @tparam T type which can be decoded
+    */
   def decodeBy[T](valid: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
       try f(msg)
