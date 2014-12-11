@@ -1,5 +1,14 @@
-# v0.5.0 (???)
+# v0.5.0 (2014-12-11)
+* Parse JSON with jawn-streamz.
+* EntityDecoder now returns an EitherT to make decoding failure explicit.
 * Renamed Writable to EntityEncoder
+* New query param typeclasses for encoding and decoding query strings.
+* Status equality now discards the reason phrase.
+* Match AttributeKeys as singletons.
+* Added async timeout listener to servlet backends.
+* Start blaze server asynchronously.
+* Support specifying timeout and executor in blaze-client.
+* Use NIO for encoding files.
 
 # v0.4.2 (2014-12-01)
 * Fix whitespace parsing in Authorization header [#87](https://github.com/http4s/http4s/issues/87)
