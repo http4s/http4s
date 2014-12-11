@@ -111,12 +111,12 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit def charArrayEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Array[Char]] =
     charSequenceEncoder.contramap(new String(_))
 
-  implicit def byteVectorEncoder: EntityEncoder[ByteVector] =
+  implicit val byteVectorEncoder: EntityEncoder[ByteVector] =
     simple[ByteVector](identity, `Content-Type`(MediaType.`application/octet-stream`))
 
-  implicit def byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
+  implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
 
-  implicit def byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
+  implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
 
   // TODO split off to module to drop scala-xml core dependency
   // TODO infer HTML, XHTML, etc.
@@ -132,12 +132,12 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def fileEncoder: EntityEncoder[File] =
+  implicit val fileEncoder: EntityEncoder[File] =
     chunkedEncoder { f: File => file.chunkR(f.getAbsolutePath) }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
-  implicit def filePathEncoder: EntityEncoder[Path] = fileEncoder.contramap(_.toFile)
+  implicit val filePathEncoder: EntityEncoder[Path] = fileEncoder.contramap(_.toFile)
 
   // TODO parameterize chunk size
   implicit def inputStreamEncoder[A <: InputStream]: EntityEncoder[A] =
