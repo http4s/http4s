@@ -20,13 +20,6 @@ trait ArgonautSupport extends JsonSupport[Json] with JawnDecodeSupport[Json] {
     val str = Argonaut.nospace.pretty(json)
     emit(str).pipe(utf8Encode)
   }
-
-  override def decodeJson(body: EntityBody): DecodeResult[Json] = {
-    EitherT(body.runJson.attempt).leftMap {
-      // TODO: What happens when JSON parsing fails on the Argo?
-      case NonFatal(t) => throw t
-    }
-  }
 }
 
 object ArgonautSupport extends ArgonautSupport

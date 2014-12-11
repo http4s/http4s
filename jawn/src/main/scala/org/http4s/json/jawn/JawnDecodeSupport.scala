@@ -13,7 +13,7 @@ trait JawnDecodeSupport[J] extends JsonDecodeSupport[J] {
 
   override def decodeJson(body: EntityBody): DecodeResult[J] = DecodeResult {
     body.parseJson(AsyncParser.SingleValue).partialAttempt {
-      case pe: ParseException => emit(ParseFailure("Invalid JSON entity", pe.getMessage))
+      case pe: ParseException => emit(ParseFailure("Invalid JSON", pe.getMessage))
     }.runLastOr(\/-(jawnFacade.jnull()))
   }
 }
