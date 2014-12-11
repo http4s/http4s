@@ -26,38 +26,51 @@ import util.ByteVectorInstances.byteVectorMonoidInstance
   */
 sealed trait EntityDecoder[T] { self =>
 
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, a BadRequest [[Response]] is generated.
+    */
   final def apply(request: Request)(f: T => Task[Response]): Task[Response] =
     decode(request).fold(
       e => ResponseBuilder(Status.BadRequest, request.httpVersion, e.sanitized),
       f
     ).join
 
+  /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message): DecodeResult[T]
 
+  /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
 
+  /** Make a new [[EntityDecoder]] by mapping the output result */
   def map[T2](f: T => T2): EntityDecoder[T2] = new EntityDecoder[T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
     override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
   }
 
+  /** Combine two [[EntityDecoder]]'s
+    *
+    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
+    * and if not, defer to the second [[EntityDecoder]]
+    * @param other backup [[EntityDecoder]]
+    */
   def orElse[T2](other: EntityDecoder[T2])(implicit ev: T <~< T2): EntityDecoder[T2] =
     new EntityDecoder.OrDec(widen[T2], other)
 
+  /** true if the [[Message]]s Content-Type header contains a [[MediaType]]
+    * this [[EntityDecoder]] knows how to decode */
   def matchesMediaType(msg: Message): Boolean = {
-    if (consumes.nonEmpty) {
       msg.headers.get(Header.`Content-Type`) match {
         case Some(h) => matchesMediaType(h.mediaType)
-        case None    => false
+        case None => false
       }
-    }
-    else false
   }
 
-  def matchesMediaType(mediaType: MediaType): Boolean = consumes.nonEmpty && {
+  /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaType]] */
+  def matchesMediaType(mediaType: MediaType): Boolean =
     consumes.exists(_.satisfiedBy(mediaType))
-  }
 
   // shamelessly stolen from IList
   def widen[B](implicit ev: T <~< B): EntityDecoder[B] =
@@ -73,7 +86,11 @@ object EntityDecoder extends EntityDecoderInstances {
   /** summon an implicit [[EntityEncoder]] */
   def apply[T](implicit ev: EntityDecoder[T]): EntityDecoder[T] = ev
 
-  def decodeBy[T](f: Message => DecodeResult[T])(valid: MediaRange*): EntityDecoder[T] = new EntityDecoder[T] {
+  /** Create a new [[EntityDecoder]]
+    *
+    * The new [[EntityEncoder]] will attempt to decoder messages of type `T`
+    */
+  def decodeBy[T](r1: MediaRange, rs: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
       try f(msg)
       catch {
@@ -81,7 +98,7 @@ object EntityDecoder extends EntityDecoderInstances {
       }
     }
 
-    override val consumes: Set[MediaRange] = valid.toSet
+    override val consumes: Set[MediaRange] = (r1 +: rs).toSet
   }
 
   private class OrDec[T](a: EntityDecoder[T], b: EntityDecoder[T]) extends EntityDecoder[T] {
@@ -121,12 +138,13 @@ trait EntityDecoderInstances {
   }
 
   implicit val binary: EntityDecoder[ByteVector] = {
-    EntityDecoder.decodeBy(collectBinary)(MediaRange.`*/*`)
+    EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary)
   }
 
   implicit val text: EntityDecoder[String] =
-    EntityDecoder.decodeBy(msg => collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset)))(
-      MediaRange.`text/*`)
+    EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
+      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset))
+    )
 
 
   // application/x-www-form-urlencoded
@@ -135,7 +153,7 @@ trait EntityDecoderInstances {
       Task.now(formDecode(s))
     }
 
-    EntityDecoder.decodeBy(fn.andThen(DecodeResult.apply))(MediaType.`application/x-www-form-urlencoded`)
+    EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`)(fn.andThen(DecodeResult.apply))
   }
 
   /**
@@ -146,34 +164,35 @@ trait EntityDecoderInstances {
    * @param parser the SAX parser to use to parse the XML
    * @return an XML element
    */
-  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] = EntityDecoder.decodeBy{ msg =>
-    collectBinary(msg).flatMap[Elem] { arr =>
-      val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
-      try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
-      catch {
-        case e: SAXParseException =>
-          val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
-          DecodeResult.failure(Task.now(ParseFailure("Invalid XML", msg)))
+  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] =
+    EntityDecoder.decodeBy (MediaType.`text/xml`){ msg =>
+      collectBinary(msg).flatMap[Elem] { arr =>
+        val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
+        try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
+        catch {
+          case e: SAXParseException =>
+            val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
+            DecodeResult.failure(Task.now(ParseFailure("Invalid XML", msg)))
 
-        case NonFatal(e) => DecodeResult(Task.fail(e))
+          case NonFatal(e) => DecodeResult(Task.fail(e))
+        }
       }
     }
-  }(MediaType.`text/xml`)
 
   def xml: EntityDecoder[Elem] = xml()
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] =
-    EntityDecoder.decodeBy{ msg =>
+    EntityDecoder.decodeBy(MediaRange.`*/*`){ msg =>
       val p = io.chunkW(new java.io.FileOutputStream(file))
       DecodeResult.success(msg.body.to(p).run).map(_ => file)
-    }(MediaRange.`*/*`)
+    }
 
   def textFile(file: java.io.File): EntityDecoder[File] =
-    EntityDecoder.decodeBy{ msg =>
+    EntityDecoder.decodeBy(MediaRange.`text/*`){ msg =>
       val p = io.chunkW(new java.io.PrintStream(new FileOutputStream(file)))
       DecodeResult.success(msg.body.to(p).run).map(_ => file)
-    }(MediaRange.`text/*`)
+    }
 }
 
 object DecodeResult {

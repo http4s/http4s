@@ -26,6 +26,9 @@ package object client {
   implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator
 
 
-  implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] =
-    EntityDecoder.decodeBy(resp => decoder.decode(resp).map(t => (resp.headers,t)))(decoder.consumes.toSeq:_*)
+  implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] = {
+    val s = decoder.consumes.toList
+    EntityDecoder.decodeBy(s.head, s.tail:_*)(resp => decoder.decode(resp).map(t => (resp.headers,t)))
+  }
+
 }

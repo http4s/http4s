@@ -18,18 +18,35 @@ import scalaz.stream.Process.emit
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
-case class EntityEncoder[A](
-  toEntity: A => Task[EntityEncoder.Entity],
-  headers: Headers
-) {
-  def contramap[B](f: B => A): EntityEncoder[B] = copy(toEntity = f andThen toEntity)
+trait EntityEncoder[A] { self =>
 
+  /** Convert the type `A` to an [[Entity]] in the `Task` monad */
+  def toEntity(a: A): Task[EntityEncoder.Entity]
+
+  /** Headers that may be added to a [[Message]]
+    *
+    * Examples of such headers would be Content-Type.
+    * __NOTE:__ The Content-Length header will be generated from the resulting Entity and thus should not be added.
+    */
+  def headers: Headers
+
+  /** Make a new [[EntityEncoder]] using this type as a foundation */
+  def contramap[B](f: B => A): EntityEncoder[B] = new EntityEncoder[B] {
+    override def toEntity(a: B): Task[Entity] = self.toEntity(f(a))
+    override def headers: Headers = self.headers
+  }
+
+  /** Get the [[MediaType]] of the body encoded by this [[EntityEncoder]], if defined the headers */
   def contentType: Option[MediaType] = headers.get(`Content-Type`).map(_.mediaType)
 
+  /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
   def charset: Option[Charset] = headers.get(`Content-Type`).map(_.charset)
 
-  def withContentType(contentType: `Content-Type`): EntityEncoder[A] =
-    copy(headers = headers.put(contentType))
+  /** Generate a new EntityEncoder that will contain the [[`Content-Type`]] header */
+  def withContentType(tpe: `Content-Type`): EntityEncoder[A] = new EntityEncoder[A] {
+      override def toEntity(a: A): Task[Entity] = self.toEntity(a)
+      override val headers: Headers = self.headers.put(tpe)
+    }
 }
 
 object EntityEncoder extends EntityEncoderInstances {
@@ -47,19 +64,34 @@ object EntityEncoder extends EntityEncoderInstances {
     lazy val empty = Entity(EmptyBody, Some(0))
   }
 
-  def simple[A](toChunk: A => ByteVector, headers: Headers = Headers.empty): EntityEncoder[A] = EntityEncoder(
-    toChunk andThen { chunk => Task.now(Entity(emit(chunk), Some(chunk.size))) },
-    headers
-  )
+  /** Create a new [[EntityEncoder]] */
+  def encodeBy[A](hs: Headers)(f: A => Task[Entity]): EntityEncoder[A] = new EntityEncoder[A] {
+    override def toEntity(a: A): Task[Entity] = f(a)
+    override def headers: Headers = hs
+  }
+
+  /** Create a new [[EntityEncoder]] */
+  def encodeBy[A](hs: Header*)(f: A => Task[Entity]): EntityEncoder[A] = {
+    val hdrs = if(hs.nonEmpty) Headers(hs.toList) else Headers.empty
+    encodeBy(hdrs)(f)
+  }
+
+  /** Create a new [[EntityEncoder]]
+    *
+    * This constructor is a helper for types that can be serialized synchronously, for example a String.
+    */
+  def simple[A](hs: Header*)(toChunk: A => ByteVector): EntityEncoder[A] = encodeBy(hs:_*){ a =>
+    val c = toChunk(a)
+    Task.now(Entity(emit(c), Some(c.length)))
+  }
 }
 
 trait EntityEncoderInstances0 {
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-  def showEncoder[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): EntityEncoder[A] =
-    simple(
-      a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)),
-      Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
-    )
+   def showEncoder[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): EntityEncoder[A] = {
+    val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
+    simple[A](hdr)(a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)))
+  }
 
   implicit def naturalTransformationEncoder[F[_], A](implicit N: ~>[F, Task], W: EntityEncoder[A]): EntityEncoder[F[A]] =
     taskEncoder[A](W).contramap { f: F[A] => N(f) }
@@ -70,19 +102,23 @@ trait EntityEncoderInstances0 {
    * use with chunked transfer encoding.
    */
   implicit def sourceEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Process[Task, A]] =
-    W.copy(toEntity = { process =>
-      Task.now(Entity(process.flatMap(a => Process.await(W.toEntity(a))(_.body)), None))
-    })
+    new EntityEncoder[Process[Task, A]] {
+      override def toEntity(a: Process[Task, A]): Task[Entity] = {
+        Task.now(Entity(a.flatMap(a => Process.await(W.toEntity(a))(_.body)), None))
+      }
+
+      override def headers: Headers = W.headers
+    }
 
   implicit def process0Encoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Process0[A]] =
     sourceEncoder[A].contramap(_.toSource)
 }
 
 trait EntityEncoderInstances extends EntityEncoderInstances0 {
-  implicit def stringEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[String] = simple(
-    s => ByteVector.view(s.getBytes(charset.nioCharset)),
-    Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
-  )
+  implicit def stringEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[String] = {
+    val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
+    simple(hdr)(s => ByteVector.view(s.getBytes(charset.nioCharset)))
+  }
 
   implicit def charSequenceEncoder[A <: CharSequence](implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[CharSequence] =
     stringEncoder.contramap(_.toString)
@@ -92,10 +128,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   implicit val charEncoder: EntityEncoder[Char] = charSequenceEncoder.contramap(Character.toString)
 
-  implicit val byteVectorEncoder: EntityEncoder[ByteVector] = simple(
-    identity,
-    Headers(`Content-Type`(MediaType.`application/octet-stream`))
-  )
+  implicit val byteVectorEncoder: EntityEncoder[ByteVector] =
+    simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)
 
   implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
 
@@ -105,13 +139,15 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   // TODO split off to module to drop scala-xml core dependency
   // TODO infer HTML, XHTML, etc.
-  implicit def htmlEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[xml.Elem] = simple(
-    xml => ByteVector.view(xml.buildString(false).getBytes(charset.nioCharset)),
-    Headers(`Content-Type`(MediaType.`text/html`).withCharset(charset))
-  )
+  implicit def htmlEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[xml.Elem] = {
+    val hdr = `Content-Type`(MediaType.`text/html`).withCharset(charset)
+    simple(hdr)(xml => ByteVector.view(xml.buildString(false).getBytes(charset.nioCharset)))
+  }
 
-  implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] =
-    W.copy(toEntity = _.flatMap(W.toEntity))
+  implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] = new EntityEncoder[Task[A]] {
+    override def toEntity(a: Task[A]): Task[Entity] = a.flatMap(W.toEntity)
+    override def headers: Headers = W.headers
+  }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename

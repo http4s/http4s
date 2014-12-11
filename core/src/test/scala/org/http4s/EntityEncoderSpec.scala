@@ -113,8 +113,8 @@ class EntityEncoderSpec extends Http4sSpec {
       case class ModelA(name: String, color: Int)
       case class ModelB(name: String, id: Long)
 
-      implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA](_ => ByteVector.view("A".getBytes))
-      implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB](_ => ByteVector.view("B".getBytes))
+      implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA]()(_ => ByteVector.view("A".getBytes))
+      implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB]()(_ => ByteVector.view("B".getBytes))
 
       implicitly[EntityEncoder[ModelA]] must_== w1
       implicitly[EntityEncoder[ModelB]] must_== w2
