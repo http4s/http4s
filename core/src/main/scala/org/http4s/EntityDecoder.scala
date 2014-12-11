@@ -59,8 +59,8 @@ sealed trait EntityDecoder[T] { self =>
   def orElse[T2](other: EntityDecoder[T2])(implicit ev: T <~< T2): EntityDecoder[T2] =
     new EntityDecoder.OrDec(widen[T2], other)
 
-  /** true if the [[Message]]s Content-Type header contains a [[MediaRange]]
-    * this [[EntityDecoder]] knows hot to decode */
+  /** true if the [[Message]]s Content-Type header contains a [[MediaType]]
+    * this [[EntityDecoder]] knows how to decode */
   def matchesMediaType(msg: Message): Boolean = {
       msg.headers.get(Header.`Content-Type`) match {
         case Some(h) => matchesMediaType(h.mediaType)
@@ -68,7 +68,7 @@ sealed trait EntityDecoder[T] { self =>
       }
   }
 
-  /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaRange]] */
+  /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaType]] */
   def matchesMediaType(mediaType: MediaType): Boolean =
     consumes.exists(_.satisfiedBy(mediaType))
 
