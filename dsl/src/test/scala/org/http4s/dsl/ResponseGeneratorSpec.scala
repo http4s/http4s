@@ -21,15 +21,17 @@ class ResponseGeneratorSpec extends Specification {
   }
 
   "Not duplicate headers when not provided" in {
-    val w = EntityEncoder.encodeBy[String](EntityEncoder.stringEncoder.toEntity(_),
-      EntityEncoder.stringEncoder.headers.put(Header.Accept(MediaRange.`audio/*`)))
+    val w = EntityEncoder.encodeBy[String](EntityEncoder.stringEncoder.headers.put(Header.Accept(MediaRange.`audio/*`)))(
+                            EntityEncoder.stringEncoder.toEntity(_))
 
     Ok("foo")(w).run.headers.get(Header.Accept).get.values.list must_== List(MediaRange.`audio/*`)
   }
 
   "Explicitly added headers have priority" in {
-    val w = EntityEncoder.encodeBy[String](EntityEncoder.stringEncoder.toEntity(_),
-      EntityEncoder.stringEncoder.headers.put(`Content-Type`(MediaType.`text/html`)))
+    val w = EntityEncoder.encodeBy[String](EntityEncoder.stringEncoder.headers.put(`Content-Type`(MediaType.`text/html`)))(
+      EntityEncoder.stringEncoder.toEntity(_)
+    )
+
     Ok("foo", Headers(`Content-Type`(MediaType.`application/json`)))(w)
       .run.headers.get(`Content-Type`).get must_== `Content-Type`(MediaType.`application/json`)
   }
