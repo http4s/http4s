@@ -54,7 +54,8 @@ object EntityEncoder extends EntityEncoderInstances {
 }
 
 trait EntityEncoderInstances0 {
-  implicit def showEncoder[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): EntityEncoder[A] =
+  /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
+  def showEncoder[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): EntityEncoder[A] =
     simple(
       a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)),
       Headers(`Content-Type`(MediaType.`text/plain`).withCharset(charset))
@@ -89,6 +90,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit def charArrayEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Array[Char]] =
     charSequenceEncoder.contramap(new String(_))
 
+  implicit val charEncoder: EntityEncoder[Char] = charSequenceEncoder.contramap(Character.toString)
+
   implicit val byteVectorEncoder: EntityEncoder[ByteVector] = simple(
     identity,
     Headers(`Content-Type`(MediaType.`application/octet-stream`))
@@ -97,6 +100,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
 
   implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
+
+  implicit val byteEncoder: EntityEncoder[Byte] = byteVectorEncoder.contramap(ByteVector.apply(_))
 
   // TODO split off to module to drop scala-xml core dependency
   // TODO infer HTML, XHTML, etc.

@@ -103,7 +103,7 @@ object ExampleService {
         data.get("sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(' ').filter(_.length > 0).map(_.trim.toInt).sum
-            Ok(sum)
+            Ok(sum.toString)
 
           case None => BadRequest(s"Invalid data: " + data)
         }
@@ -156,7 +156,7 @@ object ExampleService {
         data.get("short-sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(" ").filter(_.length > 0).map(_.trim.toInt).sum
-            Ok(sum)
+            Ok(sum.toString)
 
           case None => BadRequest(s"Invalid data: " + data)
         }
