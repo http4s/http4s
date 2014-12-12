@@ -26,6 +26,13 @@ object QueryParam {
   }
 }
 
+trait QueryParamKeyLike[T] {
+  def getKey(t: T): QueryParameterKey
+}
+
+object QueryParamKeyLike {
+  def apply[T](implicit ev: QueryParamKeyLike[T]): QueryParamKeyLike[T] = ev
+}
 
 /**
  * Type class defining how to encode a `T` as a [[QueryParameterValue]]
