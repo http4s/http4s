@@ -4,7 +4,7 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.http4s.{Header, Response}
+import org.http4s.{DateTime, Status, Header, Response}
 import org.http4s.Status._
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
@@ -29,6 +29,14 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
     new String(a)
   }
 
+  def parseAndDropDate(buff: ByteBuffer): (Status, Set[Header], String) =
+    dropDate(ResponseParser.apply(buff))
+
+  def dropDate(resp: (Status, Set[Header], String)): (Status, Set[Header], String) = {
+    val hds = resp._2.filter(_.name != Header.Date.name)
+    (resp._1, hds, resp._3)
+  }
+
   def runRequest(req: Seq[String], service: HttpService): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
     val httpStage = new Http1ServerStage(service, None) {
@@ -43,7 +51,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
     ServerTestRoutes.testRequestResults.zipWithIndex.foreach { case ((req, (status,headers,resp)), i) =>
       s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
         val result = runRequest(Seq(req), ServerTestRoutes())
-        result.map(ResponseParser.apply(_)) must be_== ((status, headers, resp)).await(0, FiniteDuration(5, "seconds"))
+        result.map(parseAndDropDate) must be_== ((status, headers, resp)).await(0, FiniteDuration(5, "seconds"))
       }
     }
   }
@@ -55,7 +63,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
     }
 
     def runError(path: String) = runRequest(List(path), exceptionService)
-        .map(ResponseParser.apply(_))
+        .map(parseAndDropDate)
         .map{ case (s, h, r) =>
         val close = h.find{ h => h.toRaw.name == "connection".ci && h.toRaw.value == "close"}.isDefined
         (s, close, r)
@@ -96,6 +104,37 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       head.result
     }
 
+    "Add a date header" in {
+      val service = HttpService {
+        case req => Task.now(Response(body = req.body))
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+
+      val buff = Await.result(httpStage(service, 1, Seq(req1)), 5.seconds)
+
+      // Both responses must succeed
+      val (_, hdrs, _) = ResponseParser.apply(buff)
+      hdrs.find(_.name == Header.Date.name) must beSome[Header]
+    }
+
+    "Honor an explicitly added date header" in {
+      val dateHeader = Header.Date(DateTime(4))
+      val service = HttpService {
+        case req => Task.now(Response(body = req.body).withHeaders(dateHeader))
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+
+      val buff = Await.result(httpStage(service, 1, Seq(req1)), 5.seconds)
+
+      // Both responses must succeed
+      val (_, hdrs, _) = ResponseParser.apply(buff)
+      hdrs.find(_.name == Header.Date.name) must_== Some(dateHeader)
+    }
+
     "Handle routes that consumes the full request body for non-chunked" in {
       val service = HttpService {
         case req => Task.now(Response(body = req.body))
@@ -108,7 +147,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+      parseAndDropDate(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
     }
 
     "Handle routes that ignores the body for non-chunked" in {
@@ -123,7 +162,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+      parseAndDropDate(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
     }
 
     "Handle routes that ignores request body for non-chunked" in {
@@ -140,8 +179,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
     }
 
     "Handle routes that runs the request body for non-chunked" in {
@@ -160,8 +199,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
     }
 
     "Handle routes that kills the request body for non-chunked" in {
@@ -180,8 +219,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
     }
 
     // Think of this as drunk HTTP pipelineing
@@ -200,8 +239,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(req1 + req2)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(5)), "total"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(5)), "total"))
     }
 
     "Handle using the request body as the response body" in {
@@ -217,8 +256,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(req1, req2)), 5.seconds)
 
       // Both responses must succeed
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
-      ResponseParser.parseBuffer(buff) must_== ((Ok, Set(Header.`Content-Length`(5)), "total"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(5)), "total"))
     }
   }
 }

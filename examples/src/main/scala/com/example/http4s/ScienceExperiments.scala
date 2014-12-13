@@ -1,6 +1,6 @@
 package com.example.http4s
 
-import org.http4s.{TransferCoding, Header, Response, StaticFile}
+import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.HttpService
 import scodec.bits.ByteVector
@@ -20,6 +20,11 @@ object ScienceExperiments {
     ///////////////// Misc //////////////////////
     case req @ POST -> Root / "root-element-name" =>
       xml(req)(root => Ok(root.label))
+
+    case req @ GET -> Root / "date" =>
+      val date = DateTime(100)
+      Ok(date.toRfc1123DateTimeString)
+        .withHeaders(Header.Date(date))
 
     ///////////////// Massive Data Loads //////////////////////
     case GET -> Root / "bigstring" =>
