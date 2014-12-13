@@ -336,6 +336,10 @@ object UriTemplateSpec extends Specification {
       UriTemplate(query = Some(List(ParamElm("switch")))).toUriIfPossible.get must
         equalTo(Uri(path = "/", query = Some("switch")))
     }
+    "convert /?switch=foo&switch=bar to Uri" in {
+      UriTemplate(query = Some(List(ParamElm("switch", List("foo", "bar"))))).toUriIfPossible.get must
+        equalTo(Uri(path = "/", query = Some("switch=foo&switch=bar")))
+    }
     "convert /{?id} to UriTemplate" in {
       val tpl = UriTemplate(query = Some(List(ParamExp("id"))))
       tpl.toUriIfPossible.isFailure
