@@ -36,7 +36,6 @@ class Http1ServerStage(service: HttpService,
                   with TailStage[ByteBuffer]
                   with Http1Stage
 {
-
   protected val ec = ExecutionContext.fromExecutorService(pool)
 
   val name = "Http4sServerStage"
@@ -141,7 +140,7 @@ class Http1ServerStage(service: HttpService,
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << '\r' << '\n'
 
-    val respTransferCoding = encodeHeaders(resp.headers, rr)    // kind of tricky method returns Option[Transfer-Encoding]
+    val respTransferCoding = Http1Stage.encodeHeaders(resp.headers, rr, true) // kind of tricky method returns Option[Transfer-Encoding]
     val respConn = Connection.from(resp.headers)
 
     // Need to decide which encoder and if to close on finish
@@ -213,10 +212,10 @@ class Http1ServerStage(service: HttpService,
   }
 
   final override protected def submitRequestLine(methodString: String,
-                                           uri: String,
-                                           scheme: String,
-                                           majorversion: Int,
-                                           minorversion: Int) = {
+                                                          uri: String,
+                                                       scheme: String,
+                                                 majorversion: Int,
+                                                 minorversion: Int) = {
     logger.trace(s"Received request($methodString $uri $scheme/$majorversion.$minorversion)")
     this.uri = uri
     this.method = methodString

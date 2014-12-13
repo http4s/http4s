@@ -19,8 +19,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
 import scalaz.{-\/, \/, \/-}
 
-final class Http1ClientStage(timeout: Duration)
-                      (implicit protected val ec: ExecutionContext)
+final class Http1ClientStage(timeout: Duration)(implicit protected val ec: ExecutionContext)
                       extends Http1ClientReceiver with Http1Stage {
 
   import Http1ClientStage._
@@ -78,7 +77,7 @@ final class Http1ClientStage(timeout: Duration)
           try {
             val rr = new StringWriter(512)
             encodeRequestLine(req, rr)
-            encodeHeaders(req.headers, rr)
+            Http1Stage.encodeHeaders(req.headers, rr, false)
 
             val closeHeader = Header.Connection.from(req.headers)
               .map(checkCloseConnection(_, rr))
