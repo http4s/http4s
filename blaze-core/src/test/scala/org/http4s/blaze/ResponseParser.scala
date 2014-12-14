@@ -37,10 +37,12 @@ class ResponseParser extends Http1ClientParser {
       body += parseContent(buffer)
     }
 
-    val bp = new String(body.map(ByteVector(_)).foldLeft(ByteVector.empty)((c1,c2) => c1 ++ c2).toArray,
-                                StandardCharsets.US_ASCII)
+    val bp = {
+      val bytes = body.foldLeft(ByteVector.empty)((c1, c2) => c1 ++ ByteVector(c2)).toArray
+      new String(bytes, StandardCharsets.ISO_8859_1)
+    }
 
-    val headers = this.headers.result.map{case (k,v) => Header(k,v): Header}.toSet
+    val headers = this.headers.result.map{ case (k,v) => Header(k,v): Header }.toSet
 
     val status = Status.fromIntAndReason(this.code, reason).valueOr(e => throw new ParseException(e))
 

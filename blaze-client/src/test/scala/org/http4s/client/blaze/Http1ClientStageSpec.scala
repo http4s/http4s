@@ -26,7 +26,7 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
   def mkBuffer(s: String): ByteBuffer =
-    ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))
+    ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
   def getSubmission(req: Request, resp: String, timeout: Duration): (String, String) = {
     val tail = new Http1ClientStage(timeout)
@@ -43,7 +43,7 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
     h.stageShutdown()
     val buff = Await.result(h.result, timeout + 10.seconds)
-    val request = new String(ByteVector(buff).toArray, StandardCharsets.US_ASCII)
+    val request = new String(ByteVector(buff).toArray, StandardCharsets.ISO_8859_1)
     (request, result)
   }
 

@@ -66,12 +66,12 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   /** Get the proper body encoder based on the message headers,
     * adding the appropriate Connection and Transfer-Encoding headers along the way */
   final protected def getEncoder(connectionHeader: Option[Header.Connection],
-                 bodyEncoding: Option[Header.`Transfer-Encoding`],
-                 lengthHeader: Option[Header.`Content-Length`],
-                 trailer: Task[Headers],
-                 rr: StringWriter,
-                 minor: Int,
-                 closeOnFinish: Boolean): ProcessWriter = lengthHeader match {
+                                     bodyEncoding: Option[Header.`Transfer-Encoding`],
+                                     lengthHeader: Option[Header.`Content-Length`],
+                                          trailer: Task[Headers],
+                                               rr: StringWriter,
+                                            minor: Int,
+                                    closeOnFinish: Boolean): ProcessWriter = lengthHeader match {
     case Some(h) if bodyEncoding.isEmpty =>
       logger.trace("Using static encoder")
 
@@ -79,7 +79,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
       else rr << '\r' << '\n'
 
-      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
       new StaticWriter(b, h.length, this)
 
     case _ =>  // No Length designated for body or Transfer-Encoding included
@@ -87,7 +87,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
         if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
           logger.trace("Using static encoder")
           rr << '\r' << '\n'
-          val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+          val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
           new StaticWriter(b, -1, this)
         }
         else {  // HTTP 1.0, but request was Keep-Alive.

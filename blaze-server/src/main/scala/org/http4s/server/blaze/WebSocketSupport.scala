@@ -43,7 +43,7 @@ trait WebSocketSupport extends Http1ServerStage {
             sb.append('\r').append('\n')
 
             // write the accept headers and reform the pipeline
-            channelWrite(ByteBuffer.wrap(sb.result().getBytes(US_ASCII))).onComplete {
+            channelWrite(ByteBuffer.wrap(sb.result().getBytes(ISO_8859_1))).onComplete {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
