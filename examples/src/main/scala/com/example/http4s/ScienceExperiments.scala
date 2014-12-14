@@ -26,6 +26,9 @@ object ScienceExperiments {
       Ok(date.toRfc1123DateTimeString)
         .withHeaders(Header.Date(date))
 
+    case req @ GET -> Root / "echo-headers" =>
+      Ok(req.headers.mkString("\n"))
+
     ///////////////// Massive Data Loads //////////////////////
     case GET -> Root / "bigstring" =>
       Ok((0 until 1000).map(i => s"This is string number $i").mkString("\n"))

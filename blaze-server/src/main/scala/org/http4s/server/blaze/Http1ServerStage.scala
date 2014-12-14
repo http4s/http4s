@@ -159,7 +159,7 @@ class Http1ServerStage(service: HttpService,
         if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
         else rr << '\r' << '\n'
 
-        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
         new BodylessWriter(b, this, closeOnFinish)(ec)
       }
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, minor, closeOnFinish)

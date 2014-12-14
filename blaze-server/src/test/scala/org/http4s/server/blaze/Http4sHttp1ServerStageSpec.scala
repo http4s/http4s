@@ -38,7 +38,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
   }
 
   def runRequest(req: Seq[String], service: HttpService): Future[ByteBuffer] = {
-    val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
+    val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
     val httpStage = new Http1ServerStage(service, None) {
       override def reset(): Unit = head.stageShutdown()     // shutdown the stage after a complete request
     }
@@ -87,7 +87,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
   "Http1ServerStage: routes" should {
 
     def httpStage(service: HttpService, requests: Int, input: Seq[String]): Future[ByteBuffer] = {
-      val head = new SeqTestHead(input.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.US_ASCII))))
+      val head = new SeqTestHead(input.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
       val httpStage = new Http1ServerStage(service, None) {
         @volatile var count = 0
 

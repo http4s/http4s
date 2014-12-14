@@ -37,11 +37,11 @@ class ProcessWriterSpec extends Specification {
     w.writeProcess(p).run
     head.stageShutdown()
     Await.ready(head.result, Duration.Inf)
-    new String(head.getBytes(), StandardCharsets.US_ASCII)
+    new String(head.getBytes(), StandardCharsets.ISO_8859_1)
   }
 
   val message = "Hello world!"
-  val messageBuffer = ByteVector(message.getBytes(StandardCharsets.US_ASCII))
+  val messageBuffer = ByteVector(message.getBytes(StandardCharsets.ISO_8859_1))
 
   def runNonChunkedTests(builder: TailStage[ByteBuffer] => ProcessWriter) = {
     import scalaz.stream.Process
@@ -89,11 +89,11 @@ class ProcessWriterSpec extends Specification {
         var counter = 2
         Task {
           counter -= 1
-          if (counter >= 0) ByteVector("foo".getBytes(StandardCharsets.US_ASCII))
+          if (counter >= 0) ByteVector("foo".getBytes(StandardCharsets.ISO_8859_1))
           else throw Cause.Terminated(Cause.End)
         }
       }
-      val p = Process.repeatEval(t) ++ emit(ByteVector("bar".getBytes(StandardCharsets.US_ASCII)))
+      val p = Process.repeatEval(t) ++ emit(ByteVector("bar".getBytes(StandardCharsets.ISO_8859_1)))
       writeProcess(p)(builder) must_== "Content-Length: 9\r\n\r\n" + "foofoobar"
     }
   }
