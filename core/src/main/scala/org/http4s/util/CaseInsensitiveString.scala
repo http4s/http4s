@@ -11,17 +11,17 @@ sealed class CaseInsensitiveString private (private val value: String) extends C
   override def hashCode(): Int = folded.##
 
   override def equals(obj: Any): Boolean = obj match {
-    case that: CaseInsensitiveString => folded == that.folded
+    case that: CaseInsensitiveString => value.equalsIgnoreCase(that.value)
     case _ => false
   }
 
   override def toString: String = value
 
-  def length(): Int = folded.length
+  def length(): Int = value.length
 
-  def charAt(index: Int): Char = folded.charAt(index)
+  def charAt(index: Int): Char = value.charAt(index)
 
-  def subSequence(start: Int, end: Int): CaseInsensitiveString = apply(folded.subSequence(start, end))
+  def subSequence(start: Int, end: Int): CaseInsensitiveString = apply(value.subSequence(start, end))
 }
 
 object CaseInsensitiveString extends CaseInsensitiveStringSyntax {
