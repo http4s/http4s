@@ -2,27 +2,34 @@ package org.http4s
 package server
 package jetty
 
+import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
+import org.http4s.servlet.{ServletContainer, Http4sServlet}
+
 import java.net.InetSocketAddress
 import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
-import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
-import org.http4s.servlet.{ServletContainer, Http4sServlet}
+
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
+
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
+import org.eclipse.jetty.server.{Server => JServer, _}
+import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 
 sealed class JettyBuilder private (
   socketAddress: InetSocketAddress,
   private val serviceExecutor: ExecutorService,
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
+  sslBits: Option[SSLBits],
   mounts: Vector[Mount]
 )
   extends ServerBuilder
   with ServletContainer
   with IdleTimeoutSupport
+  with SSLSupport
 {
   type Self = JettyBuilder
 
@@ -30,8 +37,14 @@ sealed class JettyBuilder private (
                    serviceExecutor: ExecutorService = serviceExecutor,
                    idleTimeout: Duration = idleTimeout,
                    asyncTimeout: Duration = asyncTimeout,
+                   sslBits: Option[SSLBits] = sslBits,
                    mounts: Vector[Mount] = mounts): JettyBuilder =
-    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, mounts)
+    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, sslBits, mounts)
+
+
+  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
+    copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+  }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
     copy(socketAddress = socketAddress)
@@ -63,14 +76,47 @@ sealed class JettyBuilder private (
   override def withAsyncTimeout(asyncTimeout: Duration): JettyBuilder =
     copy(asyncTimeout = asyncTimeout)
 
+  private def getConnector(jetty: JServer): ServerConnector = sslBits match {
+    case Some(sslBits) =>
+      // SSL Context Factory
+      val sslContextFactory = new SslContextFactory()
+      sslContextFactory.setKeyStorePath(sslBits.keyStore.path)
+      sslContextFactory.setKeyStorePassword(sslBits.keyStore.password)
+      sslContextFactory.setKeyManagerPassword(sslBits.keyManagerPassword)
+      sslContextFactory.setNeedClientAuth(sslBits.clientAuth)
+      sslContextFactory.setProtocol(sslBits.protocol)
+
+      sslBits.trustStore.foreach { trustManagerBits =>
+        sslContextFactory.setTrustStorePath(trustManagerBits.path)
+        sslContextFactory.setTrustStorePassword(trustManagerBits.password)
+      }
+
+      // SSL HTTP Configuration
+      val https_config = new HttpConfiguration()
+
+      https_config.setSecureScheme("https")
+      https_config.setSecurePort(socketAddress.getPort)
+      https_config.addCustomizer(new SecureRequestCustomizer())
+
+      new ServerConnector(jetty, new SslConnectionFactory(sslContextFactory,
+        org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(https_config))
+
+    case None => new ServerConnector(jetty)
+
+  }
+
+
   def start: Task[Server] = Task.delay {
     val jetty = new JServer()
 
     val context = new ServletContextHandler()
+
+
     context.setContextPath("/")
     jetty.setHandler(context)
 
-    val connector = new ServerConnector(jetty)
+    val connector = getConnector(jetty)
+
     connector.setHost(socketAddress.getHostString)
     connector.setPort(socketAddress.getPort)
     connector.setIdleTimeout(if (idleTimeout.isFinite()) idleTimeout.toMillis else -1)
@@ -102,6 +148,7 @@ object JettyBuilder extends JettyBuilder(
   serviceExecutor = ServerBuilder.DefaultServiceExecutor,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+  sslBits = None,
   mounts = Vector.empty
 )
 
