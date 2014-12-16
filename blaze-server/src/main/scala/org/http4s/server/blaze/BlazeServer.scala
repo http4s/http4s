@@ -4,6 +4,7 @@ package blaze
 
 import java.io.FileInputStream
 import java.security.KeyStore
+import java.security.Security
 import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext}
 import java.util.concurrent.ExecutorService
 import java.net.InetSocketAddress
@@ -144,7 +145,10 @@ class BlazeBuilder(
       tmf.getTrustManagers
     }
 
-    val kmf = KeyManagerFactory.getInstance("SunX509")
+    val kmf = KeyManagerFactory.getInstance(
+                  Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
+                    .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+
     kmf.init(ks, bits.keyManagerPassword.toCharArray)
 
     val context = SSLContext.getInstance(bits.protocol)

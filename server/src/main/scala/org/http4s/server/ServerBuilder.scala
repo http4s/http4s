@@ -66,7 +66,7 @@ object SSLSupport {
   case class StoreInfo(path: String, password: String)
   case class SSLBits(keyStore: StoreInfo,
            keyManagerPassword: String,
-                     protocol: String = "TLS",
+                     protocol: String,
                    trustStore: Option[StoreInfo],
                    clientAuth: Boolean)
 }
