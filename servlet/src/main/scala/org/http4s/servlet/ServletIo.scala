@@ -18,19 +18,20 @@ import scalaz.stream.io.chunkR
 trait ServletIo {
   def reader(request: HttpServletRequest): EntityBody
 
-  def writer(response: HttpServletResponse): (EntityBody, Boolean) => Task[Unit]
+  def writer(response: HttpServletResponse): BodyWriter
 }
 
 class BlockingServletIo(chunkSize: Int) extends ServletIo {
-  override def reader(request: HttpServletRequest): EntityBody =
-    chunkR(request.getInputStream).map(_(chunkSize)).eval
+  override def reader(servletRequest: HttpServletRequest): EntityBody =
+    chunkR(servletRequest.getInputStream).map(_(chunkSize)).eval
 
-  override def writer(response: HttpServletResponse) = { (body: EntityBody, autoFlush: Boolean) =>
-    val out = response.getOutputStream
-    body.map { chunk =>
+  override def writer(servletResponse: HttpServletResponse): BodyWriter = { response: Response =>
+    val out = servletResponse.getOutputStream
+    val flush = response.isChunked
+    response.body.map { chunk =>
       out.write(chunk.toArray)
-      if (autoFlush)
-        response.flushBuffer()
+      if (flush)
+        servletResponse.flushBuffer()
     }.run
   }
 }
@@ -120,7 +121,7 @@ class NonBlockingServletIo(chunkSize: Int, executor: ExecutorService) extends Se
     }
   }
 
-  override def writer(response: HttpServletResponse): (EntityBody, Boolean) => Task[Unit] = {
+  override def writer(response: HttpServletResponse): BodyWriter = {
     val out = response.getOutputStream
 
     sealed trait Protocol
@@ -183,15 +184,15 @@ class NonBlockingServletIo(chunkSize: Int, executor: ExecutorService) extends Se
     out.setWriteListener(listener)
 
     {
-      (body: EntityBody, autoFlush: Boolean) =>
-        if (autoFlush)
+      (response: Response) =>
+        if (response.isChunked)
           actor ! SetAutoFlush
 
         val writers = repeatEval {
           Task.async[ByteVector => Unit] { actor ! Callback(_) }
         }
 
-        body.zipWith(writers)((chunk, writer) => writer(chunk)).run
+        response.body.zipWith(writers)((chunk, writer) => writer(chunk)).run
     }
   }
 }
