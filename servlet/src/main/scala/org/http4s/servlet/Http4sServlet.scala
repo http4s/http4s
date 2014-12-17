@@ -34,9 +34,9 @@ class Http4sServlet(service: HttpService,
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1  // -1 == Inf
 
   private[this] var serverSoftware: ServerSoftware = _
-  private[this] var inputStreamReader: BodyReader = _
+  private[this] var servletIo: ServletIo = _
 
-  private class Http4sAsyncListener extends AsyncListener {
+  private class Http4sAsyncListener(bodyWriter: (EntityBody, Boolean) => Task[Unit]) extends AsyncListener {
     override def onComplete(event: AsyncEvent): Unit = {}
 
     override def onError(event: AsyncEvent): Unit = logger.error(event.getThrowable)("Async error processing request")
@@ -48,7 +48,7 @@ class Http4sServlet(service: HttpService,
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       val response = ResponseBuilder(Status.InternalServerError, "Service timed out.")
       if (!servletResponse.isCommitted)
-        Http4sServlet.this.renderResponse(response, servletResponse)
+        Http4sServlet.this.renderResponse(response, servletResponse, bodyWriter)
       else {
         val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
         logger.warn(s"Async context timed out after servlet response was already committed on ${servletRequest.getMethod} ${servletRequest.getPathInfo}")
@@ -63,23 +63,24 @@ class Http4sServlet(service: HttpService,
     val servletApiVersion = ServletApiVersion(servletContext)
     logger.info(s"Detected Servlet API version $servletApiVersion")
 
-    inputStreamReader = if (servletApiVersion >= ServletApiVersion(3, 1))
-      syncInputStreamReader(chunkSize)
+    servletIo = if (servletApiVersion >= ServletApiVersion(3, 1))
+      new NonBlockingServletIo(chunkSize, threadPool)
     else
-      syncInputStreamReader(chunkSize)
+      new BlockingServletIo(chunkSize)
   }
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse) {
     try {
       val ctx = servletRequest.startAsync()
+      val writer = servletIo.writer(servletResponse)
       toRequest(servletRequest) match {
         case -\/(e) =>
           // TODO make more http4sy
           servletResponse.sendError(HttpServletResponse.SC_BAD_REQUEST, e.sanitized)
         case \/-(req) =>
-          ctx.addListener(new Http4sAsyncListener)
+          ctx.addListener(new Http4sAsyncListener(writer))
           ctx.setTimeout(asyncTimeoutMillis)
-          handle(req, ctx)
+          handle(req, ctx, writer)
       }
     } catch {
       case NonFatal(e) => handleError(e, servletResponse)
@@ -100,12 +101,12 @@ class Http4sServlet(service: HttpService,
 
   }
 
-  private def handle(request: Request, ctx: AsyncContext): Unit = {
+  private def handle(request: Request, ctx: AsyncContext, writer: (EntityBody, Boolean) => Task[Unit]): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
-    Task.fork {
+    Task.fork({
       val response = service.or(request, ResponseBuilder.notFound(request))
-      renderResponse(response, servletResponse)
-    }(threadPool).runAsync {
+      renderResponse(response, servletResponse, writer)
+    })(threadPool).runAsync {
       case \/-(_) =>
         ctx.complete()
       case -\/(t) =>
@@ -114,17 +115,14 @@ class Http4sServlet(service: HttpService,
     }
   }
 
-  private def renderResponse(response: Task[Response], servletResponse: HttpServletResponse): Task[Unit] =
+  private def renderResponse(response: Task[Response],
+                             servletResponse: HttpServletResponse,
+                             bodyWriter: (EntityBody, Boolean) => Task[Unit]): Task[Unit] =
     response.flatMap { r =>
       servletResponse.setStatus(r.status.code, r.status.reason)
-      for (header <- r.headers)
+      for (header <- r.headers if header.isNot(Header.`Transfer-Encoding`))
         servletResponse.addHeader(header.name.toString, header.value)
-      val out = servletResponse.getOutputStream
-      val isChunked = r.isChunked
-      r.body.map { chunk =>
-        out.write(chunk.toArray)
-        if (isChunked) servletResponse.flushBuffer()
-      }.run
+      bodyWriter(r.body, r.isChunked)
     }
 
   protected def toRequest(req: HttpServletRequest): ParseResult[Request] =
@@ -137,7 +135,7 @@ class Http4sServlet(service: HttpService,
       uri = uri,
       httpVersion = version,
       headers = toHeaders(req),
-      body = inputStreamReader(req),
+      body = servletIo.reader(req),
       attributes = AttributeMap(
         Request.Keys.PathInfoCaret(req.getServletPath.length),
         Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr)),
