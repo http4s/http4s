@@ -2,18 +2,22 @@ package org.http4s
 package server
 package blaze
 
+import java.io.FileInputStream
+import java.security.KeyStore
+import java.security.Security
+import javax.net.ssl.{TrustManagerFactory, KeyManagerFactory, SSLContext}
 import java.util.concurrent.ExecutorService
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 
 import org.http4s.blaze.pipeline.LeafBuilder
-import org.http4s.blaze.pipeline.stages.QuietTimeoutStage
+import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
 import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
 import org.http4s.blaze.channel.nio2.NIO2SocketServerChannelFactory
+import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
 
 import server.middleware.URITranslation
-
-import java.net.InetSocketAddress
-import java.nio.ByteBuffer
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
@@ -23,19 +27,28 @@ class BlazeBuilder(
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   isNio2: Boolean,
+  sslBits: Option[SSLBits],
   serviceMounts: Vector[ServiceMount]
 )
   extends ServerBuilder
   with IdleTimeoutSupport
+  with SSLSupport
 {
   type Self = BlazeBuilder
 
   private def copy(socketAddress: InetSocketAddress = socketAddress,
-                   serviceExecutor: ExecutorService = serviceExecutor,
-                   idleTimeout: Duration = idleTimeout,
-                   isNio2: Boolean = isNio2,
+                 serviceExecutor: ExecutorService = serviceExecutor,
+                     idleTimeout: Duration = idleTimeout,
+                          isNio2: Boolean = isNio2,
+                         sslBits: Option[SSLBits] = sslBits,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, serviceMounts)
+    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, sslBits, serviceMounts)
+
+
+  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
+    val bits = SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
+    copy(sslBits = Some(bits))
+  }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): BlazeBuilder =
     copy(socketAddress = socketAddress)
@@ -63,10 +76,26 @@ class BlazeBuilder(
           prefixedService orElse aggregate
     }
 
-    def pipelineFactory(conn: SocketConnection): LeafBuilder[ByteBuffer] = {
-      val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), serviceExecutor))
-      if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
-      else leaf
+    val pipelineFactory = getContext() match {
+      case Some((ctx, clientAuth)) =>
+        (conn: SocketConnection) => {
+          val l1 = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), serviceExecutor))
+          val l2 = if (idleTimeout.isFinite) l1.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
+                   else l1
+
+          val eng = ctx.createSSLEngine()
+          eng.setUseClientMode(false)
+          eng.setNeedClientAuth(clientAuth)
+
+          l2.prepend(new SSLStage(eng))
+        }
+
+      case None =>
+        (conn: SocketConnection) => {
+          val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), serviceExecutor))
+          if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
+          else leaf
+        }
     }
 
     val factory =
@@ -95,6 +124,38 @@ class BlazeBuilder(
       }
     }
   }
+
+  private def getContext(): Option[(SSLContext, Boolean)] = sslBits.map { bits =>
+
+    val ksStream = new FileInputStream(bits.keyStore.path)
+    val ks = KeyStore.getInstance("JKS")
+    ks.load(ksStream, bits.keyStore.password.toCharArray)
+    ksStream.close()
+
+    val tmf = bits.trustStore.map { auth =>
+      val ksStream = new FileInputStream(auth.path)
+
+      val ks = KeyStore.getInstance("JKS")
+      ks.load(ksStream, auth.password.toCharArray)
+      ksStream.close()
+
+      val tmf = TrustManagerFactory.getInstance(TrustManagerFactory.getDefaultAlgorithm)
+
+      tmf.init(ks)
+      tmf.getTrustManagers
+    }
+
+    val kmf = KeyManagerFactory.getInstance(
+                  Option(Security.getProperty("ssl.KeyManagerFactory.algorithm"))
+                    .getOrElse(KeyManagerFactory.getDefaultAlgorithm))
+
+    kmf.init(ks, bits.keyManagerPassword.toCharArray)
+
+    val context = SSLContext.getInstance(bits.protocol)
+    context.init(kmf.getKeyManagers(), tmf.orNull, null)
+
+    (context, bits.clientAuth)
+  }
 }
 
 object BlazeBuilder extends BlazeBuilder(
@@ -102,6 +163,7 @@ object BlazeBuilder extends BlazeBuilder(
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
+  sslBits = None,
   serviceMounts = Vector.empty
 )
 
