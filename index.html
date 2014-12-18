@@ -140,15 +140,13 @@ needs now, and easily port if and when your needs change.</p>
 
 <p><a href="http://github.com/http4s/blaze">blaze</a> is an NIO framework.  Run http4s on blaze for maximum throughput.</p>
 
-<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight">
-<span class="k">import</span> <span class="nn">org.http4s.server.blaze.BlazeBuilder</span>
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">import</span> <span class="nn">org.http4s.server.blaze.BlazeBuilder</span>
 
-<span class="k">object</span> <span class="nc">BlazeExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
-  <span class="nc">BlazeBuilder</span><span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">run</span>
-    <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
-<span class="o">}</span>
+<span class="n">bject</span> <span class="nc">BlazeExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+ <span class="nc">BlazeBuilder</span><span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">run</span>
+   <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
 </code></code></pre>
 
 <h3 id="toc_7">Servlets</h3>
@@ -162,8 +160,6 @@ for embedded Tomcat and Jetty containers.</p>
 <span class="k">import</span> <span class="nn">org.http4s.server.jetty.JettyBuilder</span>
 <span class="k">import</span> <span class="nn">org.http4s.server.tomcat.TomcatBuilder</span>
 <span class="k">import</span> <span class="nn">org.http4s.servlet.ServletContainer</span>
-
-<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
 
 <span class="k">class</span> <span class="nc">ServletExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
   <span class="k">def</span> <span class="n">go</span><span class="o">(</span><span class="n">builder</span><span class="k">:</span> <span class="kt">ServletContainer</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">builder</span>
