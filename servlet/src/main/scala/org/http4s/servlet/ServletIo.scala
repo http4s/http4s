@@ -14,14 +14,14 @@ import scalaz.stream.Process._
 import scalaz.stream.io.chunkR
 import scalaz.syntax.either._
 
-trait ServletIo {
+protected[servlet] trait ServletIo {
   def reader(servletRequest: HttpServletRequest): EntityBody
 
   /** May install a listener on the servlet response. */
   def initWriter(servletResponse: HttpServletResponse): BodyWriter
 }
 
-class BlockingServletIo(chunkSize: Int) extends ServletIo {
+protected[servlet] class BlockingServletIo(chunkSize: Int) extends ServletIo {
   override def reader(servletRequest: HttpServletRequest): EntityBody =
     chunkR(servletRequest.getInputStream).map(_(chunkSize)).eval
 
@@ -36,7 +36,7 @@ class BlockingServletIo(chunkSize: Int) extends ServletIo {
   }
 }
 
-class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
+protected[servlet] class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   private[this] val LeftEnd = Terminated(End).left
 
   override def reader(servletRequest: HttpServletRequest): EntityBody = {
