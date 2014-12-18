@@ -40,7 +40,7 @@ class Http4sServlet(service: HttpService,
 
   private def loadServletIo(servletApiVersion: ServletApiVersion): ServletIo =
     if (servletApiVersion >= ServletApiVersion(3, 1))
-      new NonBlockingServletIo(chunkSize, threadPool)
+      new NonBlockingServletIo(chunkSize)
     else
       new BlockingServletIo(chunkSize)
 
@@ -48,7 +48,7 @@ class Http4sServlet(service: HttpService,
     try {
       val ctx = servletRequest.startAsync()
       // Must be done on the container thread for Tomcat's sake when using async I/O.
-      val bodyWriter = servletIo.writer(servletResponse)
+      val bodyWriter = servletIo.initWriter(servletResponse)
       toRequest(servletRequest).fold(
         onParseFailure(_, servletResponse, bodyWriter),
         handleRequest(ctx, _, bodyWriter)

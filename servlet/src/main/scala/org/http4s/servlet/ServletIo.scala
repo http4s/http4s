@@ -7,25 +7,24 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 import scodec.bits.ByteVector
 
-import scalaz.stream.Cause
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.{\/-, \/, -\/}
-import scalaz.concurrent.{Actor, Strategy, Task}
+import scalaz.concurrent.{Strategy, Actor, Task}
 import scalaz.stream.Process._
-import scalaz.stream.async.{boundedQueue, unboundedQueue}
 import scalaz.stream.io.chunkR
 
 trait ServletIo {
-  def reader(request: HttpServletRequest): EntityBody
+  def reader(servletRequest: HttpServletRequest): EntityBody
 
-  def writer(response: HttpServletResponse): BodyWriter
+  /** May install a listener on the servlet response. */
+  def initWriter(servletResponse: HttpServletResponse): BodyWriter
 }
 
 class BlockingServletIo(chunkSize: Int) extends ServletIo {
   override def reader(servletRequest: HttpServletRequest): EntityBody =
     chunkR(servletRequest.getInputStream).map(_(chunkSize)).eval
 
-  override def writer(servletResponse: HttpServletResponse): BodyWriter = { response: Response =>
+  override def initWriter(servletResponse: HttpServletResponse): BodyWriter = { response: Response =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
     response.body.map { chunk =>
@@ -36,20 +35,26 @@ class BlockingServletIo(chunkSize: Int) extends ServletIo {
   }
 }
 
-class NonBlockingServletIo(chunkSize: Int, executor: ExecutorService) extends ServletIo {
+class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   override def reader(request: HttpServletRequest): EntityBody = {
-    val in = request.getInputStream
+    type Callback = Throwable \/ ByteVector => Unit
 
     sealed trait Protocol
+    case object DataAvailable extends Protocol
+    case class Error(t: Throwable) extends Protocol
+    case object AllDataRead extends Protocol
+    case class Submit(cb: Callback) extends Protocol
+
     sealed trait State
-    case object Init extends State
-    case object DataAvailable extends Protocol with State
-    case class Error(t: Throwable) extends Protocol with State
-    case object AllDataRead extends Protocol with State
-    case class Callback(cb: Throwable \/ ByteVector => Unit) extends Protocol with State
+    case class Blocked(cb: Callback) extends State
+    case object Ready extends State
+    case object Complete extends State
+    case class Errored(t: Throwable) extends State
+
+    val in = request.getInputStream
 
     var buff = new Array[Byte](chunkSize)
-    def read = {
+    def read() = {
       val len = in.read(buff)
       if (len == chunkSize) {
         val chunk = buff
@@ -65,49 +70,39 @@ class NonBlockingServletIo(chunkSize: Int, executor: ExecutorService) extends Se
         ByteVector.empty
     }
 
-    var state: State = Init
-    val actor = Actor[Protocol] {
+    var state: State = Ready
+    val actor = Actor[Protocol]({
+      case Submit(cb) =>
+        state match {
+          case Ready if in.isReady => cb(\/-(read()))
+          case Ready if in.isFinished => cb(-\/(Terminated(End))); state = Complete
+          case Ready => state = Blocked(cb)
+          case Complete => cb(-\/(Terminated(End)))
+          case Errored(t) => cb(-\/(t))
+          case Blocked(_) => cb(\/-(ByteVector.empty))
+        }
+
       case DataAvailable =>
         state match {
-          case Callback(cb) =>
-            cb(\/-(read))
+          case Blocked(cb) => cb(\/-(read()))
           case _ =>
         }
-        state = DataAvailable
+        state = Ready
 
       case Error(t) =>
         state match {
-          case Callback(cb) =>
-            cb(-\/(t))
+          case Blocked(cb) => cb(-\/(t))
           case _ =>
         }
-        state = Error(t)
+        state = Errored(t)
 
       case AllDataRead =>
         state match {
-          case Callback(cb) =>
-            cb(-\/(Terminated(End)))
+          case Blocked(cb) => cb(-\/(Terminated(End)))
           case _ =>
         }
-        state = AllDataRead
-
-      case callback @ Callback(cb) =>
-        state match {
-          case DataAvailable if in.isReady =>
-            cb(\/-(read))
-          case Error(t) =>
-            cb(-\/(t))
-          case Callback(cb2) =>
-            cb2(\/-(ByteVector.empty))
-            state = callback
-          case AllDataRead =>
-            cb(-\/(Terminated(End)))
-          case _ if in.isFinished =>
-            cb(-\/(Terminated(End)))
-          case _ =>
-            state = callback
-        }
-    }
+        state = Complete
+    })(Strategy.Sequential)
 
     val listener = new ReadListener {
       override def onDataAvailable(): Unit = actor ! DataAvailable
@@ -117,22 +112,26 @@ class NonBlockingServletIo(chunkSize: Int, executor: ExecutorService) extends Se
     in.setReadListener(listener)
 
     repeatEval {
-      Task.async[ByteVector] { actor ! Callback(_) }
+      Task.async[ByteVector] { actor ! Submit(_) }
     }
   }
 
-  override def writer(response: HttpServletResponse): BodyWriter = {
-    val out = response.getOutputStream
+  override def initWriter(response: HttpServletResponse): BodyWriter = {
+    type Callback = Throwable \/ (ByteVector => Unit) => Unit
 
     sealed trait Protocol
-    sealed trait State
-    case object Init extends State
-    case object Ready extends Protocol with State
-    case class Error(t: Throwable) extends Protocol with State
-    case class Callback(cb: Throwable \/ (ByteVector => Unit) => Unit) extends Protocol with State
+    case object WritePossible extends Protocol
+    case class Error(t: Throwable) extends Protocol
+    case class Submit(cb: Callback) extends Protocol
     case object SetAutoFlush extends Protocol
 
-    var state: State = Init
+    sealed trait State
+    case class Blocked(cb: Callback) extends State
+    case object Ready extends State
+    case class Errored(t: Throwable) extends State
+
+    val out = response.getOutputStream
+    var state: State = Ready
     var autoFlush = false
 
     def writeChunk(chunk: ByteVector): Unit = {
@@ -143,56 +142,52 @@ class NonBlockingServletIo(chunkSize: Int, executor: ExecutorService) extends Se
       }
     }
 
-    val actor = Actor[Protocol] {
-      case Ready =>
+    val actor = Actor[Protocol]({
+      case Submit(cb) =>
         state match {
-          case Callback(cb) =>
-            cb(\/-(writeChunk))
+          case Ready if out.isReady => cb(\/-(writeChunk))
+          case Ready => state = Blocked(cb)
+          case Blocked(_) => cb(\/-(writeChunk))
+          case Errored(t) => cb(-\/(t))
+        }
+
+      case WritePossible =>
+        state match {
+          case Blocked(cb) => cb(\/-(writeChunk))
           case _ =>
         }
         state = Ready
 
       case Error(t) =>
         state match {
-          case Callback(cb) =>
-            cb(-\/(t))
+          case Blocked(cb) => cb(-\/(t))
           case _ =>
         }
-        state = Error(t)
-
-      case callback @ Callback(cb) =>
-        state match {
-          case Ready if out.isReady =>
-            cb(\/-(writeChunk))
-          case Error(t) =>
-            cb(-\/(t))
-          case Callback(cb2) =>
-            cb2(\/-(writeChunk))
-            state = callback
-          case _ =>
-            state = callback
-        }
+        state = Errored(t)
 
       case SetAutoFlush =>
         autoFlush = true
-    }
+    })(Strategy.Sequential)
 
     val listener = new WriteListener {
-      override def onWritePossible(): Unit = actor ! Ready
+      override def onWritePossible(): Unit = actor ! WritePossible
       override def onError(t: Throwable): Unit = actor ! Error(t)
     }
+    /*
+     * This must be set on the container thread in Tomcat, or onWritePossible
+     * will not be invoked.  This side effect needs to run between the acquisition
+     * of the servletResponse and the calculation of the http4s Response.
+     */
     out.setWriteListener(listener)
 
-    {
-      (response: Response) =>
-        if (response.isChunked)
-          actor ! SetAutoFlush
-
-        val writers = repeatEval {
-          Task.async[ByteVector => Unit] { actor ! Callback(_) }
-        }
-
-        response.body.zipWith(writers)((chunk, writer) => writer(chunk)).run
+    val bodyWriter = { response: Response =>
+      if (response.isChunked)
+        actor ! SetAutoFlush
+      val writers = repeatEval {
+        Task.async[ByteVector => Unit] { actor ! Submit(_) }
+      }
+      response.body.zipWith(writers)((chunk, writer) => writer(chunk)).run
     }
+    bodyWriter
   }
 }
