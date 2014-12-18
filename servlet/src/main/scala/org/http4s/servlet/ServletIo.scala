@@ -1,17 +1,18 @@
 package org.http4s
 package servlet
 
-import java.util.concurrent.ExecutorService
+import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{WriteListener, ReadListener}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
 import scodec.bits.ByteVector
 
 import scalaz.stream.Cause.{End, Terminated}
-import scalaz.{\/-, \/, -\/}
-import scalaz.concurrent.{Strategy, Actor, Task}
+import scalaz.{\/, -\/}
+import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scalaz.stream.io.chunkR
+import scalaz.syntax.either._
 
 trait ServletIo {
   def reader(servletRequest: HttpServletRequest): EntityBody
@@ -36,142 +37,116 @@ class BlockingServletIo(chunkSize: Int) extends ServletIo {
 }
 
 class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
-  override def reader(request: HttpServletRequest): EntityBody = {
+  private[this] val LeftEnd = Terminated(End).left
+
+  override def reader(servletRequest: HttpServletRequest): EntityBody = {
     type Callback = Throwable \/ ByteVector => Unit
 
-    sealed trait Protocol
-    case object DataAvailable extends Protocol
-    case class Error(t: Throwable) extends Protocol
-    case object AllDataRead extends Protocol
-    case class Submit(cb: Callback) extends Protocol
-
     sealed trait State
-    case class Blocked(cb: Callback) extends State
     case object Ready extends State
     case object Complete extends State
     case class Errored(t: Throwable) extends State
+    case class Blocked(cb: Callback) extends State
 
-    val in = request.getInputStream
+    val in = servletRequest.getInputStream
 
-    var buff = new Array[Byte](chunkSize)
-    def read() = {
+    def read = {
+      val buff = new Array[Byte](chunkSize)
       val len = in.read(buff)
       if (len == chunkSize) {
-        val chunk = buff
-        buff = new Array[Byte](chunkSize)
-        ByteVector(chunk)
+        ByteVector.view(buff)
       }
-      else if (len > 0) {
-        val copy = new Array[Byte](len)
-        System.arraycopy(buff, 0, copy, 0, len)
-        ByteVector.view(copy)
+      else {
+        ByteVector.viewI(buff(_), len)
       }
-      else
-        ByteVector.empty
-    }
+    }.right
 
-    var state: State = Ready
-    val actor = Actor[Protocol]({
-      case Submit(cb) =>
-        state match {
-          case Ready if in.isReady => cb(\/-(read()))
-          case Ready if in.isFinished => cb(-\/(Terminated(End))); state = Complete
-          case Ready => state = Blocked(cb)
-          case Complete => cb(-\/(Terminated(End)))
-          case Errored(t) => cb(-\/(t))
-          case Blocked(_) => cb(\/-(ByteVector.empty))
-        }
-
-      case DataAvailable =>
-        state match {
-          case Blocked(cb) => cb(\/-(read()))
-          case _ =>
-        }
-        state = Ready
-
-      case Error(t) =>
-        state match {
-          case Blocked(cb) => cb(-\/(t))
-          case _ =>
-        }
-        state = Errored(t)
-
-      case AllDataRead =>
-        state match {
-          case Blocked(cb) => cb(-\/(Terminated(End)))
-          case _ =>
-        }
-        state = Complete
-    })(Strategy.Sequential)
+    val state = new AtomicReference[State](Ready)
 
     val listener = new ReadListener {
-      override def onDataAvailable(): Unit = actor ! DataAvailable
-      override def onError(t: Throwable): Unit = actor ! Error(t)
-      override def onAllDataRead(): Unit = actor ! AllDataRead
+      override def onDataAvailable(): Unit =
+        state.getAndSet(Ready) match {
+          case Blocked(cb) => cb(read)
+          case _ =>
+        }
+
+      override def onError(t: Throwable): Unit =
+        state.getAndSet(Errored(t)) match {
+          case Blocked(cb) => cb(t.left)
+          case _ =>
+        }
+
+      override def onAllDataRead(): Unit =
+        state.getAndSet(Complete) match {
+          case Blocked(cb) => cb(LeftEnd)
+          case _ =>
+        }
     }
     in.setReadListener(listener)
 
-    repeatEval {
-      Task.async[ByteVector] { actor ! Submit(_) }
+    if (in.isFinished)
+      halt
+    else repeatEval {
+      Task.async[ByteVector] { cb =>
+        val blocked = Blocked(cb)
+        state.getAndSet(blocked) match {
+          case Ready if in.isReady =>
+            if (state.compareAndSet(blocked, Ready))
+              cb(read)
+          case Complete =>
+            if (state.compareAndSet(blocked, Complete))
+              cb(LeftEnd)
+          case e @ Errored(t) =>
+            if (state.compareAndSet(blocked, e))
+              cb(t.left)
+          case _ =>
+            state.set(Blocked(cb))
+        }
+      }
     }
   }
 
-  override def initWriter(response: HttpServletResponse): BodyWriter = {
+  override def initWriter(servletResponse: HttpServletResponse): BodyWriter = {
     type Callback = Throwable \/ (ByteVector => Unit) => Unit
 
-    sealed trait Protocol
-    case object WritePossible extends Protocol
-    case class Error(t: Throwable) extends Protocol
-    case class Submit(cb: Callback) extends Protocol
-    case object SetAutoFlush extends Protocol
-
     sealed trait State
-    case class Blocked(cb: Callback) extends State
+    case object Init extends State
     case object Ready extends State
     case class Errored(t: Throwable) extends State
+    case class Blocked(cb: Callback) extends State
 
-    val out = response.getOutputStream
-    var state: State = Ready
-    var autoFlush = false
+    val out = servletResponse.getOutputStream
+    /*
+     * If onWritePossible isn't called at least once, Tomcat begins to throw
+     * NullPointerExceptions from NioEndpoint$SocketProcessor.doRun under
+     * load.  The Init state means we block callbacks until the WriteListener
+     * fires.
+     */
+    val state = new AtomicReference[State](Init)
+    @volatile var autoFlush = false
 
-    def writeChunk(chunk: ByteVector): Unit = {
+    val writeChunk = { chunk: ByteVector =>
       if (out.isReady) {
         out.write(chunk.toArray)
         if (autoFlush && out.isReady)
           out.flush()
       }
-    }
+    }.right
 
-    val actor = Actor[Protocol]({
-      case Submit(cb) =>
-        state match {
-          case Ready if out.isReady => cb(\/-(writeChunk))
-          case Ready => state = Blocked(cb)
-          case Blocked(_) => cb(\/-(writeChunk))
-          case Errored(t) => cb(-\/(t))
+    val listener = new WriteListener {
+      override def onWritePossible(): Unit = {
+        state.getAndSet(Ready) match {
+          case Blocked(cb) => cb(writeChunk)
+          case old =>
         }
+      }
 
-      case WritePossible =>
-        state match {
-          case Blocked(cb) => cb(\/-(writeChunk))
-          case _ =>
-        }
-        state = Ready
-
-      case Error(t) =>
-        state match {
+      override def onError(t: Throwable): Unit =  {
+        state.getAndSet(Errored(t)) match {
           case Blocked(cb) => cb(-\/(t))
           case _ =>
         }
-        state = Errored(t)
-
-      case SetAutoFlush =>
-        autoFlush = true
-    })(Strategy.Sequential)
-
-    val listener = new WriteListener {
-      override def onWritePossible(): Unit = actor ! WritePossible
-      override def onError(t: Throwable): Unit = actor ! Error(t)
+      }
     }
     /*
      * This must be set on the container thread in Tomcat, or onWritePossible
@@ -182,11 +157,22 @@ class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
 
     val bodyWriter = { response: Response =>
       if (response.isChunked)
-        actor ! SetAutoFlush
-      val writers = repeatEval {
-        Task.async[ByteVector => Unit] { actor ! Submit(_) }
-      }
-      response.body.zipWith(writers)((chunk, writer) => writer(chunk)).run
+        autoFlush = true
+      response.body.evalMap { chunk =>
+        Task.async[ByteVector => Unit] { cb =>
+          val blocked = Blocked(cb)
+          state.getAndSet(blocked) match {
+            case Ready if out.isReady =>
+              if (state.compareAndSet(blocked, Ready))
+                cb(writeChunk)
+            case e @ Errored(t) =>
+              if (state.compareAndSet(blocked, e))
+                cb(-\/(t))
+            case _ =>
+              state.set(Blocked(cb))
+          }
+        }.map(_(chunk))
+      }.run
     }
     bodyWriter
   }

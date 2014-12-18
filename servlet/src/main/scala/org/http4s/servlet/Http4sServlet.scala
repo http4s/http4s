@@ -54,7 +54,7 @@ class Http4sServlet(service: HttpService,
         handleRequest(ctx, _, bodyWriter)
       ).runAsync {
         case \/-(()) => ctx.complete()
-        case -\/(t) => throw t
+        case -\/(t) => ctx.complete(); throw t
       }
     }
     catch errorHandler(servletRequest, servletResponse)

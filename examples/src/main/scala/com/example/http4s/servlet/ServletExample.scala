@@ -3,6 +3,7 @@ package servlet
 
 /// code_ref: servlet_example
 import org.http4s.server.jetty.JettyBuilder
+import org.http4s.server.middleware.Timeout
 import org.http4s.server.tomcat.TomcatBuilder
 import org.http4s.servlet.ServletContainer
 
