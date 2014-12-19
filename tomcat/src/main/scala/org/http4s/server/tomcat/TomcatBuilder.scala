@@ -4,14 +4,17 @@ package tomcat
 
 import java.net.InetSocketAddress
 import javax.servlet.http.HttpServlet
+import java.util.concurrent.ExecutorService
 
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
+import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
+import org.http4s.servlet.{ServletContainer, Http4sServlet}
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 import org.apache.catalina.startup.Tomcat
 import org.apache.catalina.{Lifecycle, LifecycleEvent, LifecycleListener}
-import java.util.concurrent.ExecutorService
+
 
 sealed class TomcatBuilder private (
   socketAddress: InetSocketAddress,
@@ -19,11 +22,13 @@ sealed class TomcatBuilder private (
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
+  sslBits: Option[SSLBits],
   mounts: Vector[Mount]
 )
   extends ServerBuilder
   with ServletContainer
   with IdleTimeoutSupport
+  with SSLSupport
 {
   type Self = TomcatBuilder
 
@@ -33,8 +38,13 @@ sealed class TomcatBuilder private (
            idleTimeout: Duration = idleTimeout,
            asyncTimeout: Duration = asyncTimeout,
            servletIo: ServletIo = servletIo,
+           sslBits: Option[SSLBits] = sslBits,
            mounts: Vector[Mount] = mounts): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, mounts)
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+
+  override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
+    copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
+  }
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
     copy(socketAddress = socketAddress)
@@ -81,10 +91,32 @@ sealed class TomcatBuilder private (
     val tomcat = new Tomcat
 
     tomcat.addContext("", getClass.getResource("/").getPath)
-    tomcat.getConnector.setAttribute("address", socketAddress.getHostString)
-    tomcat.setPort(socketAddress.getPort)
 
-    tomcat.getConnector.setAttribute("connection_pool_timeout",
+    val conn = tomcat.getConnector()
+
+    sslBits.foreach { sslBits =>
+      conn.setSecure(true)
+      conn.setScheme("https")
+      conn.setAttribute("keystoreFile", sslBits.keyStore.path)
+      conn.setAttribute("keystorePass", sslBits.keyStore.password)
+      conn.setAttribute("keyPass", sslBits.keyManagerPassword)
+
+      conn.setAttribute("clientAuth", sslBits.clientAuth)
+      conn.setAttribute("sslProtocol", sslBits.protocol)
+
+      sslBits.trustStore.foreach { ts =>
+        conn.setAttribute("truststoreFile", ts.path)
+        conn.setAttribute("truststorePass", ts.password)
+      }
+
+      conn.setPort(socketAddress.getPort)
+
+      conn.setAttribute("SSLEnabled", true)
+    }
+
+    conn.setAttribute("address", socketAddress.getHostString)
+    tomcat.setPort(socketAddress.getPort)
+    conn.setAttribute("connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
     for ((mount, i) <- mounts.zipWithIndex)
@@ -117,6 +149,7 @@ object TomcatBuilder extends TomcatBuilder(
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,
+  sslBits = None,
   mounts = Vector.empty
 )
 

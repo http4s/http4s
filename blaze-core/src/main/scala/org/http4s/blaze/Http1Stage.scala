@@ -30,19 +30,8 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   protected def contentComplete(): Boolean
 
-  /** Encodes the headers into the Writer, except the Transfer-Encoding header which may be returned
-    * Note: this method is very niche but useful for both server and client. */
-  protected def encodeHeaders(headers: Headers, rr: Writer): Option[`Transfer-Encoding`] = {
-    var encoding: Option[`Transfer-Encoding`] = None
-    headers.foreach( header =>
-      if (header.name != `Transfer-Encoding`.name) rr << header << '\r' << '\n'
-      else encoding = `Transfer-Encoding`.matchHeader(header)
-    )
-    encoding
-  }
-
   /** Check Connection header and add applicable headers to response */
-  protected def checkCloseConnection(conn: Header.Connection, rr: StringWriter): Boolean = {
+  final protected def checkCloseConnection(conn: Header.Connection, rr: StringWriter): Boolean = {
     if (conn.hasKeepAlive) {                          // connection, look to the request
       logger.trace("Found Keep-Alive header")
       false
@@ -76,13 +65,13 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** Get the proper body encoder based on the message headers,
     * adding the appropriate Connection and Transfer-Encoding headers along the way */
-  protected def getEncoder(connectionHeader: Option[Header.Connection],
-                 bodyEncoding: Option[Header.`Transfer-Encoding`],
-                 lengthHeader: Option[Header.`Content-Length`],
-                 trailer: Task[Headers],
-                 rr: StringWriter,
-                 minor: Int,
-                 closeOnFinish: Boolean): ProcessWriter = lengthHeader match {
+  final protected def getEncoder(connectionHeader: Option[Header.Connection],
+                                     bodyEncoding: Option[Header.`Transfer-Encoding`],
+                                     lengthHeader: Option[Header.`Content-Length`],
+                                          trailer: Task[Headers],
+                                               rr: StringWriter,
+                                            minor: Int,
+                                    closeOnFinish: Boolean): ProcessWriter = lengthHeader match {
     case Some(h) if bodyEncoding.isEmpty =>
       logger.trace("Using static encoder")
 
@@ -90,7 +79,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
       else rr << '\r' << '\n'
 
-      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
       new StaticWriter(b, h.length, this)
 
     case _ =>  // No Length designated for body or Transfer-Encoding included
@@ -98,7 +87,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
         if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
           logger.trace("Using static encoder")
           rr << '\r' << '\n'
-          val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.US_ASCII))
+          val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
           new StaticWriter(b, -1, this)
         }
         else {  // HTTP 1.0, but request was Keep-Alive.
@@ -183,9 +172,28 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   }
 }
 
-private object Http1Stage {
+object Http1Stage {
   val CachedEmptyBody = {
     val f = Future.successful(emptyBuffer)
     (EmptyBody, () => f)
+  }
+
+  /** Encodes the headers into the Writer, except the Transfer-Encoding header which may be returned
+    * Note: this method is very niche but useful for both server and client. */
+  def encodeHeaders(headers: Headers, rr: Writer, isServer: Boolean): Option[`Transfer-Encoding`] = {
+    var encoding: Option[`Transfer-Encoding`] = None
+    var dateEncoded = false
+    headers.foreach { header =>
+      if (isServer && header.name == Header.Date.name) dateEncoded = true
+
+      if (header.name != `Transfer-Encoding`.name) rr << header << '\r' << '\n'
+      else encoding = `Transfer-Encoding`.matchHeader(header)
+    }
+
+    if (isServer && !dateEncoded) {
+      rr << Header.Date.name << ':' << ' '; DateTime.now.renderRfc1123DateTimeString(rr) << '\r' << '\n'
+    }
+
+    encoding
   }
 }

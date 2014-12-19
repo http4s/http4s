@@ -1,6 +1,6 @@
 package com.example.http4s
 
-import org.http4s.{TransferCoding, Header, Response, StaticFile}
+import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.HttpService
 import scodec.bits.ByteVector
@@ -21,6 +21,14 @@ object ScienceExperiments {
     case req @ POST -> Root / "root-element-name" =>
       xml(req)(root => Ok(root.label))
 
+    case req @ GET -> Root / "date" =>
+      val date = DateTime(100)
+      Ok(date.toRfc1123DateTimeString)
+        .withHeaders(Header.Date(date))
+
+    case req @ GET -> Root / "echo-headers" =>
+      Ok(req.headers.mkString("\n"))
+
     ///////////////// Massive Data Loads //////////////////////
     case GET -> Root / "bigstring" =>
       Ok((0 until 1000).map(i => s"This is string number $i").mkString("\n"))
@@ -29,6 +37,9 @@ object ScienceExperiments {
       Ok(Process.range(0, 1000).map(i => s"This is string number $i"))
 
     case req@GET -> Root / "bigstring3" => Ok(flatBigString)
+
+    case GET -> Root / "zero-chunk" =>
+      Ok(Process("", "foo!")).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
 
     case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB

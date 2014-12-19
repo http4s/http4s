@@ -1,21 +1,61 @@
 package org.http4s.util
 
-import org.specs2.mutable.Specification
+import java.util.Locale
 
-class CaseInsensitiveStringSpec extends Specification with CaseInsensitiveStringSyntax {
-  "Two case-insensitively equal strings" should {
-    "be equal" in {
-      "DON'T YELL".ci must be_== ("don't yell".ci)
-    }
+import org.http4s.Http4sSpec
+import org.scalacheck.{Prop, Arbitrary, Gen}
+import scalaz.scalacheck.ScalazProperties
 
-    "have same hash" in {
-      "DON'T YELL".ci.## must be_== ("don't yell".ci.##)
+class CaseInsensitiveStringSpec extends Http4sSpec {
+  "equals" should {
+    "be consistent with equalsIgnoreCase of the values" in {
+      prop { s: String =>
+        val lc = s.toLowerCase(Locale.ROOT)
+        (s.equalsIgnoreCase(lc)) == (s.ci == lc.ci)
+      }
     }
   }
 
-  "A case-insenstive string" should {
-    "preserve the original value" in {
-      "What Goes In Must Come Out".ci.toString must be_== ("What Goes In Must Come Out")
+  "hashCode" should {
+    "be consistent with equality" in {
+      prop { s: String =>
+        val lc = s.toLowerCase(Locale.ROOT)
+        (s.ci == lc.ci) ==> (s.ci.## == lc.ci.##)
+      }
+    }
+  }
+
+  "toString" should {
+    "return the original as its toString" in {
+      prop { s: String => s.ci.toString equals (s)}
+    }
+  }
+
+  "length" should {
+    "be consistent with the orignal's length" in {
+      prop { s: String => s.ci.length equals (s.length)}
+    }
+  }
+
+  "charAt" should {
+    "be consistent with the orignal's charAt" in {
+      def gen = for {
+        s <- Arbitrary.arbitrary[String]
+        i <- Gen.choose(0, s.length - 1)
+      } yield (s, i)
+      Prop.forAll(gen) { case (s, i) => s.nonEmpty ==> { s.ci.charAt(i) equals (s.charAt(i)) }}
+    }
+  }
+
+  "subSequence" should {
+    "be consistent with the orignal's subSequence" in {
+      def gen = for {
+        s <- Arbitrary.arbitrary[String]
+        i <- Gen.choose(0, s.length - 1)
+        j <- Gen.choose(i, s.length - 1)
+      } yield (s, i, j)
+      Prop.forAll(gen) { case (s, i, j) => s.nonEmpty ==> { s.ci.subSequence(i, j) equals (s.subSequence(i, j).ci) }}
     }
   }
 }
+

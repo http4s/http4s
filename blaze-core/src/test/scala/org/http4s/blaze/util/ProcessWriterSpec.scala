@@ -37,11 +37,11 @@ class ProcessWriterSpec extends Specification {
     w.writeProcess(p).run
     head.stageShutdown()
     Await.ready(head.result, Duration.Inf)
-    new String(head.getBytes(), StandardCharsets.US_ASCII)
+    new String(head.getBytes(), StandardCharsets.ISO_8859_1)
   }
 
   val message = "Hello world!"
-  val messageBuffer = ByteVector(message.getBytes(StandardCharsets.US_ASCII))
+  val messageBuffer = ByteVector(message.getBytes(StandardCharsets.ISO_8859_1))
 
   def runNonChunkedTests(builder: TailStage[ByteBuffer] => ProcessWriter) = {
     import scalaz.stream.Process
@@ -89,11 +89,11 @@ class ProcessWriterSpec extends Specification {
         var counter = 2
         Task {
           counter -= 1
-          if (counter >= 0) ByteVector("foo".getBytes(StandardCharsets.US_ASCII))
+          if (counter >= 0) ByteVector("foo".getBytes(StandardCharsets.ISO_8859_1))
           else throw Cause.Terminated(Cause.End)
         }
       }
-      val p = Process.repeatEval(t) ++ emit(ByteVector("bar".getBytes(StandardCharsets.US_ASCII)))
+      val p = Process.repeatEval(t) ++ emit(ByteVector("bar".getBytes(StandardCharsets.ISO_8859_1)))
       writeProcess(p)(builder) must_== "Content-Length: 9\r\n\r\n" + "foofoobar"
     }
   }
@@ -113,6 +113,24 @@ class ProcessWriterSpec extends Specification {
 
     def builder(tail: TailStage[ByteBuffer]) =
       new ChunkProcessWriter(new StringWriter(), tail, Task.now(Headers()))
+
+    "Not be fooled by zero length chunks" in {
+      val p1 = Process(ByteVector.empty, messageBuffer)
+      writeProcess(p1)(builder) must_== "Content-Length: 12\r\n\r\n" + message
+
+      // here we have to use awaits or the writer will unwind all the components of the emitseq
+      val p2 = Process.await(Task(emit(ByteVector.empty)))(identity) ++
+         Process(messageBuffer) ++
+         Process.await(Task(emit(messageBuffer)))(identity)
+
+      writeProcess(p2)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
+        "c\r\n" +
+        message + "\r\n" +
+        "c\r\n" +
+        message + "\r\n" +
+        "0\r\n" +
+        "\r\n"
+    }
 
     "Write a single emit with length header" in {
       writeProcess(emit(messageBuffer))(builder) must_== "Content-Length: 12\r\n\r\n" + message

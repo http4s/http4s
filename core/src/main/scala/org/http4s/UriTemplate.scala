@@ -277,8 +277,8 @@ object UriTemplate {
     val elements = new mutable.ArrayBuffer[String]()
     f map {
       case FragmentElm(v) => elements.append(v)
-      case SimpleFragmentExp(_) => throw new IllegalStateException("SimpleFragmentExp cannot be tranfered to Uri")
-      case MultiFragmentExp(_) => throw new IllegalStateException("MultiFragmentExp cannot be tranfered to Uri")
+      case SimpleFragmentExp(_) => throw new IllegalStateException("SimpleFragmentExp cannot be converted to a Uri")
+      case MultiFragmentExp(_) => throw new IllegalStateException("MultiFragmentExp cannot be converted to a Uri")
     }
     if (elements.isEmpty) ""
     else elements.mkString(",")
@@ -289,8 +289,8 @@ object UriTemplate {
     q map {
       case ParamElm(n, Nil) => elements.append(n)
       case ParamElm(n, List(v)) => elements.append(n + "=" + v)
-      case ParamElm(n, List(vs)) => vs.foreach(v => elements.append(n + "=" + v))
-      case u => throw new IllegalStateException(s"${u.getClass.getName} cannot be tranfered to Uri")
+      case ParamElm(n, vs) => vs.foreach(v => elements.append(n + "=" + v))
+      case u => throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
     if (elements.isEmpty) ""
     else elements.mkString("&")
