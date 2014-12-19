@@ -178,6 +178,8 @@ class Http1ServerStage(service: HttpService,
           case Failure(t) => fatalError(t)
         }(directec)
 
+      case -\/(EOF) =>
+        closeConnection()
 
       case -\/(t) =>
         logger.error(t)("Error writing body")

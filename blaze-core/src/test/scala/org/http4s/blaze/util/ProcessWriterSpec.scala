@@ -114,6 +114,24 @@ class ProcessWriterSpec extends Specification {
     def builder(tail: TailStage[ByteBuffer]) =
       new ChunkProcessWriter(new StringWriter(), tail, Task.now(Headers()))
 
+    "Not be fooled by zero length chunks" in {
+      val p1 = Process(ByteVector.empty, messageBuffer)
+      writeProcess(p1)(builder) must_== "Content-Length: 12\r\n\r\n" + message
+
+      // here we have to use awaits or the writer will unwind all the components of the emitseq
+      val p2 = Process.await(Task(emit(ByteVector.empty)))(identity) ++
+         Process(messageBuffer) ++
+         Process.await(Task(emit(messageBuffer)))(identity)
+
+      writeProcess(p2)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
+        "c\r\n" +
+        message + "\r\n" +
+        "c\r\n" +
+        message + "\r\n" +
+        "0\r\n" +
+        "\r\n"
+    }
+
     "Write a single emit with length header" in {
       writeProcess(emit(messageBuffer))(builder) must_== "Content-Length: 12\r\n\r\n" + message
     }

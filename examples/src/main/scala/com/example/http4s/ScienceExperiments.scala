@@ -38,6 +38,9 @@ object ScienceExperiments {
 
     case req@GET -> Root / "bigstring3" => Ok(flatBigString)
 
+    case GET -> Root / "zero-chunk" =>
+      Ok(Process("", "foo!")).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+
     case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB
       Ok(new Array[Byte](size))

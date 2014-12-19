@@ -20,10 +20,9 @@ class ChunkProcessWriter(private var headers: StringWriter,
 
   import org.http4s.blaze.util.ChunkProcessWriter._
 
-  private def CRLF = ByteBuffer.wrap(CRLFBytes).asReadOnlyBuffer()
-
   protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
-    pipe.channelWrite(encodeChunk(chunk, Nil))
+    if (chunk.nonEmpty) pipe.channelWrite(encodeChunk(chunk, Nil))
+    else Future.successful(())
   }
 
   protected def writeEnd(chunk: ByteVector): Future[Unit] = {
@@ -36,7 +35,8 @@ class ChunkProcessWriter(private var headers: StringWriter,
           trailerHeaders.foreach( h =>  rr << h.name.toString << ": " << h << '\r' << '\n')   // trailers
           rr << '\r' << '\n'          // end of chunks
           ByteBuffer.wrap(rr.result().getBytes(ISO_8859_1))
-        } else ByteBuffer.wrap(ChunkEndBytes)
+        }
+        else ChunkEndBuffer
       }.runAsync {
         case \/-(buffer) => promise.completeWith(pipe.channelWrite(buffer))
         case -\/(t) => promise.failure(t)
@@ -88,5 +88,11 @@ class ChunkProcessWriter(private var headers: StringWriter,
 
 object ChunkProcessWriter {
   private val CRLFBytes = "\r\n".getBytes(ISO_8859_1)
-  private val ChunkEndBytes = "0\r\n\r\n".getBytes(ISO_8859_1)
+
+  private def CRLF = CRLFBuffer.duplicate()
+  private def ChunkEndBuffer = chunkEndBuffer.duplicate()
+
+  private[this] val CRLFBuffer = ByteBuffer.wrap(CRLFBytes).asReadOnlyBuffer()
+  private[this] val chunkEndBuffer =
+    ByteBuffer.wrap("0\r\n\r\n".getBytes(ISO_8859_1)).asReadOnlyBuffer()
 }
