@@ -5,6 +5,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{WriteListener, ReadListener}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
+import org.http4s.util.TrampolineExecutionContext
 import scodec.bits.ByteVector
 
 import scalaz.stream.Cause.{End, Terminated}
@@ -159,7 +160,7 @@ protected[servlet] class NonBlockingServletIo(chunkSize: Int) extends ServletIo 
       if (response.isChunked)
         autoFlush = true
       response.body.evalMap { chunk =>
-        Task.async[ByteVector => Unit] { cb =>
+        Task.fork(Task.async[ByteVector => Unit] { cb =>
           val blocked = Blocked(cb)
           state.getAndSet(blocked) match {
             case Ready if out.isReady =>
@@ -171,7 +172,7 @@ protected[servlet] class NonBlockingServletIo(chunkSize: Int) extends ServletIo 
             case _ =>
               state.set(Blocked(cb))
           }
-        }.map(_(chunk))
+        }.map(_(chunk)))(TrampolineExecutionContext)
       }.run
     }
     bodyWriter
