@@ -5,7 +5,7 @@ package tomcat
 import java.net.InetSocketAddress
 import javax.servlet.http.HttpServlet
 
-import org.http4s.servlet.{ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
@@ -18,6 +18,7 @@ sealed class TomcatBuilder private (
   private val serviceExecutor: ExecutorService,
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
+  private val servletIo: ServletIo,
   mounts: Vector[Mount]
 )
   extends ServerBuilder
@@ -31,8 +32,9 @@ sealed class TomcatBuilder private (
            serviceExecutor: ExecutorService = serviceExecutor,
            idleTimeout: Duration = idleTimeout,
            asyncTimeout: Duration = asyncTimeout,
+           servletIo: ServletIo = servletIo,
            mounts: Vector[Mount] = mounts): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, mounts)
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, mounts)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): TomcatBuilder =
     copy(socketAddress = socketAddress)
@@ -53,6 +55,7 @@ sealed class TomcatBuilder private (
       val servlet = new Http4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
+        servletIo = builder.servletIo,
         threadPool = builder.serviceExecutor
       )
       val wrapper = tomcat.addServlet("", s"servlet-$index", servlet)
@@ -70,6 +73,9 @@ sealed class TomcatBuilder private (
 
   override def withAsyncTimeout(asyncTimeout: Duration): TomcatBuilder =
     copy(asyncTimeout = asyncTimeout)
+
+  override def withServletIo(servletIo: ServletIo): Self =
+    copy(servletIo = servletIo)
 
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
@@ -110,6 +116,7 @@ object TomcatBuilder extends TomcatBuilder(
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+  servletIo = ServletContainer.DefaultServletIo,
   mounts = Vector.empty
 )
 

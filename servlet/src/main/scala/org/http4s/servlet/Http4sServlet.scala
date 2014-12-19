@@ -18,8 +18,8 @@ import org.log4s.getLogger
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    chunkSize: Int = 4096,
-                    threadPool: ExecutorService = Strategy.DefaultExecutorService)
+                    threadPool: ExecutorService = Strategy.DefaultExecutorService,
+                    private[this] var servletIo: ServletIo = NonBlockingServletIo(4096))
   extends HttpServlet
 {
   private[this] val logger = getLogger
@@ -27,22 +27,28 @@ class Http4sServlet(service: HttpService,
   private val asyncTimeoutMillis = if (asyncTimeout.isFinite()) asyncTimeout.toMillis else -1 // -1 == Inf
 
   private[this] var serverSoftware: ServerSoftware = _
-  private[this] var servletIo: ServletIo = _
 
   override def init(config: ServletConfig) {
     val servletContext = config.getServletContext
     val servletApiVersion = ServletApiVersion(servletContext)
     logger.info(s"Detected Servlet API version $servletApiVersion")
 
-    servletIo = loadServletIo(servletApiVersion)
+    verifyServletIo(servletApiVersion)
+    logServletIo()
     serverSoftware = ServerSoftware(servletContext.getServerInfo)
   }
 
-  private def loadServletIo(servletApiVersion: ServletApiVersion): ServletIo =
-    if (servletApiVersion >= ServletApiVersion(3, 1))
-      new NonBlockingServletIo(chunkSize)
-    else
-      new BlockingServletIo(chunkSize)
+  private def verifyServletIo(servletApiVersion: ServletApiVersion): Unit = servletIo match {
+    case NonBlockingServletIo(chunkSize) if servletApiVersion < ServletApiVersion(3, 1) =>
+      logger.warn("Non-blocking servlet I/O requires Servlet API >= 3.1. Falling back to blocking I/O.")
+      servletIo = BlockingServletIo(chunkSize)
+    case _ => // cool
+  }
+
+  private def logServletIo(): Unit = logger.info(servletIo match {
+    case BlockingServletIo(chunkSize) => s"Using blocking servlet I/O with chunk size ${chunkSize}"
+    case NonBlockingServletIo(chunkSize) => s"Using non-blocking servlet I/O with chunk size ${chunkSize}"
+  })
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse): Unit =
     try {

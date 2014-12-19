@@ -15,18 +15,27 @@ import scalaz.stream.Process._
 import scalaz.stream.io.chunkR
 import scalaz.syntax.either._
 
-protected[servlet] trait ServletIo {
-  def reader(servletRequest: HttpServletRequest): EntityBody
+/**
+ * Determines the mode of I/O used for reading request bodies and writing response bodies.
+ */
+sealed trait ServletIo {
+  protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody
 
   /** May install a listener on the servlet response. */
-  def initWriter(servletResponse: HttpServletResponse): BodyWriter
+  protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter
 }
 
-protected[servlet] class BlockingServletIo(chunkSize: Int) extends ServletIo {
-  override def reader(servletRequest: HttpServletRequest): EntityBody =
+/**
+ * Use standard blocking reads and writes.
+ *
+ * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
+ * require a larger request thread pool for the same load.
+ */
+case class BlockingServletIo(chunkSize: Int) extends ServletIo {
+  override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody =
     chunkR(servletRequest.getInputStream).map(_(chunkSize)).eval
 
-  override def initWriter(servletResponse: HttpServletResponse): BodyWriter = { response: Response =>
+  override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = { response: Response =>
     val out = servletResponse.getOutputStream
     val flush = response.isChunked
     response.body.map { chunk =>
@@ -37,10 +46,18 @@ protected[servlet] class BlockingServletIo(chunkSize: Int) extends ServletIo {
   }
 }
 
-protected[servlet] class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
+/**
+ * Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.
+ *
+ * This can support more concurrent connections on a smaller request thread pool than [[BlockingServletIO]],
+ * but consumes more CPU per request.  It is also known to cause IllegalStateExceptions in the logs
+ * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
+ * operationally annoying.
+ */
+case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   private[this] val LeftEnd = Terminated(End).left
 
-  override def reader(servletRequest: HttpServletRequest): EntityBody = {
+  override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = {
     type Callback = Throwable \/ ByteVector => Unit
 
     sealed trait State
@@ -107,7 +124,7 @@ protected[servlet] class NonBlockingServletIo(chunkSize: Int) extends ServletIo 
     }
   }
 
-  override def initWriter(servletResponse: HttpServletResponse): BodyWriter = {
+  override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = {
     type Callback = Throwable \/ (ByteVector => Unit) => Unit
 
     sealed trait State

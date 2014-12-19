@@ -7,7 +7,7 @@ import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
-import org.http4s.servlet.{ServletContainer, Http4sServlet}
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
@@ -18,6 +18,7 @@ sealed class JettyBuilder private (
   private val serviceExecutor: ExecutorService,
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
+  private val servletIo: ServletIo,
   mounts: Vector[Mount]
 )
   extends ServerBuilder
@@ -30,8 +31,9 @@ sealed class JettyBuilder private (
                    serviceExecutor: ExecutorService = serviceExecutor,
                    idleTimeout: Duration = idleTimeout,
                    asyncTimeout: Duration = asyncTimeout,
+                   servletIo: ServletIo = servletIo,
                    mounts: Vector[Mount] = mounts): JettyBuilder =
-    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, mounts)
+    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, mounts)
 
   override def bindSocketAddress(socketAddress: InetSocketAddress): JettyBuilder =
     copy(socketAddress = socketAddress)
@@ -50,6 +52,7 @@ sealed class JettyBuilder private (
       val servlet = new Http4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
+        servletIo = builder.servletIo,
         threadPool = builder.serviceExecutor
       )
       val servletName = s"servlet-$index"
@@ -62,6 +65,9 @@ sealed class JettyBuilder private (
 
   override def withAsyncTimeout(asyncTimeout: Duration): JettyBuilder =
     copy(asyncTimeout = asyncTimeout)
+
+  override def withServletIo(servletIo: ServletIo): Self =
+    copy(servletIo = servletIo)
 
   def start: Task[Server] = Task.delay {
     val jetty = new JServer()
@@ -102,6 +108,7 @@ object JettyBuilder extends JettyBuilder(
   serviceExecutor = ServerBuilder.DefaultServiceExecutor,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+  servletIo = ServletContainer.DefaultServletIo,
   mounts = Vector.empty
 )
 
