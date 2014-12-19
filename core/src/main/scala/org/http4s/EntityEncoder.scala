@@ -4,6 +4,7 @@ import java.io.{File, InputStream, Reader}
 import java.nio.ByteBuffer
 import java.nio.file.Path
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
 import org.http4s.EntityEncoder._
@@ -148,6 +149,12 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     override def toEntity(a: Task[A]): Task[Entity] = a.flatMap(W.toEntity)
     override def headers: Headers = W.headers
   }
+
+  implicit def futureEncoder[A](implicit W: EntityEncoder[A], ec: ExecutionContext): EntityEncoder[Future[A]] =
+    new EntityEncoder[Future[A]] {
+      override def toEntity(a: Future[A]): Task[Entity] = util.task.futureToTask(a).flatMap(W.toEntity)
+      override def headers: Headers = W.headers
+    }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
