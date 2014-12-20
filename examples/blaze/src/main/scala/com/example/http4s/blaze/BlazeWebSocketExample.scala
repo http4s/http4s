@@ -1,30 +1,29 @@
-package com.example.http4s
-package blaze
+package com.example.http4s.blaze
 
-import scalaz.concurrent.Strategy
+import java.net.InetSocketAddress
+import java.nio.ByteBuffer
 
-import org.http4s._
-import org.http4s.websocket.WebsocketBits._
+import org.http4s.blaze.channel.SocketConnection
+import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.server.HttpService
-import org.http4s.server.blaze.{WebSocketSupport, Http1ServerStage}
+import org.http4s.server.blaze.{Http1ServerStage, WebSocketSupport}
 import org.http4s.server.middleware.URITranslation
-import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
+import org.http4s.websocket.WebsocketBits._
 
-import java.nio.ByteBuffer
-import java.net.InetSocketAddress
-import org.http4s.blaze.channel.SocketConnection
+import scalaz.concurrent.Strategy
 import scalaz.stream.DefaultScheduler
 
 
 object BlazeWebSocketExample extends App {
 
-  import dsl._
+  import org.http4s.dsl._
   import org.http4s.server.websocket._
-  import scala.concurrent.duration._
-  import scalaz.stream.{Process, Sink}
+
+import scala.concurrent.duration._
   import scalaz.concurrent.Task
   import scalaz.stream.async.topic
+  import scalaz.stream.{Process, Sink}
 
 
   val route = HttpService {

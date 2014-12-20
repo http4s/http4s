@@ -15,3 +15,5 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-ghpages" % "0.5.3")
 addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.8.3")
 
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.6")
+
+addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "1.0.0")
