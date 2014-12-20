@@ -1,4 +1,4 @@
-name := "http4s-examples-jetty"
+name := "http4s-examples-blaze"
 
 description := "Runs the examples in http4s' blaze runner"
 
