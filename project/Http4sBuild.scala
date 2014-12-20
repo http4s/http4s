@@ -51,7 +51,7 @@ object Http4sBuild extends Build {
 
   val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
 
-  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M4"
+  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M5"
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.4.0"
