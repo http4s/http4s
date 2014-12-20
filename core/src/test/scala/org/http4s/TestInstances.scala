@@ -67,6 +67,9 @@ trait TestInstances {
 
   implicit val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary { arbitrary[NonEmptyList[CharsetRange.`*`]].map(`Accept-Charset`(_)) }
+
+  implicit val urlFormArb: Arbitrary[UrlForm] =
+    Arbitrary(arbitrary[Map[String, Seq[String]]].map(UrlForm.apply))
 }
 
 

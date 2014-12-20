@@ -2,20 +2,19 @@ package org.http4s
 
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
-import org.xml.sax.{SAXParseException, InputSource}
+
+import org.http4s.util.ByteVectorInstances.byteVectorMonoidInstance
+import org.xml.sax.{InputSource, SAXParseException}
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 import scala.xml.{Elem, XML}
 import scalaz.Liskov.{<~<, refl}
-import scalaz.{\/, -\/, \/-, EitherT}
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
-
-import util.UrlFormCodec.{ decode => formDecode }
-import util.ByteVectorInstances.byteVectorMonoidInstance
+import scalaz.{-\/, EitherT, \/, \/-}
 
 
 /** A type that can be used to decode an [[EntityBody]]
@@ -125,7 +124,7 @@ object EntityDecoder extends EntityDecoderInstances {
 
 /** Implementations of the EntityDecoder instances */
 trait EntityDecoderInstances {
-  import EntityDecoder._
+  import org.http4s.EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////
 
@@ -145,16 +144,6 @@ trait EntityDecoderInstances {
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset))
     )
-
-
-  // application/x-www-form-urlencoded
-  implicit val formEncoded: EntityDecoder[Map[String, Seq[String]]] = {
-    val fn = decodeString(_: Message).flatMap { s =>
-      Task.now(formDecode(s))
-    }
-
-    EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`)(fn.andThen(DecodeResult.apply))
-  }
 
   /**
    * Handles a message body as XML.

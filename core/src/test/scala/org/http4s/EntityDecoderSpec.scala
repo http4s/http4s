@@ -63,20 +63,21 @@ class EntityDecoderSpec extends Http4sSpec {
 
   "application/x-www-form-urlencoded" should {
 
+
     val server: Request => Task[Response] = { req =>
-      formEncoded(req) { form => ResponseBuilder(Ok, form("Name").head) }
+      UrlForm.entityDecoder(Charset.`UTF-8`)(req) { form => ResponseBuilder(Ok, form)(UrlForm.entityEncoder(Charset.`UTF-8`)) }
         .handle{ case NonFatal(t) => ResponseBuilder.basic(Status.BadRequest).run }
     }
 
     "Decode form encoded body" in {
-      val body = strBody("Name=Jonathan+Doe&Age=23&Formula=a+%2B+b+%3D%3D+13%25%21")
-      val result = Map(("Formula",Seq("a + b == 13%!")),
-        ("Age",Seq("23")),
-        ("Name",Seq("Jonathan Doe")))
-
-      val resp = server(Request(body = body)).run
+      val urlForm = UrlForm(Map(
+        "Formula" -> Seq("a + b == 13%!"),
+        "Age"     -> Seq("23"),
+        "Name"    -> Seq("Jonathan Doe")
+      ))
+      val resp = Request().withBody(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`)).flatMap(server).run
       resp.status must_== Ok
-      getBody(resp.body) must_== "Jonathan Doe".getBytes
+      UrlForm.entityDecoder(Charset.`UTF-8`).decode(resp).run.run must_== \/-(urlForm)
     }
 
     "handle a parse failure" in {
