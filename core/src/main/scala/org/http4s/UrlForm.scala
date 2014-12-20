@@ -8,9 +8,13 @@ import scala.collection.immutable.BitSet
 import scala.io.Codec
 
 
-final case class UrlForm(values: Map[String, Seq[String]]) extends AnyVal
+class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal
 
 object UrlForm {
+
+  def apply(values: Map[String, Seq[String]]): UrlForm =
+    if(values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
+    else new UrlForm(values)
 
   def entityEncoder(charset: Charset): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)
@@ -28,19 +32,24 @@ object UrlForm {
       )
     }
 
-  private def urlFormEncode(urlForm: UrlForm): String = {
+  def urlFormEncode(urlForm: UrlForm): String = {
     def encode(s: String): String =
       UrlCodingUtils.urlEncode(s, spaceIsPlus = true, toSkip = urlReserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach { case (k, vs) =>
       if (sb.nonEmpty) sb.append('&')
-
-      if (vs.isEmpty) sb.append(encode(k))
-      else vs.foreach { v =>
-        sb.append(encode(k))
-          .append('=')
-          .append(encode(v))
+      val encodedKey = encode(k)
+      if (vs.isEmpty) sb.append(encodedKey)
+      else {
+        var first = true
+        vs.foreach { v =>
+          if(!first) sb.append('&')
+          else first = false
+          sb.append(encodedKey)
+            .append('=')
+            .append(encode(v))
+        }
       }
     }
     sb.result()
