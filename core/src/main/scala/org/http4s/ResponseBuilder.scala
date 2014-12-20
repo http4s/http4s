@@ -21,8 +21,5 @@ object ResponseBuilder {
     Task.now(Response(status = status, headers = headers, body = body))
   }
 
-  def notFound(request: Request): Task[Response] = {
-    val body = s"${request.pathInfo} not found"
-    apply(Status.NotFound, body)
-  }
+
 }

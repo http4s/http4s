@@ -103,7 +103,7 @@ class Http4sServlet(service: HttpService,
   private def handle(request: Request, ctx: AsyncContext): Unit = {
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     Task.fork {
-      val response = service.or(request, ResponseBuilder.notFound(request))
+      val response = service.or(request, Response.notFound(request))
       renderResponse(response, servletResponse)
     }(threadPool).runAsync {
       case \/-(_) =>

@@ -2,7 +2,7 @@ package org.http4s.server.middleware
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.{Uri, Request, ResponseBuilder}
+import org.http4s.{Uri, Request, Response}
 import org.http4s.server.HttpService
 import org.http4s.Status._
 
@@ -11,15 +11,15 @@ import org.specs2.mutable.Specification
 class UriTranslationSpec extends Specification {
 
   val service = HttpService {
-    case r if r.pathInfo == "/foo" => ResponseBuilder(Ok, "foo")
+    case r if r.pathInfo == "/foo" => Response(Ok).withBody("foo")
 
     case r if r.pathInfo == "/checkattr" =>
       val s = r.attributes.get(URITranslation.translateRootKey)
                .map(f => f("/cat"))
                .getOrElse("None")
-      ResponseBuilder(Ok, s)
+      Response(Ok).withBody(s)
 
-    case r => ResponseBuilder.notFound(r)
+    case r => Response.notFound(r)
   }
 
   val trans1 = URITranslation.translateRoot("/http4s")(service)
