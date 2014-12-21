@@ -8,7 +8,9 @@ import scala.collection.immutable.BitSet
 import scala.io.Codec
 
 
-class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal
+class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal {
+  override def toString: String = values.toString()
+}
 
 object UrlForm {
 
@@ -19,20 +21,23 @@ object UrlForm {
   def entityEncoder(charset: Charset): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)
       .contramap[UrlForm](urlFormEncode)
-      .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`))
+      .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
-  def entityDecoder(charset: Charset): EntityDecoder[UrlForm] =
+
+  implicit val entityDecoder: EntityDecoder[UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
       DecodeResult(
-        EntityDecoder.decodeString(m).map { urlForm =>
-          QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-            .map(_.groupBy(_._1).mapValues(_.flatMap(_._2)))
-            .map(UrlForm.apply)
-        }
+        EntityDecoder.decodeString(m)
+          .map(urlFormDecode(_, m.charset))
       )
     }
 
-  def urlFormEncode(urlForm: UrlForm): String = {
+  def urlFormDecode(urlForm: String, charset: Charset): ParseResult[UrlForm] =
+    QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
+      .map(_.groupBy(_._1).mapValues(_.flatMap(_._2)))
+      .map(UrlForm.apply)
+
+  private def urlFormEncode(urlForm: UrlForm): String = {
     def encode(s: String): String =
       UrlCodingUtils.urlEncode(s, spaceIsPlus = true, toSkip = urlReserved)
 

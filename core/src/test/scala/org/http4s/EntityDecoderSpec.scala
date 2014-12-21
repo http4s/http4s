@@ -1,22 +1,16 @@
 package org.http4s
 
-import scala.language.postfixOps
+import java.io.{File, FileInputStream, InputStreamReader}
 
 import org.http4s.Header.`Content-Type`
-import Status.Ok
-import EntityDecoder._
-
-import org.specs2.mutable.Specification
-
-import org.xml.sax.SAXParseException
-
-import java.io.{FileInputStream,File,InputStreamReader}
-
-import scala.util.control.NonFatal
-import scalaz.{\/-, -\/}
-import scalaz.stream.Process._
-import scalaz.concurrent.{Promise, Task}
+import org.http4s.Status.Ok
 import scodec.bits.ByteVector
+
+import scala.language.postfixOps
+import scala.util.control.NonFatal
+import scalaz.\/-
+import scalaz.concurrent.Task
+import scalaz.stream.Process._
 
 
 class EntityDecoderSpec extends Http4sSpec {
@@ -65,7 +59,7 @@ class EntityDecoderSpec extends Http4sSpec {
 
 
     val server: Request => Task[Response] = { req =>
-      UrlForm.entityDecoder(Charset.`UTF-8`)(req) { form => ResponseBuilder(Ok, form)(UrlForm.entityEncoder(Charset.`UTF-8`)) }
+      UrlForm.entityDecoder(req) { form => ResponseBuilder(Ok, form)(UrlForm.entityEncoder(Charset.`UTF-8`)) }
         .handle{ case NonFatal(t) => ResponseBuilder.basic(Status.BadRequest).run }
     }
 
@@ -77,12 +71,11 @@ class EntityDecoderSpec extends Http4sSpec {
       ))
       val resp = Request().withBody(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`)).flatMap(server).run
       resp.status must_== Ok
-      UrlForm.entityDecoder(Charset.`UTF-8`).decode(resp).run.run must_== \/-(urlForm)
+      UrlForm.entityDecoder.decode(resp).run.run must_== \/-(urlForm)
     }
 
     "handle a parse failure" in {
-      val body = strBody("%C")
-      val resp = server(Request(body = body)).run
+      val resp = server(Request(body = strBody("%C"))).run
       resp.status must_== Status.BadRequest
     }
 
