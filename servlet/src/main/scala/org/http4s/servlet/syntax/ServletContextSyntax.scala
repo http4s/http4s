@@ -3,7 +3,7 @@ package org.http4s.servlet.syntax
 import javax.servlet.{ServletRegistration, ServletContext}
 
 import org.http4s.server.{AsyncTimeoutSupport, HttpService}
-import org.http4s.servlet.Http4sServlet
+import org.http4s.servlet.{NonBlockingServletIo, Http4sServlet}
 
 import scalaz.concurrent.Strategy
 import scalaz.syntax.Ops
@@ -22,7 +22,7 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
       threadPool = Strategy.DefaultExecutorService,
-      chunkSize = 4096
+      servletIo = NonBlockingServletIo(4096)
     )
     val reg = self.addServlet(name, servlet)
     reg.setLoadOnStartup(1)
