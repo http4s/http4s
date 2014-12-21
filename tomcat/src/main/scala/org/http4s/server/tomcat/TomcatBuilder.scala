@@ -6,6 +6,7 @@ import java.net.InetSocketAddress
 import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
+import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
 
@@ -20,6 +21,7 @@ sealed class TomcatBuilder private (
   private val serviceExecutor: ExecutorService,
   private val idleTimeout: Duration,
   private val asyncTimeout: Duration,
+  private val servletIo: ServletIo,
   sslBits: Option[SSLBits],
   mounts: Vector[Mount]
 )
@@ -35,10 +37,10 @@ sealed class TomcatBuilder private (
            serviceExecutor: ExecutorService = serviceExecutor,
            idleTimeout: Duration = idleTimeout,
            asyncTimeout: Duration = asyncTimeout,
+           servletIo: ServletIo = servletIo,
            sslBits: Option[SSLBits] = sslBits,
            mounts: Vector[Mount] = mounts): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, sslBits, mounts)
-
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
@@ -63,6 +65,7 @@ sealed class TomcatBuilder private (
       val servlet = new Http4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
+        servletIo = builder.servletIo,
         threadPool = builder.serviceExecutor
       )
       val wrapper = tomcat.addServlet("", s"servlet-$index", servlet)
@@ -80,6 +83,9 @@ sealed class TomcatBuilder private (
 
   override def withAsyncTimeout(asyncTimeout: Duration): TomcatBuilder =
     copy(asyncTimeout = asyncTimeout)
+
+  override def withServletIo(servletIo: ServletIo): Self =
+    copy(servletIo = servletIo)
 
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
@@ -142,6 +148,7 @@ object TomcatBuilder extends TomcatBuilder(
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
+  servletIo = ServletContainer.DefaultServletIo,
   sslBits = None,
   mounts = Vector.empty
 )
