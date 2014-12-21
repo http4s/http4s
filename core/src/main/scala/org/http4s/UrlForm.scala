@@ -20,7 +20,7 @@ object UrlForm {
 
   def entityEncoder(charset: Charset): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)
-      .contramap[UrlForm](urlFormEncode)
+      .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
 
@@ -28,18 +28,18 @@ object UrlForm {
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
       DecodeResult(
         EntityDecoder.decodeString(m)
-          .map(urlFormDecode(_, m.charset))
+          .map(decodeString(m.charset))
       )
     }
 
-  def urlFormDecode(urlForm: String, charset: Charset): ParseResult[UrlForm] =
+  private[http4s] def decodeString(charset: Charset)(urlForm: String): ParseResult[UrlForm] =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(_.groupBy(_._1).mapValues(_.flatMap(_._2)))
       .map(UrlForm.apply)
 
-  private def urlFormEncode(urlForm: UrlForm): String = {
+  private[http4s] def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
-      UrlCodingUtils.urlEncode(s, spaceIsPlus = true, toSkip = urlReserved)
+      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = urlReserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach { case (k, vs) =>

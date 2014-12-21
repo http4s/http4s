@@ -11,8 +11,14 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
 
     "decode . encode == right" in prop{ (urlForm: UrlForm, charset: Charset) =>
       UrlForm.entityDecoder.decode(
-        Request().withBody(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`)).run
+        Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).run
       ).run.run must_== \/-(urlForm)
+    }
+
+    "decodeString . encodeString == right" in prop{ (urlForm: UrlForm, charset: Charset) =>
+      UrlForm.decodeString(charset)(
+        UrlForm.encodeString(charset)(urlForm)
+      ) must_== \/-(urlForm)
     }
 
   }
