@@ -125,7 +125,7 @@ class Http1ServerStage(service: HttpService,
 
           case -\/(t)    =>
             logger.error(t)(s"Error running route: $req")
-            val resp = ResponseBuilder(InternalServerError, "500 Internal Service Error\n" + t.getMessage)
+            val resp = Response(InternalServerError).withBody("500 Internal Service Error\n" + t.getMessage)
               .run
               .withHeaders(Connection("close".ci))
 

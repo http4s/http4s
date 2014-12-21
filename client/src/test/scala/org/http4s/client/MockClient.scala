@@ -1,7 +1,7 @@
 package org.http4s.client
 
 import org.http4s.server._
-import org.http4s.{ResponseBuilder, Response, Request, Status}
+import org.http4s.{Response, Request}
 
 import scalaz.concurrent.Task
 
