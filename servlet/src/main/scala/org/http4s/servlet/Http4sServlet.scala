@@ -133,7 +133,7 @@ class Http4sServlet(service: HttpService,
       headers = toHeaders(req),
       body = servletIo.reader(req),
       attributes = AttributeMap(
-        Request.Keys.PathInfoCaret(req.getServletPath.length),
+        Request.Keys.PathInfoCaret(req.getContextPath.length + req.getServletPath.length),
         Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr)),
         Request.Keys.ServerSoftware(serverSoftware)
       )
