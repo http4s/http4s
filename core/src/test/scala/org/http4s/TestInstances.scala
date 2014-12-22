@@ -1,17 +1,14 @@
 package org.http4s
 
-import java.net.URLEncoder
-import java.nio.CharBuffer
+import java.nio.charset.{Charset => NioCharset}
 
 import org.http4s.Header.`Accept-Charset`
-
-import scala.collection.JavaConverters._
-import java.nio.charset.{Charset => NioCharset}
-import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
+import org.scalacheck.{Arbitrary, Gen}
 
-import scala.util.Try
+import scala.collection.JavaConverters._
+import scala.collection.immutable.BitSet
 import scalaz.NonEmptyList
 import scalaz.scalacheck.ScalazArbitrary._
 
@@ -78,6 +75,10 @@ trait TestInstances {
     arbitrary[Map[String, Seq[String]]].map(UrlForm.apply)
       .suchThat(!_.toString.contains('\ufffe'))
   }
+ 
+  implicit val bitSetArb: Arbitrary[BitSet] = Arbitrary(
+    Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
+  )
 }
 
 

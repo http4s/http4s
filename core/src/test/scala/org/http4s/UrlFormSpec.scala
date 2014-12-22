@@ -1,9 +1,11 @@
 package org.http4s
 
+import org.http4s.util.UrlCodingUtils
 import org.scalacheck.{Arbitrary, Gen}
-import org.specs2.matcher.Parameters
 import org.specs2.ScalaCheck
+import org.specs2.matcher.Parameters
 
+import scala.collection.immutable.BitSet
 import scalaz.\/-
 
 
@@ -21,7 +23,8 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
   )
 
   "UrlForm" should {
-    "decode . encode == right" in prop{ (urlForm: UrlForm, charset: Charset) =>
+
+    "entityDecoder . entityEncoder == right" in prop{ (urlForm: UrlForm, charset: Charset) =>
       UrlForm.entityDecoder.decode(
         Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).run
       ).run.run must_== \/-(urlForm)
@@ -32,6 +35,13 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
         UrlForm.encodeString(charset)(urlForm)
       ) must_== \/-(urlForm)
     }
+
+    "urlDecode . urlEncode == right" in prop{ (s: String, charset: Charset, spaceIsPlus: Boolean, toSkip: BitSet) =>
+      UrlCodingUtils.urlDecode(
+        UrlCodingUtils.urlEncode(s, charset, spaceIsPlus, toSkip),
+        charset, spaceIsPlus, toSkip) must_== s
+    }
+
   }
 
 }

@@ -15,6 +15,7 @@ class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal {
 object UrlForm {
 
   def apply(values: Map[String, Seq[String]]): UrlForm =
+    // value "" -> Seq() is just noise and it is not maintain during encoding round trip
     if(values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
     else new UrlForm(values)
 
