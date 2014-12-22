@@ -1,5 +1,6 @@
 # v0.5.1
 * Include context path in calculation of scriptName/pathInfo. [#140](https://github.com/http4s/http4s/issues/140)
+* Fix bug in UriTemplate for query params with multiple keys.
 
 # v0.5.0 (2014-12-11)
 * Client syntax has evloved and now will include Accept headers when used with EntityDecoder
