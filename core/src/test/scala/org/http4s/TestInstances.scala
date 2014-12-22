@@ -1,5 +1,8 @@
 package org.http4s
 
+import java.net.URLEncoder
+import java.nio.CharBuffer
+
 import org.http4s.Header.`Accept-Charset`
 
 import scala.collection.JavaConverters._
@@ -8,6 +11,7 @@ import org.scalacheck.{Arbitrary, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
 
+import scala.util.Try
 import scalaz.NonEmptyList
 import scalaz.scalacheck.ScalazArbitrary._
 
@@ -68,8 +72,12 @@ trait TestInstances {
   implicit val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary { arbitrary[NonEmptyList[CharsetRange.`*`]].map(`Accept-Charset`(_)) }
 
-  implicit val urlFormArb: Arbitrary[UrlForm] =
-    Arbitrary(arbitrary[Map[String, Seq[String]]].map(UrlForm.apply))
+  implicit val urlFormArb: Arbitrary[UrlForm] = Arbitrary {
+    // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
+    // Ain't nobody got time for that.
+    arbitrary[Map[String, Seq[String]]].map(UrlForm.apply)
+      .suchThat(!_.toString.contains('\ufffe'))
+  }
 }
 
 
