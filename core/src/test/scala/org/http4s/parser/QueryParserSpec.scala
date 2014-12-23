@@ -70,6 +70,11 @@ class QueryParserSpec extends Http4sSpec {
       r3 must beRightDisjunction(Seq("stuff" -> Some("cat")))
       cs.remaining() must_== 0
     }
-  }
 
+    "be stack safe" in {
+      val value = Stream.continually('X').take(1000000).mkString
+      val query = s"little=x&big=${value}"
+      parseQueryString(query) must beRightDisjunction(Seq("little" -> Some("x"), "big" -> Some(value)))
+    }
+  }
 }
