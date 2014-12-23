@@ -44,6 +44,12 @@ class QueryParserSpec extends Http4sSpec {
       parseQueryString("a=b%G") must beRightDisjunction(Seq("a" -> Some("b%G")))
     }
 
+    "Reject a query with invalid char" in {
+      parseQueryString("獾") must beLeftDisjunction
+      parseQueryString("foo獾bar") must beLeftDisjunction
+      parseQueryString("foo=獾") must beLeftDisjunction
+    }
+
     "Keep CharBuffer position if not flushing" in {
       val s = "key=value&stuff=cat"
       val cs = CharBuffer.wrap(s)
