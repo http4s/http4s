@@ -1,3 +1,5 @@
+import com.typesafe.tools.mima.plugin.MimaKeys
+
 name := "http4s-core"
 
 description := "Core http4s framework"
@@ -36,3 +38,22 @@ buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion)
 buildInfoPackage <<= organization
 
 mimaSettings
+
+// This was a private type.
+MimaKeys.binaryIssueFilters ++= {
+  import com.typesafe.tools.mima.core._
+  import com.typesafe.tools.mima.core.ProblemFilters._
+  Seq(
+    exclude[MissingTypesProblem]("org.http4s.parser.QueryParser"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.input"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.org$http4s$parser$QueryParser$$decodeParam"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.QChar"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.SubDelims"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.Unreserved"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.charset"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.QueryString"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.Pchar"),
+    exclude[MissingMethodProblem]("org.http4s.parser.QueryParser.QueryParameter"),
+    exclude[IncompatibleMethTypeProblem]("org.http4s.parser.QueryParser.this")
+  )
+}
