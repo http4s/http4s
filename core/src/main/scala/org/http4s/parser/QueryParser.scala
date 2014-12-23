@@ -19,7 +19,7 @@ import scalaz.{-\/, \/-, \/}
   * If "" should be interpreted as no query that __MUST__ be
   * checked beforehand.
   */
-private[http4s] class QueryParser(codec: Codec) {
+private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean) {
 
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
@@ -56,16 +56,21 @@ private[http4s] class QueryParser(codec: Codec) {
       }
     }
 
+    def endPair(): Unit = {
+      if (!flush) input.mark()
+      appendValue()
+      state = KEY
+    }
+
     if (!flush) input.mark()
 
     // begin iterating through the chars
     while(error == null && input.hasRemaining) {
       val c = input.get()
       (c: @switch) match {
-        case '&' =>
-          if (!flush) input.mark()
-          appendValue()
-          state = KEY
+        case '&' => endPair()
+
+        case ';' if colonSeparators => endPair()
 
         case '=' =>
           if (state == VALUE) valAcc.append('=')
@@ -100,7 +105,7 @@ private[http4s] object QueryParser {
   type Param = (String,Option[String])
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Seq[Param]] = {
     if (queryString.isEmpty) \/-(Nil)
-    else new QueryParser(codec).decode(CharBuffer.wrap(queryString), true)
+    else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
   }
 
   private sealed trait State
