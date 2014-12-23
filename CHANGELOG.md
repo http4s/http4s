@@ -1,4 +1,4 @@
-# v0.5.1
+# v0.5.1 (2014-12-23)
 * Include context path in calculation of scriptName/pathInfo. [#140](https://github.com/http4s/http4s/issues/140)
 * Fix bug in UriTemplate for query params with multiple keys.
 * Fix StackOverflowError in query parser. [#147](https://github.com/http4s/http4s/issues/147)

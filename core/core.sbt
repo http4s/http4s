@@ -1,3 +1,5 @@
+import com.typesafe.tools.mima.plugin.MimaKeys
+
 name := "http4s-core"
 
 description := "Core http4s framework"
