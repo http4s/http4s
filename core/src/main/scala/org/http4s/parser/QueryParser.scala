@@ -19,7 +19,7 @@ import scalaz.{-\/, \/-, \/}
   * If "" should be interpreted as no query that __MUST__ be
   * checked beforehand.
   */
-class QueryParser(codec: Codec) {
+private[http4s] class QueryParser(codec: Codec) {
 
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
@@ -96,7 +96,7 @@ class QueryParser(codec: Codec) {
     }
 }
 
-object QueryParser {
+private[http4s] object QueryParser {
   type Param = (String,Option[String])
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Seq[Param]] = {
     if (queryString.isEmpty) \/-(Nil)
