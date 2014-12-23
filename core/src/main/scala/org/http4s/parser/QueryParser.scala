@@ -1,70 +1,115 @@
-/*
- * Derived from https://github.com/spray/spray/blob/v1.1-M7/spray-http/src/main/scala/spray/http/parser/QueryParser.scala
- *
- * Copyright (C) 2011-2012 spray.io
- *
- * Licensed under the Apache License, Version 2.0 (the "License");
- * you may not use this file except in compliance with the License.
- * You may obtain a copy of the License at
- *
- * http://www.apache.org/licenses/LICENSE-2.0
- *
- * Unless required by applicable law or agreed to in writing, software
- * distributed under the License is distributed on an "AS IS" BASIS,
- * WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
- * See the License for the specific language governing permissions and
- * limitations under the License.
- */
-package org.http4s
-package parser
+package org.http4s.parser
 
-import org.parboiled2._
 import java.io.UnsupportedEncodingException
-import scala.io.Codec
-import org.http4s.parser.QueryParser._
+import java.nio.CharBuffer
+import org.http4s._
 import org.http4s.util.string._
-import org.parboiled2.CharPredicate._
 
-// TODO: this could be made more efficient. For a good example, look at the Jetty impl
-// https://github.com/eclipse/jetty.project/blob/release-9/jetty-util/src/main/java/org/eclipse/jetty/util/UrlEncoded.java
+import scala.annotation.switch
+import scala.collection.immutable.BitSet
+import scala.collection.mutable.ListBuffer
+import scala.io.Codec
 
-private[parser] class QueryParser(val input: ParserInput, codec: Codec) extends Parser {
+import QueryParser._
 
-  def charset = codec.charSet
+import scalaz.{-\/, \/-, \/}
 
-  def QueryString: Rule1[Seq[Param]] = rule {
-      EOI ~ push(Seq.empty[Param]) |
-      zeroOrMore(QueryParameter).separatedBy("&") ~ EOI
+/** Split an encoded query string into unencoded key value pairs
+  * It always assumes any input is a  valid query, including "".
+  * If "" should be interpreted as no query that __MUST__ be
+  * checked beforehand.
+  */
+class QueryParser(codec: Codec) {
+
+  /** Decodes the input into key value pairs.
+    * `flush` signals that this is the last input */
+  def decode(input: CharBuffer, flush: Boolean): ParseResult[Seq[Param]] = {
+    val acc = new ListBuffer[Param]
+    decodeBuffer(input, (k,v) => acc += ((k,v)), flush) match {
+      case Some(e) => -\/(ParseFailure(e))
+      case None    => \/-(acc.result)
+    }
   }
 
-  def QueryParameter: Rule1[Param] = rule {
-    capture(zeroOrMore(!anyOf("&=") ~ QChar)) ~ optional('=' ~ capture(zeroOrMore(!anyOf("&") ~ QChar))) ~> {
-      (k: String, v: Option[String]) => (decodeParam(k), v.map(decodeParam(_)))
+  // Some[String] represents an error message, None = success
+  def decodeBuffer(input: CharBuffer, acc: (String, Option[String]) => Unit, flush: Boolean): Option[String] = {
+    val valAcc = new StringBuilder(32)
+
+    var error: String = null
+    var key: String = null
+    var state: State = KEY
+
+    def appendValue(): Unit = {
+      if (state == KEY) {
+        val s = valAcc.result()
+        val k = decodeParam(s)
+        valAcc.clear()
+        acc(k, None)
+      }
+      else {
+        val k = decodeParam(key)
+        key = null
+        val s = valAcc.result()
+        valAcc.clear()
+        val v = Some(decodeParam(s))
+        acc(k, v)
+      }
+    }
+
+    if (!flush) input.mark()
+
+    // begin iterating through the chars
+    while(error == null && input.hasRemaining) {
+      val c = input.get()
+      (c: @switch) match {
+        case '&' =>
+          if (!flush) input.mark()
+          appendValue()
+          state = KEY
+
+        case '=' =>
+          if (state == VALUE) valAcc.append('=')
+          else {
+            state = VALUE
+            key = valAcc.result()
+            valAcc.clear()
+          }
+
+        case c if (QChars.contains(c)) => valAcc.append(c)
+
+        case c => error = s"Invalid char while splitting key/value pairs: '$c'"
+      }
+    }
+    if (error != null) Some(error)
+    else {
+      if (flush) appendValue()
+      else input.reset()    // rewind to the last mark position
+      None
     }
   }
 
   private def decodeParam(str: String): String =
     try str.formDecode(codec)
     catch {
-        case e: IllegalArgumentException     => ""
-        case e: UnsupportedEncodingException => ""
+      case e: IllegalArgumentException     => ""
+      case e: UnsupportedEncodingException => ""
     }
-
-  def QChar = rule { !'&' ~ (Pchar | '/' | '?') }
-
-  // Different than the RFC 3986 in that it lacks % encoded requirements.
-  def Pchar = rule { Unreserved | SubDelims | ":" | "@" | "%" }
-
-  def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }
-
-  def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 }
 
-private[http4s] object QueryParser {
+object QueryParser {
   type Param = (String,Option[String])
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Seq[Param]] = {
-    new QueryParser(queryString, codec)
-      .QueryString
-      .run()(ScalazDeliverySchemes.Disjunction)
+    if (queryString.isEmpty) \/-(Nil)
+    else new QueryParser(codec).decode(CharBuffer.wrap(queryString), true)
   }
+
+  private sealed trait State
+  private case object KEY extends State
+  private case object VALUE extends State
+
+  private val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq:_*)
+  private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
+  private def Unreserved =  "-._~".toSet ++ AlphaNum
+  private def SubDelims  = "!$&'()*+,;=".toSet
+  private def AlphaNum   = (('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9')).toSet
 }
