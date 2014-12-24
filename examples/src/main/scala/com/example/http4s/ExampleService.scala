@@ -7,7 +7,7 @@ import org.http4s.Header.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
-import org.http4s.json4s.jackson.Json4sJacksonSupport._
+import org.http4s.json4s.jackson._
 import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
