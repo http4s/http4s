@@ -30,7 +30,7 @@ lazy val `json4s-jackson` = project.dependsOn(json4s, jawn % "compile;test->test
 
 lazy val argonaut = project.dependsOn(core % "compile;test->test", jawn % "compile;test->test")
 
-lazy val examples = project.dependsOn(server, dsl, `json4s-jackson`)
+lazy val examples = project.dependsOn(server, dsl, argonaut)
 
 lazy val `examples-blaze` = Project("examples-blaze", file("examples/blaze")).dependsOn(examples, `blaze-server`)
 

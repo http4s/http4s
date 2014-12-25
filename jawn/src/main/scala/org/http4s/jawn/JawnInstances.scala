@@ -4,7 +4,7 @@ package jawn
 import _root_.jawn.{AsyncParser, Facade, ParseException}
 import jawnstreamz._
 
-import scalaz.\/-
+import scalaz.{-\/, \/-}
 import scalaz.stream.Process.emit
 
 trait JawnInstances {
@@ -14,7 +14,7 @@ trait JawnInstances {
         msg.body.parseJson(AsyncParser.SingleValue).partialAttempt {
           case pe: ParseException =>
             emit(ParseFailure("Invalid JSON", pe.getMessage))
-        }.runLastOr(\/-(facade.jstring("fart")))
+        }.runLastOr(-\/(ParseFailure("Invalid JSON", "Empty JSON text is not allowed.")))
       }
     }
 }

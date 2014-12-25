@@ -4,18 +4,25 @@ package jawn
 import _root_.jawn.Facade
 
 trait JawnDecodeSupportSpec[J] extends Http4sSpec with JawnInstances {
-  def testJawnDecoder()(implicit facade: Facade[J]) {
-    "jawnDecoder" should {
+  def testJsonDecoder(decoder: EntityDecoder[J]) {
+    "json decoder" should {
       "return right when the entity is valid" in {
-        val resp = ResponseBuilder(Status.Ok, body = """{"valid": true}""").run
-        jawnDecoder.decode(resp).run.run must beRightDisjunction
+        val resp = Response(Status.Ok).withBody("""{"valid": true}""").run
+        decoder.decode(resp).run.run must beRightDisjunction
       }
 
       "return a ParseFailure when the entity is invalid" in {
-        val resp = ResponseBuilder(Status.Ok, body = """garbage""").run
-        jawnDecoder.decode(resp).run.run must beLeftDisjunction/*.like {
+        val resp = Response(Status.Ok).withBody("""garbage""").run
+        decoder.decode(resp).run.run must beLeftDisjunction.like {
           case ParseFailure("Invalid JSON", _) => ok
-        }*/
+        }
+      }
+
+      "return a ParseFailure when the entity is empty" in {
+        val resp = Response(Status.Ok).withBody("").run
+        decoder.decode(resp).run.run must beLeftDisjunction.like {
+          case ParseFailure("Invalid JSON", _) => ok
+        }
       }
     }
   }

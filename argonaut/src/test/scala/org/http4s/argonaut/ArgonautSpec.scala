@@ -1,14 +1,13 @@
 package org.http4s.argonaut
 
 import _root_.argonaut._
-import _root_.jawn.support.argonaut.Parser.facade
 import org.http4s.Header.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.MediaType
 import org.http4s.EntityEncoderSpec.writeToString
 
 class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
-  testJawnDecoder()
+  testJsonDecoder(json)
 
   "writing JSON" should {
     val json = Json("test" -> jString("ArgonautSupport"))

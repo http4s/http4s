@@ -7,5 +7,5 @@ import org.http4s.jawn.JawnDecodeSupportSpec
 import org.json4s.JsonAST.JValue
 
 class Json4sNativeSupportSpec extends JawnDecodeSupportSpec[JValue] {
-  testJawnDecoder()
+  testJsonDecoder(json)
 }
