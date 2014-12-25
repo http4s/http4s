@@ -17,3 +17,5 @@ addSbtPlugin("com.github.gseitz" % "sbt-release" % "0.8.5")
 addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.6")
 
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "1.0.0")
+
+addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0.4")

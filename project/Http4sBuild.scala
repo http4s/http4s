@@ -77,4 +77,5 @@ object Http4sBuild extends Build {
   lazy val scodecBits          = "org.typelevel"            %% "scodec-bits"             % "1.0.4"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.15"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
+  lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.0.4"
 }
