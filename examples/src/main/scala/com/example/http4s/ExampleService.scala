@@ -1,5 +1,7 @@
 package com.example.http4s
 
+import _root_.argonaut.JString
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -7,19 +9,19 @@ import org.http4s.Header.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
-import org.http4s.json4s.jackson.Json4sJacksonSupport._
+import org.http4s.argonaut._
 import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.twirl._
 
-import org.json4s.JsonDSL._
-import org.json4s.JValue
-
 import scalaz.stream.Process
 import scalaz.concurrent.Task
 import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
+
+import _root_.argonaut._
+import Argonaut._
 
 object ExampleService {
 
@@ -69,7 +71,8 @@ object ExampleService {
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
-      Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
+      val json = jSingleObject("origin", jString(req.remoteAddr.getOrElse("unknown")))
+      Ok(json)
 
     case req @ GET -> Root / "redirect" =>
       // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types

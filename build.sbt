@@ -33,7 +33,7 @@ lazy val argonaut = project.dependsOn(core % "compile;test->test", jawn % "compi
 // The plugin must be enabled for the tests
 lazy val twirl = project.dependsOn(core % "compile;test->test").enablePlugins(SbtTwirl)
 
-lazy val examples = project.dependsOn(server, dsl, `json4s-jackson`, twirl).enablePlugins(SbtTwirl)
+lazy val examples = project.dependsOn(server, dsl, argonaut, twirl).enablePlugins(SbtTwirl)
 
 lazy val `examples-blaze` = Project("examples-blaze", file("examples/blaze")).dependsOn(examples, `blaze-server`)
 
