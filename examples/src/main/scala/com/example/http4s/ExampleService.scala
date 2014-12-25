@@ -12,6 +12,7 @@ import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
+import org.http4s.twirl._
 
 import org.json4s.JsonDSL._
 import org.json4s.JValue
@@ -87,7 +88,8 @@ object ExampleService {
         .withHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "echo" =>
-      Ok(submissionForm("echo data"))
+      // submissionForm is a Play Framework template -- see src/main/twirl.
+      Ok(html.submissionForm("echo data"))
 
     case req @ POST -> Root / "echo2" =>
       // Even more useful, the body can be transformed in the response
@@ -95,7 +97,7 @@ object ExampleService {
         .withHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo2" =>
-      Ok(submissionForm("echo data"))
+      Ok(html.submissionForm("echo data"))
 
     case req @ POST -> Root / "sum"  =>
       // EntityDecoders allow turning the body into something useful
@@ -112,7 +114,7 @@ object ExampleService {
       }
 
     case req @ GET -> Root / "sum" =>
-      Ok(submissionForm("sum"))
+      Ok(html.submissionForm("sum"))
 
     ///////////////////////////////////////////////////////////////
     //////////////// Form encoding example ////////////////////////
@@ -165,7 +167,7 @@ object ExampleService {
       }
 
     case req @ GET -> Root / "short-sum" =>
-      Ok(submissionForm("short-sum"))
+      Ok(html.submissionForm("short-sum"))
   }, 3)
 
   // This is a mock data source, but could be a Process representing results from a database
@@ -177,14 +179,5 @@ object ExampleService {
                         .take(n)
 
     Process.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
-  }
-
-  private def submissionForm(msg: String) = {
-    <html><body>
-      <form name="input" method="post">
-        <p>{msg}: <input type="text" name={msg}/></p>
-        <p><input type="submit" value="Submit"/></p>
-      </form>
-    </body></html>
   }
 }
