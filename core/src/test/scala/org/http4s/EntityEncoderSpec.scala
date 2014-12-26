@@ -3,6 +3,7 @@ package org.http4s
 import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
+import org.http4s.Header.`Content-Type`
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 
@@ -101,10 +102,10 @@ class EntityEncoderSpec extends Http4sSpec {
       writeToString(reader) must_== "string reader"
     }
 
-    "give the media type" in {
-      implicitly[EntityEncoder[String]].contentType must_== Some(MediaType.`text/plain`)
-      implicitly[EntityEncoder[ByteVector]].contentType must_== Some(MediaType.`application/octet-stream`)
-      implicitly[EntityEncoder[Array[Byte]]].contentType must_== Some(MediaType.`application/octet-stream`)
+    "give the content type" in {
+      EntityEncoder[String].contentType must_== Some(`Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`))
+      EntityEncoder[ByteVector].contentType must_== Some(`Content-Type`(MediaType.`application/octet-stream`))
+      EntityEncoder[Array[Byte]].contentType must_== Some(`Content-Type`(MediaType.`application/octet-stream`))
     }
 
     "work with local defined EntityEncoders" in {
@@ -116,8 +117,8 @@ class EntityEncoderSpec extends Http4sSpec {
       implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA]()(_ => ByteVector.view("A".getBytes))
       implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB]()(_ => ByteVector.view("B".getBytes))
 
-      implicitly[EntityEncoder[ModelA]] must_== w1
-      implicitly[EntityEncoder[ModelB]] must_== w2
+      EntityEncoder[ModelA] must_== w1
+      EntityEncoder[ModelB] must_== w2
     }
   }
 }

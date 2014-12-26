@@ -37,11 +37,8 @@ trait EntityEncoder[A] { self =>
     override def headers: Headers = self.headers
   }
 
-  /** Get the [[MediaType]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def contentType: Option[MediaType] = headers.get(`Content-Type`).map(_.mediaType)
-
-  /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def charset: Option[Charset] = headers.get(`Content-Type`).map(_.charset)
+  /** Get the [[`Content-Type`]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
   /** Generate a new EntityEncoder that will contain the [[`Content-Type`]] header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[A] = new EntityEncoder[A] {
