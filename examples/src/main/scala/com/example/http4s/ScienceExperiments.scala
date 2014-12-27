@@ -3,6 +3,7 @@ package com.example.http4s
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.HttpService
+import org.http4s.scalaxml._
 import scodec.bits.ByteVector
 
 import scalaz.{Reducer, Monoid}

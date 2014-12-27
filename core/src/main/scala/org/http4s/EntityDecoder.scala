@@ -1,13 +1,10 @@
 package org.http4s
 
-import java.io.{File, FileOutputStream, StringReader}
-import javax.xml.parsers.SAXParser
-import org.xml.sax.{SAXParseException, InputSource}
+import java.io.{File, FileOutputStream}
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
-import scala.xml.{Elem, XML}
 import scalaz.Liskov.{<~<, refl}
 import scalaz.{\/, -\/, \/-, EitherT}
 import scalaz.concurrent.Task
@@ -15,8 +12,7 @@ import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
 
 import util.UrlFormCodec.{ decode => formDecode }
-import util.ByteVectorInstances.byteVectorMonoidInstance
-
+import util.byteVector._
 
 /** A type that can be used to decode an [[EntityBody]]
   * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
@@ -146,7 +142,6 @@ trait EntityDecoderInstances {
       collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset))
     )
 
-
   // application/x-www-form-urlencoded
   implicit val formEncoded: EntityDecoder[Map[String, Seq[String]]] = {
     val fn = decodeString(_: Message).flatMap { s =>
@@ -155,31 +150,6 @@ trait EntityDecoderInstances {
 
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`)(fn.andThen(DecodeResult.apply))
   }
-
-  /**
-   * Handles a message body as XML.
-   *
-   * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
-   *
-   * @param parser the SAX parser to use to parse the XML
-   * @return an XML element
-   */
-  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] =
-    EntityDecoder.decodeBy (MediaType.`text/xml`){ msg =>
-      collectBinary(msg).flatMap[Elem] { arr =>
-        val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
-        try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
-        catch {
-          case e: SAXParseException =>
-            val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
-            DecodeResult.failure(Task.now(ParseFailure("Invalid XML", msg)))
-
-          case NonFatal(e) => DecodeResult(Task.fail(e))
-        }
-      }
-    }
-
-  def xml: EntityDecoder[Elem] = xml()
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] =

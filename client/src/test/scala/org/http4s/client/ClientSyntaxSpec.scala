@@ -2,6 +2,7 @@ package org.http4s
 package client
 
 import org.http4s.Status.ResponseClass._
+import org.parboiled2.ParseError
 
 import scalaz.concurrent.Task
 
@@ -85,8 +86,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "attemptAs with failed parsing result" in {
-      client(req).attemptAs(EntityDecoder.xml())
-        .run.run must beLeftDisjunction
+      val grouchyEncoder = EntityDecoder.decodeBy[Any](MediaRange.`*/*`) { _ =>
+        DecodeResult.failure(ParseFailure("MEH!", "MEH!"))
+      }
+      client(req).attemptAs[Any](grouchyEncoder).run.run must beLeftDisjunction
     }
 
     "prepAs must add Accept header" in {

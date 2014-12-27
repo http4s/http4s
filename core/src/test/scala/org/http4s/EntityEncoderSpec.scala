@@ -13,10 +13,9 @@ import scalaz.concurrent.Task
 import scalaz.stream.text.utf8Decode
 import scalaz.stream.Process
 
+import util.byteVector._
+
 object EntityEncoderSpec {
-
-  implicit val byteVectorMonoid: scalaz.Monoid[ByteVector] = scalaz.Monoid.instance(_ ++ _, ByteVector.empty)
-
   def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
     Process.eval(W.toEntity(a))
       .collect { case EntityEncoder.Entity(body, _ ) => body }
@@ -49,11 +48,6 @@ class EntityEncoderSpec extends Http4sSpec {
 
     "calculate the content length of strings" in {
       implicitly[EntityEncoder[String]].toEntity("pong").run.length must_== Some(4)
-    }
-
-    "render html" in {
-      val html = <html><body>Hello</body></html>
-      writeToString(html) must_== "<html><body>Hello</body></html>"
     }
 
     "render byte arrays" in {
