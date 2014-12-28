@@ -114,7 +114,7 @@ object EntityDecoder extends EntityDecoderInstances {
   def decodeString(msg: Message): Task[String] = {
     val buff = new StringBuilder
     (msg.body |> process1.fold(buff) { (b, c) => {
-      b.append(new String(c.toArray, msg.charset.nioCharset))
+      b.append(new String(c.toArray, msg.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset))
     }}).map(_.result()).runLastOr("")
   }
 }
@@ -139,7 +139,7 @@ trait EntityDecoderInstances {
 
   implicit val text: EntityDecoder[String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
-      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset))
+      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset))
     )
 
   // application/x-www-form-urlencoded
