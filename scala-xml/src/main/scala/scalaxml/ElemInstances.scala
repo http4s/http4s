@@ -27,7 +27,7 @@ trait ElemInstances {
     import EntityDecoder._
     decodeBy(MediaType.`text/xml`, MediaType.`text/html`, MediaType.`application/xml`){ msg =>
       collectBinary(msg).flatMap[Elem] { arr =>
-        val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
+        val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.getOrElse(Charset.`US-ASCII`).nioCharset)))
         try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
         catch {
           case e: SAXParseException =>

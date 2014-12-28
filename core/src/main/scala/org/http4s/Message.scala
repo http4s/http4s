@@ -72,7 +72,7 @@ sealed trait Message extends MessageOps {
 
   def contentType: Option[`Content-Type`] = headers.get(Header.`Content-Type`)
 
-  def charset: Charset = contentType.map(_.charset) getOrElse Charset.`ISO-8859-1`
+  def charset: Option[Charset] = contentType.map(_.charset)
 
   def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`).exists(_.values.list.contains(TransferCoding.chunked))
 
