@@ -124,7 +124,7 @@ resolvers += "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
 ```sh
 $ git clone https://github.com/http4s/http4s.git
 $ cd http4s
-$ sbt examples/run
+$ sbt examples-blaze/run
 ```
 
 ## Contributions ##
