@@ -30,7 +30,20 @@ lazy val `json4s-jackson` = project.dependsOn(json4s, jawn % "compile;test->test
 
 lazy val argonaut = project.dependsOn(core % "compile;test->test", jawn % "compile;test->test")
 
-lazy val examples = project.dependsOn(`blaze-server`, jetty, tomcat, dsl, `json4s-jackson`)
+lazy val `scala-xml` = project.dependsOn(core % "compile;test->test")
+
+// The plugin must be enabled for the tests
+lazy val twirl = project.dependsOn(core % "compile;test->test").enablePlugins(SbtTwirl)
+
+lazy val examples = project.dependsOn(server, dsl, argonaut, `scala-xml`, twirl).enablePlugins(SbtTwirl)
+
+lazy val `examples-blaze` = Project("examples-blaze", file("examples/blaze")).dependsOn(examples, `blaze-server`)
+
+lazy val `examples-jetty` = Project("examples-jetty", file("examples/jetty")).dependsOn(examples, jetty)
+
+lazy val `examples-tomcat` = Project("examples-tomcat", file("examples/tomcat")).dependsOn(examples, tomcat)
+
+lazy val `examples-war` = Project("examples-war", file("examples/war")).dependsOn(examples, servlet)
 
 organization in ThisBuild := "org.http4s"
 

@@ -1,7 +1,11 @@
 package org.http4s
 package parser
 
+import java.nio.CharBuffer
+
 import org.specs2.mutable.Specification
+
+import scala.io.Codec
 
 class QueryParserSpec extends Http4sSpec {
 
@@ -39,6 +43,38 @@ class QueryParserSpec extends Http4sSpec {
     "Gracefully handle invalid URL encoding" in {
       parseQueryString("a=b%G") must beRightDisjunction(Seq("a" -> Some("b%G")))
     }
-  }
 
+    "Allow ';' seperators" in {
+      parseQueryString("a=b;c") must beRightDisjunction(Seq("a" -> Some("b"), "c" -> None))
+    }
+
+    "Reject a query with invalid char" in {
+      parseQueryString("獾") must beLeftDisjunction
+      parseQueryString("foo獾bar") must beLeftDisjunction
+      parseQueryString("foo=獾") must beLeftDisjunction
+    }
+
+    "Keep CharBuffer position if not flushing" in {
+      val s = "key=value&stuff=cat"
+      val cs = CharBuffer.wrap(s)
+      val r = new QueryParser(Codec.UTF8, true).decode(cs, false)
+
+      r must beRightDisjunction(Seq("key" -> Some("value")))
+      cs.remaining must_== 9
+
+      val r2 = new QueryParser(Codec.UTF8, true).decode(cs, false)
+      r2 must beRightDisjunction(Seq())
+      cs.remaining() must_== 9
+
+      val r3 = new QueryParser(Codec.UTF8, true).decode(cs, true)
+      r3 must beRightDisjunction(Seq("stuff" -> Some("cat")))
+      cs.remaining() must_== 0
+    }
+
+    "be stack safe" in {
+      val value = Stream.continually('X').take(1000000).mkString
+      val query = s"little=x&big=${value}"
+      parseQueryString(query) must beRightDisjunction(Seq("little" -> Some("x"), "big" -> Some(value)))
+    }
+  }
 }
