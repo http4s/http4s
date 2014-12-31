@@ -223,3 +223,9 @@ case class Response(
     copy(body = body, headers = headers, attributes = attributes)
 }
 
+object Response {
+  def notFound(request: Request): Task[Response] = {
+    val body = s"${request.pathInfo} not found"
+    Response(Status.NotFound).withBody(body)
+  }
+}

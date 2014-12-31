@@ -29,7 +29,7 @@ sealed trait EntityDecoder[T] { self =>
     */
   final def apply(request: Request)(f: T => Task[Response]): Task[Response] =
     decode(request).fold(
-      e => ResponseBuilder(Status.BadRequest, request.httpVersion, e.sanitized),
+      e => Response(Status.BadRequest, request.httpVersion).withBody(e.sanitized),
       f
     ).join
 

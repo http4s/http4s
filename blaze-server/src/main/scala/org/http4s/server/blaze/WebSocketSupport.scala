@@ -28,10 +28,12 @@ trait WebSocketSupport extends Http1ServerStage {
         WebsocketHandshake.serverHandshake(hdrs) match {
           case Left((code, msg)) =>
             logger.info(s"Invalid handshake $code, $msg")
-            val resp = ResponseBuilder(Status.BadRequest, msg,
-                                        Connection("close".ci),
-                                        Header.Raw(Header.`Sec-WebSocket-Version`.name, "13")
-                                       ).run
+            val resp = Response(Status.BadRequest)
+              .withBody(msg)
+              .map(_.withHeaders(
+                 Connection("close".ci),
+                 Header.Raw(Header.`Sec-WebSocket-Version`.name, "13")
+              )).run
 
             super.renderResponse(req, resp, cleanup)
 
