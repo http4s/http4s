@@ -1,12 +1,13 @@
-package org.http4s.argonaut
+package org.http4s
+package argonaut
 
-import argonaut._
+import java.nio.charset.StandardCharsets
+
+import _root_.argonaut._
 import org.http4s.Header.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
-import org.specs2.mutable.Specification
-import org.http4s.MediaType
-import org.http4s.Charset._
 import org.http4s.EntityEncoderSpec.writeToString
+import Status.Ok
 
 class ArgonautSupportSpec extends JawnDecodeSupportSpec[Json] with ArgonautSupport with Argonauts {
   "writing JSON" should {
@@ -18,6 +19,17 @@ class ArgonautSupportSpec extends JawnDecodeSupportSpec[Json] with ArgonautSuppo
 
     "write compact JSON" in {
       writeToString(json) must_== """{"test":"ArgonautSupport"}"""
+    }
+  }
+
+  "json decoder" should {
+    "handles the optionality of jNumber" in {
+      // https://github.com/http4s/http4s/issues/157
+      // TODO Urgh.  We need to make testing these smoother.
+      def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
+      val req = Request().withBody(jNumberOrNull(157))
+      val body = json(req.run) { json => Response(Ok).withBody(json.number.flatMap(_.toLong).getOrElse(0L).toString) }.run.body
+      new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
   }
 }
