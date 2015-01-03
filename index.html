@@ -47,7 +47,8 @@
             <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-gears"></i> API <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="/api/0.5">0.4 (snapshot)</a></li>
+                <li><a href="/api/0.6">0.6 (snapshot)</a></li>
+                <li><a href="/api/0.5">0.5 (release)</a></li>
                 <li><a href="/api/0.4">0.4 (release)</a></li>
                 <li><a href="/api/0.3">0.3 (release)</a></li>
                 <li><a href="/api/0.2">0.2 (release)</a></li>
@@ -139,16 +140,7 @@ needs now, and easily port if and when your needs change.</p>
 
 <p><a href="http://github.com/http4s/blaze">blaze</a> is an NIO framework.  Run http4s on blaze for maximum throughput.</p>
 
-<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight">
-<span class="k">import</span> <span class="nn">org.http4s.server.blaze.BlazeBuilder</span>
-
-<span class="k">object</span> <span class="nc">BlazeExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
-  <span class="nc">BlazeBuilder</span><span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">run</span>
-    <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
-<span class="o">}</span>
-</code></code></pre>
+<p>Code ref file &#39;../../examples/src/main/scala/com/example/http4s/blaze/BlazeExample.scala&#39; does not exist.</p>
 
 <h3 id="toc_7">Servlets</h3>
 
@@ -158,27 +150,12 @@ http4s can run in a .war on any Servlet 3.0+ container, and comes with convenien
 for embedded Tomcat and Jetty containers.</p>
 
 <pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight">
-<span class="k">import</span> <span class="nn">org.http4s.server.jetty.JettyBuilder</span>
-<span class="k">import</span> <span class="nn">org.http4s.server.tomcat.TomcatBuilder</span>
-<span class="k">import</span> <span class="nn">org.http4s.servlet.ServletContainer</span>
-
-<span class="k">import</span> <span class="nn">scala.concurrent.duration._</span>
-
-<span class="k">class</span> <span class="nc">ServletExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
-  <span class="k">def</span> <span class="n">go</span><span class="o">(</span><span class="n">builder</span><span class="k">:</span> <span class="kt">ServletContainer</span><span class="o">)</span><span class="k">:</span> <span class="kt">Unit</span> <span class="o">=</span> <span class="n">builder</span>
+<span class="k">object</span> <span class="nc">JettyExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="nc">JettyBuilder</span>
     <span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
     <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
-    <span class="o">.</span><span class="n">mountServlet</span><span class="o">(</span><span class="k">new</span> <span class="nc">LegacyServlet</span><span class="o">,</span> <span class="s">"/legacy/*"</span><span class="o">)</span>
     <span class="o">.</span><span class="n">run</span>
     <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
-<span class="o">}</span>
-
-<span class="k">object</span> <span class="nc">TomcatExample</span> <span class="k">extends</span> <span class="nc">ServletExample</span> <span class="o">{</span>
-  <span class="n">go</span><span class="o">(</span><span class="nc">TomcatBuilder</span><span class="o">)</span>
-<span class="o">}</span>
-
-<span class="k">object</span> <span class="nc">JettyExample</span> <span class="k">extends</span> <span class="nc">ServletExample</span> <span class="o">{</span>
-  <span class="n">go</span><span class="o">(</span><span class="nc">JettyBuilder</span><span class="o">)</span>
 <span class="o">}</span>
 </code></code></pre>
 
@@ -208,7 +185,7 @@ resolvers += &quot;Scalaz Bintray Repo&quot; at &quot;http://dl.bintray.com/scal
 <h2 id="toc_10">Build &amp; run</h2>
 <div class="highlight"><pre><code class="sh language-sh" data-lang="sh"><span class="nv">$ </span>git clone https://github.com/http4s/http4s.git
 <span class="nv">$ </span><span class="nb">cd </span>http4s
-<span class="nv">$ </span>sbt examples/run
+<span class="nv">$ </span>sbt examples-blaze/run
 </code></pre></div>
 <h2 id="toc_11">Contributions</h2>
 
