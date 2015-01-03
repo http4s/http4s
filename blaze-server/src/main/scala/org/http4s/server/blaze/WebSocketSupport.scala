@@ -28,13 +28,14 @@ trait WebSocketSupport extends Http1ServerStage {
         WebsocketHandshake.serverHandshake(hdrs) match {
           case Left((code, msg)) =>
             logger.info(s"Invalid handshake $code, $msg")
-            val body = Process.emit(ByteVector(msg.toString.getBytes(req.charset.nioCharset)))
-            val headers = Headers(`Content-Length`(msg.length),
-                                   Connection("close".ci),
-                                   Header.Raw(Header.`Sec-WebSocket-Version`.name, "13"))
+            val resp = Response(Status.BadRequest)
+              .withBody(msg)
+              .map(_.withHeaders(
+                 Connection("close".ci),
+                 Header.Raw(Header.`Sec-WebSocket-Version`.name, "13")
+              )).run
 
-            val rsp = Response(status = Status.BadRequest, body = body, headers = headers)
-            super.renderResponse(req, rsp, cleanup)
+            super.renderResponse(req, resp, cleanup)
 
           case Right(hdrs) =>  // Successful handshake
             val sb = new StringBuilder
@@ -43,7 +44,7 @@ trait WebSocketSupport extends Http1ServerStage {
             sb.append('\r').append('\n')
 
             // write the accept headers and reform the pipeline
-            channelWrite(ByteBuffer.wrap(sb.result().getBytes(US_ASCII))).onComplete {
+            channelWrite(ByteBuffer.wrap(sb.result().getBytes(ISO_8859_1))).onComplete {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 

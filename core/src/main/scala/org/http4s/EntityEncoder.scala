@@ -4,6 +4,7 @@ import java.io.{File, InputStream, Reader}
 import java.nio.ByteBuffer
 import java.nio.file.Path
 
+import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
 import org.http4s.EntityEncoder._
@@ -36,8 +37,8 @@ trait EntityEncoder[A] { self =>
     override def headers: Headers = self.headers
   }
 
-  /** Get the [[MediaType]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def contentType: Option[MediaType] = headers.get(`Content-Type`).map(_.mediaType)
+  /** Get the [[`Content-Type`]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
   def charset: Option[Charset] = headers.get(`Content-Type`).map(_.charset)
@@ -137,17 +138,16 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   implicit val byteEncoder: EntityEncoder[Byte] = byteVectorEncoder.contramap(ByteVector.apply(_))
 
-  // TODO split off to module to drop scala-xml core dependency
-  // TODO infer HTML, XHTML, etc.
-  implicit def htmlEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[xml.Elem] = {
-    val hdr = `Content-Type`(MediaType.`text/html`).withCharset(charset)
-    simple(hdr)(xml => ByteVector.view(xml.buildString(false).getBytes(charset.nioCharset)))
-  }
-
   implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] = new EntityEncoder[Task[A]] {
     override def toEntity(a: Task[A]): Task[Entity] = a.flatMap(W.toEntity)
     override def headers: Headers = W.headers
   }
+
+  implicit def futureEncoder[A](implicit W: EntityEncoder[A], ec: ExecutionContext): EntityEncoder[Future[A]] =
+    new EntityEncoder[Future[A]] {
+      override def toEntity(a: Future[A]): Task[Entity] = util.task.futureToTask(a).flatMap(W.toEntity)
+      override def headers: Headers = W.headers
+    }
 
   // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename

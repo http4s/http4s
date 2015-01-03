@@ -3,12 +3,7 @@ package org.http4s
 import scala.language.postfixOps
 
 import org.http4s.Header.`Content-Type`
-import Status.Ok
-import EntityDecoder._
-
-import org.specs2.mutable.Specification
-
-import org.xml.sax.SAXParseException
+import Status._
 
 import java.io.{FileInputStream,File,InputStreamReader}
 
@@ -42,30 +37,11 @@ class EntityDecoderSpec extends Http4sSpec {
     }
   }
 
-  "xml" should {
-
-    val server: Request => Task[Response] = { req =>
-      xml(req) { elem => ResponseBuilder(Ok, elem.label) }
-    }
-
-    "parse the XML" in {
-      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
-      resp.status must_==(Ok)
-      getBody(resp.body) must_== ("html".getBytes)
-    }
-
-    "return 400 on parse error" in {
-      val body = strBody("This is not XML.")
-      val tresp = server(Request(body = body))
-      tresp.run.status must equal (Status.BadRequest)
-    }
-  }
-
   "application/x-www-form-urlencoded" should {
 
     val server: Request => Task[Response] = { req =>
-      formEncoded(req) { form => ResponseBuilder(Ok, form("Name").head) }
-        .handle{ case NonFatal(t) => ResponseBuilder.basic(Status.BadRequest).run }
+      formEncoded(req) { form => Response(Ok).withBody(form("Name").head) }
+        .handle{ case NonFatal(t) => Response(BadRequest) }
     }
 
     "Decode form encoded body" in {
@@ -113,7 +89,7 @@ class EntityDecoderSpec extends Http4sSpec {
       val response = mocServe(Request()) {
         case req =>
           textFile(tmpFile)(req) { _ =>
-            ResponseBuilder(Ok, "Hello")
+            Response(Ok).withBody("Hello")
           }
       }.run
 
@@ -125,7 +101,7 @@ class EntityDecoderSpec extends Http4sSpec {
     "Write a binary file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
       val response = mocServe(Request()) {
-        case req => binFile(tmpFile)(req)(_ => ResponseBuilder(Ok, "Hello"))
+        case req => binFile(tmpFile)(req)(_ => Response(Ok).withBody("Hello"))
       }.run
 
       response.status must_== (Status.Ok)
@@ -134,17 +110,17 @@ class EntityDecoderSpec extends Http4sSpec {
     }
 
     "Match any media type" in {
-      val req = ResponseBuilder(Ok, "foo").run
+      val req = Response(Ok).withBody("foo").run
       binary.matchesMediaType(req) must_== true
     }
 
     "Not match invalid media type" in {
-      val req = ResponseBuilder(Ok, "foo").run
-      EntityDecoder.xml().matchesMediaType(req) must_== false
+      val req = Response(Ok).withBody("foo").run
+      EntityDecoder.formEncoded.matchesMediaType(req) must_== false
     }
 
     "Match valid media range" in {
-      val req = ResponseBuilder(Ok, "foo").run
+      val req = Response(Ok).withBody("foo").run
       EntityDecoder.text.matchesMediaType(req) must_== true
     }
 
@@ -158,8 +134,8 @@ class EntityDecoderSpec extends Http4sSpec {
       val req = Request(headers = Headers(`Content-Type`(tpe)))
       (EntityDecoder.text.matchesMediaType(req) must_== true)   and
       (EntityDecoder.text.matchesMediaType(tpe) must_== true)   and
-      (EntityDecoder.xml().matchesMediaType(req) must_== false) and
-      (EntityDecoder.xml().matchesMediaType(tpe) must_== false)
+      (EntityDecoder.formEncoded.matchesMediaType(req) must_== false) and
+      (EntityDecoder.formEncoded.matchesMediaType(tpe) must_== false)
     }
 
   }

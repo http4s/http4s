@@ -5,9 +5,9 @@ import scalaz.syntax.validation._
 import scalaz.{Show, Validation, ValidationNel}
 
 
-final case class QueryParameterKey(value: String)
+final case class QueryParameterKey(value: String) extends AnyVal
 
-final case class QueryParameterValue(value: String)
+final case class QueryParameterValue(value: String) extends AnyVal
 
 /**
  * type class defining the key of a query parameter
@@ -21,12 +21,9 @@ object QueryParam {
   /** summon an implicit [[QueryParam]] */
   def apply[T](implicit ev: QueryParam[T]): QueryParam[T] = ev
 
-  def fromKey[T](k: QueryParameterKey): QueryParam[T] = new QueryParam[T] {
-    def key: QueryParameterKey = k
+  def fromKey[T](k: String): QueryParam[T] = new QueryParam[T] {
+    def key: QueryParameterKey = QueryParameterKey(k)
   }
-
-  def fromKey[T](k: String): QueryParam[T] =
-    fromKey(QueryParameterKey(k))
 }
 
 

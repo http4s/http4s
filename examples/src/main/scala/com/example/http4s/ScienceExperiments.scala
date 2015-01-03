@@ -1,8 +1,9 @@
 package com.example.http4s
 
-import org.http4s.{TransferCoding, Header, Response, StaticFile}
+import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server.HttpService
+import org.http4s.scalaxml._
 import scodec.bits.ByteVector
 
 import scalaz.{Reducer, Monoid}
@@ -21,6 +22,14 @@ object ScienceExperiments {
     case req @ POST -> Root / "root-element-name" =>
       xml(req)(root => Ok(root.label))
 
+    case req @ GET -> Root / "date" =>
+      val date = DateTime(100)
+      Ok(date.toRfc1123DateTimeString)
+        .withHeaders(Header.Date(date))
+
+    case req @ GET -> Root / "echo-headers" =>
+      Ok(req.headers.mkString("\n"))
+
     ///////////////// Massive Data Loads //////////////////////
     case GET -> Root / "bigstring" =>
       Ok((0 until 1000).map(i => s"This is string number $i").mkString("\n"))
@@ -29,6 +38,9 @@ object ScienceExperiments {
       Ok(Process.range(0, 1000).map(i => s"This is string number $i"))
 
     case req@GET -> Root / "bigstring3" => Ok(flatBigString)
+
+    case GET -> Root / "zero-chunk" =>
+      Ok(Process("", "foo!")).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
 
     case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB
@@ -41,7 +53,7 @@ object ScienceExperiments {
     ///////////////// Switch the response based on head of content //////////////////////
 
     case req@POST -> Root / "challenge1" =>
-      val body = req.body.map { c => new String(c.toArray, req.charset.nioCharset)}.toTask
+      val body = req.body.map { c => new String(c.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)}.toTask
 
       body.flatMap { s: String =>
         if (!s.startsWith("go")) {
@@ -53,9 +65,9 @@ object ScienceExperiments {
 
     case req @ POST -> Root / "challenge2" =>
       val parser = await1[ByteVector] map {
-        case bits if (new String(bits.toArray, req.charset.nioCharset)).startsWith("Go") =>
+        case bits if (new String(bits.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)).startsWith("Go") =>
           Task.now(Response(body = emit(bits) ++ req.body))
-        case bits if (new String(bits.toArray, req.charset.nioCharset)).startsWith("NoGo") =>
+        case bits if (new String(bits.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)).startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("no data")

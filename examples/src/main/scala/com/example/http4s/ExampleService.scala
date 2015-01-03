@@ -1,5 +1,7 @@
 package com.example.http4s
 
+import _root_.argonaut.JString
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -7,18 +9,20 @@ import org.http4s.Header.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
-import org.http4s.json4s.jackson.Json4sJacksonSupport._
+import org.http4s.argonaut._
+import org.http4s.scalaxml._
 import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
-
-import org.json4s.JsonDSL._
-import org.json4s.JValue
+import org.http4s.twirl._
 
 import scalaz.stream.Process
 import scalaz.concurrent.Task
 import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
+
+import _root_.argonaut._
+import Argonaut._
 
 object ExampleService {
 
@@ -68,7 +72,8 @@ object ExampleService {
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
-      Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
+      val json = jSingleObject("origin", jString(req.remoteAddr.getOrElse("unknown")))
+      Ok(json)
 
     case req @ GET -> Root / "redirect" =>
       // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
@@ -87,7 +92,8 @@ object ExampleService {
         .withHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "echo" =>
-      Ok(submissionForm("echo data"))
+      // submissionForm is a Play Framework template -- see src/main/twirl.
+      Ok(html.submissionForm("echo data"))
 
     case req @ POST -> Root / "echo2" =>
       // Even more useful, the body can be transformed in the response
@@ -95,7 +101,7 @@ object ExampleService {
         .withHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo2" =>
-      Ok(submissionForm("echo data"))
+      Ok(html.submissionForm("echo data"))
 
     case req @ POST -> Root / "sum"  =>
       // EntityDecoders allow turning the body into something useful
@@ -112,7 +118,7 @@ object ExampleService {
       }
 
     case req @ GET -> Root / "sum" =>
-      Ok(submissionForm("sum"))
+      Ok(html.submissionForm("sum"))
 
     ///////////////////////////////////////////////////////////////
     //////////////// Form encoding example ////////////////////////
@@ -165,7 +171,7 @@ object ExampleService {
       }
 
     case req @ GET -> Root / "short-sum" =>
-      Ok(submissionForm("short-sum"))
+      Ok(html.submissionForm("short-sum"))
   }, 3)
 
   // This is a mock data source, but could be a Process representing results from a database
@@ -177,14 +183,5 @@ object ExampleService {
                         .take(n)
 
     Process.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
-  }
-
-  private def submissionForm(msg: String) = {
-    <html><body>
-      <form name="input" method="post">
-        <p>{msg}: <input type="text" name={msg}/></p>
-        <p><input type="submit" value="Submit"/></p>
-      </form>
-    </body></html>
   }
 }

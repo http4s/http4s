@@ -199,7 +199,7 @@ case class Uri(
    */
   def setQueryParams[T: QueryParamEncoder](query: Map[String, Seq[T]]): Uri = {
     if (multiParams == query) this
-    else copy(query = renderQueryString(query.mapValues(_.map(QueryParamEncoder[T].encode).map(_.value))))
+    else copy(query = renderQueryString(query.mapValues(_.map(QueryParamEncoder[T].encode(_).value))))
   }
 
   /**

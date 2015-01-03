@@ -1,7 +1,10 @@
 package org.http4s.server
 
 import java.net.{InetAddress, InetSocketAddress}
+import java.security.KeyStore
 import java.util.concurrent.ExecutorService
+
+import org.http4s.server.SSLSupport.StoreInfo
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
@@ -50,4 +53,20 @@ trait AsyncTimeoutSupport { this: ServerBuilder =>
 }
 object AsyncTimeoutSupport {
   val DefaultAsyncTimeout = 30.seconds
+}
+
+trait SSLSupport { this: ServerBuilder =>
+  def withSSL(keyStore: StoreInfo,
+    keyManagerPassword: String,
+              protocol: String = "TLS",
+            trustStore: Option[StoreInfo] = None,
+            clientAuth: Boolean = false): Self
+}
+object SSLSupport {
+  case class StoreInfo(path: String, password: String)
+  case class SSLBits(keyStore: StoreInfo,
+           keyManagerPassword: String,
+                     protocol: String,
+                   trustStore: Option[StoreInfo],
+                   clientAuth: Boolean)
 }
