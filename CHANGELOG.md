@@ -1,3 +1,6 @@
+# v0.5.2 (2015-01-02)
+* Upgrade to jawn-0.7.2.  Old version of jawn was incompatible with argonaut. [#157]](https://github.com/http4s/http4s/issues/157)
+
 # v0.5.1 (2014-12-23)
 * Include context path in calculation of scriptName/pathInfo. [#140](https://github.com/http4s/http4s/issues/140)
 * Fix bug in UriTemplate for query params with multiple keys.
