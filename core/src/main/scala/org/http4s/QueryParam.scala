@@ -39,7 +39,7 @@ object QueryParamKeyLike {
 }
 
 /**
- * Type class defining how to encode a `T` as a [[QueryParameterValue]]
+ * Type class defining how to encode a `T` as a `Seq` of [[QueryParameterValue]]s
  * @see QueryParamCodecLaws
  */
 trait QueryParamEncoder[T] {

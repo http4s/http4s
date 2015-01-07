@@ -184,9 +184,9 @@ case class Uri(
    * query string will be replaced with the given one. If the given parameters
    * equal the existing the same `Uri` instance will be returned.
    */
-  def setQueryParams[T: QueryParamEncoder](query: Map[String, Seq[T]]): Uri = {
+  def setQueryParams[T: QueryParamEncoder](query: Map[String, T]): Uri = {
     if (multiParams == query) this
-    else copy(query = renderQueryString(query.mapValues(_.flatMap(QueryParamEncoder[T].encode(_).map(_.value)))))
+    else copy(query = renderQueryString(query.mapValues(QueryParamEncoder[T].encode(_).map(_.value))))
   }
 
   /**
@@ -211,8 +211,8 @@ case class Uri(
    * replaced. If the parameter to be added equal the existing entry the same
    * instance of `Uri` will be returned.
    */
-  def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, values: Seq[T]): Uri =
-    _withQueryParam(QueryParamKeyLike[K].getKey(key), values flatMap QueryParamEncoder[T].encode)
+  def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, value: T): Uri =
+    _withQueryParam(QueryParamKeyLike[K].getKey(key), QueryParamEncoder[T].encode(value))
 
   private def _withQueryParam(name: QueryParameterKey, values: Seq[QueryParameterValue]): Uri = {
     lazy val stringValues = values.map(_.value)
