@@ -48,14 +48,14 @@ case class UriTemplate(
    * matching `expansion` could be found the same instance will be returned.
    */
   def expandPath[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate =
-    copy(path = expandPathN(path, name, values.map(QueryParamEncoder[T].encode)))
+    copy(path = expandPathN(path, name, values.flatMap(QueryParamEncoder[T].encode)))
 
   /**
    * Replaces any expansion type in `path` that matches the given `name`. If no
    * matching `expansion` could be found the same instance will be returned.
    */
   def expandPath[T: QueryParamEncoder](name: String, value: T): UriTemplate =
-    copy(path = expandPathN(path, name, List(QueryParamEncoder[T].encode(value))))
+    copy(path = expandPathN(path, name, QueryParamEncoder[T].encode(value).toList))
 
   /**
    * Replaces any expansion type in `query` that matches the specified `name`.

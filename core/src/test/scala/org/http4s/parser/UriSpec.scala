@@ -23,7 +23,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   object Ttl {
     implicit val queryParamInstance = new QueryParamEncoder[Ttl] with QueryParam[Ttl] {
       def key: QueryParameterKey = QueryParameterKey("ttl")
-      def encode(value: Ttl): QueryParameterValue = QueryParameterValue(value.seconds.toString)
+      def encode(value: Ttl): Seq[QueryParameterValue] = QueryParameterValue(value.seconds.toString)::Nil
     }
   }
 
@@ -515,15 +515,15 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2=true")))
     }
     "add a parameter without a value" in {
-      val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2")
+      val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2", ())
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
     }
     "add a parameter with many values" in {
-      val u = Uri() +? ("param1", "value1", "value2")
+      val u = Uri() +? ("param1", Seq("value1", "value2"))
       u must be_==(Uri(query = Some("param1=value1&param1=value2")))
     }
     "add a parameter with many long values" in {
-      val u = Uri() +? ("param1", 1L, -1L)
+      val u = Uri() +? ("param1", Seq(1L, -1L))
       u must be_==(Uri(query = Some(s"param1=1&param1=-1")))
     }
     "add a query parameter with a QueryParamEncoder" in {
@@ -589,15 +589,15 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Some("param1=newValue&param2=value")))
     }
     "replace a parameter without a value" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param2=value")) +? ("param2")
+      val u = Uri(query = Some("param1=value1&param1=value2&param2=value")) +? ("param2", ())
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
     }
     "replace the same parameter" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param1", "value1", "value2")
+      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param1", Seq("value1", "value2"))
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
     }
     "replace the same parameter without a value" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param2")
+      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param2", ())
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
     }
     "replace a parameter set" in {

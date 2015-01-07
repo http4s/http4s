@@ -100,56 +100,40 @@ case class Uri(
   }
 
   /** alias for containsQueryParam */
-  def ?(name: String): Boolean =
-    _containsQueryParam(QueryParameterKey(name))
+  def ?[K: QueryParamKeyLike](name: K): Boolean =
+    _containsQueryParam(QueryParamKeyLike[K].getKey(name))
 
   /** alias for setQueryParams */
   def =?[T: QueryParamEncoder](q: Map[String, Seq[T]]): Uri =
     setQueryParams(q)
 
   /** alias for withQueryParam */
-  def +?(name: String): Uri =
-    _withQueryParam(QueryParameterKey(name), Nil)
-
-  /** alias for withQueryParam */
   def +?[T: QueryParam]: Uri =
     _withQueryParam(QueryParam[T].key, Nil)
 
   /** alias for withQueryParam */
-  def +?[T: QueryParamEncoder](name: String, values: T*): Uri =
-    _withQueryParam(QueryParameterKey(name), values map QueryParamEncoder[T].encode)
+  def +?[T: QueryParam : QueryParamEncoder](values: T): Uri =
+    _withQueryParam(QueryParam[T].key, QueryParamEncoder[T].encode(values))
 
   /** alias for withQueryParam */
-  def +?[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, values: T*): Uri =
-    _withQueryParam(QueryParamKeyLike[K].getKey(key), values map QueryParamEncoder[T].encode)
-
-  /** alias for withQueryParam */
-  def +?[T: QueryParam : QueryParamEncoder](values: T*): Uri =
-    _withQueryParam(QueryParam[T].key, values map QueryParamEncoder[T].encode)
+  def +?[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, values: T): Uri =
+    _withQueryParam(QueryParamKeyLike[K].getKey(name), QueryParamEncoder[T].encode(values))
 
   /** alias for withMaybeQueryParam */
-  def +??[T: QueryParamEncoder](name: String, value: Maybe[T]): Uri =
-    _withMaybeQueryParam(QueryParameterKey(name), value map QueryParamEncoder[T].encode)
+  def +??[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, value: Maybe[T]): Uri =
+    _withMaybeQueryParam(QueryParamKeyLike[K].getKey(name), value map QueryParamEncoder[T].encode)
 
   /** alias for withMaybeQueryParam */
   def +??[T: QueryParam : QueryParamEncoder](value: Maybe[T]): Uri =
     _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
 
-  /** alias for withMaybeQueryParam */
-  def +??[T, K](key: K, value: Maybe[T])(implicit enc: QueryParamEncoder[T], KL: QueryParamKeyLike[K]): Uri =
-    _withMaybeQueryParam(KL.getKey(key), value map enc.encode)
-
   /** alias for withOptionQueryParam */
-  def +??[T: QueryParamEncoder](name: String, value: Option[T]): Uri =
-    _withMaybeQueryParam(QueryParameterKey(name), value.toMaybe map QueryParamEncoder[T].encode)
+  def +??[K: QueryParamKeyLike, T: QueryParamEncoder](name: K, value: Option[T]): Uri =
+    _withMaybeQueryParam(QueryParamKeyLike[K].getKey(name), value.toMaybe map QueryParamEncoder[T].encode)
 
   /** alias for withOptionQueryParam */
   def +??[T: QueryParam : QueryParamEncoder](value: Option[T]): Uri =
     _withMaybeQueryParam(QueryParam[T].key, value.toMaybe map QueryParamEncoder[T].encode)
-
-  /** alias for removeQueryParam */
-  def -?(name: String): Uri =
-    _removeQueryParam(QueryParameterKey(name))
 
   /** alias for removeQueryParam */
   def -?[T](implicit key: QueryParam[T]): Uri =
@@ -163,9 +147,6 @@ case class Uri(
    * Checks if a specified parameter exists in query string. A parameter
    * without a name can be checked with an empty string.
    */
-  def containsQueryParam(name: String): Boolean =
-    _containsQueryParam(QueryParameterKey(name))
-
   def containsQueryParam[T](implicit key: QueryParam[T]): Boolean =
     _containsQueryParam(key.key)
 
@@ -177,16 +158,6 @@ case class Uri(
     case Some(_)  => multiParams.contains(name.value)
     case None     => false
   }
-
-  /**
-   * Creates maybe a new `Uri` without the specified parameter in query string.
-   * If no parameter with the given `name` exists the same `Uri` will be
-   * returned. If the parameter to be removed is not present the existing `Uri`
-   * instance of `Uri` will be returned.
-   */
-  def removeQueryParam(name: String): Uri =
-    _removeQueryParam(QueryParameterKey(name))
-
 
   /**
    * Creates maybe a new `Uri` without the specified parameter in query string.
@@ -215,16 +186,8 @@ case class Uri(
    */
   def setQueryParams[T: QueryParamEncoder](query: Map[String, Seq[T]]): Uri = {
     if (multiParams == query) this
-    else copy(query = renderQueryString(query.mapValues(_.map(QueryParamEncoder[T].encode(_).value))))
+    else copy(query = renderQueryString(query.mapValues(_.flatMap(QueryParamEncoder[T].encode(_).map(_.value)))))
   }
-
-  /**
-   * Creates a new `Uri` with the specified parameter in query string.
-   * If a parameter with the given `name` already exists the values will be
-   * replaced with an empty list.
-   */
-  def withQueryParam(name: String): Uri =
-    _withQueryParam(QueryParameterKey(name), Nil)
 
   /**
    * Creates a new `Uri` with the specified parameter in query string.
@@ -244,21 +207,12 @@ case class Uri(
 
   /**
    * Creates maybe a new `Uri` with the specified parameter in query string.
-   * If a parameter with the given `name` already exists the values will be
-   * replaced. If the parameter to be added equal the existing entry the same
-   * instance of `Uri` will be returned.
-   */
-  def withQueryParam[T: QueryParamEncoder](name: String, values: Seq[T]): Uri =
-    _withQueryParam(QueryParameterKey(name), values map QueryParamEncoder[T].encode)
-
-  /**
-   * Creates maybe a new `Uri` with the specified parameter in query string.
    * If a parameter with the given `key` already exists the values will be
    * replaced. If the parameter to be added equal the existing entry the same
    * instance of `Uri` will be returned.
    */
   def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, values: Seq[T]): Uri =
-    _withQueryParam(QueryParamKeyLike[K].getKey(key), values map QueryParamEncoder[T].encode)
+    _withQueryParam(QueryParamKeyLike[K].getKey(key), values flatMap QueryParamEncoder[T].encode)
 
   private def _withQueryParam(name: QueryParameterKey, values: Seq[QueryParameterValue]): Uri = {
     lazy val stringValues = values.map(_.value)
@@ -268,16 +222,6 @@ case class Uri(
       copy(query = renderQueryString(p))
     }
   }
-
-  /**
-   * Creates maybe a new `Uri` with the specified parameter in query string.
-   * If the value is empty or if the parameter to be added equal the existing
-   * entry the same instance of `Uri` will be returned.
-   * If a parameter with the given `name` already exists the values will be
-   * replaced.
-   */
-  def withMaybeQueryParam[T: QueryParamEncoder](name: String, value: Maybe[T]): Uri =
-    _withMaybeQueryParam(QueryParameterKey(name), value map QueryParamEncoder[T].encode)
 
   /**
    * Creates maybe a new `Uri` with the specified parameter in query string.
@@ -303,16 +247,6 @@ case class Uri(
    * Creates maybe a new `Uri` with the specified parameter in query string.
    * If the value is empty or if the parameter to be added equal the existing
    * entry the same instance of `Uri` will be returned.
-   * If a parameter with the given `name` already exists the values will be
-   * replaced.
-   */
-  def withOptionQueryParam[T: QueryParamEncoder](name: String, value: Option[T]): Uri =
-    _withMaybeQueryParam(QueryParameterKey(name), value.toMaybe map QueryParamEncoder[T].encode)
-
-  /**
-   * Creates maybe a new `Uri` with the specified parameter in query string.
-   * If the value is empty or if the parameter to be added equal the existing
-   * entry the same instance of `Uri` will be returned.
    * If a parameter with the given `key` already exists the values will be
    * replaced.
    */
@@ -329,8 +263,8 @@ case class Uri(
   def withOptionQueryParam[T: QueryParam: QueryParamEncoder](value: Option[T]): Uri =
     _withMaybeQueryParam(QueryParam[T].key, value.toMaybe map QueryParamEncoder[T].encode)
 
-  private def _withMaybeQueryParam(name: QueryParameterKey, value: Maybe[QueryParameterValue]): Uri =
-    value.cata(v => _withQueryParam(name, List(v)), this)
+  private def _withMaybeQueryParam(name: QueryParameterKey, value: Maybe[Seq[QueryParameterValue]]): Uri =
+    value.cata(v => _withQueryParam(name, v), this)
 
   override def render(writer: Writer): writer.type = this match {
     case Uri(Some(s), Some(a), "/", None, None) =>

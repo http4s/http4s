@@ -32,6 +32,10 @@ trait QueryParamKeyLike[T] {
 
 object QueryParamKeyLike {
   def apply[T](implicit ev: QueryParamKeyLike[T]): QueryParamKeyLike[T] = ev
+
+  implicit val stringKey: QueryParamKeyLike[String] = new QueryParamKeyLike[String] {
+    override def getKey(t: String): QueryParameterKey = QueryParameterKey(t)
+  }
 }
 
 /**
@@ -39,7 +43,7 @@ object QueryParamKeyLike {
  * @see QueryParamCodecLaws
  */
 trait QueryParamEncoder[T] {
-  def encode(value: T): QueryParameterValue
+  def encode(value: T): Seq[QueryParameterValue]
 }
 
 object QueryParamEncoder {
@@ -48,13 +52,13 @@ object QueryParamEncoder {
   def apply[T](implicit ev: QueryParamEncoder[T]): QueryParamEncoder[T] = ev
 
   def encodeBy[T, U: QueryParamEncoder](f: T => U): QueryParamEncoder[T] = new QueryParamEncoder[T] {
-    def encode(value: T): QueryParameterValue =
+    def encode(value: T): Seq[QueryParameterValue] =
       QueryParamEncoder[U].encode(f(value))
   }
 
   def encode[T](f: T => String): QueryParamEncoder[T] = new QueryParamEncoder[T] {
-    def encode(value: T): QueryParameterValue =
-      QueryParameterValue(f(value))
+    def encode(value: T): Seq[QueryParameterValue] =
+      QueryParameterValue(f(value))::Nil
   }
 
   def fromShow[T: Show]: QueryParamEncoder[T] = encode(Show[T].shows)
@@ -67,6 +71,15 @@ object QueryParamEncoder {
   implicit val longQueryParamEncoder   : QueryParamEncoder[Long]    = fromShow[Long]
   implicit val charQueryParamEncoder   : QueryParamEncoder[Char]    = fromShow[Char]
   implicit val stringQueryParamEncoder : QueryParamEncoder[String]  = encode(identity)
+
+  implicit def seqEncoder[T](implicit enc: QueryParamEncoder[T]): QueryParamEncoder[Seq[T]] =
+    new QueryParamEncoder[Seq[T]] {
+      override def encode(values: Seq[T]): Seq[QueryParameterValue] = values.flatMap(enc.encode(_))
+    }
+
+  implicit val unitEncoder: QueryParamEncoder[Unit] = new QueryParamEncoder[Unit] {
+    override def encode(value: Unit): Seq[QueryParameterValue] = Nil
+  }
 
 }
 
