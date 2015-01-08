@@ -1,3 +1,6 @@
+# v0.5.4 (2015-01-08)
+* Upgrade to blaze 0.4.1 to fix header parsing issue in blaze http/1.x client and server.
+
 # v0.5.3 (2015-01-05)
 * Upgrade to argonaut-6.1-M5 to match jawn. [#157](https://github.com/http4s/http4s/issues/157)
 
