@@ -46,6 +46,12 @@ sealed trait EntityDecoder[T] { self =>
     override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
   }
 
+  def flatMapR[T2](f: T => DecodeResult[T2]): EntityDecoder[T2] = new EntityDecoder[T2] {
+    override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).flatMap(f)
+
+    override def consumes: Set[MediaRange] = self.consumes
+  }
+
   /** Combine two [[EntityDecoder]]'s
     *
     * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
