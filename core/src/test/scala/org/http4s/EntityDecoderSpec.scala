@@ -20,6 +20,25 @@ class EntityDecoderSpec extends Http4sSpec {
 
   def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
 
+  "EntityDecoder" can {
+    val req = Response(Ok).withBody("foo").run
+    "flatMapR with success" in {
+      EntityDecoder.text
+        .flatMapR(s => DecodeResult.success("bar"))
+        .decode(req)
+        .run
+        .run must beRightDisjunction("bar")
+    }
+
+    "flatMapR with failure" in {
+      EntityDecoder.text
+        .flatMapR(s => DecodeResult.failure[String](ParseFailure("bummer")))
+        .decode(req)
+        .run
+        .run must beLeftDisjunction(ParseFailure("bummer"))
+    }
+  }
+
   "apply" should {
     val request = Request().withBody("whatever").run
 
@@ -156,4 +175,6 @@ class EntityDecoderSpec extends Http4sSpec {
       result must_== (\/-(ByteVector(1, 2, 3, 4, 5, 6)))
     }
   }
+
+
 }
