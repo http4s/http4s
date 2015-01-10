@@ -519,11 +519,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
     }
     "add a parameter with many values" in {
-      val u = Uri() +? ("param1", "value1", "value2")
+      val u = Uri() +? ("param1", Seq("value1", "value2"))
       u must be_==(Uri(query = Some("param1=value1&param1=value2")))
     }
     "add a parameter with many long values" in {
-      val u = Uri() +? ("param1", 1L, -1L)
+      val u = Uri() +? ("param1", Seq(1L, -1L))
       u must be_==(Uri(query = Some(s"param1=1&param1=-1")))
     }
     "add a query parameter with a QueryParamEncoder" in {
@@ -531,8 +531,12 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Some(s"test=2")))
     }
     "add a query parameter with a QueryParamEncoder and an implicit key" in {
-      val u = Uri() +? (Ttl(2))
+      val u = Uri() +*? (Ttl(2))
       u must be_==(Uri(query = Some(s"ttl=2")))
+    }
+    "Work with queryParam" in {
+      val u = Uri().withQueryParam[Ttl]
+      u must be_==(Uri(query = Some(s"ttl")))
     }
     "add an optional query parameter (Just)" in {
       val u = Uri() +?? ("param1", Maybe.just(2))
@@ -593,7 +597,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
     }
     "replace the same parameter" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param1", "value1", "value2")
+      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param1", Seq("value1", "value2"))
       u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
     }
     "replace the same parameter without a value" in {
