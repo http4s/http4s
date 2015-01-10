@@ -15,8 +15,7 @@ object QueryParamCodecLaws {
   def apply[T: Arbitrary: Equal: QueryParamDecoder: QueryParamEncoder] = new Properties("QueryParamCodec") {
 
     property("decode . encode == successNel") = forAll { value: T =>
-      val r = QueryParamEncoder[T].encode(value).map(QueryParamDecoder[T].decode)
-      r.length == 1 && r.head === value.successNel
+      (QueryParamDecoder[T].decode _ compose QueryParamEncoder[T].encode)(value) === value.successNel
     }
 
   }
