@@ -82,12 +82,12 @@ object PathInHttpServiceSpec extends Http4sSpec {
       response.body must equalTo("404 Not Found: /calc")
     }
     "GET /calc?decimal=1.3" in {
-      val response = server(Request(GET, Uri(path = "/calc", query = Some("decimal=1.3"))))
+      val response = server(Request(GET, Uri(path = "/calc", query = Query.fromString("decimal=1.3"))))
       response.status must equal (Ok)
       response.body must equalTo(s"result: 0.65")
     }
     "GET /items?list=1&list=2&list=3&list=4&list=5" in {
-      val response = server(Request(GET, Uri(path = "/items", query = Some("list=1&list=2&list=3&list=4&list=5"))))
+      val response = server(Request(GET, Uri(path = "/items", query = Query.fromString("list=1&list=2&list=3&list=4&list=5"))))
       response.status must equal (Ok)
       response.body must equalTo(s"items: 1,2,3,4,5")
     }
@@ -97,37 +97,37 @@ object PathInHttpServiceSpec extends Http4sSpec {
       response.body must equalTo("404 Not Found: /search")
     }
     "GET /search?term" in {
-      val response = server(Request(GET, Uri(path = "/search", query = Some("term"))))
+      val response = server(Request(GET, Uri(path = "/search", query = Query.fromString("term"))))
       response.status must equal (NotFound)
       response.body must equalTo("404 Not Found: /search")
     }
     "GET /search?term=" in {
-      val response = server(Request(GET, Uri(path = "/search", query = Some("term="))))
+      val response = server(Request(GET, Uri(path = "/search", query = Query.fromString("term="))))
       response.status must equal (Ok)
       response.body must equalTo("term: ")
     }
     "GET /search?term= http4s  " in {
-      val response = server(Request(GET, Uri(path = "/search", query = Some("term=%20http4s%20%20"))))
+      val response = server(Request(GET, Uri(path = "/search", query = Query.fromString("term=%20http4s%20%20"))))
       response.status must equal (Ok)
       response.body must equalTo("term:  http4s  ")
     }
     "GET /search?term=http4s" in {
-      val response = server(Request(GET, Uri(path = "/search", query = Some("term=http4s"))))
+      val response = server(Request(GET, Uri(path = "/search", query = Query.fromString("term=http4s"))))
       response.status must equal (Ok)
       response.body must equalTo("term: http4s")
     }
     "optional parameter present" in {
-      val response = server(Request(GET, Uri(path = "/app", query = Some("counter=3"))))
+      val response = server(Request(GET, Uri(path = "/app", query = Query.fromString("counter=3"))))
       response.status must equal (Ok)
       response.body must equalTo("counter: Some(3)")
     }
     "optional parameter absent" in {
-      val response = server(Request(GET, Uri(path = "/app", query = Some("other=john"))))
+      val response = server(Request(GET, Uri(path = "/app", query = Query.fromString("other=john"))))
       response.status must equal (Ok)
       response.body must equalTo("counter: None")
     }
     "optional parameter present with incorrect format" in {
-      val response = server(Request(GET, Uri(path = "/app", query = Some("counter=john"))))
+      val response = server(Request(GET, Uri(path = "/app", query = Query.fromString("counter=john"))))
       response.status must equal (NotFound)
     }
   }
