@@ -152,27 +152,27 @@ object UriTemplateSpec extends Specification {
       UriTemplate(path = path, query = query).toString must equalTo("/search?option={&term}")
     }
     "render /{#frg}" in {
-      val fragment = Some(List(SimpleFragmentExp("frg")))
+      val fragment = List(SimpleFragmentExp("frg"))
       UriTemplate(fragment = fragment).toString must equalTo("/{#frg}")
     }
     "render /{#x,y}" in {
-      val fragment = Some(List(MultiFragmentExp("x", "y")))
+      val fragment = List(MultiFragmentExp("x", "y"))
       UriTemplate(fragment = fragment).toString must equalTo("/{#x,y}")
     }
     "render /#test" in {
-      val fragment = Some(List(FragmentElm("test")))
+      val fragment = List(FragmentElm("test"))
       UriTemplate(fragment = fragment).toString must equalTo("/#test")
     }
     "render {path}/search{?term}{#section}" in {
       val path = List(VarExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
-      val fragment = Some(List(SimpleFragmentExp("section")))
+      val fragment = List(SimpleFragmentExp("section"))
       UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo("{path}/search{?term}{#section}")
     }
     "render {+path}/search{?term}{#section}" in {
       val path = List(ReservedExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
-      val fragment = Some(List(SimpleFragmentExp("section")))
+      val fragment = List(SimpleFragmentExp("section"))
       UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo("{+path}/search{?term}{#section}")
     }
     "render {+var}" in {
@@ -184,14 +184,14 @@ object UriTemplateSpec extends Specification {
       UriTemplate(path = path).toString must equalTo("{+path}/here")
     }
     "render /?" in {
-      UriTemplate(query = List(ParamElm("", Nil)), fragment = None).toString must equalTo("/?")
+      UriTemplate(query = List(ParamElm("", Nil)), fragment = Nil).toString must equalTo("/?")
     }
     "render /?#" in {
-      val fragment = Some(List(FragmentElm("")))
+      val fragment = List(FragmentElm(""))
       UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toString must equalTo("/?#")
     }
     "render /#" in {
-      val fragment = Some(List(FragmentElm("")))
+      val fragment = List(FragmentElm(""))
       UriTemplate(query = Nil, fragment = fragment).toString must equalTo("/#")
     }
     "render http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz" in {
@@ -375,45 +375,45 @@ object UriTemplateSpec extends Specification {
       tpl.toUriIfPossible.isFailure
     }
     "convert /{#frg} to UriTemplate" in {
-      val fragment = Some(List(SimpleFragmentExp("frg")))
+      val fragment = List(SimpleFragmentExp("frg"))
       val tpl = UriTemplate(fragment = fragment)
       tpl.toUriIfPossible.isFailure
     }
     "convert /{#x,y} to UriTemplate" in {
-      val fragment = Some(List(MultiFragmentExp("x", "y")))
+      val fragment = List(MultiFragmentExp("x", "y"))
       val tpl = UriTemplate(fragment = fragment)
       tpl.toUriIfPossible.isFailure
     }
     "convert /#test to Uri" in {
-      val fragment = Some(List(FragmentElm("test")))
+      val fragment = List(FragmentElm("test"))
       UriTemplate(fragment = fragment).toUriIfPossible.get must
         equalTo(Uri(fragment = Some("test")))
     }
     "convert {path}/search{?term}{#section} to UriTemplate" in {
       val path = List(VarExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
-      val fragment = Some(List(SimpleFragmentExp("section")))
+      val fragment = List(SimpleFragmentExp("section"))
       val tpl = UriTemplate(path = path, query = query, fragment = fragment)
       tpl.toUriIfPossible.isFailure
     }
     "convert {+path}/search{?term}{#section} to UriTemplate" in {
       val path = List(ReservedExp("path"), PathElm("search"))
       val query = List(ParamExp("term"))
-      val fragment = Some(List(SimpleFragmentExp("section")))
+      val fragment = List(SimpleFragmentExp("section"))
       val tpl = UriTemplate(path = path, query = query, fragment = fragment)
       tpl.toUriIfPossible.isFailure
     }
     "convert /? to Uri" in {
-      UriTemplate(query = List(ParamElm("", Nil)), fragment = None).toUriIfPossible.get must
+      UriTemplate(query = List(ParamElm("", Nil)), fragment = Nil).toUriIfPossible.get must
         equalTo(Uri(query = Query.fromString("")))
     }
     "convert /?# to Uri" in {
-      val fragment = Some(List())
+      val fragment = List(FragmentElm(""))
       UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toUriIfPossible.get must
         equalTo(Uri(query = Query.fromString(""), fragment = Some("")))
     }
     "convert /# to Uri" in {
-      val fragment = Some(List(FragmentElm("")))
+      val fragment = List(FragmentElm(""))
       UriTemplate(fragment = fragment).toUriIfPossible.get must
         equalTo(Uri(fragment = Some("")))
     }
@@ -423,7 +423,7 @@ object UriTemplateSpec extends Specification {
       val authority = Some(Authority(host = host))
       val path = List(VarExp("rel"), PathElm("search"))
       val query = List(ParamExp("term"))
-      val fragment = Some(List(SimpleFragmentExp("section")))
+      val fragment = List(SimpleFragmentExp("section"))
       val tpl = UriTemplate(scheme, authority, path, query, fragment)
       tpl.toUriIfPossible.isFailure
     }
@@ -433,7 +433,7 @@ object UriTemplateSpec extends Specification {
       val authority = Some(Authority(host = host, port = Some(8080)))
       val path = List(VarExp("rel"), PathElm("search"))
       val query = List(ParamExp("term"))
-      val fragment = Some(List(SimpleFragmentExp("section")))
+      val fragment = List(SimpleFragmentExp("section"))
       val tpl = UriTemplate(scheme, authority, path, query, fragment)
       tpl.toUriIfPossible.isFailure
     }
@@ -521,7 +521,7 @@ object UriTemplateSpec extends Specification {
       val scheme = Some("https".ci)
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some("username:password"), host, None))
-      UriTemplate(scheme, authority, Nil, Nil, None).toUriIfPossible.get must
+      UriTemplate(scheme, authority, Nil, Nil, Nil).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
     }
     "convert http://username:password@some.example.com/some/path?param1=5&param-without-value to Uri" in {
@@ -539,7 +539,7 @@ object UriTemplateSpec extends Specification {
       val authority = Some(Authority(Some("username:password"), host, None))
       val path = List(PathElm("some"), PathElm("path"))
       val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
-      val fragment = Some(List(FragmentElm("sec-1.2")))
+      val fragment = List(FragmentElm("sec-1.2"))
       UriTemplate(scheme, authority, path, query, fragment).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value"), Some("sec-1.2")))
     }
@@ -683,30 +683,30 @@ object UriTemplateSpec extends Specification {
 
   "UriTemplate.expandFragment" should {
     "expand /{#section} to /#sec2.1" in {
-      val fragment = Some(List(SimpleFragmentExp("section")))
+      val fragment = List(SimpleFragmentExp("section"))
       UriTemplate(fragment = fragment).expandFragment("section", "sec2.1") must
-        equalTo(UriTemplate(fragment = Some(List(FragmentElm("sec2.1")))))
+        equalTo(UriTemplate(fragment = List(FragmentElm("sec2.1"))))
     }
     "expand /{#x,y} to /#23{#y}" in {
-      val tpl = UriTemplate(fragment = Some(List(MultiFragmentExp("x", "y"))))
+      val tpl = UriTemplate(fragment = List(MultiFragmentExp("x", "y")))
       tpl.expandFragment("x", "23") must
-        equalTo(UriTemplate(fragment = Some(List(FragmentElm("23"), MultiFragmentExp("y")))))
+        equalTo(UriTemplate(fragment = List(FragmentElm("23"), MultiFragmentExp("y"))))
     }
     "expand /{#x,y} to UriTemplate /#42{#x}" in {
-      val tpl = UriTemplate(fragment = Some(List(MultiFragmentExp("x", "y"))))
+      val tpl = UriTemplate(fragment = List(MultiFragmentExp("x", "y")))
       tpl.expandFragment("y", "42") must
-        equalTo(UriTemplate(fragment = Some(List(FragmentElm("42"), MultiFragmentExp("x")))))
+        equalTo(UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x"))))
     }
     "expand /{#x,y,z} to UriTemplate /#42{#x,z}" in {
       val x = SimpleFragmentExp("x")
       val y = SimpleFragmentExp("y")
       val z = SimpleFragmentExp("z")
-      val tpl = UriTemplate(fragment = Some(List(MultiFragmentExp("x", "y", "z"))))
+      val tpl = UriTemplate(fragment = List(MultiFragmentExp("x", "y", "z")))
       tpl.expandFragment("y", "42") must
-        equalTo(UriTemplate(fragment = Some(List(FragmentElm("42"), MultiFragmentExp("x", "z")))))
+        equalTo(UriTemplate(fragment = List(FragmentElm("42"), MultiFragmentExp("x", "z"))))
     }
     "expand nothing" in {
-      val fragment = Some(List(FragmentElm("sec1.2"), SimpleFragmentExp("section")))
+      val fragment = List(FragmentElm("sec1.2"), SimpleFragmentExp("section"))
       val tpl = UriTemplate(fragment = fragment)
       tpl.expandFragment("unknown", "123") must equalTo(tpl)
     }
