@@ -1,6 +1,5 @@
 package org.http4s
 
-import org.http4s.Query.KV
 import org.http4s.Uri.{Authority, Host, IPv4, IPv6, RegName, Scheme}
 import org.http4s.UriTemplate._
 
@@ -288,9 +287,9 @@ object UriTemplate {
   protected def buildQuery(q: Query): org.http4s.Query = {
     val elements = Query.newBuilder
     q map {
-      case ParamElm(n, Nil) => elements += KV(n, None)
-      case ParamElm(n, List(v)) => elements += KV(n, Some(v))
-      case ParamElm(n, vs) => vs.foreach(v => elements += KV(n, Some(v)))
+      case ParamElm(n, Nil) => elements += ((n, None))
+      case ParamElm(n, List(v)) => elements += ((n, Some(v)))
+      case ParamElm(n, vs) => vs.foreach(v => elements += ((n, Some(v))))
       case u => throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
 

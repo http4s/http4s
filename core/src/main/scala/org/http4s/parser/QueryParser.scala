@@ -2,13 +2,11 @@ package org.http4s.parser
 
 import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
-import org.http4s.Query.KV
 import org.http4s._
 import org.http4s.util.string._
 
 import scala.annotation.switch
 import scala.collection.immutable.BitSet
-import scala.collection.mutable.ListBuffer
 import scala.io.Codec
 
 import QueryParser._
@@ -26,7 +24,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean) {
     * `flush` signals that this is the last input */
   def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
     val acc = Query.newBuilder
-    decodeBuffer(input, (k,v) => acc += KV(k,v), flush) match {
+    decodeBuffer(input, (k,v) => acc += ((k,v)), flush) match {
       case Some(e) => -\/(ParseFailure(e))
       case None    => \/-(acc.result)
     }

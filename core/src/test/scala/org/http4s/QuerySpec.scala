@@ -2,12 +2,11 @@ package org.http4s
 
 import org.specs2.mutable.Specification
 
-import Query.KV
 
 class QuerySpec extends Specification {
 
   "Query" can {
-    val elem = KV("k", Some("v"))
+    val elem = ("k", Some("v"))
 
     "append a single Pair element" in {
       val q = Query.empty :+ elem

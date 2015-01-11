@@ -2,17 +2,14 @@ package org.http4s
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.Query.KV
-
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 
 import Uri._
 
 import scala.collection.mutable
-import mutable.ListBuffer
 
-import org.http4s.parser.{ ScalazDeliverySchemes, QueryParser, RequestUriParser }
+import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 
@@ -158,7 +155,7 @@ case class Uri(
 
   private def _containsQueryParam(name: QueryParameterKey): Boolean = {
     if (query.isEmpty) false
-    else query.exists { case KV(k, _) => k == name.value }
+    else query.exists { case (k, _) => k == name.value }
   }
 
   /**
@@ -173,7 +170,7 @@ case class Uri(
   private def _removeQueryParam(name: QueryParameterKey): Uri = {
     if (query.isEmpty) this
     else {
-      val newQuery = query.filterNot { case KV(n, _) => n == name.value }
+      val newQuery = query.filterNot { case (n, _) => n == name.value }
       copy(query = newQuery)
     }
   }
@@ -189,8 +186,8 @@ case class Uri(
       val enc = QueryParamEncoder[T]
       val b = Query.newBuilder
       query.foreach {
-        case (k, Seq()) => b +=  KV(k, None)
-        case (k, vs)    => vs.foreach(v => b += KV(k, Some(enc.encode(v).value)))
+        case (k, Seq()) => b +=  ((k, None))
+        case (k, vs)    => vs.foreach(v => b += ((k, Some(enc.encode(v).value))))
       }
       copy(query = b.result())
     }

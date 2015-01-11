@@ -10,23 +10,23 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
 
 
-final case class Query private(params: Vector[KV])
-  extends IndexedSeq[KV] 
-  with IndexedSeqOptimized[KV, Query]
+final case class Query private(params: Vector[KeyValue])
+  extends IndexedSeq[KeyValue]
+  with IndexedSeqOptimized[KeyValue, Query]
   with Renderable 
 {
 
-  override def apply(idx: Int): KV = params.apply(idx)
+  override def apply(idx: Int): KeyValue = params.apply(idx)
 
   override def length: Int = params.length
 
-  override def +:[B >: KV, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) Query((elem +: params).asInstanceOf[Vector[KV]]).asInstanceOf[That]
+  override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
+    if (bf eq Query.cbf) Query((elem +: params).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.+:(elem)
   }
 
-  override def :+[B >: KV, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) Query((params :+ elem).asInstanceOf[Vector[KV]]).asInstanceOf[That]
+  override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
+    if (bf eq Query.cbf) Query((params :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.:+(elem)
   }
 
@@ -35,12 +35,12 @@ final case class Query private(params: Vector[KV])
   override def render(writer: Writer): writer.type = {
     var first = true
     params.foreach {
-      case KV(n, None) =>
+      case (n, None) =>
         if (!first) writer.append('&')
         else first = false
         writer.append(n)
 
-      case KV(n, Some(v)) =>
+      case (n, Some(v)) =>
         if (!first) writer.append('&')
         else first = false
         writer.append(n)
@@ -55,54 +55,54 @@ final case class Query private(params: Vector[KV])
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]
       foreach {
-        case KV(k, None) => m.getOrElseUpdate(k, new ListBuffer)
-        case KV(k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
+        case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
+        case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
       }
 
       m.toMap
     }
   }
 
-  override protected[this] def newBuilder: mutable.Builder[KV, Query] = Query.newBuilder
+  override protected[this] def newBuilder: mutable.Builder[KeyValue, Query] = Query.newBuilder
 }
 
 object Query {
-  
-  case class KV(key: String, value: Option[String])
+
+  type KeyValue = (String, Option[String])
 
   val empty: Query = Query(Vector.empty)
 
   def fromPairs(xs: (String, String)*): Query = {
     val b = newBuilder
-    xs.foreach{ case (k, v) => b += KV(k, Some(v)) }
+    xs.foreach{ case (k, v) => b += ((k, Some(v))) }
     b.result()
   }
 
   def fromOptions(xs: (String, Option[String])*): Query = {
     val b = newBuilder
-    xs.foreach{ case (k, v) => b += KV(k, v) }
+    xs.foreach{ case (k, v) => b += ((k, v)) }
     b.result()
   }
 
   def fromString(query: String): Query = {
-    if (query.isEmpty) Query(Vector(KV("", None)))
+    if (query.isEmpty) Query(Vector("" -> None))
     else QueryParser.parseQueryString(query).getOrElse(Query.empty)
   }
   
   def fromMap(map: Map[String, Seq[String]]): Query = {
     val b = newBuilder
     map.foreach {
-      case (k, Seq()) => b +=  KV(k, None)
-      case (k, vs)    => vs.foreach(v => b += KV(k, Some(v)))
+      case (k, Seq()) => b +=  ((k, None))
+      case (k, vs)    => vs.foreach(v => b += ((k, Some(v))))
     }
     b.result()
   }
 
-  def newBuilder: mutable.Builder[KV, Query] =
-    Vector.newBuilder[KV].mapResult(v => new Query(v))
+  def newBuilder: mutable.Builder[KeyValue, Query] =
+    Vector.newBuilder[KeyValue].mapResult(v => new Query(v))
 
-  implicit val cbf: CanBuildFrom[Query, KV, Query] = new CanBuildFrom[Query, KV, Query] {
-    override def apply(from: Query): mutable.Builder[KV, Query] = newBuilder
-    override def apply(): mutable.Builder[KV, Query] = newBuilder
+  implicit val cbf: CanBuildFrom[Query, KeyValue, Query] = new CanBuildFrom[Query, KeyValue, Query] {
+    override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder
+    override def apply(): mutable.Builder[KeyValue, Query] = newBuilder
   }
 }

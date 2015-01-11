@@ -73,7 +73,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
     "Handle queries with no spaces properly" in {
       getQueryParams("http://localhost:8080/blah?x=abc&y=ijk") should_== Map("x" -> "abc", "y" -> "ijk")
-      getQueryParams("http://localhost:8080/blah?") should_== Map.empty
+      getQueryParams("http://localhost:8080/blah?") should_== Map("" -> "")
+      getQueryParams("http://localhost:8080/blah") should_== Map.empty
     }
 
     "Handle queries with spaces properly" in {
@@ -237,7 +238,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri parameters" should {
     "parse empty query string" in {
-      Uri(query = Query.fromString("")).multiParams must be_==(Map.empty)
+      Uri(query = Query.fromString("")).multiParams must be_==(Map("" -> Nil))
     }
     "parse parameter without key but with empty value" in {
       Uri(query = Query.fromString("=")).multiParams must be_==(Map("" -> List("")))
@@ -309,8 +310,9 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
     }
     "work on empty list" in {
-      foreach (Uri(query = Query.fromString("")).params.iterator) { i =>
-        throw new Error(s"should not have $i") // should not happen
+      foreach (Uri(query = Query.fromString("")).params.iterator) { case (k,v) =>
+        k must_== ""
+        v must_== ""
       }
     }
     "work with empty keys" in {
