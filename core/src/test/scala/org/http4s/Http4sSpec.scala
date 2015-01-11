@@ -1,7 +1,6 @@
 package org.http4s
 
-import org.specs2.matcher.{AnyMatchers, Matcher}
-import org.specs2.reporter.SpecFailureAssertionFailedError
+import org.specs2.matcher.AnyMatchers
 import org.specs2.scalaz.{Spec, ScalazMatchers}
 
 /**

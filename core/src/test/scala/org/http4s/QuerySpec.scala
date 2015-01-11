@@ -1,9 +1,16 @@
 package org.http4s
 
-import org.specs2.mutable.Specification
+import org.scalacheck.Prop._
+import org.scalacheck.Properties
 
 
-class QuerySpec extends Specification {
+class QuerySpec extends Http4sSpec {
+
+  checkAll("Query parsing", new Properties("Query") {
+    property("fromString(query.toString) == query if query.nonEmpty") = forAll { query: Query =>
+      (query.nonEmpty) ==> (Query.fromString(query.toString) == query)
+    }
+  })
 
   "Query" can {
     val elem = ("k", Some("v"))

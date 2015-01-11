@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
 
 
-final case class Query private(params: Vector[KeyValue])
+final case class Query (params: Vector[KeyValue])
   extends IndexedSeq[KeyValue]
   with IndexedSeqOptimized[KeyValue, Query]
   with QueryOps
