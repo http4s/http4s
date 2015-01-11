@@ -334,11 +334,11 @@ object UriTemplateSpec extends Specification {
     }
     "convert /?switch to Uri" in {
       UriTemplate(query = Some(List(ParamElm("switch")))).toUriIfPossible.get must
-        equalTo(Uri(path = "/", query = Some("switch")))
+        equalTo(Uri(path = "/", query = Query.fromString("switch")))
     }
     "convert /?switch=foo&switch=bar to Uri" in {
       UriTemplate(query = Some(List(ParamElm("switch", List("foo", "bar"))))).toUriIfPossible.get must
-        equalTo(Uri(path = "/", query = Some("switch=foo&switch=bar")))
+        equalTo(Uri(path = "/", query = Query.fromString("switch=foo&switch=bar")))
     }
     "convert /{?id} to UriTemplate" in {
       val tpl = UriTemplate(query = Some(List(ParamExp("id"))))
@@ -405,12 +405,12 @@ object UriTemplateSpec extends Specification {
     }
     "convert /? to Uri" in {
       UriTemplate(query = Some(List()), fragment = None).toUriIfPossible.get must
-        equalTo(Uri(query = Some("")))
+        equalTo(Uri(query = Query.fromString("")))
     }
     "convert /?# to Uri" in {
       val fragment = Some(List())
       UriTemplate(query = Some(List()), fragment = fragment).toUriIfPossible.get must
-        equalTo(Uri(query = Some(""), fragment = Some("")))
+        equalTo(Uri(query = Query.fromString(""), fragment = Some("")))
     }
     "convert /# to Uri" in {
       val fragment = Some(List(FragmentElm("")))
@@ -444,7 +444,7 @@ object UriTemplateSpec extends Specification {
       val path = List(PathElm("foo"))
       val query = Some(List(ParamElm("bar", List("baz"))))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/foo", Some("bar=baz")))
+        equalTo(Uri(scheme, authority, "/foo", Query.fromString("bar=baz")))
     }
     "convert http://www.foo.com/foo?bar=baz to Uri" in {
       val scheme = Some("http".ci)
@@ -453,7 +453,7 @@ object UriTemplateSpec extends Specification {
       val path = List(PathElm("foo"))
       val query = Some(List(ParamElm("bar", "baz")))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/foo", Some("bar=baz")))
+        equalTo(Uri(scheme, authority, "/foo", Query.fromString("bar=baz")))
     }
     "convert http://www.foo.com:80 to Uri" in {
       val scheme = Some("http".ci)
@@ -482,8 +482,8 @@ object UriTemplateSpec extends Specification {
       val host = IPv4("192.168.1.1".ci)
       val authority = Some(Authority(host = host, port = Some(8080)))
       val query = Some(List())
-      UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get must equalTo(Uri(scheme, authority, "/", Some("")))
-      UriTemplate(scheme, authority, Nil, None).toUriIfPossible.get must equalTo(Uri(scheme, authority, "/", None))
+      UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get must equalTo(Uri(scheme, authority, "/", Query.fromString("")))
+      UriTemplate(scheme, authority, Nil, None).toUriIfPossible.get must equalTo(Uri(scheme, authority, "/", Query.empty))
     }
     "convert http://192.168.1.1:80/c?GB=object&Class=one to Uri" in {
       val scheme = Some("http".ci)
@@ -492,7 +492,7 @@ object UriTemplateSpec extends Specification {
       val path = List(PathElm("c"))
       val query = Some(List(ParamElm("GB", "object"), ParamElm("Class", "one")))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/c", Some("GB=object&Class=one")))
+        equalTo(Uri(scheme, authority, "/c", Query.fromString("GB=object&Class=one")))
     }
     "convert http://[2001:db8::7]/c?GB=object&Class=one to Uri" in {
       val scheme = Some("http".ci)
@@ -501,7 +501,7 @@ object UriTemplateSpec extends Specification {
       val path = List(PathElm("c"))
       val query = Some(List(ParamElm("GB", "object"), ParamElm("Class", "one")))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/c", Some("GB=object&Class=one")))
+        equalTo(Uri(scheme, authority, "/c", Query.fromString("GB=object&Class=one")))
     }
     "convert http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344] to Uri" in {
       val scheme = Some("http".ci)
@@ -531,7 +531,7 @@ object UriTemplateSpec extends Specification {
       val path = List(PathElm("some"), PathElm("path"))
       val query = Some(List(ParamElm("param1", "5"), ParamElm("param-without-value")))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/some/path", Some("param1=5&param-without-value")))
+        equalTo(Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value")))
     }
     "convert http://username:password@some.example.com/some/path?param1=5&param-without-value#sec-1.2 to Uri" in {
       val scheme = Some("http".ci)
@@ -541,7 +541,7 @@ object UriTemplateSpec extends Specification {
       val query = Some(List(ParamElm("param1", "5"), ParamElm("param-without-value")))
       val fragment = Some(List(FragmentElm("sec-1.2")))
       UriTemplate(scheme, authority, path, query, fragment).toUriIfPossible.get must
-        equalTo(Uri(scheme, authority, "/some/path", Some("param1=5&param-without-value"), Some("sec-1.2")))
+        equalTo(Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value"), Some("sec-1.2")))
     }
   }
 

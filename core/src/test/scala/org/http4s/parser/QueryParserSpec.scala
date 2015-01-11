@@ -9,43 +9,43 @@ import scala.io.Codec
 
 class QueryParserSpec extends Http4sSpec {
 
-  def parseQueryString(str: String): ParseResult[Seq[(String, Option[String])]] =
+  def parseQueryString(str: String): ParseResult[Query] =
     QueryParser.parseQueryString(str)
 
   "The QueryParser" should {
 
     "correctly extract complete key value pairs" in {
-      parseQueryString("key=value") must beRightDisjunction(Seq("key" -> Some("value")))
-      parseQueryString("key=value&key2=value2") must beRightDisjunction(Seq("key" -> Some("value"), "key2" -> Some("value2")))
+      parseQueryString("key=value") must beRightDisjunction(Query.fromOptions("key" -> Some("value")))
+      parseQueryString("key=value&key2=value2") must beRightDisjunction(Query.fromOptions("key" -> Some("value"), "key2" -> Some("value2")))
     }
 
     "decode URL-encoded keys and values" in {
-      parseQueryString("ke%25y=value") must beRightDisjunction(Seq("ke%y" -> Some("value")))
-      parseQueryString("key=value%26&key2=value2") must beRightDisjunction(Seq("key" -> Some("value&"), "key2" -> Some("value2")))
+      parseQueryString("ke%25y=value") must beRightDisjunction(Query.fromOptions("ke%y" -> Some("value")))
+      parseQueryString("key=value%26&key2=value2") must beRightDisjunction(Query.fromOptions("key" -> Some("value&"), "key2" -> Some("value2")))
     }
 
     "return an empty Map for an empty query string" in {
-      parseQueryString("") must beRightDisjunction(Seq.empty)
+      parseQueryString("") must beRightDisjunction(Query.empty)
     }
 
     "return an empty value for keys without a value following the '=' and keys without following '='" in {
-      parseQueryString("key=&key2") must beRightDisjunction(Seq("key" -> Some(""), "key2" -> None))
+      parseQueryString("key=&key2") must beRightDisjunction(Query.fromOptions("key" -> Some(""), "key2" -> None))
     }
 
     "accept empty key value pairs" in {
-      parseQueryString("&&b&") must beRightDisjunction(Seq("" -> None, "" -> None, "b" -> None, "" -> None))
+      parseQueryString("&&b&") must beRightDisjunction(Query.fromOptions("" -> None, "" -> None, "b" -> None, "" -> None))
     }
 
     "Handle '=' in a query string" in {
-      parseQueryString("a=b=c") must beRightDisjunction(Seq("a" -> Some("b=c")))
+      parseQueryString("a=b=c") must beRightDisjunction(Query.fromOptions("a" -> Some("b=c")))
     }
 
     "Gracefully handle invalid URL encoding" in {
-      parseQueryString("a=b%G") must beRightDisjunction(Seq("a" -> Some("b%G")))
+      parseQueryString("a=b%G") must beRightDisjunction(Query.fromOptions("a" -> Some("b%G")))
     }
 
     "Allow ';' seperators" in {
-      parseQueryString("a=b;c") must beRightDisjunction(Seq("a" -> Some("b"), "c" -> None))
+      parseQueryString("a=b;c") must beRightDisjunction(Query.fromOptions("a" -> Some("b"), "c" -> None))
     }
 
     "Reject a query with invalid char" in {
@@ -59,22 +59,22 @@ class QueryParserSpec extends Http4sSpec {
       val cs = CharBuffer.wrap(s)
       val r = new QueryParser(Codec.UTF8, true).decode(cs, false)
 
-      r must beRightDisjunction(Seq("key" -> Some("value")))
+      r must beRightDisjunction(Query.fromOptions("key" -> Some("value")))
       cs.remaining must_== 9
 
       val r2 = new QueryParser(Codec.UTF8, true).decode(cs, false)
-      r2 must beRightDisjunction(Seq())
+      r2 must beRightDisjunction(Query.fromOptions())
       cs.remaining() must_== 9
 
       val r3 = new QueryParser(Codec.UTF8, true).decode(cs, true)
-      r3 must beRightDisjunction(Seq("stuff" -> Some("cat")))
+      r3 must beRightDisjunction(Query.fromOptions("stuff" -> Some("cat")))
       cs.remaining() must_== 0
     }
 
     "be stack safe" in {
       val value = Stream.continually('X').take(1000000).mkString
       val query = s"little=x&big=${value}"
-      parseQueryString(query) must beRightDisjunction(Seq("little" -> Some("x"), "big" -> Some(value)))
+      parseQueryString(query) must beRightDisjunction(Query.fromOptions("little" -> Some("x"), "big" -> Some(value)))
     }
   }
 }

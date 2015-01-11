@@ -2,6 +2,8 @@ package org.http4s
 
 import java.nio.charset.StandardCharsets
 
+import org.http4s.Query.KV
+
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 
@@ -31,7 +33,7 @@ case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
   authority: Option[Authority] = None,
   path: Path = "/",
-  query: Option[Query] = None,
+  query: Query = Query.empty,
   fragment: Option[Fragment] = None) extends Renderable {
   def withPath(path: Path): Uri = copy(path = path)
 
@@ -59,18 +61,7 @@ case class Uri(
    * The query string is lazily parsed. If an error occurs during parsing
    * an empty `Map` is returned.
    */
-  lazy val multiParams: Map[String, Seq[String]] = {
-    query.fold(Map.empty[String, Seq[String]]) { query =>
-      QueryParser.parseQueryString(query).fold(_ => Map.empty, params => {
-        val m = mutable.Map.empty[String, ListBuffer[String]]
-        params.foreach {
-          case (k, None) => m.getOrElseUpdate(k, new ListBuffer)
-          case (k, Some(v)) => m.getOrElseUpdate(k, new ListBuffer) += v
-        }
-        m.map { case (k, lst) => (k, lst.toSeq) }.toMap
-      })
-    }
-  }
+  lazy val multiParams: Map[String, Seq[String]] = query.asMap
 
   /**
    * View of the head elements of the URI parameters in query string.
@@ -165,10 +156,9 @@ case class Uri(
   def containsQueryParam[K: QueryParamKeyLike](key: K): Boolean =
     _containsQueryParam(QueryParamKeyLike[K].getKey(key))
 
-  private def _containsQueryParam(name: QueryParameterKey): Boolean = query match {
-    case Some("") => if (name.value == "") true else false
-    case Some(_)  => multiParams.contains(name.value)
-    case None     => false
+  private def _containsQueryParam(name: QueryParameterKey): Boolean = {
+    if (query.isEmpty) false
+    else query.exists { case KV(k, _) => k == name.value }
   }
 
   /**
@@ -180,15 +170,12 @@ case class Uri(
   def removeQueryParam[K: QueryParamKeyLike](key: K): Uri =
     _removeQueryParam(QueryParamKeyLike[K].getKey(key))
 
-  private def _removeQueryParam(name: QueryParameterKey): Uri = query match {
-    case Some("") =>
-      if (name.value == "") copy(query = None)
-      else this
-    case Some(_) =>
-      if (!multiParams.contains(name.value)) this
-      else copy(query = renderQueryString(multiParams - name.value))
-    case None =>
-      this
+  private def _removeQueryParam(name: QueryParameterKey): Uri = {
+    if (query.isEmpty) this
+    else {
+      val newQuery = query.filterNot { case KV(n, _) => n == name.value }
+      copy(query = newQuery)
+    }
   }
 
   /**
@@ -198,7 +185,15 @@ case class Uri(
    */
   def setQueryParams[T: QueryParamEncoder](query: Map[String, Seq[T]]): Uri = {
     if (multiParams == query) this
-    else copy(query = renderQueryString(query.mapValues(_.map(v => QueryParamEncoder[T].encode(v).value))))
+    else {
+      val enc = QueryParamEncoder[T]
+      val b = Query.newBuilder
+      query.foreach {
+        case (k, Seq()) => b +=  KV(k, None)
+        case (k, vs)    => vs.foreach(v => b += KV(k, Some(enc.encode(v).value)))
+      }
+      copy(query = b.result())
+    }
   }
 
   /**
@@ -240,7 +235,7 @@ case class Uri(
     if (multiParams.contains(name.value) && multiParams.getOrElse(name.value, Nil) == stringValues) this
     else {
       val p = multiParams updated (name.value, stringValues)
-      copy(query = renderQueryString(p))
+      copy(query = Query.fromMap(p))
     }
   }
 
@@ -288,7 +283,7 @@ case class Uri(
     value.cata(v => _withQueryParam(name, v::Nil), this)
 
   override def render(writer: Writer): writer.type = this match {
-    case Uri(Some(s), Some(a), "/", None, None) =>
+    case Uri(Some(s), Some(a), "/", q, None) if q.isEmpty =>
       renderSchemeAndAuthority(writer, s, a)
 
     case Uri(Some(s), Some(a), path, params, fragment) =>
@@ -337,7 +332,6 @@ object Uri extends UriFunctions {
   type UserInfo = String
 
   type Path = String
-  type Query = String
   type Fragment = String
 
   case class Authority(
@@ -384,30 +378,10 @@ object Uri extends UriFunctions {
     renderScheme(writer, s) << "//" << a
 
 
-  private def renderParamsAndFragment(writer: Writer, p: Option[Query], f: Option[Fragment]): writer.type = {
-    if (p.isDefined) writer << '?' << p.get
+  private def renderParamsAndFragment(writer: Writer, p: Query, f: Option[Fragment]): writer.type = {
+    if (p.nonEmpty) writer << '?' << p
     if (f.isDefined) writer << '#' << f.get
     writer
-  }
-
-  private def renderQueryString(params: Map[String, Seq[String]]): Option[String] = {
-    if (params.isEmpty) None
-    else {
-      val b = new StringBuilder
-      params.foreach {
-        case (n, vs) =>
-          if (vs.isEmpty) {
-            if (b.nonEmpty) b.append('&')
-            b.append(n)
-          } else {
-            vs.foldLeft(b) { (b, v) =>
-              if (b.nonEmpty) b.append('&')
-              b.append(n + "=" + v)
-            }
-          }
-      }
-      Some(b.toString)
-    }
   }
 }
 

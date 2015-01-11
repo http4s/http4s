@@ -7,6 +7,7 @@ import java.net.URLDecoder
 import shapeless.HNil
 import scalaz.syntax.std.option._
 import org.http4s.util.CaseInsensitiveString._
+import org.http4s.{ Query => Q }
 
 private[parser] trait Rfc3986Parser { this: Parser =>
   import CharPredicate.{Alpha, Digit, HexDigit}
@@ -25,8 +26,9 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   def UriReference = rule { Uri | RelativeRef }
 
   def AbsoluteUri = rule {
-    Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~>
-      ((scheme, auth, path, query, fragment) => org.http4s.Uri(Some(scheme), auth, path, query, fragment))
+    Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (scheme, auth, path, query, fragment) =>
+      org.http4s.Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+    }
   }
 
   def RelativeRef = rule { RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }

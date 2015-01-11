@@ -1,5 +1,6 @@
 package org.http4s
 
+import org.http4s.Query.KV
 import org.http4s.Uri.{Authority, Host, IPv4, IPv6, RegName, Scheme}
 import org.http4s.UriTemplate._
 
@@ -23,7 +24,7 @@ case class UriTemplate(
   scheme: Option[Scheme] = None,
   authority: Option[Authority] = None,
   path: Path = Nil,
-  query: Option[Query] = None,
+  query: Option[UriTemplate.Query] = None,
   fragment: Option[Fragment] = None) {
 
   /**
@@ -284,16 +285,16 @@ object UriTemplate {
     else elements.mkString(",")
   }
 
-  protected def renderParams(q: Query): String = {
-    val elements = new mutable.ArrayBuffer[String]()
+  protected def buildQuery(q: Query): org.http4s.Query = {
+    val elements = Query.newBuilder
     q map {
-      case ParamElm(n, Nil) => elements.append(n)
-      case ParamElm(n, List(v)) => elements.append(n + "=" + v)
-      case ParamElm(n, vs) => vs.foreach(v => elements.append(n + "=" + v))
+      case ParamElm(n, Nil) => elements += KV(n, None)
+      case ParamElm(n, List(v)) => elements += KV(n, Some(v))
+      case ParamElm(n, vs) => vs.foreach(v => elements += KV(n, Some(v)))
       case u => throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
-    if (elements.isEmpty) ""
-    else elements.mkString("&")
+
+    elements.result()
   }
 
   protected def renderPath(p: Path): String = p match {
@@ -364,12 +365,12 @@ object UriTemplate {
 
   protected def toUri(t: UriTemplate): Uri = t match {
     case UriTemplate(s, a, Nil, None, None) => Uri(s, a)
-    case UriTemplate(s, a, Nil, Some(q), Some(f)) => Uri(s, a, query = Some(renderParams(q)), fragment = Some(renderFragmentIdentifier(f)))
+    case UriTemplate(s, a, Nil, Some(q), Some(f)) => Uri(s, a, query = buildQuery(q), fragment = Some(renderFragmentIdentifier(f)))
     case UriTemplate(s, a, Nil, None, Some(f)) => Uri(s, a, fragment = Some(renderFragmentIdentifier(f)))
-    case UriTemplate(s, a, Nil, Some(q), None) => Uri(s, a, query = Some(renderParams(q)))
+    case UriTemplate(s, a, Nil, Some(q), None) => Uri(s, a, query = buildQuery(q))
     case UriTemplate(s, a, p, None, None) => Uri(s, a, renderPath(p))
-    case UriTemplate(s, a, p, Some(q), None) => Uri(s, a, renderPath(p), Some(renderParams(q)))
-    case UriTemplate(s, a, p, Some(q), Some(f)) => Uri(s, a, renderPath(p), Some(renderParams(q)), Some(renderFragmentIdentifier(f)))
+    case UriTemplate(s, a, p, Some(q), None) => Uri(s, a, renderPath(p), buildQuery(q))
+    case UriTemplate(s, a, p, Some(q), Some(f)) => Uri(s, a, renderPath(p), buildQuery(q), Some(renderFragmentIdentifier(f)))
     case UriTemplate(s, a, p, None, Some(f)) => Uri(s, a, renderPath(p), fragment = Some(renderFragmentIdentifier(f)))
   }
 
