@@ -50,27 +50,24 @@ trait TestInstances {
     (reserved ++ unreserved).toVector
   }
 
-  def genQueryString(length: Int): Gen[String] =
-    containerOfN[Seq, Char](length, oneOf(validQueryChars)).map(_.mkString)
+  val genQueryString: Gen[String] =
+    Gen.sized(length => containerOfN[Seq, Char](length, oneOf(validQueryChars)).map(_.mkString))
 
   implicit val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
     Arbitrary { frequency(
       5 -> { for {
-                n <- choose(0, 10)
-                k <- genQueryString(n)
-                v <- option( choose(0, 10).flatMap(genQueryString) )
+                k <- genQueryString
+                v <- option(genQueryString)
               } yield (k, v)
            },
       2 -> const(("foo" -> Some("bar")))  // Want some repeats
     ) }
 
-
   implicit val arbitraryQuery: Arbitrary[Query] =
     Arbitrary { for {
-      n <- choose(0, 5)
-      vs <- containerOfN[Vector, (String, Option[String])](n, arbitraryQueryParam.arbitrary)
+      n <- Gen.size
+      vs <- containerOfN[Vector, (String, Option[String])](n % 8, arbitraryQueryParam.arbitrary)
     } yield Query(vs) }
-
 
   implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {
