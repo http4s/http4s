@@ -34,30 +34,30 @@ object UriTemplateSpec extends Specification {
       UriTemplate(path = List(VarExp("rel"))).toString must equalTo("{rel}")
     }
     "render /?ref={path,name}" in {
-      val query = Some(List(ParamVarExp("ref", "path", "name")))
+      val query = List(ParamVarExp("ref", "path", "name"))
       UriTemplate(query = query).toString must equalTo("/?ref={path,name}")
     }
     "render /here?ref={+path,name}" in {
-      val query = Some(List(ParamReservedExp("ref", "path", "name")))
+      val query = List(ParamReservedExp("ref", "path", "name"))
       UriTemplate(query = query).toString must equalTo("/?ref={+path,name}")
     }
     "render /here?ref={path}" in {
       val path = List(PathElm("here"))
-      val query = Some(List(ParamVarExp("ref", "path")))
+      val query = List(ParamVarExp("ref", "path"))
       UriTemplate(path = path, query = query).toString must equalTo("/here?ref={path}")
     }
     "render /here?ref={+path}" in {
       val path = List(PathElm("here"))
-      val query = Some(List(ParamReservedExp("ref", "path")))
+      val query = List(ParamReservedExp("ref", "path"))
       UriTemplate(path = path, query = query).toString must equalTo("/here?ref={+path}")
     }
     "render {somewhere}?ref={path}" in {
       val path = List(VarExp("somewhere"))
-      val query = Some(List(ParamVarExp("ref", "path")))
+      val query = List(ParamVarExp("ref", "path"))
       UriTemplate(path = path, query = query).toString must equalTo("{somewhere}?ref={path}")
     }
     "render /?ref={file,folder}" in {
-      val query = Some(List(ParamVarExp("ref", List("file", "folder"))))
+      val query = List(ParamVarExp("ref", List("file", "folder")))
       UriTemplate(query = query).toString must equalTo("/?ref={file,folder}")
     }
     "render /orders{/id}" in {
@@ -88,67 +88,67 @@ object UriTemplateSpec extends Specification {
     }
     "render /some{rel}/test{?id}" in {
       val path = List(PathElm("some"), VarExp("rel"), PathElm("test"))
-      val query = Some(List(ParamExp("id")))
+      val query = List(ParamExp("id"))
       UriTemplate(path = path, query = query).toString must equalTo("/some{rel}/test{?id}")
     }
     "render /item{?id}{&option}" in {
       val path = List(PathElm("item"))
-      val query = Some(List(ParamExp("id"), ParamContExp("option")))
+      val query = List(ParamExp("id"), ParamContExp("option"))
       UriTemplate(path = path, query = query).toString must equalTo("/item{?id}{&option}")
     }
     "render /items{?start,limit}" in {
       val path = List(PathElm("items"))
-      val query = Some(List(ParamExp("start", "limit")))
+      val query = List(ParamExp("start", "limit"))
       UriTemplate(path = path, query = query).toString must equalTo("/items{?start,limit}")
     }
     "render /items?start=0{&limit}" in {
       val path = List(PathElm("items"))
-      val query = Some(List(ParamElm("start", "0"), ParamContExp("limit")))
+      val query = List(ParamElm("start", "0"), ParamContExp("limit"))
       UriTemplate(path = path, query = query).toString must equalTo("/items?start=0{&limit}")
     }
     "render /?switch" in {
-      UriTemplate(path = Nil, query = Some(List(ParamElm("switch")))).toString must equalTo("/?switch")
+      UriTemplate(path = Nil, query = List(ParamElm("switch"))).toString must equalTo("/?switch")
     }
     "render /?some=" in {
-      UriTemplate(query = Some(List(ParamElm("some", "")))).toString must equalTo("/?some=")
+      UriTemplate(query = List(ParamElm("some", ""))).toString must equalTo("/?some=")
     }
     "render /{?id}" in {
-      UriTemplate(query = Some(List(ParamExp("id")))).toString must equalTo("/{?id}")
-      UriTemplate(query = Some(List(ParamExp("id")))).toString must equalTo("/{?id}")
+      UriTemplate(query = List(ParamExp("id"))).toString must equalTo("/{?id}")
+      UriTemplate(query = List(ParamExp("id"))).toString must equalTo("/{?id}")
     }
     "render /test{?id}" in {
       val path = List(PathElm("test"))
-      val query = Some(List(ParamExp("id")))
+      val query = List(ParamExp("id"))
       UriTemplate(path = path, query = query).toString must equalTo("/test{?id}")
     }
     "render /test{?start,limit}" in {
       val path = List(PathElm("test"))
-      val query = Some(List(ParamExp("start", "limit")))
+      val query = List(ParamExp("start", "limit"))
       UriTemplate(path = path, query = query).toString must equalTo("/test{?start,limit}")
     }
     "render /orders?id=1{&start,limit}" in {
       val path = List(PathElm("orders"))
-      val query = Some(List(ParamElm("id", "1"), ParamContExp("start", "limit")))
+      val query = List(ParamElm("id", "1"), ParamContExp("start", "limit"))
       UriTemplate(path = path, query = query).toString must equalTo("/orders?id=1{&start,limit}")
     }
     "render /orders?item=2&item=4{&start,limit}" in {
       val path = List(PathElm("orders"))
-      val query = Some(List(ParamExp("start", "limit"), ParamElm("item", List("2", "4"))))
+      val query = List(ParamExp("start", "limit"), ParamElm("item", List("2", "4")))
       UriTemplate(path = path, query = query).toString must equalTo("/orders?item=2&item=4{&start,limit}")
     }
     "render /orders?item=2&item=4{&start}{&limit}" in {
       val path = List(PathElm("orders"))
-      val query = Some(List(ParamExp("start"), ParamElm("item", List("2", "4")), ParamExp("limit")))
+      val query = List(ParamExp("start"), ParamElm("item", List("2", "4")), ParamExp("limit"))
       UriTemplate(path = path, query = query).toString must equalTo("/orders?item=2&item=4{&start}{&limit}")
     }
     "render /search?option{&term}" in {
       val path = List(PathElm("search"))
-      val query = Some(List(ParamExp("term"), ParamElm("option")))
+      val query = List(ParamExp("term"), ParamElm("option"))
       UriTemplate(path = path, query = query).toString must equalTo("/search?option{&term}")
     }
     "render /search?option={&term}" in {
       val path = List(PathElm("search"))
-      val query = Some(List(ParamExp("term"), ParamElm("option", "")))
+      val query = List(ParamExp("term"), ParamElm("option", ""))
       UriTemplate(path = path, query = query).toString must equalTo("/search?option={&term}")
     }
     "render /{#frg}" in {
@@ -165,13 +165,13 @@ object UriTemplateSpec extends Specification {
     }
     "render {path}/search{?term}{#section}" in {
       val path = List(VarExp("path"), PathElm("search"))
-      val query = Some(List(ParamExp("term")))
+      val query = List(ParamExp("term"))
       val fragment = Some(List(SimpleFragmentExp("section")))
       UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo("{path}/search{?term}{#section}")
     }
     "render {+path}/search{?term}{#section}" in {
       val path = List(ReservedExp("path"), PathElm("search"))
-      val query = Some(List(ParamExp("term")))
+      val query = List(ParamExp("term"))
       val fragment = Some(List(SimpleFragmentExp("section")))
       UriTemplate(path = path, query = query, fragment = fragment).toString must equalTo("{+path}/search{?term}{#section}")
     }
@@ -184,22 +184,22 @@ object UriTemplateSpec extends Specification {
       UriTemplate(path = path).toString must equalTo("{+path}/here")
     }
     "render /?" in {
-      UriTemplate(query = Some(List()), fragment = None).toString must equalTo("/?")
+      UriTemplate(query = List(ParamElm("", Nil)), fragment = None).toString must equalTo("/?")
     }
     "render /?#" in {
       val fragment = Some(List(FragmentElm("")))
-      UriTemplate(query = Some(List()), fragment = fragment).toString must equalTo("/?#")
+      UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toString must equalTo("/?#")
     }
     "render /#" in {
       val fragment = Some(List(FragmentElm("")))
-      UriTemplate(query = None, fragment = fragment).toString must equalTo("/#")
+      UriTemplate(query = Nil, fragment = fragment).toString must equalTo("/#")
     }
     "render http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz" in {
       val scheme = Some("http".ci)
       val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
       val authority = Some(Authority(host = host))
       val path = List(PathElm("foo"))
-      val query = Some(List(ParamElm("bar", "baz")))
+      val query = List(ParamElm("bar", "baz"))
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://[01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab]/foo?bar=baz")
     }
@@ -208,7 +208,7 @@ object UriTemplateSpec extends Specification {
       val host = RegName("www.foo.com")
       val authority = Some(Authority(host = host))
       val path = List(PathElm("foo"))
-      val query = Some(List(ParamElm("bar", "baz")))
+      val query = List(ParamElm("bar", "baz"))
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://www.foo.com/foo?bar=baz")
     }
@@ -217,7 +217,7 @@ object UriTemplateSpec extends Specification {
       val host = RegName("www.foo.com".ci)
       val authority = Some(Authority(host = host, port = Some(80)))
       val path = Nil
-      val query = None
+      val query = Nil
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://www.foo.com:80")
     }
@@ -233,16 +233,16 @@ object UriTemplateSpec extends Specification {
       val scheme = Some("http".ci)
       val host = IPv4("192.168.1.1".ci)
       val authority = Some(Authority(host = host, port = Some(8080)))
-      val query = Some(List())
+      val query = List(ParamElm("", Nil))
       UriTemplate(scheme, authority, Nil, query).toString must equalTo("http://192.168.1.1:8080/?")
-      UriTemplate(scheme, authority, Nil, None).toString must equalTo("http://192.168.1.1:8080")
+      UriTemplate(scheme, authority, Nil, Nil).toString must equalTo("http://192.168.1.1:8080")
     }
     "render http://192.168.1.1:80/c?GB=object&Class=one" in {
       val scheme = Some("http".ci)
       val host = IPv4("192.168.1.1".ci)
       val authority = Some(Authority(host = host, port = Some(80)))
       val path = List(PathElm("c"))
-      val query = Some(List(ParamElm("GB", "object"), ParamElm("Class", "one")))
+      val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://192.168.1.1:80/c?GB=object&Class=one")
     }
@@ -265,7 +265,7 @@ object UriTemplateSpec extends Specification {
       val host = IPv6("2001:db8::7".ci)
       val authority = Some(Authority(host = host))
       val path = List(PathElm("c"))
-      val query = Some(List(ParamElm("GB", "object"), ParamElm("Class", "one")))
+      val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://[2001:db8::7]/c?GB=object&Class=one")
     }
@@ -292,7 +292,7 @@ object UriTemplateSpec extends Specification {
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some("username:password"), host, None))
       val path = List(PathElm("some"), PathElm("path"))
-      val query = Some(List(ParamElm("param1", "5"), ParamElm("param-without-value")))
+      val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       UriTemplate(scheme, authority, path, query).toString must
         equalTo("http://username:password@some.example.com/some/path?param1=5&param-without-value")
     }
@@ -328,49 +328,49 @@ object UriTemplateSpec extends Specification {
     }
     "convert /some/{rel}/test{?id} to UriTemplate" in {
       val path = List(PathElm("some"), VarExp("rel"), PathElm("test"))
-      val query = Some(List(ParamExp("id")))
+      val query = List(ParamExp("id"))
       val tpl = UriTemplate(path = path, query = query)
       tpl.toUriIfPossible.isFailure
     }
     "convert /?switch to Uri" in {
-      UriTemplate(query = Some(List(ParamElm("switch")))).toUriIfPossible.get must
+      UriTemplate(query = List(ParamElm("switch"))).toUriIfPossible.get must
         equalTo(Uri(path = "/", query = Query.fromString("switch")))
     }
     "convert /?switch=foo&switch=bar to Uri" in {
-      UriTemplate(query = Some(List(ParamElm("switch", List("foo", "bar"))))).toUriIfPossible.get must
+      UriTemplate(query = List(ParamElm("switch", List("foo", "bar")))).toUriIfPossible.get must
         equalTo(Uri(path = "/", query = Query.fromString("switch=foo&switch=bar")))
     }
     "convert /{?id} to UriTemplate" in {
-      val tpl = UriTemplate(query = Some(List(ParamExp("id"))))
+      val tpl = UriTemplate(query = List(ParamExp("id")))
       tpl.toUriIfPossible.isFailure
     }
     "convert /test{?id} to UriTemplate" in {
       val path = List(PathElm("test"))
-      val query = Some(List(ParamExp("id")))
+      val query = List(ParamExp("id"))
       val tpl = UriTemplate(path = path, query = query)
       tpl.toUriIfPossible.isFailure
     }
     "convert /test{?start,limit} to UriTemplate" in {
       val path = List(PathElm("test"))
-      val query = Some(List(ParamExp("start"), ParamExp("limit")))
+      val query = List(ParamExp("start"), ParamExp("limit"))
       val tpl = UriTemplate(path = path, query = query)
       tpl.toUriIfPossible.isFailure
     }
     "convert /orders?id=1{&start,limit} to UriTemplate" in {
       val path = List(PathElm("orders"))
-      val query = Some(List(ParamElm("id", "1"), ParamExp("start"), ParamExp("limit")))
+      val query = List(ParamElm("id", "1"), ParamExp("start"), ParamExp("limit"))
       val tpl = UriTemplate(path = path, query = query)
       tpl.toUriIfPossible.isFailure
     }
     "convert /orders?item=2&item=4{&start,limit} to UriTemplate" in {
       val path = List(PathElm("orders"))
-      val query = Some(List(ParamExp("start"), ParamElm("item", List("2", "4")), ParamExp("limit")))
+      val query = List(ParamExp("start"), ParamElm("item", List("2", "4")), ParamExp("limit"))
       val tpl = UriTemplate(path = path, query = query)
       tpl.toUriIfPossible.isFailure
     }
     "convert /search?option{&term} to UriTemplate" in {
       val path = List(PathElm("search"))
-      val query = Some(List(ParamExp("term"), ParamElm("option")))
+      val query = List(ParamExp("term"), ParamElm("option"))
       val tpl = UriTemplate(path = path, query = query)
       tpl.toUriIfPossible.isFailure
     }
@@ -391,25 +391,25 @@ object UriTemplateSpec extends Specification {
     }
     "convert {path}/search{?term}{#section} to UriTemplate" in {
       val path = List(VarExp("path"), PathElm("search"))
-      val query = Some(List(ParamExp("term")))
+      val query = List(ParamExp("term"))
       val fragment = Some(List(SimpleFragmentExp("section")))
       val tpl = UriTemplate(path = path, query = query, fragment = fragment)
       tpl.toUriIfPossible.isFailure
     }
     "convert {+path}/search{?term}{#section} to UriTemplate" in {
       val path = List(ReservedExp("path"), PathElm("search"))
-      val query = Some(List(ParamExp("term")))
+      val query = List(ParamExp("term"))
       val fragment = Some(List(SimpleFragmentExp("section")))
       val tpl = UriTemplate(path = path, query = query, fragment = fragment)
       tpl.toUriIfPossible.isFailure
     }
     "convert /? to Uri" in {
-      UriTemplate(query = Some(List()), fragment = None).toUriIfPossible.get must
+      UriTemplate(query = List(ParamElm("", Nil)), fragment = None).toUriIfPossible.get must
         equalTo(Uri(query = Query.fromString("")))
     }
     "convert /?# to Uri" in {
       val fragment = Some(List())
-      UriTemplate(query = Some(List()), fragment = fragment).toUriIfPossible.get must
+      UriTemplate(query = List(ParamElm("", Nil)), fragment = fragment).toUriIfPossible.get must
         equalTo(Uri(query = Query.fromString(""), fragment = Some("")))
     }
     "convert /# to Uri" in {
@@ -422,7 +422,7 @@ object UriTemplateSpec extends Specification {
       val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
       val authority = Some(Authority(host = host))
       val path = List(VarExp("rel"), PathElm("search"))
-      val query = Some(List(ParamExp("term")))
+      val query = List(ParamExp("term"))
       val fragment = Some(List(SimpleFragmentExp("section")))
       val tpl = UriTemplate(scheme, authority, path, query, fragment)
       tpl.toUriIfPossible.isFailure
@@ -432,7 +432,7 @@ object UriTemplateSpec extends Specification {
       val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
       val authority = Some(Authority(host = host, port = Some(8080)))
       val path = List(VarExp("rel"), PathElm("search"))
-      val query = Some(List(ParamExp("term")))
+      val query = List(ParamExp("term"))
       val fragment = Some(List(SimpleFragmentExp("section")))
       val tpl = UriTemplate(scheme, authority, path, query, fragment)
       tpl.toUriIfPossible.isFailure
@@ -442,7 +442,7 @@ object UriTemplateSpec extends Specification {
       val host = IPv6("01ab:01ab:01ab:01ab:01ab:01ab:01ab:01ab".ci)
       val authority = Some(Authority(host = host))
       val path = List(PathElm("foo"))
-      val query = Some(List(ParamElm("bar", List("baz"))))
+      val query = List(ParamElm("bar", List("baz")))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, "/foo", Query.fromString("bar=baz")))
     }
@@ -451,7 +451,7 @@ object UriTemplateSpec extends Specification {
       val host = RegName("www.foo.com")
       val authority = Some(Authority(host = host))
       val path = List(PathElm("foo"))
-      val query = Some(List(ParamElm("bar", "baz")))
+      val query = List(ParamElm("bar", "baz"))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, "/foo", Query.fromString("bar=baz")))
     }
@@ -481,16 +481,16 @@ object UriTemplateSpec extends Specification {
       val scheme = Some("http".ci)
       val host = IPv4("192.168.1.1".ci)
       val authority = Some(Authority(host = host, port = Some(8080)))
-      val query = Some(List())
+      val query = List(ParamElm("", Nil))
       UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get must equalTo(Uri(scheme, authority, "/", Query.fromString("")))
-      UriTemplate(scheme, authority, Nil, None).toUriIfPossible.get must equalTo(Uri(scheme, authority, "/", Query.empty))
+      UriTemplate(scheme, authority, Nil, Nil).toUriIfPossible.get must equalTo(Uri(scheme, authority, "/", Query.empty))
     }
     "convert http://192.168.1.1:80/c?GB=object&Class=one to Uri" in {
       val scheme = Some("http".ci)
       val host = IPv4("192.168.1.1".ci)
       val authority = Some(Authority(host = host, port = Some(80)))
       val path = List(PathElm("c"))
-      val query = Some(List(ParamElm("GB", "object"), ParamElm("Class", "one")))
+      val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, "/c", Query.fromString("GB=object&Class=one")))
     }
@@ -499,7 +499,7 @@ object UriTemplateSpec extends Specification {
       val host = IPv6("2001:db8::7".ci)
       val authority = Some(Authority(host = host))
       val path = List(PathElm("c"))
-      val query = Some(List(ParamElm("GB", "object"), ParamElm("Class", "one")))
+      val query = List(ParamElm("GB", "object"), ParamElm("Class", "one"))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, "/c", Query.fromString("GB=object&Class=one")))
     }
@@ -521,7 +521,7 @@ object UriTemplateSpec extends Specification {
       val scheme = Some("https".ci)
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some("username:password"), host, None))
-      UriTemplate(scheme, authority, Nil, None, None).toUriIfPossible.get must
+      UriTemplate(scheme, authority, Nil, Nil, None).toUriIfPossible.get must
         equalTo(Uri(scheme, authority))
     }
     "convert http://username:password@some.example.com/some/path?param1=5&param-without-value to Uri" in {
@@ -529,7 +529,7 @@ object UriTemplateSpec extends Specification {
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some("username:password"), host, None))
       val path = List(PathElm("some"), PathElm("path"))
-      val query = Some(List(ParamElm("param1", "5"), ParamElm("param-without-value")))
+      val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       UriTemplate(scheme, authority, path, query).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value")))
     }
@@ -538,7 +538,7 @@ object UriTemplateSpec extends Specification {
       val host = RegName("some.example.com")
       val authority = Some(Authority(Some("username:password"), host, None))
       val path = List(PathElm("some"), PathElm("path"))
-      val query = Some(List(ParamElm("param1", "5"), ParamElm("param-without-value")))
+      val query = List(ParamElm("param1", "5"), ParamElm("param-without-value"))
       val fragment = Some(List(FragmentElm("sec-1.2")))
       UriTemplate(scheme, authority, path, query, fragment).toUriIfPossible.get must
         equalTo(Uri(scheme, authority, "/some/path", Query.fromString("param1=5&param-without-value"), Some("sec-1.2")))
@@ -557,24 +557,24 @@ object UriTemplateSpec extends Specification {
         equalTo(UriTemplate(path = List(PathElm("123"))))
     }
     "expand /?ref={path} to /?ref=123" in {
-      val query = Some(List(ParamVarExp("ref", "path")))
+      val query = List(ParamVarExp("ref", "path"))
       UriTemplate(query = query).expandAny("path", "123") must
-        equalTo(UriTemplate(query = Some(List(ParamElm("ref", "123")))))
+        equalTo(UriTemplate(query = List(ParamElm("ref", "123"))))
     }
     "expand /?ref={file,folder} to /?ref=123&ref={folder}" in {
-      val query = Some(List(ParamVarExp("ref", List("file", "folder"))))
+      val query = List(ParamVarExp("ref", List("file", "folder")))
       UriTemplate(query = query).expandAny("file", "123") must
-        equalTo(UriTemplate(query = Some(List(ParamElm("ref", "123"), ParamVarExp("ref", "folder")))))
+        equalTo(UriTemplate(query = List(ParamElm("ref", "123"), ParamVarExp("ref", "folder"))))
     }
     "expand /?ref={+path} to /?ref=123" in {
-      val query = Some(List(ParamReservedExp("ref", "path")))
+      val query = List(ParamReservedExp("ref", "path"))
       UriTemplate(query = query).expandAny("path", "123") must
-        equalTo(UriTemplate(query = Some(List(ParamElm("ref", "123")))))
+        equalTo(UriTemplate(query = List(ParamElm("ref", "123"))))
     }
     "expand /?ref={+file,folder} to /?ref=123&ref={+folder}" in {
-      val query = Some(List(ParamReservedExp("ref", List("file", "folder"))))
+      val query = List(ParamReservedExp("ref", List("file", "folder")))
       UriTemplate(query = query).expandAny("file", "123") must
-        equalTo(UriTemplate(query = Some(List(ParamElm("ref", "123"), ParamReservedExp("ref", "folder")))))
+        equalTo(UriTemplate(query = List(ParamElm("ref", "123"), ParamReservedExp("ref", "folder"))))
     }
     "expand {/id} to /123" in {
       val path = List(PathExp("id"))
@@ -637,46 +637,46 @@ object UriTemplateSpec extends Specification {
   "UriTemplate.expandQuery" should {
     "expand /{?start} to /?start=123" in {
       val exp = ParamExp("start")
-      val query = Some(List(exp))
+      val query = List(exp)
       UriTemplate(query = query).expandQuery("start", 123) must
-        equalTo(UriTemplate(query = Some(List(ParamElm("start", "123")))))
+        equalTo(UriTemplate(query = List(ParamElm("start", "123"))))
     }
     "expand /{?switch} to /?switch" in {
-      val query = Some(List(ParamExp("switch")))
+      val query = List(ParamExp("switch"))
       UriTemplate(query = query).expandQuery("switch") must
-        equalTo(UriTemplate(query = Some(List(ParamElm("switch")))))
+        equalTo(UriTemplate(query = List(ParamElm("switch"))))
     }
     "expand /{?term} to /?term=" in {
-      val query = Some(List(ParamExp("term")))
+      val query = List(ParamExp("term"))
       UriTemplate(query = query).expandQuery("term", "") must
-        equalTo(UriTemplate(query = Some(List(ParamElm("term", List(""))))))
+        equalTo(UriTemplate(query = List(ParamElm("term", List("")))))
     }
     "expand /?={path} to /?=123" in {
-      val query = Some(List(ParamVarExp("", "path")))
+      val query = List(ParamVarExp("", "path"))
       UriTemplate(query = query).expandQuery("path", 123L) must
-        equalTo(UriTemplate(query = Some(List(ParamElm("", "123")))))
+        equalTo(UriTemplate(query = List(ParamElm("", "123"))))
     }
     "expand /?={path} to /?=25.1&=56.9" in {
-      val query = Some(List(ParamVarExp("", "path")))
+      val query = List(ParamVarExp("", "path"))
       UriTemplate(query = query).expandQuery("path", List(25.1F, 56.9F)) must
-        equalTo(UriTemplate(query = Some(List(ParamElm("", List("25.1", "56.9"))))))
+        equalTo(UriTemplate(query = List(ParamElm("", List("25.1", "56.9")))))
     }
     "expand /orders{?start} to /orders?start=123&start=456" in {
       val exp = ParamExp("start")
-      val query = Some(List(exp))
+      val query = List(exp)
       val path = List(PathElm("orders"))
       UriTemplate(path = path, query = query).expandQuery("start", List("123", "456")) must
-        equalTo(UriTemplate(path = path, query = Some(List(ParamElm("start", List("123", "456"))))))
+        equalTo(UriTemplate(path = path, query = List(ParamElm("start", List("123", "456")))))
     }
     "expand /orders{?start,limit} to UriTemplate /orders?start=123{&limit}" in {
       val start = ParamExp("start")
       val limit = ParamExp("limit")
       val path = List(PathElm("orders"))
-      UriTemplate(path = path, query = Some(List(start, limit))).expandQuery("start", List("123")) must
-        equalTo(UriTemplate(path = path, query = Some(List(ParamElm("start", "123"), limit))))
+      UriTemplate(path = path, query = List(start, limit)).expandQuery("start", List("123")) must
+        equalTo(UriTemplate(path = path, query = List(ParamElm("start", "123"), limit)))
     }
     "expand nothing" in {
-      val tpl = UriTemplate(query = Some(List(ParamExp("some"))))
+      val tpl = UriTemplate(query = List(ParamExp("some")))
       tpl.expandQuery("unknown") must equalTo(tpl)
     }
   }
