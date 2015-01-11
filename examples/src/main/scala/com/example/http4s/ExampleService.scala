@@ -32,35 +32,12 @@ object ExampleService {
   def service1(implicit executionContext: ExecutionContext) = HttpService {
 
     case req @ GET -> Root =>
+      // Supports Play Framework template -- see src/main/twirl.
+      Ok(html.index())
+
+    case GET -> Root / "ping" =>
       // EntityEncoder allows for easy conversion of types to a response body
-      Ok(
-        <html>
-          <body>
-            <h1>Welcome to http4s.</h1>
-
-            <p>Some examples:</p>
-
-            <ul>
-              <li><a href="/http4s/ping">Ping route</a></li>
-              <li><a href="/http4s/future">A asynchronous result</a></li>
-              <li><a href="/http4s/streaming">A streaming result</a></li>
-              <li><a href="/http4s/ip">Get your IP address</a></li>
-              <li><a href="/http4s/redirect">A redirect url</a></li>
-              <li><a href="/http4s/content-change">A HTML result written as a String</a></li>
-
-              <li><a href="/http4s/echo">Echo some form encoded data</a></li>
-              <li><a href="/http4s/echo2">Echo some form encoded data minus a few chars</a></li>
-              <li><a href="/http4s/sum">Calculate the sum of the submitted numbers</a></li>
-              <li><a href="/http4s/short-sum">Try to calculate a sum, but the body will be to large</a></li>
-
-              <li><a href="/http4s/form-encoded">A submission form</a></li>
-              <li><a href="/http4s/push">Server push</a></li>
-            </ul>
-          </body>
-        </html>
-      )
-
-    case GET -> Root / "ping" => Ok("pong")
+      Ok("pong")
 
     case GET -> Root / "future" =>
       // EntityEncoder allows rendering asynchronous results as well
@@ -92,7 +69,6 @@ object ExampleService {
         .withHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "echo" =>
-      // submissionForm is a Play Framework template -- see src/main/twirl.
       Ok(html.submissionForm("echo data"))
 
     case req @ POST -> Root / "echo2" =>
@@ -123,17 +99,7 @@ object ExampleService {
     ///////////////////////////////////////////////////////////////
     //////////////// Form encoding example ////////////////////////
     case req @ GET -> Root / "form-encoded" =>
-      val html =
-        <html><body>
-          <p>Submit something.</p>
-          <form name="input" method="post">
-            <p>First name: <input type="text" name="firstname"/></p>
-            <p>Last name: <input type="text" name="lastname"/></p>
-            <p><input type="submit" value="Submit"/></p>
-          </form>
-        </body></html>
-
-      Ok(html)
+      Ok(html.formEncoded())
 
     case req @ POST -> Root / "form-encoded" =>
       // EntityDecoders return a Task[A] which is easy to sequence

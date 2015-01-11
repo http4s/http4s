@@ -9,11 +9,10 @@ import scala.xml._
 import scalaz.concurrent.Task
 
 trait ElemInstances {
-  // TODO infer HTML, XHTML, etc.
-  implicit def htmlEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Elem] =
+  implicit def xmlEnocder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Elem] =
     EntityEncoder.stringEncoder(charset)
       .contramap[Elem](xml => xml.buildString(false))
-      .withContentType(`Content-Type`(MediaType.`text/html`))
+      .withContentType(`Content-Type`(MediaType.`application/xml`))
 
   /**
    * Handles a message body as XML.
