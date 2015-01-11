@@ -9,7 +9,7 @@ import scala.io.Codec
 
 object UrlFormCodec {
   def decode(formData: String, codec: Codec = Codec.UTF8): ParseResult[Map[String, Seq[String]]] =
-    QueryParser.parseQueryString(formData.replace("+", "%20"), codec).map(_.asMap)
+    QueryParser.parseQueryString(formData.replace("+", "%20"), codec).map(_.multiParams)
 
   def encode(formData: Map[String,Seq[String]]): String = {
     val sb = new StringBuilder(formData.size * 20)

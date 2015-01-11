@@ -13,8 +13,17 @@ import scala.collection.{ IndexedSeqOptimized, mutable }
 final case class Query private(params: Vector[KeyValue])
   extends IndexedSeq[KeyValue]
   with IndexedSeqOptimized[KeyValue, Query]
+  with QueryOps
   with Renderable 
 {
+  /////////////////////// QueryOps methods and types /////////////////////////
+
+  override type Self = Query
+  override protected val query: Query = this
+  override protected def self: Self = this
+  override protected def replaceQuery(query: Query): Self = query
+
+  ////////////////////////////////////////////////////////////////////////////
 
   override def apply(idx: Int): KeyValue = params.apply(idx)
 
@@ -50,7 +59,9 @@ final case class Query private(params: Vector[KeyValue])
     writer
   }
 
-  def asMap: Map[String, Seq[String]] = {
+  def paramsView: Map[String, String] = new ParamsView(multiParams)
+
+  lazy val multiParams: Map[String, Seq[String]] = {
     if (isEmpty) Map.empty[String, Seq[String]]
     else {
       val m = mutable.Map.empty[String, ListBuffer[String]]
@@ -104,5 +115,22 @@ object Query {
   implicit val cbf: CanBuildFrom[Query, KeyValue, Query] = new CanBuildFrom[Query, KeyValue, Query] {
     override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder
     override def apply(): mutable.Builder[KeyValue, Query] = newBuilder
+  }
+
+  ///////////////////////////////////////////////////////////////////////
+
+  private class ParamsView(wrapped: Map[String, Seq[String]]) extends Map[String, String] {
+    override def +[B1 >: String](kv: (String, B1)): Map[String, B1] = {
+      val m = wrapped + (kv)
+      m.asInstanceOf[Map[String, B1]]
+    }
+
+    override def -(key: String): Map[String, String] = new ParamsView(wrapped - key)
+
+    override def iterator: Iterator[(String, String)] =
+      wrapped.iterator.map { case (k, s) => (k, s.headOption.getOrElse("")) }
+
+    override def get(key: String): Option[String] =
+      wrapped.get(key).flatMap(_.headOption)
   }
 }
