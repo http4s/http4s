@@ -510,23 +510,23 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
     "replace a parameter" in {
       val u = Uri(query = Query.fromString("param1=value&param2=value")) +? ("param1", "newValue")
-      u must be_==(Uri(query = Query.fromString("param1=newValue&param2=value")))
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=newValue&param2=value")).multiParams)
     }
     "replace a parameter without a value" in {
       val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")) +? ("param2")
-      u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter" in {
       val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +? ("param1", Seq("value1", "value2"))
-      u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter without a value" in {
       val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +? ("param2")
-      u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace a parameter set" in {
       val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param1", "value")
-      u must be_==(Uri(query = Query.fromString("param1=value")))
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value")).multiParams)
     }
     "set a parameter with a value" in {
       val ps = Map("param" -> List("value"))

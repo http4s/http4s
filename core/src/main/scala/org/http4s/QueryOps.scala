@@ -102,20 +102,17 @@ trait QueryOps {
 
   /**
    * Creates maybe a new `Self` with the specified parameters. The entire
-   * [[Query]] will be replaced with the given one. If the given parameters
-   * equal the existing the same `Self` instance will be returned.
+   * [[Query]] will be replaced with the given one.
    */
-  def setQueryParams[T: QueryParamEncoder](params: Map[String, Seq[T]]): Self = {
-    if (query.multiParams == params) self
-    else {
-      val enc = QueryParamEncoder[T]
-      val b = Query.newBuilder
-      params.foreach {
-        case (k, Seq()) => b +=  ((k, None))
-        case (k, vs)    => vs.foreach(v => b += ((k, Some(enc.encode(v).value))))
-      }
-      replaceQuery(b.result())
+  def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](params: Map[K, Seq[T]]): Self = {
+    val penc = QueryParamKeyLike[K]
+    val venc = QueryParamEncoder[T]
+    val b = Query.newBuilder
+    params.foreach {
+      case (k, Seq()) => b +=  ((penc.getKey(k).value, None))
+      case (k, vs)    => vs.foreach(v => b += ((penc.getKey(k).value, Some(venc.encode(v).value))))
     }
+    replaceQuery(b.result())
   }
 
   /**
@@ -146,25 +143,24 @@ trait QueryOps {
   /**
    * Creates maybe a new `Self` with the specified parameters in the [[Query]].
    * If a parameter with the given `key` already exists the values will be
-   * replaced. If the parameter to be added equal the existing entry the same
-   * instance of `Self` will be returned.
+   * replaced.
    */
   def withQueryParam[T: QueryParamEncoder, K: QueryParamKeyLike](key: K, values: Seq[T]): Self =
     _withQueryParam(QueryParamKeyLike[K].getKey(key), values.map(QueryParamEncoder[T].encode))
 
+
   private def _withQueryParam(name: QueryParameterKey, values: Seq[QueryParameterValue]): Self = {
-    lazy val stringValues = values.map(_.value)
-    if (query.multiParams.contains(name.value) && query.multiParams.getOrElse(name.value, Nil) == stringValues) self
-    else {
-      val p = query.multiParams updated (name.value, stringValues)
-      replaceQuery(Query.fromMap(p))
-    }
+    val b = Query.newBuilder
+    query.foreach { case kv@(k, _) => if (k != name.value) b += kv }
+    if (values.isEmpty) b += ((name.value, None))
+    else values.foreach { v => b += ((name.value, Some(v.value))) }
+
+    replaceQuery(b.result())
   }
 
   /**
    * Creates maybe a new `Self` with the specified parameter in the [[Query]].
-   * If the value is empty or if the parameter to be added equal the existing
-   * entry the same instance of `Self` will be returned.
+   * If the value is empty the same instance of `Self` will be returned.
    * If a parameter with the given `key` already exists the values will be
    * replaced.
    */

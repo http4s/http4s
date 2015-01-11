@@ -39,7 +39,6 @@ final case class Query (params: Vector[KeyValue])
     else super.:+(elem)
   }
 
-
   /** Base method for rendering this object efficiently */
   override def render(writer: Writer): writer.type = {
     var first = true
