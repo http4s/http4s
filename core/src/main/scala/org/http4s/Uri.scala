@@ -55,7 +55,7 @@ case class Uri(
    * The query string is lazily parsed. If an error occurs during parsing
    * an empty `Map` is returned.
    */
-  lazy val multiParams: Map[String, Seq[String]] = query.multiParams
+  def multiParams: Map[String, Seq[String]] = query.multiParams
 
   /**
    * View of the head elements of the URI parameters in query string.
@@ -64,7 +64,7 @@ case class Uri(
    *
    * @see multiParams
    */
-  lazy val params: Map[String, String] = query.paramsView
+  def params: Map[String, String] = query.params
 
   override lazy val renderString: String =
     super.renderString

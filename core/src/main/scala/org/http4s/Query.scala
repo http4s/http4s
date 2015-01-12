@@ -9,40 +9,41 @@ import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
 
-
-final class Query private(params: Vector[KeyValue])
+/** Collection representation of a query string
+  *
+  * It is a indexed sequence of key and maybe a value pairs which maps
+  * precisely to a query string, modulo the identity of separators.
+  *
+  * When rendered, the resulting `String` will have the pairs separated
+  * by '&' while the key is separated from the value with '='
+  */
+final class Query private(pairs: Vector[KeyValue])
   extends IndexedSeq[KeyValue]
   with IndexedSeqOptimized[KeyValue, Query]
   with QueryOps
   with Renderable 
 {
-  /////////////////////// QueryOps methods and types /////////////////////////
+  override def apply(idx: Int): KeyValue = pairs(idx)
 
-  override type Self = Query
-  override protected val query: Query = this
-  override protected def self: Self = this
-  override protected def replaceQuery(query: Query): Self = query
-
-  ////////////////////////////////////////////////////////////////////////////
-
-  override def apply(idx: Int): KeyValue = params.apply(idx)
-
-  override def length: Int = params.length
+  override def length: Int = pairs.length
 
   override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) new Query((elem +: params).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+    if (bf eq Query.cbf) new Query((elem +: pairs).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.+:(elem)
   }
 
   override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) new Query((params :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+    if (bf eq Query.cbf) new Query((pairs :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.:+(elem)
   }
 
-  /** Base method for rendering this object efficiently */
+  /** Render the Query as a `String`.
+    *
+    * Pairs are separated by '&' and keys are separated from values by '='
+    */
   override def render(writer: Writer): writer.type = {
     var first = true
-    params.foreach {
+    pairs.foreach {
       case (n, None) =>
         if (!first) writer.append('&')
         else first = false
@@ -58,8 +59,17 @@ final class Query private(params: Vector[KeyValue])
     writer
   }
 
-  def paramsView: Map[String, String] = new ParamsView(multiParams)
+  /** Map[String, String] representation of the [[Query]]
+    *
+    * If multiple values exist for a key, the first is returned. If
+    * none exist, the empty `String` "" is returned.
+    */
+  def params: Map[String, String] = new ParamsView(multiParams)
 
+  /** Map[String, Seq[String] ] representation of the [[Query]]
+    *
+    * Params are represented as a `Seq[String]` and may be empty.
+    */
   lazy val multiParams: Map[String, Seq[String]] = {
     if (isEmpty) Map.empty[String, Seq[String]]
     else {
@@ -74,13 +84,22 @@ final class Query private(params: Vector[KeyValue])
   }
 
   override protected[this] def newBuilder: mutable.Builder[KeyValue, Query] = Query.newBuilder
+
+  /////////////////////// QueryOps methods and types /////////////////////////
+  override protected type Self = Query
+  override protected val query: Query = this
+  override protected def self: Self = this
+  override protected def replaceQuery(query: Query): Self = query
+  ////////////////////////////////////////////////////////////////////////////
 }
 
 object Query {
-
   type KeyValue = (String, Option[String])
 
   val empty: Query = new Query(Vector.empty)
+
+  def apply(xs: (String, Option[String])*): Query =
+    new Query(xs.toVector)
 
   def fromPairs(xs: (String, String)*): Query = {
     val b = newBuilder
@@ -88,14 +107,16 @@ object Query {
     b.result()
   }
 
-  def fromOptions(xs: (String, Option[String])*): Query =
-    new Query(xs.toVector)
-
+  /** Generate a [[Query]] from its `String` representation
+    *
+    * If parsing fails, the empty [[Query]] is returned
+    */
   def fromString(query: String): Query = {
     if (query.isEmpty) new Query(Vector("" -> None))
     else QueryParser.parseQueryString(query).getOrElse(Query.empty)
   }
-  
+
+  /** Build a [[Query]] from the `Map` structure */
   def fromMap(map: Map[String, Seq[String]]): Query = {
     val b = newBuilder
     map.foreach {
@@ -114,7 +135,7 @@ object Query {
   }
 
   ///////////////////////////////////////////////////////////////////////
-
+  // Wrap the multiParams to get a Map[String, String] view
   private class ParamsView(wrapped: Map[String, Seq[String]]) extends Map[String, String] {
     override def +[B1 >: String](kv: (String, B1)): Map[String, B1] = {
       val m = wrapped + (kv)

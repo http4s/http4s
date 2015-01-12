@@ -87,17 +87,17 @@ class UriParserSpec extends Http4sSpec {
 
     "parse relative URI with empty query string" in {
       val u = Uri.fromString("/foo/bar?")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query.fromOptions("" -> None)))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("" -> None)))
     }
 
     "parse relative URI with empty query string followed by empty fragement" in {
       val u = Uri.fromString("/foo/bar?#")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query.fromOptions("" -> None), fragment = Some("")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("")))
     }
 
     "parse relative URI with empty query string followed by fragement" in {
       val u = Uri.fromString("/foo/bar?#Example_of_Fragment")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query.fromOptions("" -> None), fragment = Some("Example_of_Fragment")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with fragment" in {
@@ -107,7 +107,7 @@ class UriParserSpec extends Http4sSpec {
 
     "parse relative URI with single parameter without a value followed by a fragment" in {
       val u = Uri.fromString("/foo/bar?bar#Example_of_Fragment")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query.fromOptions("bar" -> None), fragment = Some("Example_of_Fragment")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("bar" -> None), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with parameters and fragment" in {
