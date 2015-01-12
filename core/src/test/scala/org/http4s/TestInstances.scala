@@ -67,7 +67,7 @@ trait TestInstances {
     Arbitrary { for {
       n <- Gen.size
       vs <- containerOfN[Vector, (String, Option[String])](n % 8, arbitraryQueryParam.arbitrary)
-    } yield Query(vs) }
+    } yield Query.fromOptions(vs:_*) }
 
   implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {

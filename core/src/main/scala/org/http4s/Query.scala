@@ -10,7 +10,7 @@ import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
 
 
-final case class Query (params: Vector[KeyValue])
+final class Query private(params: Vector[KeyValue])
   extends IndexedSeq[KeyValue]
   with IndexedSeqOptimized[KeyValue, Query]
   with QueryOps
@@ -30,12 +30,12 @@ final case class Query (params: Vector[KeyValue])
   override def length: Int = params.length
 
   override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) Query((elem +: params).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+    if (bf eq Query.cbf) new Query((elem +: params).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.+:(elem)
   }
 
   override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) Query((params :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+    if (bf eq Query.cbf) new Query((params :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.:+(elem)
   }
 
@@ -80,7 +80,7 @@ object Query {
 
   type KeyValue = (String, Option[String])
 
-  val empty: Query = Query(Vector.empty)
+  val empty: Query = new Query(Vector.empty)
 
   def fromPairs(xs: (String, String)*): Query = {
     val b = newBuilder
@@ -88,14 +88,11 @@ object Query {
     b.result()
   }
 
-  def fromOptions(xs: (String, Option[String])*): Query = {
-    val b = newBuilder
-    xs.foreach{ case (k, v) => b += ((k, v)) }
-    b.result()
-  }
+  def fromOptions(xs: (String, Option[String])*): Query =
+    new Query(xs.toVector)
 
   def fromString(query: String): Query = {
-    if (query.isEmpty) Query(Vector("" -> None))
+    if (query.isEmpty) new Query(Vector("" -> None))
     else QueryParser.parseQueryString(query).getOrElse(Query.empty)
   }
   
