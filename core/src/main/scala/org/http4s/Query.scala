@@ -27,6 +27,8 @@ final class Query private(pairs: Vector[KeyValue])
 
   override def length: Int = pairs.length
 
+  override def slice(from: Int, until: Int): Query = new Query(pairs.slice(from, until))
+
   override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
     if (bf eq Query.cbf) new Query((elem +: pairs).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.+:(elem)

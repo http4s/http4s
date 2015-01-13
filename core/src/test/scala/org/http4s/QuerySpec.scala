@@ -88,6 +88,10 @@ class QuerySpec extends Http4sSpec {
       q2 must beAnInstanceOf[Query]
       q2.toList must_== q.toList.dropRight(1)
     }
+
+    "get a tail for non-empty Query" ! forAll { q: Query =>
+      (q.nonEmpty) ==> (q.tail.toList == q.toList.tail)
+    }
   }
 
 }
