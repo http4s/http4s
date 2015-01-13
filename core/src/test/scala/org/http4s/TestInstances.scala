@@ -46,7 +46,7 @@ trait TestInstances {
     val reserved    = Seq('/', '?', ':', '@', '$', ',')
     val unreserved  =  alphanum ++ mark
 
-    val droppsed = Seq(';', '&', '=', '+')
+    //val droppsed = Seq(';', '&', '=', '+') // Not valid in a query key or value, must be % encoded
     (reserved ++ unreserved).toVector
   }
 
