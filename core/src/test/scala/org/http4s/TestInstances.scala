@@ -40,6 +40,35 @@ trait TestInstances {
   ))
 
 
+  val validQueryChars = {
+    val mark    =  Seq('-', '_', '.', '!', '~', '*', '\'', '(', ')')
+    val alphanum = ('0' to '9') ++ ('a' to 'z') ++ ('A' to 'Z')
+    val reserved    = Seq('/', '?', ':', '@', '$', ',')
+    val unreserved  =  alphanum ++ mark
+
+    //val droppsed = Seq(';', '&', '=', '+') // Not valid in a query key or value, must be % encoded
+    (reserved ++ unreserved).toVector
+  }
+
+  val genQueryString: Gen[String] =
+    Gen.sized(length => containerOfN[Seq, Char](length, oneOf(validQueryChars)).map(_.mkString))
+
+  implicit val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
+    Arbitrary { frequency(
+      5 -> { for {
+                k <- genQueryString
+                v <- option(genQueryString)
+              } yield (k, v)
+           },
+      2 -> const(("foo" -> Some("bar")))  // Want some repeats
+    ) }
+
+  implicit val arbitraryQuery: Arbitrary[Query] =
+    Arbitrary { for {
+      n <- Gen.size
+      vs <- containerOfN[Vector, (String, Option[String])](n % 8, arbitraryQueryParam.arbitrary)
+    } yield Query(vs:_*) }
+
   implicit val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {
       major <- choose(0, 9)

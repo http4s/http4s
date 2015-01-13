@@ -137,7 +137,7 @@ case class Request(
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  def queryString: String = uri.query.getOrElse("")
+  def queryString: String = uri.query.renderString
 
   /**
    * Representation of the query string as a map

@@ -53,13 +53,13 @@ class UriParserSpec extends Http4sSpec {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         ("http://www.foo.com", Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))))),
         ("http://www.foo.com/foo?bar=baz",
-          Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))), "/foo", Some("bar=baz"))),
+          Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))), "/foo", Query.fromPairs("bar" -> "baz"))),
         ("http://192.168.1.1",
           Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci))))),
         ("http://192.168.1.1:80/c?GB=object&Class=one",
-          Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))), "/c", Some("GB=object&Class=one"))),
+          Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))), "/c", Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         ("http://[2001:db8::7]/c?GB=object&Class=one",
-          Uri(Some("http".ci), Some(Authority(host = IPv6("2001:db8::7".ci))), "/c", Some("GB=object&Class=one"))),
+          Uri(Some("http".ci), Some(Authority(host = IPv6("2001:db8::7".ci))), "/c", Query.fromPairs("GB" -> "object", "Class" -> "one"))),
         ("mailto:John.Doe@example.com",
           Uri(Some("mailto".ci), path = "John.Doe@example.com")))
 
@@ -69,7 +69,7 @@ class UriParserSpec extends Http4sSpec {
     "parse relative URIs" in {
       val relativeUris: Seq[(String, Uri)] = Seq(
         ("/foo/bar", Uri(path = "/foo/bar")),
-        ("/foo/bar?foo=bar&ding=dong", Uri(path = "/foo/bar", query = Some("foo=bar&ding=dong"))),
+        ("/foo/bar?foo=bar&ding=dong", Uri(path = "/foo/bar", query = Query.fromPairs("foo" -> "bar", "ding" -> "dong"))),
         ("/", Uri()))
 
       check(relativeUris)
@@ -77,27 +77,27 @@ class UriParserSpec extends Http4sSpec {
 
     "parse absolute URI with fragment" in {
       val u = Uri.fromString("http://foo.bar/foo#Examples")
-      u must beRightDisjunction(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", None, Some("Examples")))
+      u must beRightDisjunction(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.empty, Some("Examples")))
     }
 
     "parse absolute URI with parameters and fragment" in {
       val u = Uri.fromString("http://foo.bar/foo?bar=baz#Example-Fragment")
-      u must beRightDisjunction(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Some("bar=baz"), Some("Example-Fragment")))
+      u must beRightDisjunction(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.fromPairs("bar" -> "baz"), Some("Example-Fragment")))
     }
 
     "parse relative URI with empty query string" in {
       val u = Uri.fromString("/foo/bar?")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some("")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("" -> None)))
     }
 
     "parse relative URI with empty query string followed by empty fragement" in {
       val u = Uri.fromString("/foo/bar?#")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some(""), fragment = Some("")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("")))
     }
 
     "parse relative URI with empty query string followed by fragement" in {
       val u = Uri.fromString("/foo/bar?#Example_of_Fragment")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some(""), fragment = Some("Example_of_Fragment")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with fragment" in {
@@ -107,12 +107,12 @@ class UriParserSpec extends Http4sSpec {
 
     "parse relative URI with single parameter without a value followed by a fragment" in {
       val u = Uri.fromString("/foo/bar?bar#Example_of_Fragment")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some("bar"), fragment = Some("Example_of_Fragment")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query("bar" -> None), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with parameters and fragment" in {
       val u = Uri.fromString("/foo/bar?bar=baz#Example_of_Fragment")
-      u must beRightDisjunction(Uri(path = "/foo/bar", query = Some("bar=baz"), fragment = Some("Example_of_Fragment")))
+      u must beRightDisjunction(Uri(path = "/foo/bar", query = Query.fromPairs("bar" -> "baz"), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with slash and fragment" in {
@@ -121,9 +121,9 @@ class UriParserSpec extends Http4sSpec {
     }
 
     {
-      val q = "param1=3&param2=2&param2=foo"
-      val u = Uri(query = Some(q))
-      "parse query and represent multiParams as a Map[String,Seq[String]]" in {
+      val q = Query.fromString("param1=3&param2=2&param2=foo")
+      val u = Uri(query = q)
+      "represent query as multiParams as a Map[String,Seq[String]]" in {
         u.multiParams must be_==(Map("param1" -> Seq("3"), "param2" -> Seq("2", "foo")))
       }
 

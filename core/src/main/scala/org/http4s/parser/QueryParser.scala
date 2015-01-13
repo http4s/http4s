@@ -7,7 +7,6 @@ import org.http4s.util.string._
 
 import scala.annotation.switch
 import scala.collection.immutable.BitSet
-import scala.collection.mutable.ListBuffer
 import scala.io.Codec
 
 import QueryParser._
@@ -23,8 +22,8 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean) {
 
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
-  def decode(input: CharBuffer, flush: Boolean): ParseResult[Seq[Param]] = {
-    val acc = new ListBuffer[Param]
+  def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
+    val acc = Query.newBuilder
     decodeBuffer(input, (k,v) => acc += ((k,v)), flush) match {
       case Some(e) => -\/(ParseFailure(e))
       case None    => \/-(acc.result)
@@ -102,9 +101,8 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean) {
 }
 
 private[http4s] object QueryParser {
-  type Param = (String,Option[String])
-  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Seq[Param]] = {
-    if (queryString.isEmpty) \/-(Nil)
+  def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] = {
+    if (queryString.isEmpty) \/-(Query.empty)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
   }
 

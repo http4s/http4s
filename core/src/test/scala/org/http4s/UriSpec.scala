@@ -23,7 +23,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri" should {
     "Not UrlDecode the query String" in {
-      getUri("http://localhost:8080/blah?x=abc&y=ijk").query should_== Some("x=abc&y=ijk")
+      getUri("http://localhost:8080/blah?x=abc&y=ijk").query should_== Query.fromPairs("x"->"abc", "y"->"ijk")
     }
 
     "Not UrlDecode the uri fragment" in {
@@ -62,7 +62,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   "Uri's with a query and fragment" should {
     "parse propperly" in {
       val uri = getUri("http://localhost:8080/blah?x=abc#y=ijk")
-      uri.query should_== Some("x=abc")
+      uri.query should_== Query.fromPairs("x"->"abc")
       uri.fragment should_== Some("y=ijk")
     }
   }
@@ -73,7 +73,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
     "Handle queries with no spaces properly" in {
       getQueryParams("http://localhost:8080/blah?x=abc&y=ijk") should_== Map("x" -> "abc", "y" -> "ijk")
-      getQueryParams("http://localhost:8080/blah?") should_== Map.empty
+      getQueryParams("http://localhost:8080/blah?") should_== Map("" -> "")
+      getQueryParams("http://localhost:8080/blah") should_== Map.empty
     }
 
     "Handle queries with spaces properly" in {
@@ -99,13 +100,13 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       } yield (f + "::" + b))
 
       foreach (variants) { s =>
-        Uri(Some("http".ci), Some(Authority(host = IPv6(s.ci))), "/foo", Some("bar=baz")).toString must_==
+        Uri(Some("http".ci), Some(Authority(host = IPv6(s.ci))), "/foo", Query.fromPairs("bar" -> "baz")).toString must_==
           (s"http://[$s]/foo?bar=baz")
       }
     }
 
     "render URL with parameters" in {
-      Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))), "/foo", Some("bar=baz")).toString must_==("http://www.foo.com/foo?bar=baz")
+      Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))), "/foo", Query.fromPairs("bar" -> "baz")).toString must_==("http://www.foo.com/foo?bar=baz")
     }
 
     "render URL with port" in {
@@ -117,7 +118,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render IPv4 URL with parameters" in {
-      Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))), "/c", Some("GB=object&Class=one")).toString must_==("http://192.168.1.1:80/c?GB=object&Class=one")
+      Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))), "/c", Query.fromPairs("GB"->"object","Class"->"one")).toString must_==("http://192.168.1.1:80/c?GB=object&Class=one")
     }
 
     "render IPv4 URL with port" in {
@@ -129,7 +130,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render IPv6 URL with parameters" in {
-      Uri(Some("http".ci), Some(Authority(host = IPv6("2001:db8::7".ci))), "/c", Some("GB=object&Class=one")).toString must_==("http://[2001:db8::7]/c?GB=object&Class=one")
+      Uri(Some("http".ci), Some(Authority(host = IPv6("2001:db8::7".ci))), "/c", Query.fromPairs("GB"->"object","Class"->"one")).toString must_==("http://[2001:db8::7]/c?GB=object&Class=one")
     }
 
     "render IPv6 URL with port" in {
@@ -145,23 +146,23 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render an URL with username and password" in {
-      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/", None, None).toString must_==("http://username:password@some.example.com")
+      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/", Query.empty, None).toString must_==("http://username:password@some.example.com")
     }
 
     "render an URL with username and password, path and params" in {
-      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/some/path", Some("param1=5&param-without-value"), None).toString  must_==("http://username:password@some.example.com/some/path?param1=5&param-without-value")
+      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/some/path", Query.fromString("param1=5&param-without-value"), None).toString  must_==("http://username:password@some.example.com/some/path?param1=5&param-without-value")
     }
 
     "render relative URI with empty query string" in {
-      Uri(path = "/", query = Some(""), fragment = None).toString must_==("/?")
+      Uri(path = "/", query = Query.fromString(""), fragment = None).toString must_==("/?")
     }
 
     "render relative URI with empty query string and fragment" in {
-      Uri(path = "/", query = Some(""), fragment = Some("")).toString must_==("/?#")
+      Uri(path = "/", query = Query.fromString(""), fragment = Some("")).toString must_==("/?#")
     }
 
     "render relative URI with empty fragment" in {
-      Uri(path = "/", query = None, fragment = Some("")).toString must_== ("/#")
+      Uri(path = "/", query = Query.empty, fragment = Some("")).toString must_== ("/#")
     }
 
     "render relative path with fragment" in {
@@ -169,11 +170,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render relative path with parameters" in {
-      Uri(path = "/foo/bar", query = Some("foo=bar&ding=dong")).toString must_==("/foo/bar?foo=bar&ding=dong")
+      Uri(path = "/foo/bar", query = Query.fromString("foo=bar&ding=dong")).toString must_==("/foo/bar?foo=bar&ding=dong")
     }
 
     "render relative path with parameters and fragment" in {
-      Uri(path = "/foo/bar", query = Some("foo=bar&ding=dong"), fragment = Some("an_anchor")).toString must_==("/foo/bar?foo=bar&ding=dong#an_anchor")
+      Uri(path = "/foo/bar", query = Query.fromString("foo=bar&ding=dong"), fragment = Some("an_anchor")).toString must_==("/foo/bar?foo=bar&ding=dong#an_anchor")
     }
 
     "render relative path without parameters" in {
@@ -185,11 +186,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render a query string with a single param" in {
-      Uri(query = Some("param1=test")).toString must_==("/?param1=test")
+      Uri(query = Query.fromString("param1=test")).toString must_==("/?param1=test")
     }
 
     "render a query string with multiple value in a param" in {
-      Uri(query = Some("param1=3&param2=2&param2=foo")).toString must_==("/?param1=3&param2=2&param2=foo")
+      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_==("/?param1=3&param2=2&param2=foo")
     }
 
     "round trip over URI examples from wikipedia" in {
@@ -237,31 +238,31 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri parameters" should {
     "parse empty query string" in {
-      Uri(query = Some("")).multiParams must be_==(Map.empty)
+      Uri(query = Query.fromString("")).multiParams must be_==(Map("" -> Nil))
     }
     "parse parameter without key but with empty value" in {
-      Uri(query = Some("=")).multiParams must be_==(Map("" -> List("")))
+      Uri(query = Query.fromString("=")).multiParams must be_==(Map("" -> List("")))
     }
     "parse parameter without key but with value" in {
-      Uri(query = Some("=value")).multiParams must be_==(Map("" -> List("value")))
+      Uri(query = Query.fromString("=value")).multiParams must be_==(Map("" -> List("value")))
     }
     "parse single parameter with empty value" in {
-      Uri(query = Some("param1=")).multiParams must be_==(Map("param1" -> List("")))
+      Uri(query = Query.fromString("param1=")).multiParams must be_==(Map("param1" -> List("")))
     }
     "parse single parameter with value" in {
-      Uri(query = Some("param1=value")).multiParams must be_==(Map("param1" -> List("value")))
+      Uri(query = Query.fromString("param1=value")).multiParams must be_==(Map("param1" -> List("value")))
     }
     "parse single parameter without value" in {
-      Uri(query = Some("param1")).multiParams must be_==(Map("param1" -> Nil))
+      Uri(query = Query.fromString("param1")).multiParams must be_==(Map("param1" -> Nil))
     }
     "parse many parameter with value" in {
-      Uri(query = Some("param1=value&param2=value1&param2=value2&param3=value")).multiParams must_==(Map(
+      Uri(query = Query.fromString("param1=value&param2=value1&param2=value2&param3=value")).multiParams must_==(Map(
         "param1" -> List("value"),
         "param2" -> List("value1", "value2"),
         "param3" -> List("value")))
     }
     "parse many parameter without value" in {
-      Uri(query = Some("param1&param2&param3")).multiParams must_==(Map(
+      Uri(query = Query.fromString("param1&param2&param3")).multiParams must_==(Map(
         "param1" -> Nil,
         "param2" -> Nil,
         "param3" -> Nil))
@@ -270,57 +271,58 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.params.+" should {
     "add parameter to empty query" in {
-      val i = Uri(query = None).params + (("param", Seq("value")))
+      val i = Uri(query = Query.empty).params + (("param", Seq("value")))
       i must be_==(Map("param" -> Seq("value")))
     }
     "add parameter" in {
-      val i = Uri(query = Some("param1")).params + (("param2", Seq()))
+      val i = Uri(query = Query.fromString("param1")).params + (("param2", Seq()))
       i must be_==(Map("param1" -> Seq(), "param2" -> Seq()))
     }
     "replace an existing parameter" in {
-      val i = Uri(query = Some("param=value")).params + (("param", Seq("value1", "value2")))
+      val i = Uri(query = Query.fromString("param=value")).params + (("param", Seq("value1", "value2")))
       i must be_==(Map("param" -> Seq("value1", "value2")))
     }
     "replace an existing parameter with empty value" in {
-      val i = Uri(query = Some("param=value")).params + (("param", Seq()))
+      val i = Uri(query = Query.fromString("param=value")).params + (("param", Seq()))
       i must be_==(Map("param" -> Seq()))
     }
   }
 
   "Uri.params.-" should {
     "not do anything on an URI without a query" in {
-      val i = Uri(query = None).params - "param"
+      val i = Uri(query = Query.empty).params - "param"
       i must be_==(Map())
     }
     "not reduce a map if parameter does not match" in {
-      val i = Uri(query = Some("param1")).params - "param2"
+      val i = Uri(query = Query.fromString("param1")).params - "param2"
       i must be_==(Map("param1" -> ""))
     }
     "reduce a map if matching parameter found" in {
-      val i = Uri(query = Some("param")).params - "param"
+      val i = Uri(query = Query.fromString("param")).params - "param"
       i must be_==(Map())
     }
   }
 
   "Uri.params.iterate" should {
     "work on an URI without a query" in {
-      foreach (Uri(query = None).params.iterator) { i =>
+      foreach (Uri(query = Query.empty).params.iterator) { i =>
         throw new Error(s"should not have $i") // should not happen
       }
     }
     "work on empty list" in {
-      foreach (Uri(query = Some("")).params.iterator) { i =>
-        throw new Error(s"should not have $i") // should not happen
+      foreach (Uri(query = Query.fromString("")).params.iterator) { case (k,v) =>
+        k must_== ""
+        v must_== ""
       }
     }
     "work with empty keys" in {
-      val u = Uri(query = Some("=value1&=value2&=&"))
+      val u = Uri(query = Query.fromString("=value1&=value2&=&"))
       val i = u.params.iterator
       i.next must be_==("" -> "value1")
       i.next must throwA [NoSuchElementException]
     }
     "work on non-empty query string" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
       val i = u.params.iterator
       i.next must be_==("param1" -> "value1")
       i.next must be_==("param2" -> "value4")
@@ -330,14 +332,14 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.multiParams" should {
     "find first value of parameter with many values" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
       u.multiParams must be_==(
         Map(
           "param1" -> Seq("value1", "value2", "value3"),
           "param2" -> Seq("value4", "value5")))
     }
     "find parameter with empty key and a value" in {
-      val u = Uri(query = Some("param1=&=value-of-empty-key&param2=value"))
+      val u = Uri(query = Query.fromString("param1=&=value-of-empty-key&param2=value"))
       u.multiParams must be_==(
         Map(
           "" -> Seq("value-of-empty-key"),
@@ -345,30 +347,30 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
           "param2" -> Seq("value")))
     }
     "find first value of parameter with empty key" in {
-      Uri(query = Some("=value1&=value2")).multiParams must_== (
+      Uri(query = Query.fromString("=value1&=value2")).multiParams must_== (
         Map("" -> Seq("value1", "value2")))
-      Uri(query = Some("&=value1&=value2")).multiParams must_== (
+      Uri(query = Query.fromString("&=value1&=value2")).multiParams must_== (
         Map("" -> Seq("value1", "value2")))
-      Uri(query = Some("&&&=value1&&&=value2&=&")).multiParams must_== (
+      Uri(query = Query.fromString("&&&=value1&&&=value2&=&")).multiParams must_== (
         Map("" -> Seq("value1", "value2", "")))
     }
     "find parameter with empty key and without value" in {
-      Uri(query = Some("&")).multiParams must_==(Map("" -> Seq()))
-      Uri(query = Some("&&")).multiParams must_==(Map("" -> Seq()))
-      Uri(query = Some("&&&")).multiParams must_==(Map("" -> Seq()))
+      Uri(query = Query.fromString("&")).multiParams must_==(Map("" -> Seq()))
+      Uri(query = Query.fromString("&&")).multiParams must_==(Map("" -> Seq()))
+      Uri(query = Query.fromString("&&&")).multiParams must_==(Map("" -> Seq()))
     }
     "find parameter with an empty value" in {
-      Uri(query = Some("param1=")).multiParams must_==(Map("param1" -> Seq("")))
-      Uri(query = Some("param1=&param2=")).multiParams must_== (Map("param1" -> Seq(""), "param2" -> Seq("")))
+      Uri(query = Query.fromString("param1=")).multiParams must_==(Map("param1" -> Seq("")))
+      Uri(query = Query.fromString("param1=&param2=")).multiParams must_== (Map("param1" -> Seq(""), "param2" -> Seq("")))
     }
     "find parameter with single value" in {
-      Uri(query = Some("param1=value1&param2=value2")).multiParams must_==(
+      Uri(query = Query.fromString("param1=value1&param2=value2")).multiParams must_==(
         Map(
           "param1" -> Seq("value1"),
           "param2" -> Seq("value2")))
     }
     "find parameter without value" in {
-      Uri(query = Some("param1&param2&param3")).multiParams must_==(
+      Uri(query = Query.fromString("param1&param2&param3")).multiParams must_==(
         Map(
           "param1" -> Seq(),
           "param2" -> Seq(),
@@ -378,201 +380,201 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.params.get" should {
     "find first value of parameter with many values" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param1=value3&param2=value4&param2=value5"))
       u.params.get("param1") must be_==(Some("value1"))
       u.params.get("param2") must be_==(Some("value4"))
     }
     "find parameter with empty key and a value" in {
-      val u = Uri(query = Some("param1=&=valueWithEmptyKey&param2=value2"))
+      val u = Uri(query = Query.fromString("param1=&=valueWithEmptyKey&param2=value2"))
       u.params.get("") must be_==(Some("valueWithEmptyKey"))
     }
     "find first value of parameter with empty key" in {
-      Uri(query = Some("=value1&=value2")).params.get("") must be_==(Some("value1"))
-      Uri(query = Some("&=value1&=value2")).params.get("") must be_==(Some("value1"))
-      Uri(query = Some("&&&=value1")).params.get("") must be_==(Some("value1"))
+      Uri(query = Query.fromString("=value1&=value2")).params.get("") must be_==(Some("value1"))
+      Uri(query = Query.fromString("&=value1&=value2")).params.get("") must be_==(Some("value1"))
+      Uri(query = Query.fromString("&&&=value1")).params.get("") must be_==(Some("value1"))
     }
     "find parameter with empty key and without value" in {
-      Uri(query = Some("&")).params.get("") must be_==(None)
-      Uri(query = Some("&&")).params.get("") must be_==(None)
-      Uri(query = Some("&&&")).params.get("") must be_==(None)
+      Uri(query = Query.fromString("&")).params.get("") must be_==(None)
+      Uri(query = Query.fromString("&&")).params.get("") must be_==(None)
+      Uri(query = Query.fromString("&&&")).params.get("") must be_==(None)
     }
     "find parameter with an empty value" in {
-      val u = Uri(query = Some("param1=&param2=value2"))
+      val u = Uri(query = Query.fromString("param1=&param2=value2"))
       u.params.get("param1") must be_==(Some(""))
     }
     "find parameter with single value" in {
-      val u = Uri(query = Some("param1=value1&param2=value2"))
+      val u = Uri(query = Query.fromString("param1=value1&param2=value2"))
       u.params.get("param1") must be_==(Some("value1"))
       u.params.get("param2") must be_==(Some("value2"))
     }
     "find parameter without value" in {
-      val u = Uri(query = Some("param1&param2&param3"))
+      val u = Uri(query = Query.fromString("param1&param2&param3"))
       u.params.get("param1") must be_==(None)
       u.params.get("param2") must be_==(None)
       u.params.get("param3") must be_==(None)
     }
     "not find an unknown parameter" in {
-      Uri(query = Some("param1&param2&param3")).params.get("param4") must be_==(None)
+      Uri(query = Query.fromString("param1&param2&param3")).params.get("param4") must be_==(None)
     }
     "not find anything if query string is empty" in {
-      Uri(query = None).params.get("param1") must be_==(None)
+      Uri(query = Query.empty).params.get("param1") must be_==(None)
     }
   }
 
   "Uri parameter convenience methods" should {
     "add a parameter if no query is available" in {
-      val u = Uri(query = None) +? ("param1", "value")
-      u must be_==(Uri(query = Some("param1=value")))
+      val u = Uri(query = Query.empty) +? ("param1", "value")
+      u must be_==(Uri(query = Query.fromString("param1=value")))
     }
     "add a parameter" in {
-      val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2", "value")
-      u must be_==(Uri(query = Some("param1=value1&param1=value2&param2=value")))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param2", "value")
+      u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")))
     }
     "add a parameter with boolean value" in {
-      val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2", true)
-      u must be_==(Uri(query = Some("param1=value1&param1=value2&param2=true")))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param2", true)
+      u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2=true")))
     }
     "add a parameter without a value" in {
-      val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param2")
-      u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param2")
+      u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")))
     }
     "add a parameter with many values" in {
       val u = Uri() +? ("param1", Seq("value1", "value2"))
-      u must be_==(Uri(query = Some("param1=value1&param1=value2")))
+      u must be_==(Uri(query = Query.fromString("param1=value1&param1=value2")))
     }
     "add a parameter with many long values" in {
       val u = Uri() +? ("param1", Seq(1L, -1L))
-      u must be_==(Uri(query = Some(s"param1=1&param1=-1")))
+      u must be_==(Uri(query = Query.fromString(s"param1=1&param1=-1")))
     }
     "add a query parameter with a QueryParamEncoder" in {
       val u = Uri() +? ("test", Ttl(2))
-      u must be_==(Uri(query = Some(s"test=2")))
+      u must be_==(Uri(query = Query.fromString(s"test=2")))
     }
     "add a query parameter with a QueryParamEncoder and an implicit key" in {
       val u = Uri() +*? (Ttl(2))
-      u must be_==(Uri(query = Some(s"ttl=2")))
+      u must be_==(Uri(query = Query.fromString(s"ttl=2")))
     }
     "Work with queryParam" in {
       val u = Uri().withQueryParam[Ttl]
-      u must be_==(Uri(query = Some(s"ttl")))
+      u must be_==(Uri(query = Query.fromString(s"ttl")))
     }
     "add an optional query parameter (Just)" in {
       val u = Uri() +?? ("param1", Maybe.just(2))
-      u must be_==(Uri(query = Some(s"param1=2")))
+      u must be_==(Uri(query = Query.fromString(s"param1=2")))
     }
     "add an optional query parameter (Empty)" in {
       val u = Uri() +?? ("param1", Maybe.empty[Int])
-      u must be_==(Uri(query = None))
+      u must be_==(Uri(query = Query.empty))
     }
     "contains not a parameter" in {
-      Uri(query = None) ? "param1" must be_==(false)
+      Uri(query = Query.empty) ? "param1" must be_==(false)
     }
     "contains an empty parameter" in {
-      Uri(query = Some("")) ? "" must be_==(true)
-      Uri(query = Some("")) ? "param" must be_==(false)
-      Uri(query = Some("&&=value&&")) ? "" must be_==(true)
-      Uri(query = Some("&&=value&&")) ? "param" must be_==(false)
+      Uri(query = Query.fromString("")) ? "" must be_==(true)
+      Uri(query = Query.fromString("")) ? "param" must be_==(false)
+      Uri(query = Query.fromString("&&=value&&")) ? "" must be_==(true)
+      Uri(query = Query.fromString("&&=value&&")) ? "param" must be_==(false)
     }
     "contains a parameter" in {
-      Uri(query = Some("param1=value&param1=value")) ? "param1" must be_==(true)
-      Uri(query = Some("param1=value&param2=value")) ? "param2" must be_==(true)
-      Uri(query = Some("param1=value&param2=value")) ? "param3" must be_==(false)
+      Uri(query = Query.fromString("param1=value&param1=value")) ? "param1" must be_==(true)
+      Uri(query = Query.fromString("param1=value&param2=value")) ? "param2" must be_==(true)
+      Uri(query = Query.fromString("param1=value&param2=value")) ? "param3" must be_==(false)
     }
     "contains a parameter with many values" in {
-      Uri(query = Some("param1=value1&param1=value2&param1=value3")) ? "param1" must be_==(true)
+      Uri(query = Query.fromString("param1=value1&param1=value2&param1=value3")) ? "param1" must be_==(true)
     }
     "contains a parameter without a value" in {
-      Uri(query = Some("param1")) ? "param1" must be_==(true)
+      Uri(query = Query.fromString("param1")) ? "param1" must be_==(true)
     }
     "contains with many parameters" in {
-      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "param1" must be_==(true)
-      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "param2" must be_==(true)
-      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "" must be_==(true)
-      Uri(query = Some("param1=value1&param1=value2&param2&=value3")) ? "param3" must be_==(false)
+      Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param1" must be_==(true)
+      Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param2" must be_==(true)
+      Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "" must be_==(true)
+      Uri(query = Query.fromString("param1=value1&param1=value2&param2&=value3")) ? "param3" must be_==(false)
     }
     "remove a parameter if present" in {
-      val u = Uri(query = Some("param1=value&param2=value")) -? ("param1")
-      u must be_==(Uri(query = Some("param2=value")))
+      val u = Uri(query = Query.fromString("param1=value&param2=value")) -? ("param1")
+      u must be_==(Uri(query = Query.fromString("param2=value")))
     }
     "remove an empty parameter from an empty query string" in {
-      val u = Uri(query = Some("")) -? ("")
-      u must be_==(Uri(query = None))
+      val u = Uri(query = Query.fromString("")) -? ("")
+      u must be_==(Uri(query = Query.empty))
     }
     "remove nothing if parameter is not present" in {
-      val u = Uri(query = Some("param1=value&param2=value"))
+      val u = Uri(query = Query.fromString("param1=value&param2=value"))
       u -? ("param3") must be_==(u)
     }
     "remove the last parameter" in {
-      val u = Uri(query = Some("param1=value")) -? ("param1")
+      val u = Uri(query = Query.fromString("param1=value")) -? ("param1")
       u must be_==(Uri())
     }
     "replace a parameter" in {
-      val u = Uri(query = Some("param1=value&param2=value")) +? ("param1", "newValue")
-      u must be_==(Uri(query = Some("param1=newValue&param2=value")))
+      val u = Uri(query = Query.fromString("param1=value&param2=value")) +? ("param1", "newValue")
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=newValue&param2=value")).multiParams)
     }
     "replace a parameter without a value" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param2=value")) +? ("param2")
-      u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2=value")) +? ("param2")
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param1", Seq("value1", "value2"))
-      u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +? ("param1", Seq("value1", "value2"))
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace the same parameter without a value" in {
-      val u = Uri(query = Some("param1=value1&param1=value2&param2")) +? ("param2")
-      u must be_==(Uri(query = Some("param1=value1&param1=value2&param2")))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2&param2")) +? ("param2")
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value1&param1=value2&param2")).multiParams)
     }
     "replace a parameter set" in {
-      val u = Uri(query = Some("param1=value1&param1=value2")) +? ("param1", "value")
-      u must be_==(Uri(query = Some("param1=value")))
+      val u = Uri(query = Query.fromString("param1=value1&param1=value2")) +? ("param1", "value")
+      u.multiParams must be_==(Uri(query = Query.fromString("param1=value")).multiParams)
     }
     "set a parameter with a value" in {
       val ps = Map("param" -> List("value"))
-      Uri() =? ps must be_==(Uri(query = Some("param=value")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=value")))
     }
     "set a parameter with a boolean values" in {
       val ps = Map("param" -> List(true, false))
-      Uri() =? ps must be_==(Uri(query = Some("param=true&param=false")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=true&param=false")))
     }
     "set a parameter with a char values" in {
       val ps = Map("param" -> List('x', 'y'))
-      Uri() =? ps must be_==(Uri(query = Some("param=x&param=y")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=x&param=y")))
     }
     "set a parameter with a double values" in {
       val ps = Map("param" -> List(1.2, 2.1))
-      Uri() =? ps must be_==(Uri(query = Some("param=1.2&param=2.1")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=1.2&param=2.1")))
     }
     "set a parameter with a float values" in {
       val ps = Map("param" -> List(1.2F, 2.1F))
-      Uri() =? ps must be_==(Uri(query = Some("param=1.2&param=2.1")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=1.2&param=2.1")))
     }
     "set a parameter with a integer values" in {
       val ps = Map("param" -> List(1, 2, 3))
-      Uri() =? ps must be_==(Uri(query = Some("param=1&param=2&param=3")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=1&param=2&param=3")))
     }
     "set a parameter with a long values" in {
       val ps = Map("param" -> List(Long.MaxValue, 0L, Long.MinValue))
-      Uri() =? ps must be_==(Uri(query = Some("param=9223372036854775807&param=0&param=-9223372036854775808")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=9223372036854775807&param=0&param=-9223372036854775808")))
     }
     "set a parameter with a short values" in {
       val ps = Map("param" -> List(Short.MaxValue, Short.MinValue))
-      Uri() =? ps must be_==(Uri(query = Some("param=32767&param=-32768")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=32767&param=-32768")))
     }
     "set a parameter with a string values" in {
       val ps = Map("param" -> List("some", "none"))
-      Uri() =? ps must be_==(Uri(query = Some("param=some&param=none")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param=some&param=none")))
     }
     "set a parameter without a value" in {
       val ps: Map[String, List[String]] = Map("param" -> Nil)
-      Uri() =? ps must be_==(Uri(query = Some("param")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param")))
     }
     "set many parameters" in {
       val ps = Map("param1" -> Nil, "param2" -> List("value1", "value2"), "param3" -> List("value"))
-      Uri() =? ps must be_==(Uri(query = Some("param1&param2=value1&param2=value2&param3=value")))
+      Uri() =? ps must be_==(Uri(query = Query.fromString("param1&param2=value1&param2=value2&param3=value")))
     }
     "set the same parameters again" in {
       val ps = Map("param" -> List("value"))
-      val u = Uri(query = Some("param=value"))
+      val u = Uri(query = Query.fromString("param=value"))
       u =? ps must be_==(u =? ps)
     }
   }
