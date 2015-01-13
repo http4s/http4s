@@ -36,6 +36,7 @@ private[parser] trait HttpParser extends SimpleHeaders
                     with AcceptCharsetHeader
                     with AcceptEncodingHeader
                     with AuthorizationHeader
+                    with LocationHeader
                     with WwwAuthenticateHeader {
 
   type HeaderParser = String => ParseResult[Header]
