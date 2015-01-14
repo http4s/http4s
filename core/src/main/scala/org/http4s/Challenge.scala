@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import org.http4s.util.{StringWriter, Writer, Renderable}
+import org.http4s.util.{Writer, Renderable}
 
 case class Challenge(scheme: String,
                      realm: String,
