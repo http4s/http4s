@@ -40,7 +40,6 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
 
   /** Generate a `Task[Response]` that will perform an HTTP 1 request on execution */
   def runRequest(req: Request): Task[Response] = {
-    if (timeout.isFinite()) {
     // We need to race two Tasks, one that will result in failure, one that gives the Response
 
       val resp = Task.async[Response] { cb =>
@@ -61,11 +60,6 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
       }
 
       resp
-    }
-    else Task.suspend {
-      if (!_inProgress.compareAndSet(null, ForeverCancellable)) Task.fail(new InProgressException)
-      else executeRequest(req)
-    }
   }
 
   private def executeRequest(req: Request): Task[Response] = {
@@ -154,12 +148,6 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
 
 object Http1ClientStage {
   class InProgressException extends Exception("Stage has request in progress")
-
-  // Acts as a place holder for requests that don't have a timeout set
-  private val ForeverCancellable = new Cancellable {
-    override def isCancelled(): Boolean = false
-    override def cancel(): Unit = ()
-  }
 }
 
 
