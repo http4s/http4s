@@ -111,7 +111,7 @@ class Http1ServerStage(service: HttpService,
   }
 
   private def runRequest(buffer: ByteBuffer): Unit = {
-    val (body, cleanup) = collectBodyFromParser(buffer)
+    val (body, cleanup) = collectBodyFromParser(buffer, InvalidBodyException("Received premature EOF."))
 
     collectMessage(body) match {
       case Some(req) =>
