@@ -195,18 +195,14 @@ case class Request(
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
     * If decoding fails, a BadRequest [[Response]] is generated.
     */
-  def decode[T](f: T => Task[Response])(implicit decoder: EntityDecoder[T]): Task[Response] =
+  def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
     decoder.decode(this).fold(
       e => Response(Status.BadRequest, httpVersion).withBody(e.sanitized),
       f
     ).join
 
   /** Like [[decode]], but with an explicit decoder. */
-  def decodeWith[T](decoder: EntityDecoder[T])(f: T => Task[Response]): Task[Response] =
-    decoder.decode(this).fold(
-      e => Response(Status.BadRequest, httpVersion).withBody(e.sanitized),
-      f
-    ).join
+  def decodeWith[A](decoder: EntityDecoder[A])(f: A => Task[Response]): Task[Response] = decode(f)(decoder)
 }
 
 object Request {
