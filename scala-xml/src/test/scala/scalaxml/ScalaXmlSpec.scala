@@ -3,6 +3,7 @@ package scalaxml
 
 import scodec.bits.ByteVector
 
+import scala.xml.Elem
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.Process.emit
@@ -28,7 +29,7 @@ class ScalaXmlSpec extends Http4sSpec {
 
   "xml" should {
     val server: Request => Task[Response] = { req =>
-      xml(req) { elem => Response(Ok).withBody(elem.label) }
+      req.decode { elem: Elem => Response(Ok).withBody(elem.label) }
     }
 
     "parse the XML" in {

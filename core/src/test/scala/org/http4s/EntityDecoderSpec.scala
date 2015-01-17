@@ -45,13 +45,13 @@ class EntityDecoderSpec extends Http4sSpec {
     "invoke the function with  the right on a success" in {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
-        happyDecoder(request) { s => cb(\/-(s)); Task.now(Response()) }.run
+        request.decodeWith(happyDecoder) { s => cb(\/-(s)); Task.now(Response()) }.run
       }.run must equal ("hooray")
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!"))))
-      val resp = grumpyDecoder(request){ _ => Task.now(Response())}.run
+      val resp = request.decodeWith(grumpyDecoder) { _ => Task.now(Response())}.run
       resp.status must equal (Status.BadRequest)
     }
   }
@@ -59,7 +59,7 @@ class EntityDecoderSpec extends Http4sSpec {
   "application/x-www-form-urlencoded" should {
 
     val server: Request => Task[Response] = { req =>
-      formEncoded(req) { form => Response(Ok).withBody(form("Name").head) }
+      req.decodeWith(formEncoded) { form => Response(Ok).withBody(form("Name").head) }
         .handle{ case NonFatal(t) => Response(BadRequest) }
     }
 
@@ -105,27 +105,37 @@ class EntityDecoderSpec extends Http4sSpec {
 
     "Write a text file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
-      val response = mocServe(Request()) {
-        case req =>
-          textFile(tmpFile)(req) { _ =>
-            Response(Ok).withBody("Hello")
-          }
-      }.run
+      try {
+        val response = mocServe(Request()) {
+          case req =>
+            req.decodeWith(textFile(tmpFile)) { _ =>
+              Response(Ok).withBody("Hello")
+            }
+        }.run
 
-      readTextFile(tmpFile) must_== (new String(binData))
-      response.status must_== (Status.Ok)
-      getBody(response.body) must_== ("Hello".getBytes)
+        readTextFile(tmpFile) must_== (new String(binData))
+        response.status must_== (Status.Ok)
+        getBody(response.body) must_== ("Hello".getBytes)
+      }
+      finally {
+        tmpFile.delete()
+      }
     }
 
     "Write a binary file from a byte string" in {
-      val tmpFile = File.createTempFile("foo","bar")
-      val response = mocServe(Request()) {
-        case req => binFile(tmpFile)(req)(_ => Response(Ok).withBody("Hello"))
-      }.run
+      val tmpFile = File.createTempFile("foo", "bar")
+      try {
+        val response = mocServe(Request()) {
+          case req => req.decodeWith(binFile(tmpFile)) { _ => Response(Ok).withBody("Hello")}
+        }.run
 
-      response.status must_== (Status.Ok)
-      getBody(response.body) must_== ("Hello".getBytes)
-      readFile(tmpFile) must_== (binData)
+        response.status must_== (Status.Ok)
+        getBody(response.body) must_== ("Hello".getBytes)
+        readFile(tmpFile) must_== (binData)
+      }
+      finally {
+        tmpFile.delete()
+      }
     }
 
     "Match any media type" in {

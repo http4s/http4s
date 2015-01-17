@@ -21,18 +21,6 @@ import util.byteVector._
   * @tparam T result type produced by the decoder
   */
 sealed trait EntityDecoder[T] { self =>
-
-  /** Helper method for decoding [[Request]]s
-    *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated.
-    */
-  final def apply(request: Request)(f: T => Task[Response]): Task[Response] =
-    decode(request).fold(
-      e => Response(Status.BadRequest, request.httpVersion).withBody(e.sanitized),
-      f
-    ).join
-
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message): DecodeResult[T]
 

@@ -29,8 +29,8 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       // https://github.com/http4s/http4s/issues/157
       // TODO Urgh.  We need to make testing these smoother.
       def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
-      val req = Request().withBody(jNumberOrNull(157))
-      val body = json(req.run) { json => Response(Ok).withBody(json.number.flatMap(_.toLong).getOrElse(0L).toString) }.run.body
+      val req = Request().withBody(jNumberOrNull(157)).run
+      val body = req.decode { json: Json => Response(Ok).withBody(json.number.flatMap(_.toLong).getOrElse(0L).toString) }.run.body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
   }

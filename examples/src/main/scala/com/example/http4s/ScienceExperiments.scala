@@ -6,6 +6,7 @@ import org.http4s.server.HttpService
 import org.http4s.scalaxml._
 import scodec.bits.ByteVector
 
+import scala.xml.Elem
 import scalaz.{Reducer, Monoid}
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -20,7 +21,7 @@ object ScienceExperiments {
   def service = HttpService {
     ///////////////// Misc //////////////////////
     case req @ POST -> Root / "root-element-name" =>
-      xml(req)(root => Ok(root.label))
+      req.decode { root: Elem => Ok(root.label) }
 
     case req @ GET -> Root / "date" =>
       val date = DateTime(100)
