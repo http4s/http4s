@@ -1,8 +1,6 @@
 package org.http4s
 package jawn
 
-import _root_.jawn.Facade
-
 trait JawnDecodeSupportSpec[J] extends Http4sSpec with JawnInstances {
   def testJsonDecoder(decoder: EntityDecoder[J]) {
     "json decoder" should {

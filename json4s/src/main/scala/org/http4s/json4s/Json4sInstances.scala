@@ -4,9 +4,14 @@ package json4s
 import org.http4s.Header.`Content-Type`
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonMethods
+import _root_.jawn.support.json4s.Parser.facade
 
-trait Json4sInstances {
-  def json4sEncode[J](jsonMethods: JsonMethods[J]): EntityEncoder[JValue] =
+trait Json4sInstances[J] {
+  implicit lazy val json: EntityDecoder[JValue] = jawn.jawnDecoder(facade)
+
+  protected def jsonMethods: JsonMethods[J]
+
+  implicit lazy val jsonEncoder: EntityEncoder[JValue] =
     EntityEncoder[String].contramap[JValue] { json =>
       // TODO naive implementation materializes to a String.
       // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
