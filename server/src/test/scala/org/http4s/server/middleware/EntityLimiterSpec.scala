@@ -15,7 +15,7 @@ class EntityLimiterSpec extends Specification {
   import Http4s._
 
   val s = HttpService {
-    case r: Request if r.uri.path == "/echo" => EntityDecoder.text(r)(Response(Ok).withBody)
+    case r: Request if r.uri.path == "/echo" => r.decode[String](Response(Ok).withBody)
   }
 
   val b = emit(ByteVector.view("hello".getBytes(StandardCharsets.UTF_8)))
@@ -37,7 +37,7 @@ class EntityLimiterSpec extends Specification {
 
     "Chain correctly with other HttpServices" in {
       val s2 = HttpService {
-        case r: Request if r.uri.path == "/echo2" => EntityDecoder.text(r)(Response(Ok).withBody)
+        case r: Request if r.uri.path == "/echo2" => r.decode[String](Response(Ok).withBody)
       }
 
       val st = EntityLimiter(s, 3) orElse s2

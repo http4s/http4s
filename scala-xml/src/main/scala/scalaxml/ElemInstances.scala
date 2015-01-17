@@ -37,6 +37,4 @@ trait ElemInstances {
       }
     }
   }
-
-  def xml: EntityDecoder[Elem] = xml()
 }

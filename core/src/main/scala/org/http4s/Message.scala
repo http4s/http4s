@@ -4,8 +4,8 @@ import java.io.File
 import java.net.InetAddress
 import org.http4s.Header.{`Content-Length`, `Content-Type`}
 import org.http4s.server.ServerSoftware
-import scalaz.\/
 import scalaz.concurrent.Task
+import scalaz.syntax.monad._
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
@@ -189,6 +189,20 @@ case class Request(
   }
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, a BadRequest [[Response]] is generated.
+    */
+  def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
+    decoder.decode(this).fold(
+      e => Response(Status.BadRequest, httpVersion).withBody(e.sanitized),
+      f
+    ).join
+
+  /** Like [[decode]], but with an explicit decoder. */
+  def decodeWith[A](decoder: EntityDecoder[A])(f: A => Task[Response]): Task[Response] = decode(f)(decoder)
 }
 
 object Request {
