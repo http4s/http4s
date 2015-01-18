@@ -29,7 +29,7 @@ object UrlForm {
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
       DecodeResult(
         EntityDecoder.decodeString(m)
-          .map(decodeString(m.charset))
+          .map(decodeString(m.charset.getOrElse(Charset.`ISO-8859-1`)))
       )
     }
 

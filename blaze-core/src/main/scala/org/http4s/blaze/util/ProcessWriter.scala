@@ -2,6 +2,7 @@ package org.http4s.blaze.util
 
 import scodec.bits.ByteVector
 
+import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}
 import scalaz.concurrent.Task
@@ -14,7 +15,8 @@ trait ProcessWriter {
 
   implicit protected def ec: ExecutionContext
 
-  type CBType = Throwable \/ Unit => Unit
+  private type CBType = Throwable \/ Unit => Unit
+  private type StackElem = Cause => Trampoline[Process[Task,ByteVector]]
 
   /** write a ByteVector to the wire
     * If a request is cancelled, or the stream is closed this method should
@@ -45,9 +47,9 @@ trait ProcessWriter {
     * @param p Process[Task, ByteVector] to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async(go(p, Vector.empty, _))
+  def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async(go(p, Nil, _))
 
-  final private def go(p: Process[Task, ByteVector], stack: Vector[Cause => Trampoline[Process[Task,ByteVector]]], cb: CBType): Unit = p match {
+  final private def go(p: Process[Task, ByteVector], stack: List[StackElem], cb: CBType): Unit = p match {
     case Emit(seq) if seq.isEmpty =>
       if (stack.isEmpty) writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
       else go(Try(stack.head.apply(End).run), stack.tail, cb)
@@ -66,8 +68,13 @@ trait ProcessWriter {
     }
 
     case Append(head, tail) =>
-      if (stack.nonEmpty) go(head, tail ++ stack, cb)
-      else go(head, tail, cb)
+     @tailrec   // avoid as many intermediates as possible
+     def prepend(i: Int, stack: List[StackElem]): List[StackElem] = {
+       if (i >= 0) prepend(i - 1, tail(i)::stack)
+       else stack
+     }
+
+     go(head, prepend(tail.length - 1, stack), cb)
 
     case Halt(cause) if stack.nonEmpty => go(Try(stack.head(cause).run), stack.tail, cb)
 

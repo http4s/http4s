@@ -5,10 +5,12 @@ import java.nio.ByteBuffer
 import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.Command.EOF
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
 import scalaz.concurrent.Task
+import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.Process
 import scalaz.{-\/, \/-}
 
@@ -38,8 +40,9 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
   }
 
   final override protected def submitResponseLine(code: Int, reason: String,
-                                            scheme: String,
-                                            majorversion: Int, minorversion: Int): Unit = {
+                                                scheme: String,
+                                          majorversion: Int,
+                                          minorversion: Int): Unit = {
     _status = Status.fromIntAndReason(code, reason).valueOr(e => throw new ParseException(e))
     _httpVersion = {
       if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
@@ -52,6 +55,7 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
     val status   = if (_status == null) Status.InternalServerError else _status
     val headers  = if (_headers.isEmpty) Headers.empty else Headers(_headers.result())
     val httpVersion = if (_httpVersion == null) HttpVersion.`HTTP/1.0` else _httpVersion // TODO Questionable default
+
     Response(status, httpVersion, headers, body)
   }
 
@@ -84,8 +88,12 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
       return
     }
 
+    val terminationCondition = {  // if we don't have a length, EOF signals the end of the body.
+      if (definedContentLength() || isChunked()) InvalidBodyException("Received premature EOF.")
+      else Terminated(End)
+    }
     // We are to the point of parsing the body and then cleaning up
-    val (rawBody, cleanup) = collectBodyFromParser(buffer)
+    val (rawBody, cleanup) = collectBodyFromParser(buffer, terminationCondition)
 
     val body = rawBody ++ Process.eval_(Task.async[Unit] { cb =>
       if (closeOnFinish) {
@@ -93,8 +101,9 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
         cb(\/-(()))
       }
       else cleanup().onComplete {
-        case Success(_) => reset(); cb(\/-(()))     // we shouldn't have any leftover buffer
-        case Failure(t) => cb(-\/(t))
+        case Success(_)   => reset(); cb(\/-(()))     // we shouldn't have any leftover buffer
+        case Failure(EOF) => stageShutdown(); cb(\/-(()))
+        case Failure(t)   => cb(-\/(t))
       }
     })
 

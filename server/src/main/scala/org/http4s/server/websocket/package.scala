@@ -13,6 +13,6 @@ package object websocket {
 
   def WS(source: Process[Task, WebSocketFrame] = halt,
          sink: Sink[Task, WebSocketFrame] = halt,
-         status: Task[Response] = ResponseBuilder(Status.NotImplemented, "This is a WebSocket route.")): Task[Response] =
+         status: Task[Response] = Response(Status.NotImplemented).withBody("This is a WebSocket route.")): Task[Response] =
     status.map(_.withAttribute(websocketKey, Websocket(source, sink)))
 }

@@ -2,6 +2,7 @@ package org.http4s
 package client
 
 import org.http4s.Status.ResponseClass._
+import org.parboiled2.ParseError
 
 import scalaz.concurrent.Task
 
@@ -14,11 +15,11 @@ import org.specs2.matcher.MustThrownMatchers
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   val route = HttpService {
-    case r if r.method == GET && r.pathInfo == "/"            => ResponseBuilder(Ok, "hello")
-    case r if r.method == PUT && r.pathInfo == "/put"         => ResponseBuilder(Created, r.body)
+    case r if r.method == GET && r.pathInfo == "/"            => Response(Ok).withBody("hello")
+    case r if r.method == PUT && r.pathInfo == "/put"         => Response(Created).withBody(r.body)
     case r if r.method == GET && r.pathInfo == "/echoheaders" =>
-      r.headers.get(Header.Accept).fold(ResponseBuilder.basic(BadRequest)){ m =>
-         ResponseBuilder(Ok, m.toString)
+      r.headers.get(Header.Accept).fold(Task.now(Response(BadRequest))){ m =>
+         Response(Ok).withBody(m.toString)
       }
 
     case r => sys.error("Path not found: " + r.pathInfo)
@@ -85,8 +86,10 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "attemptAs with failed parsing result" in {
-      client(req).attemptAs(EntityDecoder.xml())
-        .run.run must beLeftDisjunction
+      val grouchyEncoder = EntityDecoder.decodeBy[Any](MediaRange.`*/*`) { _ =>
+        DecodeResult.failure(ParseFailure("MEH!", "MEH!"))
+      }
+      client(req).attemptAs[Any](grouchyEncoder).run.run must beLeftDisjunction
     }
 
     "prepAs must add Accept header" in {

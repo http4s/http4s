@@ -3,19 +3,20 @@ package org.http4s
 import java.io.{File, FileOutputStream, StringReader}
 import javax.xml.parsers.SAXParser
 
-import org.http4s.util.ByteVectorInstances.byteVectorMonoidInstance
 import org.xml.sax.{InputSource, SAXParseException}
+import java.io.{File, FileOutputStream}
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
-import scala.xml.{Elem, XML}
 import scalaz.Liskov.{<~<, refl}
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
 import scalaz.{-\/, EitherT, \/, \/-}
 
+import util.UrlFormCodec.{ decode => formDecode }
+import util.byteVector._
 
 /** A type that can be used to decode an [[EntityBody]]
   * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
@@ -24,18 +25,6 @@ import scalaz.{-\/, EitherT, \/, \/-}
   * @tparam T result type produced by the decoder
   */
 sealed trait EntityDecoder[T] { self =>
-
-  /** Helper method for decoding [[Request]]s
-    *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated.
-    */
-  final def apply(request: Request)(f: T => Task[Response]): Task[Response] =
-    decode(request).fold(
-      e => ResponseBuilder(Status.BadRequest, request.httpVersion, e.sanitized),
-      f
-    ).join
-
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message): DecodeResult[T]
 
@@ -47,6 +36,12 @@ sealed trait EntityDecoder[T] { self =>
     override def consumes: Set[MediaRange] = self.consumes
 
     override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
+  }
+
+  def flatMapR[T2](f: T => DecodeResult[T2]): EntityDecoder[T2] = new EntityDecoder[T2] {
+    override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).flatMap(f)
+
+    override def consumes: Set[MediaRange] = self.consumes
   }
 
   /** Combine two [[EntityDecoder]]'s
@@ -117,7 +112,7 @@ object EntityDecoder extends EntityDecoderInstances {
   def decodeString(msg: Message): Task[String] = {
     val buff = new StringBuilder
     (msg.body |> process1.fold(buff) { (b, c) => {
-      b.append(new String(c.toArray, msg.charset.nioCharset))
+      b.append(new String(c.toArray, msg.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset))
     }}).map(_.result()).runLastOr("")
   }
 }
@@ -142,33 +137,8 @@ trait EntityDecoderInstances {
 
   implicit val text: EntityDecoder[String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
-      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.nioCharset))
+      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset))
     )
-
-  /**
-   * Handles a message body as XML.
-   *
-   * TODO Not an ideal implementation.  Would be much better with an asynchronous XML parser, such as Aalto.
-   *
-   * @param parser the SAX parser to use to parse the XML
-   * @return an XML element
-   */
-  implicit def xml(implicit parser: SAXParser = XML.parser): EntityDecoder[Elem] =
-    EntityDecoder.decodeBy (MediaType.`text/xml`){ msg =>
-      collectBinary(msg).flatMap[Elem] { arr =>
-        val source = new InputSource(new StringReader(new String(arr.toArray, msg.charset.nioCharset)))
-        try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
-        catch {
-          case e: SAXParseException =>
-            val msg = s"${e.getMessage}; Line: ${e.getLineNumber}; Column: ${e.getColumnNumber}"
-            DecodeResult.failure(Task.now(ParseFailure("Invalid XML", msg)))
-
-          case NonFatal(e) => DecodeResult(Task.fail(e))
-        }
-      }
-    }
-
-  def xml: EntityDecoder[Elem] = xml()
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] =

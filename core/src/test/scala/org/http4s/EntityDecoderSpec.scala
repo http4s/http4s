@@ -5,6 +5,9 @@ import java.io.{File, FileInputStream, InputStreamReader}
 import org.http4s.Header.`Content-Type`
 import org.http4s.Status.Ok
 import scodec.bits.ByteVector
+import Status._
+
+import java.io.{FileInputStream,File,InputStreamReader}
 
 import scala.language.postfixOps
 import scala.util.control.NonFatal
@@ -19,39 +22,39 @@ class EntityDecoderSpec extends Http4sSpec {
 
   def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
 
+  "EntityDecoder" can {
+    val req = Response(Ok).withBody("foo").run
+    "flatMapR with success" in {
+      EntityDecoder.text
+        .flatMapR(s => DecodeResult.success("bar"))
+        .decode(req)
+        .run
+        .run must beRightDisjunction("bar")
+    }
+
+    "flatMapR with failure" in {
+      EntityDecoder.text
+        .flatMapR(s => DecodeResult.failure[String](ParseFailure("bummer")))
+        .decode(req)
+        .run
+        .run must beLeftDisjunction(ParseFailure("bummer"))
+    }
+  }
+
   "apply" should {
     val request = Request().withBody("whatever").run
 
     "invoke the function with  the right on a success" in {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
-        happyDecoder(request) { s => cb(\/-(s)); Task.now(Response()) }.run
+        request.decodeWith(happyDecoder) { s => cb(\/-(s)); Task.now(Response()) }.run
       }.run must equal ("hooray")
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!"))))
-      val resp = grumpyDecoder(request){ _ => Task.now(Response())}.run
+      val resp = request.decodeWith(grumpyDecoder) { _ => Task.now(Response())}.run
       resp.status must equal (Status.BadRequest)
-    }
-  }
-
-  "xml" should {
-
-    val server: Request => Task[Response] = { req =>
-      xml(req) { elem => ResponseBuilder(Ok, elem.label) }
-    }
-
-    "parse the XML" in {
-      val resp = server(Request(body = emit("<html><h1>h1</h1></html>").map(s => ByteVector(s.getBytes)))).run
-      resp.status must_==(Ok)
-      getBody(resp.body) must_== ("html".getBytes)
-    }
-
-    "return 400 on parse error" in {
-      val body = strBody("This is not XML.")
-      val tresp = server(Request(body = body))
-      tresp.run.status must equal (Status.BadRequest)
     }
   }
 
@@ -59,8 +62,8 @@ class EntityDecoderSpec extends Http4sSpec {
 
 
     val server: Request => Task[Response] = { req =>
-      UrlForm.entityDecoder(req) { form => ResponseBuilder(Ok, form)(UrlForm.entityEncoder(Charset.`UTF-8`)) }
-        .handle{ case NonFatal(t) => ResponseBuilder.basic(Status.BadRequest).run }
+      req.decode[UrlForm] { form => Response(Ok).withBody(form)(UrlForm.entityEncoder(Charset.`UTF-8`)) }
+        .handle{ case NonFatal(t) => Response(Status.BadRequest) }
     }
 
     "Decode form encoded body" in {
@@ -104,41 +107,55 @@ class EntityDecoderSpec extends Http4sSpec {
 
     "Write a text file from a byte string" in {
       val tmpFile = File.createTempFile("foo","bar")
-      val response = mocServe(Request()) {
-        case req =>
-          textFile(tmpFile)(req) { _ =>
-            ResponseBuilder(Ok, "Hello")
-          }
-      }.run
+      try {
+        val response = mocServe(Request()) {
+          case req =>
+            req.decodeWith(textFile(tmpFile)) { _ =>
+              Response(Ok).withBody("Hello")
+            }
+        }.run
 
-      readTextFile(tmpFile) must_== (new String(binData))
-      response.status must_== (Status.Ok)
-      getBody(response.body) must_== ("Hello".getBytes)
+        readTextFile(tmpFile) must_== (new String(binData))
+        response.status must_== (Status.Ok)
+        getBody(response.body) must_== ("Hello".getBytes)
+      }
+      finally {
+        tmpFile.delete()
+      }
     }
 
     "Write a binary file from a byte string" in {
-      val tmpFile = File.createTempFile("foo","bar")
-      val response = mocServe(Request()) {
-        case req => binFile(tmpFile)(req)(_ => ResponseBuilder(Ok, "Hello"))
-      }.run
+      val tmpFile = File.createTempFile("foo", "bar")
+      try {
+        val response = mocServe(Request()) {
+          case req => req.decodeWith(binFile(tmpFile)) { _ => Response(Ok).withBody("Hello")}
+        }.run
 
-      response.status must_== (Status.Ok)
-      getBody(response.body) must_== ("Hello".getBytes)
-      readFile(tmpFile) must_== (binData)
+        response.status must_== (Status.Ok)
+        getBody(response.body) must_== ("Hello".getBytes)
+        readFile(tmpFile) must_== (binData)
+      }
+      finally {
+        tmpFile.delete()
+      }
     }
 
     "Match any media type" in {
-      val req = ResponseBuilder(Ok, "foo").run
+      val req = Response(Ok).withBody("foo").run
       binary.matchesMediaType(req) must_== true
     }
 
+    val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
+      DecodeResult.failure(ParseFailure("Nope."))
+    }
+
     "Not match invalid media type" in {
-      val req = ResponseBuilder(Ok, "foo").run
-      EntityDecoder.xml().matchesMediaType(req) must_== false
+      val req = Response(Ok).withBody("foo").run
+      nonMatchingDecoder.matchesMediaType(req) must_== false
     }
 
     "Match valid media range" in {
-      val req = ResponseBuilder(Ok, "foo").run
+      val req = Response(Ok).withBody("foo").run
       EntityDecoder.text.matchesMediaType(req) must_== true
     }
 
@@ -152,8 +169,8 @@ class EntityDecoderSpec extends Http4sSpec {
       val req = Request(headers = Headers(`Content-Type`(tpe)))
       (EntityDecoder.text.matchesMediaType(req) must_== true)   and
       (EntityDecoder.text.matchesMediaType(tpe) must_== true)   and
-      (EntityDecoder.xml().matchesMediaType(req) must_== false) and
-      (EntityDecoder.xml().matchesMediaType(tpe) must_== false)
+      (nonMatchingDecoder.matchesMediaType(req) must_== false) and
+      (nonMatchingDecoder.matchesMediaType(tpe) must_== false)
     }
 
   }
@@ -174,4 +191,6 @@ class EntityDecoderSpec extends Http4sSpec {
       result must_== (\/-(ByteVector(1, 2, 3, 4, 5, 6)))
     }
   }
+
+
 }

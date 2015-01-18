@@ -37,8 +37,8 @@ trait EntityEncoder[A] { self =>
     override def headers: Headers = self.headers
   }
 
-  /** Get the [[MediaType]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def contentType: Option[MediaType] = headers.get(`Content-Type`).map(_.mediaType)
+  /** Get the [[`Content-Type`]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
   def charset: Option[Charset] = headers.get(`Content-Type`).map(_.charset)
@@ -137,13 +137,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
 
   implicit val byteEncoder: EntityEncoder[Byte] = byteVectorEncoder.contramap(ByteVector.apply(_))
-
-  // TODO split off to module to drop scala-xml core dependency
-  // TODO infer HTML, XHTML, etc.
-  implicit def htmlEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[xml.Elem] = {
-    val hdr = `Content-Type`(MediaType.`text/html`).withCharset(charset)
-    simple(hdr)(xml => ByteVector.view(xml.buildString(false).getBytes(charset.nioCharset)))
-  }
 
   implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] = new EntityEncoder[Task[A]] {
     override def toEntity(a: Task[A]): Task[Entity] = a.flatMap(W.toEntity)

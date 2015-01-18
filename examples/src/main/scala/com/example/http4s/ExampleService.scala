@@ -1,5 +1,7 @@
 package com.example.http4s
 
+import _root_.argonaut.JString
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -7,18 +9,20 @@ import org.http4s.Header.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
-import org.http4s.json4s.jackson.Json4sJacksonSupport._
+import org.http4s.argonaut._
+import org.http4s.scalaxml._
 import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
-
-import org.json4s.JsonDSL._
-import org.json4s.JValue
+import org.http4s.twirl._
 
 import scalaz.stream.Process
 import scalaz.concurrent.Task
 import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
+
+import _root_.argonaut._
+import Argonaut._
 
 object ExampleService {
 
@@ -28,35 +32,12 @@ object ExampleService {
   def service1(implicit executionContext: ExecutionContext) = HttpService {
 
     case req @ GET -> Root =>
+      // Supports Play Framework template -- see src/main/twirl.
+      Ok(html.index())
+
+    case GET -> Root / "ping" =>
       // EntityEncoder allows for easy conversion of types to a response body
-      Ok(
-        <html>
-          <body>
-            <h1>Welcome to http4s.</h1>
-
-            <p>Some examples:</p>
-
-            <ul>
-              <li><a href="/http4s/ping">Ping route</a></li>
-              <li><a href="/http4s/future">A asynchronous result</a></li>
-              <li><a href="/http4s/streaming">A streaming result</a></li>
-              <li><a href="/http4s/ip">Get your IP address</a></li>
-              <li><a href="/http4s/redirect">A redirect url</a></li>
-              <li><a href="/http4s/content-change">A HTML result written as a String</a></li>
-
-              <li><a href="/http4s/echo">Echo some form encoded data</a></li>
-              <li><a href="/http4s/echo2">Echo some form encoded data minus a few chars</a></li>
-              <li><a href="/http4s/sum">Calculate the sum of the submitted numbers</a></li>
-              <li><a href="/http4s/short-sum">Try to calculate a sum, but the body will be to large</a></li>
-
-              <li><a href="/http4s/form-encoded">A submission form</a></li>
-              <li><a href="/http4s/push">Server push</a></li>
-            </ul>
-          </body>
-        </html>
-      )
-
-    case GET -> Root / "ping" => Ok("pong")
+      Ok("pong")
 
     case GET -> Root / "future" =>
       // EntityEncoder allows rendering asynchronous results as well
@@ -68,7 +49,8 @@ object ExampleService {
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
-      Ok("origin" -> req.remoteAddr.getOrElse("unknown"): JValue)
+      val json = jSingleObject("origin", jString(req.remoteAddr.getOrElse("unknown")))
+      Ok(json)
 
     case req @ GET -> Root / "redirect" =>
       // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
@@ -87,7 +69,7 @@ object ExampleService {
         .withHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "echo" =>
-      Ok(submissionForm("echo data"))
+      Ok(html.submissionForm("echo data"))
 
     case req @ POST -> Root / "echo2" =>
       // Even more useful, the body can be transformed in the response
@@ -95,11 +77,11 @@ object ExampleService {
         .withHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo2" =>
-      Ok(submissionForm("echo data"))
+      Ok(html.submissionForm("echo data"))
 
     case req @ POST -> Root / "sum"  =>
       // EntityDecoders allow turning the body into something useful
-      UrlForm.entityDecoder(req) { data =>
+      req.decode[UrlForm] { data => 
         data.values.get("sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(' ').filter(_.length > 0).map(_.trim.toInt).sum
@@ -112,26 +94,16 @@ object ExampleService {
       }
 
     case req @ GET -> Root / "sum" =>
-      Ok(submissionForm("sum"))
+      Ok(html.submissionForm("sum"))
 
     ///////////////////////////////////////////////////////////////
     //////////////// Form encoding example ////////////////////////
     case req @ GET -> Root / "form-encoded" =>
-      val html =
-        <html><body>
-          <p>Submit something.</p>
-          <form name="input" method="post">
-            <p>First name: <input type="text" name="firstname"/></p>
-            <p>Last name: <input type="text" name="lastname"/></p>
-            <p><input type="submit" value="Submit"/></p>
-          </form>
-        </body></html>
-
-      Ok(html)
+      Ok(html.formEncoded())
 
     case req @ POST -> Root / "form-encoded" =>
       // EntityDecoders return a Task[A] which is easy to sequence
-      UrlForm.entityDecoder(req) { m =>
+      req.decode[UrlForm] { m =>
         val s = m.values.mkString("\n")
         Ok(s"Form Encoded Data\n$s")
       }
@@ -152,7 +124,7 @@ object ExampleService {
   // Services don't have to be monolithic, and middleware just transforms a service to a service
   def service2 = EntityLimiter(HttpService {
     case req @ POST -> Root / "short-sum"  =>
-      UrlForm.entityDecoder(req) { data =>
+      req.decode[UrlForm] { data =>
         data.values.get("short-sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(" ").filter(_.length > 0).map(_.trim.toInt).sum
@@ -165,7 +137,7 @@ object ExampleService {
       }
 
     case req @ GET -> Root / "short-sum" =>
-      Ok(submissionForm("short-sum"))
+      Ok(html.submissionForm("short-sum"))
   }, 3)
 
   // This is a mock data source, but could be a Process representing results from a database
@@ -177,14 +149,5 @@ object ExampleService {
                         .take(n)
 
     Process.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
-  }
-
-  private def submissionForm(msg: String) = {
-    <html><body>
-      <form name="input" method="post">
-        <p>{msg}: <input type="text" name={msg}/></p>
-        <p><input type="submit" value="Submit"/></p>
-      </form>
-    </body></html>
   }
 }

@@ -112,6 +112,16 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
       result.body.run.run must throwA[InvalidBodyException]
     }
+
+    "Interpret a lack of length with a EOF as a valid message" in {
+      val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
+
+      val (_, response) = getSubmission(req, resp, 20.seconds)
+
+      response must_==("done")
+    }
   }
 
   "Http1ClientStage responses" should {

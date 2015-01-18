@@ -23,25 +23,13 @@ import org.http4s.Challenge
 
 private[parser] trait WwwAuthenticateHeader {
 
-  def WWW_AUTHENTICATE(value: String) = new AuthenticateParser(value).parse
+  def WWW_AUTHENTICATE(value: String) = new WWWAuthenticateParser(value).parse
 
-  private class AuthenticateParser(input: ParserInput) extends Http4sHeaderParser[`WWW-Authenticate`](input) {
+  private class WWWAuthenticateParser(input: ParserInput) extends ChallengeParser[`WWW-Authenticate`](input) {
     def entry: Rule1[`WWW-Authenticate`] = rule {
         oneOrMore(ChallengeRule).separatedBy(ListSep) ~ EOI ~> { xs: Seq[Challenge] =>
           `WWW-Authenticate`(xs.head, xs.tail: _*)
         }
-    }
-
-    def ChallengeRule: Rule1[Challenge] = rule {
-      Token ~ oneOrMore(LWS) ~ zeroOrMore(AuthParam).separatedBy(ListSep) ~> {
-        (scheme: String, params: Seq[(String, String)]) =>
-          val (realms, otherParams) = params.partition(_._1 == "realm")
-          Challenge(scheme, realms.headOption.map(_._2).getOrElse(""), otherParams.toMap)
-      }
-    }
-
-    def AuthParam: Rule1[(String, String)] = rule {
-      Token ~ "=" ~ (Token | QuotedString) ~> {(a: String, b: String) => (a,b) }
     }
   }
 

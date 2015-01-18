@@ -26,9 +26,20 @@ object QueryParam {
   }
 }
 
+trait QueryParamKeyLike[T] {
+  def getKey(t: T): QueryParameterKey
+}
+
+object QueryParamKeyLike {
+  def apply[T](implicit ev: QueryParamKeyLike[T]): QueryParamKeyLike[T] = ev
+
+  implicit val stringKey: QueryParamKeyLike[String] = new QueryParamKeyLike[String] {
+    override def getKey(t: String): QueryParameterKey = QueryParameterKey(t)
+  }
+}
 
 /**
- * Type class defining how to encode a `T` as a [[QueryParameterValue]]
+ * Type class defining how to encode a `T` as a [[QueryParameterValue]]s
  * @see QueryParamCodecLaws
  */
 trait QueryParamEncoder[T] {
@@ -60,7 +71,6 @@ object QueryParamEncoder {
   implicit val longQueryParamEncoder   : QueryParamEncoder[Long]    = fromShow[Long]
   implicit val charQueryParamEncoder   : QueryParamEncoder[Char]    = fromShow[Char]
   implicit val stringQueryParamEncoder : QueryParamEncoder[String]  = encode(identity)
-
 }
 
 

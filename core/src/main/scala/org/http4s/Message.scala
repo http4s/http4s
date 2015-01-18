@@ -4,8 +4,8 @@ import java.io.File
 import java.net.InetAddress
 import org.http4s.Header.{`Content-Length`, `Content-Type`}
 import org.http4s.server.ServerSoftware
-import scalaz.\/
 import scalaz.concurrent.Task
+import scalaz.syntax.monad._
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
@@ -72,7 +72,7 @@ sealed trait Message extends MessageOps {
 
   def contentType: Option[`Content-Type`] = headers.get(Header.`Content-Type`)
 
-  def charset: Charset = contentType.map(_.charset) getOrElse Charset.`ISO-8859-1`
+  def charset: Option[Charset] = contentType.map(_.charset)
 
   def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`).exists(_.values.list.contains(TransferCoding.chunked))
 
@@ -137,7 +137,7 @@ case class Request(
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
-  def queryString: String = uri.query.getOrElse("")
+  def queryString: String = uri.query.renderString
 
   /**
    * Representation of the query string as a map
@@ -189,6 +189,20 @@ case class Request(
   }
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, a BadRequest [[Response]] is generated.
+    */
+  def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
+    decoder.decode(this).fold(
+      e => Response(Status.BadRequest, httpVersion).withBody(e.sanitized),
+      f
+    ).join
+
+  /** Like [[decode]], but with an explicit decoder. */
+  def decodeWith[A](decoder: EntityDecoder[A])(f: A => Task[Response]): Task[Response] = decode(f)(decoder)
 }
 
 object Request {
@@ -223,3 +237,9 @@ case class Response(
     copy(body = body, headers = headers, attributes = attributes)
 }
 
+object Response {
+  def notFound(request: Request): Task[Response] = {
+    val body = s"${request.pathInfo} not found"
+    Response(Status.NotFound).withBody(body)
+  }
+}

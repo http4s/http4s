@@ -23,8 +23,8 @@ case class UriTemplate(
   scheme: Option[Scheme] = None,
   authority: Option[Authority] = None,
   path: Path = Nil,
-  query: Option[Query] = None,
-  fragment: Option[Fragment] = None) {
+  query: UriTemplate.Query = Nil,
+  fragment: Fragment = Nil) {
 
   /**
    * Replaces any expansion type that matches the given `name`. If no matching
@@ -55,7 +55,7 @@ case class UriTemplate(
    * matching `expansion` could be found the same instance will be returned.
    */
   def expandPath[T: QueryParamEncoder](name: String, value: T): UriTemplate =
-    copy(path = expandPathN(path, name, List(QueryParamEncoder[T].encode(value))))
+    copy(path = expandPathN(path, name, QueryParamEncoder[T].encode(value)::Nil))
 
   /**
    * Replaces any expansion type in `query` that matches the specified `name`.
@@ -142,63 +142,59 @@ object UriTemplate {
     acc.toList
   }
 
-  protected def expandQueryN(query: Option[Query], name: String, values: List[String]): Option[Query] = {
-    query.map(f => {
-      val acc = new ArrayBuffer[QueryDef]()
-      f.foreach {
-        case p@ParamElm(_, _) => acc.append(p)
-        case p@ParamVarExp(r, List(n)) =>
-          if (n == name) acc.append(ParamElm(r, values))
-          else acc.append(p)
-        case p@ParamVarExp(r, ns) =>
-          if (ns.contains(name)) {
-            acc.append(ParamElm(r, values))
-            acc.append(ParamVarExp(r, ns.filterNot(_ == name)))
-          } else acc.append(p)
-        case p@ParamReservedExp(r, List(n)) =>
-          if (n == name) acc.append(ParamElm(r, values))
-          else acc.append(p)
-        case p@ParamReservedExp(r, ns) =>
-          if (ns.contains(name)) {
-            acc.append(ParamElm(r, values))
-            acc.append(ParamReservedExp(r, ns.filterNot(_ == name)))
-          } else acc.append(p)
-        case p@ParamExp(Seq(n)) =>
-          if (n == name) acc.append(ParamElm(name, values))
-          else acc.append(p)
-        case p@ParamExp(ns) =>
-          if (ns.contains(name)) {
-            acc.append(ParamElm(name, values))
-            acc.append(ParamExp(ns.filterNot(_ == name)))
-          } else acc.append(p)
-        case p@ParamContExp(Seq(n)) =>
-          if (n == name) acc.append(ParamElm(name, values))
-          else acc.append(p)
-        case p@ParamContExp(ns) =>
-          if (ns.contains(name)) {
-            acc.append(ParamElm(name, values))
-            acc.append(ParamContExp(ns.filterNot(_ == name)))
-          } else acc.append(p)
-      }
-      acc.toList
-    })
+  protected def expandQueryN(query: Query, name: String, values: List[String]): Query = {
+    val acc = new ArrayBuffer[QueryDef]()
+    query.foreach {
+      case p@ParamElm(_, _) => acc.append(p)
+      case p@ParamVarExp(r, List(n)) =>
+        if (n == name) acc.append(ParamElm(r, values))
+        else acc.append(p)
+      case p@ParamVarExp(r, ns) =>
+        if (ns.contains(name)) {
+          acc.append(ParamElm(r, values))
+          acc.append(ParamVarExp(r, ns.filterNot(_ == name)))
+        } else acc.append(p)
+      case p@ParamReservedExp(r, List(n)) =>
+        if (n == name) acc.append(ParamElm(r, values))
+        else acc.append(p)
+      case p@ParamReservedExp(r, ns) =>
+        if (ns.contains(name)) {
+          acc.append(ParamElm(r, values))
+          acc.append(ParamReservedExp(r, ns.filterNot(_ == name)))
+        } else acc.append(p)
+      case p@ParamExp(Seq(n)) =>
+        if (n == name) acc.append(ParamElm(name, values))
+        else acc.append(p)
+      case p@ParamExp(ns) =>
+        if (ns.contains(name)) {
+          acc.append(ParamElm(name, values))
+          acc.append(ParamExp(ns.filterNot(_ == name)))
+        } else acc.append(p)
+      case p@ParamContExp(Seq(n)) =>
+        if (n == name) acc.append(ParamElm(name, values))
+        else acc.append(p)
+      case p@ParamContExp(ns) =>
+        if (ns.contains(name)) {
+          acc.append(ParamElm(name, values))
+          acc.append(ParamContExp(ns.filterNot(_ == name)))
+        } else acc.append(p)
+    }
+    acc.toList
   }
 
-  protected def expandFragmentN(fragment: Option[Fragment], name: String, value: String): Option[Fragment] = {
-    fragment.map(f => {
-      val acc = new ArrayBuffer[FragmentDef]()
-      f.foreach {
-        case p@FragmentElm(_) => acc.append(p)
-        case p@SimpleFragmentExp(n) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
-        case p@MultiFragmentExp(Seq(n)) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
-        case p@MultiFragmentExp(ns) =>
-          if (ns.contains(name)) {
-            acc.append(FragmentElm(value))
-            acc.append(MultiFragmentExp(ns.filterNot(_ == name)))
-          } else acc.append(p)
-      }
-      acc.toList
-    })
+  protected def expandFragmentN(fragment: Fragment, name: String, value: String): Fragment = {
+    val acc = new ArrayBuffer[FragmentDef]()
+    fragment.foreach {
+      case p@FragmentElm(_) => acc.append(p)
+      case p@SimpleFragmentExp(n) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
+      case p@MultiFragmentExp(Seq(n)) => if (n == name) acc.append(FragmentElm(value)) else acc.append(p)
+      case p@MultiFragmentExp(ns) =>
+        if (ns.contains(name)) {
+          acc.append(FragmentElm(value))
+          acc.append(MultiFragmentExp(ns.filterNot(_ == name)))
+        } else acc.append(p)
+    }
+    acc.toList
   }
 
   protected def renderAuthority(a: Authority): String = a match {
@@ -225,34 +221,32 @@ object UriTemplate {
     case UriTemplate(None, Some(a), _, _, _) => renderAuthority(a)
   }
 
-  protected def renderQuery(q: Query): String = q match {
-    case Nil => "?"
-    case ps =>
-      val parted = ps partition {
-        case ParamElm(_, _) => false
-        case ParamVarExp(_, _) => false
-        case ParamReservedExp(_, _) => false
-        case ParamExp(_) => true
-        case ParamContExp(_) => true
-      }
-      val elements = new ArrayBuffer[String]()
-      parted._2 foreach {
-        case ParamElm(n, Nil) => elements.append(n)
-        case ParamElm(n, List(v)) => elements.append(n + "=" + v)
-        case ParamElm(n, vs) => vs.foreach(v => elements.append(n + "=" + v))
-        case ParamVarExp(n, vs) => elements.append(n + "=" + "{" + vs.mkString(",") + "}")
-        case ParamReservedExp(n, vs) => elements.append(n + "=" + "{+" + vs.mkString(",") + "}")
-        case u => throw new IllegalStateException(s"type ${u.getClass.getName} not supported")
-      }
-      val exps = new ArrayBuffer[String]()
-      def separator = if (elements.isEmpty && exps.isEmpty) "?" else "&"
-      parted._1 foreach {
-        case ParamExp(ns) => exps.append("{" + separator + ns.mkString(",") + "}")
-        case ParamContExp(ns) => exps.append("{" + separator + ns.mkString(",") + "}")
-        case u => throw new IllegalStateException(s"type ${u.getClass.getName} not supported")
-      }
-      if (elements.isEmpty) exps.mkString
-      else "?" + elements.mkString("&") + exps.mkString
+  protected def renderQuery(ps: Query): String = {
+    val parted = ps partition {
+      case ParamElm(_, _) => false
+      case ParamVarExp(_, _) => false
+      case ParamReservedExp(_, _) => false
+      case ParamExp(_) => true
+      case ParamContExp(_) => true
+    }
+    val elements = new ArrayBuffer[String]()
+    parted._2 foreach {
+      case ParamElm(n, Nil) => elements.append(n)
+      case ParamElm(n, List(v)) => elements.append(n + "=" + v)
+      case ParamElm(n, vs) => vs.foreach(v => elements.append(n + "=" + v))
+      case ParamVarExp(n, vs) => elements.append(n + "=" + "{" + vs.mkString(",") + "}")
+      case ParamReservedExp(n, vs) => elements.append(n + "=" + "{+" + vs.mkString(",") + "}")
+      case u => throw new IllegalStateException(s"type ${u.getClass.getName} not supported")
+    }
+    val exps = new ArrayBuffer[String]()
+    def separator = if (elements.isEmpty && exps.isEmpty) "?" else "&"
+    parted._1 foreach {
+      case ParamExp(ns) => exps.append("{" + separator + ns.mkString(",") + "}")
+      case ParamContExp(ns) => exps.append("{" + separator + ns.mkString(",") + "}")
+      case u => throw new IllegalStateException(s"type ${u.getClass.getName} not supported")
+    }
+    if (elements.isEmpty) exps.mkString
+    else "?" + elements.mkString("&") + exps.mkString
   }
 
   protected def renderFragment(f: Fragment): String = {
@@ -284,16 +278,16 @@ object UriTemplate {
     else elements.mkString(",")
   }
 
-  protected def renderParams(q: Query): String = {
-    val elements = new mutable.ArrayBuffer[String]()
+  protected def buildQuery(q: Query): org.http4s.Query = {
+    val elements = Query.newBuilder
     q map {
-      case ParamElm(n, Nil) => elements.append(n)
-      case ParamElm(n, List(v)) => elements.append(n + "=" + v)
-      case ParamElm(n, vs) => vs.foreach(v => elements.append(n + "=" + v))
+      case ParamElm(n, Nil) => elements += ((n, None))
+      case ParamElm(n, List(v)) => elements += ((n, Some(v)))
+      case ParamElm(n, vs) => vs.foreach(v => elements += ((n, Some(v))))
       case u => throw new IllegalStateException(s"${u.getClass.getName} cannot be converted to a Uri")
     }
-    if (elements.isEmpty) ""
-    else elements.mkString("&")
+
+    elements.result()
   }
 
   protected def renderPath(p: Path): String = p match {
@@ -311,21 +305,22 @@ object UriTemplate {
   }
 
   protected def renderPathAndQueryAndFragment(t: UriTemplate): String = t match {
-    case UriTemplate(_, _, Nil, Some(Seq()), None) => "/?"
-    case UriTemplate(_, _, Nil, None, Some(f)) => "/" + renderFragment(f)
-    case UriTemplate(_, _, Nil, Some(query), None) => "/" + renderQuery(query)
-    case UriTemplate(_, _, Nil, Some(query), Some(f)) => "/" + renderQuery(query) + renderFragment(f)
-    case UriTemplate(_, _, path, None, None) => renderPath(path)
-    case UriTemplate(_, _, path, Some(query), None) => renderPath(path) + renderQuery(query)
-    case UriTemplate(_, _, path, Some(query), Some(f)) => renderPath(path) + renderQuery(query) + renderFragment(f)
-    case UriTemplate(_, _, path, None, Some(f)) => renderPath(path) + renderFragment(f)
+    case UriTemplate(_, _, Nil, Nil, Nil) => "/"
+    case UriTemplate(_, _, Nil, Nil, f) => "/" + renderFragment(f)
+    case UriTemplate(_, _, Nil, query, Nil) => "/" + renderQuery(query)
+    case UriTemplate(_, _, Nil, query, f) => "/" + renderQuery(query) + renderFragment(f)
+    case UriTemplate(_, _, path, Nil, Nil) => renderPath(path)
+    case UriTemplate(_, _, path, query, Nil) => renderPath(path) + renderQuery(query)
+    case UriTemplate(_, _, path, Nil, f) => renderPath(path) + renderFragment(f)
+    case UriTemplate(_, _, path, query, f) => renderPath(path) + renderQuery(query) + renderFragment(f)
+
     case _ => ""
   }
 
   protected def renderUriTemplate(t: UriTemplate): String = t match {
-    case UriTemplate(None, None, Nil, None, None) => "/"
-    case UriTemplate(Some(s), Some(a), Nil, None, None) => renderSchemeAndAuthority(t)
-    case UriTemplate(Some(s), Some(a), List(), None, None) => renderSchemeAndAuthority(t)
+    case UriTemplate(None, None, Nil, Nil, Nil) => "/"
+    case UriTemplate(Some(s), Some(a), Nil, Nil, Nil) => renderSchemeAndAuthority(t)
+    case UriTemplate(Some(s), Some(a), List(), Nil, Nil) => renderSchemeAndAuthority(t)
     case UriTemplate(scheme, authority, path, params, fragment) => renderSchemeAndAuthority(t) + renderPathAndQueryAndFragment(t)
     case _ => ""
   }
@@ -352,25 +347,26 @@ object UriTemplate {
   }
 
   protected def containsExpansions(t: UriTemplate): Boolean = t match {
-    case UriTemplate(_, _, Nil, None, None) => false
-    case UriTemplate(_, _, Nil, Some(q), Some(f)) => (q exists queryExp) || (f exists fragmentExp)
-    case UriTemplate(_, _, Nil, None, Some(f)) => f exists fragmentExp
-    case UriTemplate(_, _, Nil, Some(q), None) => q exists queryExp
-    case UriTemplate(_, _, p, None, None) => p exists pathExp
-    case UriTemplate(_, _, p, Some(q), None) => (p exists pathExp) || (q exists queryExp)
-    case UriTemplate(_, _, p, Some(q), Some(f)) => (p exists pathExp) || (q exists queryExp) || (f exists fragmentExp)
-    case UriTemplate(_, _, p, None, Some(f)) => (p exists pathExp) || (f exists fragmentExp)
+    case UriTemplate(_, _, Nil, Nil, Nil) => false
+    case UriTemplate(_, _, Nil, Nil, f)   => f exists fragmentExp
+    case UriTemplate(_, _, Nil, q,   Nil) => q exists queryExp
+    case UriTemplate(_, _, Nil, q,   f)   => (q exists queryExp) || (f exists fragmentExp)
+    case UriTemplate(_, _, p,   Nil, Nil) => p exists pathExp
+    case UriTemplate(_, _, p,   Nil, f)   => (p exists pathExp) || (f exists fragmentExp)
+    case UriTemplate(_, _, p,   q,   Nil) => (p exists pathExp) || (q exists queryExp)
+    case UriTemplate(_, _, p,   q,   f)   => (p exists pathExp) || (q exists queryExp) || (f exists fragmentExp)
+
   }
 
   protected def toUri(t: UriTemplate): Uri = t match {
-    case UriTemplate(s, a, Nil, None, None) => Uri(s, a)
-    case UriTemplate(s, a, Nil, Some(q), Some(f)) => Uri(s, a, query = Some(renderParams(q)), fragment = Some(renderFragmentIdentifier(f)))
-    case UriTemplate(s, a, Nil, None, Some(f)) => Uri(s, a, fragment = Some(renderFragmentIdentifier(f)))
-    case UriTemplate(s, a, Nil, Some(q), None) => Uri(s, a, query = Some(renderParams(q)))
-    case UriTemplate(s, a, p, None, None) => Uri(s, a, renderPath(p))
-    case UriTemplate(s, a, p, Some(q), None) => Uri(s, a, renderPath(p), Some(renderParams(q)))
-    case UriTemplate(s, a, p, Some(q), Some(f)) => Uri(s, a, renderPath(p), Some(renderParams(q)), Some(renderFragmentIdentifier(f)))
-    case UriTemplate(s, a, p, None, Some(f)) => Uri(s, a, renderPath(p), fragment = Some(renderFragmentIdentifier(f)))
+    case UriTemplate(s, a, Nil, Nil, Nil) => Uri(s, a)
+    case UriTemplate(s, a, Nil, Nil, f)   => Uri(s, a, fragment = Some(renderFragmentIdentifier(f)))
+    case UriTemplate(s, a, Nil, q,   Nil) => Uri(s, a, query = buildQuery(q))
+    case UriTemplate(s, a, Nil, q,   f)   => Uri(s, a, query = buildQuery(q), fragment = Some(renderFragmentIdentifier(f)))
+    case UriTemplate(s, a, p,   Nil, Nil) => Uri(s, a, renderPath(p))
+    case UriTemplate(s, a, p,   q,   Nil) => Uri(s, a, renderPath(p), buildQuery(q))
+    case UriTemplate(s, a, p,   Nil, f)   => Uri(s, a, renderPath(p), fragment = Some(renderFragmentIdentifier(f)))
+    case UriTemplate(s, a, p,   q,   f)   => Uri(s, a, renderPath(p), buildQuery(q), Some(renderFragmentIdentifier(f)))
   }
 
   sealed trait PathDef

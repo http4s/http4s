@@ -108,7 +108,14 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       }
   }
 
-  final protected def collectBodyFromParser(buffer: ByteBuffer): (EntityBody, () => Future[ByteBuffer]) = {
+  /** Makes a `Process[Task, ByteVector]` and a function used to drain the line if terminated early.
+    *
+    * @param buffer starting `ByteBuffer` to use in parsing.
+    * @param eofCondition If the other end hangs up, this is the condition used in the Process for termination.
+    *                     The desired result will differ between Client and Server as the former can interpret
+    *                     and [[EOF]] as the end of the body while a server cannot.
+    */
+  final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition: Throwable): (EntityBody, () => Future[ByteBuffer]) = {
     if (contentComplete()) {
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
@@ -127,7 +134,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
               case None =>
                 channelRead().onComplete {
                   case Success(b)   => currentBuffer = b; go() // Need more data...
-                  case Failure(EOF) => cb(-\/(InvalidBodyException("Received premature EOF.")))
+                  case Failure(EOF) => cb(-\/(eofCondition))
                   case Failure(t)   => cb(-\/(t))
                 }
             }

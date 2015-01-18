@@ -1,3 +1,37 @@
+# v0.6.0 (unreleased)
+* Add SSL support to all server builders.
+* Add Date header to blaze-server responses.
+* Use asynchronous servlet I/O on Servlet 3.1 containers.
+* ServletContext syntax for easy mounting in a WAR deployment.
+* Remove ResponseBuilder in favor of Response companion.
+* Allow '';'' separators for query pairs.
+* Empty strings are a JSON decoding error.
+* Split scala-xml support into http4s-scala-xml module.
+* Make charset on Message an Option.
+* Add a `flatMapR` method to EntityDecoder.
+* Various enhancements to QueryParamEncoder and QueryParamDecoder.
+* Change inferred type of `scala.xml.Elem` to `application/xml`.
+* Make Query an IndexedSeq.
+* Add parsers for Location and Proxy-Authenticate headers.
+* Move EntityDecoder.apply to `Request.decode` and `Request.decodeWith`
+* Add codec instances for Argonaut''s CodecJson and Json4s'' Reader/Writer.
+* Fix blaze-client when receiving HTTP1 response without Content-Length header.
+
+# v0.5.4 (2015-01-08)
+* Upgrade to blaze 0.4.1 to fix header parsing issue in blaze http/1.x client and server.
+
+# v0.5.3 (2015-01-05)
+* Upgrade to argonaut-6.1-M5 to match jawn. [#157](https://github.com/http4s/http4s/issues/157)
+
+# v0.5.2 (2015-01-02)
+* Upgrade to jawn-0.7.2.  Old version of jawn was incompatible with argonaut. [#157]](https://github.com/http4s/http4s/issues/157)
+
+# v0.5.1 (2014-12-23)
+* Include context path in calculation of scriptName/pathInfo. [#140](https://github.com/http4s/http4s/issues/140)
+* Fix bug in UriTemplate for query params with multiple keys.
+* Fix StackOverflowError in query parser. [#147](https://github.com/http4s/http4s/issues/147)
+* Allow ';' separators for query pairs.
+
 # v0.5.0 (2014-12-11)
 * Client syntax has evloved and now will include Accept headers when used with EntityDecoder
 * Parse JSON with jawn-streamz.
