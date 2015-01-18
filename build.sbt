@@ -22,11 +22,7 @@ lazy val dsl = project.dependsOn(core % "compile;test->test", server % "test->co
 
 lazy val jawn = project.dependsOn(core % "compile;test->test")
 
-lazy val json4s = project.dependsOn(jawn)
-
-lazy val `json4s-native` = project.dependsOn(json4s, jawn % "compile;test->test")
-
-lazy val `json4s-jackson` = project.dependsOn(json4s, jawn % "compile;test->test")
+lazy val json4s = project.dependsOn(core % "compile;test->test", jawn % "compile;test->test")
 
 lazy val argonaut = project.dependsOn(core % "compile;test->test", jawn % "compile;test->test")
 
