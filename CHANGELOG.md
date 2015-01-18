@@ -1,3 +1,22 @@
+# v0.6.0 (unreleased)
+* Add SSL support to all server builders.
+* Add Date header to blaze-server responses.
+* Use asynchronous servlet I/O on Servlet 3.1 containers.
+* ServletContext syntax for easy mounting in a WAR deployment.
+* Remove ResponseBuilder in favor of Response companion.
+* Allow '';'' separators for query pairs.
+* Empty strings are a JSON decoding error.
+* Split scala-xml support into http4s-scala-xml module.
+* Make charset on Message an Option.
+* Add a `flatMapR` method to EntityDecoder.
+* Various enhancements to QueryParamEncoder and QueryParamDecoder.
+* Change inferred type of `scala.xml.Elem` to `application/xml`.
+* Make Query an IndexedSeq.
+* Add parsers for Location and Proxy-Authenticate headers.
+* Move EntityDecoder.apply to `Request.decode` and `Request.decodeWith`
+* Add codec instances for Argonaut''s CodecJson and Json4s'' Reader/Writer.
+* Fix blaze-client when receiving HTTP1 response without Content-Length header.
+
 # v0.5.4 (2015-01-08)
 * Upgrade to blaze 0.4.1 to fix header parsing issue in blaze http/1.x client and server.
 
