@@ -57,7 +57,7 @@ sealed trait Header extends Renderable with Product {
 
   final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
 
-  override def equals(that: Any): Boolean = that match {
+  final override def equals(that: Any): Boolean = that match {
     case h: AnyRef if this eq h => true
     case h: Header =>
       (name == h.name) &&
