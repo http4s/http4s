@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 class HeadersSpec extends Specification {
 
   val clength = `Content-Length`(10)
-  val raw = RawHeader("raw-header".ci, "Raw value")
+  val raw = Header.Raw("raw-header".ci, "Raw value")
 
   val base = Headers(clength.toRaw, raw)
 

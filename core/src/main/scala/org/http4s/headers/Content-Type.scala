@@ -8,7 +8,7 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
   implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
 }
 
-final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[Charset]) extends ParsedHeader {
+final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[Charset]) extends Header.Parsed {
   override def key = `Content-Type`
   override def renderValue(writer: Writer): writer.type = definedCharset match {
     case Some(cs) => writer << mediaType << "; charset=" << cs

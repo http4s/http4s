@@ -29,7 +29,7 @@ trait WebSocketSupport extends Http1ServerStage {
               .withBody(msg)
               .map(_.withHeaders(
                  Connection("close".ci),
-                 RawHeader(headers.`Sec-WebSocket-Version`.name, "13")
+                 Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
               )).run
 
             super.renderResponse(req, resp, cleanup)

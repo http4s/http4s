@@ -5,7 +5,7 @@ import scalaz.NonEmptyList
 
 object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring
 
-final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) extends RecurringRenderableHeader {
+final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) extends Header.RecurringRenderable {
   def key = `Accept-Encoding`
   type Value = ContentCoding
   def preferred: ContentCoding = values.tail.fold(values.head)((a, b) => if (a.qValue >= b.qValue) a else b)

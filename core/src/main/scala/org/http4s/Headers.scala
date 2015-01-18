@@ -1,7 +1,6 @@
 package org.http4s
 
 import org.http4s.HeaderKey.StringKey
-import org.http4s.headers.RawHeader
 import org.http4s.util.CaseInsensitiveString
 
 import scala.collection.{GenTraversableOnce, immutable, mutable}
@@ -44,7 +43,7 @@ final class Headers private (headers: List[Header])
     *
     * @see [[HeaderKey.Default]] in conjunction with get([[HeaderKey]])
     */
-  def get(key: CaseInsensitiveString): Option[RawHeader] = {
+  def get(key: CaseInsensitiveString): Option[Header.Raw] = {
     val k = new StringKey { override def name = key }
     get(k).map(_.toRaw)
   }

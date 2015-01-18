@@ -5,7 +5,7 @@ import scalaz.NonEmptyList
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring
 
-final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringRenderableHeader {
+final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends Header.RecurringRenderable {
   def key = `Accept-Charset`
   type Value = CharsetRange
 

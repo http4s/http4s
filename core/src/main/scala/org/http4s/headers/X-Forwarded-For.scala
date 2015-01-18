@@ -9,7 +9,7 @@ import scalaz.NonEmptyList
 
 object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring
 
-final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends RecurringHeader {
+final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends Header.Recurring {
   override def key = `X-Forwarded-For`
   type Value = Option[InetAddress]
   override lazy val value = super.value

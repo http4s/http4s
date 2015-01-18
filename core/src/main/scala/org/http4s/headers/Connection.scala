@@ -10,7 +10,7 @@ import scalaz.NonEmptyList
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
 object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring
 
-final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends RecurringHeader {
+final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends Header.Recurring {
   override def key = Connection
   type Value = CaseInsensitiveString
   def hasClose = values.list.contains("close".ci)

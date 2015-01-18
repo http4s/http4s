@@ -9,7 +9,7 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
   def none = apply(Nil)
 }
 
-final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends ParsedHeader {
+final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends Header.Parsed {
   def key = `Accept-Ranges`
   def renderValue(writer: Writer): writer.type = {
     if (rangeUnits.isEmpty) writer.append("none")

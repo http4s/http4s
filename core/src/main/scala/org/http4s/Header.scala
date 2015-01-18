@@ -33,6 +33,8 @@ import scala.util.hashing.MurmurHash3
  * @see org.http4s.HeaderKey
  */
 trait Header extends Renderable with Product {
+  import Header.Raw
+
   def name: CaseInsensitiveString
 
   def parsed: Header
@@ -50,7 +52,7 @@ trait Header extends Renderable with Product {
 
   override def toString = name + ": " + value
 
-  def toRaw: RawHeader = RawHeader(name, value)
+  def toRaw: Raw = Raw(name, value)
 
   final def render(writer: Writer): writer.type = {
     writer << name << ':' << ' '
@@ -72,21 +74,51 @@ trait Header extends Renderable with Product {
 object Header {
   def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
 
-  def apply(name: String, value: String): RawHeader = RawHeader(name.ci, value)
+  def apply(name: String, value: String): Raw = Raw(name.ci, value)
 
-  @deprecated("Moved to org.http4s.headers.RawHeader", "0.6")
-  type Raw = headers.RawHeader
-  @deprecated("Moved to org.http4s.headers.RawHeader", "0.6")
-  val Raw = headers.RawHeader
+  /**
+   * Raw representation of the Header
+   *
+   * This can be considered the simplest representation where the header is specified as the product of
+   * a key and a value
+   * @param name case-insensitive string used to identify the header
+   * @param value String representation of the header value
+   */
+  final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
+    override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
+    override def renderValue(writer: Writer): writer.type = writer.append(value)
+  }
 
-  @deprecated("Moved to org.http4s.headers.ParsedHeader", "0.6")
-  type Parsed = headers.ParsedHeader
+  /** A Header that is already parsed from its String representation. */
+  trait Parsed extends Header {
+    def key: HeaderKey
+    def name = key.name
+    def parsed: this.type = this
+  }
 
-  @deprecated("Moved to org.http4s.headers.RecurringHeader", "0.6")
-  type Recurring = headers.RecurringHeader
+  /**
+   * A recurring header that satisfies this clause of the Spec:
+   *
+   * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
+   * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
+   * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
+   * of the message, by appending each subsequent field-value to the first, each separated by a comma.
+   */
+  trait Recurring extends Parsed {
+    type Value
+    def key: HeaderKey.Recurring
+    def values: NonEmptyList[Value]
+  }
 
-  @deprecated("Moved to org.http4s.headers.RecurringRenderableHeaderHeader", "0.6")
-  type RecurringRenderable = headers.RecurringRenderableHeader
+  /** Simple helper trait that provides a default way of rendering the value */
+  trait RecurringRenderable extends Recurring {
+    type Value <: Renderable
+    override def renderValue(writer: Writer): writer.type = {
+      values.head.render(writer)
+      values.tail.foreach( writer << ", " << _ )
+      writer
+    }
+  }
 
   @deprecated("Moved to org.http4s.headers.Accept", "0.6")
   type Accept = headers.Accept

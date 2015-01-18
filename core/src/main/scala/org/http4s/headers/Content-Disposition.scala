@@ -6,7 +6,7 @@ import org.http4s.util.Writer
 object `Content-Disposition` extends HeaderKey.Internal[`Content-Disposition`] with HeaderKey.Singleton
 
 // see http://tools.ietf.org/html/rfc2183
-final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends ParsedHeader {
+final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Header.Parsed {
   override def key = `Content-Disposition`
   override lazy val value = super.value
   override def renderValue(writer: Writer): writer.type = {

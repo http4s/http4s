@@ -18,7 +18,6 @@
 package org.http4s
 package parser
 
-import org.http4s.headers.RawHeader
 import org.http4s.util.CaseInsensitiveString
 
 import scalaz.{Failure, Validation, Success}
@@ -54,7 +53,7 @@ private[parser] trait HttpParser extends SimpleHeaders
         }.asInstanceOf[HeaderParser]
       }.toMap
 
-  def parseHeader(header: RawHeader): ParseResult[Header] = {
+  def parseHeader(header: Header.Raw): ParseResult[Header] = {
     rules.get(header.name) match {
       case Some(parser) => parser(header.value)
       case None => ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
