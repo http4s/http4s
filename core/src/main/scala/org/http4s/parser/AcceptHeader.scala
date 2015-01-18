@@ -20,17 +20,17 @@ package parser
 
 import org.parboiled2._
 import scalaz.Validation
-import org.http4s.Header.Accept
+import org.http4s.headers.Accept
 
 private[parser] trait AcceptHeader {
 
-  def ACCEPT(value: String): ParseResult[Accept] = new AcceptParser(value).parse
+  def ACCEPT(value: String): ParseResult[headers.Accept] = new AcceptParser(value).parse
 
   private class AcceptParser(value: String) extends Http4sHeaderParser[Accept](value) with MediaParser {
 
-    def entry: Rule1[Header.Accept] = rule {
+    def entry: Rule1[headers.Accept] = rule {
       oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { xs: Seq[MediaRange] =>
-        Header.Accept(xs.head, xs.tail: _*)}
+        Accept(xs.head, xs.tail: _*)}
     }
 
     def FullRange: Rule1[MediaRange] = rule {

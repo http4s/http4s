@@ -20,7 +20,7 @@ package parser
 
 import org.parboiled2._
 import ContentCoding._
-import org.http4s.Header.`Accept-Encoding`
+import org.http4s.headers.`Accept-Encoding`
 import org.http4s.util.CaseInsensitiveString
 
 private[parser] trait AcceptEncodingHeader {
@@ -32,7 +32,7 @@ private[parser] trait AcceptEncodingHeader {
 
     def entry: Rule1[`Accept-Encoding`] = rule {
       oneOrMore(EncodingRangeDecl).separatedBy(ListSep) ~ EOL ~> {  xs: Seq[ContentCoding] =>
-        Header.`Accept-Encoding`(xs.head, xs.tail: _*)
+        `Accept-Encoding`(xs.head, xs.tail: _*)
       }
     }
 

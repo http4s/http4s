@@ -1,0 +1,18 @@
+package org.http4s
+package headers
+
+import org.http4s.util.Writer
+
+object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
+  def apply(host: String, port: Int): Host = apply(host, Some(port))
+}
+
+final case class Host(host: String, port: Option[Int] = None) extends ParsedHeader {
+  def key = `Host`
+  def renderValue(writer: Writer): writer.type = {
+    writer.append(host)
+    if (port.isDefined) writer << ':' << port.get
+    writer
+  }
+}
+

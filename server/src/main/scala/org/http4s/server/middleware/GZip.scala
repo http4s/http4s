@@ -4,7 +4,7 @@ package middleware
 
 import java.util.zip.Deflater
 
-import org.http4s.Header.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
+import org.http4s.headers.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
 import org.log4s.getLogger
 
 import scalaz.stream.Process._

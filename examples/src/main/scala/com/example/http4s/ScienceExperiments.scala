@@ -2,6 +2,7 @@ package com.example.http4s
 
 import org.http4s._
 import org.http4s.dsl._
+import org.http4s.headers.{Date, `Transfer-Encoding`}
 import org.http4s.server.HttpService
 import org.http4s.scalaxml._
 import scodec.bits.ByteVector
@@ -26,7 +27,7 @@ object ScienceExperiments {
     case req @ GET -> Root / "date" =>
       val date = DateTime(100)
       Ok(date.toRfc1123DateTimeString)
-        .withHeaders(Header.Date(date))
+        .withHeaders(Date(date))
 
     case req @ GET -> Root / "echo-headers" =>
       Ok(req.headers.mkString("\n"))
@@ -41,7 +42,7 @@ object ScienceExperiments {
     case req@GET -> Root / "bigstring3" => Ok(flatBigString)
 
     case GET -> Root / "zero-chunk" =>
-      Ok(Process("", "foo!")).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(Process("", "foo!")).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB
@@ -49,7 +50,7 @@ object ScienceExperiments {
 
     case req @ POST -> Root / "rawecho" =>
       // The body can be used in the response
-      Ok(req.body).withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(req.body).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     ///////////////// Switch the response based on head of content //////////////////////
 
@@ -89,7 +90,7 @@ object ScienceExperiments {
     ///////////////// Weird Route Failures //////////////////////
     case req @ GET -> Root / "hanging-body" =>
       Ok(Process(Task.now(ByteVector(Seq(' '.toByte))), Task.async[ByteVector] { cb => /* hang */}).eval)
-        .withHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+        .withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ POST -> Root / "ill-advised-echo" =>
       // Reads concurrently from the input.  Don't do this at home.

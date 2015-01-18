@@ -3,19 +3,16 @@ package org.http4s.server.blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets._
 
-import org.http4s.Header._
+import org.http4s.headers._
 import org.http4s._
 import org.http4s.blaze.http.websocket.{WSFrameAggregator, WebSocketDecoder}
 import org.http4s.websocket.WebsocketHandshake
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.websocket.Http4sWSStage
 import org.http4s.util.CaseInsensitiveString._
-import scodec.bits.ByteVector
 
 import scala.util.{Failure, Success}
 import scala.concurrent.Future
-
-import scalaz.stream.Process
 
 trait WebSocketSupport extends Http1ServerStage {
   override protected def renderResponse(req: Request, resp: Response, cleanup: () => Future[ByteBuffer]): Unit = {
@@ -32,7 +29,7 @@ trait WebSocketSupport extends Http1ServerStage {
               .withBody(msg)
               .map(_.withHeaders(
                  Connection("close".ci),
-                 Header.Raw(Header.`Sec-WebSocket-Version`.name, "13")
+                 RawHeader(headers.`Sec-WebSocket-Version`.name, "13")
               )).run
 
             super.renderResponse(req, resp, cleanup)

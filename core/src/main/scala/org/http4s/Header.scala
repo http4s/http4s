@@ -19,6 +19,8 @@
 package org.http4s
 
 import java.net.InetAddress
+import org.http4s.headers._
+
 import scalaz.NonEmptyList
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
@@ -30,7 +32,7 @@ import scala.util.hashing.MurmurHash3
  * Abstract representation o the HTTP header
  * @see org.http4s.HeaderKey
  */
-sealed trait Header extends Renderable with Product {
+trait Header extends Renderable with Product {
   def name: CaseInsensitiveString
 
   def parsed: Header
@@ -48,9 +50,9 @@ sealed trait Header extends Renderable with Product {
 
   override def toString = name + ": " + value
 
-  def toRaw: Header.Raw = Header.Raw(name, value)
+  def toRaw: RawHeader = RawHeader(name, value)
 
-  override def render(writer: Writer): writer.type = {
+  final def render(writer: Writer): writer.type = {
     writer << name << ':' << ' '
     renderValue(writer)
   }
@@ -70,392 +72,295 @@ sealed trait Header extends Renderable with Product {
 object Header {
   def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
 
-  def apply(name: String, value: String): Raw = Raw(name.ci, value)
-
-  /**
-   * Raw representation of the Header
-   *
-   * This can be considered the simplest representation where the header is specified as the product of
-   * a key and a value
-   * @param name case-insensitive string used to identify the header
-   * @param value String representation of the header value
-   */
-  final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
-    override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
-  }
-
-  /** A Header that is already parsed from its String representation. */
-  trait Parsed extends Header {
-    def key: HeaderKey
-    def name = key.name
-    def parsed: this.type = this
-  }
-
-  /**
-   * A recurring header that satisfies this clause of the Spec:
-   *
-   * Multiple message-header fields with the same field-name MAY be present in a message if and only if the entire
-   * field-value for that header field is defined as a comma-separated list [i.e., #(values)]. It MUST be possible
-   * to combine the multiple header fields into one "field-name: field-value" pair, without changing the semantics
-   * of the message, by appending each subsequent field-value to the first, each separated by a comma.
-   */
-  trait Recurring extends Parsed {
-    type Value
-    def key: HeaderKey.Recurring
-    def values: NonEmptyList[Value]
-  }
-
-  /** Simple helper trait that provides a default way of rendering the value */
-  trait RecurringRenderable extends Recurring {
-    type Value <: Renderable
-    override def renderValue(writer: Writer): writer.type = {
-      values.head.render(writer)
-      values.tail.foreach( writer << ", " << _ )
-      writer
-    }
-  }
-
-  object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring
-  final case class Accept(values: NonEmptyList[MediaRange]) extends RecurringRenderable {
-    def key = Accept
-    type Value = MediaRange
-  }
-
-  object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring
-  final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends RecurringRenderable {
-    def key = `Accept-Charset`
-    type Value = CharsetRange
-
-    def qValue(charset: Charset): QValue = {
-      def specific = values.list.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
-      def splatted = values.list.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
-      def default = if (charset == Charset.`ISO-8859-1`) QValue.One else QValue.Zero
-      specific orElse splatted getOrElse default
-    }
-
-    def isSatisfiedBy(charset: Charset) = qValue(charset) > QValue.Zero
-
-    def map(f: CharsetRange => CharsetRange): `Accept-Charset` = `Accept-Charset`(values.map(f))
-  }
-
-  object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring
-  final case class `Accept-Encoding`(values: NonEmptyList[ContentCoding]) extends RecurringRenderable {
-    def key = `Accept-Encoding`
-    type Value = ContentCoding
-    def preferred: ContentCoding = values.tail.fold(values.head)((a, b) => if (a.qValue >= b.qValue) a else b)
-    def satisfiedBy(coding: ContentCoding): Boolean = values.list.exists(_.satisfiedBy(coding))
-  }
-
-  object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring
-  final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) extends RecurringRenderable {
-    def key = `Accept-Language`
-    type Value = LanguageTag
-    def preferred: LanguageTag = values.tail.fold(values.head)((a, b) => if (a.q >= b.q) a else b)
-    def satisfiedBy(languageTag: LanguageTag) = values.list.exists(_.satisfiedBy(languageTag))
-  }
-
-  // TODO Interpreting this as not a recurring header, because of "none".
-  object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
-    def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
-    def bytes = apply(RangeUnit.bytes)
-    def none = apply(Nil)
-  }
-  final case class `Accept-Ranges` private[http4s] (rangeUnits: Seq[RangeUnit]) extends Parsed {
-    def key = `Accept-Ranges`
-    def renderValue(writer: Writer): writer.type = {
-      if (rangeUnits.isEmpty) writer.append("none")
-      else {
-        writer.append(rangeUnits.head)
-        rangeUnits.tail.foreach(r => writer.append(", ").append(r))
-        writer
-      }
-    }
-  }
+  def apply(name: String, value: String): RawHeader = RawHeader(name.ci, value)
 
-  object `Accept-Patch` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.RawHeader", "0.6")
+  type Raw = headers.RawHeader
+  @deprecated("Moved to org.http4s.headers.RawHeader", "0.6")
+  val Raw = headers.RawHeader
 
-  object `Access-Control-Allow-Credentials` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.ParsedHeader", "0.6")
+  type Parsed = headers.ParsedHeader
 
-  object `Access-Control-Allow-Headers` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.RecurringHeader", "0.6")
+  type Recurring = headers.RecurringHeader
 
-  object `Access-Control-Allow-Methods` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.RecurringRenderableHeaderHeader", "0.6")
+  type RecurringRenderable = headers.RecurringRenderableHeader
 
-  object `Access-Control-Allow-Origin` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Accept", "0.6")
+  type Accept = headers.Accept
+  @deprecated("Moved to org.http4s.headers.Accept", "0.6")
+  val Accept = headers.Accept
 
-  object `Access-Control-Expose-Headers` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Accept-Charset`", "0.6")
+  type `Accept-Charset` = headers.`Accept-Charset`
+  @deprecated("Moved to org.http4s.headers.`Accept-Charset`", "0.6")
+  val `Accept-Charset` = headers.`Accept-Charset`
 
-  object `Access-Control-Max-Age` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Accept-Encoding`", "0.6")
+  type `Accept-Encoding` = headers.`Accept-Encoding`
+  @deprecated("Moved to org.http4s.headers.`Accept-Encoding`", "0.6")
+  val `Accept-Encoding` = headers.`Accept-Encoding`
 
-  object `Access-Control-Request-Headers` extends HeaderKey.Default
-
-  object `Access-Control-Request-Method` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Accept-Language`", "0.6")
+  type `Accept-Language` = headers.`Accept-Language`
+  @deprecated("Moved to org.http4s.headers.`Accept-Language`", "0.6")
+  val `Accept-Language` = headers.`Accept-Language`
 
-  object Age extends HeaderKey.Default
-
-  object Allow extends HeaderKey.Default
-
-  object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton
-  final case class Authorization(credentials: Credentials) extends Parsed {
-    override def key = `Authorization`
-    override def renderValue(writer: Writer): writer.type = credentials.render(writer)
-  }
-
-  object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKey.Recurring
-  final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends RecurringRenderable {
-    override def key = `Cache-Control`
-    type Value = CacheDirective
-  }
-
-  // values should be case insensitive
-  //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
-  object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring
-  final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends Recurring {
-    override def key = Connection
-    type Value = CaseInsensitiveString
-    def hasClose = values.list.contains("close".ci)
-    def hasKeepAlive = values.list.contains("keep-alive".ci)
-    override def renderValue(writer: Writer): writer.type = writer.addStrings(values.list.map(_.toString), ", ")
-  }
-
-  object `Content-Base` extends HeaderKey.Default
-
-  object `Content-Disposition` extends HeaderKey.Internal[`Content-Disposition`] with HeaderKey.Singleton
-  // see http://tools.ietf.org/html/rfc2183
-  final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Parsed {
-    override def key = `Content-Disposition`
-    override lazy val value = super.value
-    override def renderValue(writer: Writer): writer.type = {
-      writer.append(dispositionType)
-      parameters.foreach(p =>  writer << "; " << p._1 << "=\"" << p._2 << '"')
-      writer
-    }
-  }
-
-  object `Content-Encoding` extends HeaderKey.Internal[`Content-Encoding`] with HeaderKey.Singleton
-  final case class `Content-Encoding`(contentCoding: ContentCoding) extends Parsed {
-    override def key = `Content-Encoding`
-    override def renderValue(writer: Writer): writer.type = contentCoding.render(writer)
-  }
-
-  object `Content-Language` extends HeaderKey.Default
-
-  object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with HeaderKey.Singleton
-  final case class `Content-Length`(length: Int) extends Parsed {
-    override def key = `Content-Length`
-    override def renderValue(writer: Writer): writer.type = writer.append(length)
-  }
-
-  object `Content-Location` extends HeaderKey.Default
-
-  object `Content-Transfer-Encoding` extends HeaderKey.Default
-
-  object `Content-MD5` extends HeaderKey.Default
-
-  object `Content-Range` extends HeaderKey.Default
-
-  object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
-    def apply(mediaType: MediaType, charset: Charset): `Content-Type` = apply(mediaType, Some(charset))
-    implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
-  }
-
-  final case class `Content-Type`(mediaType: MediaType, definedCharset: Option[Charset]) extends Parsed {
-    override def key = `Content-Type`
-    override def renderValue(writer: Writer): writer.type = definedCharset match {
-      case Some(cs) => writer << mediaType << "; charset=" << cs
-      case _        => mediaType.render(writer)
-    }
-
-    def withMediaType(mediaType: MediaType) =
-      if (mediaType != this.mediaType) copy(mediaType = mediaType) else this
-    def withCharset(charset: Charset) =
-      if (noCharsetDefined || charset != definedCharset.get) copy(definedCharset = Some(charset)) else this
-    def withoutDefinedCharset =
-      if (isCharsetDefined) copy(definedCharset = None) else this
-
-    def isCharsetDefined = definedCharset.isDefined
-    def noCharsetDefined = definedCharset.isEmpty
-
-    def charset: Charset = definedCharset.getOrElse(`ISO-8859-1`)
-  }
+  @deprecated("Moved to org.http4s.headers.`Accept-Ranges`", "0.6")
+  type `Accept-Ranges` = headers.`Accept-Ranges`
+  @deprecated("Moved to org.http4s.headers.`Accept-Ranges`", "0.6")
+  val `Accept-Ranges` = headers.`Accept-Ranges`
 
-  object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring
-  final case class Cookie(values: NonEmptyList[org.http4s.Cookie]) extends RecurringRenderable {
-    override def key = Cookie
-    type Value = org.http4s.Cookie
-    override def renderValue(writer: Writer): writer.type = {
-      values.head.render(writer)
-      values.tail.foreach( writer << "; " << _ )
-      writer
-    }
-  }
+  @deprecated("Moved to org.http4s.headers.`Access-Control-Allow-Credentials`", "0.6")
+  val `Access-Control-Allow-Credentials` = headers.`Access-Control-Allow-Credentials`
 
-  object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton
-  final case class Date(date: DateTime) extends Parsed {
-    def key = `Date`
-    override def value = date.toRfc1123DateTimeString
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
-  }
+  @deprecated("Moved to org.http4s.headers.`Access-Control-Allow-Headers`", "0.6")
+  val `Access-Control-Allow-Headers` = headers.`Access-Control-Allow-Headers`
 
-  object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton
-  final case class ETag(tag: String) extends Parsed {
-    def key: HeaderKey = ETag
-    override def value: String = tag
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
-  }
+  @deprecated("Moved to org.http4s.headers.`Access-Control-Allow-Methods`", "0.6")
+  val `Access-Control-Allow-Methods` = headers.`Access-Control-Allow-Methods`
 
-  object Expect extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Access-Control-Allow-Origin`", "0.6")
+  val `Access-Control-Allow-Origin` = headers.`Access-Control-Allow-Origin`
 
-  object Expires extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Access-Control-Max-Age`", "0.6")
+  val `Access-Control-Max-Age` = headers.`Access-Control-Max-Age`
 
-  object From extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Access-Control-Request-Headers`", "0.6")
+  val `Access-Control-Request-Headers` = headers.`Access-Control-Request-Headers`
 
-  object `Front-End-Https` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Access-Control-Request-Method`", "0.6")
+  val `Access-Control-Request-Method` = headers.`Access-Control-Request-Method`
 
-  object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
-    def apply(host: String, port: Int): Host = apply(host, Some(port))
-  }
-  final case class Host(host: String, port: Option[Int] = None) extends Parsed {
-    def key = `Host`
-    def renderValue(writer: Writer): writer.type = {
-      writer.append(host)
-      if (port.isDefined) writer << ':' << port.get
-      writer
-    }
-  }
+  @deprecated("Moved to org.http4s.headers.Age", "0.6")
+  val Age = headers.Age
 
-  object `If-Match` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Allow", "0.6")
+  val Allow = headers.Allow
 
-  object `If-Modified-Since` extends HeaderKey.Internal[`If-Modified-Since`] with HeaderKey.Singleton
-  final case class `If-Modified-Since`(date: DateTime) extends Parsed {
-    override def key: HeaderKey = `If-Modified-Since`
-    override def value: String = date.toRfc1123DateTimeString
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
-  }
+  @deprecated("Moved to org.http4s.headers.Authorization", "0.6")
+  type Authorization = headers.Authorization
+  @deprecated("Moved to org.http4s.headers.Authorization", "0.6")
+  val Authorization = headers.Authorization
 
-  object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKey.Singleton
-  case class `If-None-Match`(tag: String) extends Parsed {
-    override def key: HeaderKey = `If-None-Match`
-    override def value: String = tag
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
-  }
+  @deprecated("Moved to org.http4s.headers.`Cache-Control`", "0.6")
+  type `Cache-Control` = headers.`Cache-Control`
+  @deprecated("Moved to org.http4s.headers.`Cache-Control`", "0.6")
+  val `Cache-Control` = headers.`Cache-Control`
 
-  object `If-Range` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Connection", "0.6")
+  type Connection = headers.Connection
+  @deprecated("Moved to org.http4s.headers.Connection", "0.6")
+  val Connection = headers.Connection
 
-  object `If-Unmodified-Since` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Content-Base`", "0.6")
+  val `Content-Base` = headers.`Content-Base`
 
-  object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton
-  final case class `Last-Modified`(date: DateTime) extends Parsed {
-    override def key = `Last-Modified`
-    override def value = date.toRfc1123DateTimeString
-    override def renderValue(writer: Writer): writer.type = writer.append(value)
-  }
+  @deprecated("Moved to org.http4s.headers.`Content-Disposition`", "0.6")
+  type `Content-Disposition` = headers.`Content-Disposition`
+  @deprecated("Moved to org.http4s.headers.`Content-Disposition`", "0.6")
+  val `Content-Disposition` = headers.`Content-Disposition`
 
-  object Location extends HeaderKey.Internal[Location] with HeaderKey.Singleton
+  @deprecated("Moved to org.http4s.headers.`Content-Encoding`", "0.6")
+  type `Content-Encoding` = headers.`Content-Encoding`
+  @deprecated("Moved to org.http4s.headers.`Content-Encoding`", "0.6")
+  val `Content-Encoding` = headers.`Content-Encoding`
 
-  final case class Location(uri: Uri) extends Parsed {
-    def key = `Location`
-    override def value = uri.toString
-    def renderValue(writer: Writer): writer.type = writer << uri.toString
-  }
+  @deprecated("Moved to org.http4s.headers.`Content-Language`", "0.6")
+  val `Content-Language` = headers.`Content-Language`
 
-  object `Max-Forwards` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Content-Length`", "0.6")
+  type `Content-Length` = headers.`Content-Length`
+  @deprecated("Moved to org.http4s.headers.`Content-Length`", "0.6")
+  val `Content-Length` = headers.`Content-Length`
 
-  object Origin extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Content-Location`", "0.6")
+  val `Content-Location` = headers.`Content-Location`
 
-  object Pragma extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Content-Transfer-Encoding`", "0.6")
+  val `Content-Transfer-Encoding` = headers.`Content-Transfer-Encoding`
 
-  object `Proxy-Authenticate` extends HeaderKey.Internal[`Proxy-Authenticate`] with HeaderKey.Recurring
-  final case class `Proxy-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringRenderable {
-    override def key = `WWW-Authenticate`
-    type Value = Challenge
-  }
+  @deprecated("Moved to org.http4s.headers.`Content-MD5`", "0.6")
+  val `Content-MD5` = headers.`Content-MD5`
 
-  object `Proxy-Authorization` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Content-Range`", "0.6")
+  val `Content-Range` = headers.`Content-Range`
 
-  object Range extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Content-Type`", "0.6")
+  type `Content-Type` = headers.`Content-Type`
+  @deprecated("Moved to org.http4s.headers.`Content-Type`", "0.6")
+  val `Content-Type` = headers.`Content-Type`
 
-  object Referer extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Cookie", "0.6")
+  type Cookie = headers.Cookie
+  @deprecated("Moved to org.http4s.headers.Cookie", "0.6")
+  val Cookie = headers.Cookie
 
-  object `Retry-After` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Date", "0.6")
+  type Date = headers.Date
+  @deprecated("Moved to org.http4s.headers.Date", "0.6")
+  val Date = headers.Date
 
-  object `Sec-WebSocket-Key` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.ETag", "0.6")
+  type ETag = headers.ETag
+  @deprecated("Moved to org.http4s.headers.ETag", "0.6")
+  val ETag = headers.ETag
 
-  object `Sec-WebSocket-Key1` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Expect", "0.6")
+  val Expect = headers.Expect
 
-  object `Sec-WebSocket-Key2` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Expires", "0.6")
+  val Expires = headers.Expires
 
-  object `Sec-WebSocket-Location` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.From", "0.6")
+  val From = headers.From
 
-  object `Sec-WebSocket-Origin` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Front-End-Https`", "0.6")
+  val `Front-End-Https` = headers.`Front-End-Https`
 
-  object `Sec-WebSocket-Protocol` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Host", "0.6")
+  type Host = headers.Host
+  @deprecated("Moved to org.http4s.headers.Host", "0.6")
+  val Host = headers.Host
 
-  object `Sec-WebSocket-Version` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`If-Match`", "0.6")
+  val `If-Match` = headers.`If-Match`
 
-  object `Sec-WebSocket-Accept` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`If-Modified-Since`", "0.6")
+  type `If-Modified-Since` = headers.`If-Modified-Since`
+  @deprecated("Moved to org.http4s.headers.`If-Modified-Since`", "0.6")
+  val `If-Modified-Since` = headers.`If-Modified-Since`
 
-  object Server extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`If-None-Match`", "0.6")
+  type `If-None-Match` = headers.`If-None-Match`
+  @deprecated("Moved to org.http4s.headers.`If-None-Match`", "0.6")
+  val `If-None-Match` = headers.`If-None-Match`
 
-  object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] with HeaderKey.Singleton
-  final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends Parsed {
-    override def key = `Set-Cookie`
-    override def renderValue(writer: Writer): writer.type = cookie.render(writer)
-  }
+  @deprecated("Moved to org.http4s.headers.`If-Range`", "0.6")
+  val `If-Range` = headers.`If-Range`
 
-  object `TE` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`If-Unmodified-Since`", "0.6")
+  val `If-Unmodified-Since` = headers.`If-Unmodified-Since`
 
-  object `Trailer` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Last-Modified`", "0.6")
+  type `Last-Modified` = headers.`Last-Modified`
+  @deprecated("Moved to org.http4s.headers.`Last-Modified`", "0.6")
+  val `Last-Modified` = headers.`Last-Modified`
 
-  object `Transfer-Encoding` extends HeaderKey.Internal[`Transfer-Encoding`] with HeaderKey.Recurring
-  final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends RecurringRenderable {
-    override def key = `Transfer-Encoding`
-    def hasChunked = values.list.exists(_.renderString.equalsIgnoreCase("chunked"))
-    type Value = TransferCoding
-  }
+  @deprecated("Moved to org.http4s.headers.Location", "0.6")
+  type Location = headers.Location
+  @deprecated("Moved to org.http4s.headers.Location", "0.6")
+  val Location = headers.Location
 
-  object Upgrade extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Max-Forwards`", "0.6")
+  val `Max-Forwards` = headers.`Max-Forwards`
 
-  object `User-Agent` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Origin", "0.6")
+  val Origin = headers.Origin
 
-  object Vary extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Pragma", "0.6")
+  val Pragma = headers.Pragma
 
-  object Via extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Proxy-Authenticate`", "0.6")
+  type `Proxy-Authenticate` = headers.`Proxy-Authenticate`
+  @deprecated("Moved to org.http4s.headers.`Proxy-Authenticate`", "0.6")
+  val `Proxy-Authenticate` = headers.`Proxy-Authenticate`
 
-  object Warning extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Proxy-Authorization`", "0.6")
+  val `Proxy-Authorization` = headers.`Proxy-Authorization`
 
-  object `WebSocket-Location` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Range", "0.6")
+  val Range = headers.Range
 
-  object `WebSocket-Origin` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.Referer", "0.6")
+  val Referer = headers.Referer
 
-  object `WebSocket-Protocol` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Retry-After`", "0.6")
+  val `Retry-After` = headers.`Retry-After`
 
-  object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with HeaderKey.Recurring
-  final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends RecurringRenderable {
-    override def key = `WWW-Authenticate`
-    type Value = Challenge
-  }
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Key`", "0.6")
+  val `Sec-WebSocket-Key` = headers.`Sec-WebSocket-Key`
 
-  object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring
-  final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends Recurring {
-    override def key = `X-Forwarded-For`
-    type Value = Option[InetAddress]
-    override lazy val value = super.value
-    override def renderValue(writer: Writer): writer.type = {
-      values.head.fold(writer.append("unknown"))(i => writer.append(i.getHostAddress))
-      values.tail.foreach(append(writer, _))
-      writer
-    }
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Key1`", "0.6")
+  val `Sec-WebSocket-Key1` = headers.`Sec-WebSocket-Key1`
 
-    @inline
-    private def append(sb: Writer, add: Option[InetAddress]): Unit = {
-      sb.append(", ")
-      if (add.isDefined) sb.append(add.get.getHostAddress)
-      else sb.append("unknown")
-    }
-  }
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Key2`", "0.6")
+  val `Sec-WebSocket-Key2` = headers.`Sec-WebSocket-Key2`
 
-  object `X-Forwarded-Proto` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Location`", "0.6")
+  val `Sec-WebSocket-Location` = headers.`Sec-WebSocket-Location`
 
-  object `X-Powered-By` extends HeaderKey.Default
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Origin`", "0.6")
+  val `Sec-WebSocket-Origin` = headers.`Sec-WebSocket-Origin`
+
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Protocol`", "0.6")
+  val `Sec-WebSocket-Protocol` = headers.`Sec-WebSocket-Protocol`
+
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Version`", "0.6")
+  val `Sec-WebSocket-Version` = headers.`Sec-WebSocket-Version`
+
+  @deprecated("Moved to org.http4s.headers.`Sec-WebSocket-Accept`", "0.6")
+  val `Sec-WebSocket-Accept` = headers.`Sec-WebSocket-Accept`
+
+  @deprecated("Moved to org.http4s.headers.Server", "0.6")
+  val Server = headers.Server
+
+  @deprecated("Moved to org.http4s.headers.`Set-Cookie`", "0.6")
+  type `Set-Cookie` = headers.`Set-Cookie`
+  @deprecated("Moved to org.http4s.headers.`Set-Cookie`", "0.6")
+  val `Set-Cookie` = headers.`Set-Cookie`
+
+  @deprecated("Moved to org.http4s.headers.TE", "0.6")
+  val TE = headers.TE
+
+  @deprecated("Moved to org.http4s.headers.Trailer", "0.6")
+  val Trailer = headers.Trailer
+
+  @deprecated("Moved to org.http4s.headers.`Transfer-Encoding`", "0.6")
+  type `Transfer-Encoding` = headers.`Transfer-Encoding`
+  @deprecated("Moved to org.http4s.headers.`Transfer-Encoding`", "0.6")
+  val `Transfer-Encoding` = headers.`Transfer-Encoding`
+
+
+  @deprecated("Moved to org.http4s.headers.Upgrade", "0.6")
+  val Upgrade = headers.Upgrade
+
+  @deprecated("Moved to org.http4s.headers.`User-Agent`", "0.6")
+  val `User-Agent` = headers.`User-Agent`
+
+  @deprecated("Moved to org.http4s.headers.Vary", "0.6")
+  val Vary = headers.Vary
+
+  @deprecated("Moved to org.http4s.headers.Via", "0.6")
+  val Via = headers.Via
+
+  @deprecated("Moved to org.http4s.headers.Warning", "0.6")
+  val Warning = headers.Warning
+
+  @deprecated("Moved to org.http4s.headers.`WebSocket-Location`", "0.6")
+  val `WebSocket-Location` = headers.`WebSocket-Location`
+
+  @deprecated("Moved to org.http4s.headers.`WebSocket-Origin`", "0.6")
+  val `WebSocket-Origin` = headers.`WebSocket-Origin`
+
+  @deprecated("Moved to org.http4s.headers.`WebSocket-Protocol`", "0.6")
+  val `WebSocket-Protocol` = headers.`WebSocket-Protocol`
+
+  @deprecated("Moved to org.http4s.headers.`WWW-Authenticate`", "0.6")
+  type `WWW-Authenticate` = headers.`WWW-Authenticate`
+  @deprecated("Moved to org.http4s.headers.`WWW-Authenticate`", "0.6")
+  val `WWW-Authenticate` = headers.`WWW-Authenticate`
+
+  @deprecated("Moved to org.http4s.headers.`X-Forwarded-For`", "0.6")
+  type `X-Forwarded-For` = headers.`X-Forwarded-For`
+  @deprecated("Moved to org.http4s.headers.`X-Forwarded-For`", "0.6")
+  val `X-Forwarded-For` = headers.`X-Forwarded-For`
+
+  @deprecated("Moved to org.http4s.headers.`X-Forwarded-Proto`", "0.6")
+  val `X-Forwarded-Proto` = headers.`X-Forwarded-Proto`
+
+  @deprecated("Moved to org.http4s.headers.`X-Powered-By`", "0.6")
+  val `X-Powered-By` = headers.`X-Powered-By`
 }

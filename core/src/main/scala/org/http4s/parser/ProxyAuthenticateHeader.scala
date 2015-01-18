@@ -1,7 +1,7 @@
 package org.http4s.parser
 
 import org.http4s.Challenge
-import org.http4s.Header._
+import org.http4s.headers._
 import org.parboiled2._
 
 trait ProxyAuthenticateHeader {

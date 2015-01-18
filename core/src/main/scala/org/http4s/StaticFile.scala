@@ -14,7 +14,7 @@ import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.Process
 import Process._
 
-import org.http4s.Header._
+import org.http4s.headers._
 import org.http4s.Status.NotModified
 import org.log4s.getLogger
 import scodec.bits.ByteVector

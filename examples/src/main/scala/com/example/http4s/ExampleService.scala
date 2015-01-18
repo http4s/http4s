@@ -5,7 +5,7 @@ import _root_.argonaut.JString
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-import org.http4s.Header.{`Transfer-Encoding`, `Content-Type`}
+import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._

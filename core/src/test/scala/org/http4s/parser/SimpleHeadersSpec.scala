@@ -2,7 +2,7 @@ package org.http4s
 package parser
 
 import Http4s._
-import Header._
+import headers._
 import org.specs2.mutable.Specification
 import scalaz.{NonEmptyList, Success}
 import java.net.InetAddress

@@ -22,7 +22,7 @@ import scala.util.{Try, Success, Failure}
 import org.http4s.Status.{InternalServerError}
 import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
-import org.http4s.Header.{Connection, `Content-Length`}
+import org.http4s.headers.{Connection, `Content-Length`}
 
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.{\/-, -\/}
@@ -145,8 +145,8 @@ class Http1ServerStage(service: HttpService,
 
     // Need to decide which encoder and if to close on finish
     val closeOnFinish = respConn.map(_.hasClose).orElse {
-        Header.Connection.from(req.headers).map(checkCloseConnection(_, rr))
-      }.getOrElse(minor == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
+      Connection.from(req.headers).map(checkCloseConnection(_, rr))
+    }.getOrElse(minor == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
     val lengthHeader = `Content-Length`.from(resp.headers)

@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.Header.`Accept-Charset`
+import org.http4s.headers.`Accept-Charset`
 
 import scala.collection.JavaConverters._
 import java.nio.charset.{Charset => NioCharset}

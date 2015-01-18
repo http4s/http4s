@@ -29,10 +29,10 @@ private[parser] trait AcceptCharsetHeader {
 
   def ACCEPT_CHARSET(value: String) = new AcceptCharsetParser(value).parse
 
-  private class AcceptCharsetParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Charset`](input) {
-    def entry: Rule1[`Accept-Charset`] = rule {
+  private class AcceptCharsetParser(input: ParserInput) extends Http4sHeaderParser[headers.`Accept-Charset`](input) {
+    def entry: Rule1[headers.`Accept-Charset`] = rule {
       oneOrMore(CharsetRangeDecl).separatedBy(ListSep) ~ EOL ~> {xs: Seq[CharsetRange] =>
-        Header.`Accept-Charset`(xs.head, xs.tail: _*)
+        headers.`Accept-Charset`(xs.head, xs.tail: _*)
       }
     }
 

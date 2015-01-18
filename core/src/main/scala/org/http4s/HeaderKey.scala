@@ -1,9 +1,11 @@
 package org.http4s
 
+import org.http4s.headers.{RecurringHeader, RawHeader}
+
 import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import org.http4s.Header.Raw
+import org.http4s.headers.RawHeader
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string._
 
@@ -37,7 +39,7 @@ object HeaderKey {
    *
    */
   trait Recurring extends Extractable {
-    type HeaderT <: Header.Recurring
+    type HeaderT <: RecurringHeader
     type GetT = Option[HeaderT]
     def apply(values: NonEmptyList[HeaderT#Value]): HeaderT
     def apply(first: HeaderT#Value, more: HeaderT#Value*): HeaderT = apply(NonEmptyList.apply(first, more: _*))
@@ -64,7 +66,7 @@ object HeaderKey {
     private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
     override def matchHeader(header: Header): Option[HeaderT] = {
       if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[HeaderT])
-      else if (header.isInstanceOf[Raw] && name == header.name && runtimeClass.isInstance(header.parsed))
+      else if (header.isInstanceOf[RawHeader] && name == header.name && runtimeClass.isInstance(header.parsed))
         Some(header.parsed.asInstanceOf[HeaderT])
       else None
     }

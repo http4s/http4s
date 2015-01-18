@@ -3,7 +3,7 @@ package argonaut
 
 import _root_.argonaut.{EncodeJson, DecodeJson, Argonaut, Json}
 import _root_.jawn.support.argonaut.Parser.facade
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
   implicit val json: EntityDecoder[Json] = jawn.jawnDecoder(facade)

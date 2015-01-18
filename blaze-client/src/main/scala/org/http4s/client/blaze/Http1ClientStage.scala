@@ -3,7 +3,8 @@ package org.http4s.client.blaze
 import java.nio.ByteBuffer
 import java.util.concurrent.atomic.AtomicReference
 
-import org.http4s.Header.{Host, `Content-Length`}
+import org.http4s.headers.{Host, `Content-Length`}
+import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.util.{Cancellable, ProcessWriter}
@@ -73,7 +74,7 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
             encodeRequestLine(req, rr)
             Http1Stage.encodeHeaders(req.headers, rr, false)
 
-            val closeHeader = Header.Connection.from(req.headers)
+            val closeHeader = H.Connection.from(req.headers)
               .map(checkCloseConnection(_, rr))
               .getOrElse(getHttpMinor(req) == 0)
 

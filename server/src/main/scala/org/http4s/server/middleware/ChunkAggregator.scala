@@ -5,7 +5,7 @@ package middleware
 import scalaz.stream.Process._
 import scalaz.stream.Cause.End
 import scala.annotation.tailrec
-import org.http4s.Header.`Content-Length`
+import org.http4s.headers.`Content-Length`
 import scodec.bits.ByteVector
 
 object ChunkAggregator {

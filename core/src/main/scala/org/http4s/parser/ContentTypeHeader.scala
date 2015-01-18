@@ -19,8 +19,7 @@ package org.http4s
 package parser
 
 import org.parboiled2._
-import Header._
-import org.http4s.util.CaseInsensitiveString
+import headers.`Content-Type`
 
 private[parser] trait ContentTypeHeader {
 
@@ -46,21 +45,5 @@ private[parser] trait ContentTypeHeader {
         `Content-Type`(if (ext.isEmpty) mediaType else mediaType.withExtensions(ext), charset)
       }
     }
-
   }
-
-//  def CONTENT_TYPE = rule {
-//    ContentTypeHeaderValue// ~~> (`Content-Type`(_))
-//  }
-//
-//  lazy val ContentTypeHeaderValue = rule {
-//    MediaTypeDef ~ EOI ~~> (createContentType(_, _, _))
-//  }
-//
-//  private def createContentType(mainType: String, subType: String, params: Map[String, String]) = {
-//    val mimeType = getMediaType(mainType, subType, params.get("boundary"))
-//    val charset = params.get("charset").map(getCharset)
-//    `Content-Type`(mimeType, charset)
-//  }
-
 }

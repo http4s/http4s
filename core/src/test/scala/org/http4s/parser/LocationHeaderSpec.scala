@@ -1,7 +1,8 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.{Headers, Header, Http4sSpec, Uri}
-import Header.Location
+import headers.Location
 
 import scalaz.\/-
 

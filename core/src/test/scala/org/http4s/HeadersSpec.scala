@@ -1,13 +1,13 @@
 package org.http4s
 
-import Header._
+import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString._
 import org.specs2.mutable.Specification
 
 class HeadersSpec extends Specification {
 
   val clength = `Content-Length`(10)
-  val raw = Header.Raw("raw-header".ci, "Raw value")
+  val raw = RawHeader("raw-header".ci, "Raw value")
 
   val base = Headers(clength.toRaw, raw)
 
@@ -29,15 +29,15 @@ class HeadersSpec extends Specification {
 
     "also find headers created raw" in {
       val headers = Headers(
-        Header.`Cookie`(org.http4s.Cookie("foo", "bar")),
+        org.http4s.headers.`Cookie`(org.http4s.Cookie("foo", "bar")),
         Header("Cookie", org.http4s.Cookie("baz", "quux").toString)
       )
-      headers.get(Header.Cookie).map(_.values.list.length) must beSome (2)
+      headers.get(org.http4s.headers.Cookie).map(_.values.list.length) must beSome (2)
     }
 
     "Find the headers with DefaultHeaderKey keys" in {
       val headers = Headers(
-        Header.`Set-Cookie`(org.http4s.Cookie("foo", "bar")),
+        `Set-Cookie`(org.http4s.Cookie("foo", "bar")),
         Header("Accept-Patch",""),
         Header("Access-Control-Allow-Credentials","")
       )
