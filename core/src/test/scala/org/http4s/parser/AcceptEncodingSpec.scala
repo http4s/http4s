@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import org.http4s.Header.`Accept-Encoding`
+import org.http4s.headers.`Accept-Encoding`
 import org.specs2.mutable.Specification
 import scalaz.Validation
 import Http4s._

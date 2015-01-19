@@ -15,22 +15,20 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.parboiled2._
-
-import org.http4s.Header.`Accept-Language`
-import org.http4s.{LanguageTag, QValue}
 
 private[parser] trait AcceptLanguageHeader {
 
   def ACCEPT_LANGUAGE(value: String) = new AcceptLanguageParser(value).parse
 
   private class AcceptLanguageParser(value: String)
-    extends Http4sHeaderParser[`Accept-Language`](value) with MediaParser {
-    def entry: Rule1[`Accept-Language`] = rule {
+    extends Http4sHeaderParser[headers.`Accept-Language`](value) with MediaParser {
+    def entry: Rule1[headers.`Accept-Language`] = rule {
       oneOrMore(languageTag).separatedBy(ListSep) ~> { tags: Seq[LanguageTag] =>
-        `Accept-Language`(tags.head, tags.tail:_*)
+        headers.`Accept-Language`(tags.head, tags.tail:_*)
       }
     }
 

@@ -1,7 +1,7 @@
 package org.http4s
 package json4s
 
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import org.json4s.JsonAST.JValue
 import org.json4s.JsonMethods
 

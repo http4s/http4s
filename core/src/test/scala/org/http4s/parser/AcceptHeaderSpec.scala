@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import org.http4s.Header.Accept
+import org.http4s.headers.Accept
 import org.http4s.{MediaType, MediaRange}
 import MediaRange._
 import MediaType._

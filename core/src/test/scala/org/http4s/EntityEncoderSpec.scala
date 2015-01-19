@@ -3,7 +3,7 @@ package org.http4s
 import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 

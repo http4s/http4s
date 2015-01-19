@@ -2,6 +2,8 @@ package org.http4s
 package dsl
 package impl
 
+import org.http4s.headers.{`WWW-Authenticate`, `Proxy-Authenticate`, Location, `Content-Length`}
+
 import scalaz.concurrent.Task
 
 import org.http4s.EntityEncoder.Entity
@@ -40,22 +42,22 @@ trait EntityResponseGenerator extends Any with EmptyResponseGenerator {
   def apply[A](body: A, headers: Headers)(implicit w: EntityEncoder[A]): Task[Response] = {
     var h = w.headers ++ headers
     w.toEntity(body).flatMap { case Entity(proc, len) =>
-      len foreach { l => h = h put Header.`Content-Length`(l) }
+      len foreach { l => h = h put `Content-Length`(l) }
       Task.now(Response(status = status, headers = h, body = proc))
     }
   }
 }
 
 trait LocationResponseGenerator extends Any with ResponseGenerator {
-  def apply(location: Uri): Task[Response] = Task.now(Response(status).putHeaders(Header.Location(location)))
+  def apply(location: Uri): Task[Response] = Task.now(Response(status).putHeaders(Location(location)))
 }
 
 trait WwwAuthenticateResponseGenerator extends Any with ResponseGenerator {
   def apply(challenge: Challenge, challenges: Challenge*): Task[Response] =
-    Task.now(Response(status).putHeaders(Header.`WWW-Authenticate`(challenge, challenges: _*)))
+    Task.now(Response(status).putHeaders(`WWW-Authenticate`(challenge, challenges: _*)))
 }
 
 trait ProxyAuthenticateResponseGenerator extends Any with ResponseGenerator {
   def apply(challenge: Challenge, challenges: Challenge*): Task[Response] =
-    Task.now(Response(status).putHeaders(Header.`Proxy-Authenticate`(challenge, challenges: _*)))
+    Task.now(Response(status).putHeaders(`Proxy-Authenticate`(challenge, challenges: _*)))
 }

@@ -3,7 +3,6 @@ package org.http4s
 import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
-import org.http4s.Header.Raw
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string._
 
@@ -64,7 +63,7 @@ object HeaderKey {
     private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
     override def matchHeader(header: Header): Option[HeaderT] = {
       if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[HeaderT])
-      else if (header.isInstanceOf[Raw] && name == header.name && runtimeClass.isInstance(header.parsed))
+      else if (header.isInstanceOf[Header.Raw] && name == header.name && runtimeClass.isInstance(header.parsed))
         Some(header.parsed.asInstanceOf[HeaderT])
       else None
     }

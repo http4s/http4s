@@ -2,7 +2,7 @@ package org.http4s
 
 import scala.language.postfixOps
 
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import Status._
 
 import java.io.{FileInputStream,File,InputStreamReader}

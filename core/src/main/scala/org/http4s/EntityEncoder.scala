@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
 import org.http4s.EntityEncoder._
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.option._

@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import org.http4s.Header.{`Set-Cookie`}
+import org.http4s.headers.{`Set-Cookie`}
 import org.specs2.mutable.Specification
 import scalaz.Validation
 
@@ -38,8 +38,8 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
   }
 }
 
-class CookieHeaderSpec extends Specification with HeaderParserHelper[Header.Cookie] {
-  def hparse(value: String): ParseResult[Header.Cookie] = HttpParser.COOKIE(value)
+class CookieHeaderSpec extends Specification with HeaderParserHelper[headers.Cookie] {
+  def hparse(value: String): ParseResult[headers.Cookie] = HttpParser.COOKIE(value)
 
   val cookiestr = "key1=value1; key2=\"value2\""
   val cookies = Seq(Cookie("key1", "value1"), Cookie("key2", "value2"))

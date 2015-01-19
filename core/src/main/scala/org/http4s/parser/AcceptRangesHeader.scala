@@ -19,7 +19,7 @@ package org.http4s
 package parser
 
 import org.parboiled2._
-import org.http4s.Header.`Accept-Ranges`
+import org.http4s.headers.`Accept-Ranges`
 
 private[parser] trait AcceptRangesHeader {
 
@@ -28,7 +28,7 @@ private[parser] trait AcceptRangesHeader {
   private class AcceptRangesParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Ranges`](input) {
 
     def entry: Rule1[`Accept-Ranges`] = rule {
-      RangeUnitsDef ~ EOL ~> (Header.`Accept-Ranges`(_: Seq[RangeUnit]))
+      RangeUnitsDef ~ EOL ~> (headers.`Accept-Ranges`(_: Seq[RangeUnit]))
     }
 
     def RangeUnitsDef: Rule1[Seq[RangeUnit]] = rule {

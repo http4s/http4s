@@ -1,7 +1,7 @@
 package org.http4s
 package twirl
 
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import MediaType._
 import play.twirl.api._
 

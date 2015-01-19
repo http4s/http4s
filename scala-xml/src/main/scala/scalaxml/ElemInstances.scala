@@ -3,7 +3,7 @@ package scalaxml
 
 import java.io.StringReader
 
-import Header.`Content-Type`
+import headers.`Content-Type`
 import scala.util.control.NonFatal
 import scala.xml._
 import scalaz.concurrent.Task

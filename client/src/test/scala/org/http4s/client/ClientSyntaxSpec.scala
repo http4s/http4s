@@ -2,6 +2,7 @@ package org.http4s
 package client
 
 import org.http4s.Status.ResponseClass._
+import org.http4s.headers.Accept
 import org.parboiled2.ParseError
 
 import scalaz.concurrent.Task
@@ -18,7 +19,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     case r if r.method == GET && r.pathInfo == "/"            => Response(Ok).withBody("hello")
     case r if r.method == PUT && r.pathInfo == "/put"         => Response(Created).withBody(r.body)
     case r if r.method == GET && r.pathInfo == "/echoheaders" =>
-      r.headers.get(Header.Accept).fold(Task.now(Response(BadRequest))){ m =>
+      r.headers.get(Accept).fold(Task.now(Response(BadRequest))){ m =>
          Response(Ok).withBody(m.toString)
       }
 

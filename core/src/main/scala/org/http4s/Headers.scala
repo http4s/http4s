@@ -1,6 +1,5 @@
 package org.http4s
 
-import org.http4s.Header.Recurring
 import org.http4s.HeaderKey.StringKey
 import org.http4s.util.CaseInsensitiveString
 

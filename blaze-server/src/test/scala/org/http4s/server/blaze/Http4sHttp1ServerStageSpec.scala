@@ -4,11 +4,13 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
+import org.http4s.headers.Date
 import org.http4s.{DateTime, Status, Header, Response}
 import org.http4s.Status._
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
 import org.http4s.util.CaseInsensitiveString._
+import org.http4s.{headers => H}
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
@@ -33,7 +35,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
     dropDate(ResponseParser.apply(buff))
 
   def dropDate(resp: (Status, Set[Header], String)): (Status, Set[Header], String) = {
-    val hds = resp._2.filter(_.name != Header.Date.name)
+    val hds = resp._2.filter(_.name != Date.name)
     (resp._1, hds, resp._3)
   }
 
@@ -116,11 +118,11 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
 
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      hdrs.find(_.name == Header.Date.name) must beSome[Header]
+      hdrs.find(_.name == Date.name) must beSome[Header]
     }
 
     "Honor an explicitly added date header" in {
-      val dateHeader = Header.Date(DateTime(4))
+      val dateHeader = Date(DateTime(4))
       val service = HttpService {
         case req => Task.now(Response(body = req.body).withHeaders(dateHeader))
       }
@@ -132,7 +134,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
 
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      hdrs.find(_.name == Header.Date.name) must_== Some(dateHeader)
+      hdrs.find(_.name == Date.name) must_== Some(dateHeader)
     }
 
     "Handle routes that consumes the full request body for non-chunked" in {
@@ -147,7 +149,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
 
       // Both responses must succeed
-      parseAndDropDate(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+      parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
     }
 
     "Handle routes that ignores the body for non-chunked" in {
@@ -162,7 +164,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
 
       // Both responses must succeed
-      parseAndDropDate(buff) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
+      parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
     }
 
     "Handle routes that ignores request body for non-chunked" in {
@@ -179,8 +181,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
     }
 
     "Handle routes that runs the request body for non-chunked" in {
@@ -199,8 +201,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
     }
 
     "Handle routes that kills the request body for non-chunked" in {
@@ -219,8 +221,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
     }
 
     // Think of this as drunk HTTP pipelineing
@@ -239,8 +241,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(req1 + req2)), 5.seconds)
 
       // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(5)), "total"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(5)), "total"))
     }
 
     "Handle using the request body as the response body" in {
@@ -256,8 +258,8 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       val buff = Await.result(httpStage(service, 2, Seq(req1, req2)), 5.seconds)
 
       // Both responses must succeed
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(4)), "done"))
-      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(Header.`Content-Length`(5)), "total"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(5)), "total"))
     }
   }
 }
