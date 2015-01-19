@@ -54,7 +54,7 @@ object ExampleService {
 
     case req @ GET -> Root / "redirect" =>
       // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
-      TemporaryRedirect(uri("/http4s"))
+      TemporaryRedirect(uri("/http4s/"))
 
     case GET -> Root / "content-change" =>
       // EntityEncoder typically deals with appropriate headers, but they can be overridden
