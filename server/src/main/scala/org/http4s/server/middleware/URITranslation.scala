@@ -5,24 +5,18 @@ package middleware
 object URITranslation {
   def translateRoot(prefix: String)(service: HttpService): HttpService = {
 
-    val newPrefix = if (!prefix.startsWith("/")) "/" + prefix else prefix
-
-    def translate(path: String): String = newPrefix + (if (path.startsWith("/")) path else "/" + path)
-
-    def transReq(req: Request): Request = {
-      val troot = req.attributes.get(translateRootKey)
-                    .map(_ compose translate)
-                    .getOrElse(translate(_))
-
-      req.withAttribute(translateRootKey, troot)
-         .withPathInfo(req.pathInfo.substring(newPrefix.length))
+    val newCaret = prefix match {
+      case "/"                    => 0
+      case x if x.startsWith("/") => x.length
+      case x                      => x.length + 1
     }
 
-    Service.lift { req: Request =>
-      if (req.pathInfo.startsWith(newPrefix)) service(transReq(req))
-      else Service.TaskNone
+    service.contramap{ req: Request =>
+      val oldCaret = req.attributes
+        .get(Request.Keys.PathInfoCaret)
+        .getOrElse(0)
+
+      req.withAttribute(Request.Keys.PathInfoCaret(oldCaret + newCaret))
     }
   }
-
-  val translateRootKey = AttributeKey.http4s[String => String]("translateRoot")
 }

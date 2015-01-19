@@ -14,9 +14,7 @@ class UriTranslationSpec extends Specification {
     case r if r.pathInfo == "/foo" => Response(Ok).withBody("foo")
 
     case r if r.pathInfo == "/checkattr" =>
-      val s = r.attributes.get(URITranslation.translateRootKey)
-               .map(f => f("/cat"))
-               .getOrElse("None")
+      val s = r.scriptName + " " + r.pathInfo
       Response(Ok).withBody(s)
 
     case r => Response.notFound(r)
@@ -35,17 +33,17 @@ class UriTranslationSpec extends Specification {
 
     "Not match a request missing the prefix" in {
       val req = Request(uri = Uri(path = "/foo"))
-      trans1(req).run must_== None
-      trans2(req).run must_== None
+      trans1(req).run.get.status must_== NotFound
+      trans2(req).run.get.status must_== NotFound
       service(req).run.isDefined must_== true
     }
 
-    "Add the translation function" in {
+    "Split the Uri into scriptName and pathInfo" in {
       val req = Request(uri = Uri(path = "/http4s/checkattr"))
       val resp = trans1(req).run
       resp.isDefined must_== true
       val s = new String(resp.get.body.runLog.run.reduce(_ ++ _).toArray, StandardCharsets.UTF_8)
-      s must_== "/http4s/cat"
+      s must_== "/http4s /checkattr"
     }
   }
 
