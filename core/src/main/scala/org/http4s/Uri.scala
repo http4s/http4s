@@ -5,11 +5,12 @@ import java.nio.charset.StandardCharsets
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 
-import Uri._
+import org.http4s.Uri._
 
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
+import org.http4s.util.option.ToOptionOps
 
 /** Representation of the [[Request]] URI
   * Structure containing information related to a Uri. All fields except the
@@ -34,6 +35,8 @@ case class Uri(
   def host: Option[Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
   def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
+
+  def resolve(relative: Uri): Uri = Uri.resolve(this,relative)
 
   /**
    * Representation of the query string as a map
@@ -185,4 +188,74 @@ trait UriFunctions {
    * at compile time.
    */
   def uri(s: String): Uri = macro Uri.macros.uriLiteral
+
+  /**
+   * Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
+   */
+  private[http4s] def removeDotSequences(path: Path): Path = {
+    var output = ""
+    var input = path
+
+    while (input.length > 0) {
+      var checkpoint = input
+      // step a: strip ../ or ./
+      input = input.replaceAll("""(^\.\./)|(^\./)""","")
+      // step b: replace /./ or /. with /
+      input = input.replaceAll("""(^/\./)|(^/\.$)""","/")
+      // step c: delete /../ or /.. and pop in output
+      val rule2c = """(^/\.\./)|(^/\.\.$)"""
+      if (input.matches(s"($rule2c).*")) {
+        input = input.replaceAll(rule2c,"/")
+        if (output.contains('/'))
+          output = output.substring(0, output.lastIndexOf('/'))
+      }
+      // step d: ignore orphan . or ..
+      input = input.replaceAll("""^(\.|\.\.)$""","")
+      // step e: move path segment to output
+      val rule2e = """(^/?[^/]*)(.*)""".r
+      if (checkpoint == input) // don't continue unless none of the previous rules can be applied
+        input match {
+          case rule2e(segment, rest) =>
+            output += segment
+            input = rest
+          case _ =>
+        }
+    }
+    output
+  }
+
+  /**
+   * Resolve a relative Uri reference, per RFC 3986 sec 5.2
+   */
+  def resolve(base: Uri, reference: Uri): Uri = {
+
+    /** per RFC2396 5.2.3 */
+    def merge(base: Path, reference: Path): Path =
+      base.substring(0, base.lastIndexOf('/')+1) + reference
+
+    val Uri(bS, bA, bP, bQ, bF) = base
+    val Uri(rS, rA, rP, rQ, rF) = reference
+
+    // rF
+    val target =
+      if (rS.isDefined) // rS, rA, rP, rQ
+        reference
+      else // bS
+      if (rA.isDefined) // rA, rP, rQ
+        Uri(bS, rA, rP, rQ, rF)
+      else // bA
+      if (rP == "") // bP
+        if (!rQ.isEmpty) // rQ
+          Uri(bS,bA,bP,rQ,rF)
+        else // bQ
+          Uri(bS,bA,bP,bQ,rF)
+      else // rQ
+      if (rP.head == '/') // rP
+        Uri(bS,bA,rP,rQ,rF)
+      else // bP + rP
+        Uri(bS,bA,merge(bP,rP),rQ,rF)
+
+
+    target.withPath(removeDotSequences(target.path))
+  }
 }
