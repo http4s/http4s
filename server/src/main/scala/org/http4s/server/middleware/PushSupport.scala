@@ -3,7 +3,6 @@ package server
 package middleware
 
 import scalaz.concurrent.Task
-import URITranslation.translateRootKey
 import org.log4s.getLogger
 
 object PushSupport {
@@ -11,14 +10,24 @@ object PushSupport {
 
   implicit class PushOps(response: Task[Response]) {
     def push(url: String, cascade: Boolean = true)(implicit req: Request): Task[Response] = response.map { response =>
-      val newUrl = req.attributes.get(translateRootKey)
-        .map(f => f(url))
-        .getOrElse(url)
+      val newUrl = {
+        val script = req.scriptName
+        if (script.length > 0) {
+          val sb = new StringBuilder()
+          sb.append(script)
+          if (!url.startsWith("/")) sb.append('/')
+          sb.append(url)
+            .result()
+        }
+        else url
+      }
+
+      logger.trace(s"Adding push resource: $newUrl")
 
       val newPushResouces = response.attributes.get(pushLocationKey)
         .map(_ :+ PushLocation(newUrl, cascade))
         .getOrElse(Vector(PushLocation(newUrl,cascade)))
-      logger.trace(s"Adding push resource: $newUrl")
+
       response.copy(
         body = response.body,
         attributes = response.attributes.put(PushSupport.pushLocationKey, newPushResouces))
