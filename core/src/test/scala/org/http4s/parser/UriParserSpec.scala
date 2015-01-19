@@ -70,7 +70,7 @@ class UriParserSpec extends Http4sSpec {
       val relativeUris: Seq[(String, Uri)] = Seq(
         ("/foo/bar", Uri(path = "/foo/bar")),
         ("/foo/bar?foo=bar&ding=dong", Uri(path = "/foo/bar", query = Query.fromPairs("foo" -> "bar", "ding" -> "dong"))),
-        ("/", Uri()))
+        ("/", Uri(path="/")))
 
       check(relativeUris)
     }
@@ -151,6 +151,14 @@ class UriParserSpec extends Http4sSpec {
         Uri.fromString(str) must beRightDisjunction(uri)
     }
 
+  }
+
+  "Parse non-request targets" in {
+    Uri.fromString("q") must beRightDisjunction.like { case u =>
+        u.path must_== "q"
+        u.authority must_== None
+
+    }
   }
 
 

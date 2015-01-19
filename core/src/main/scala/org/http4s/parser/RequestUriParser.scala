@@ -10,10 +10,10 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
   extends Parser with Rfc3986Parser
 {
   def RequestUri = rule {
-    Asterisk    |
-    AbsoluteUri |
     OriginForm  |
-    Authority ~> (auth => org.http4s.Uri(authority = Some(auth)))
+    AbsoluteUri |
+    Authority ~> (auth => org.http4s.Uri(authority = Some(auth))) |
+    Asterisk
   }
 
   def OriginForm = rule { PathAbsolute ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (path, query, fragment) =>
