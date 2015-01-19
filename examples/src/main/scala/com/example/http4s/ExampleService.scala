@@ -113,7 +113,9 @@ object ExampleService {
     case req @ GET -> Root / "push" =>
       // http4s intends to be a forward looking library made with http2.0 in mind
       val data = <html><body><img src="image.jpg"/></body></html>
-      Ok(data).push("/image.jpg")(req)
+      Ok(data)
+        .withHeaders(`Content-Type`(`text/html`))
+        .push("/image.jpg")(req)
 
     case req @ GET -> Root / "image.jpg" =>
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
