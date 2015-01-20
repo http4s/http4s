@@ -109,7 +109,7 @@ object Uri extends UriFunctions {
         case Literal(Constant(s: String)) =>
           Uri.fromString(s).fold(
             e => c.abort(c.enclosingPosition, e.details),
-            qValue => c.Expr(q"Uri.fromString($s).valueOr(e => throw new org.http4s.ParseException(e))")
+            qValue => c.Expr(q"org.http4s.Uri.fromString($s).valueOr(e => throw new org.http4s.ParseException(e))")
           )
         case _ =>
           c.abort(c.enclosingPosition, s"only supports literal Strings")
