@@ -536,10 +536,6 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       val ps = Map("param" -> List(true, false))
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=true&param=false")))
     }
-    "set a parameter with a char values" in {
-      val ps = Map("param" -> List('x', 'y'))
-      Uri() =? ps must be_==(Uri(query = Query.fromString("param=x&param=y")))
-    }
     "set a parameter with a double values" in {
       val ps = Map("param" -> List(1.2, 2.1))
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=1.2&param=2.1")))
