@@ -146,20 +146,65 @@ class UriParserSpec extends Http4sSpec {
       }
     }
 
-
-
-  }
-
-  "Uri.fromString" in {
-    Uri.fromString("q") must beRightDisjunction.like { case u =>
-        u.path must_== "q"
-        u.authority must_== None
-
+    def check(items: Seq[(String, Uri)]) = foreach(items) {
+      case (str, uri) =>
+        Uri.requestTarget(str) must beRightDisjunction(uri)
     }
+
   }
 
-  def check(items: Seq[(String, Uri)]) = foreach(items) {
-    case (str, uri) =>
-      Uri.requestTarget(str) must beRightDisjunction(uri)
+  "Uri.fromString" should {
+    "parse absolute URIs" in {
+      val absoluteUris: Seq[(String, Uri)] = Seq(
+        ("http://www.foo.com", Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))))),
+        ("http://www.foo.com/foo?bar=baz",
+          Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))), "/foo", Query.fromPairs("bar" -> "baz"))),
+        ("http://192.168.1.1",
+          Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci))))),
+        ("http://192.168.1.1:80/c?GB=object&Class=one",
+          Uri(Some("http".ci), Some(Authority(host = IPv4("192.168.1.1".ci), port = Some(80))), "/c", Query.fromPairs("GB" -> "object", "Class" -> "one"))),
+        ("http://[2001:db8::7]/c?GB=object&Class=one",
+          Uri(Some("http".ci), Some(Authority(host = IPv6("2001:db8::7".ci))), "/c", Query.fromPairs("GB" -> "object", "Class" -> "one"))),
+        ("mailto:John.Doe@example.com",
+          Uri(Some("mailto".ci), path = "John.Doe@example.com")))
+
+      check(absoluteUris)
+    }
+
+    "parse a path-noscheme uri" in {
+      Uri.fromString("q") must beRightDisjunction.like { case u =>
+        u must_== Uri(path = "q")
+      }
+      Uri.fromString("a/b") must beRightDisjunction.like { case u =>
+        u must_== Uri(path = "a/b")
+      }
+    }
+
+    "parse a path-noscheme uri with query" in {
+      Uri.fromString("a/b?foo") must beRightDisjunction.like { case u =>
+        u must_== Uri(path = "a/b", query = Query(("foo", None)))
+      }
+    }
+
+    "parse a path-absolute uri" in {
+      Uri.fromString("/a/b") must beRightDisjunction.like { case u =>
+        u must_== Uri(path = "/a/b")
+      }
+    }
+    "parse a path-absolute uri with query" in {
+      Uri.fromString("/a/b?foo") must beRightDisjunction.like { case u =>
+        u must_== Uri(path = "/a/b", query = Query(("foo", None)))
+      }
+    }
+    "parse a path-absolute uri with query and fragment" in {
+      Uri.fromString("/a/b?foo#bar") must beRightDisjunction.like { case u =>
+        u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some("bar"))
+      }
+    }
+
+    def check(items: Seq[(String, Uri)]) = foreach(items) {
+      case (str, uri) =>
+        Uri.fromString(str) must beRightDisjunction(uri)
+    }
   }
 }
