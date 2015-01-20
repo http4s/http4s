@@ -536,10 +536,6 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       val ps = Map("param" -> List(true, false))
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=true&param=false")))
     }
-    "set a parameter with a char values" in {
-      val ps = Map("param" -> List('x', 'y'))
-      Uri() =? ps must be_==(Uri(query = Query.fromString("param=x&param=y")))
-    }
     "set a parameter with a double values" in {
       val ps = Map("param" -> List(1.2, 2.1))
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=1.2&param=2.1")))
@@ -576,6 +572,17 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       val ps = Map("param" -> List("value"))
       val u = Uri(query = Query.fromString("param=value"))
       u =? ps must be_==(u =? ps)
+    }
+  }
+
+  "Uri.renderString" should {
+    "Encode special chars in the query" in {
+      val u = Uri().withQueryParam("foo", " !$&'()*+,;=:/?@~")
+      u.renderString must_== "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A%2F%3F%40%7E"
+    }
+    "Encode special chars in the fragment" in {
+      val u = Uri(fragment = Some(" !$&'()*+,;=:/?@~"))
+      u.renderString must_== "/#%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A%2F%3F%40%7E"
     }
   }
 }
