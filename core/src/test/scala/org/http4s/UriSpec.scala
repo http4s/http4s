@@ -88,7 +88,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   "Uri to String" should {
 
     "render default URI" in {
-      Uri().toString must be_==("/")
+      Uri().toString must be_==("")
     }
 
     "render a IPv6 address, should be wrapped in brackets" in {
@@ -186,11 +186,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render a query string with a single param" in {
-      Uri(query = Query.fromString("param1=test")).toString must_==("/?param1=test")
+      Uri(query = Query.fromString("param1=test")).toString must_==("?param1=test")
     }
 
     "render a query string with multiple value in a param" in {
-      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_==("/?param1=3&param2=2&param2=foo")
+      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_==("?param1=3&param2=2&param2=foo")
     }
 
     "round trip over URI examples from wikipedia" in {
