@@ -175,7 +175,7 @@ object Uri extends UriFunctions {
 
   private def renderParamsAndFragment(writer: Writer, p: Query, f: Option[Fragment]): writer.type = {
     if (p.nonEmpty) writer << '?' << p
-    if (f.isDefined) writer << '#' << UrlCodingUtils.urlEncode(f.get, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved)
+    if (f.isDefined) writer << '#' << UrlCodingUtils.urlEncode(f.get, spaceIsPlus = false)
     writer
   }
 }

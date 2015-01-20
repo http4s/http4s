@@ -30,5 +30,5 @@ object UrlFormCodec {
   private def formEncode(s: String): String =
     UrlCodingUtils.urlEncode(s, spaceIsPlus = true, toSkip = urlUnreserved)
 
-  val urlUnreserved = BitSet((('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_.".toSet).map(_.toInt): _*)
+  val urlUnreserved = BitSet((('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_.~".toSet).map(_.toInt): _*)
 }
