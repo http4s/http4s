@@ -670,9 +670,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       "g#s/./x"       shouldResolveTo "http://a/b/c/g#s/./x"
       "g#s/../x"      shouldResolveTo "http://a/b/c/g#s/../x"
 
-      // choose one:
-      "http:g"        shouldResolveTo "http:g"         // for strict parsers
-      // "http:g"        shouldResolveTo "http://a/b/c/g" // for backward compatibility
+      "http:g"        shouldResolveTo "http:g"
     }
   }
 }
