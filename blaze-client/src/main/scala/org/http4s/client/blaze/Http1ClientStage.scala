@@ -120,6 +120,7 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
         Left(new Exception("Host header required for HTTP/1.1 request"))
       }
     }
+    else if (req.uri.path == "") Right(req.copy(uri = req.uri.copy(path = "/")))
     else Right(req) // All appears to be well
   }
 
