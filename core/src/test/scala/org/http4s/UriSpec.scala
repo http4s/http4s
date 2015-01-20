@@ -60,7 +60,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   }
 
   "Uri's with a query and fragment" should {
-    "parse propperly" in {
+    "parse properly" in {
       val uri = getUri("http://localhost:8080/blah?x=abc#y=ijk")
       uri.query should_== Query.fromPairs("x"->"abc")
       uri.fragment should_== Some("y=ijk")
@@ -576,6 +576,101 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       val ps = Map("param" -> List("value"))
       val u = Uri(query = Query.fromString("param=value"))
       u =? ps must be_==(u =? ps)
+    }
+  }
+
+  "Uri relative resolution" should {
+
+    // delete this method once issue #184 is resolved
+    def getUri(s: String): Uri = {
+      def getAuthority(s: String): Authority = {
+        val AuthorityRegex = "^(.*@)?(.*)(:.*)?$".r
+        val AuthorityRegex(userinfo,host,port) = s
+        Authority(Option(userinfo),RegName(host),Option(port).map(_.toInt))
+      }
+
+      // regex copied from https://tools.ietf.org/html/rfc3986#appendix-B
+      val UriRegex = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?".r
+      val UriRegex(_,scheme,_,authority,path,_,query,_,fragment) = s
+      Uri(
+        Option(scheme).map(_.ci),
+        Option(authority).map(getAuthority),
+        path,
+        Option(query).map(org.http4s.Query.fromString).getOrElse(org.http4s.Query.empty),
+        Option(fragment)
+      )
+    }
+
+    val base = getUri("http://a/b/c/d;p?q")
+
+    "correctly remove ./.. sequences" in {
+      implicit class checkDotSequences(path: String) {
+        def removingDotsShould_==(expected: String) =
+          s"$path -> $expected" in { removeDotSequences(path) should_== expected }
+      }
+
+      // from RFC 3986 sec 5.2.4
+      "mid/content=5/../6" removingDotsShould_== "mid/6"
+      "/a/b/c/./../../g"   removingDotsShould_== "/a/g"
+    }
+
+    implicit class check(relative: String) {
+      def shouldResolveTo(expected: String) =
+        s"$base @ $relative -> $expected" in { base resolve getUri(relative) should_== getUri(expected) }
+    }
+
+    "correctly resolve RFC 3986 sec 5.4 normal examples" in {
+
+      // normal examples
+      "g:h"           shouldResolveTo "g:h"
+      "g"             shouldResolveTo "http://a/b/c/g"
+      "./g"           shouldResolveTo "http://a/b/c/g"
+      "g/"            shouldResolveTo "http://a/b/c/g/"
+      "/g"            shouldResolveTo "http://a/g"
+      "//g"           shouldResolveTo "http://g"
+      "?y"            shouldResolveTo "http://a/b/c/d;p?y"
+      "g?y"           shouldResolveTo "http://a/b/c/g?y"
+      "#s"            shouldResolveTo "http://a/b/c/d;p?q#s"
+      "g#s"           shouldResolveTo "http://a/b/c/g#s"
+      "g?y#s"         shouldResolveTo "http://a/b/c/g?y#s"
+      ";x"            shouldResolveTo "http://a/b/c/;x"
+      "g;x"           shouldResolveTo "http://a/b/c/g;x"
+      "g;x?y#s"       shouldResolveTo "http://a/b/c/g;x?y#s"
+      ""              shouldResolveTo "http://a/b/c/d;p?q"
+      "."             shouldResolveTo "http://a/b/c/"
+      "./"            shouldResolveTo "http://a/b/c/"
+      ".."            shouldResolveTo "http://a/b/"
+      "../"           shouldResolveTo "http://a/b/"
+      "../g"          shouldResolveTo "http://a/b/g"
+      "../.."         shouldResolveTo "http://a/"
+      "../../"        shouldResolveTo "http://a/"
+      "../../g"       shouldResolveTo "http://a/g"
+    }
+
+    "correctly resolve RFC 3986 sec 5.4 abnormal examples" in {
+      "../../../g"    shouldResolveTo "http://a/g"
+      "../../../../g" shouldResolveTo "http://a/g"
+
+      "/./g"          shouldResolveTo "http://a/g"
+      "/../g"         shouldResolveTo "http://a/g"
+      "g."            shouldResolveTo "http://a/b/c/g."
+      ".g"            shouldResolveTo "http://a/b/c/.g"
+      "g.."           shouldResolveTo "http://a/b/c/g.."
+      "..g"           shouldResolveTo "http://a/b/c/..g"
+
+      "./../g"        shouldResolveTo "http://a/b/g"
+      "./g/."         shouldResolveTo "http://a/b/c/g/"
+      "g/./h"         shouldResolveTo "http://a/b/c/g/h"
+      "g/../h"        shouldResolveTo "http://a/b/c/h"
+      "g;x=1/./y"     shouldResolveTo "http://a/b/c/g;x=1/y"
+      "g;x=1/../y"    shouldResolveTo "http://a/b/c/y"
+
+      "g?y/./x"       shouldResolveTo "http://a/b/c/g?y/./x"
+      "g?y/../x"      shouldResolveTo "http://a/b/c/g?y/../x"
+      "g#s/./x"       shouldResolveTo "http://a/b/c/g#s/./x"
+      "g#s/../x"      shouldResolveTo "http://a/b/c/g#s/../x"
+
+      "http:g"        shouldResolveTo "http:g"
     }
   }
 }
