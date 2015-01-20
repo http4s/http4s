@@ -13,6 +13,4 @@ class QueryParamCodecSpec extends Spec {
   checkAll("Int QueryParamCodec"    , QueryParamCodecLaws[Int])
   checkAll("Long QueryParamCodec"   , QueryParamCodecLaws[Long])
   checkAll("String QueryParamCodec" , QueryParamCodecLaws[String])
-  checkAll("Char QueryParamCodec"   , QueryParamCodecLaws[Char])
-
 }
