@@ -1,11 +1,9 @@
 package org.http4s
 
 import org.specs2.matcher.MustThrownMatchers
-import org.specs2.mutable.Specification
-import util.CaseInsensitiveString._
 import org.http4s.Uri._
 
-import scalaz.{ Maybe, \/- }
+import scalaz.Maybe
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
@@ -581,7 +579,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri relative resolution" should {
 
-    val \/-(base) = Uri.fromString("http://a/b/c/d;p?q")
+    val base = getUri("http://a/b/c/d;p?q")
 
     "correctly remove ./.. sequences" in {
       implicit class checkDotSequences(path: String) {
