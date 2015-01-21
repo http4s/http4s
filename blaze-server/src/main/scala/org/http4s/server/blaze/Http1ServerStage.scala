@@ -101,7 +101,7 @@ class Http1ServerStage(service: HttpService,
     val protocol = if (minor == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
     (for {
       method <- Method.fromString(this.method)
-      uri <- Uri.fromString(this.uri)
+      uri <- Uri.requestTarget(this.uri)
     } yield {
       Some(Request(method, uri, protocol, h, body, requestAttrs))
     }).valueOr { e =>

@@ -1,8 +1,6 @@
 package org.http4s
 
 import org.specs2.matcher.MustThrownMatchers
-import org.specs2.mutable.Specification
-import util.CaseInsensitiveString._
 import org.http4s.Uri._
 
 import scalaz.Maybe
@@ -88,7 +86,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   "Uri to String" should {
 
     "render default URI" in {
-      Uri().toString must be_==("/")
+      Uri().toString must be_==("")
     }
 
     "render a IPv6 address, should be wrapped in brackets" in {
@@ -186,11 +184,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render a query string with a single param" in {
-      Uri(query = Query.fromString("param1=test")).toString must_==("/?param1=test")
+      Uri(query = Query.fromString("param1=test")).toString must_==("?param1=test")
     }
 
     "render a query string with multiple value in a param" in {
-      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_==("/?param1=3&param2=2&param2=foo")
+      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_==("?param1=3&param2=2&param2=foo")
     }
 
     "round trip over URI examples from wikipedia" in {
@@ -587,26 +585,6 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   }
 
   "Uri relative resolution" should {
-
-    // delete this method once issue #184 is resolved
-    def getUri(s: String): Uri = {
-      def getAuthority(s: String): Authority = {
-        val AuthorityRegex = "^(.*@)?(.*)(:.*)?$".r
-        val AuthorityRegex(userinfo,host,port) = s
-        Authority(Option(userinfo),RegName(host),Option(port).map(_.toInt))
-      }
-
-      // regex copied from https://tools.ietf.org/html/rfc3986#appendix-B
-      val UriRegex = "^(([^:/?#]+):)?(//([^/?#]*))?([^?#]*)(\\?([^#]*))?(#(.*))?".r
-      val UriRegex(_,scheme,_,authority,path,_,query,_,fragment) = s
-      Uri(
-        Option(scheme).map(_.ci),
-        Option(authority).map(getAuthority),
-        path,
-        Option(query).map(org.http4s.Query.fromString).getOrElse(org.http4s.Query.empty),
-        Option(fragment)
-      )
-    }
 
     val base = getUri("http://a/b/c/d;p?q")
 

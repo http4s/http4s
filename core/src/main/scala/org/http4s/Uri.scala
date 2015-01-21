@@ -26,7 +26,7 @@ import org.http4s.util.option.ToOptionOps
 case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
   authority: Option[Authority] = None,
-  path: Path = "/",
+  path: Path = "",
   query: Query = Query.empty,
   fragment: Option[Fragment] = None)
   extends QueryOps with Renderable
@@ -122,7 +122,11 @@ object Uri extends UriFunctions {
   }
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
-  def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
+  def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).Uri
+    .run()(ScalazDeliverySchemes.Disjunction)
+
+  /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
+  def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
 
   type Scheme = CaseInsensitiveString
