@@ -91,7 +91,7 @@ private[util] trait UrlCodingUtils {
             in.position(mark+1)
           }
         } else {
-          out.put('%'.toByte)
+          while(in.hasRemaining) in.get() // just burn the rest of the bytes
         }
       } else if (c == '+' && plusIsSpace) {
         out.put(' '.toByte)

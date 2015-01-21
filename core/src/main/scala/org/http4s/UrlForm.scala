@@ -2,7 +2,7 @@ package org.http4s
 
 import org.http4s.headers.`Content-Type`
 import org.http4s.parser.QueryParser
-import org.http4s.util.UrlCodingUtils
+import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
 
 import scala.collection.immutable.BitSet
 import scala.io.Codec
@@ -40,7 +40,7 @@ object UrlForm {
 
   private[http4s] def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
-      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = urlReserved)
+      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlFormCodec.urlUnreserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach { case (k, vs) =>
@@ -60,7 +60,4 @@ object UrlForm {
     }
     sb.result()
   }
-
-  private val urlReserved: BitSet =
-    BitSet((('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "-_.~".toSet).map(_.toInt): _*)
 }
