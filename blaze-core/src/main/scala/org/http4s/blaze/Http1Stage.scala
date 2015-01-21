@@ -10,7 +10,7 @@ import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{Command, TailStage}
-import org.http4s.blaze.util.{ChunkProcessWriter, CachingStaticWriter, CachingChunkWriter, ProcessWriter}
+import org.http4s.blaze.util._
 import org.http4s.util.{Writer, StringWriter}
 import scodec.bits.ByteVector
 
@@ -134,7 +134,10 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
               case None if contentComplete() => cb(-\/(Terminated(End)))
               case None =>
                 channelRead().onComplete {
-                  case Success(b)   => currentBuffer = b; go() // Need more data...
+                  case Success(b)   =>
+                    currentBuffer = BufferTools.concatBuffers(currentBuffer, b)
+                    go()
+
                   case Failure(EOF) => cb(-\/(eofCondition))
                   case Failure(t)   => cb(-\/(t))
                 }
