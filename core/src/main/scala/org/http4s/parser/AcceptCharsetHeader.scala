@@ -19,10 +19,7 @@ package org.http4s
 package parser
 
 import org.parboiled2._
-import Charset._
 import CharsetRange._
-import Header.`Accept-Charset`
-import org.http4s.util.CaseInsensitiveString._
 
 
 private[parser] trait AcceptCharsetHeader {

@@ -2,7 +2,7 @@ package org.http4s
 package json4s
 
 import org.http4s.EntityEncoderSpec._
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
