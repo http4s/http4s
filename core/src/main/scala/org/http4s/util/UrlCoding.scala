@@ -5,10 +5,9 @@
 package org.http4s.util
 
 import java.util.Locale
-import org.http4s.Charset
-
 import util.matching.Regex
 import util.matching.Regex.Match
+import java.nio.charset.Charset
 import java.nio.{ CharBuffer, ByteBuffer }
 import collection.immutable.BitSet
 
@@ -21,6 +20,9 @@ private[util] trait UrlCodingUtils {
   private val InvalidChars = "[^\\.a-zA-Z0-9!$&'()*+,;=:/?#\\[\\]@-_~]".r
 
   private val HexUpperCaseChars = (0 until 16) map { i ⇒ Character.toUpperCase(Character.forDigit(i, 16)) }
+
+  private val UTF_8 = "UTF-8"
+  private val Utf8 = Charset.forName(UTF_8)
 
   def isUrlEncoded(string: String) = {
     PctEncoded.findFirstIn(string).isDefined
@@ -38,12 +40,12 @@ private[util] trait UrlCodingUtils {
 
   def ensureUppercasedEncodings(string: String) = {
     LowerPctEncoded.replaceAllIn(string, (_: Match) match {
-      case Regex.Groups(v) ⇒ "%" + v.toUpperCase(Locale.ENGLISH)
+      case Regex.Groups(v) => "%" + v.toUpperCase(Locale.ENGLISH)
     })
   }
 
-  def urlEncode(toEncode: String, charset: Charset = Charset.`UTF-8`, spaceIsPlus: Boolean = false, toSkip: BitSet = toSkip) = {
-    val in = charset.nioCharset.encode(ensureUppercasedEncodings(toEncode))
+  def urlEncode(toEncode: String, charset: Charset = Utf8, spaceIsPlus: Boolean = false, toSkip: BitSet = toSkip) = {
+    val in = charset.encode(ensureUppercasedEncodings(toEncode))
     val out = CharBuffer.allocate((in.remaining() * 3).ceil.toInt)
     while (in.hasRemaining) {
       val b = in.get() & 0xFF
@@ -61,11 +63,12 @@ private[util] trait UrlCodingUtils {
     out.toString
   }
 
-  def urlDecode(toDecode: String, charset: Charset = Charset.`UTF-8`, spaceIsPlus: Boolean = false, toSkip: BitSet = BitSet.empty) = {
+  def urlDecode(toDecode: String, charset: Charset = Utf8, plusIsSpace: Boolean = false, toSkip: String = "") = {
     val in = CharBuffer.wrap(toDecode)
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
     // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
     val out = ByteBuffer.allocate(in.remaining() * 3)
+    val skip = BitSet(toSkip.map(c => c.toInt): _*)
     while (in.hasRemaining) {
       val mark = in.position()
       val c = in.get()
@@ -77,7 +80,7 @@ private[util] trait UrlCodingUtils {
           val y = Character.digit(yc, 0x10)
           if (x != -1 && y != -1) {
             val oo = (x << 4) + y
-            if (!toSkip.contains(oo)) {
+            if (!skip.contains(oo)) {
               out.put(oo.toByte)
             } else {
               out.put('%'.toByte)
@@ -91,7 +94,7 @@ private[util] trait UrlCodingUtils {
         } else {
           out.put('%'.toByte)
         }
-      } else if (c == '+' && spaceIsPlus) {
+      } else if (c == '+' && plusIsSpace) {
         out.put(' '.toByte)
       } else {
         // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
@@ -100,12 +103,12 @@ private[util] trait UrlCodingUtils {
         if (this.toSkip.contains(c))
           out.put(c.toByte)
         else {
-          out.put(charset.nioCharset.encode(String.valueOf(c)))
+          out.put(charset.encode(String.valueOf(c)))
         }
       }
     }
     out.flip()
-    charset.nioCharset.decode(out).toString
+    charset.decode(out).toString
   }
 
 }
