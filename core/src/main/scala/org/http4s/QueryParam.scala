@@ -69,7 +69,6 @@ object QueryParamEncoder {
   implicit val shortQueryParamEncoder  : QueryParamEncoder[Short]   = fromShow[Short]
   implicit val intQueryParamEncoder    : QueryParamEncoder[Int]     = fromShow[Int]
   implicit val longQueryParamEncoder   : QueryParamEncoder[Long]    = fromShow[Long]
-  implicit val charQueryParamEncoder   : QueryParamEncoder[Char]    = fromShow[Char]
   implicit val stringQueryParamEncoder : QueryParamEncoder[String]  = encode(identity)
 }
 

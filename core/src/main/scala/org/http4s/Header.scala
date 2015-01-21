@@ -18,14 +18,11 @@
  */
 package org.http4s
 
-import java.net.InetAddress
-import org.http4s.headers._
-
 import scalaz.NonEmptyList
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
 import org.http4s.util.string._
-import org.http4s.Charset._
+
 import scala.util.hashing.MurmurHash3
 
 /**
