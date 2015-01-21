@@ -19,7 +19,7 @@ package org.http4s
 package parser
 
 
-import Header._
+import headers._
 import java.net.InetAddress
 import org.http4s.util.CaseInsensitiveString._
 
@@ -32,7 +32,7 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
     new Http4sHeaderParser[Connection](value) {
       def entry = rule (
             oneOrMore(Token).separatedBy(ListSep) ~ EOL ~>
-              {xs: Seq[String] => Header.Connection(xs.head.ci, xs.tail.map(_.ci): _*)}
+              {xs: Seq[String] => Connection(xs.head.ci, xs.tail.map(_.ci): _*)}
         )
     }.parse
   }
@@ -43,7 +43,7 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
 
   def CONTENT_ENCODING(value: String) = new Http4sHeaderParser[`Content-Encoding`](value) {
     def entry = rule { Token ~ EOL ~> {s: String =>
-      Header.`Content-Encoding`(ContentCoding.getOrElseCreate(s.ci))}
+      `Content-Encoding`(ContentCoding.getOrElseCreate(s.ci))}
     }
   }.parse
 

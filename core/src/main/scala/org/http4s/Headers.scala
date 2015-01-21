@@ -1,8 +1,8 @@
 package org.http4s
 
-import org.http4s.Header.Recurring
 import org.http4s.HeaderKey.StringKey
 import org.http4s.util.CaseInsensitiveString
+import org.http4s.headers.`Set-Cookie`
 
 import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
@@ -81,7 +81,7 @@ final class Headers private (headers: List[Header])
         val acc = new ListBuffer[Header]
         this.headers.foreach(_.parsed match {
           case h: Header.Recurring                 => acc += h
-          case h: Header.`Set-Cookie`              => acc += h
+          case h: `Set-Cookie`                     => acc += h
           case h if !hs.exists(_.name == h.name)   => acc += h
           case _                                   => // NOOP, drop non recurring header that already exists
         })

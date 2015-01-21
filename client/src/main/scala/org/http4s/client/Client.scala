@@ -1,6 +1,7 @@
 package org.http4s.client
 
 import org.http4s._
+import org.http4s.headers.Accept
 
 import scalaz.concurrent.Task
 
@@ -28,7 +29,7 @@ trait Client {
   def prepAs[T](req: Request)(implicit d: EntityDecoder[T]): Task[T] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
-      req.putHeaders(Header.Accept(m.head, m.tail:_*))
+      req.putHeaders(Accept(m.head, m.tail:_*))
     } else req
 
     prepare(r).flatMap { resp =>

@@ -1,8 +1,6 @@
 package org.http4s
 
 import org.specs2.matcher.MustThrownMatchers
-import org.specs2.mutable.Specification
-import util.CaseInsensitiveString._
 import org.http4s.Uri._
 
 import scalaz.Maybe
@@ -60,7 +58,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   }
 
   "Uri's with a query and fragment" should {
-    "parse propperly" in {
+    "parse properly" in {
       val uri = getUri("http://localhost:8080/blah?x=abc#y=ijk")
       uri.query should_== Query.fromPairs("x"->"abc")
       uri.fragment should_== Some("y=ijk")
@@ -88,7 +86,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   "Uri to String" should {
 
     "render default URI" in {
-      Uri().toString must be_==("/")
+      Uri().toString must be_==("")
     }
 
     "render a IPv6 address, should be wrapped in brackets" in {
@@ -186,11 +184,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render a query string with a single param" in {
-      Uri(query = Query.fromString("param1=test")).toString must_==("/?param1=test")
+      Uri(query = Query.fromString("param1=test")).toString must_==("?param1=test")
     }
 
     "render a query string with multiple value in a param" in {
-      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_==("/?param1=3&param2=2&param2=foo")
+      Uri(query = Query.fromString("param1=3&param2=2&param2=foo")).toString must_==("?param1=3&param2=2&param2=foo")
     }
 
     "round trip over URI examples from wikipedia" in {
@@ -536,10 +534,6 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       val ps = Map("param" -> List(true, false))
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=true&param=false")))
     }
-    "set a parameter with a char values" in {
-      val ps = Map("param" -> List('x', 'y'))
-      Uri() =? ps must be_==(Uri(query = Query.fromString("param=x&param=y")))
-    }
     "set a parameter with a double values" in {
       val ps = Map("param" -> List(1.2, 2.1))
       Uri() =? ps must be_==(Uri(query = Query.fromString("param=1.2&param=2.1")))
@@ -576,6 +570,92 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       val ps = Map("param" -> List("value"))
       val u = Uri(query = Query.fromString("param=value"))
       u =? ps must be_==(u =? ps)
+    }
+  }
+
+  "Uri.renderString" should {
+    "Encode special chars in the query" in {
+      val u = Uri(path = "/").withQueryParam("foo", " !$&'()*+,;=:/?@~")
+      u.renderString must_== "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A%2F%3F%40~"
+    }
+    "Encode special chars in the fragment" in {
+      val u = Uri(path = "/", fragment = Some(" !$&'()*+,;=:/?@~"))
+      u.renderString must_== "/#%20!$&'()*+,;=:/?@~"
+    }
+  }
+
+  "Uri relative resolution" should {
+
+    val base = getUri("http://a/b/c/d;p?q")
+
+    "correctly remove ./.. sequences" in {
+      implicit class checkDotSequences(path: String) {
+        def removingDotsShould_==(expected: String) =
+          s"$path -> $expected" in { removeDotSequences(path) should_== expected }
+      }
+
+      // from RFC 3986 sec 5.2.4
+      "mid/content=5/../6" removingDotsShould_== "mid/6"
+      "/a/b/c/./../../g"   removingDotsShould_== "/a/g"
+    }
+
+    implicit class check(relative: String) {
+      def shouldResolveTo(expected: String) =
+        s"$base @ $relative -> $expected" in { base resolve getUri(relative) should_== getUri(expected) }
+    }
+
+    "correctly resolve RFC 3986 sec 5.4 normal examples" in {
+
+      // normal examples
+      "g:h"           shouldResolveTo "g:h"
+      "g"             shouldResolveTo "http://a/b/c/g"
+      "./g"           shouldResolveTo "http://a/b/c/g"
+      "g/"            shouldResolveTo "http://a/b/c/g/"
+      "/g"            shouldResolveTo "http://a/g"
+      "//g"           shouldResolveTo "http://g"
+      "?y"            shouldResolveTo "http://a/b/c/d;p?y"
+      "g?y"           shouldResolveTo "http://a/b/c/g?y"
+      "#s"            shouldResolveTo "http://a/b/c/d;p?q#s"
+      "g#s"           shouldResolveTo "http://a/b/c/g#s"
+      "g?y#s"         shouldResolveTo "http://a/b/c/g?y#s"
+      ";x"            shouldResolveTo "http://a/b/c/;x"
+      "g;x"           shouldResolveTo "http://a/b/c/g;x"
+      "g;x?y#s"       shouldResolveTo "http://a/b/c/g;x?y#s"
+      ""              shouldResolveTo "http://a/b/c/d;p?q"
+      "."             shouldResolveTo "http://a/b/c/"
+      "./"            shouldResolveTo "http://a/b/c/"
+      ".."            shouldResolveTo "http://a/b/"
+      "../"           shouldResolveTo "http://a/b/"
+      "../g"          shouldResolveTo "http://a/b/g"
+      "../.."         shouldResolveTo "http://a/"
+      "../../"        shouldResolveTo "http://a/"
+      "../../g"       shouldResolveTo "http://a/g"
+    }
+
+    "correctly resolve RFC 3986 sec 5.4 abnormal examples" in {
+      "../../../g"    shouldResolveTo "http://a/g"
+      "../../../../g" shouldResolveTo "http://a/g"
+
+      "/./g"          shouldResolveTo "http://a/g"
+      "/../g"         shouldResolveTo "http://a/g"
+      "g."            shouldResolveTo "http://a/b/c/g."
+      ".g"            shouldResolveTo "http://a/b/c/.g"
+      "g.."           shouldResolveTo "http://a/b/c/g.."
+      "..g"           shouldResolveTo "http://a/b/c/..g"
+
+      "./../g"        shouldResolveTo "http://a/b/g"
+      "./g/."         shouldResolveTo "http://a/b/c/g/"
+      "g/./h"         shouldResolveTo "http://a/b/c/g/h"
+      "g/../h"        shouldResolveTo "http://a/b/c/h"
+      "g;x=1/./y"     shouldResolveTo "http://a/b/c/g;x=1/y"
+      "g;x=1/../y"    shouldResolveTo "http://a/b/c/y"
+
+      "g?y/./x"       shouldResolveTo "http://a/b/c/g?y/./x"
+      "g?y/../x"      shouldResolveTo "http://a/b/c/g?y/../x"
+      "g#s/./x"       shouldResolveTo "http://a/b/c/g#s/./x"
+      "g#s/../x"      shouldResolveTo "http://a/b/c/g#s/../x"
+
+      "http:g"        shouldResolveTo "http:g"
     }
   }
 }

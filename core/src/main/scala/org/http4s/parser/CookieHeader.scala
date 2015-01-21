@@ -15,11 +15,11 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.parboiled2._
-import org.http4s.{DateTime, Header, Cookie}
-import org.http4s.Header.`Set-Cookie`
+import org.http4s.headers.`Set-Cookie`
 import shapeless.{HNil, ::}
 
 private[parser] trait CookieHeader {
@@ -28,15 +28,15 @@ private[parser] trait CookieHeader {
 
   def COOKIE(value: String) = new CookieParser(value).parse
 
-  private class SetCookieParser(input: ParserInput) extends BaseCookieParser[Header.`Set-Cookie`](input) {
+  private class SetCookieParser(input: ParserInput) extends BaseCookieParser[`Set-Cookie`](input) {
     def entry: Rule1[`Set-Cookie`] = rule {
-      CookiePair ~ zeroOrMore(";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (Header.`Set-Cookie`(_))
+      CookiePair ~ zeroOrMore(";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (`Set-Cookie`(_))
     }
   }
 
-  private class CookieParser(input: ParserInput) extends BaseCookieParser[Header.Cookie](input) {
-    def entry: Rule1[Header.Cookie] = rule {
-      oneOrMore(CookiePair).separatedBy(";" ~ OptWS) ~ EOI ~> {xs: Seq[Cookie] => Header.Cookie(xs.head, xs.tail: _*)}
+  private class CookieParser(input: ParserInput) extends BaseCookieParser[headers.Cookie](input) {
+    def entry: Rule1[headers.Cookie] = rule {
+      oneOrMore(CookiePair).separatedBy(";" ~ OptWS) ~ EOI ~> {xs: Seq[Cookie] => headers.Cookie(xs.head, xs.tail: _*)}
     }
   }
 

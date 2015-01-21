@@ -1,7 +1,7 @@
 package org.http4s.dsl
 
 import org.http4s.Header
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.{Accept, `Content-Length`, `Content-Type`}
 import org.http4s.Headers
 import org.http4s.MediaRange
 import org.http4s.MediaType
@@ -17,14 +17,14 @@ class ResponseGeneratorSpec extends Specification {
       old and (resultheaders.exists(_ == h) must_== true)
     }
 
-    resultheaders.get(Header.`Content-Length`) must_== Some(Header.`Content-Length`(body.getBytes().length))
+    resultheaders.get(`Content-Length`) must_== Some(`Content-Length`(body.getBytes().length))
   }
 
   "Not duplicate headers when not provided" in {
-    val w = EntityEncoder.encodeBy[String](EntityEncoder.stringEncoder.headers.put(Header.Accept(MediaRange.`audio/*`)))(
+    val w = EntityEncoder.encodeBy[String](EntityEncoder.stringEncoder.headers.put(Accept(MediaRange.`audio/*`)))(
                             EntityEncoder.stringEncoder.toEntity(_))
 
-    Ok("foo")(w).run.headers.get(Header.Accept).get.values.list must_== List(MediaRange.`audio/*`)
+    Ok("foo")(w).run.headers.get(Accept).get.values.list must_== List(MediaRange.`audio/*`)
   }
 
   "Explicitly added headers have priority" in {

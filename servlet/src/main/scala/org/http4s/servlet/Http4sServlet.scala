@@ -2,6 +2,7 @@ package org.http4s
 package servlet
 
 import java.util.concurrent.ExecutorService
+import org.http4s.headers.`Transfer-Encoding`
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
@@ -102,7 +103,7 @@ class Http4sServlet(service: HttpService,
                              bodyWriter: BodyWriter): Task[Unit] =
     response.flatMap { r =>
       servletResponse.setStatus(r.status.code, r.status.reason)
-      for (header <- r.headers if header.isNot(Header.`Transfer-Encoding`))
+      for (header <- r.headers if header.isNot(`Transfer-Encoding`))
         servletResponse.addHeader(header.name.toString, header.value)
       bodyWriter(r)
     }
@@ -124,7 +125,7 @@ class Http4sServlet(service: HttpService,
   private def toRequest(req: HttpServletRequest): ParseResult[Request] =
     for {
       method <- Method.fromString(req.getMethod)
-      uri <- Uri.fromString(req.getRequestURI)
+      uri <- Uri.requestTarget(req.getRequestURI)
       version <- HttpVersion.fromString(req.getProtocol)
     } yield Request(
       method = method,

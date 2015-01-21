@@ -2,7 +2,7 @@ package org.http4s
 
 import java.io.File
 import java.net.InetAddress
-import org.http4s.Header.{`Content-Length`, `Content-Type`}
+import org.http4s.headers._
 import org.http4s.server.ServerSoftware
 import scalaz.concurrent.Task
 import scalaz.syntax.monad._
@@ -68,13 +68,13 @@ sealed trait Message extends MessageOps {
     }
   }
 
-  def contentLength: Option[Int] = headers.get(Header.`Content-Length`).map(_.length)
+  def contentLength: Option[Int] = headers.get(`Content-Length`).map(_.length)
 
-  def contentType: Option[`Content-Type`] = headers.get(Header.`Content-Type`)
+  def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
   def charset: Option[Charset] = contentType.map(_.charset)
 
-  def isChunked: Boolean = headers.get(Header.`Transfer-Encoding`).exists(_.values.list.contains(TransferCoding.chunked))
+  def isChunked: Boolean = headers.get(`Transfer-Encoding`).exists(_.values.list.contains(TransferCoding.chunked))
 
   /**
    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
@@ -126,7 +126,7 @@ case class Request(
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
 
-  lazy val authType: Option[AuthScheme] = headers.get(Header.Authorization).map(_.credentials.authScheme)
+  lazy val authType: Option[AuthScheme] = headers.get(Authorization).map(_.credentials.authScheme)
 
   lazy val (scriptName, pathInfo) = {
     val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
@@ -178,13 +178,13 @@ case class Request(
 
   lazy val serverName: String = {
     uri.host.map(_.value)
-      .orElse(headers.get(Header.Host).map(_.host))
+      .orElse(headers.get(Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
   }
 
   lazy val serverPort: Int = {
     uri.port
-      .orElse(headers.get(Header.Host).flatMap(_.port))
+      .orElse(headers.get(Host).flatMap(_.port))
       .getOrElse(80)
   }
 

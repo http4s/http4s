@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import org.http4s.Header.`Cache-Control`
+import org.http4s.headers.`Cache-Control`
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 import scalaz.Validation

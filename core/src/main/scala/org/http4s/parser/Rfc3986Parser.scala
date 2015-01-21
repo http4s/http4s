@@ -14,16 +14,7 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def charset: Charset
 
-  def Uri = rule { Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }
-
-  def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
-    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
-      PathAbsolute ~> (None :: _ :: HNil) |
-      PathRootless ~> (None :: _ :: HNil) |
-      PathEmpty ~> {(e: String) => None :: e :: HNil}
-  }
-
-  def UriReference = rule { Uri | RelativeRef }
+  def Uri: Rule1[org.http4s.Uri] = rule { AbsoluteUri | RelativeRef }
 
   def AbsoluteUri = rule {
     Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (scheme, auth, path, query, fragment) =>
@@ -31,7 +22,17 @@ private[parser] trait Rfc3986Parser { this: Parser =>
     }
   }
 
-  def RelativeRef = rule { RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) }
+  def RelativeRef = rule { RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (auth, path, query, fragment) =>
+    org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+    }
+  }
+
+  def HierPart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
+    "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
+      PathAbsolute ~> (None :: _ :: HNil) |
+      PathRootless ~> (None :: _ :: HNil) |
+      PathEmpty ~> {(e: String) => None :: e :: HNil}
+  }
 
   def RelativePart: Rule2[Option[org.http4s.Uri.Authority], org.http4s.Uri.Path] = rule {
     "//" ~ Authority ~ PathAbempty ~> {(auth: org.http4s.Uri.Authority, path: org.http4s.Uri.Path) => auth.some :: path :: HNil} |
@@ -90,15 +91,15 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def Path: Rule1[String] = rule { (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String => decode(s)} }
 
-  def PathAbempty: Rule1[String] = rule { capture(oneOrMore("/" ~ Segment)) | push("/") }
+  def PathAbempty: Rule1[String] = rule { capture(zeroOrMore("/" ~ Segment)) }
 
-  def PathAbsolute: Rule1[String] = rule { capture("/" ~ optional(SegmentNz ~ zeroOrMore("/" ~ Segment))) }
+  def PathAbsolute: Rule1[String] = rule { capture(oneOrMore("/" ~ Segment)) }
 
   def PathNoscheme: Rule1[String] = rule { capture(SegmentNzNc ~ zeroOrMore("/" ~ Segment)) }
 
   def PathRootless: Rule1[String] = rule { capture(SegmentNz ~ zeroOrMore("/" ~ Segment)) }
 
-  def PathEmpty: Rule1[String] = rule { push("/") }
+  def PathEmpty: Rule1[String] = rule { push("") }
 
   def Segment = rule { zeroOrMore(Pchar) }
 

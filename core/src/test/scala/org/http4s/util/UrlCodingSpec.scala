@@ -59,10 +59,10 @@ class UrlCodingSpec extends Specification with ScalaCheck {
     "The plusIsSpace flag specifies how to treat pluses" ^
       "it treats + as allowed when the plusIsSpace flag is either not supplied or supplied as false" ! {
         urlDecode("+") must_== "+"
-        urlDecode("+", spaceIsPlus = false) must_== "+"
+        urlDecode("+", plusIsSpace = false) must_== "+"
       } ^
       "it decodes + as space when the plusIsSpace flag is true" ! {
-        urlDecode("+", spaceIsPlus = true) must_== " "
+        urlDecode("+", plusIsSpace = true) must_== " "
       } ^ p ^
     "urlDecode(urlEncode(s)) == s" ! {
       prop { (s: String) => urlDecode(urlEncode(s)) must_== s }

@@ -2,7 +2,7 @@ package org.http4s.parser
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.Header.Location
+import org.http4s.headers.Location
 import org.http4s._
 import org.parboiled2._
 
@@ -14,7 +14,7 @@ trait LocationHeader {
 
     override def charset = StandardCharsets.ISO_8859_1
 
-    def entry: Rule1[Header.Location] = rule {
+    def entry: Rule1[Location] = rule {
       AbsoluteUri ~> { uri => Location(uri) }
     }
 

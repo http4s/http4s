@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import org.http4s.parser.QueryParser
 import org.http4s.util.UrlCodingUtils
 
@@ -40,7 +40,7 @@ object UrlForm {
 
   private[http4s] def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
-      UrlCodingUtils.urlEncode(s, charset, spaceIsPlus = true, toSkip = urlReserved)
+      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = urlReserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach { case (k, vs) =>

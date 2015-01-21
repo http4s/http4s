@@ -12,10 +12,10 @@ trait StringOps extends Ops[String] {
   def nonBlank = !isBlank
   def blankOption = if (isBlank) None else Some(self)
 
-  def urlEncode(implicit cs: Codec = Codec.UTF8): String  = UrlCodingUtils.urlEncode(self, Charset.fromNioCharset(cs.charSet))
-  def formEncode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlEncode(self, Charset.fromNioCharset(cs.charSet), spaceIsPlus = true)
-  def urlDecode(implicit cs: Codec = Codec.UTF8): String  = UrlCodingUtils.urlDecode(self, Charset.fromNioCharset(cs.charSet))
-  def formDecode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlDecode(self, Charset.fromNioCharset(cs.charSet), spaceIsPlus = true)
+  def urlEncode(implicit cs: Codec = Codec.UTF8): String  = UrlCodingUtils.urlEncode(self, cs.charSet)
+  def formEncode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlEncode(self, cs.charSet, spaceIsPlus = true)
+  def urlDecode(implicit cs: Codec = Codec.UTF8): String  = UrlCodingUtils.urlDecode(self, cs.charSet)
+  def formDecode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlDecode(self, cs.charSet, plusIsSpace = true)
 
   def /(path: String) = (self.endsWith("/"), path.startsWith("/")) match {
     case (true, false) | (false, true) ⇒ self + path

@@ -6,6 +6,7 @@
 * Remove ResponseBuilder in favor of Response companion.
 * Allow '';'' separators for query pairs.
 * Empty strings are a JSON decoding error.
+* Support for Twirl templates.
 * Split scala-xml support into http4s-scala-xml module.
 * Make charset on Message an Option.
 * Add a `flatMapR` method to EntityDecoder.

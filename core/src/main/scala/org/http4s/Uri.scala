@@ -5,11 +5,13 @@ import java.nio.charset.StandardCharsets
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
 
-import Uri._
+import org.http4s.Uri._
 
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
-import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString }
+import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
+import org.http4s.util.option.ToOptionOps
+
 
 /** Representation of the [[Request]] URI
   * Structure containing information related to a Uri. All fields except the
@@ -24,7 +26,7 @@ import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
   authority: Option[Authority] = None,
-  path: Path = "/",
+  path: Path = "",
   query: Query = Query.empty,
   fragment: Option[Fragment] = None)
   extends QueryOps with Renderable
@@ -34,6 +36,8 @@ case class Uri(
   def host: Option[Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
   def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)
+
+  def resolve(relative: Uri): Uri = Uri.resolve(this,relative)
 
   /**
    * Representation of the query string as a map
@@ -109,7 +113,7 @@ object Uri extends UriFunctions {
         case Literal(Constant(s: String)) =>
           Uri.fromString(s).fold(
             e => c.abort(c.enclosingPosition, e.details),
-            qValue => c.Expr(q"Uri.fromString($s).valueOr(e => throw new org.http4s.ParseException(e))")
+            qValue => c.Expr(q"org.http4s.Uri.fromString($s).valueOr(e => throw new org.http4s.ParseException(e))")
           )
         case _ =>
           c.abort(c.enclosingPosition, s"only supports literal Strings")
@@ -118,7 +122,11 @@ object Uri extends UriFunctions {
   }
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
-  def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
+  def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).Uri
+    .run()(ScalazDeliverySchemes.Disjunction)
+
+  /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
+  def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
 
   type Scheme = CaseInsensitiveString
@@ -174,7 +182,7 @@ object Uri extends UriFunctions {
 
   private def renderParamsAndFragment(writer: Writer, p: Query, f: Option[Fragment]): writer.type = {
     if (p.nonEmpty) writer << '?' << p
-    if (f.isDefined) writer << '#' << f.get
+    if (f.isDefined) writer << '#' << UrlCodingUtils.urlEncode(f.get, spaceIsPlus = false)
     writer
   }
 }
@@ -185,4 +193,54 @@ trait UriFunctions {
    * at compile time.
    */
   def uri(s: String): Uri = macro Uri.macros.uriLiteral
+
+  /**
+   * Resolve a relative Uri reference, per RFC 3986 sec 5.2
+   */
+  def resolve(base: Uri, reference: Uri): Uri = {
+
+    /** Merge paths per RFC 3986 5.2.3 */
+    def merge(base: Path, reference: Path): Path =
+      base.substring(0, base.lastIndexOf('/')+1) + reference
+
+    val target = (base,reference) match {
+      case (_,               Uri(Some(_),_,_,_,_))      => reference
+      case (Uri(s,_,_,_,_),  Uri(_,a@Some(_),p,q,f))    => Uri(s,a,p,q,f)
+      case (Uri(s,a,p,q,_),  Uri(_,_,"",Query.empty,f)) => Uri(s,a,p,q,f)
+      case (Uri(s,a,p,_,_),  Uri(_,_,"",q,f))           => Uri(s,a,p,q,f)
+      case (Uri(s,a,bp,_,_), Uri(_,_,p,q,f)) =>
+        if (p.headOption.contains('/')) Uri(s,a,p,q,f)
+        else Uri(s,a,merge(bp,p),q,f)
+    }
+
+    target.withPath(removeDotSequences(target.path))
+  }
+
+  /**
+   * Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
+   */
+  private[http4s] def removeDotSequences(path: Path): Path = {
+    def loop(input: List[Char], output: List[Char], depth: Int = 0): Path = input match {
+      case Nil                              => output.reverse.mkString
+      case '.' :: '.' :: '/' :: rest        => loop(rest, output, depth)        // remove initial ../
+      case '.' :: '/' :: rest               => loop(rest, output, depth)        // remove initial ./
+      case '/' :: '.' :: '/' :: rest        => loop('/' :: rest, output, depth) // collapse initial /./
+      case '/' :: '.' :: Nil                => loop('/' :: Nil, output, depth)  // collapse /.
+      case '/' :: '.' :: '.' :: '/' :: rest =>                                 // collapse /../ and pop dir
+        if (depth == 0) loop('/' :: rest, output, depth)
+        else loop('/' :: rest, output.dropWhile(_ != '/').drop(1), depth-1)
+      case '/' :: '.' :: '.' :: Nil =>                                         // collapse /.. and pop dir
+        if (depth == 0) loop('/' :: Nil, output, depth)
+        else loop('/' :: Nil, output.dropWhile(_ != '/').drop(1), depth-1)
+      case ('.' :: Nil) | ('.' :: '.' :: Nil) =>                               // drop orphan . or ..
+        output.reverse.mkString
+      case ('/' :: rest) =>                                                    // move "/segment"
+        val (take,leave) = rest.span(_ != '/')
+        loop(leave, ('/' :: take).reverse ++ output, depth+1)
+      case _ =>                                                                // move "segment"
+        val (take,leave) = input.span(_ != '/')
+        loop(leave, take.reverse ++ output, depth+1)
+    }
+    loop(path.toList, Nil, 0)
+  }
 }

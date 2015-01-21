@@ -4,7 +4,7 @@ package twirl
 import org.scalacheck.Arbitrary
 import org.scalacheck.Gen
 import play.twirl.api.{JavaScript, Html, Txt, Xml}
-import Header.`Content-Type`
+import headers.`Content-Type`
 import Status.Ok
 
 class TwirlSpec extends Http4sSpec {

@@ -3,7 +3,6 @@ package org.http4s.client.blaze
 import org.http4s.blaze.pipeline.Command
 import org.http4s.client.Client
 import org.http4s.{Request, Response}
-import org.log4s.getLogger
 
 import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success, Try}

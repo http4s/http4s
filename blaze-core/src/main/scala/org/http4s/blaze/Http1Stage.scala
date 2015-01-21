@@ -4,7 +4,8 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.http4s.Header.`Transfer-Encoding`
+import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.{headers => H}
 import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
@@ -31,7 +32,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   protected def contentComplete(): Boolean
 
   /** Check Connection header and add applicable headers to response */
-  final protected def checkCloseConnection(conn: Header.Connection, rr: StringWriter): Boolean = {
+  final protected def checkCloseConnection(conn: H.Connection, rr: StringWriter): Boolean = {
     if (conn.hasKeepAlive) {                          // connection, look to the request
       logger.trace("Found Keep-Alive header")
       false
@@ -54,9 +55,9 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                                  minor: Int,
                                  closeOnFinish: Boolean): ProcessWriter = {
     val headers = msg.headers
-    getEncoder(Header.Connection.from(headers),
-               Header.`Transfer-Encoding`.from(headers),
-               Header.`Content-Length`.from(headers),
+    getEncoder(H.Connection.from(headers),
+               H.`Transfer-Encoding`.from(headers),
+               H.`Content-Length`.from(headers),
                msg.trailerHeaders,
                rr,
                minor,
@@ -65,9 +66,9 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** Get the proper body encoder based on the message headers,
     * adding the appropriate Connection and Transfer-Encoding headers along the way */
-  final protected def getEncoder(connectionHeader: Option[Header.Connection],
-                                     bodyEncoding: Option[Header.`Transfer-Encoding`],
-                                     lengthHeader: Option[Header.`Content-Length`],
+  final protected def getEncoder(connectionHeader: Option[H.Connection],
+                                     bodyEncoding: Option[H.`Transfer-Encoding`],
+                                     lengthHeader: Option[H.`Content-Length`],
                                           trailer: Task[Headers],
                                                rr: StringWriter,
                                             minor: Int,
@@ -191,14 +192,14 @@ object Http1Stage {
     var encoding: Option[`Transfer-Encoding`] = None
     var dateEncoded = false
     headers.foreach { header =>
-      if (isServer && header.name == Header.Date.name) dateEncoded = true
+      if (isServer && header.name == H.Date.name) dateEncoded = true
 
       if (header.name != `Transfer-Encoding`.name) rr << header << '\r' << '\n'
       else encoding = `Transfer-Encoding`.matchHeader(header)
     }
 
     if (isServer && !dateEncoded) {
-      rr << Header.Date.name << ':' << ' '; DateTime.now.renderRfc1123DateTimeString(rr) << '\r' << '\n'
+      rr << H.Date.name << ':' << ' '; DateTime.now.renderRfc1123DateTimeString(rr) << '\r' << '\n'
     }
 
     encoding

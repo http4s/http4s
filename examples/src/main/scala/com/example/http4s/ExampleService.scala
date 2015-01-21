@@ -5,7 +5,7 @@ import _root_.argonaut.JString
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-import org.http4s.Header.{`Transfer-Encoding`, `Content-Type`}
+import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
@@ -54,7 +54,7 @@ object ExampleService {
 
     case req @ GET -> Root / "redirect" =>
       // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
-      TemporaryRedirect(uri("/http4s"))
+      TemporaryRedirect(uri("/http4s/"))
 
     case GET -> Root / "content-change" =>
       // EntityEncoder typically deals with appropriate headers, but they can be overridden
@@ -113,7 +113,9 @@ object ExampleService {
     case req @ GET -> Root / "push" =>
       // http4s intends to be a forward looking library made with http2.0 in mind
       val data = <html><body><img src="image.jpg"/></body></html>
-      Ok(data).push("/image.jpg")(req)
+      Ok(data)
+        .withHeaders(`Content-Type`(`text/html`))
+        .push("/image.jpg")(req)
 
     case req @ GET -> Root / "image.jpg" =>
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))

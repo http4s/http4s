@@ -1,7 +1,7 @@
 package org.http4s
 package parser
 
-import org.http4s.Header.`WWW-Authenticate`
+import org.http4s.headers.`WWW-Authenticate`
 import org.specs2.mutable.Specification
 import scalaz.Validation
 import scala.Predef._

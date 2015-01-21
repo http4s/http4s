@@ -1,6 +1,6 @@
 package org.http4s
 
-import org.http4s.Header.{`Set-Cookie`, `Content-Type`}
+import org.http4s.headers.{`Set-Cookie`, `Content-Type`}
 
 import scalaz.\/
 import scalaz.concurrent.Task
@@ -90,7 +90,7 @@ trait ResponseOps extends Any with MessageOps {
   def withStatus[S <% Status](status: S): Self
 
   /** Add a Set-Cookie header for the provided [[Cookie]] */
-  def addCookie(cookie: Cookie): Self = putHeaders(Header.`Set-Cookie`(cookie))
+  def addCookie(cookie: Cookie): Self = putHeaders(`Set-Cookie`(cookie))
 
   /** Add a Set-Cookie header with the provided values */
   def addCookie(name: String,
@@ -102,7 +102,7 @@ trait ResponseOps extends Any with MessageOps {
     expires = Some(DateTime.UnixEpoch), maxAge = Some(0))))
 
   /** Add a Set-Cookie which will remove the specified cookie from the client */
-  def removeCookie(name: String): Self = putHeaders(Header.`Set-Cookie`(
+  def removeCookie(name: String): Self = putHeaders(`Set-Cookie`(
     Cookie(name, "", expires = Some(DateTime.UnixEpoch), maxAge = Some(0))
   ))
 }

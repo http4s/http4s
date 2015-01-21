@@ -1,6 +1,6 @@
 package org.http4s.server.blaze
 
-import org.http4s.Header._
+import org.http4s.headers._
 import org.http4s.Http4s._
 import org.http4s.Status._
 import org.http4s._
@@ -112,7 +112,7 @@ object ServerTestRoutes {
   def apply() = HttpService {
     case req if req.method == Method.GET && req.pathInfo == "/get" => Response(Ok).withBody("get")
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
-      Response(Ok).withBody(eval(Task("chu")) ++ eval(Task("nk"))).putHeaders(Header.`Transfer-Encoding`(TransferCoding.chunked))
+      Response(Ok).withBody(eval(Task("chu")) ++ eval(Task("nk"))).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.method == Method.GET && req.pathInfo == "/cachechunked" =>
       Response(Ok).withBody(eval(Task("chu")) ++ eval(Task("nk")))

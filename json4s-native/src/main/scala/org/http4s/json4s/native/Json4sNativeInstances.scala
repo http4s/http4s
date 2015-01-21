@@ -2,12 +2,10 @@ package org.http4s
 package json4s
 package native
 
-import org.json4s.JsonAST.JValue
 import org.json4s.native.JsonMethods
-import _root_.jawn.support.json4s.Parser.facade
 
-trait Json4sNativeInstances {
-  implicit val json: EntityDecoder[JValue] = jawn.jawnDecoder(facade)
+import scala.text.Document
 
-  implicit val jsonEncoder: EntityEncoder[JValue] = json4sEncode(JsonMethods)
+trait Json4sNativeInstances extends Json4sInstances[Document] {
+  override protected def jsonMethods: org.json4s.JsonMethods[Document] = JsonMethods
 }

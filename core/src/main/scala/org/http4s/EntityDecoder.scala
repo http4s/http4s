@@ -5,6 +5,7 @@ import javax.xml.parsers.SAXParser
 
 import org.xml.sax.{InputSource, SAXParseException}
 import java.io.{File, FileOutputStream}
+import org.http4s.headers.`Content-Type`
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
@@ -56,10 +57,10 @@ sealed trait EntityDecoder[T] { self =>
   /** true if the [[Message]]s Content-Type header contains a [[MediaType]]
     * this [[EntityDecoder]] knows how to decode */
   def matchesMediaType(msg: Message): Boolean = {
-      msg.headers.get(Header.`Content-Type`) match {
-        case Some(h) => matchesMediaType(h.mediaType)
-        case None => false
-      }
+    msg.headers.get(`Content-Type`) match {
+      case Some(h) => matchesMediaType(h.mediaType)
+      case None => false
+    }
   }
 
   /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaType]] */

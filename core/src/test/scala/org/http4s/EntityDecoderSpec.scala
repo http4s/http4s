@@ -1,10 +1,9 @@
 package org.http4s
 
 import java.io.{File, FileInputStream, InputStreamReader}
-
-import org.http4s.Header.`Content-Type`
 import org.http4s.Status.Ok
 import scodec.bits.ByteVector
+import org.http4s.headers.`Content-Type`
 import Status._
 
 import java.io.{FileInputStream,File,InputStreamReader}

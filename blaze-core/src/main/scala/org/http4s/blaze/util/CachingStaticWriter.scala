@@ -3,7 +3,6 @@ package org.http4s.blaze.util
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.http4s.Header.`Content-Length`
 import org.http4s.blaze.StaticWriter
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter

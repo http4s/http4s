@@ -1,8 +1,9 @@
 package org.http4s
 
+import org.http4s.headers.`Accept-Charset`
+
 import java.nio.charset.{Charset => NioCharset}
 
-import org.http4s.Header.`Accept-Charset`
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
 import org.scalacheck.{Arbitrary, Gen}

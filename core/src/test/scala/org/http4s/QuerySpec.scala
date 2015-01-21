@@ -92,6 +92,12 @@ class QuerySpec extends Http4sSpec {
     "get a tail for non-empty Query" ! forAll { q: Query =>
       (q.nonEmpty) ==> (q.tail.toList == q.toList.tail)
     }
+
+    "Encode special chars in the query" in {
+      val u = Query("foo" -> Some(" !$&'()*+,;=:/?@~"), "bar" -> Some("biz"))
+      u.renderString must_== "foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A%2F%3F%40~&bar=biz"
+      Query.fromString(u.renderString) must_== u
+    }
   }
 
 }

@@ -3,6 +3,7 @@ package org.http4s
 import Http4s._
 import org.specs2.mutable.Specification
 import org.http4s.Charset._
+import headers._
 
 class ResponderSpec extends Specification {
 
@@ -18,11 +19,10 @@ class ResponderSpec extends Specification {
     }
 
     "Replace content type" in {
-      import Header._
       resp.contentType should be (None)
-      val c1 = resp.putHeaders(Header.`Content-Length`(4))
+      val c1 = resp.putHeaders(`Content-Length`(4))
         .withContentType(Some(`Content-Type`(MediaType.`text/plain`)))
-        .putHeaders(Header.Host("foo"))
+        .putHeaders(Host("foo"))
 
       c1.headers.count(_ is `Content-Type`) must_== (1)
       c1.headers.count(_ is `Content-Length`) must_== (1)
@@ -38,15 +38,15 @@ class ResponderSpec extends Specification {
     }
 
     "Replace headers" in {
-      val wHeader = resp.putHeaders(Header.Connection("close".ci))
-      wHeader.headers.get(Header.Connection) must beSome(Header.Connection("close".ci))
+      val wHeader = resp.putHeaders(Connection("close".ci))
+      wHeader.headers.get(Connection) must beSome(Connection("close".ci))
 
-      val newHeaders = wHeader.removeHeader(Header.Connection)
-      newHeaders.headers.get(Header.Connection) should be (None)
+      val newHeaders = wHeader.removeHeader(Connection)
+      newHeaders.headers.get(Connection) should be (None)
     }
 
     "Set cookie" in {
-      resp.addCookie("foo", "bar").headers.get(Header.`Set-Cookie`) must beSome(Header.`Set-Cookie`(Cookie("foo", "bar")))
+      resp.addCookie("foo", "bar").headers.get(`Set-Cookie`) must beSome(`Set-Cookie`(org.http4s.Cookie("foo", "bar")))
     }
   }
 }

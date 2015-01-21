@@ -19,7 +19,7 @@ package org.http4s
 package parser
 
 import org.parboiled2.{Rule0, Rule1, ParserInput}
-import org.http4s.Header.Authorization
+import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString._
 
 private[parser] trait AuthorizationHeader {
@@ -28,7 +28,7 @@ private[parser] trait AuthorizationHeader {
 
   private class AuthorizationParser(input: ParserInput) extends Http4sHeaderParser[Authorization](input) {
     def entry: Rule1[Authorization] = rule {
-      CredentialDef ~ EOI ~> (Header.Authorization(_))
+      CredentialDef ~ EOI ~> (Authorization(_))
     }
 
     def CredentialDef = rule {

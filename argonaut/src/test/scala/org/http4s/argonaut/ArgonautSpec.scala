@@ -4,7 +4,7 @@ package argonaut
 import java.nio.charset.StandardCharsets
 
 import _root_.argonaut._
-import org.http4s.Header.`Content-Type`
+import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.EntityEncoderSpec.writeToString
 import Status.Ok
