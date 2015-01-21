@@ -8,9 +8,10 @@ import scala.reflect.macros.Context
 import org.http4s.Uri._
 
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
-import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString }
+import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
+
 
 /** Representation of the [[Request]] URI
   * Structure containing information related to a Uri. All fields except the
@@ -177,7 +178,7 @@ object Uri extends UriFunctions {
 
   private def renderParamsAndFragment(writer: Writer, p: Query, f: Option[Fragment]): writer.type = {
     if (p.nonEmpty) writer << '?' << p
-    if (f.isDefined) writer << '#' << f.get
+    if (f.isDefined) writer << '#' << UrlCodingUtils.urlEncode(f.get, spaceIsPlus = false)
     writer
   }
 }

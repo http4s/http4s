@@ -40,7 +40,7 @@ private[util] trait UrlCodingUtils {
 
   def ensureUppercasedEncodings(string: String) = {
     LowerPctEncoded.replaceAllIn(string, (_: Match) match {
-      case Regex.Groups(v) ⇒ "%" + v.toUpperCase(Locale.ENGLISH)
+      case Regex.Groups(v) => "%" + v.toUpperCase(Locale.ENGLISH)
     })
   }
 
@@ -68,7 +68,7 @@ private[util] trait UrlCodingUtils {
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
     // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
     val out = ByteBuffer.allocate(in.remaining() * 3)
-    val skip = BitSet(toSkip.toSet[Char].map(c ⇒ c.toInt).toSeq: _*)
+    val skip = BitSet(toSkip.map(c => c.toInt): _*)
     while (in.hasRemaining) {
       val mark = in.position()
       val c = in.get()

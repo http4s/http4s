@@ -575,6 +575,17 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
   }
 
+  "Uri.renderString" should {
+    "Encode special chars in the query" in {
+      val u = Uri().withQueryParam("foo", " !$&'()*+,;=:/?@~")
+      u.renderString must_== "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A%2F%3F%40~"
+    }
+    "Encode special chars in the fragment" in {
+      val u = Uri(fragment = Some(" !$&'()*+,;=:/?@~"))
+      u.renderString must_== "/#%20!$&'()*+,;=:/?@~"
+    }
+  }
+
   "Uri relative resolution" should {
 
     // delete this method once issue #184 is resolved
