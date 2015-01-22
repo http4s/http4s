@@ -68,6 +68,9 @@ object Http4sBuild extends Build {
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
   lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.1.3"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.1.2"
+  lazy val metricsCore         = "io.dropwizard.metrics"     % "metrics-core"            % "3.1.0"
+  lazy val metricsJetty9       = "io.dropwizard.metrics"     % "metrics-jetty9"          % metricsCore.revision
+  lazy val metricsServlets     = "io.dropwizard.metrics"     % "metrics-servlets"        % metricsCore.revision
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.1"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.6"
