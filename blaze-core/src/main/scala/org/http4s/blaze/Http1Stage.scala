@@ -131,7 +131,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
           def go(): Unit = try {
             doParseContent(currentBuffer) match {
               case Some(result) =>
-                logger.debug(s"Decode successful: ${result}")
+                logger.debug(s"Decode successful: ${result}. Content complete: ${contentComplete()}")
                 cb(\/-(ByteVector(result)))
 
               case None if contentComplete() =>
@@ -189,7 +189,13 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     if (!contentComplete()) {
       while(!contentComplete() && doParseContent(buffer).nonEmpty) { /* we just discard the results */ }
 
-      if (!contentComplete()) channelRead().flatMap(newBuffer => drainBody(concatBuffers(buffer, newBuffer)))
+      if (!contentComplete()) {
+        logger.debug("Draining excess message.")
+        channelRead().flatMap { newBuffer =>
+          logger.debug(s"Drain buffer received: $newBuffer")
+          drainBody(concatBuffers(buffer, newBuffer))
+        }
+      }
       else Future.successful(buffer)
     }
     else {

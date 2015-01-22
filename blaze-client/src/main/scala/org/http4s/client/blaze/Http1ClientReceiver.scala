@@ -96,14 +96,26 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
     val (rawBody, cleanup) = collectBodyFromParser(buffer, terminationCondition)
 
     val body = rawBody ++ Process.eval_(Task.async[Unit] { cb =>
+
       if (closeOnFinish) {
+        logger.debug("Message body complete. Cleaning up.")
         stageShutdown()
         cb(\/-(()))
       }
       else cleanup().onComplete {
-        case Success(_)   => reset(); cb(\/-(()))     // we shouldn't have any leftover buffer
-        case Failure(EOF) => stageShutdown(); cb(\/-(()))
-        case Failure(t)   => cb(-\/(t))
+        case Success(_)   =>
+          reset()
+          logger.debug("Body cleanup successful.")
+          cb(\/-(()))     // we shouldn't have any leftover buffer
+
+        case Failure(EOF) =>
+          logger.debug("Body cleanup terminated with EOF")
+          stageShutdown()
+          cb(\/-(()))
+
+        case Failure(t)   =>
+          logger.debug(t)("Failure during cleanup phase")
+          cb(-\/(t))
       }
     })
 
