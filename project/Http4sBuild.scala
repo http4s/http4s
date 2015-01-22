@@ -70,6 +70,7 @@ object Http4sBuild extends Build {
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.1.2"
   lazy val metricsCore         = "io.dropwizard.metrics"     % "metrics-core"            % "3.1.0"
   lazy val metricsJetty9       = "io.dropwizard.metrics"     % "metrics-jetty9"          % metricsCore.revision
+  lazy val metricsServlet      = "io.dropwizard.metrics"     % "metrics-servlet"         % metricsCore.revision
   lazy val metricsServlets     = "io.dropwizard.metrics"     % "metrics-servlets"        % metricsCore.revision
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.0.1"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv

@@ -3,9 +3,14 @@ package server
 package tomcat
 
 import java.net.InetSocketAddress
+import java.util
+import javax.servlet.{ServletContext, ServletContainerInitializer}
 import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
+import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.servlet.InstrumentedFilter
+import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
@@ -23,12 +28,14 @@ sealed class TomcatBuilder private (
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
   sslBits: Option[SSLBits],
-  mounts: Vector[Mount]
+  mounts: Vector[Mount],
+  metricRegistry: Option[MetricRegistry]
 )
   extends ServerBuilder
   with ServletContainer
   with IdleTimeoutSupport
   with SSLSupport
+  with MetricsSupport
 {
   type Self = TomcatBuilder
 
@@ -39,8 +46,9 @@ sealed class TomcatBuilder private (
            asyncTimeout: Duration = asyncTimeout,
            servletIo: ServletIo = servletIo,
            sslBits: Option[SSLBits] = sslBits,
-           mounts: Vector[Mount] = mounts): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+           mounts: Vector[Mount] = mounts,
+           metricRegistry: Option[MetricRegistry] = metricRegistry): TomcatBuilder =
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, metricRegistry)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
@@ -87,10 +95,30 @@ sealed class TomcatBuilder private (
   override def withServletIo(servletIo: ServletIo): Self =
     copy(servletIo = servletIo)
 
+  override def withMetricRegistry(metricRegistry: MetricRegistry): Self =
+    copy(metricRegistry = Some(metricRegistry))
+
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
 
-    tomcat.addContext("", getClass.getResource("/").getPath)
+    val context = tomcat.addContext("", getClass.getResource("/").getPath)
+
+    metricRegistry.foreach { reg =>
+      val servletCtx = context.getServletContext
+      servletCtx.setAttribute(InstrumentedFilter.REGISTRY_ATTRIBUTE, reg)
+
+      val filterName = "org.http4s.server.tomcat.metrics"
+
+      val filterDef = new FilterDef
+      filterDef.setFilterName(filterName)
+      filterDef.setFilterClass(classOf[InstrumentedFilter].getName)
+      context.addFilterDef(filterDef)
+
+      val filterMap = new FilterMap
+      filterMap.setFilterName(filterName)
+      filterMap.addURLPattern("/*")
+      context.addFilterMap(filterMap)
+    }
 
     val conn = tomcat.getConnector()
 
@@ -150,7 +178,8 @@ object TomcatBuilder extends TomcatBuilder(
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,
   sslBits = None,
-  mounts = Vector.empty
+  mounts = Vector.empty,
+  metricRegistry = None
 )
 
 private case class Mount(f: (Tomcat, Int, TomcatBuilder) => Unit)
