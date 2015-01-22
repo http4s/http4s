@@ -185,7 +185,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** Cleans out any remaining body from the parser */
   final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
-    logger.debug("Draining body.")
+    logger.debug(s"Draining body: $buffer")
     if (!contentComplete()) {
       while(!contentComplete() && doParseContent(buffer).nonEmpty) { /* we just discard the results */ }
 
