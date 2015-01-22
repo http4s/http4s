@@ -1,10 +1,9 @@
 package org.http4s
 
-import java.io.{File, FileInputStream, InputStreamReader}
 import org.http4s.Status.Ok
+import org.specs2.execute.{PendingUntilFixed, Pending}
 import scodec.bits.ByteVector
 import org.http4s.headers.`Content-Type`
-import Status._
 
 import java.io.{FileInputStream,File,InputStreamReader}
 
@@ -15,7 +14,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process._
 
 
-class EntityDecoderSpec extends Http4sSpec {
+class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
   def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
 
@@ -76,11 +75,10 @@ class EntityDecoderSpec extends Http4sSpec {
     }
 
     // TODO: need to make urlDecode strict
-//    "handle a parse failure" in {
-//      val resp = server(Request(body = strBody("%C"))).run
-//      resp.status must_== Status.BadRequest
-//    }
-
+    "handle a parse failure" in {
+      val resp = server(Request(body = strBody("%C"))).run
+      resp.status must_== Status.BadRequest
+    }.pendingUntilFixed
   }
 
   "A File EntityDecoder" should {
