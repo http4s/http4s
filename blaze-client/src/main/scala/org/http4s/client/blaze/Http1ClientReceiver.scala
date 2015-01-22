@@ -120,6 +120,8 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
             logger.debug(t)("Failure during cleanup phase")
             cb(-\/(t))
         }(Execution.trampoline)
+        
+        logger.debug("Client cleanup callback registered.")
       }
     })
 
