@@ -6,6 +6,7 @@ import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blaze.util.Execution
 
 import scala.collection.mutable.ListBuffer
 import scala.util.{Failure, Success}
@@ -98,24 +99,27 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
     val body = rawBody ++ Process.eval_(Task.async[Unit] { cb =>
 
       if (closeOnFinish) {
-        logger.debug("Message body complete. Cleaning up.")
+        logger.debug("Message body complete. Shutting down.")
         stageShutdown()
         cb(\/-(()))
       }
-      else cleanup().onComplete {
-        case Success(_)   =>
-          reset()
-          logger.debug("Body cleanup successful.")
-          cb(\/-(()))     // we shouldn't have any leftover buffer
+      else {
+        logger.debug("Running cleanup.")
+        cleanup().onComplete {
+          case Success(_)   =>
+            reset()
+            logger.debug("Body cleanup successful.")
+            cb(\/-(()))     // we shouldn't have any leftover buffer
 
-        case Failure(EOF) =>
-          logger.debug("Body cleanup terminated with EOF")
-          stageShutdown()
-          cb(\/-(()))
+          case Failure(EOF) =>
+            logger.debug("Body cleanup terminated with EOF")
+            stageShutdown()
+            cb(\/-(()))
 
-        case Failure(t)   =>
-          logger.debug(t)("Failure during cleanup phase")
-          cb(-\/(t))
+          case Failure(t)   =>
+            logger.debug(t)("Failure during cleanup phase")
+            cb(-\/(t))
+        }(Execution.trampoline)
       }
     })
 
