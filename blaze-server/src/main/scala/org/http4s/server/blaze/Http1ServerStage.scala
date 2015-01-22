@@ -183,6 +183,7 @@ class Http1ServerStage(service: HttpService,
 
       case -\/(t) =>
         logger.error(t)("Error writing body")
+        closeConnection()
     }
   }
 

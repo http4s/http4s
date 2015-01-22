@@ -30,7 +30,12 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
   def getSubmission(req: Request, resp: String, timeout: Duration): (String, String) = {
     val tail = new Http1ClientStage(timeout)
-    val h = new SeqTestHead(List(mkBuffer(resp)))
+//    val h = new SeqTestHead(List(mkBuffer(resp)))
+    val h = new SeqTestHead(resp.toSeq.map{ chr =>
+      val b = ByteBuffer.allocate(1)
+      b.put(chr.toByte).flip()
+      b
+    })
     LeafBuilder(tail).base(h)
 
     val result = new String(tail.runRequest(req)

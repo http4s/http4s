@@ -10,7 +10,7 @@ import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{Command, TailStage}
-import org.http4s.blaze.util.{ChunkProcessWriter, CachingStaticWriter, CachingChunkWriter, ProcessWriter}
+import org.http4s.blaze.util._
 import org.http4s.util.{Writer, StringWriter}
 import scodec.bits.ByteVector
 
@@ -130,13 +130,28 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
           def go(): Unit = try {
             doParseContent(currentBuffer) match {
-              case Some(result) => cb(\/-(ByteVector(result)))
-              case None if contentComplete() => cb(-\/(Terminated(End)))
+              case Some(result) =>
+                logger.debug(s"Decode successful: ${result}. Content complete: ${contentComplete()}")
+                cb(\/-(ByteVector(result)))
+
+              case None if contentComplete() =>
+                logger.debug("Body Complete.")
+                cb(-\/(Terminated(End)))
+
               case None =>
+                logger.debug("Buffer underflow.")
                 channelRead().onComplete {
-                  case Success(b)   => currentBuffer = b; go() // Need more data...
-                  case Failure(EOF) => cb(-\/(eofCondition))
-                  case Failure(t)   => cb(-\/(t))
+                  case Success(b)   =>
+                    currentBuffer = BufferTools.concatBuffers(currentBuffer, b)
+                    go()
+
+                  case Failure(EOF) =>
+                    logger.debug("Failed to read body.")
+                    cb(-\/(eofCondition))
+
+                  case Failure(t)   =>
+                    logger.debug(t)("Unexpected error reading body.")
+                    cb(-\/(t))
                 }
             }
           } catch {
@@ -170,13 +185,23 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** Cleans out any remaining body from the parser */
   final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
+    logger.debug(s"Draining body: $buffer")
     if (!contentComplete()) {
       while(!contentComplete() && doParseContent(buffer).nonEmpty) { /* we just discard the results */ }
 
-      if (!contentComplete()) channelRead().flatMap(newBuffer => drainBody(concatBuffers(buffer, newBuffer)))
+      if (!contentComplete()) {
+        logger.debug("Draining excess message.")
+        channelRead().flatMap { newBuffer =>
+          logger.debug(s"Drain buffer received: $newBuffer")
+          drainBody(concatBuffers(buffer, newBuffer))
+        }
+      }
       else Future.successful(buffer)
     }
-    else Future.successful(buffer)
+    else {
+      logger.debug("Body drained.")
+      Future.successful(buffer)
+    }
   }
 }
 
