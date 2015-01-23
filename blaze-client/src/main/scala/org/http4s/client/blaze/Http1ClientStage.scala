@@ -1,6 +1,7 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
+import java.nio.channels.ClosedChannelException
 
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.headers.{Host, `Content-Length`}
@@ -9,12 +10,11 @@ import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.util.{Cancellable, ProcessWriter}
 import org.http4s.util.{StringWriter, Writer}
-import org.http4s.{Header, Request, Response, HttpVersion}
+import org.http4s.{Request, Response, HttpVersion}
 
 import scala.annotation.tailrec
 import scala.concurrent.{TimeoutException, ExecutionContext}
 import scala.concurrent.duration._
-import scala.util.control.NoStackTrace
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
@@ -39,10 +39,10 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
       Task.suspend[Response] {
         val c: Cancellable = ClientTickWheel.schedule(new Runnable {
           override def run(): Unit = {
-            inProgress.get() match {  // We must still be active, and the stage hasn't reset.
+            stageState.get() match {  // We must still be active, and the stage hasn't reset.
               case c@ \/-(_) =>
                 val ex = mkTimeoutEx(req)
-                if (inProgress.compareAndSet(c, -\/(ex))) {
+                if (stageState.compareAndSet(c, -\/(ex))) {
                   logger.debug(ex.getMessage)
                   shutdown()
                 }
@@ -52,7 +52,7 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
           }
         }, timeout)
 
-        if (!inProgress.compareAndSet(null, \/-(c))) {
+        if (!stageState.compareAndSet(null, \/-(c))) {
           c.cancel()
           Task.fail(new InProgressException)
         }
@@ -82,6 +82,7 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
 
             enc.writeProcess(req.body).runAsync {
               case \/-(_)    => receiveResponse(cb, closeHeader)
+              case -\/(EOF)  => cb(-\/(new ClosedChannelException())) // Body failed to write.
               case e@ -\/(_) => cb(e)
             }
           } catch { case t: Throwable =>
