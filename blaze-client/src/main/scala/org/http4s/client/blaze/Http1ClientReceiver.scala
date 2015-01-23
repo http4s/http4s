@@ -1,25 +1,29 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
+import java.util.concurrent.atomic.AtomicReference
 
 import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.blaze.util.Execution
+import org.http4s.blaze.util.{Cancellable, Execution}
 
 import scala.collection.mutable.ListBuffer
+import scala.concurrent.TimeoutException
 import scala.util.{Failure, Success}
 import scalaz.concurrent.Task
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.Process
-import scalaz.{-\/, \/-}
+import scalaz.{\/, -\/, \/-}
 
 abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientStage { self: Http1ClientStage =>
   private val _headers = new ListBuffer[Header]
   private var _status: Status = _
   private var _httpVersion: HttpVersion = _
   @volatile private var closed = false
+
+  protected val inProgress = new AtomicReference[TimeoutException\/Cancellable]()
 
   final override def isClosed(): Boolean = closed
 
@@ -29,14 +33,20 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
   final override def stageShutdown() = {
     closed = true
     sendOutboundCommand(Command.Disconnect)
-    shutdownParser()
+//    shutdownParser()
     super.stageShutdown()
   }
 
-  override def reset(): Unit = {
+  final override def reset(): Unit = {
+    inProgress.getAndSet(null) match {
+      case \/-(c) => c.cancel()
+      case _      => // NOOP
+    }
+
     _headers.clear()
     _status = null
     _httpVersion = null
+
     super.reset()
   }
 
@@ -69,9 +79,14 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
     readAndParse(cb, close, "Initial Read")
 
   // this method will get some data, and try to continue parsing using the implicit ec
-  private def readAndParse(cb: Callback,  closeOnFinish: Boolean, phase: String) {
+  private def readAndParse(cb: Callback,  closeOnFinish: Boolean, phase: String): Unit = {
     channelRead().onComplete {
       case Success(buff) => requestLoop(buff, closeOnFinish, cb)
+      case Failure(EOF)  => inProgress.get match {
+        case e@ -\/(_) => cb(e)
+        case _         => shutdown(); cb(-\/(EOF))
+      }
+
       case Failure(t)    =>
         fatalError(t, s"Error during phase: $phase")
         cb(-\/(t))
@@ -89,15 +104,16 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
       return
     }
 
-    val terminationCondition = {  // if we don't have a length, EOF signals the end of the body.
-      if (definedContentLength() || isChunked()) InvalidBodyException("Received premature EOF.")
-      else Terminated(End)
+    def terminationCondition() = inProgress.get match {  // if we don't have a length, EOF signals the end of the body.
+      case -\/(e) => e
+      case _      =>
+        if (definedContentLength() || isChunked()) InvalidBodyException("Received premature EOF.")
+        else Terminated(End)
     }
     // We are to the point of parsing the body and then cleaning up
     val (rawBody, cleanup) = collectBodyFromParser(buffer, terminationCondition)
 
     val body = rawBody ++ Process.eval_(Task.async[Unit] { cb =>
-
       if (closeOnFinish) {
         logger.debug("Message body complete. Shutting down.")
         stageShutdown()

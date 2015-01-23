@@ -1,7 +1,7 @@
 package org.http4s.blaze
 
 import org.http4s.blaze.pipeline.HeadStage
-import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blaze.pipeline.Command.{Disconnect, OutboundCommand, EOF}
 
 import java.nio.ByteBuffer
 
@@ -47,11 +47,23 @@ class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slo
 
   private val bodyIt = body.iterator
 
+  private def clear(): Unit = bodyIt.synchronized {
+    while(bodyIt.hasNext) bodyIt.next()
+  }
+
+  override def outboundCommand(cmd: OutboundCommand): Unit = {
+    cmd match {
+      case Disconnect => clear()
+      case _          => sys.error(s"TestHead received weird command: $cmd")
+    }
+    super.outboundCommand(cmd)
+  }
+
   override def readRequest(size: Int): Future[ByteBuffer] = {
     val p = Promise[ByteBuffer]
 
     scheduler.schedule(new Runnable {
-      override def run(): Unit = {
+      override def run(): Unit = bodyIt.synchronized {
         if (bodyIt.hasNext) p.trySuccess(bodyIt.next())
         else p.tryFailure(EOF)
       }

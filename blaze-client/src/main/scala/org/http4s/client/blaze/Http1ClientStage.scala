@@ -1,8 +1,8 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
-import java.util.concurrent.atomic.AtomicReference
 
+import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.headers.{Host, `Content-Length`}
 import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
@@ -27,15 +27,8 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
 
   protected type Callback = Throwable\/Response => Unit
   
-  private val _inProgress = new AtomicReference[Cancellable]()
-
   override def name: String = getClass.getName
 
-  override def reset(): Unit = {
-    val c = _inProgress.getAndSet(null)
-    c.cancel()
-    super.reset()
-  }
 
   override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
@@ -43,25 +36,32 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
   def runRequest(req: Request): Task[Response] = {
     // We need to race two Tasks, one that will result in failure, one that gives the Response
 
-      val resp = Task.async[Response] { cb =>
+      Task.suspend[Response] {
         val c: Cancellable = ClientTickWheel.schedule(new Runnable {
           override def run(): Unit = {
-            if (_inProgress.get() != null) {  // We must still be active, and the stage hasn't reset.
-              cb(-\/(mkTimeoutEx))
-              shutdown()
+            inProgress.get() match {  // We must still be active, and the stage hasn't reset.
+              case c@ \/-(_) =>
+                val ex = mkTimeoutEx(req)
+                if (inProgress.compareAndSet(c, -\/(ex))) {
+                  logger.debug(ex.getMessage)
+                  shutdown()
+                }
+
+              case _ => // NOOP
             }
           }
         }, timeout)
 
-        if (!_inProgress.compareAndSet(null, c)) {
+        if (!inProgress.compareAndSet(null, \/-(c))) {
           c.cancel()
-          cb(-\/(new InProgressException))
+          Task.fail(new InProgressException)
         }
-        else executeRequest(req).runAsync(cb)
+        else executeRequest(req)
       }
-
-      resp
   }
+
+  private def mkTimeoutEx(req: Request) =
+    new TimeoutException(s"Client request $req  timed out after $timeout")
 
   private def executeRequest(req: Request): Task[Response] = {
     logger.debug(s"Beginning request: $req")
@@ -123,8 +123,6 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
     else if (req.uri.path == "") Right(req.copy(uri = req.uri.copy(path = "/")))
     else Right(req) // All appears to be well
   }
-
-  private def mkTimeoutEx = new TimeoutException(s"Request timed out. Timeout: $timeout") with NoStackTrace
 
   private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 
