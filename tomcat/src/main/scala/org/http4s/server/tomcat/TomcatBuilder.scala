@@ -9,7 +9,7 @@ import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
 import com.codahale.metrics.MetricRegistry
-import com.codahale.metrics.servlet.InstrumentedFilter
+import com.codahale.metrics.servlet.{AbstractInstrumentedFilter, InstrumentedFilter}
 import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
@@ -29,7 +29,8 @@ sealed class TomcatBuilder private (
   private val servletIo: ServletIo,
   sslBits: Option[SSLBits],
   mounts: Vector[Mount],
-  metricRegistry: Option[MetricRegistry]
+  metricRegistry: Option[MetricRegistry],
+  metricPrefix: String
 )
   extends ServerBuilder
   with ServletContainer
@@ -47,8 +48,9 @@ sealed class TomcatBuilder private (
            servletIo: ServletIo = servletIo,
            sslBits: Option[SSLBits] = sslBits,
            mounts: Vector[Mount] = mounts,
-           metricRegistry: Option[MetricRegistry] = metricRegistry): TomcatBuilder =
-    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, metricRegistry)
+           metricRegistry: Option[MetricRegistry] = metricRegistry,
+           metricPrefix: String = metricPrefix): TomcatBuilder =
+    new TomcatBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, metricRegistry, metricPrefix)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
@@ -104,6 +106,8 @@ sealed class TomcatBuilder private (
   override def withMetricRegistry(metricRegistry: MetricRegistry): Self =
     copy(metricRegistry = Some(metricRegistry))
 
+  override def withMetricPrefix(metricPrefix: String): Self = copy(metricPrefix = metricPrefix)
+
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
 
@@ -118,6 +122,7 @@ sealed class TomcatBuilder private (
       val filterDef = new FilterDef
       filterDef.setFilterName(filterName)
       filterDef.setFilterClass(classOf[InstrumentedFilter].getName)
+      filterDef.getParameterMap.put("name-prefix", metricPrefix)
       context.addFilterDef(filterDef)
 
       val filterMap = new FilterMap
@@ -185,7 +190,8 @@ object TomcatBuilder extends TomcatBuilder(
   servletIo = ServletContainer.DefaultServletIo,
   sslBits = None,
   mounts = Vector.empty,
-  metricRegistry = None
+  metricRegistry = None,
+  metricPrefix = MetricsSupport.DefaultPrefix
 )
 
 private case class Mount(f: (Tomcat, Int, TomcatBuilder) => Unit)

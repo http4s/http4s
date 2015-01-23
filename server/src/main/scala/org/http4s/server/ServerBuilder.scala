@@ -76,4 +76,10 @@ trait MetricsSupport { this: ServerBuilder =>
    * Triggers collection of backend-specific Metrics into the specified [[MetricRegistry]].
    */
   def withMetricRegistry(metricRegistry: MetricRegistry): Self
+
+  /** Sets the prefix for metrics gathered by the server.*/
+  def withMetricPrefix(metricPrefix: String): Self
+}
+object MetricsSupport {
+  val DefaultPrefix = "org.http4s.server"
 }

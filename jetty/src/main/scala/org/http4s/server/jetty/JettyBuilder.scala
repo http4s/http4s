@@ -32,7 +32,8 @@ sealed class JettyBuilder private (
   private val servletIo: ServletIo,
   sslBits: Option[SSLBits],
   mounts: Vector[Mount],
-  metricRegistry: Option[MetricRegistry]
+  metricRegistry: Option[MetricRegistry],
+  metricPrefix: String
 )
   extends ServerBuilder
   with ServletContainer
@@ -49,8 +50,9 @@ sealed class JettyBuilder private (
                    servletIo: ServletIo = servletIo,
                    sslBits: Option[SSLBits] = sslBits,
                    mounts: Vector[Mount] = mounts,
-                   metricRegistry: Option[MetricRegistry] = metricRegistry): JettyBuilder =
-    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, metricRegistry)
+                   metricRegistry: Option[MetricRegistry] = metricRegistry,
+                   metricPrefix: String = metricPrefix): JettyBuilder =
+    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, metricRegistry, metricPrefix)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
@@ -101,6 +103,8 @@ sealed class JettyBuilder private (
   override def withMetricRegistry(metricRegistry: MetricRegistry): Self =
     copy(metricRegistry = Some(metricRegistry))
 
+  override def withMetricPrefix(metricPrefix: String): Self = copy(metricPrefix = metricPrefix)
+
   private def getConnector(jetty: JServer): ServerConnector = sslBits match {
     case Some(sslBits) =>
       // SSL Context Factory
@@ -135,7 +139,8 @@ sealed class JettyBuilder private (
 
   private def instrumentConnectionFactory(connectionFactory: ConnectionFactory) =
     metricRegistry.fold(connectionFactory) { reg =>
-      new InstrumentedConnectionFactory(connectionFactory, reg.timer("http.connections"))
+      val timer = reg.timer(MetricRegistry.name(metricPrefix, "connections"))
+      new InstrumentedConnectionFactory(connectionFactory, timer)
     }
 
   def start: Task[Server] = Task.delay {
@@ -146,7 +151,7 @@ sealed class JettyBuilder private (
     context.setContextPath("/")
 
     val handler = metricRegistry.fold[Handler](context) { reg =>
-      val h = new InstrumentedHandler(reg)
+      val h = new InstrumentedHandler(reg, metricPrefix)
       h.setHandler(context)
       h
     }
@@ -189,7 +194,8 @@ object JettyBuilder extends JettyBuilder(
   servletIo = ServletContainer.DefaultServletIo,
   sslBits = None,
   mounts = Vector.empty,
-  metricRegistry = None
+  metricRegistry = None,
+  metricPrefix = MetricsSupport.DefaultPrefix
 )
 
 private case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)
