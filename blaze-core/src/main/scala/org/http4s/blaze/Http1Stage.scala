@@ -129,28 +129,26 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
         if (!contentComplete()) {
 
           def go(): Unit = try {
-            doParseContent(currentBuffer) match {
+            val parseResult = doParseContent(currentBuffer)
+            logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
+            parseResult match {
               case Some(result) =>
-                logger.debug(s"Decode successful: ${result}. Content complete: ${contentComplete()}")
                 cb(\/-(ByteVector(result)))
 
               case None if contentComplete() =>
-                logger.debug("Body Complete.")
                 cb(-\/(Terminated(End)))
 
               case None =>
-                logger.debug("Buffer underflow.")
                 channelRead().onComplete {
                   case Success(b)   =>
                     currentBuffer = BufferTools.concatBuffers(currentBuffer, b)
                     go()
 
                   case Failure(EOF) =>
-                    logger.debug("Failed to read body.")
                     cb(-\/(eofCondition))
 
                   case Failure(t)   =>
-                    logger.debug(t)("Unexpected error reading body.")
+                    logger.error(t)("Unexpected error reading body.")
                     cb(-\/(t))
                 }
             }
@@ -185,21 +183,21 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** Cleans out any remaining body from the parser */
   final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
-    logger.debug(s"Draining body: $buffer")
+    logger.trace(s"Draining body: $buffer")
     if (!contentComplete()) {
       while(!contentComplete() && doParseContent(buffer).nonEmpty) { /* we just discard the results */ }
 
       if (!contentComplete()) {
-        logger.debug("Draining excess message.")
+        logger.trace("drainBody needs more data.")
         channelRead().flatMap { newBuffer =>
-          logger.debug(s"Drain buffer received: $newBuffer")
+          logger.trace(s"Drain buffer received: $newBuffer")
           drainBody(concatBuffers(buffer, newBuffer))
-        }
+        }(Execution.trampoline)
       }
       else Future.successful(buffer)
     }
     else {
-      logger.debug("Body drained.")
+      logger.trace("Body drained.")
       Future.successful(buffer)
     }
   }

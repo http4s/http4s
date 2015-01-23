@@ -104,24 +104,22 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
         cb(\/-(()))
       }
       else {
-        logger.debug("Running cleanup.")
-        cleanup().onComplete {
-          case Success(_)   =>
-            reset()
-            logger.debug("Body cleanup successful.")
-            cb(\/-(()))     // we shouldn't have any leftover buffer
+        logger.debug("Running client cleanup.")
+        cleanup().onComplete { t =>
+          logger.debug(s"Client body cleanup result: $t")
+          t match {
+            case Success(_)   =>
+              reset()
+              cb(\/-(()))     // we shouldn't have any leftover buffer
 
-          case Failure(EOF) =>
-            logger.debug("Body cleanup terminated with EOF")
-            stageShutdown()
-            cb(\/-(()))
+            case Failure(EOF) =>
+              stageShutdown()
+              cb(\/-(()))
 
-          case Failure(t)   =>
-            logger.debug(t)("Failure during cleanup phase")
-            cb(-\/(t))
+            case Failure(t)   =>
+              cb(-\/(t))
+          }
         }(Execution.trampoline)
-        
-        logger.debug("Client cleanup callback registered.")
       }
     })
 
