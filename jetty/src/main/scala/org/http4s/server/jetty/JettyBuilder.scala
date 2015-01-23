@@ -90,6 +90,14 @@ sealed class JettyBuilder private (
   override def withServletIo(servletIo: ServletIo): Self =
     copy(servletIo = servletIo)
 
+  /**
+   * Collects metrics into the specified [[MetricRegistry]], including:
+   * * Connections via [[InstrumentedConnectionFactory]]
+   * * The Jetty thread pool via [[InstrumentedQueuedThreadPool]]
+   * * HTTP responses via [[InstrumentedHandler]]
+   *
+   * @param metricRegistry The registry to collect metrics into..
+   */
   override def withMetricRegistry(metricRegistry: MetricRegistry): Self =
     copy(metricRegistry = Some(metricRegistry))
 

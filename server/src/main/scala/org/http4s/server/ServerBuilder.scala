@@ -72,5 +72,8 @@ object SSLSupport {
 }
 
 trait MetricsSupport { this: ServerBuilder =>
+  /**
+   * Triggers collection of backend-specific Metrics into the specified [[MetricRegistry]].
+   */
   def withMetricRegistry(metricRegistry: MetricRegistry): Self
 }

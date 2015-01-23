@@ -95,6 +95,12 @@ sealed class TomcatBuilder private (
   override def withServletIo(servletIo: ServletIo): Self =
     copy(servletIo = servletIo)
 
+  /**
+   * Installs an [[InstrumentedFilter]] around the root of the context to collect
+   * HTTP response metrics.
+   *
+   * @param metricRegistry The registry to collect metrics into..
+   */
   override def withMetricRegistry(metricRegistry: MetricRegistry): Self =
     copy(metricRegistry = Some(metricRegistry))
 
