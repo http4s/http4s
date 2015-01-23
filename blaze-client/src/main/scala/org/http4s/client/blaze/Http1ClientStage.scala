@@ -54,7 +54,7 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
 
         if (!stageState.compareAndSet(null, \/-(c))) {
           c.cancel()
-          Task.fail(new InProgressException)
+          Task.fail(InProgressException)
         }
         else executeRequest(req)
       }
@@ -148,7 +148,7 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
 }
 
 object Http1ClientStage {
-  class InProgressException extends Exception("Stage has request in progress")
+  case object InProgressException extends Exception("Stage has request in progress")
 }
 
 

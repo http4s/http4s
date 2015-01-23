@@ -86,7 +86,7 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
       tail.runRequest(req).run  // we remain in the body
 
-      tail.runRequest(req).run must throwA[Http1ClientStage.InProgressException]
+      tail.runRequest(req).run must throwA[Http1ClientStage.InProgressException.type]
     }
 
     "Reset correctly" in {
