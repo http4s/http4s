@@ -2,12 +2,14 @@ package org.http4s
 
 import org.http4s.headers.`Accept-Charset`
 
-import scala.collection.JavaConverters._
 import java.nio.charset.{Charset => NioCharset}
-import org.scalacheck.{Arbitrary, Gen}
+
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
+import org.scalacheck.{Arbitrary, Gen}
 
+import scala.collection.JavaConverters._
+import scala.collection.immutable.BitSet
 import scalaz.NonEmptyList
 import scalaz.scalacheck.ScalazArbitrary._
 
@@ -96,6 +98,17 @@ trait TestInstances {
 
   implicit val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary { arbitrary[NonEmptyList[CharsetRange.`*`]].map(`Accept-Charset`(_)) }
+
+  implicit val urlFormArb: Arbitrary[UrlForm] = Arbitrary {
+    // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
+    // Ain't nobody got time for that.
+    arbitrary[Map[String, Seq[String]]].map(UrlForm.apply)
+      .suchThat(!_.toString.contains('\ufffe'))
+  }
+ 
+  implicit val bitSetArb: Arbitrary[BitSet] = Arbitrary(
+    Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
+  )
 }
 
 

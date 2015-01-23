@@ -1,17 +1,20 @@
 package org.http4s.util
 
-import scalaz.syntax.Ops
-import scala.io.Codec
 import java.util.regex.Pattern
+
+import org.http4s.Charset
+
+import scala.io.Codec
+import scalaz.syntax.Ops
 
 trait StringOps extends Ops[String] {
   def isBlank = self == null || self.trim.nonEmpty
   def nonBlank = !isBlank
   def blankOption = if (isBlank) None else Some(self)
 
-  def urlEncode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlEncode(self, cs.charSet)
+  def urlEncode(implicit cs: Codec = Codec.UTF8): String  = UrlCodingUtils.urlEncode(self, cs.charSet)
   def formEncode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlEncode(self, cs.charSet, spaceIsPlus = true)
-  def urlDecode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlDecode(self, cs.charSet)
+  def urlDecode(implicit cs: Codec = Codec.UTF8): String  = UrlCodingUtils.urlDecode(self, cs.charSet)
   def formDecode(implicit cs: Codec = Codec.UTF8): String = UrlCodingUtils.urlDecode(self, cs.charSet, plusIsSpace = true)
 
   def /(path: String) = (self.endsWith("/"), path.startsWith("/")) match {

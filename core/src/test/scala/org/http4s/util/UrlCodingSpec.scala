@@ -4,11 +4,14 @@
  */
 package org.http4s.util
 
+import org.http4s.util.UrlCodingUtils._
 import org.specs2.{ScalaCheck, Specification}
-import UrlCodingUtils._
-import collection.immutable.BitSet
+
+import scala.collection.immutable.BitSet
 
 class UrlCodingSpec extends Specification with ScalaCheck {
+  def bitSet(s: String): BitSet = BitSet(s.toSet[Char].map(_.toInt).toSeq: _*)
+
   def is =
 
     "Encoding a URI should" ^
@@ -48,11 +51,11 @@ class UrlCodingSpec extends Specification with ScalaCheck {
         urlDecode("%C3%A9") must_== "é"
       } ^
       "skip the chars in toSkip when decoding" ^
-        "skips '%2F' when decoding" ! { urlDecode("%2F", toSkip = "/?#") must_== "%2F" } ^
-        "skips '%23' when decoding" ! { urlDecode("%23", toSkip = "/?#") must_== "%23" } ^
-        "skips '%3F' when decoding" ! { urlDecode("%3F", toSkip = "/?#") must_== "%3F" } ^
-        "still encodes others" ! { urlDecode("br%C3%BCcke", toSkip = "/?#") must_== "brücke"} ^
-        "handles mixed" ! { urlDecode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = "/?#") must_== "/ac%2Fdc/brücke%2342%3Fcheck"} ^ p ^
+        "skips '%2F' when decoding" ! { urlDecode("%2F", toSkip = bitSet("/?#")) must_== "%2F" } ^
+        "skips '%23' when decoding" ! { urlDecode("%23", toSkip = bitSet("/?#")) must_== "%23" } ^
+        "skips '%3F' when decoding" ! { urlDecode("%3F", toSkip = bitSet("/?#")) must_== "%3F" } ^
+        "still encodes others" ! { urlDecode("br%C3%BCcke", toSkip = bitSet("/?#")) must_== "brücke"} ^
+        "handles mixed" ! { urlDecode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = bitSet("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"} ^ p ^
     "The plusIsSpace flag specifies how to treat pluses" ^
       "it treats + as allowed when the plusIsSpace flag is either not supplied or supplied as false" ! {
         urlDecode("+") must_== "+"

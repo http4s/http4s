@@ -1,5 +1,9 @@
 package org.http4s
 
+import java.io.{File, FileOutputStream, StringReader}
+import javax.xml.parsers.SAXParser
+
+import org.xml.sax.{InputSource, SAXParseException}
 import java.io.{File, FileOutputStream}
 import org.http4s.headers.`Content-Type`
 import scodec.bits.ByteVector
@@ -7,10 +11,10 @@ import scodec.bits.ByteVector
 import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 import scalaz.Liskov.{<~<, refl}
-import scalaz.{\/, -\/, \/-, EitherT}
 import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
+import scalaz.{-\/, EitherT, \/, \/-}
 
 import util.UrlFormCodec.{ decode => formDecode }
 import util.byteVector._
@@ -116,7 +120,7 @@ object EntityDecoder extends EntityDecoderInstances {
 
 /** Implementations of the EntityDecoder instances */
 trait EntityDecoderInstances {
-  import EntityDecoder._
+  import org.http4s.EntityDecoder._
 
   /////////////////// Instances //////////////////////////////////////////////
 
@@ -136,15 +140,6 @@ trait EntityDecoderInstances {
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
       collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset))
     )
-
-  // application/x-www-form-urlencoded
-  implicit val formEncoded: EntityDecoder[Map[String, Seq[String]]] = {
-    val fn = decodeString(_: Message).flatMap { s =>
-      Task.now(formDecode(s))
-    }
-
-    EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`)(fn.andThen(DecodeResult.apply))
-  }
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
   def binFile(file: File): EntityDecoder[File] =

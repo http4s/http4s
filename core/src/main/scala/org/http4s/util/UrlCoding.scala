@@ -63,12 +63,11 @@ private[util] trait UrlCodingUtils {
     out.toString
   }
 
-  def urlDecode(toDecode: String, charset: Charset = Utf8, plusIsSpace: Boolean = false, toSkip: String = "") = {
+  def urlDecode(toDecode: String, charset: Charset = Utf8, plusIsSpace: Boolean = false, toSkip: BitSet = BitSet.empty) = {
     val in = CharBuffer.wrap(toDecode)
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
     // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
     val out = ByteBuffer.allocate(in.remaining() * 3)
-    val skip = BitSet(toSkip.map(c => c.toInt): _*)
     while (in.hasRemaining) {
       val mark = in.position()
       val c = in.get()
@@ -80,7 +79,7 @@ private[util] trait UrlCodingUtils {
           val y = Character.digit(yc, 0x10)
           if (x != -1 && y != -1) {
             val oo = (x << 4) + y
-            if (!skip.contains(oo)) {
+            if (!toSkip.contains(oo)) {
               out.put(oo.toByte)
             } else {
               out.put('%'.toByte)
@@ -92,7 +91,7 @@ private[util] trait UrlCodingUtils {
             in.position(mark+1)
           }
         } else {
-          out.put('%'.toByte)
+          while(in.hasRemaining) in.get() // just burn the rest of the bytes
         }
       } else if (c == '+' && plusIsSpace) {
         out.put(' '.toByte)
