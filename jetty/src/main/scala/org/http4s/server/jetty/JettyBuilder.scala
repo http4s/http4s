@@ -2,7 +2,7 @@ package org.http4s
 package server
 package jetty
 
-import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.{InstrumentedExecutorService, MetricRegistry}
 import com.codahale.metrics.jetty9.{InstrumentedHandler, InstrumentedQueuedThreadPool, InstrumentedConnectionFactory}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
@@ -76,7 +76,7 @@ sealed class JettyBuilder private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        threadPool = builder.serviceExecutor
+        threadPool = builder.instrumentedServiceExecutor
       )
       val servletName = s"servlet-$index"
       val urlMapping = s"$prefix/*"
@@ -142,6 +142,10 @@ sealed class JettyBuilder private (
       val timer = reg.timer(MetricRegistry.name(metricPrefix, "connections"))
       new InstrumentedConnectionFactory(connectionFactory, timer)
     }
+
+  private def instrumentedServiceExecutor = metricRegistry.fold(serviceExecutor) {
+    new InstrumentedExecutorService(serviceExecutor, _, MetricRegistry.name(metricPrefix, "service-executor"))
+  }
 
   def start: Task[Server] = Task.delay {
     val threadPool = metricRegistry.fold(new QueuedThreadPool)(new InstrumentedQueuedThreadPool(_))

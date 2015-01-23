@@ -8,7 +8,7 @@ import javax.servlet.{ServletContext, ServletContainerInitializer}
 import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
-import com.codahale.metrics.MetricRegistry
+import com.codahale.metrics.{InstrumentedExecutorService, MetricRegistry}
 import com.codahale.metrics.servlet.{AbstractInstrumentedFilter, InstrumentedFilter}
 import org.apache.tomcat.util.descriptor.web.{FilterMap, FilterDef}
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
@@ -76,7 +76,7 @@ sealed class TomcatBuilder private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        threadPool = builder.serviceExecutor
+        threadPool = builder.instrumentedServiceExecutor
       )
       val wrapper = tomcat.addServlet("", s"servlet-$index", servlet)
       wrapper.addMapping(s"$prefix/*")
@@ -107,6 +107,10 @@ sealed class TomcatBuilder private (
     copy(metricRegistry = Some(metricRegistry))
 
   override def withMetricPrefix(metricPrefix: String): Self = copy(metricPrefix = metricPrefix)
+
+  private def instrumentedServiceExecutor = metricRegistry.fold(serviceExecutor) {
+    new InstrumentedExecutorService(serviceExecutor, _, MetricRegistry.name(metricPrefix, "service-executor"))
+  }
 
   override def start: Task[Server] = Task.delay {
     val tomcat = new Tomcat
