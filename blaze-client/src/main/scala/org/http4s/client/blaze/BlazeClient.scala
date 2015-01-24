@@ -4,59 +4,38 @@ import org.http4s.blaze.pipeline.Command
 import org.http4s.client.Client
 import org.http4s.{Request, Response}
 
-import scala.concurrent.{ExecutionContext, Future}
-import scala.util.{Failure, Success, Try}
 import scalaz.concurrent.Task
 import scalaz.stream.Process.eval_
 import scalaz.{-\/, \/-}
 
-/** Base on which to implement a BlazeClient */
-trait BlazeClient extends PipelineBuilder with Client {
+/** Blaze client implementation */
+final class BlazeClient(manager: ConnectionManager) extends Client {
 
-  implicit protected def ec: ExecutionContext
+  /** Shutdown this client, closing any open connections and freeing resources */
+  override def shutdown(): Task[Unit] = manager.shutdown()
 
-  /** Recycle or close the connection
-    * Allow for smart reuse or simple closing of a connection after the completion of a request
-    * @param request [[Request]] to connect too
-    * @param stage the [[BlazeClientStage]] which to deal with
-    */
-  protected def recycleClient(request: Request, stage: BlazeClientStage): Unit = stage.shutdown()
-
-  /** Get a connection to the provided address
-    * @param request [[Request]] to connect too
-    * @param fresh if the client should force a new connection
-    * @return a Future with the connected [[BlazeClientStage]] of a blaze pipeline
-    */
-  protected def getClient(request: Request, fresh: Boolean): Future[BlazeClientStage]
-
-
-
-  override def prepare(req: Request): Task[Response] = Task.async { cb =>
-    def tryClient(client: Try[BlazeClientStage], retries: Int): Unit = client match {
-      case Success(client) =>
-        client.runRequest(req).runAsync {
+  override def prepare(req: Request): Task[Response] = {
+    def tryClient(client: BlazeClientStage, freshClient: Boolean): Task[Response] = {
+        client.runRequest(req).attempt.flatMap {
           case \/-(r)    =>
             val recycleProcess = eval_(Task.delay {
               if (!client.isClosed()) {
-                recycleClient(req, client)
+                manager.recycleClient(req, client)
               }
             })
+            Task.now(r.copy(body = r.body ++ recycleProcess))
 
-            cb(\/-(r.copy(body = r.body ++ recycleProcess)))
+          case -\/(Command.EOF) if !freshClient =>
+            manager.getClient(req, fresh = true).flatMap(tryClient(_, true))
 
-          case -\/(Command.EOF) if retries > 0 =>
-            getClient(req, fresh = true).onComplete(tryClient(_, retries - 1))
-
-          case e@ -\/(_) =>
+          case -\/(e) =>
             if (!client.isClosed()) {
-              client.sendOutboundCommand(Command.Disconnect)
+              client.shutdown()
             }
-            cb(e)
+            Task.fail(e)
         }
-
-      case Failure(t) => cb (-\/(t))
     }
 
-    getClient(req, fresh = false).onComplete(tryClient(_, 1))
+    manager.getClient(req, fresh = false).flatMap(tryClient(_, false))
   }
 }
