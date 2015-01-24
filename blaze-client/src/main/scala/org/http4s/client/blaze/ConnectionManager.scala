@@ -2,7 +2,6 @@ package org.http4s.client.blaze
 
 import org.http4s.Request
 
-import scala.concurrent.Future
 import scalaz.concurrent.Task
 
 trait ConnectionManager {
@@ -15,7 +14,7 @@ trait ConnectionManager {
     * @param fresh if the client should force a new connection
     * @return a Future with the connected [[BlazeClientStage]] of a blaze pipeline
     */
-  def getClient(request: Request, fresh: Boolean): Future[BlazeClientStage]
+  def getClient(request: Request, fresh: Boolean): Task[BlazeClientStage]
   
   /** Recycle or close the connection
     * Allow for smart reuse or simple closing of a connection after the completion of a request

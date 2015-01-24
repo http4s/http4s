@@ -4,10 +4,12 @@ import java.io.IOException
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
+import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
+import org.http4s.util.task
 import org.http4s.{Uri, Request}
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
@@ -16,22 +18,24 @@ import org.http4s.util.CaseInsensitiveString._
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration
 import scala.concurrent.Future
+
 import scalaz.concurrent.Task
 
 import scalaz.{\/, -\/, \/-}
 
 /** Provides basic HTTP1 pipeline building
   *
-  * Also serves as a non-recycling [[ConnectionManager]]
-  * */
+  * Also serves as a non-recycling [[ConnectionManager]] */
 final class Http1Support(bufferSize: Int,
                             timeout: Duration,
-                                 ec: ExecutionContext,
+                                 es: ExecutorService,
                         osslContext: Option[SSLContext],
                               group: Option[AsynchronousChannelGroup])
   extends ConnectionBuilder with ConnectionManager
 {
   import Http1Support._
+
+  private val ec = ExecutionContext.fromExecutorService(es)
 
   private val sslContext = osslContext.getOrElse(bits.sslContext)
   private val connectionManager = new ClientChannelFactory(bufferSize, group.orNull)
@@ -41,7 +45,7 @@ final class Http1Support(bufferSize: Int,
     * @param fresh if the client should force a new connection
     * @return a Future with the connected [[BlazeClientStage]] of a blaze pipeline
     */
-  override def getClient(request: Request, fresh: Boolean): Future[BlazeClientStage] =
+  override def getClient(request: Request, fresh: Boolean): Task[BlazeClientStage] =
     makeClient(request)
 
   /** Free resources associated with this client factory */
@@ -49,8 +53,10 @@ final class Http1Support(bufferSize: Int,
 
 ////////////////////////////////////////////////////
 
-  def makeClient(req: Request): Future[BlazeClientStage] =
-    getAddress(req).fold(Future.failed, buildPipeline(req, _))
+  def makeClient(req: Request): Task[BlazeClientStage] = getAddress(req) match {
+    case \/-(a) => task.futureToTask(buildPipeline(req, a))(ec)
+    case -\/(t) => Task.fail(t)
+  }
 
   private def buildPipeline(req: Request, addr: InetSocketAddress): Future[BlazeClientStage] = {
     connectionManager.connect(addr, bufferSize).map { head =>

@@ -45,14 +45,15 @@ final class PoolManager(maxPooledConnections: Int,
       }
     }
 
-  override def getClient(request: Request, fresh: Boolean): Future[BlazeClientStage] =
+  override def getClient(request: Request, fresh: Boolean): Task[BlazeClientStage] = Task.suspend {
     cs.synchronized {
-      if (closed) Future.failed(new Exception("Client is closed"))
-      else cs.dequeueFirst{ case Connection(sch, auth, _) =>
+      if (closed) Task.fail(new Exception("Client is closed"))
+      else cs.dequeueFirst { case Connection(sch, auth, _) =>
         sch == request.uri.scheme && auth == request.uri.authority
       } match {
-        case Some(Connection(_,_,stage)) => Future.successful(stage)
-        case None                        => builder.makeClient(request)
+        case Some(Connection(_, _, stage)) => Task.now(stage)
+        case None => builder.makeClient(request)
       }
     }
+  }
 }
