@@ -116,7 +116,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     *                     The desired result will differ between Client and Server as the former can interpret
     *                     and [[EOF]] as the end of the body while a server cannot.
     */
-  final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition: Throwable): (EntityBody, () => Future[ByteBuffer]) = {
+  final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition:() => Throwable): (EntityBody, () => Future[ByteBuffer]) = {
     if (contentComplete()) {
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
@@ -145,7 +145,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                     go()
 
                   case Failure(EOF) =>
-                    cb(-\/(eofCondition))
+                    cb(-\/(eofCondition()))
 
                   case Failure(t)   =>
                     logger.error(t)("Unexpected error reading body.")
