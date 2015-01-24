@@ -14,8 +14,9 @@ import org.http4s.blaze.util._
 import org.http4s.util.{Writer, StringWriter}
 import scodec.bits.ByteVector
 
-import scala.concurrent.{Future, ExecutionContext}
+import scala.concurrent.{Future, ExecutionContext, Promise}
 import scala.util.{Failure, Success}
+
 import scalaz.stream.Process._
 import scalaz.stream.Cause.{Terminated, End}
 import scalaz.{-\/, \/-}
@@ -184,20 +185,38 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   /** Cleans out any remaining body from the parser */
   final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
     logger.trace(s"Draining body: $buffer")
-    if (!contentComplete()) {
-      while(!contentComplete() && doParseContent(buffer).nonEmpty) { /* we just discard the results */ }
 
-      if (!contentComplete()) {
-        logger.trace("drainBody needs more data.")
-        channelRead().flatMap { newBuffer =>
-          logger.trace(s"Drain buffer received: $newBuffer")
-          drainBody(concatBuffers(buffer, newBuffer))
-        }(Execution.trampoline)
-      }
-      else Future.successful(buffer)
+    def drainBody(buffer: ByteBuffer, p: Promise[ByteBuffer]): Unit = {
+      try {
+        if (!contentComplete()) {
+          while(!contentComplete() && doParseContent(buffer).nonEmpty) { } // we just discard the results
+
+          if (!contentComplete()) {
+            logger.trace("drainBody needs more data.")
+            channelRead().onComplete {
+              case Success(newBuffer) =>
+                logger.trace(s"Drain buffer received: $newBuffer")
+                drainBody(concatBuffers(buffer, newBuffer), p)
+
+              case Failure(t) => p.tryFailure(t)
+            }(Execution.trampoline)
+          }
+          else p.trySuccess(buffer)
+        }
+        else {
+          logger.trace("Body drained.")
+          p.trySuccess(buffer)
+        }
+      } catch { case t: Throwable => p.tryFailure(t) }
+    }
+
+    if (!contentComplete()) {
+      val p = Promise[ByteBuffer]
+      drainBody(buffer, p)
+      p.future
     }
     else {
-      logger.trace("Body drained.")
+      logger.trace("No body to drain.")
       Future.successful(buffer)
     }
   }
