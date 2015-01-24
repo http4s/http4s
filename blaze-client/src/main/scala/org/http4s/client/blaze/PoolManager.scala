@@ -18,11 +18,8 @@ final class PoolManager(maxPooledConnections: Int,
   private case class Connection(scheme: Option[Scheme], auth: Option[Authority], stage: BlazeClientStage)
 
   private[this] val logger = getLogger
-  private var closed = false
+  private var closed = false  // All access in synchronized blocks, no need to be volatile
   private val cs = new mutable.Queue[Connection]()
-
-
-
 
   /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = builder.shutdown().map {_ =>
@@ -54,8 +51,8 @@ final class PoolManager(maxPooledConnections: Int,
       else cs.dequeueFirst{ case Connection(sch, auth, _) =>
         sch == request.uri.scheme && auth == request.uri.authority
       } match {
-        case Some(Connection(sch,auth,stage)) => Future.successful(stage)
-        case None            => builder.makeClient(request)
+        case Some(Connection(_,_,stage)) => Future.successful(stage)
+        case None                        => builder.makeClient(request)
       }
     }
 }

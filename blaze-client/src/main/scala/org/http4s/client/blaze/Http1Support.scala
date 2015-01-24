@@ -6,6 +6,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.AsynchronousChannelGroup
 import javax.net.ssl.SSLContext
 
+import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
 import org.http4s.{Uri, Request}
 import org.http4s.blaze.pipeline.LeafBuilder
@@ -30,11 +31,10 @@ final class Http1Support(bufferSize: Int,
                               group: Option[AsynchronousChannelGroup])
   extends ConnectionBuilder with ConnectionManager
 {
+  import Http1Support._
 
-  private val Https = "https".ci
-  private val Http = "http".ci
-  
   private val sslContext = osslContext.getOrElse(bits.sslContext)
+  private val connectionManager = new ClientChannelFactory(bufferSize, group.orNull)
 
   /** Get a connection to the provided address
     * @param request [[Request]] to connect too
@@ -47,8 +47,6 @@ final class Http1Support(bufferSize: Int,
   /** Free resources associated with this client factory */
   override def shutdown(): Task[Unit] = Task.now(())
 
-  protected val connectionManager = new ClientChannelFactory(bufferSize, group.orNull)
-
 ////////////////////////////////////////////////////
 
   def makeClient(req: Request): Future[BlazeClientStage] =
@@ -56,16 +54,16 @@ final class Http1Support(bufferSize: Int,
 
   private def buildPipeline(req: Request, addr: InetSocketAddress): Future[BlazeClientStage] = {
     connectionManager.connect(addr, bufferSize).map { head =>
-      val (builder, t) = buildStages(req)
+      val (builder, t) = buildStages(req.uri)
       builder.base(head)
       t
     }(ec)
   }
 
-  private def buildStages(req: Request): (LeafBuilder[ByteBuffer], BlazeClientStage) = {
+  private def buildStages(uri: Uri): (LeafBuilder[ByteBuffer], BlazeClientStage) = {
     val t = new Http1ClientStage(timeout)(ec)
     val builder = LeafBuilder(t)
-    req.uri match {
+    uri match {
       case Uri(Some(Https),_,_,_,_) =>
         val eng = sslContext.createSSLEngine()
         eng.setUseClientMode(true)
@@ -84,4 +82,9 @@ final class Http1Support(bufferSize: Int,
         \/-(new InetSocketAddress(host, port))
     }
   }
+}
+
+private object Http1Support {
+  private val Https: Scheme = "https".ci
+  private val Http: Scheme  = "http".ci
 }
