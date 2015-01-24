@@ -54,7 +54,7 @@ object Http4sBuild extends Build {
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.1-M5"
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.5.0-SNAPSHOT"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.5.0"
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.7.2"
