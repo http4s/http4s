@@ -18,7 +18,8 @@ lazy val jetty = project.dependsOn(servlet)
 
 lazy val tomcat = project.dependsOn(servlet)
 
-lazy val dsl = project.dependsOn(core % "compile;test->test", server % "test->compile")
+// The name `dsl` clashes with modern sbt
+lazy val theDsl = Project("dsl", file("dsl")).dependsOn(core % "compile;test->test", server % "test->compile")
 
 lazy val jawn = project.dependsOn(core % "compile;test->test")
 
@@ -35,7 +36,7 @@ lazy val `scala-xml` = project.dependsOn(core % "compile;test->test")
 // The plugin must be enabled for the tests
 lazy val twirl = project.dependsOn(core % "compile;test->test").enablePlugins(SbtTwirl)
 
-lazy val examples = project.dependsOn(server, dsl, argonaut, `scala-xml`, twirl).enablePlugins(SbtTwirl)
+lazy val examples = project.dependsOn(server, theDsl, argonaut, `scala-xml`, twirl).enablePlugins(SbtTwirl)
 
 lazy val `examples-blaze` = Project("examples-blaze", file("examples/blaze")).dependsOn(examples, `blaze-server`)
 
