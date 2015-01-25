@@ -2,7 +2,10 @@ package org.http4s
 package server
 package jetty
 
+import com.codahale.metrics.{InstrumentedExecutorService, MetricRegistry}
+import com.codahale.metrics.jetty9.{InstrumentedHandler, InstrumentedQueuedThreadPool, InstrumentedConnectionFactory}
 import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
 
@@ -28,12 +31,15 @@ sealed class JettyBuilder private (
   private val asyncTimeout: Duration,
   private val servletIo: ServletIo,
   sslBits: Option[SSLBits],
-  mounts: Vector[Mount]
+  mounts: Vector[Mount],
+  metricRegistry: Option[MetricRegistry],
+  metricPrefix: String
 )
   extends ServerBuilder
   with ServletContainer
   with IdleTimeoutSupport
   with SSLSupport
+  with MetricsSupport
 {
   type Self = JettyBuilder
 
@@ -43,8 +49,10 @@ sealed class JettyBuilder private (
                    asyncTimeout: Duration = asyncTimeout,
                    servletIo: ServletIo = servletIo,
                    sslBits: Option[SSLBits] = sslBits,
-                   mounts: Vector[Mount] = mounts): JettyBuilder =
-    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts)
+                   mounts: Vector[Mount] = mounts,
+                   metricRegistry: Option[MetricRegistry] = metricRegistry,
+                   metricPrefix: String = metricPrefix): JettyBuilder =
+    new JettyBuilder(socketAddress, serviceExecutor, idleTimeout, asyncTimeout, servletIo, sslBits, mounts, metricRegistry, metricPrefix)
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     copy(sslBits = Some(SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)))
@@ -68,7 +76,7 @@ sealed class JettyBuilder private (
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
-        threadPool = builder.serviceExecutor
+        threadPool = builder.instrumentedServiceExecutor
       )
       val servletName = s"servlet-$index"
       val urlMapping = s"$prefix/*"
@@ -83,6 +91,19 @@ sealed class JettyBuilder private (
 
   override def withServletIo(servletIo: ServletIo): Self =
     copy(servletIo = servletIo)
+
+  /**
+   * Collects metrics into the specified [[MetricRegistry]], including:
+   * * Connections via [[InstrumentedConnectionFactory]]
+   * * The Jetty thread pool via [[InstrumentedQueuedThreadPool]]
+   * * HTTP responses via [[InstrumentedHandler]]
+   *
+   * @param metricRegistry The registry to collect metrics into..
+   */
+  override def withMetricRegistry(metricRegistry: MetricRegistry): Self =
+    copy(metricRegistry = Some(metricRegistry))
+
+  override def withMetricPrefix(metricPrefix: String): Self = copy(metricPrefix = metricPrefix)
 
   private def getConnector(jetty: JServer): ServerConnector = sslBits match {
     case Some(sslBits) =>
@@ -106,21 +127,40 @@ sealed class JettyBuilder private (
       https_config.setSecurePort(socketAddress.getPort)
       https_config.addCustomizer(new SecureRequestCustomizer())
 
+      val connectionFactory = instrumentConnectionFactory(new HttpConnectionFactory(https_config))
       new ServerConnector(jetty, new SslConnectionFactory(sslContextFactory,
-        org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()), new HttpConnectionFactory(https_config))
+        org.eclipse.jetty.http.HttpVersion.HTTP_1_1.asString()),
+        connectionFactory)
 
-    case None => new ServerConnector(jetty)
+    case None =>
+      val connectionFactory = instrumentConnectionFactory(new HttpConnectionFactory)
+      new ServerConnector(jetty, connectionFactory)
+  }
 
+  private def instrumentConnectionFactory(connectionFactory: ConnectionFactory) =
+    metricRegistry.fold(connectionFactory) { reg =>
+      val timer = reg.timer(MetricRegistry.name(metricPrefix, "connections"))
+      new InstrumentedConnectionFactory(connectionFactory, timer)
+    }
+
+  private def instrumentedServiceExecutor = metricRegistry.fold(serviceExecutor) {
+    new InstrumentedExecutorService(serviceExecutor, _, MetricRegistry.name(metricPrefix, "service-executor"))
   }
 
   def start: Task[Server] = Task.delay {
+    val threadPool = metricRegistry.fold(new QueuedThreadPool)(new InstrumentedQueuedThreadPool(_))
     val jetty = new JServer()
 
     val context = new ServletContextHandler()
-
-
     context.setContextPath("/")
-    jetty.setHandler(context)
+
+    val handler = metricRegistry.fold[Handler](context) { reg =>
+      val h = new InstrumentedHandler(reg, metricPrefix)
+      h.setHandler(context)
+      h
+    }
+
+    jetty.setHandler(handler)
 
     val connector = getConnector(jetty)
 
@@ -157,7 +197,9 @@ object JettyBuilder extends JettyBuilder(
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,
   sslBits = None,
-  mounts = Vector.empty
+  mounts = Vector.empty,
+  metricRegistry = None,
+  metricPrefix = MetricsSupport.DefaultPrefix
 )
 
 private case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)
