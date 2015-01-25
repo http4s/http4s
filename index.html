@@ -11,8 +11,8 @@
 
     <title>http4s</title>
 
-    <link href="//netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
-    <link href="//netdna.bootstrapcdn.com/font-awesome/4.0.3/css/font-awesome.css" rel="stylesheet">
+    <link href="http://netdna.bootstrapcdn.com/bootstrap/3.1.1/css/bootstrap.min.css" rel="stylesheet">
+    <link href="http://netdna.bootstrapcdn.com/font-awesome/4.3.0/css/font-awesome.css" rel="stylesheet">
 
     <link href="css/syntax.css" rel="stylesheet">
     <link href="css/http4s.css" rel="stylesheet">
@@ -45,17 +45,18 @@
         <div class="collapse navbar-collapse" id="bs-example-navbar-collapse-1">
           <ul class="nav navbar-nav">
             <li class="dropdown">
-            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-gears"></i> API <b class="caret"></b></a>
+            <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-gears"></i> Scaladoc <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="/api/0.6">0.6 (snapshot)</a></li>
-                <li><a href="/api/0.5">0.5 (release)</a></li>
-                <li><a href="/api/0.4">0.4 (release)</a></li>
-                <li><a href="/api/0.3">0.3 (release)</a></li>
-                <li><a href="/api/0.2">0.2 (release)</a></li>
-                <li><a href="/api/0.1">0.1 (release)</a></li>
+                <li><a href="http://http4s.org/api/0.6">0.6 (snapshot)</a></li>
+                <li><a href="http://http4s.org/api/0.5">0.5 (release)</a></li>
+                <li><a href="http://http4s.org/api/0.4">0.4 (release)</a></li>
+                <li><a href="http://http4s.org/api/0.3">0.3 (release)</a></li>
+                <li><a href="http://http4s.org/api/0.2">0.2 (release)</a></li>
+                <li><a href="http://http4s.org/api/0.1">0.1 (release)</a></li>
               </ul>
             </li>
             <li><a href="http://github.com/http4s/http4s"><i class="fa fa-github"></i> GitHub</a></li>
+            <li><a href="community.html"><i class="fa fa-users"></i> Community</a></li>
             <li><a href="http://demo.http4s.org/#/home"><i class="fa fa-eye"></i> Demo</a></li>
           </ul>
         </div>
@@ -63,19 +64,19 @@
     </div>
 
     <div class="container">
-      <h1 id="toc_0">http4s</h1>
+      <h1>http4s</h1>
 
-<p>http4s is a minimal, idiomatic Scala interface for HTTP.  http4s is Scala&#39;s answer to Ruby&#39;s 
+      <p>http4s is a minimal, idiomatic Scala interface for HTTP.  http4s is Scala&#39;s answer to Ruby&#39;s 
 Rack, Python&#39;s WSGI, Haskell&#39;s WAI, and Java&#39;s Servlets.</p>
 
-<h2 id="toc_1">HttpService</h2>
+<h2 id="toc_0">HttpService</h2>
 
 <p>An <code>HttpService</code> transforms a <code>Request</code> into an asynchronous <code>Task[Response]</code>. http4s provides a variety
 of helpers to facilitate the creation of the <code>Task[Response]</code> from common results.</p>
 
 <p>HttpServices are <em>type safe</em>, <em>composable</em>, and <em>asynchronous</em>.</p>
 
-<h3 id="toc_2">Type safety</h3>
+<h3 id="toc_1">Type safety</h3>
 
 <p><code>Request</code> and <code>Response</code> sit at the top level of a typed, immutable model of HTTP.</p>
 
@@ -84,7 +85,7 @@ of helpers to facilitate the creation of the <code>Task[Response]</code> from co
 <li>Bodies are parsed and generated from a <a href="http://github.com/scalaz/scalaz-stream">scalaz-stream</a> of bytes.</li>
 </ul>
 
-<h3 id="toc_3">Composable</h3>
+<h3 id="toc_2">Composable</h3>
 
 <p>Building on the FP tools of scalaz not only makes an <code>HttpService</code> simple to define,
 it also makes them easy to compose.  Adding gzip compression or rewriting URIs is
@@ -92,7 +93,7 @@ as simple as applying a middleware to an <code>HttpService</code>.</p>
 <div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wcompression</span> <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">GZip</span><span class="o">(</span><span class="n">service</span><span class="o">)</span>
 <span class="k">val</span> <span class="n">translated</span>   <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">URITranslation</span><span class="o">.</span><span class="n">translateRoot</span><span class="o">(</span><span class="s">&quot;/http4s&quot;</span><span class="o">)(</span><span class="n">service</span><span class="o">)</span>
 </code></pre></div>
-<h3 id="toc_4">Asynchronous</h3>
+<h3 id="toc_3">Asynchronous</h3>
 
 <p>Any http4s response can be streamed from an asynchronous source. http4s offers a variety
 of helpers to help you get your data out the door in the fastest way possible without
@@ -131,18 +132,18 @@ tying up too many threads.</p>
     <span class="nc">WS</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">t</span><span class="o">.</span><span class="n">publish</span><span class="o">)</span>
 <span class="o">}</span>
 </code></pre></div>
-<h2 id="toc_5">Choose your backend</h2>
+<h2 id="toc_4">Choose your backend</h2>
 
 <p>http4s supports running the same service on multiple backends.  Pick the deployment model that fits your 
 needs now, and easily port if and when your needs change.</p>
 
-<h3 id="toc_6">blaze</h3>
+<h3 id="toc_5">blaze</h3>
 
 <p><a href="http://github.com/http4s/blaze">blaze</a> is an NIO framework.  Run http4s on blaze for maximum throughput.</p>
 
 <p>Code ref file &#39;../../examples/src/main/scala/com/example/http4s/blaze/BlazeExample.scala&#39; does not exist.</p>
 
-<h3 id="toc_7">Servlets</h3>
+<h3 id="toc_6">Servlets</h3>
 
 <p>http4s is committed to first-class support of the Servlet API.  Develop and deploy services 
 on your existing infrastructure, and take full advantage of the mature JVM ecosystem.
@@ -151,15 +152,19 @@ for embedded Tomcat and Jetty containers.</p>
 
 <pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight">
 <span class="k">object</span> <span class="nc">JettyExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">metrics</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MetricRegistry</span>
+
   <span class="nc">JettyBuilder</span>
     <span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">withMetricRegistry</span><span class="o">(</span><span class="n">metrics</span><span class="o">)</span>
     <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mountServlet</span><span class="o">(</span><span class="k">new</span> <span class="nc">MetricsServlet</span><span class="o">(</span><span class="n">metrics</span><span class="o">),</span> <span class="s">"/metrics/*"</span><span class="o">)</span>
     <span class="o">.</span><span class="n">run</span>
     <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
 <span class="o">}</span>
 </code></code></pre>
 
-<h2 id="toc_8">Projects using http4s</h2>
+<h2 id="toc_7">Projects using http4s</h2>
 
 <p>If you have a project you would like to include in this list, let us know on IRC or submit an issue.</p>
 
@@ -168,7 +173,7 @@ for embedded Tomcat and Jetty containers.</p>
 <li><a href="https://github.com/http4s/rho">Project ρ</a>: a self-documenting HTTP server DSL built upon http4s</li>
 </ul>
 
-<h2 id="toc_9">Get it!</h2>
+<h2 id="toc_8">Get it!</h2>
 
 <p>Artifacts for scala 2.10 and 2.11 are available from Maven Central:
 <code>scala
@@ -182,35 +187,11 @@ libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-core&quot;  % vers
 resolvers += &quot;Scalaz Bintray Repo&quot; at &quot;http://dl.bintray.com/scalaz/releases&quot;
 </code></p>
 
-<h2 id="toc_10">Build &amp; run</h2>
+<h2 id="toc_9">Build &amp; run</h2>
 <div class="highlight"><pre><code class="sh language-sh" data-lang="sh"><span class="nv">$ </span>git clone https://github.com/http4s/http4s.git
 <span class="nv">$ </span><span class="nb">cd </span>http4s
 <span class="nv">$ </span>sbt examples-blaze/run
 </code></pre></div>
-<h2 id="toc_11">Contributions</h2>
-
-<p>The http4s project appreciates contributions of all kinds! In this early phase of development bug reports, 
-feature requests, and reporting usability problems are particularly appreciated. Code contributions from their 
-original authors and consistent with the project&#39;s <a href="https://github.com/http4s/http4s/blob/develop/LICENSE">open source license</a>
-are welcome.</p>
-
-<h2 id="toc_12">Project info</h2>
-
-<ul>
-<li><a href="http://github.com/http4s/http4s">GitHub</a></li>
-<li><a href="https://travis-ci.org/http4s/http4s">Travis CI <img src="https://travis-ci.org/http4s/http4s.svg?branch=develop" alt="BuildStatus"></a></li>
-<li><a href="http://http4s.org/api/0.3">Scaladoc</a></li>
-<li>IRC: #http4s on Freenode.</li>
-<li><a href="http://twitter.com/http4s">Twitter</a></li>
-</ul>
-
-<h2 id="toc_13">Credits</h2>
-
-<ul>
-<li><a href="https://github.com/http4s/http4s/graphs/contributors?from=2013-01-01&amp;type=c">The Contributors</a>, as calculated by GitHub.</li>
-<li>HTTP model forked from <a href="http://spray.io/documentation/1.2.1/spray-http/">spray-http</a>, which derives from <a href="https://github.com/jdegoes/blueeyes">Blueeyes</a>.</li>
-</ul>
-
     </div>
 
     <!-- Bootstrap core JavaScript
