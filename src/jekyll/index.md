@@ -3,8 +3,6 @@ layout: default
 title: http4s
 ---
 
-# http4s
-
 http4s is a minimal, idiomatic Scala interface for HTTP.  http4s is Scala's answer to Ruby's 
 Rack, Python's WSGI, Haskell's WAI, and Java's Servlets.
 
@@ -126,22 +124,3 @@ $ git clone https://github.com/http4s/http4s.git
 $ cd http4s
 $ sbt examples-blaze/run
 ```
-
-## Contributions ##
-
-The http4s project appreciates contributions of all kinds! In this early phase of development bug reports, 
-feature requests, and reporting usability problems are particularly appreciated. Code contributions from their 
-original authors and consistent with the project's [open source license](https://github.com/http4s/http4s/blob/develop/LICENSE)
-are welcome.
-
-## Project info ##
-
-* [GitHub](http://github.com/http4s/http4s)
-* [Travis CI ![BuildStatus](https://travis-ci.org/http4s/http4s.svg?branch=develop)](https://travis-ci.org/http4s/http4s)
-* [Scaladoc](http://http4s.org/api/0.3)
-* IRC: #http4s on Freenode.
-* [Twitter](http://twitter.com/http4s)
-
-## Credits
-* [The Contributors](https://github.com/http4s/http4s/graphs/contributors?from=2013-01-01&type=c), as calculated by GitHub.
-* HTTP model forked from [spray-http](http://spray.io/documentation/1.2.1/spray-http/), which derives from [Blueeyes](https://github.com/jdegoes/blueeyes).
