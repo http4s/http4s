@@ -9,6 +9,8 @@ import org.http4s.util.string._
 
 import javax.crypto
 
+import scala.collection.mutable.ListBuffer
+
 object oauth {
 
   private val SHA1 = "HmacSHA1"
@@ -28,39 +30,41 @@ object oauth {
 
   def genAuthHeader(method: Method, uri: Uri, userParams: Seq[(String,String)], consumer: Consumer,
                     callback: Option[Uri], verifier: Option[String], token: Option[Token]): Authorization = {
+    val params = {
+      val params = new ListBuffer[(String,String)]
+      params += "oauth_consumer_key"     -> encode(consumer.key)
+      params += "oauth_signature_method" -> "HMAC-SHA1"
+      params += "oauth_timestamp"        -> (System.currentTimeMillis / 1000).toString
+      params += "oauth_nonce"            -> System.nanoTime.toString
+      params += "oauth_version"          -> "1.0"
+      params += "oauth_callback"         -> callback.map(c => encode(c.renderString)).getOrElse(OutOfBounds)
+      token.foreach { t => params += "oauth_token" -> encode(t.value) }
+      verifier.foreach { v => params += "oauth_verifier" -> encode(v) }
+      params.result()
+    }
 
-    val params = Seq(
-      "oauth_consumer_key" -> consumer.key,
-      "oauth_signature_method" -> "HMAC-SHA1",
-      "oauth_timestamp" -> (System.currentTimeMillis / 1000).toString,
-      "oauth_nonce" -> System.nanoTime.toString,
-      "oauth_version" -> "1.0",
-      "oauth_callback" -> callback.map(_.renderString).getOrElse(OutOfBounds)
-    ) ++ token.map { t => "oauth_token" -> t.value } ++
-      verifier.map { v => "oauth_verifier" -> v }
-
-    val baseString = genBaseString(method, uri, params ++ userParams)
+    val baseString = genBaseString(method, uri, params ++ userParams.map{ case (k,v) => (encode(k), encode(v))})
     val sig = makeSHASig(baseString, consumer, token)
-    val creds = GenericCredentials("OAuth".ci, params.toMap + ("oauth_signature" -> sig))
+    val creds = GenericCredentials("OAuth".ci, params.toMap + ("oauth_signature" -> encode(sig)))
 
     Authorization(creds)
   }
 
+  // baseString must already be encoded, consumer and token must not be
   private[client] def makeSHASig(baseString: String, consumer: Consumer, token: Option[Token]): String = {
     val sha1 = crypto.Mac.getInstance(SHA1)
-    val key = consumer.secret.formEncode + "&" + token.map(_.secret.formEncode).getOrElse("")
+    val key = encode(consumer.secret) + "&" + token.map(t => encode(t.secret)).getOrElse("")
     sha1.init(new crypto.spec.SecretKeySpec(bytes(key), SHA1))
 
     val sigBytes = sha1.doFinal(bytes(baseString))
     net.iharder.Base64.encodeBytes(sigBytes)
   }
 
+  // Needs to have all params already encoded
   private[client] def genBaseString(method: Method, uri: Uri, params: Seq[(String,String)]): String = {
-    val paramsStr = params.map{ case (k,v) =>
-      encode(k) + "=" + encode(v)
-    }.sorted.mkString("&").urlEncode
+    val paramsStr = params.map{ case (k,v) => k + "=" + v }.sorted.mkString("&")
 
-    Seq(method.name.urlEncode,
+    Seq(method.name,
       encode(uri.copy(query = Query.empty, fragment = None).renderString),
       encode(paramsStr)
     ).mkString("&")

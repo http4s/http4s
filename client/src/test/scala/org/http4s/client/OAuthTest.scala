@@ -48,5 +48,4 @@ class OAuthTest extends Specification {
       true must_== true
     }
   }
-
 }
