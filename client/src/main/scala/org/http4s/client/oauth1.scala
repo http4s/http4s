@@ -11,7 +11,11 @@ import javax.crypto
 
 import scala.collection.mutable.ListBuffer
 
-object oauth {
+/** Basic OAuth1 message signing support
+  * 
+  * This feature is not considered stable.
+  */
+object oauth1 {
 
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
@@ -23,8 +27,8 @@ object oauth {
 
   def signRequest(req: Request, consumer: Consumer, callback: Option[Uri],
                   verifier: Option[String], token: Option[Token]): Request = {
-    val auth = genAuthHeader(req.method, req.uri, getUserParams(req),
-                             consumer, callback, verifier, token)
+    val params = getUserParams(req)
+    val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
     req.withHeaders(auth)
   }
 
@@ -70,10 +74,10 @@ object oauth {
     ).mkString("&")
   }
 
-  private def encode(str: String): String =
+  private[client] def encode(str: String): String =
     UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved)
 
-  private def getUserParams(req: Request): Seq[(String, String)] = {
+  private[http4s] def getUserParams(req: Request): Seq[(String, String)] = {
     val qparams = req.uri.query.map{ case (k,ov) => (k, ov.getOrElse("")) }
     val bodyParams = req.contentType.map { ct =>
       if (ct.mediaType == MediaType.`application/x-www-form-urlencoded` &&
@@ -90,7 +94,4 @@ object oauth {
 
 
   private def bytes(str: String) = str.getBytes(UTF_8)
-
-
-
 }
