@@ -75,7 +75,7 @@ class OAuthTest extends Specification {
     val req = Request(method = Method.POST, uri = uri).withBody(body).run
 
     "Collect proper params, pg 22" in {
-      oauth1.getUserParams(req).sorted must_== Seq(
+      oauth1.getUserParams(req).run._2.sorted must_== Seq(
         "b5" -> "=%3D",
         "a3" -> "a",
         "c@" -> "",

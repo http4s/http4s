@@ -10,6 +10,7 @@ import org.http4s.util.string._
 import javax.crypto
 
 import scala.collection.mutable.ListBuffer
+import scalaz.concurrent.Task
 
 /** Basic OAuth1 message signing support
   * 
@@ -26,10 +27,11 @@ object oauth1 {
   case class Token(value: String, secret: String)
 
   def signRequest(req: Request, consumer: Consumer, callback: Option[Uri],
-                  verifier: Option[String], token: Option[Token]): Request = {
-    val params = getUserParams(req)
-    val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
-    req.withHeaders(auth)
+                  verifier: Option[String], token: Option[Token]): Task[Request] = {
+    getUserParams(req).map { case (req, params) =>
+      val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
+      req.withHeaders(auth)
+    }
   }
 
   def genAuthHeader(method: Method, uri: Uri, userParams: Seq[(String,String)], consumer: Consumer,
@@ -77,19 +79,22 @@ object oauth1 {
   private[client] def encode(str: String): String =
     UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved)
 
-  private[http4s] def getUserParams(req: Request): Seq[(String, String)] = {
+  private[http4s] def getUserParams(req: Request): Task[(Request,Seq[(String, String)])] = {
     val qparams = req.uri.query.map{ case (k,ov) => (k, ov.getOrElse("")) }
-    val bodyParams = req.contentType.map { ct =>
-      if (ct.mediaType == MediaType.`application/x-www-form-urlencoded` &&
-                (req.method == Method.POST || req.method == Method.PUT) ) {
-        // TODO: run run sucks.
-        UrlForm.entityDecoder.decode(req).run.run.fold(_ => Map.empty, urlForm => {
-          urlForm.values.toSeq.flatMap{ case (k,vs) => if (vs.isEmpty) Seq(k->"") else vs.map((k,_))}
-        })
-      } else Map.empty
-    }.getOrElse(Map.empty)
 
-    qparams ++ bodyParams
+    req.contentType match {
+      case Some(t) if (req.method == Method.POST || req.method == Method.PUT) &&
+                       t.mediaType == MediaType.`application/x-www-form-urlencoded` =>
+        req.as[UrlForm].flatMap { urlform =>
+          val bodyparams = urlform.values.toSeq
+            .flatMap{ case (k,vs) => if (vs.isEmpty) Seq(k->"") else vs.map((k,_))}
+
+          req.withBody(urlform)(UrlForm.entityEncoder(Charset.`UTF-8`))
+            .map(_ -> (qparams ++ bodyparams))
+        }
+
+      case _ => Task.now(req -> qparams)
+    }
   }
 
 
