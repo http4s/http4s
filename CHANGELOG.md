@@ -1,25 +1,55 @@
-# v0.6.0 (unreleased)
-* Add SSL support to all server builders.
-* Add Date header to blaze-server responses.
-* Use asynchronous servlet I/O on Servlet 3.1 containers.
-* ServletContext syntax for easy mounting in a WAR deployment.
+# v0.6.0 (2015-01-27)
+
+## http4s-core
 * Remove ResponseBuilder in favor of Response companion.
 * Allow '';'' separators for query pairs.
-* Empty strings are a JSON decoding error.
-* Support for Twirl templates.
-* Split scala-xml support into http4s-scala-xml module.
 * Make charset on Message an Option.
 * Add a `flatMapR` method to EntityDecoder.
 * Various enhancements to QueryParamEncoder and QueryParamDecoder.
-* Change inferred type of `scala.xml.Elem` to `application/xml`.
 * Make Query an IndexedSeq.
 * Add parsers for Location and Proxy-Authenticate headers.
 * Move EntityDecoder.apply to `Request.decode` and `Request.decodeWith`
-* Add codec instances for Argonaut''s CodecJson and Json4s'' Reader/Writer.
+* Move headers into `org.http4s.headers` package.
+* Make UriTranslation respect scriptName/pathInfo split.
+* New method to resolve relative Uris.
+* Encode query and fragment of Uri.
+* Codec and wrapper type for URL-form-encoded bodies.
+
+## http4s-server
+* Add SSL support to all server builders.
+
+## http4s-blaze-server
+* Add Date header to blaze-server responses.
+* Close connection when error happens during body write in blaze-server.
+
+## http4s-servlet
+* Use asynchronous servlet I/O on Servlet 3.1 containers.
+* ServletContext syntax for easy mounting in a WAR deployment.
+* Support Dropwizard Metrics collection for servlet containers.
+
+## http4s-jawn
+* Empty strings are a JSON decoding error.
+
+## http4s-argonaut
+* Add codec instances for Argonaut's CodecJson.
+
+## http4s-json4s
+* Add codec instances for Json4s' Reader/Writer.
+
+## http4s-twirl
+* New module to support Twirl templates
+
+## http4s-scala-xml
+* Split scala-xml support into http4s-scala-xml module.
+* Change inferred type of `scala.xml.Elem` to `application/xml`.
+
+## http4s-client
+* Support for signing oauth-1 requests in client.
+
+## http4s-blaze-client
 * Fix blaze-client when receiving HTTP1 response without Content-Length header.
-* Add UrlTemplate type and EntityEncoder and EntityDecoder
-* Upgrade to blaze 0.5.0
-* Add preliminary oauth1 support for the client
+* Change default blaze-client executor to variable size.
+* Fix problem with blaze-client timeouts.
 
 # v0.5.4 (2015-01-08)
 * Upgrade to blaze 0.4.1 to fix header parsing issue in blaze http/1.x client and server.
