@@ -66,27 +66,30 @@ case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String
   override lazy val value = renderString
 
   override def render(writer: Writer): writer.type = {
-    if (params.isEmpty) writer.append(authScheme.toString)
-    else {
+    writer << authScheme
+    if (params.nonEmpty) {
+      writer << ' '
       formatParams(writer)
-      writer
     }
+    writer
   }
 
-  private def formatParams(sb: Writer) = {
+  private def formatParams(sb: Writer): Unit = {
     var first = true
-    params.foreach {
-      case (k, v) =>
-        if (first) first = false else sb.append(',')
-        if (k.isEmpty) sb.append('"') else sb.append(k).append('=').append('"')
-        v.foreach {
-          case '"' => sb.append('\\').append('"')
-          case '\\' => sb.append('\\').append('\\')
-          case c => sb.append(c)
-        }
-        sb.append('"')
+    params.foreach { case (k, v) =>
+      if (first) first = false
+      else sb.append(',')
+
+      if (k.isEmpty) sb << '"'
+      else sb<< k << '=' << '"'
+
+      v.foreach {
+        case '"' => sb << '\\' << '"'
+        case '\\' => sb << '\\' << '\\'
+        case c => sb << c
+      }
+      sb << '"'
     }
-    sb.toString
   }
 }
 
