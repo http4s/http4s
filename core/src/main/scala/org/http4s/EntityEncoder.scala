@@ -94,6 +94,13 @@ trait EntityEncoderInstances0 {
     simple[A](hdr)(a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)))
   }
 
+  implicit def futureEncoder[A](implicit W: EntityEncoder[A], ec: ExecutionContext): EntityEncoder[Future[A]] =
+    new EntityEncoder[Future[A]] {
+      override def toEntity(a: Future[A]): Task[Entity] = util.task.futureToTask(a).flatMap(W.toEntity)
+      override def headers: Headers = W.headers
+    }
+
+
   implicit def naturalTransformationEncoder[F[_], A](implicit N: ~>[F, Task], W: EntityEncoder[A]): EntityEncoder[F[A]] =
     taskEncoder[A](W).contramap { f: F[A] => N(f) }
 
@@ -143,13 +150,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     override def headers: Headers = W.headers
   }
 
-  implicit def futureEncoder[A](implicit W: EntityEncoder[A], ec: ExecutionContext): EntityEncoder[Future[A]] =
-    new EntityEncoder[Future[A]] {
-      override def toEntity(a: Future[A]): Task[Entity] = util.task.futureToTask(a).flatMap(W.toEntity)
-      override def headers: Headers = W.headers
-    }
-
-  // TODO parameterize chunk size
+    // TODO parameterize chunk size
   // TODO if Header moves to Entity, can add a Content-Disposition with the filename
   implicit val fileEncoder: EntityEncoder[File] =
     chunkedEncoder { f: File => file.chunkR(f.getAbsolutePath) }
