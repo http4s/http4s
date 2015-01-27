@@ -17,6 +17,9 @@
 * Move EntityDecoder.apply to `Request.decode` and `Request.decodeWith`
 * Add codec instances for Argonaut''s CodecJson and Json4s'' Reader/Writer.
 * Fix blaze-client when receiving HTTP1 response without Content-Length header.
+* Add UrlTemplate type and EntityEncoder and EntityDecoder
+* Upgrade to blaze 0.5.0
+* Add preliminary oauth1 support for the client
 
 # v0.5.4 (2015-01-08)
 * Upgrade to blaze 0.4.1 to fix header parsing issue in blaze http/1.x client and server.
