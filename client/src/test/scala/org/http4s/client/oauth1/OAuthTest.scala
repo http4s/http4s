@@ -1,9 +1,9 @@
-package org.http4s
-package client
+package org.http4s.client.oauth1
 
+import org.http4s._
+import org.http4s.client.oauth1
+import org.http4s.util.CaseInsensitiveString
 import org.specs2.mutable.Specification
-
-import util.CaseInsensitiveString
 
 import scalaz.\/-
 

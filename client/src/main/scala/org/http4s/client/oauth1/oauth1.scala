@@ -2,13 +2,13 @@ package org.http4s
 package client
 
 import java.nio.charset.StandardCharsets
-
-import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
-import org.http4s.headers.Authorization
-import org.http4s.util.string._
-
 import javax.crypto
 
+import org.http4s.headers.Authorization
+import org.http4s.util.string._
+import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
+
+import scala.annotation.unchecked.uncheckedStable
 import scala.collection.mutable.ListBuffer
 import scalaz.concurrent.Task
 
@@ -16,16 +16,16 @@ import scalaz.concurrent.Task
   * 
   * This feature is not considered stable.
   */
-object oauth1 {
+package object oauth1 {
 
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
+  private val OutOfBounds = "oob"
 
-  val OutOfBounds = "oob"
-
-  case class Consumer(key: String, secret: String)
-  case class Token(value: String, secret: String)
-
+  /** Sign the request with an OAuth Authorization header
+    *
+    * __WARNING:__ POST requests with application/x-www-form-urlencoded bodies
+    *            will be entirely buffered due to signing requirements. */
   def signRequest(req: Request, consumer: Consumer, callback: Option[Uri],
                   verifier: Option[String], token: Option[Token]): Task[Request] = {
     getUserParams(req).map { case (req, params) =>
@@ -34,8 +34,10 @@ object oauth1 {
     }
   }
 
-  def genAuthHeader(method: Method, uri: Uri, userParams: Seq[(String,String)], consumer: Consumer,
-                    callback: Option[Uri], verifier: Option[String], token: Option[Token]): Authorization = {
+  // Generate an authorization header with the provided user params and OAuth requirements.
+  private[oauth1] def genAuthHeader(method: Method, uri: Uri, userParams: Seq[(String,String)],
+                                    consumer: Consumer, callback: Option[Uri],
+                                    verifier: Option[String], token: Option[Token]): Authorization = {
     val params = {
       val params = new ListBuffer[(String,String)]
       params += "oauth_consumer_key"     -> encode(consumer.key)
@@ -57,7 +59,7 @@ object oauth1 {
   }
 
   // baseString must already be encoded, consumer and token must not be
-  private[client] def makeSHASig(baseString: String, consumer: Consumer, token: Option[Token]): String = {
+  private[oauth1] def makeSHASig(baseString: String, consumer: Consumer, token: Option[Token]): String = {
     val sha1 = crypto.Mac.getInstance(SHA1)
     val key = encode(consumer.secret) + "&" + token.map(t => encode(t.secret)).getOrElse("")
     sha1.init(new crypto.spec.SecretKeySpec(bytes(key), SHA1))
@@ -67,7 +69,7 @@ object oauth1 {
   }
 
   // Needs to have all params already encoded
-  private[client] def genBaseString(method: Method, uri: Uri, params: Seq[(String,String)]): String = {
+  private[oauth1] def genBaseString(method: Method, uri: Uri, params: Seq[(String,String)]): String = {
     val paramsStr = params.map{ case (k,v) => k + "=" + v }.sorted.mkString("&")
 
     Seq(method.name,
@@ -76,10 +78,10 @@ object oauth1 {
     ).mkString("&")
   }
 
-  private[client] def encode(str: String): String =
+  private[oauth1] def encode(str: String): String =
     UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved)
 
-  private[http4s] def getUserParams(req: Request): Task[(Request,Seq[(String, String)])] = {
+  private[oauth1] def getUserParams(req: Request): Task[(Request,Seq[(String, String)])] = {
     val qparams = req.uri.query.map{ case (k,ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
@@ -89,7 +91,7 @@ object oauth1 {
           val bodyparams = urlform.values.toSeq
             .flatMap{ case (k,vs) => if (vs.isEmpty) Seq(k->"") else vs.map((k,_))}
 
-          req.withBody(urlform)(UrlForm.entityEncoder(Charset.`UTF-8`))
+          req.withBody(urlform)(UrlForm.entityEncoder(req.charset getOrElse Charset.`UTF-8`))
             .map(_ -> (qparams ++ bodyparams))
         }
 
