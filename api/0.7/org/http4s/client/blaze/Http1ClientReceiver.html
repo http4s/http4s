@@ -1,0 +1,1328 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>Http1ClientReceiver - org.http4s.client.blaze.Http1ClientReceiver</title>
+          <meta name="description" content="Http1ClientReceiver - org.http4s.client.blaze.Http1ClientReceiver" />
+          <meta name="keywords" content="Http1ClientReceiver org.http4s.client.blaze.Http1ClientReceiver" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'org.http4s.client.blaze.Http1ClientReceiver';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="type">
+      <div id="definition">
+        <img src="../../../../lib/class_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.client">client</a>.<a href="package.html" class="extype" name="org.http4s.client.blaze">blaze</a></p>
+        <h1>Http1ClientReceiver</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="org.http4s.client.blaze">package blaze</a>
+          </div></span></h3><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Http1ClientReceiver</span><span class="result"> extends <span class="extype" name="org.http4s.blaze.http.http_parser.Http1ClientParser">Http1ClientParser</span> with <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Self Type</dt><dd><a href="Http1ClientStage.html" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a></dd></dl><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>, <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <span class="extype" name="org.http4s.blaze.http.http_parser.Http1ClientParser">Http1ClientParser</span>, <span class="extype" name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser">BodyAndHeaderParser</span>, <span class="extype" name="org.http4s.blaze.http.http_parser.ParserBase">ParserBase</span>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div><div class="toggleContainer block">
+            <span class="toggle">Known Subclasses</span>
+            <div class="subClasses hiddenContent"><a href="Http1ClientStage.html" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a></div>
+          </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="org.http4s.client.blaze.Http1ClientReceiver"><span>Http1ClientReceiver</span></li><li class="in" name="org.http4s.client.blaze.BlazeClientStage"><span>BlazeClientStage</span></li><li class="in" name="org.http4s.blaze.pipeline.TailStage"><span>TailStage</span></li><li class="in" name="org.http4s.blaze.pipeline.Tail"><span>Tail</span></li><li class="in" name="org.http4s.blaze.pipeline.Stage"><span>Stage</span></li><li class="in" name="org.http4s.blaze.http.http_parser.Http1ClientParser"><span>Http1ClientParser</span></li><li class="in" name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser"><span>BodyAndHeaderParser</span></li><li class="in" name="org.http4s.blaze.http.http_parser.ParserBase"><span>ParserBase</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="org.http4s.client.blaze.Http1ClientReceiver#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;():org.http4s.client.blaze.Http1ClientReceiver"></a>
+      <a id="&lt;init&gt;:Http1ClientReceiver"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Http1ClientReceiver</span><span class="params">()</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@&lt;init&gt;():org.http4s.client.blaze.Http1ClientReceiver" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="org.http4s.blaze.pipeline.Stage#name" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="name:String"></a>
+      <a id="name:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">name</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@name:String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Stage</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeClientStage#runRequest" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="runRequest(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="runRequest(Request):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runRequest</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@runRequest(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
+    </li></ol>
+            </div>
+
+        <div id="values" class="values members">
+              <h3>Concrete Value Members</h3>
+              <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="!=(x$1:Any):Boolean"></a>
+      <a id="!=(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef###" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="##():Int"></a>
+      <a id="##():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@##():Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#==" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="==(x$1:Any):Boolean"></a>
+      <a id="==(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@==(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#arrayMatches" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="arrayMatches(x$1:Array[Char]):Boolean"></a>
+      <a id="arrayMatches(Array[Char]):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">arrayMatches</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Array" class="extype" target="_top">Array</a>[<a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Char" class="extype" target="_top">Char</a>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@arrayMatches(x$1:Array[Char]):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="asInstanceOf[T0]:T0"></a>
+      <a id="asInstanceOf[T0]:T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#bufferPosition" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bufferPosition():Int"></a>
+      <a id="bufferPosition():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bufferPosition</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@bufferPosition():Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#channelRead" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="channelRead(size:Int,timeout:scala.concurrent.duration.Duration):scala.concurrent.Future[I]"></a>
+      <a id="channelRead(Int,Duration):Future[ByteBuffer]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelRead</span><span class="params">(<span name="size">size: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@channelRead(size:Int,timeout:scala.concurrent.duration.Duration):scala.concurrent.Future[I]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#channelWrite" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="channelWrite(data:Seq[I],timeout:scala.concurrent.duration.Duration):scala.concurrent.Future[Unit]"></a>
+      <a id="channelWrite(Seq[ByteBuffer],Duration):Future[Unit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@channelWrite(data:Seq[I],timeout:scala.concurrent.duration.Duration):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#channelWrite" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="channelWrite(data:Seq[I]):scala.concurrent.Future[Unit]"></a>
+      <a id="channelWrite(Seq[ByteBuffer]):Future[Unit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@channelWrite(data:Seq[I]):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#channelWrite" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="channelWrite(data:I,timeout:scala.concurrent.duration.Duration):scala.concurrent.Future[Unit]"></a>
+      <a id="channelWrite(ByteBuffer,Duration):Future[Unit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@channelWrite(data:I,timeout:scala.concurrent.duration.Duration):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#channelWrite" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="channelWrite(data:I):scala.concurrent.Future[Unit]"></a>
+      <a id="channelWrite(ByteBuffer):Future[Unit]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">channelWrite</span><span class="params">(<span name="data">data: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@channelWrite(data:I):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#clearBuffer" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clearBuffer():Unit"></a>
+      <a id="clearBuffer():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clearBuffer</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@clearBuffer():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="clone():Object"></a>
+      <a id="clone():AnyRef"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@clone():Object" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#contentComplete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="contentComplete():Boolean"></a>
+      <a id="contentComplete():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">contentComplete</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@contentComplete():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#definedContentLength" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="definedContentLength():Boolean"></a>
+      <a id="definedContentLength():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">definedContentLength</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@definedContentLength():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd></dl></div>
+    </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="eq(x$1:AnyRef):Boolean"></a>
+      <a id="eq(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="equals(x$1:Any):Boolean"></a>
+      <a id="equals(Any):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="finalize():Unit"></a>
+      <a id="finalize():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@finalize():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="symbol">classOf[java.lang.Throwable]</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#findOutboundStage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="findOutboundStage[C&lt;:org.http4s.blaze.pipeline.Stage](clazz:Class[C]):Option[C]"></a>
+      <a id="findOutboundStage[C&lt;:Stage](Class[C]):Option[C]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">findOutboundStage</span><span class="tparams">[<span name="C">C &lt;: <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span></span>]</span><span class="params">(<span name="clazz">clazz: <span class="extype" name="scala.Predef.Class">Class</span>[<span class="extype" name="org.http4s.blaze.pipeline.Tail.findOutboundStage.C">C</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="org.http4s.blaze.pipeline.Tail.findOutboundStage.C">C</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@findOutboundStage[C&lt;:org.http4s.blaze.pipeline.Stage](clazz:Class[C]):Option[C]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#findOutboundStage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="findOutboundStage(name:String):Option[org.http4s.blaze.pipeline.Stage]"></a>
+      <a id="findOutboundStage(String):Option[Stage]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">findOutboundStage</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@findOutboundStage(name:String):Option[org.http4s.blaze.pipeline.Stage]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getClass():Class[_]"></a>
+      <a id="getClass():Class[_]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@getClass():Class[_]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#getContentType" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getContentType():org.http4s.blaze.http.http_parser.BodyAndHeaderParser.EndOfContent"></a>
+      <a id="getContentType():EndOfContent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getContentType</span><span class="params">()</span><span class="result">: <span class="extype" name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser.EndOfContent">EndOfContent</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@getContentType():org.http4s.blaze.http.http_parser.BodyAndHeaderParser.EndOfContent" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#getString" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getString(x$1:Int,x$2:Int):String"></a>
+      <a id="getString(Int,Int):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getString</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@getString(x$1:Int,x$2:Int):String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#getString" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getString(x$1:Int):String"></a>
+      <a id="getString(Int):String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getString</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@getString(x$1:Int):String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#getString" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getString():String"></a>
+      <a id="getString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@getString():String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#getTrimmedString" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getTrimmedString():String"></a>
+      <a id="getTrimmedString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getTrimmedString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@getTrimmedString():String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[org.http4s.blaze.http.http_parser.BaseExceptions$BadRequest]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="hashCode():Int"></a>
+      <a id="hashCode():Int"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@hashCode():Int" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#headerComplete" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="headerComplete(name:String,value:String):Boolean"></a>
+      <a id="headerComplete(String,String):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">headerComplete</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@headerComplete(name:String,value:String):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> → BodyAndHeaderParser</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#headersComplete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="headersComplete():Boolean"></a>
+      <a id="headersComplete():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">headersComplete</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@headersComplete():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#inChunkedHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inChunkedHeaders():Boolean"></a>
+      <a id="inChunkedHeaders():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inChunkedHeaders</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@inChunkedHeaders():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Stage#inboundCommand" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="inboundCommand(cmd:org.http4s.blaze.pipeline.Command.InboundCommand):Unit"></a>
+      <a id="inboundCommand(InboundCommand):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">inboundCommand</span><span class="params">(<span name="cmd">cmd: <span class="extype" name="org.http4s.blaze.pipeline.Command.InboundCommand">InboundCommand</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@inboundCommand(cmd:org.http4s.blaze.pipeline.Command.InboundCommand):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Stage</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#isChunked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isChunked():Boolean"></a>
+      <a id="isChunked():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isChunked</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@isChunked():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#isClosed" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isClosed():Boolean"></a>
+      <a id="isClosed():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isClosed</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@isClosed():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
+    </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <a id="isInstanceOf[T0]:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.Http1ClientParser#isStartState" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isStartState():Boolean"></a>
+      <a id="isStartState():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isStartState</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@isStartState():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Http1ClientParser</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Stage#logger" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="logger:org.log4s.Logger"></a>
+      <a id="logger:Logger"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">logger</span><span class="result">: <span class="extype" name="org.log4s.Logger">Logger</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@logger:org.log4s.Logger" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Stage</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.Http1ClientParser#mayHaveBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mayHaveBody():Boolean"></a>
+      <a id="mayHaveBody():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mayHaveBody</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@mayHaveBody():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Http1ClientParser → BodyAndHeaderParser</dd></dl></div>
+    </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ne(x$1:AnyRef):Boolean"></a>
+      <a id="ne(AnyRef):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#next" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="next(x$1:java.nio.ByteBuffer,x$2:Boolean):Char"></a>
+      <a id="next(ByteBuffer,Boolean):Char"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">next</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Char" class="extype" target="_top">Char</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@next(x$1:java.nio.ByteBuffer,x$2:Boolean):Char" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[org.http4s.blaze.http.http_parser.BaseExceptions$BadRequest]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#notify" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notify():Unit"></a>
+      <a id="notify():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@notify():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#notifyAll" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="notifyAll():Unit"></a>
+      <a id="notifyAll():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@notifyAll():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#parseContent" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parseContent(x$1:java.nio.ByteBuffer):java.nio.ByteBuffer"></a>
+      <a id="parseContent(ByteBuffer):ByteBuffer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parseContent</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result">: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@parseContent(x$1:java.nio.ByteBuffer):java.nio.ByteBuffer" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[org.http4s.blaze.http.http_parser.BaseExceptions$ParserException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#parseHeaders" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parseHeaders(x$1:java.nio.ByteBuffer):Boolean"></a>
+      <a id="parseHeaders(ByteBuffer):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parseHeaders</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@parseHeaders(x$1:java.nio.ByteBuffer):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>BodyAndHeaderParser</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[org.http4s.blaze.http.http_parser.BaseExceptions$InvalidState]">...</span>
+    </span>)</span>
+              
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[org.http4s.blaze.http.http_parser.BaseExceptions$BadRequest]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.Http1ClientParser#parseResponseLine" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="parseResponseLine(x$1:java.nio.ByteBuffer):Boolean"></a>
+      <a id="parseResponseLine(ByteBuffer):Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">parseResponseLine</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@parseResponseLine(x$1:java.nio.ByteBuffer):Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>Http1ClientParser</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[org.http4s.blaze.http.http_parser.BaseExceptions$BadResponse]">...</span>
+    </span>)</span>
+              
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[org.http4s.blaze.http.http_parser.BaseExceptions$InvalidState]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#putChar" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="putChar(x$1:Char):Unit"></a>
+      <a id="putChar(Char):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">putChar</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Char" class="extype" target="_top">Char</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@putChar(x$1:Char):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#receiveResponse" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="receiveResponse(cb:Http1ClientReceiver.this.Callback,close:Boolean):Unit"></a>
+      <a id="receiveResponse(Callback,Boolean):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">receiveResponse</span><span class="params">(<span name="cb">cb: <a href="Http1ClientStage.html#Callback=scalaz.\/[Throwable,org.http4s.Response]=&gt;Unit" class="extmbr" name="org.http4s.client.blaze.Http1ClientStage.Callback">Callback</a></span>, <span name="close">close: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@receiveResponse(cb:Http1ClientReceiver.this.Callback,close:Boolean):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#replaceInline" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replaceInline(leafBuilder:org.http4s.blaze.pipeline.LeafBuilder[I],startup:Boolean):Tail.this.type"></a>
+      <a id="replaceInline(LeafBuilder[ByteBuffer],Boolean):Http1ClientReceiver.this.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">replaceInline</span><span class="params">(<span name="leafBuilder">leafBuilder: <span class="extype" name="org.http4s.blaze.pipeline.LeafBuilder">LeafBuilder</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>, <span name="startup">startup: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a>.this.type</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@replaceInline(leafBuilder:org.http4s.blaze.pipeline.LeafBuilder[I],startup:Boolean):Tail.this.type" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#reset" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="reset():Unit"></a>
+      <a id="reset():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">reset</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@reset():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> → Http1ClientParser → BodyAndHeaderParser → ParserBase</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.ParserBase#resetLimit" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="resetLimit(x$1:Int):Unit"></a>
+      <a id="resetLimit(Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">resetLimit</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@resetLimit(x$1:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../blaze/http$http_parser.html" class="extype" name="org.http4s.blaze.http.http_parser">org.http4s.blaze.http.http_parser</a>] </dd><dt>Definition Classes</dt><dd>ParserBase</dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.Http1ClientParser#responseLineComplete" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="responseLineComplete():Boolean"></a>
+      <a id="responseLineComplete():Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">responseLineComplete</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@responseLineComplete():Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Http1ClientParser</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Tail#sendOutboundCommand" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="sendOutboundCommand(cmd:org.http4s.blaze.pipeline.Command.OutboundCommand):Unit"></a>
+      <a id="sendOutboundCommand(OutboundCommand):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">sendOutboundCommand</span><span class="params">(<span name="cmd">cmd: <span class="extype" name="org.http4s.blaze.pipeline.Command.OutboundCommand">OutboundCommand</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@sendOutboundCommand(cmd:org.http4s.blaze.pipeline.Command.OutboundCommand):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Tail</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#shutdown" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdown():Unit"></a>
+      <a id="shutdown():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdown</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@shutdown():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
+    </li><li name="org.http4s.blaze.http.http_parser.Http1ClientParser#shutdownParser" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="shutdownParser():Unit"></a>
+      <a id="shutdownParser():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownParser</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@shutdownParser():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Http1ClientParser → BodyAndHeaderParser → ParserBase</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#stageShutdown" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stageShutdown():Unit"></a>
+      <a id="stageShutdown():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">stageShutdown</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@stageShutdown():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> → Stage</dd></dl></div>
+    </li><li name="org.http4s.blaze.pipeline.Stage#stageStartup" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stageStartup():Unit"></a>
+      <a id="stageStartup():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">stageStartup</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@stageStartup():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd>Stage</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#stageState" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="stageState:java.util.concurrent.atomic.AtomicReference[scalaz.\/[Exception,org.http4s.blaze.util.Cancellable]]"></a>
+      <a id="stageState:AtomicReference[\/[Exception,Cancellable]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">stageState</span><span class="result">: <span class="extype" name="java.util.concurrent.atomic.AtomicReference">AtomicReference</span>[<span class="extype" name="scalaz.\/">\/</span>[<span class="extype" name="scala.Exception">Exception</span>, <span class="extype" name="org.http4s.blaze.util.Cancellable">Cancellable</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@stageState:java.util.concurrent.atomic.AtomicReference[scalaz.\/[Exception,org.http4s.blaze.util.Cancellable]]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientReceiver#submitResponseLine" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="submitResponseLine(code:Int,reason:String,scheme:String,majorversion:Int,minorversion:Int):Unit"></a>
+      <a id="submitResponseLine(Int,String,String,Int,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">submitResponseLine</span><span class="params">(<span name="code">code: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="reason">reason: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="scheme">scheme: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="majorversion">majorversion: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="minorversion">minorversion: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@submitResponseLine(code:Int,reason:String,scheme:String,majorversion:Int,minorversion:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> → Http1ClientParser</dd></dl></div>
+    </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
+      <a id="synchronized[T0](⇒T0):T0"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toString():String"></a>
+      <a id="toString():String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@toString():String" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait():Unit"></a>
+      <a id="wait():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@wait():Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long,x$2:Int):Unit"></a>
+      <a id="wait(Long,Int):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="wait(x$1:Long):Unit"></a>
+      <a id="wait(Long):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientReceiver@wait(x$1:Long):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
+                <span class="name">@throws</span><span class="args">(<span>
+      
+      <span class="defval" name="classOf[java.lang.InterruptedException]">...</span>
+    </span>)</span>
+              
+        </dd></dl></div>
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="org.http4s.client.blaze.BlazeClientStage">
+              <h3>Inherited from <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></h3>
+            </div><div class="parent" name="org.http4s.blaze.pipeline.TailStage">
+              <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</h3>
+            </div><div class="parent" name="org.http4s.blaze.pipeline.Tail">
+              <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</h3>
+            </div><div class="parent" name="org.http4s.blaze.pipeline.Stage">
+              <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span></h3>
+            </div><div class="parent" name="org.http4s.blaze.http.http_parser.Http1ClientParser">
+              <h3>Inherited from <span class="extype" name="org.http4s.blaze.http.http_parser.Http1ClientParser">Http1ClientParser</span></h3>
+            </div><div class="parent" name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser">
+              <h3>Inherited from <span class="extype" name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser">BodyAndHeaderParser</span></h3>
+            </div><div class="parent" name="org.http4s.blaze.http.http_parser.ParserBase">
+              <h3>Inherited from <span class="extype" name="org.http4s.blaze.http.http_parser.ParserBase">ParserBase</span></h3>
+            </div><div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
