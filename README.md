@@ -12,3 +12,5 @@ val service = HttpService {
 ```
 
 Learn more at [http4s.org](http://http4s.org/).
+
+Quick start from [giter8 template](http://github.com/http4s/http4s.g8).
