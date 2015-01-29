@@ -175,7 +175,9 @@ class Http1ServerStage(service: HttpService,
             reset()
             reqLoopCallback(s)
 
-          case Failure(t) => fatalError(t)
+          case Failure(EOF) => closeConnection()
+
+          case Failure(t) => fatalError(t, "Failure in body cleanup")
         }(directec)
 
       case -\/(EOF) =>
