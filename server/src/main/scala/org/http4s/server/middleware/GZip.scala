@@ -36,7 +36,7 @@ object GZip {
             else resp  // Don't touch it, Content-Encoding already set
           }(req)
 
-        case None =>  service(req)
+        case _ => service(req)
       }
     }
   }
