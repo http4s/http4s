@@ -38,7 +38,7 @@ lazy val twirl = project.dependsOn(core % "compile;test->test").enablePlugins(Sb
 
 lazy val examples = project.dependsOn(server, theDsl, argonaut, `scala-xml`, twirl).enablePlugins(SbtTwirl)
 
-lazy val `examples-blaze` = Project("examples-blaze", file("examples/blaze")).dependsOn(examples, `blaze-server`)
+lazy val `examples-blaze` = Project("examples-blaze", file("examples/blaze")).dependsOn(examples, `blaze-server`, `blaze-client`)
 
 lazy val `examples-jetty` = Project("examples-jetty", file("examples/jetty")).dependsOn(examples, jetty)
 
