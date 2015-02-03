@@ -84,7 +84,7 @@ needs now, and easily port if and when your needs change.
 
 [blaze](http://github.com/http4s/blaze) is an NIO framework.  Run http4s on blaze for maximum throughput.
 
-{%code_ref ../../examples/src/main/scala/com/example/http4s/blaze/BlazeExample.scala blaze_example %}
+{%code_ref ../../examples/src/main/scala/com/example/http4s/blaze/BlazeExample.scala blaze_server_example %}
 
 ### Servlets
 
@@ -94,6 +94,13 @@ http4s can run in a .war on any Servlet 3.0+ container, and comes with convenien
 for embedded Tomcat and Jetty containers.
 
 {%code_ref ../../examples/jetty/src/main/scala/com/example/http4s/jetty/JettyExample.scala jetty_example %}
+
+## An Asynchronous Client ##
+
+http4s also offers an asynchronous HTTP client built on the same model as the server.
+
+{%code_ref ../../examples/src/main/scala/com/example/http4s/blaze/ClientExample.scala blaze_client_example %}
+
 
 ## Projects using http4s ##
 
@@ -107,7 +114,10 @@ If you have a project you would like to include in this list, let us know on IRC
 
 Artifacts for scala 2.10 and 2.11 are available from Maven Central:
 ```scala
-libraryDependencies += "org.http4s" %% "http4s-core"  % version
+libraryDependencies += "org.http4s" %% "http4s-blazeserver"  % version  // to use the blaze backend
+libraryDependencies += "org.http4s" %% "http4s-servlet"      % version  // to use the raw servlet backend
+libraryDependencies += "org.http4s" %% "http4s-jetty"        % version  // to use the jetty servlet backend
+libraryDependencies += "org.http4s" %% "http4s-blazeclient"  % version  // to use the blaze client
 ```
 
 Snapshots for the development branch are available in the sonatype snapshots repos.
