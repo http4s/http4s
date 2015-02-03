@@ -6,6 +6,10 @@ import Method.{ PermitsBody, NoBody}
 
 /** Provides extension methods for using the a http4s [[org.http4s.client.Client]]
   * {{{
+  *   import scalaz.concurrent.Task
+  *   import org.http4s._
+  *   import org.http4s.client._
+  *   import org.http4s.Http4s._
   *   import org.http4s.Status._
   *   import org.http4s.Method._
   *   import org.http4s.EntityDecoder
@@ -13,9 +17,9 @@ import Method.{ PermitsBody, NoBody}
   *   def client: Client = ???
   *
   *   val r: Task[String] = client(GET(uri("https://www.foo.bar/"))).as[String]
-  *   val r2: Task[DecodeResult[String]] = client(GET(uri("https://www.foo.bar/"))).attemptAs[String]   // implicitly resolve the decoder
+  *   val r2: DecodeResult[String] = client(GET(uri("https://www.foo.bar/"))).attemptAs[String] // implicitly resolve the decoder
   *   val req1 = r.run
-  *   val req2 = r.run  // Each invocation fetches a new Result based on the behavior of the Client
+  *   val req2 = r.run // Each invocation fetches a new Result based on the behavior of the Client
   *
   * }}}
   */
