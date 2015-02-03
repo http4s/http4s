@@ -5,7 +5,7 @@ object ClientExample {
 
   def getSite() = {
 
-    /// code_ref: blaze_client_example
+/// code_ref: blaze_client_example
     import org.http4s.Http4s._
     import scalaz.concurrent.Task
 
@@ -17,7 +17,7 @@ object ClientExample {
     println(page.run)
 
     // We can do much more: how about decoding some JSON to a scala object
-    // after matching based on response code?
+    // after matching based on the response status code?
     import org.http4s.Status.NotFound
     import org.http4s.Status.ResponseClass.Successful
     import argonaut.DecodeJson
@@ -40,7 +40,7 @@ object ClientExample {
     }
 
     println(page2.run)
-    /// end_code_ref
+/// end_code_ref
   }
 
   def main(args: Array[String]): Unit = getSite()
