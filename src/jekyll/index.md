@@ -84,7 +84,7 @@ needs now, and easily port if and when your needs change.
 
 [blaze](http://github.com/http4s/blaze) is an NIO framework.  Run http4s on blaze for maximum throughput.
 
-{%code_ref ../../examples/src/main/scala/com/example/http4s/blaze/BlazeExample.scala blaze_server_example %}
+{%code_ref ../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeExample.scala blaze_server_example %}
 
 ### Servlets
 
@@ -99,7 +99,7 @@ for embedded Tomcat and Jetty containers.
 
 http4s also offers an asynchronous HTTP client built on the same model as the server.
 
-{%code_ref ../../examples/src/main/scala/com/example/http4s/blaze/ClientExample.scala blaze_client_example %}
+{%code_ref ../../examples/blaze/src/main/scala/com/example/http4s/blaze/ClientExample.scala blaze_client_example %}
 
 
 ## Projects using http4s ##
