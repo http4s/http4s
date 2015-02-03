@@ -164,7 +164,13 @@ for embedded Tomcat and Jetty containers.</p>
 <span class="o">}</span>
 </code></code></pre>
 
-<h2 id="toc_7">Projects using http4s</h2>
+<h2 id="toc_7">An Asynchronous Client</h2>
+
+<p>http4s also offers an asynchronous HTTP client built on the same model as the server.</p>
+
+<p>Code ref file &#39;../../examples/src/main/scala/com/example/http4s/blaze/ClientExample.scala&#39; does not exist.</p>
+
+<h2 id="toc_8">Projects using http4s</h2>
 
 <p>If you have a project you would like to include in this list, let us know on IRC or submit an issue.</p>
 
@@ -173,11 +179,14 @@ for embedded Tomcat and Jetty containers.</p>
 <li><a href="https://github.com/http4s/rho">Project ρ</a>: a self-documenting HTTP server DSL built upon http4s</li>
 </ul>
 
-<h2 id="toc_8">Get it!</h2>
+<h2 id="toc_9">Get it!</h2>
 
 <p>Artifacts for scala 2.10 and 2.11 are available from Maven Central:
 <code>scala
-libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-core&quot;  % version
+libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-blazeserver&quot;  % version  // to use the blaze backend
+libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-servlet&quot;      % version  // to use the raw servlet backend
+libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-jetty&quot;        % version  // to use the jetty servlet backend
+libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-blazeclient&quot;  % version  // to use the blaze client
 </code></p>
 
 <p>Snapshots for the development branch are available in the sonatype snapshots repos.</p>
@@ -187,7 +196,7 @@ libraryDependencies += &quot;org.http4s&quot; %% &quot;http4s-core&quot;  % vers
 resolvers += &quot;Scalaz Bintray Repo&quot; at &quot;http://dl.bintray.com/scalaz/releases&quot;
 </code></p>
 
-<h2 id="toc_9">Build &amp; run</h2>
+<h2 id="toc_10">Build &amp; run</h2>
 <div class="highlight"><pre><code class="sh language-sh" data-lang="sh"><span class="nv">$ </span>git clone https://github.com/http4s/http4s.git
 <span class="nv">$ </span><span class="nb">cd </span>http4s
 <span class="nv">$ </span>sbt examples-blaze/run
