@@ -1,3 +1,8 @@
+# v0.6.1 (2015-02-04)
+* Update to blaze-0.5.1
+* Remove unneeded error message (90b2f76097215)
+* GZip middleware will not throw an exception if the AcceptEncoding header is not gzip (ed1b2a0d68a8)
+
 # v0.6.0 (2015-01-27)
 
 ## http4s-core
