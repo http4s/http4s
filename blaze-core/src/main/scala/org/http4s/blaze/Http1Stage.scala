@@ -176,7 +176,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     * @param t
     * @param msg
     */
-  protected def fatalError(t: Throwable, msg: String) {
+  protected def fatalError(t: Throwable, msg: String = "") {
     logger.error(t)(s"Fatal Error: $msg")
     stageShutdown()
     sendOutboundCommand(Command.Error(t))
