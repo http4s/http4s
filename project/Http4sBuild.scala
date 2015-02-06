@@ -80,7 +80,7 @@ object Http4sBuild extends Build {
   lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.3.0"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.6a"
   lazy val scodecBits          = "org.typelevel"            %% "scodec-bits"             % "1.0.4"
-  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.15"
+  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.18"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.0.4"
 }
