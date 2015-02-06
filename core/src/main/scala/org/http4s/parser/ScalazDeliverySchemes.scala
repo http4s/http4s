@@ -14,6 +14,6 @@ private[http4s] object ScalazDeliverySchemes {
       type Result = ParseFailure \/ Out
       def success(result: L) = \/-(unpack(result))
       def parseError(error: ParseError) = -\/(ParseFailure("", error.formatExpectedAsString))
-      def failure(error: Throwable) = throw error
+      def failure(error: Throwable) = -\/(ParseFailure("Exception during parsing.", error.getMessage))
     }
 }
