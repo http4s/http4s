@@ -149,7 +149,7 @@ sealed class JettyBuilder private (
 
   def start: Task[Server] = Task.delay {
     val threadPool = metricRegistry.fold(new QueuedThreadPool)(new InstrumentedQueuedThreadPool(_))
-    val jetty = new JServer()
+    val jetty = new JServer(threadPool)
 
     val context = new ServletContextHandler()
     context.setContextPath("/")
