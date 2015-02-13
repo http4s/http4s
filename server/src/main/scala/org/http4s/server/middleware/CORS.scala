@@ -64,12 +64,12 @@ class CORS(service: HttpService, config: CORSConfig) extends CORS.CORSF {
     )
 
   def allowCORS(origin: Header, acrm: Header) : Boolean = (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
-    case (true, true, _, _)           => true
-    case (true, false, _, acrm)       => config.allowedMethods.map(_.contains(acrm))   | false
-    case (false, true, origin, _)     => config.allowedOrigins.map(_.contains(origin)) | false
+    case (true , true , _     , _   ) => true
+    case (true , false, _     , acrm) => config.allowedMethods.map(_.contains(acrm  )) | false
+    case (false, true , origin, _   ) => config.allowedOrigins.map(_.contains(origin)) | false
     case (false, false, origin, acrm) =>
-      (config.allowedMethods.map(_.contains(acrm)) |@|
-       config.allowedOrigins.map(_.contains(origin))) {_ && _} | false
+      ( config.allowedMethods.map(_.contains(acrm  )) |@|
+        config.allowedOrigins.map(_.contains(origin))     ) {_ && _} | false
   }
 
   def acrh(req: Request) =
