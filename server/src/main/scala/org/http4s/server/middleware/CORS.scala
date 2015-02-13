@@ -13,6 +13,7 @@ import org.http4s.headers.{
   `Access-Control-Request-Headers`,
   Origin
 }
+import Status.Ok
 
 import org.log4s.getLogger
 
@@ -37,35 +38,30 @@ class CORS(service: HttpService, config: CORSConfig) extends CORS.CORSF {
 
   def apply(req: Request): Task[Option[Response]] = ((req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
     case (Method.OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
+      logger.debug(s"Serving OPTIONS with CORS headers for ${acrm} ${req.uri}")
       options(req, origin, acrm)
     case (_, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
-      service.runT(req).map(corsHeaders(_, origin.value, acrm.value, acrh(req))).run
-    case _ => service(req)
+      logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
+      service.runT(req).map(corsHeaders(origin.value, acrm.value, acrh(req))).run
+    case _ =>
+      logger.info(s"CORS headers were denied for ${req.method} ${req.uri}")
+      service(req)
   })
 
-  def options(req: Request, origin: Header, acrm: Header): Task[Option[Response]] = {
-    logger.debug(s"Options request for $origin")
-    service(req).map{_.cata(
-      corsHeaders(_, origin.value, acrm.value, acrh(req)).some,
-      corsHeaders(Response(), origin.value, acrm.value, acrh(req)).some
-    )}
-  }
+  def options(req: Request, origin: Header, acrm: Header): Task[Option[Response]] =
+    service
+      .or(req, Task.now(Response(Ok))).liftM[OptionT]
+      .map(corsHeaders(origin.value, acrm.value, acrh(req))).run
 
-  def corsHeaders(resp: Response, origin: String, acrm: String, acrh: String): Response = {
-    logger.debug(s"Adding CORS headers to $resp")
+  def corsHeaders(origin: String, acrm: String, acrh: String)(resp: Response): Response =
     resp.putHeaders(
       Header("Vary", "Origin,Access-Control-Request-Methods"),
-      Header("Access-Control-Max-Age", config.maxAge.toString()),
       Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
-      Header("Access-Control-Allow-Origin", origin),
-      Header("Access-Control-Allow-Methods", config.allowedMethods.cata(
-        am =>  am.mkString("", " ", ""),
-        acrm)),
-      Header("Access-Control-Allow-Headers", config.allowedHeaders.cata(
-        ah => ah.mkString("", " ", ""),
-        acrh))
+      Header("Access-Control-Allow-Headers"    , config.allowedHeaders.cata(_.mkString("", " ", ""), acrh)),
+      Header("Access-Control-Allow-Methods"    , config.allowedMethods.cata(_.mkString("", " ", ""), acrm)),
+      Header("Access-Control-Allow-Origin"     , origin),
+      Header("Access-Control-Max-Age"          , config.maxAge.toString())
     )
-  }
 
   def allowCORS(origin: Header, acrm: Header) : Boolean = (config.anyOrigin, config.anyMethod, origin.value, acrm.value) match {
     case (true, true, _, _)           => true
@@ -86,8 +82,8 @@ object CORS {
   private[CORS] val logger = getLogger
 
   def DefaultCORSConfig = CORSConfig(
-    anyOrigin= true,
-    allowCredentials= true,
+    anyOrigin = true,
+    allowCredentials = true,
     maxAge = 1.day.toSeconds)
 
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift(new CORS(service, config))
