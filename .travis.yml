@@ -20,3 +20,9 @@ after_success:
 - bash bin/travis-publish
 notifications:
   irc: "chat.freenode.net#http4s"
+webhooks:
+  urls:
+    - https://webhooks.gitter.im/e/aadbcad1ca1e91b5a189
+  on_success: change
+  on_failure: always
+  on_start: false
