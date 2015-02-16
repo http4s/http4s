@@ -3,34 +3,33 @@ layout: default
 title: Community
 ---
 
-## Getting Help
-
 <div class="row">
 
   <div class="col-md-4">
-  <h3><i class="fa fa-slack irc"></i> IRC</h3>
+  <h2><i class="fa fa-comments-o"></i> Gitter</h2>
 
-  The http4s team and many of its users are available to chat at <a
-  href="irc://irc.freenode.net/http4s/">#http4s on Freenode.</a>  The
-  channel is not logged<sup><a href="#footnote-1" id="ref-1">1</a></sup>.  
-  Come join the discussion, ask for help, or just lurk!  
+  <p>The http4s community is gathering on <a
+  href="https://github.com/http4s/http4s/">Gitter at http4s/http4s</a>.  
+  The core developers and many of our users are here to provide support,
+  get feedback, and discuss the next steps on the project.  For those 
+  who prefer IRC, Gitter provides an <a href="https://irc.gitter.im/">IRC
+  bridge</a>.</p>
   </div>
 
-  <div class="col-md-4">
-  <h3><i class="fa fa-envelope-o"></i> Mailing list</h3>
-  We've started a [Google Group](https://groups.google.com/group/http4s).  
-  This lacks the real time give-and-take of IRC, but you won't netsplit 
-  before you get a reply.  IRC has been our more popular support channel, 
-  but we're here to help.  Don't be shy!
-  </div>
-
-  <div class="col-md-4"> <h3><i class="fa fa-bug"></i> GitHub
-  Issues</h3> http4s uses <a
+  <div class="col-md-4"> <h2><i class="fa fa-bug"></i><i class="fa fa-lightbulb-o"></i> Issues</h2>
+  <p>http4s uses <a
   href="http://github.com/http4s/issues/issues">GitHub issues</a>.  If
   you think you've hit a bug or have an idea of what we should do next,
   please don't hesitate to <a
   href="http://github.com/http4s/issues/issues/new">submit an issue</a>.
-  Your bug reports and request make the project better for everyone.
+  Your bug reports and request make the project better for everyone.</p>
+  </div>
+
+  <div class="col-md-4"> <h2><i class="fa fa-twitter"></i> Twitter</h2>
+  <p>Follow important project announcements on Twitter at 
+  <a href="http://twitter.com/http4s">@http4s</a>.  We appreciate your
+  tweets and retweets, but encourage you to use Gitter or Issues to
+  discuss in depth.
   </div>
 
 </div>
@@ -51,8 +50,6 @@ to improve.  Here's how you can help:
   to the docs. This site is a simple [Jekyll
   project](http://github.com/http4s/http4s/tree/master/src/jekyll) in
   our main repo.
-* We're [@http4s on Twitter](http://twitter.com/http4s).  Tell your
-  friends.
 
 ## Credits
 
@@ -65,9 +62,3 @@ to improve.  Here's how you can help:
   Rack](http://rack.github.io/), [Python
   WSGI](https://www.python.org/dev/peps/pep-0333/), and [Haskell
   WAI](http://www.yesodweb.com/book/web-application-interface).
-
-<hr />
-
-<sup id="footnote-1">1</sup> By us, anyway. Still, behave.<a
-href="#ref1">↩</a></sup>
-
