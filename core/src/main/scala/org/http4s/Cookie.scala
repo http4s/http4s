@@ -142,4 +142,8 @@ case class Cookie(
     extension.foreach(writer.append("; ").append(_))
     writer
   }
+
+  def clearCookie: headers.`Set-Cookie` = {
+    headers.`Set-Cookie`(copy(content = "", expires = Some(DateTime.UnixEpoch), maxAge = Some(0L)))
+  }
 }
