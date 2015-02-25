@@ -79,7 +79,7 @@ sealed class JettyBuilder private (
         threadPool = builder.instrumentedServiceExecutor
       )
       val servletName = s"servlet-$index"
-      val urlMapping = s"$prefix/*"
+      val urlMapping = ServletContainer.prefixMapping(prefix)
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
     })
 

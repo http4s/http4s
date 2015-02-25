@@ -23,5 +23,11 @@ trait ServletContainer
 
 object ServletContainer {
   val DefaultServletIo = NonBlockingServletIo(4096)
+
+  /**
+   * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to
+   * mountService into a standard servlet prefix mapping.
+   */
+  def prefixMapping(prefix: String) = prefix.replaceAll("/?$", "") + "/*"
 }
 

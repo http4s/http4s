@@ -79,7 +79,7 @@ sealed class TomcatBuilder private (
         threadPool = builder.instrumentedServiceExecutor
       )
       val wrapper = tomcat.addServlet("", s"servlet-$index", servlet)
-      wrapper.addMapping(s"$prefix/*")
+      wrapper.addMapping(ServletContainer.prefixMapping(prefix))
       wrapper.setAsyncSupported(true)
     })
 

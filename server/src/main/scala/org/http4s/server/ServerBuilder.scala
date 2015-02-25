@@ -25,7 +25,7 @@ trait ServerBuilder {
 
   def withServiceExecutor(executorService: ExecutorService): Self
 
-  def mountService(service: HttpService, prefix: String = "/"): Self
+  def mountService(service: HttpService, prefix: String = ""): Self
 
   def start: Task[Server]
 
