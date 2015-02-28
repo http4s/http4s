@@ -13,7 +13,6 @@ import org.http4s.headers.{
   `Access-Control-Request-Headers`,
   Origin
 }
-import Status.Ok
 
 import org.log4s.getLogger
 
@@ -23,6 +22,11 @@ import scalaz._
 import Scalaz._
 import scalaz.concurrent.Task
 
+/**
+  * CORS middleware config options.
+  * You can give an instance of this class to the CORS middleware,
+  * to specify its behavoir
+  */
 case class CORSConfig(
   anyOrigin: Boolean,
   allowCredentials: Boolean,
@@ -30,19 +34,27 @@ case class CORSConfig(
   anyMethod: Boolean = true,
   allowedOrigins: Option[Set[String]] = None,
   allowedMethods: Option[Set[String]] = None,
-  allowedHeaders: Option[Set[String]] = None
+  allowedHeaders: Option[Set[String]] = Set("Content-Type", "*").some
 )
 
+/**
+  * CORS middleware
+  * This middleware provides clients with CORS information
+  * based on information in CORS config.
+  * Currently, you cannot make permissions depend on request details
+  */
 class CORS(service: HttpService, config: CORSConfig) extends CORS.CORSF {
   import CORS._
+  import Status.Ok
+  import Task.now
 
   def apply(req: Request): Task[Option[Response]] = ((req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
     case (Method.OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
       logger.debug(s"Serving OPTIONS with CORS headers for ${acrm} ${req.uri}")
       options(req, origin, acrm)
-    case (_, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
+    case (_, Some(origin), _) if allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString)) =>
       logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-      service.runT(req).map(corsHeaders(origin.value, acrm.value, acrh(req))).run
+      service.runT(req).map(corsHeaders(origin.value, req.method.renderString)).run
     case _ =>
       logger.info(s"CORS headers were denied for ${req.method} ${req.uri}")
       service(req)
@@ -50,14 +62,16 @@ class CORS(service: HttpService, config: CORSConfig) extends CORS.CORSF {
 
   def options(req: Request, origin: Header, acrm: Header): Task[Option[Response]] =
     service
-      .or(req, Task.now(Response(Ok))).liftM[OptionT]
-      .map(corsHeaders(origin.value, acrm.value, acrh(req))).run
+      .or(req, now(Response(Ok))).liftM[OptionT]
+      .map(corsHeaders(origin.value, acrm.value)).run
 
-  def corsHeaders(origin: String, acrm: String, acrh: String)(resp: Response): Response =
-    resp.putHeaders(
+  def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
+    config.allowedHeaders.map(_.mkString("", ", ", "")).cata(
+      (hs: String) => resp.putHeaders(Header("Access-Control-Allow-Headers", hs)),
+      resp
+    ).putHeaders(
       Header("Vary", "Origin,Access-Control-Request-Methods"),
       Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
-      Header("Access-Control-Allow-Headers"    , config.allowedHeaders.cata(_.mkString("", " ", ""), acrh)),
       Header("Access-Control-Allow-Methods"    , config.allowedMethods.cata(_.mkString("", " ", ""), acrm)),
       Header("Access-Control-Allow-Origin"     , origin),
       Header("Access-Control-Max-Age"          , config.maxAge.toString())
@@ -71,9 +85,6 @@ class CORS(service: HttpService, config: CORSConfig) extends CORS.CORSF {
       ( config.allowedMethods.map(_.contains(acrm  )) |@|
         config.allowedOrigins.map(_.contains(origin))     ) {_ && _} | false
   }
-
-  def acrh(req: Request) =
-    req.headers.get(`Access-Control-Request-Headers`).map(_.value) | ""
 
 }
 
