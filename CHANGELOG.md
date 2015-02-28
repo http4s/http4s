@@ -1,3 +1,9 @@
+# v0.6.2 (2015-02-27)
+* Use the thread pool provided to the Jetty servlet builder.
+* Avoid throwing exceptions when parsing headers.
+* Make trailing slash insignificant in service prefixes on servlet containers.
+* Fix mapping of servlet query and mount prefix.
+
 # v0.6.1 (2015-02-04)
 * Update to blaze-0.5.1
 * Remove unneeded error message (90b2f76097215)

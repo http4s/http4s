@@ -125,7 +125,7 @@ class Http4sServlet(service: HttpService,
   private def toRequest(req: HttpServletRequest): ParseResult[Request] =
     for {
       method <- Method.fromString(req.getMethod)
-      uri <- Uri.requestTarget(req.getRequestURI)
+      uri <- Uri.requestTarget(s"${req.getPathInfo}?${req.getQueryString}")
       version <- HttpVersion.fromString(req.getProtocol)
     } yield Request(
       method = method,
