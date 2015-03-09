@@ -65,12 +65,12 @@ private[parser] trait Rfc3986Parser { this: Parser =>
                                                    6.times(H16 ~ ":") ~ LS32 |
                                             "::" ~ 5.times(H16 ~ ":") ~ LS32 |
           optional(H16) ~                   "::" ~ 4.times(H16 ~ ":") ~ LS32 |
-    (0 to 2).times(H16).separatedBy(":")  ~ "::" ~ 3.times(H16 ~ ":") ~ LS32 |
-    (0 to 3).times(H16).separatedBy(":")  ~ "::" ~ 2.times(H16 ~ ":") ~ LS32 |
-    (0 to 4).times(H16).separatedBy(":")  ~ "::" ~         H16 ~ ":"  ~ LS32 |
-    (0 to 5).times(H16).separatedBy(":")  ~ "::" ~                      LS32 |
-    (0 to 6).times(H16).separatedBy(":")  ~ "::" ~                      H16  |
-    (0 to 7).times(H16).separatedBy(":")  ~ "::"
+    optional((1 to 2).times(H16).separatedBy(":"))  ~ "::" ~ 3.times(H16 ~ ":") ~ LS32 |
+    optional((1 to 3).times(H16).separatedBy(":"))  ~ "::" ~ 2.times(H16 ~ ":") ~ LS32 |
+    optional((1 to 4).times(H16).separatedBy(":"))  ~ "::" ~         H16 ~ ":"  ~ LS32 |
+    optional((1 to 5).times(H16).separatedBy(":"))  ~ "::" ~                      LS32 |
+    optional((1 to 6).times(H16).separatedBy(":"))  ~ "::" ~                      H16  |
+    optional((1 to 7).times(H16).separatedBy(":"))  ~ "::"
   }
 
   def H16 = rule { (1 to 4).times(HexDigit) }
