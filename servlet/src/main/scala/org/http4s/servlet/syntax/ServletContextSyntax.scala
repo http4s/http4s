@@ -3,14 +3,10 @@ package org.http4s.servlet.syntax
 import javax.servlet.{ServletRegistration, ServletContext}
 
 import org.http4s.server.{AsyncTimeoutSupport, HttpService}
-import org.http4s.servlet.{NonBlockingServletIo, Http4sServlet}
+import org.http4s.servlet._
 
 import scalaz.concurrent.Strategy
-import scalaz.syntax.Ops
 
-/**
- * Created by ross on 12/19/14.
- */
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps = new ServletContextOps(self)
 }
@@ -22,13 +18,22 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
       threadPool = Strategy.DefaultExecutorService,
-      servletIo = NonBlockingServletIo(4096)
+      servletIo = servletIo
     )
     val reg = self.addServlet(name, servlet)
     reg.setLoadOnStartup(1)
     reg.setAsyncSupported(true)
     reg.addMapping(mapping)
     reg
+  }
+
+  private def servletIo: ServletIo = {
+    val chunkSize = 4096
+    val version = ServletApiVersion(self.getMajorVersion, self.getMinorVersion)
+    if (version >= ServletApiVersion(3, 1))
+      NonBlockingServletIo(4096)
+    else
+      BlockingServletIo(chunkSize)
   }
 }
 

@@ -20,7 +20,7 @@ import org.log4s.getLogger
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
                     threadPool: ExecutorService = Strategy.DefaultExecutorService,
-                    private[this] var servletIo: ServletIo = NonBlockingServletIo(4096))
+                    private[this] var servletIo: ServletIo = BlockingServletIo(4096))
   extends HttpServlet
 {
   private[this] val logger = getLogger
@@ -39,6 +39,8 @@ class Http4sServlet(service: HttpService,
     serverSoftware = ServerSoftware(servletContext.getServerInfo)
   }
 
+  // TODO This is a dodgy check.  It will have already triggered class loading of javax.servlet.WriteListener.
+  // Remove when we can break binary compatibility.
   private def verifyServletIo(servletApiVersion: ServletApiVersion): Unit = servletIo match {
     case NonBlockingServletIo(chunkSize) if servletApiVersion < ServletApiVersion(3, 1) =>
       logger.warn("Non-blocking servlet I/O requires Servlet API >= 3.1. Falling back to blocking I/O.")
