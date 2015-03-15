@@ -20,7 +20,7 @@ import org.log4s.getLogger
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
                     threadPool: ExecutorService = Strategy.DefaultExecutorService,
-                    private[this] var servletIo: ServletIo = BlockingServletIo(4096))
+                    private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
   extends HttpServlet
 {
   private[this] val logger = getLogger

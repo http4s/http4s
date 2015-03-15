@@ -22,7 +22,7 @@ trait ServletContainer
 }
 
 object ServletContainer {
-  val DefaultServletIo = NonBlockingServletIo(4096)
+  val DefaultServletIo = NonBlockingServletIo(DefaultChunkSize)
 
   /**
    * Trims an optional trailing slash and then appends "/\u002b'.  Translates an argument to

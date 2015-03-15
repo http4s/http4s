@@ -1,4 +1,5 @@
-package org.http4s.servlet.syntax
+package org.http4s.servlet
+package syntax
 
 import javax.servlet.{ServletRegistration, ServletContext}
 
@@ -28,12 +29,11 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
   }
 
   private def servletIo: ServletIo = {
-    val chunkSize = 4096
     val version = ServletApiVersion(self.getMajorVersion, self.getMinorVersion)
     if (version >= ServletApiVersion(3, 1))
-      NonBlockingServletIo(4096)
+      NonBlockingServletIo(DefaultChunkSize)
     else
-      BlockingServletIo(chunkSize)
+      BlockingServletIo(DefaultChunkSize)
   }
 }
 
