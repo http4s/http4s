@@ -1,5 +1,8 @@
-# v0.6.3 (2015-03-15)
+# v0.6.4 (2015-03-15)
 * Avoid loading javax.servlet.WriteListener when deploying to a servlet 3.0 container.
+
+# ~~v0.6.3 (2015-03-15)~~
+* Forgot to pull origin before releasing.  Use v0.6.4 instead.
 
 # v0.6.2 (2015-02-27)
 * Use the thread pool provided to the Jetty servlet builder.
