@@ -1,3 +1,6 @@
+# v0.6.3 (2015-03-15)
+* Avoid loading javax.servlet.WriteListener when deploying to a servlet 3.0 container.
+
 # v0.6.2 (2015-02-27)
 * Use the thread pool provided to the Jetty servlet builder.
 * Avoid throwing exceptions when parsing headers.
