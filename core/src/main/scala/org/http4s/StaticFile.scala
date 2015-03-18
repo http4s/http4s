@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.{\/-, -\/}
 import scalaz.concurrent.{Strategy, Task}
+import scalaz.stream.io
 import scalaz.stream.Process
 import Process._
 
@@ -39,10 +40,24 @@ object StaticFile {
 
   def fromURL(url: URL, req: Option[Request] = None)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
-    if (url == null)
-      throw new NullPointerException("url")
+    val lastmod = DateTime(url.openConnection.getLastModified())
+    val expired = req
+      .flatMap(_.headers.get(`If-Modified-Since`))
+      .map(_.date.compareTo(lastmod) < 0)
+      .getOrElse(true)
 
-    fromFile(new File(url.toURI), req)(es)
+    if (!expired)
+      return Some(Response(NotModified))
+
+    val mime    = MediaType.forExtension(url.getPath.split('.').last)
+    val headers = Headers.apply(
+      mime.fold(List[Header](`Last-Modified`(lastmod)))
+               (`Content-Type`(_)::`Last-Modified`(lastmod)::Nil))
+
+    Some(Response(
+      headers = headers,
+      body    = Process.constant(4096).toSource.through(io.chunkR(url.openStream))
+    ))
   }
 
   def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] =
