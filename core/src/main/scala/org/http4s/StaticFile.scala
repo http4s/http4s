@@ -11,6 +11,7 @@ import java.util.concurrent.ExecutorService
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.{\/-, -\/}
 import scalaz.concurrent.{Strategy, Task}
+import scalaz.stream.io
 import scalaz.stream.Process
 import Process._
 
@@ -32,17 +33,28 @@ object StaticFile {
 
   def fromResource(name: String, req: Option[Request] = None)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
-    val url = getClass.getResource(name)
-    if (url != null) StaticFile.fromURL(url, req)(es)
-    else None
+    Option(getClass.getResource(name)).flatMap(fromURL(_, req))
   }
 
   def fromURL(url: URL, req: Option[Request] = None)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
-    if (url == null)
-      throw new NullPointerException("url")
+    val lastmod = DateTime(url.openConnection.getLastModified())
+    val expired = req
+      .flatMap(_.headers.get(`If-Modified-Since`))
+      .map(_.date.compareTo(lastmod) < 0)
+      .getOrElse(true)
 
-    fromFile(new File(url.toURI), req)(es)
+    if (expired) {
+      val mime    = MediaType.forExtension(url.getPath.split('.').last)
+      val headers = Headers.apply(
+        mime.fold(List[Header](`Last-Modified`(lastmod)))
+          (`Content-Type`(_)::`Last-Modified`(lastmod)::Nil))
+
+      Some(Response(
+        headers = headers,
+        body    = Process.constant(DefaultBufferSize).toSource.through(io.chunkR(url.openStream))
+      ))
+    } else Some(Response(NotModified))
   }
 
   def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] =
@@ -50,67 +62,52 @@ object StaticFile {
 
   def fromFile(f: File, buffsize: Int, req: Option[Request])
            (implicit es: ExecutorService): Option[Response] = {
-    if (f.isFile) {
-      StaticFile.fromFile(f, 0, f.length(), buffsize, req)(es)
-    }
-    else None
+    fromFile(f, 0, f.length(), buffsize, req)
   }
 
   def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request])
                         (implicit es: ExecutorService): Option[Response] = {
-
-    if (f == null) throw new NullPointerException("File")
 
     if (start < 0 || end < start || buffsize <= 0)
       throw new Exception(s"start: $start, end: $end, buffsize: $buffsize")
 
     if (!f.isFile) return None
 
-    val lastModified = f.lastModified()
+    val lastModified = DateTime(f.lastModified())
 
-//    // See if we need to actually resend the file
-    if (req.isDefined) {
-      req.get.headers.get(`If-Modified-Since`) match {
-        case Some(h) =>
-          val mod = DateTime(lastModified)
-          val expired = h.date.compareTo(mod) < 0
-          logger.trace(s"Expired: ${expired}. Request age: ${h.date}, Modified: $mod")
-          if (!expired) {
-            return Some(Response(NotModified))
-          }
+    // See if we need to actually resend the file
+    val notModified = for {
+      r   <- req
+      h   <- r.headers.get(`If-Modified-Since`)
+      exp  = h.date.compareTo(lastModified) < 0
+      _    = logger.trace(s"Expired: ${exp}. Request age: ${h.date}, Modified: $lastModified")
+      nm   = Response(NotModified) if (!exp)
+    } yield nm
 
-        case _ =>  // Just send it
-      }
-    }
+    notModified orElse {
 
-    val lastmodified = `Last-Modified`(DateTime(lastModified))
+      val (body, contentLength) =
+        if (f.length() < end) (halt, 0)
+        else (fileToBody(f, start, end, buffsize), (end - start).toInt)
 
-    val mimeheader = Option(Files.probeContentType(f.toPath)).flatMap { mime =>
-      val parts = mime.split('/')
-      if (parts.length == 2) {
-        MediaType.get( (parts(0), parts(1)) ).map(`Content-Type`(_))
-      } else None
-    }
+      val contentType = for {
+        mime  <- Option(Files.probeContentType(f.toPath))
+        parts  = mime.split('/') if parts.length == 2
+        mt    <- MediaType.get((parts(0), parts(1)))
+      } yield `Content-Type`(mt)
 
-    val len = f.length()
-    val body = if (len < end) halt else fileToBody(f, start, end, buffsize)
-    val lengthheader = `Content-Length`(if (len < end) 0 else (end - start).toInt)
+      val headers =
+        `Last-Modified`(lastModified) :: `Content-Length`(contentLength) :: contentType.toList
 
-    // See if we have a mime type or not
-    val headers = Headers.apply(mimeheader match {
-      case Some(h) =>  h::lastmodified::lengthheader::Nil
-      case None    =>     lastmodified::lengthheader::Nil
-    })
+      val r = Response(
+        headers = Headers(headers),
+        body = body,
+        attributes = AttributeMap.empty.put(staticFileKey, f)
+      )
 
-    val r = Response(
-      headers = headers,
-      body = body,
-      attributes = AttributeMap.empty.put(staticFileKey, f)
-    )
-
-    logger.trace(s"Static file generated response: $r")
-    Some(r)
-  }
+      logger.trace(s"Static file generated response: $r")
+      Some(r)
+  }}
 
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
                 (implicit es: ExecutorService): Process[Task, ByteVector] = {
