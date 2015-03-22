@@ -23,10 +23,23 @@ import headers._
 import java.net.InetAddress
 import org.http4s.util.CaseInsensitiveString._
 
+import scalaz.NonEmptyList
+
 /**
  * parser rules for all headers that can be parsed with one simple rule
  */
 private[parser] trait SimpleHeaders { self: HttpParser =>
+
+  def ALLOW(value: String): ParseResult[Allow] = {
+    new Http4sHeaderParser[Allow](value) {
+      def entry = rule {
+        oneOrMore(Token).separatedBy(ListSep) ~ EOL ~>  { ts: Seq[String] =>
+          val ms = ts.map(Method.fromString(_).getOrElse(sys.error("Impossible. Please file a bug report.")))
+          Allow(NonEmptyList(ms.head, ms.tail:_*))
+        }
+      }
+    }.parse
+  }
 
   def CONNECTION(value: String): ParseResult[Connection] = {
     new Http4sHeaderParser[Connection](value) {
