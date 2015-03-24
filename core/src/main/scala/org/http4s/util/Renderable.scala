@@ -56,7 +56,7 @@ trait Writer {
     append(start)
     if (s.nonEmpty) {
       append(s.head)
-      s.tail.foreach(s => append(s).append(sep))
+      s.tail.foreach(s => append(sep).append(s))
     }
     append(end)
   }
