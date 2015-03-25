@@ -228,10 +228,13 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
     // Think of this as drunk HTTP pipelining
     "Not die when two requests come in back to back" in {
 
+      import scalaz.stream.Process.Step
       val service = HttpService {
-        case req => req.body.take(1).runLastOr(sys.error("Totally broken!")).map { bytes =>
-          Response(body = Process.emit(bytes))
-        }
+        case req =>
+          req.body.step match {
+            case Step(p,_) => Task.now(Response(body = p))
+            case _ => sys.error("Failure.")
+          }
       }
 
       // The first request will get split into two chunks, leaving the last byte off
