@@ -18,6 +18,7 @@ import org.http4s.server.middleware.PushSupport._
 import org.http4s.twirl._
 
 import scalaz.stream.Process
+import scalaz.stream.time
 import scalaz.concurrent.Task
 import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
 
@@ -146,9 +147,9 @@ object ExampleService {
   def dataStream(n: Int): Process[Task, String] = {
     implicit def defaultSecheduler = DefaultTimeoutScheduler
     val interval = 100.millis
-    val stream = Process.awakeEvery(interval)
-                        .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
-                        .take(n)
+    val stream = time.awakeEvery(interval)
+      .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
+      .take(n)
 
     Process.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
   }

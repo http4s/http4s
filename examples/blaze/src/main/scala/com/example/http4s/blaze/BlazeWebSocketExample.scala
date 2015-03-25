@@ -13,7 +13,7 @@ import org.http4s.websocket.WebsocketBits._
 
 import scalaz.concurrent.Strategy
 import scalaz.stream.DefaultScheduler
-
+import scalaz.stream.time.awakeEvery
 
 object BlazeWebSocketExample extends App {
 
@@ -31,7 +31,7 @@ import scala.concurrent.duration._
       Ok("Hello world.")
 
     case req@ GET -> Root / "ws" =>
-      val src = Process.awakeEvery(1.seconds)(Strategy.DefaultStrategy, DefaultScheduler).map{ d => Text(s"Ping! $d") }
+      val src = awakeEvery(1.seconds)(Strategy.DefaultStrategy, DefaultScheduler).map{ d => Text(s"Ping! $d") }
       val sink: Sink[Task, WebSocketFrame] = Process.constant {
         case Text(t, _) => Task.delay( println(t))
         case f       => Task.delay(println(s"Unknown type: $f"))

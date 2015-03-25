@@ -55,13 +55,16 @@ object ScienceExperiments {
     ///////////////// Switch the response based on head of content //////////////////////
 
     case req@POST -> Root / "challenge1" =>
-      val body = req.body.map { c => new String(c.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)}.toTask
-
-      body.flatMap { s: String =>
-        if (!s.startsWith("go")) {
-          Ok("Booo!!!")
-        } else {
-          Ok(emit(s) ++ repeatEval(body))
+      val body = req.body.map { c => new String(c.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)}
+      def notGo = emit("Booo!!!")
+      Ok {
+        body.step match {
+          case Step(head, tail) =>
+            head.runLast.run.fold(tail.continue) { head =>
+              if (!head.startsWith("go")) notGo
+              else emit(head) ++ tail.continue
+            }
+          case _ => notGo
         }
       }
 
@@ -74,7 +77,7 @@ object ScienceExperiments {
         case _ =>
           BadRequest("no data")
       }
-      (req.body |> parser).eval.toTask
+      (req.body |> parser).runLastOr(InternalServerError()).run
 
     /*
       case req @ Post -> Root / "trailer" =>
