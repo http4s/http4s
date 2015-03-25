@@ -225,11 +225,11 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
     }
 
-    // Think of this as drunk HTTP pipelineing
+    // Think of this as drunk HTTP pipelining
     "Not die when two requests come in back to back" in {
 
       val service = HttpService {
-        case req => req.body.toTask.map { bytes =>
+        case req => req.body.take(1).runLastOr(sys.error("Totally broken!")).map { bytes =>
           Response(body = Process.emit(bytes))
         }
       }
