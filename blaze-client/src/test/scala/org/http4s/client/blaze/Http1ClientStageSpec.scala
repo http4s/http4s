@@ -127,6 +127,30 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
       response must_==("done")
     }
+
+    "Utilize a provided Host header" in {
+      val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed).withHeaders(headers.Host("bar.com"))
+
+      val (request, response) = getSubmission(req, resp, 20.seconds)
+
+      val requestLines = request.split("\r\n").toList
+
+      requestLines must contain("Host: bar.com")
+      response must_==("done")
+    }
+
+    "Allow an HTTP/1.0 request without a Host header" in {
+      val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed, httpVersion = HttpVersion.`HTTP/1.0`)
+
+      val (request, response) = getSubmission(req, resp, 20.seconds)
+
+      request must not contain("Host:")
+      response must_==("done")
+    }
   }
 
   "Http1ClientStage responses" should {
