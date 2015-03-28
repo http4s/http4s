@@ -94,10 +94,10 @@ pomExtra in ThisBuild := (
   </developers>
 )
 
-scalaVersion in ThisBuild := "2.10.4"
+scalaVersion in ThisBuild := "2.10.5"
 
 crossScalaVersions in ThisBuild := Seq(
-  "2.10.4",
+  "2.10.5",
   "2.11.5"
 )
 

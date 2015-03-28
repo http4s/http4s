@@ -50,7 +50,7 @@ import scala.concurrent.duration._
   def pipebuilder(conn: SocketConnection): LeafBuilder[ByteBuffer] =
     new Http1ServerStage(URITranslation.translateRoot("/http4s")(route), Some(conn)) with WebSocketSupport
 
-  new NIO1SocketServerChannelFactory(pipebuilder, 12, 8*1024)
+  NIO1SocketServerChannelFactory(pipebuilder, 12, 8*1024)
     .bind(new InetSocketAddress(8080))
     .run()
 }

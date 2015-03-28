@@ -100,9 +100,9 @@ class BlazeBuilder(
 
     val factory =
       if (isNio2)
-        new NIO2SocketServerChannelFactory(pipelineFactory)
+        NIO2SocketServerChannelFactory(pipelineFactory)
       else
-        new NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
+        NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
 
     var address = socketAddress
     if (address.isUnresolved)
