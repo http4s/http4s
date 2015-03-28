@@ -118,7 +118,7 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
       else if (req.body.isHalt || `Content-Length`.from(req.headers).nonEmpty) {  // translate to HTTP/1.0
         validateRequest(req.copy(httpVersion = HttpVersion.`HTTP/1.0`))
       } else {
-        Left(new Exception("Host header required for HTTP/1.1 request"))
+        Left(new IllegalArgumentException("Host header required for HTTP/1.1 request"))
       }
     }
     else if (req.uri.path == "") Right(req.copy(uri = req.uri.copy(path = "/")))
@@ -141,9 +141,11 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
           writer << '\r' << '\n'
 
         case None =>
+           // TODO: do we want to do this by exception?
+          throw new IllegalArgumentException("Request URI must have a host.")
       }
       writer
-    } else sys.error("Request URI must have a host.") // TODO: do we want to do this by exception?
+    } else writer
   }
 }
 
