@@ -22,6 +22,7 @@ package parser
 import headers._
 import java.net.InetAddress
 import org.http4s.util.CaseInsensitiveString._
+import org.parboiled2.Rule1
 
 import scalaz.NonEmptyList
 
@@ -114,6 +115,22 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
         else `Transfer-Encoding`(TransferCoding.fromKey(vals.head.ci), vals.tail.map(s => TransferCoding.fromKey(s.ci)): _*)
       }
     }
+  }.parse
+
+  def USER_AGENT(value: String) = new Http4sHeaderParser[`User-Agent`](value) {
+    def entry = rule {
+      product ~ zeroOrMore(RWS ~ (product | comment)) ~> (`User-Agent`(_,_))
+    }
+
+    def product: Rule1[AgentProduct] = rule {
+      Token ~ optional("/" ~ Token) ~> (AgentProduct(_,_))
+    }
+
+    def comment: Rule1[AgentComment] = rule {
+      capture(Comment) ~> { s: String => AgentComment(s.substring(1, s.length-1)) }
+    }
+
+    def RWS = rule { oneOrMore(anyOf(" \t")) }
   }.parse
 
   def X_FORWARDED_FOR(value: String) = new Http4sHeaderParser[`X-Forwarded-For`](value) {
