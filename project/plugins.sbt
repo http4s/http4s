@@ -19,3 +19,5 @@ addSbtPlugin("com.typesafe" % "sbt-mima-plugin" % "0.1.6")
 addSbtPlugin("com.earldouglas" % "xsbt-web-plugin" % "1.0.0")
 
 addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.0.4")
+
+addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.1.12")

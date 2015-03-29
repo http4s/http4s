@@ -33,6 +33,8 @@ lazy val argonaut = project.dependsOn(core % "compile;test->test", jawn % "compi
 
 lazy val `scala-xml` = project.dependsOn(core % "compile;test->test")
 
+lazy val bench = project.dependsOn(core)
+
 // The plugin must be enabled for the tests
 lazy val twirl = project.dependsOn(core % "compile;test->test").enablePlugins(SbtTwirl)
 
