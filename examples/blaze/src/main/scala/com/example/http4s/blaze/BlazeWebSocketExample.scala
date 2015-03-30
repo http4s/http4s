@@ -12,7 +12,7 @@ import org.http4s.server.middleware.URITranslation
 import org.http4s.websocket.WebsocketBits._
 
 import scalaz.concurrent.Strategy
-import scalaz.stream.DefaultScheduler
+import scalaz.stream.{DefaultScheduler, Exchange}
 import scalaz.stream.time.awakeEvery
 
 object BlazeWebSocketExample extends App {
@@ -36,7 +36,7 @@ import scala.concurrent.duration._
         case Text(t, _) => Task.delay( println(t))
         case f       => Task.delay(println(s"Unknown type: $f"))
       }
-      WS(src, sink)
+      WS(Exchange(src, sink))
 
     case req@ GET -> Root / "wsecho" =>
       val t = topic[WebSocketFrame]()
@@ -44,7 +44,7 @@ import scala.concurrent.duration._
         case Text(msg, _) => Text("You sent the server: " + msg)
       }
 
-      WS(src, t.publish)
+      WS(Exchange(src, t.publish))
   }
 
   def pipebuilder(conn: SocketConnection): LeafBuilder[ByteBuffer] =
