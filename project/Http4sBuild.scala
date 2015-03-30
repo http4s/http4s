@@ -83,6 +83,6 @@ object Http4sBuild extends Build {
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.18"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.0.4"
-  lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % "2.1.1" % "test"
-  lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"    % "2.1.1" % "test"
+  lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % "2.1.1" % "it,test"
+  lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"    % "2.1.1" % "it,test"
 }
