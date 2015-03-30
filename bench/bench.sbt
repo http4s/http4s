@@ -1,5 +1,5 @@
-name := "http4s-dsl"
+name := "http4s-bench"
 
-description := "A DSL for writing simple http4s services"
+description := "Benchmark for core"
 
-mimaSettings
+pl.project13.scala.sbt.SbtJmh.jmhSettings

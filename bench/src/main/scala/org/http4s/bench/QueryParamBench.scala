@@ -2,6 +2,8 @@ package org.http4s.bench
 
 import java.util.concurrent.TimeUnit
 
+import org.http4s.Query
+import org.http4s.bench.input.QueryParamInput
 import org.openjdk.jmh.annotations._
 
 @BenchmarkMode(Array(Mode.AverageTime))
@@ -9,6 +11,10 @@ import org.openjdk.jmh.annotations._
 @State(Scope.Benchmark)
 class QueryParamBench {
 
-  @Benchmark def lensGet0(in: Nested0Input) =
+  @Benchmark def withQueryParam(in: QueryParamInput): Query =
+    in.queryParams.foldLeft(Query.empty){ case (query, (key, value)) => query.withQueryParam(key, value) }
+
+  @Benchmark def setQueryParams(in: QueryParamInput): Query =
+    Query.empty.setQueryParams(in.queryParams.mapValues(Seq(_)))
 
 }

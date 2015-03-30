@@ -1,8 +1,24 @@
 package org.http4s.bench.input
 
-/**
- * Created by julien on 29/03/15.
- */
+
+import org.openjdk.jmh.annotations.{Param, Scope, Setup, State}
+
+import scala.util.Random
+
+@State(Scope.Thread)
 class QueryParamInput {
+
+  @Param(Array("10", "100", "1000"))
+  var size: Int = _
+
+  var queryParams: Map[String, String] = _
+
+  private def genString(): String =
+    Random.nextString(Random.nextInt(50))
+
+  @Setup
+  def setup(): Unit =
+    queryParams = (1 to size).map(_ => genString() -> genString()).toMap
+
 
 }
