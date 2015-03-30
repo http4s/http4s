@@ -96,6 +96,27 @@ class SimpleHeadersSpec extends Http4sSpec {
       HttpParser.parseHeader(header2.toRaw) must beRightDisjunction(header2)
     }
 
+    "parse User-Agent" in {
+      val header = `User-Agent`(AgentProduct("foo", Some("bar")), Seq(AgentComment("foo")))
+      header.value must_== "foo/bar (foo)"
+
+      HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
+
+      val header2 = `User-Agent`(AgentProduct("foo"), Seq(AgentProduct("bar", Some("biz")), AgentComment("blah")))
+      header2.value must_== "foo bar/biz (blah)"
+      HttpParser.parseHeader(header2.toRaw) must beRightDisjunction(header2)
+
+      val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
+      HttpParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must beRightDisjunction(
+        `User-Agent`(AgentProduct("Mozilla", Some("5.0")), Seq(
+            AgentComment("Android; Mobile; rv:30.0"),
+            AgentProduct("Gecko", Some("30.0")),
+            AgentProduct("Firefox", Some("30.0"))
+          )
+        )
+      )
+    }
+
     "parse X-Forward-Spec" in {
       val header1 = `X-Forwarded-For`(NonEmptyList(Some(InetAddress.getLocalHost)))
       HttpParser.parseHeader(header1.toRaw) must beRightDisjunction(header1)
