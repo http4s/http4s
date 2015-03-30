@@ -36,6 +36,8 @@ lazy val `scala-xml` = project.dependsOn(core % "compile;test->test")
 // The plugin must be enabled for the tests
 lazy val twirl = project.dependsOn(core % "compile;test->test").enablePlugins(SbtTwirl)
 
+lazy val `load-test` = Project("load-test", file("load-test"))
+
 lazy val examples = project.dependsOn(server, theDsl, argonaut, `scala-xml`, twirl).enablePlugins(SbtTwirl)
 
 lazy val `examples-blaze` = Project("examples-blaze", file("examples/blaze")).dependsOn(examples, `blaze-server`, `blaze-client`)
