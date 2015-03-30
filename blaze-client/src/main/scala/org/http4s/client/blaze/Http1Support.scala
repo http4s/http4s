@@ -9,6 +9,7 @@ import javax.net.ssl.SSLContext
 
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
+import org.http4s.headers.`User-Agent`
 import org.http4s.util.task
 import org.http4s.{Uri, Request}
 import org.http4s.blaze.pipeline.LeafBuilder
@@ -28,6 +29,7 @@ import scalaz.{\/, -\/, \/-}
   * Also serves as a non-recycling [[ConnectionManager]] */
 final class Http1Support(bufferSize: Int,
                             timeout: Duration,
+                          userAgent: Option[`User-Agent`],
                                  es: ExecutorService,
                         osslContext: Option[SSLContext],
                               group: Option[AsynchronousChannelGroup])
@@ -67,7 +69,7 @@ final class Http1Support(bufferSize: Int,
   }
 
   private def buildStages(uri: Uri): (LeafBuilder[ByteBuffer], BlazeClientStage) = {
-    val t = new Http1ClientStage(timeout)(ec)
+    val t = new Http1ClientStage(userAgent, timeout)(ec)
     val builder = LeafBuilder(t)
     uri match {
       case Uri(Some(Https),_,_,_,_) =>
