@@ -4,7 +4,7 @@ import java.nio.ByteBuffer
 import java.nio.channels.ClosedChannelException
 
 import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.headers.{Host, `Content-Length`}
+import org.http4s.headers.{`User-Agent`, Host, `Content-Length`}
 import org.http4s.{headers => H}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.blaze.Http1Stage
@@ -20,7 +20,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process.halt
 import scalaz.{-\/, \/, \/-}
 
-final class Http1ClientStage(timeout: Duration)(implicit protected val ec: ExecutionContext)
+final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)(implicit protected val ec: ExecutionContext)
                       extends Http1ClientReceiver with Http1Stage {
 
   import Http1ClientStage._
@@ -73,6 +73,10 @@ final class Http1ClientStage(timeout: Duration)(implicit protected val ec: Execu
             val rr = new StringWriter(512)
             encodeRequestLine(req, rr)
             Http1Stage.encodeHeaders(req.headers, rr, false)
+
+            if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
+              rr << userAgent.get << '\r' << '\n'
+            }
 
             val closeHeader = H.Connection.from(req.headers)
               .map(checkCloseConnection(_, rr))
