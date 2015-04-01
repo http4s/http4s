@@ -91,15 +91,15 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
         sendOutboundCommand(Command.Disconnect)
     }
 
-    ws.source.through(sink).run.runAsync(onFinish)
+    ws.exchange.read.through(sink).run.runAsync(onFinish)
 
     // The sink is a bit more complicated
     val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))
 
     // if we never expect to get a message, we need to make sure the sink signals closed
-    val routeSink: Sink[Task, WebSocketFrame] = ws.sink match {
+    val routeSink: Sink[Task, WebSocketFrame] = ws.exchange.write match {
       case Halt(End) => onFinish(\/-(())); discard
-      case Halt(e)   => onFinish(-\/(Terminated(e))); ws.sink
+      case Halt(e)   => onFinish(-\/(Terminated(e))); ws.exchange.write
       case s => s ++ await(Task{onFinish(\/-(()))})(_ => discard)
     }
 
