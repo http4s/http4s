@@ -6,9 +6,7 @@ publishArtifact := false
 
 fork := true
 
-libraryDependencies ++= Seq(
-  "io.dropwizard.metrics" % "metrics-json" % "3.1.0"
-)
+libraryDependencies += metricsJson
 
 seq(Revolver.settings: _*)
 
