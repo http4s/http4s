@@ -1,3 +1,7 @@
+# v0.6.4 (2015-03-29)
+* Fix bug in Request URI on servlet backend with non-empty context or servlet paths.
+* Allow provided Host header for Blaze requests.
+
 # v0.6.4 (2015-03-15)
 * Avoid loading javax.servlet.WriteListener when deploying to a servlet 3.0 container.
 
