@@ -6,6 +6,8 @@ publishArtifact := false
 
 fork := true
 
+libraryDependencies += metricsJson
+
 seq(Revolver.settings: _*)
 
 

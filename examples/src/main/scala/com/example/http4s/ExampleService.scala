@@ -1,7 +1,5 @@
 package com.example.http4s
 
-import _root_.argonaut.JString
-
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
