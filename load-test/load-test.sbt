@@ -8,4 +8,4 @@ enablePlugins(GatlingPlugin)
 
 libraryDependencies ++= Seq(
   gatlingHighCharts, gatlingTest
-)
+).map(_ % "it,test")
