@@ -1,4 +1,4 @@
-# v0.6.4 (2015-03-29)
+# v0.6.5 (2015-03-29)
 * Fix bug in Request URI on servlet backend with non-empty context or servlet paths.
 * Allow provided Host header for Blaze requests.
 
