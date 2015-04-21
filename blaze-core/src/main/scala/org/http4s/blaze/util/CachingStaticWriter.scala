@@ -12,7 +12,7 @@ import scodec.bits.ByteVector
 import scala.concurrent.{ExecutionContext, Future}
 
 class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], bufferSize: Int = 8*1024)
-                              (implicit val ec: ExecutionContext)
+                         (implicit val ec: ExecutionContext)
                           extends ProcessWriter {
   private[this] val logger = getLogger
 
