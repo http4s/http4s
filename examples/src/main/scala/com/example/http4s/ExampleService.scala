@@ -34,6 +34,10 @@ object ExampleService {
       // Supports Play Framework template -- see src/main/twirl.
       Ok(html.index())
 
+    case _ -> Root =>
+      // The default route result is NotFound. Sometimes MethodNotAllowed is more appropriate.
+      MethodNotAllowed()
+
     case GET -> Root / "ping" =>
       // EntityEncoder allows for easy conversion of types to a response body
       Ok("pong")
