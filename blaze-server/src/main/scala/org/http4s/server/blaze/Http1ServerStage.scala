@@ -40,9 +40,12 @@ class Http1ServerStage(service: HttpService,
 
   val name = "Http4sServerStage"
 
-  private val requestAttrs = conn.flatMap(_.remoteInetAddress).map{ addr =>
-    AttributeMap(AttributeEntry(Request.Keys.Remote, addr))
-  }.getOrElse(AttributeMap.empty)
+  private val requestAttrs = (
+      for {
+        conn  <- conn
+        raddr <- conn.remoteInetAddress
+      } yield AttributeMap(AttributeEntry(Request.Keys.Remote, raddr))
+    ).getOrElse(AttributeMap.empty)
 
   private var uri: String = null
   private var method: String = null

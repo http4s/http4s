@@ -22,6 +22,7 @@ case class HttpVersion private[HttpVersion] (major: Int, minor: Int) extends Ren
 object HttpVersion extends HttpVersionInstances {
   val `HTTP/1.0` = new HttpVersion(1, 0)
   val `HTTP/1.1` = new HttpVersion(1, 1)
+  val `HTTP/2.0` = new HttpVersion(2, 0)
 
   def fromString(s: String): ParseResult[HttpVersion] = s match {
     case "HTTP/1.1" => right(`HTTP/1.1`)
