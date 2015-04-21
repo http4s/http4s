@@ -106,7 +106,7 @@ package object dsl extends Http4s {
   implicit class PaymentRequiredSyntax(val status: PaymentRequired.type) extends AnyVal with EntityResponseGenerator
   implicit class ForbiddenSyntax(val status: Forbidden.type) extends AnyVal with EntityResponseGenerator
   implicit class NotFoundSyntax(val status: NotFound.type) extends AnyVal with EntityResponseGenerator
-  implicit class MethodNotAllowedSyntax(val status: MethodNotAllowed.type) extends AnyVal with ResponseGenerator
+  implicit class MethodNotAllowedSyntax(val status: MethodNotAllowed.type) extends AnyVal with EntityResponseGenerator
   implicit class NotAcceptableSyntax(val status: NotAcceptable.type) extends AnyVal with EntityResponseGenerator
   implicit class ProxyAuthenticationRequiredSyntax(val status: ProxyAuthenticationRequired.type) extends AnyVal with EntityResponseGenerator
   // TODO send Connection: close?
