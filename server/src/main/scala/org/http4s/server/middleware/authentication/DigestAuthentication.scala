@@ -5,46 +5,55 @@ package authentication
 
 import java.security.SecureRandom
 import java.math.BigInteger
-import java.util.Date
-import scala.concurrent._
-import scala.concurrent.duration._
-import akka.actor._
-import akka.pattern.ask
-import akka.util.{Timeout => ATimeout}
+import java.util.{TimerTask, Timer, Date}
 import org.http4s.headers.Authorization
 import scala.collection.immutable.HashMap
+import scalaz.concurrent.Task
 
 /**
- * Provides Digest Authentication from RFC 2617.
+ * Provides Digest Authentication from RFC 2617. Note that this class creates a new thread
+ * on creation to clean up stale nonces. Please call {@link shutdown()} when the object is not
+ * used anymore to kill this thread.
  * @param realm The realm used for authentication purposes.
  * @param store A partial function mapping (realm, user) to the
  *              appropriate password.
- * @param nonceCleanupInterval Interval (in seconds) at which stale
+ * @param nonceCleanupInterval Interval (in milliseconds) at which stale
  *                             nonces should be cleaned up.
- * @param nonceStaleTime Amount of time (in seconds) after which a nonce
+ * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
  *                       is considered stale (i.e. not used for authentication
  *                       purposes anymore).
  * @param nonceBits The number of random bits a nonce should consist of.
  */
-class DigestAuthentication(realm: String, store: AuthenticationStore, nonceCleanupInterval: Long = 3600, nonceStaleTime: Long = 3600, nonceBits: Int = 160) extends Authentication {
+class DigestAuthentication(realm: String, store: AuthenticationStore, nonceCleanupInterval: Long = 3600000, nonceStaleTime: Long = 3600000, nonceBits: Int = 160) extends Authentication {
+  private val nonceKeeper = new NonceKeeper(nonceStaleTime, nonceBits)
+  private val timer = new Timer(true)
+  scheduleStaleNonceRemoval()
 
-  val actor_system = ActorSystem("DigestAuthentication")
-  val nonce_keeper = actor_system.actorOf(Props(new NonceKeeper(nonceStaleTime * 1000, nonceBits)), "nonce_keeper")
+  private def scheduleStaleNonceRemoval(): Unit = {
+    val task: TimerTask = new TimerTask {
+      override def run(): Unit = {
+        nonceKeeper.removeStale()
+        scheduleStaleNonceRemoval()
+      }
+    }
+    timer.schedule(task, nonceCleanupInterval)
+  }
 
-  val cleanup_interval = nonceCleanupInterval.seconds
+  /**
+   * Cancels the nonce cleanup thread.
+   */
+  def shutdown() = timer.cancel()
 
-  import actor_system.dispatcher
-
-  val remove_stale_task = actor_system.scheduler.schedule(cleanup_interval, cleanup_interval, nonce_keeper, NonceKeeper.RemoveStale)
-
-  val stale_timeout = nonceStaleTime * 1000
-
-  // Side-effect: If req contains a valid AuthorizationHeader, the
-  // corresponding nonce counter (nc) is increased.
-  def getChallenge(req: Request) = checkAuth(req) match {
-    case OK => None
-    case StaleNonce => Some(Challenge("Digest", realm, getChallengeParams(true)))
-    case _ => Some(Challenge("Digest", realm, getChallengeParams(false)))
+  /** Side-effect of running the returned task: If req contains a valid
+    * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
+    */
+  def getChallenge(req: Request) = {
+    def paramsToChallenge(params: Map[String, String]) = Some(Challenge("Digest", realm, params))
+    checkAuth(req).flatMap(_ match {
+      case OK => Task.now(None)
+      case StaleNonce => getChallengeParams(true).map(paramsToChallenge)
+      case _ => getChallengeParams(false).map(paramsToChallenge)
+    })
   }
 
   case object StaleNonce extends AuthReply
@@ -55,26 +64,19 @@ class DigestAuthentication(realm: String, store: AuthenticationStore, nonceClean
 
   case object BadParameters extends AuthReply
 
-  private def checkAuth(req: Request): AuthReply = {
-    req.headers.foldLeft(NoAuthorizationHeader: AuthReply) {
-      case (acc, h) =>
-        if (acc != NoAuthorizationHeader)
-          acc
-        else h match {
-          case Authorization(auth) =>
-            auth.credentials match {
-              case GenericCredentials(AuthScheme.Digest, params) =>
-                checkAuthParams(req, params)
-              case _ => NoCredentials
-            }
-          case _ => NoAuthorizationHeader
-        }
+  private def checkAuth(req: Request) = Task {
+    req.headers.get(Authorization) match {
+      case None => NoAuthorizationHeader
+      case Some(auth) => auth.credentials match {
+        case GenericCredentials(AuthScheme.Digest, params) =>
+          checkAuthParams(req, params)
+        case _ => NoCredentials
+      }
     }
   }
 
-  private def getChallengeParams(staleNonce: Boolean) = {
-    val f = ask(nonce_keeper, NonceKeeper.NewNonce)(ATimeout(5.seconds)).mapTo[String]
-    val nonce = Await.result(f, 5.seconds)
+  private def getChallengeParams(staleNonce: Boolean) = Task {
+    val nonce = nonceKeeper.newNonce()
     val m = Map("qop" -> "auth", "nonce" -> nonce)
     if (staleNonce)
       m + ("stale" -> "TRUE")
@@ -94,8 +96,7 @@ class DigestAuthentication(realm: String, store: AuthenticationStore, nonceClean
 
     val nonce = params("nonce")
     val nc = params("nc")
-    val f = ask(nonce_keeper, NonceKeeper.ReceiveNonce(nonce, Integer.parseInt(nc, 16)))(ATimeout(5.seconds)).mapTo[NonceKeeper.Reply]
-    Await.result(f, 5.seconds) match {
+    nonceKeeper.receiveNonce(nonce, Integer.parseInt(nc, 16)) match {
       case NonceKeeper.StaleReply => StaleNonce
       case NonceKeeper.BadNCReply => BadNC
       case NonceKeeper.OKReply =>
@@ -130,13 +131,7 @@ object Nonce {
 
 object NonceKeeper {
 
-  case object NewNonce
-
-  case class ReceiveNonce(data: String, nc: Int)
-
-  case object RemoveStale
-
-  abstract class Reply
+  sealed abstract class Reply
 
   case object StaleReply extends Reply
 
@@ -147,46 +142,63 @@ object NonceKeeper {
 }
 
 /**
- * An {@link Actor} used to manage a database of nonces.
- * Sending the {@link NonceKeeper.NewNonce} message yields a reply
- * containing a fresh nonce as a {@link String}. On receiving a
- * {@link NonceKeeper.ReceiveNonce} message, this actor checks if it
- * is known and the nc value is correct. If so, the nc value associated
- * with the nonce is increased and either {@link NonceKeeper.OKReply}
- * or {@link NonceKeeper.BadNCReply} is replied. Finally, on
- * receiving a {@link NonceKeeper.RemoveStale} message, the actor
- * removes nonces that are older than staleTimeout.
+ * A thread-safe class used to manage a database of nonces.
+ *
+ * @param staleTimeout Amount of time (in milliseconds) after which a nonce
+ *                     is considered stale (i.e. not used for authentication
+ *                     purposes anymore).
+ * @param bits The number of random bits a nonce should consist of.
  */
-class NonceKeeper(staleTimeout: Long, bits: Int) extends Actor {
-  assert(bits > 0)
+class NonceKeeper(staleTimeout: Long, bits: Int) {
+  require(bits > 0, "Please supply a positive integer for bits.")
   var nonces: Map[String, Nonce] = new HashMap[String, Nonce]
 
-  def isStale(past: Date, now: Date) = staleTimeout < now.getTime() - past.getTime()
+  private def isStale(past: Date, now: Date) = staleTimeout < now.getTime() - past.getTime()
 
-  def receive = {
-    case NonceKeeper.NewNonce => {
-      var n: Nonce = null
+  /**
+   * Removes nonces that are older than staleTimeout
+   */
+  def removeStale() = {
+    val d = new Date()
+    this.synchronized {
+      nonces = nonces.filter { case (_, n) => !isStale(n.created, d) }
+    }
+  }
+
+  /**
+   * Get a fresh nonce in form of a {@link String}.
+   * @return A fresh nonce.
+   */
+  def newNonce() = {
+    var n: Nonce = null
+    this.synchronized {
       do {
         n = Nonce(bits)
       } while (nonces.contains(n.data))
       nonces = nonces + (n.data -> n)
-      sender() ! n.data
     }
-    case NonceKeeper.ReceiveNonce(data, nc) => {
+    n.data
+  }
+
+  /**
+   * Checks if the nonce {@link data} is known and the {@link nc} value is
+   * correct. If this is so, the nc value associated with the nonce is increased
+   * and the appropriate status is returned.
+   * @param data The nonce.
+   * @param nc The nonce counter.
+   * @return A reply indicating the status of (data, nc).
+   */
+  def receiveNonce(data: String, nc: Int) =
+    this.synchronized {
       nonces.get(data) match {
-        case None => sender() ! NonceKeeper.StaleReply
+        case None => NonceKeeper.StaleReply
         case Some(n) => {
           if (nc > n.nc) {
             n.nc = n.nc + 1
-            sender() ! NonceKeeper.OKReply
+            NonceKeeper.OKReply
           } else
-            sender() ! NonceKeeper.BadNCReply
+            NonceKeeper.BadNCReply
         }
       }
     }
-    case NonceKeeper.RemoveStale =>
-      nonces = nonces.filter { case (_, n) =>
-        !isStale(n.created, new Date())
-      }
-  }
 }
