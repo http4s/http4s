@@ -13,9 +13,8 @@ import org.http4s.headers.`WWW-Authenticate`
 trait Authentication {
   /**
    * Check if req contains valid credentials. You may assume that
-   * getChallenge( req ) is called at most once for every req object
-   * (to allow for side-effects, e.g. the incrementation of a nonce
-   * counter in DigestAuthentication).
+   * the returned Task is executed at most once (to allow for side-effects, 
+   * e.g. the incrementation of a nonce counter in DigestAuthentication).
    * @param req The request received from the client.
    * @return If req contains valid credentials, None is returned.
    *         Otherwise, Some(challenge) is returned. In this case,
@@ -23,15 +22,16 @@ trait Authentication {
    *         response that is returned to the client.
    *
    */
-  def getChallenge(req: Request): Option[Challenge]
+  def getChallenge(req: Request): Task[Option[Challenge]]
 
   def apply(service: HttpService): HttpService = Service.lift {
-    case req: Request => getChallenge(req) match {
+    case req: Request => getChallenge(req).flatMap(_ match {
       case None => service(req)
-
       case Some(challenge) =>
         Task.now(Some(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge))))
-    }
+    })
   }
 }
+
+abstract class AuthReply
 
