@@ -91,6 +91,20 @@ class PathSpec extends Http4sSpec {
         case _                                    => false
       }) must beTrue
     }
+    
+    "trailing slash" in {
+      (Path("/1/2/3/") match {
+        case Root / "1" / "2" / "3" / "" => true
+        case _                           => false
+      }) must beTrue
+    }
+    
+    "encoded chars" in {
+      (Path("/foo%20bar/1%2F2") match {
+        case Root / "foo bar" / "1/2" => true
+        case _                        => false
+      }) must beTrue
+    }
 
     "Int extractor" in {
       (Path("/user/123") match {

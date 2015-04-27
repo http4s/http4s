@@ -9,6 +9,7 @@ package org.http4s
 package dsl
 
 import org.http4s.QueryParamDecoder
+import org.http4s.util.UrlCodingUtils
 
 import scalaz.syntax.traverse._
 import scalaz.std.list._
@@ -31,11 +32,8 @@ object Path {
       Path("/" + str)
     else {
       val slash = str.lastIndexOf('/')
-      val prefix = Path(str.substring(0, slash))
-      if (slash == str.length - 1)
-        prefix
-      else
-        prefix / str.substring(slash + 1)
+      val prefix = Path(UrlCodingUtils.urlDecode(str.substring(0, slash)))
+      prefix / UrlCodingUtils.urlDecode(str.substring(slash + 1))
     }
 
   def apply(first: String, rest: String*): Path =
