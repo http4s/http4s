@@ -100,10 +100,15 @@ class PathSpec extends Http4sSpec {
     }
     
     "encoded chars" in {
-      (Path("/foo%20bar/1%2F2") match {
-        case Root / "foo bar" / "1/2" => true
-        case _                        => false
+      (Path("/foo%20bar/and%2For/1%2F2") match {
+        case Root / "foo bar" / "and/or" / "1/2" => true
+        case _                                   => false
       }) must beTrue
+    }
+
+    "encode chars in toString" in {
+      (Root / "foo bar" / "and/or" / "1/2").toString must_==
+        "/foo%20bar/and%2For/1%2F2"
     }
 
     "Int extractor" in {
