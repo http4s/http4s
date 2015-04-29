@@ -9,10 +9,13 @@ package org.http4s
 package dsl
 
 import org.http4s.QueryParamDecoder
+import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
 
 import scalaz.syntax.traverse._
 import scalaz.std.list._
 import scalaz.std.option._
+
+import collection.immutable.BitSet
 
 /** Base class for path extractors. */
 abstract class Path {
@@ -32,10 +35,7 @@ object Path {
     else {
       val slash = str.lastIndexOf('/')
       val prefix = Path(str.substring(0, slash))
-      if (slash == str.length - 1)
-        prefix
-      else
-        prefix / str.substring(slash + 1)
+      prefix / UrlCodingUtils.urlDecode(str.substring(slash + 1))
     }
 
   def apply(first: String, rest: String*): Path =
@@ -49,6 +49,7 @@ object Path {
 
   def unapply(request: Request): Option[Path] = Some(Path(request.pathInfo))
 
+  val pathUnreserved = UrlFormCodec.urlUnreserved ++ BitSet(":@!$&'()*+,;=".toList.map(_.toInt): _*)
 }
 
 object :? {
@@ -90,7 +91,7 @@ object ~ {
 case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
   def lastOption: Option[String] = Some(child)
-  lazy val asString = parent.toString + "/" + child
+  lazy val asString = parent.toString + "/" + UrlCodingUtils.urlEncode(child, toSkip = Path.pathUnreserved)
   override def toString = asString
   def startsWith(other: Path) = {
     val components = other.toList
