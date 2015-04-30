@@ -11,6 +11,7 @@ package dsl
 import org.http4s.QueryParamDecoder
 import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
 
+import scalaz.{ Failure, NonEmptyList, ValidationNel }
 import scalaz.syntax.traverse._
 import scalaz.std.list._
 import scalaz.std.option._
@@ -189,14 +190,17 @@ abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
 }
 
 /**
- * param extractor using [[QueryParamDecoder]]:
- *   case class Foo(i: Int)
- *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
- *   implicit val fooParam: QueryParam[Foo] = ...
- *
- *   object FooMatcher extends QueryParamDecoderMatcher[Foo]
- *   val service: HttpService = {
- *     case GET -> Root / "closest" :? FooMatcher(2) => ...
+  * param extractor using [[QueryParamDecoder]]:
+  *
+  * {{{
+  *   case class Foo(i: Int)
+  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   implicit val fooParam: QueryParam[Foo] = ...
+  *
+  *   object FooMatcher extends QueryParamDecoderMatcher[Foo]
+  *   val service: HttpService = {
+  *     case GET -> Root / "closest" :? FooMatcher(2) => ...
+  * }}}
  */
 abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
   extends QueryParamDecoderMatcher[T](QueryParam[T].key.value)
@@ -211,3 +215,63 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
 
 abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   extends OptionalQueryParamDecoderMatcher[T](QueryParam[T].key.value)
+
+
+/**
+  *  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will return a
+  *  [[ParseFailure]] if the parameter cannot be decoded.
+  *
+  * {{{
+  *  case class Foo(i: Int)
+  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *
+  *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
+  *  val service: HttpService = {
+  *  case GET -> Root / "closest" :? FooMatcher(fooValue) => {
+  *    fooValue.fold(
+  *      nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
+  *      foo  => { ... }
+  *    )
+  *  }
+  * }}}
+  */
+abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapply(params: Map[String, Seq[String]]): Option[ValidationNel[ParseFailure, T]] =
+    params.get(name).flatMap(_.headOption).map {
+      s => QueryParamDecoder[T].decode(QueryParameterValue(s))
+    }
+}
+
+/**
+  *  param extractor using [[org.http4s.QueryParamDecoder]]. Note that this will _always_ match, but will return
+  *  an Option possibly containing the result of the conversion to T
+  *
+  * {{{
+  *  case class Foo(i: Int)
+  *  implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *
+  *  case class Bar(i: Int)
+  *  implicit val barDecoder: QueryParamDecoder[Bar] = ...
+  *
+  *  object FooMatcher extends ValidatingQueryParamDecoderMatcher[Foo]("foo")
+  *  object BarMatcher extends OptionalValidatingQueryParamDecoderMatcher[Bar]("bar")
+  *
+  *  val service: HttpService = {
+  *  case GET -> Root / "closest" :? FooMatcher(fooValue) +& BarMatcher(barValue) => {
+  *    ^(fooValue, barValue getOrElse 42.right) { (foo, bar) =>
+  *      ...
+  *    }.fold(
+  *      nelE => BadRequest(nelE.toList.map(_.sanitized).mkString("\n")),
+  *      baz  => { ... }
+  *    )
+  *  }
+  * }}}
+  */
+abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidationNel[ParseFailure, T]]] =
+    Some {
+      params.get(name).flatMap(_.headOption).fold[Option[ValidationNel[ParseFailure, T]]](None) {
+        s => Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))
+      }
+    }
+}
