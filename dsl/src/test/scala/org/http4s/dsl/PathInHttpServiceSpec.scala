@@ -4,6 +4,7 @@ package dsl
 import org.http4s.server.{HttpService, MockServer, Service}
 import server.MockServer.MockResponse
 
+import scalaz.{ Failure, Success }
 import scalaz.concurrent.Task
 
 object PathInHttpServiceSpec extends Http4sSpec {
@@ -30,6 +31,10 @@ object PathInHttpServiceSpec extends Http4sSpec {
 
   object OptCounter extends OptionalQueryParamDecoderMatcher[Int]("counter")
 
+  object ValidatingCounter extends ValidatingQueryParamDecoderMatcher[Int]("counter")
+
+  object OptValidatingCounter extends OptionalValidatingQueryParamDecoderMatcher[Int]("counter")
+
   val service = HttpService {
     case GET -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: ${limit.l}")
@@ -49,6 +54,17 @@ object PathInHttpServiceSpec extends Http4sSpec {
       Ok(s"list: ${l.mkString(",")}, start: $s, limit: ${m.l}, term: $t, decimal=$d")
     case GET -> Root / "app":? OptCounter(c) =>
       Ok(s"counter: $c")
+    case GET -> Root / "valid" :? ValidatingCounter(c) =>
+      c.fold(
+        errors => BadRequest(errors.list.map(_.sanitized).mkString(",")),
+        vc => Ok(s"counter: $vc")
+      )
+    case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
+      c match {
+        case Some(Failure(errors)) => BadRequest(errors.list.map(_.sanitized).mkString(","))
+        case Some(Success(cv)) => Ok(s"counter: $cv")
+        case None => Ok("no counter")
+      }
     case r =>
       NotFound("404 Not Found: " + r.pathInfo)
   }
@@ -130,6 +146,36 @@ object PathInHttpServiceSpec extends Http4sSpec {
       val response = server(Request(GET, Uri(path = "/app", query = Query.fromString("counter=john"))))
       response.status must equal (NotFound)
     }
+    "validating parameter present" in {
+      val response = server(Request(GET, Uri(path = "/valid", query = Query.fromString("counter=3"))))
+      response.status must equal (Ok)
+      response.body must equalTo("counter: 3")
+    }
+    "validating parameter absent" in {
+      val response = server(Request(GET, Uri(path = "/valid", query = Query.fromString("notthis=3"))))
+      response.status must equal (NotFound)
+    }
+    "validating parameter present with incorrect format" in {
+      val response = server(Request(GET, Uri(path = "/valid", query = Query.fromString("counter=foo"))))
+      response.status must equal (BadRequest)
+      response.body must equalTo("Could not parse foo as a Int")
+    }
+    "optional validating parameter present" in {
+      val response = server(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=3"))))
+      response.status must equal (Ok)
+      response.body must equalTo("counter: 3")
+    }
+    "optional validating parameter absent" in {
+      val response = server(Request(GET, Uri(path = "/optvalid", query = Query.fromString("notthis=3"))))
+      response.status must equal (Ok)
+      response.body must equalTo("no counter")
+    }
+    "optional validating parameter present with incorrect format" in {
+      val response = server(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=foo"))))
+      response.status must equal (BadRequest)
+      response.body must equalTo("Could not parse foo as a Int")
+    }
+
   }
 
 }
