@@ -1,3 +1,16 @@
+# v0.7.0 (2015-05-03)
+* Add QueryParamMatcher to the dsl which returns a ValidationNel.
+* Dsl can differentiate between '/foo/' and '/foo'.
+* Added http2 support for blaze backend.
+* Added a metrics middleware usable on all server backends.
+* Websockets are now modeled by an scalaz.stream.Exchange.
+* Add `User-Agent` and `Allow` header types and parsers.
+* Allow providing a Host header to the blaze client.
+* Upgrade to scalaz-stream-7.0a.
+* Added a CORS middleware.
+* Numerous bug fixes.
+* Numerous version bumps.
+
 # v0.6.5 (2015-03-29)
 * Fix bug in Request URI on servlet backend with non-empty context or servlet paths.
 * Allow provided Host header for Blaze requests.
