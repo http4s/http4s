@@ -1,4 +1,4 @@
-# v0.7.0 (2015-05-03)
+# v0.7.0 (2015-05-05)
 * Add QueryParamMatcher to the dsl which returns a ValidationNel.
 * Dsl can differentiate between '/foo/' and '/foo'.
 * Added http2 support for blaze backend.
