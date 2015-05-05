@@ -101,6 +101,10 @@ http4s also offers an asynchronous HTTP client built on the same model as the se
 
 {%code_ref ../../examples/blaze/src/main/scala/com/example/http4s/blaze/ClientExample.scala blaze_client_example %}
 
+## Other features ##
+
+* [twirl](https://github.com/playframework/twirl) integration: use Play framework templates with http4s
+
 
 ## Projects using http4s ##
 
