@@ -22,7 +22,7 @@ trait Authentication {
    *         response that is returned to the client.
    *
    */
-  def getChallenge(req: Request): Task[Option[Challenge]]
+  protected def getChallenge(req: Request): Task[Option[Challenge]]
 
   def apply(service: HttpService): HttpService = Service.lift {
     case req: Request => getChallenge(req).flatMap(_ match {

@@ -5,7 +5,7 @@ package authentication
 
 import java.security.MessageDigest
 
-object DigestUtil {
+private[authentication] object DigestUtil {
   private def bytes2hex(bytes: Array[Byte]) = bytes.map("%02x".format(_)).mkString
 
   private def md5(str: String) = bytes2hex(MessageDigest.getInstance("MD5").digest(str.getBytes))
