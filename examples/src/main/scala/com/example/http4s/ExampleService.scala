@@ -13,6 +13,7 @@ import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
+import org.http4s.server.middleware.authentication.DigestAuthentication
 import org.http4s.twirl._
 
 import scalaz.stream.Process
@@ -26,7 +27,7 @@ import Argonaut._
 object ExampleService {
 
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService =
-    service1(executionContext) orElse service2 orElse ScienceExperiments.service
+    service1(executionContext) orElse service2 orElse service3 orElse ScienceExperiments.service
 
   def service1(implicit executionContext: ExecutionContext) = HttpService {
 
@@ -155,4 +156,18 @@ object ExampleService {
 
     Process.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
   }
+
+  // Services can be protected using HTTP authentication.
+  val realm = "testrealm"
+
+  def auth_store(r: String, u: String) = if (r == realm && u == "username") Task.now(Some("password"))
+    else Task.now(None)
+
+  val digest = new DigestAuthentication(realm, auth_store)
+
+  def service3 = digest( HttpService { 
+    case GET -> Root / "protected" =>
+      Ok("This page is protected using HTTP authentication")
+  } )
+
 }
