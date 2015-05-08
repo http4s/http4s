@@ -1,12 +1,40 @@
-scalaVersion := "2.11.6"
 
-val http4sVersion = "0.7.0"
+lazy val aws = project         // @stephenjudkins
 
-libraryDependencies ++= Seq(
-  "org.scalaz.stream" %% "scalaz-stream" % "0.7a",
-  "org.http4s" %% "http4s-core" % http4sVersion,
-  "org.http4s" %% "http4s-dsl" % http4sVersion,
-  "org.http4s" %% "http4s-json4s-native" % http4sVersion,
-  "org.http4s" %% "http4s-client" % http4sVersion,
-  "org.scodec" %% "scodec-scalaz" % "1.0.0"
+name := "http4s-contrib"
+
+version in ThisBuild := "0.1.0-SNAPSHOT"
+
+description := "http4s contributions"
+
+organization in ThisBuild := "org.http4s"
+
+homepage in ThisBuild := Some(url("https://github.com/http4s/contrib"))
+
+startYear in ThisBuild := Some(2015)
+
+scalaVersion in ThisBuild := "2.11.6"
+
+crossScalaVersions in ThisBuild := Seq(
+  "2.10.5",
+  "2.11.6"
+)
+
+val JvmTarget = "1.7"
+
+scalacOptions in ThisBuild ++= Seq(
+  "-deprecation",
+  "-feature",
+  "-language:implicitConversions",
+  "-language:higherKinds",
+  s"-target:jvm-${JvmTarget}",
+  "-unchecked",
+  "-Xlint"
+)
+
+javacOptions in ThisBuild ++= Seq(
+  "-source", JvmTarget,
+  "-target", JvmTarget,
+  "-Xlint:deprecation",
+  "-Xlint:unchecked"
 )
