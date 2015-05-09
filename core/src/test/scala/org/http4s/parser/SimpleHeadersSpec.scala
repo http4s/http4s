@@ -13,7 +13,6 @@ class SimpleHeadersSpec extends Http4sSpec {
 
     "parse Allow" in {
       val header = Allow(Method.GET, Method.POST)
-      println(header.value)
       HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
     }
 
@@ -86,6 +85,21 @@ class SimpleHeadersSpec extends Http4sSpec {
     "parse If-None-Match" in {
       val header = `If-None-Match`("hash")
       HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
+    }
+
+    "parse Range" in {
+      import Range.{SubRange, Bytes, RangeUnit}
+      val headers = Seq(
+        Range(Bytes, SubRange(0, Some(500))),
+        Range(Bytes, SubRange(0, Some(499)), SubRange(500, Some(999)), SubRange(1000, Some(1500))),
+        Range(RangeUnit("page"), SubRange(0, Some(100))),
+        Range(10),
+        Range(-90)
+      )
+
+      forall(headers) { header =>
+        HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
+      }
     }
 
     "parse Transfer-Encoding" in {

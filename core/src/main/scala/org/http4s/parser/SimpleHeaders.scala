@@ -108,6 +108,23 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
     }
   }.parse
 
+  def RANGE(value: String) = new Http4sHeaderParser[Range](value) {
+    import Range.{RangeUnit, SubRange}
+
+    def entry = rule {
+      capture(oneOrMore(Alpha)) ~ '=' ~ oneOrMore(byteRange).separatedBy(',') ~> { (s: String, rs: Seq[SubRange]) =>
+        Range(RangeUnit(s), NonEmptyList(rs.head, rs.tail:_*))
+      }
+    }
+
+    def byteRange: Rule1[SubRange] = rule {
+      capture(optional('-') ~ oneOrMore(Digit)) ~ optional('-' ~ capture(oneOrMore(Digit))) ~>
+        { (d1: String, d2: Option[String]) =>
+          SubRange(d1.toLong, d2.map(_.toLong))
+        }
+    }
+  }.parse
+
   def TRANSFER_ENCODING(value: String) = new Http4sHeaderParser[`Transfer-Encoding`](value) {
     def entry = rule {
       oneOrMore(Token).separatedBy(ListSep) ~> { vals: Seq[String] =>
