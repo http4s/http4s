@@ -41,7 +41,7 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
 
   def AlphaNum = rule { Alpha | Digit }
 
-  def CTL = rule { "\u0000" - "\u001F" | "\u001F" }
+  def CTL = rule { "\u0000" - "\u001F" | "\u007F" }
 
   def CRLF = rule { str("\r\n") }
 
