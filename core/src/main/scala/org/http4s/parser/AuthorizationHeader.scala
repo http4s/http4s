@@ -44,7 +44,7 @@ private[parser] trait AuthorizationHeader {
     }
 
     def OAuth2BearerTokenDef: Rule1[OAuth2BearerToken] = rule {
-      "Bearer" ~ oneOrMore(LWS) ~ Token ~> (OAuth2BearerToken(_))
+      "Bearer" ~ oneOrMore(LWS) ~ b64token ~> (OAuth2BearerToken(_))
     }
 
     def GenericHttpCredentialsDef = rule {
@@ -63,6 +63,11 @@ private[parser] trait AuthorizationHeader {
     }
 
     def Base64Char: Rule0 = rule { Alpha | Digit | '+' | '/' | '=' }
+
+    // https://tools.ietf.org/html/rfc6750#page-5
+    def b64token: Rule1[String] = rule {
+      capture(oneOrMore(Alpha | Digit | anyOf("-._~+/")) ~ zeroOrMore('=') )
+    }
   }
 
 }
