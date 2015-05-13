@@ -5,7 +5,7 @@ import org.http4s.util.Writer
 
 object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
   def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
-  def bytes = apply(RangeUnit.bytes)
+  def bytes = apply(RangeUnit.Bytes)
   def none = apply(Nil)
 }
 

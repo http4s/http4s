@@ -32,10 +32,10 @@ private[parser] trait HttpParser extends SimpleHeaders
                     with CacheControlHeader
                     with ContentTypeHeader
                     with CookieHeader
-                    with AcceptRangesHeader
                     with AcceptCharsetHeader
                     with AcceptEncodingHeader
                     with AuthorizationHeader
+                    with RangeParser
                     with LocationHeader
                     with ProxyAuthenticateHeader
                     with WwwAuthenticateHeader {

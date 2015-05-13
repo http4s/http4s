@@ -13,7 +13,6 @@ class SimpleHeadersSpec extends Http4sSpec {
 
     "parse Allow" in {
       val header = Allow(Method.GET, Method.POST)
-      println(header.value)
       HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
     }
 
