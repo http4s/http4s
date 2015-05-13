@@ -12,15 +12,16 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
     Range(unit, NonEmptyList(r1, rs:_*))
 
-  def apply(r1: SubRange, rs: SubRange*): Range = apply(Bytes, r1, rs:_*)
+  def apply(r1: SubRange, rs: SubRange*): Range = apply(RangeUnit.Bytes, r1, rs:_*)
 
   def apply(begin: Long, end: Long): Range = apply(SubRange(begin, Some(end)))
 
   def apply(begin: Long): Range = apply(SubRange(begin, None))
 
-  case class RangeUnit(unit: String)
-
-  val Bytes = RangeUnit("bytes")    // The only range-unit defined in rfc7233
+  object SubRange {
+    def apply(first: Long): SubRange = SubRange(first, None)
+    def apply(first: Long, second: Long): SubRange = SubRange(first, Some(second))
+  }
 
   case class SubRange(first: Long, second: Option[Long]) extends Renderable {
     /** Base method for rendering this object efficiently */
@@ -34,10 +35,10 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
 
 }
 
-case class Range(unit: Range.RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {
+case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {
   override def key = Range
   override def renderValue(writer: Writer): writer.type = {
-    writer << unit.unit << '=' << ranges.head
+    writer << unit << '=' << ranges.head
     ranges.tail.foreach( writer << ',' << _)
     writer
   }

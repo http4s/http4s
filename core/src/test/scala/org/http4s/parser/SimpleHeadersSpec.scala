@@ -87,21 +87,6 @@ class SimpleHeadersSpec extends Http4sSpec {
       HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
     }
 
-    "parse Range" in {
-      import Range.{SubRange, Bytes, RangeUnit}
-      val headers = Seq(
-        Range(Bytes, SubRange(0, Some(500))),
-        Range(Bytes, SubRange(0, Some(499)), SubRange(500, Some(999)), SubRange(1000, Some(1500))),
-        Range(RangeUnit("page"), SubRange(0, Some(100))),
-        Range(10),
-        Range(-90)
-      )
-
-      forall(headers) { header =>
-        HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
-      }
-    }
-
     "parse Transfer-Encoding" in {
       val header = `Transfer-Encoding`(TransferCoding.chunked)
       HttpParser.parseHeader(header.toRaw) must beRightDisjunction(header)
