@@ -32,6 +32,8 @@ case class Boundary(val value: String) {
 object B {
 
   val CRLF = "\r\n"
+  
+  val CRLFBV = ByteVector(CRLF.getBytes)
 
   private val DIGIT = ('0' to '9').toList
   private val ALPHA = ('a' to 'z').toList ++ ('A' to 'Z').toList

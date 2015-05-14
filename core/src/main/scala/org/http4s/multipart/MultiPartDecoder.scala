@@ -9,7 +9,9 @@ import scalaz.concurrent._
 import scalaz.concurrent.Task._
 import java.nio.charset.{Charset => NioCharset, StandardCharsets}
 import scodec.bits.ByteVector
-import scalaz.Monoid
+import scalaz._
+import Scalaz._
+import scalaz.stream._
 
 object MultiPartEntityDecoder {
 
@@ -17,54 +19,62 @@ object MultiPartEntityDecoder {
 
   private val boundary: Message => Option[Boundary] = msg => msg.contentType.flatMap{ _.mediaType.extensions.get("boundry").map( Boundary) }
 
-  val decodePart: ByteVector => DecodeResult[Part] = vector =>
-    ???
 
-
-  val decodeByteVectorBody: Boundary => ByteVector  => DecodeResult[MultiPart] = { boundary => bv =>
-
-      val start = bv.indexOfSlice(boundary.toBV)
-      val end   = bv.indexOfSlice(boundary.toBV,start + boundary.lengthBV)
-      val slice = bv.slice(start + boundary.lengthBV ,end - MultiPartDefinition.dash.length() )
-
-      val zero  = MultiPart(parts = List(),boundary = boundary)
-      val accumulator: (Part, => MultiPart ) => MultiPart =  (part,acc) => acc.copy(parts =  acc.parts.+:(part) )
-
-
-
-
-//       decodePart(slice).foldRight( zero )( accumulator )
-
-/*
-
-scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.DecodeResult[org.http4s.multipart.MultiPart]]
-scalaz.stream.Process[scalaz.concurrent.Task,scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,org.http4s.multipart.MultiPart]]
-org.http4s.DecodeResult[org.http4s.multipart.MultiPart]     (which expands to)  scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,org.http4s.multipart.MultiPart]
- * *
- *
- *
- */
-
-
-
-      ???
-  }
-
-  val decodeMultiPartBody: Boundary => ByteVector =>  DecodeResult[MultiPart] = {boundary => bv =>
-     
-    ???
+  val toByteVectorStream: Boundary => Int => ByteVector => Stream[ByteVector]  = { boundary => lastPos => bv => 
+      val start      = if (lastPos == 0) bv.indexOfSlice(boundary.toBV) else bv.indexOfSlice(boundary.toBV,lastPos)
+      lazy val end   = bv.indexOfSlice(boundary.toBV,start + boundary.lengthBV)
+      lazy val slice = bv.slice(start + boundary.lengthBV ,end - MultiPartDefinition.dash.length() )
+      if (start == -1 || end == -1 ) Stream.empty
+      else slice #:: toByteVectorStream(boundary)(lastPos + bv.length)(bv)  
   }
 
 
+  val headerBodySeparator  = B.CRLFBV.++(B.CRLFBV)
+  
+  val decodePart: ByteVector  => DecodeResult[Part] = { bv =>
+    val endOfHeaders   =   bv.indexOfSlice(headerBodySeparator,0)
+    val (headers,body) =   bv.splitAt(endOfHeaders)
+    //TODO: Parse headers create a Part or return failure.
+    val part = FormData(Name(""),None,EntityEncoder.Entity(Process.emit(body)))
+    DecodeResult.success(part)
+  }
 
+  
+  val decodeMultiPartBody: Boundary => Message =>  Process[Task,Stream[DecodeResult[Part]]] = {boundary => message =>
+    val pStream = message.body.map { body => toByteVectorStream(boundary)(0)(body)}
+    pStream.map { _.map(decodePart)}
+  }
+
+  
+  
   val decoder:EntityDecoder[MultiPart] =  EntityDecoder.decodeBy(MediaRange.`multipart/*`)( msg =>
       boundary(msg) match {
         case None           =>  DecodeResult.failure(ParseFailure("Missing boundary extention to Content-Type. " ,
                                                 msg.contentType.map(_.toString).getOrElse("No Content-Type found.")))
-        case Some(boundary) =>
-                                       msg.body.map(decodeMultiPartBody(boundary)).run
-
-
+        case Some(boundary) =>   
+          val x: Process[Task,Stream[DecodeResult[Part]]]          = decodeMultiPartBody(boundary)(msg)
+          val x1:Process[Task,Stream[Task[ParseFailure \/ Part]]] =  x.map{ _.map(_.fold(  _.left,  _.right))}
+          val x2:Process[Task, ParseFailure \/ MultiPart]         = x1.flatMap { s => 
+            val zero: ParseFailure \/ MultiPart = MultiPart(Seq.empty).right   
+            val op:  (ParseFailure \/ MultiPart, Task[ParseFailure \/ Part]) => ParseFailure \/ MultiPart = { (acc,tp) =>
+              val add:ParseFailure \/ MultiPart => ParseFailure \/ Part => ParseFailure \/ MultiPart =  { mp => p => (mp,p) match {
+                case (-\/(f),_)  => mp
+                case ( _,-\/(f)) => f.left[MultiPart]
+                case ( \/-(mb),\/-(pb)) => mb.copy(parts = mb.parts :+ pb).right  
+              }
+              }
+              
+              tp.map{ add(acc) }.|> { _.run }
+              
+            }
+            Process.emit(s.foldLeft(zero)(op))
+          }
+         val x3:Process[Task, ParseFailure \/ MultiPart]  => DecodeResult[MultiPart] = { p => 
+          val y:Process[Task,   DecodeResult[MultiPart]]  = p.map { _.fold( DecodeResult.failure[MultiPart], DecodeResult.success[MultiPart])} 
+          y.runLast.run.getOrElse(DecodeResult.failure[MultiPart](ParseFailure("Unable to decode MutliPart body")))
+         }
+          
+         x3(x2)
       }
     )
 
