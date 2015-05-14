@@ -3,7 +3,7 @@ package multipart
 
 import org.http4s._
 import parser._
-import headers.`Content-Type`
+import headers._
 import Http4s._
 import scalaz.concurrent._
 import scalaz.concurrent.Task._
@@ -31,20 +31,39 @@ object MultiPartEntityDecoder {
 
   val headerBodySeparator  = B.CRLFBV.++(B.CRLFBV)
   
+  
+  val toHeaders:Int => ByteVector => ParseFailure \/ List[Header] = {offset => bv => 
+    val split = bv.indexOfSlice(B.CRLFBV, offset)
+    val (header,tail) =  bv.splitAt(split)
+    ???
+  }
+  
+  //TODO: Get Content-Type
+  val toResponse:ByteVector => ParseFailure \/ List[Header] => DecodeResult[Part] = {body => parseResult =>
+    val headersToResult:List[Header] => DecodeResult[Part]  = { l => 
+        l.find { _.is(`Content-Disposition`) } match {
+          case None => DecodeResult.failure(ParseFailure("Missing Content-Disposition header")) 
+          case Some(cd:`Content-Disposition`) => 
+            val part = FormData(Name(cd.name.toString()),None,EntityEncoder.Entity(Process.emit(body)))
+            DecodeResult.success(part)   
+          case other =>   DecodeResult.failure(ParseFailure(s"Missed $other"))
+        }
+    }    
+    parseResult.fold(DecodeResult.failure[Part], headersToResult)   
+  }
+  
   val decodePart: ByteVector  => DecodeResult[Part] = { bv =>
-    val endOfHeaders   =   bv.indexOfSlice(headerBodySeparator,0)
-    val (headers,body) =   bv.splitAt(endOfHeaders)
-    //TODO: Parse headers create a Part or return failure.
-    val part = FormData(Name(""),None,EntityEncoder.Entity(Process.emit(body)))
-    DecodeResult.success(part)
+    val endOfHeaders     = bv.indexOfSlice(headerBodySeparator)
+    val (headersBV,body) = bv.splitAt(endOfHeaders)
+    val headers          = toHeaders(0)(headersBV)
+    toResponse(body)(headers)
   }
 
   
   val decodeMultiPartBody: Boundary => Message =>  Process[Task,Stream[DecodeResult[Part]]] = {boundary => message =>
-    val pStream = message.body.map { body => toByteVectorStream(boundary)(0)(body)}
+    val pStream = message.body.map { body => toByteVectorStream(boundary)(0)(body) }
     pStream.map { _.map(decodePart)}
   }
-
   
   
   val decoder:EntityDecoder[MultiPart] =  EntityDecoder.decodeBy(MediaRange.`multipart/*`)( msg =>

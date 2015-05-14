@@ -52,7 +52,8 @@ class MultipartSpec extends SpecificationWithJUnit {
 
    bodyDisjunction.map { body =>
       val res = Response(Ok).withHeaders(multiPart.headers).withBody(body).run
-      decoder.decodeBody(res.body)(multiPart.boundary.value).run.run
+      
+      //decoder.decodeBody(res.body)(multiPart.boundary.value).run.run
    }
 
 
