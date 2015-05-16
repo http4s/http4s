@@ -14,7 +14,7 @@ object ResourceService {
 
   case class Config(basePath: String,
                     pathPrefix: String = "",
-                    bufferSize: Int = 256*1024,
+                    bufferSize: Int = 50*1024,
                     executor: ExecutorService = Strategy.DefaultExecutorService,
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
@@ -23,7 +23,7 @@ object ResourceService {
     val uri = req.uri
     if (!uri.path.startsWith(config.pathPrefix)) Task.now(None)
     else OptionT(
-          StaticFile.fromResource(sanitize(config.basePath + File.separator + getSubPath(uri, config.pathPrefix)))
+          StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uri, config.pathPrefix)))
           .map{ f => Task.now(Some(f)) }
           .getOrElse(Task.now(None))
         )

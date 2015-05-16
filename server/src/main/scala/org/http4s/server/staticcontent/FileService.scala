@@ -17,7 +17,7 @@ object FileService {
   case class Config(systemPath: String,
                     pathPrefix: String = "",
                     pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
-                    bufferSize: Int = 256*1024,
+                    bufferSize: Int = 50*1024,
                     executor: ExecutorService = Strategy.DefaultExecutorService,
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
