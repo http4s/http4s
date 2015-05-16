@@ -12,7 +12,7 @@ sealed trait HeaderKey {
   def name: CaseInsensitiveString
 
   def matchHeader(header: Header): Option[HeaderT]
-  def unapply(header: Header): Option[HeaderT] = matchHeader(header)
+  final def unapply(header: Header): Option[HeaderT] = matchHeader(header)
 
   override def toString: String = s"HeaderKey($name})"
 }
@@ -20,14 +20,14 @@ sealed trait HeaderKey {
 object HeaderKey {
   sealed trait Extractable extends HeaderKey {
     def from(headers: Headers): Option[HeaderT]
-    def unapply(headers: Headers): Option[HeaderT] = from(headers)
+    final def unapply(headers: Headers): Option[HeaderT] = from(headers)
   }
 
   /**
    * Represents a Header that should not be repeated.
    */
   trait Singleton extends Extractable {
-    def from(headers: Headers): Option[HeaderT] = headers.collectFirst(Function.unlift(matchHeader))
+    final def from(headers: Headers): Option[HeaderT] = headers.collectFirst(Function.unlift(matchHeader))
   }
 
   /**
@@ -75,7 +75,6 @@ object HeaderKey {
       if (header.name == name) Some(header)
       else None
     }
-    override def from(headers: Headers): Option[HeaderT] = headers.find(_ is this)
   }
 
   private[http4s] trait Default extends Internal[Header] with StringKey {
