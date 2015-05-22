@@ -52,29 +52,7 @@ val service = HttpService {
 
 http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.
 
-```scala
-val route = HttpService {
-  case req@ GET -> Root / "ws" =>
-    // Send a Text message with payload 'Ping!' every second
-    val src = Process.awakeEvery(1.seconds).map{ d => Text(s"Ping! $d") }
-
-    // Print received Text frames, and, on completion, notify the console
-    val sink: Sink[Task, WSFrame] = Process.constant {
-      case Text(t) => Task.delay(println(t))
-      case f       => Task.delay(println(s"Unknown type: $f"))
-    }.onComplete(Process.eval(Task{ println("Terminated!")}).drain)
-
-    // Use the WS helper to make the Task[Response] carrying the info
-    // needed for the backend to upgrade to a WebSocket connection
-    WS(src, sink)
-
-  case req @ GET -> Root / "wsecho" =>
-    // a scalaz topic acts as a hub to publish and subscribe to messages safely
-    val t = topic[WSFrame]
-    val src = t.subscribe.collect{ case Text(msg) => Text("You sent the server: " + msg) }
-    WS(src, t.publish)
-}
-```
+{%code_ref ../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeWebSocketExample.scala blaze_websocket_example %}
 
 ## Choose your backend
 
