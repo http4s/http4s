@@ -110,28 +110,28 @@ tying up too many threads.</p>
 <span class="o">}</span>
 </code></pre></div>
 <p>http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.</p>
-<div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span>
-  <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;ws&quot;</span> <span class="k">=&gt;</span>
-    <span class="c1">// Send a Text message with payload &#39;Ping!&#39; every second</span>
-    <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="nc">Process</span><span class="o">.</span><span class="n">awakeEvery</span><span class="o">(</span><span class="mf">1.</span><span class="n">seconds</span><span class="o">).</span><span class="n">map</span><span class="o">{</span> <span class="n">d</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Ping! $d&quot;</span><span class="o">)</span> <span class="o">}</span>
 
-    <span class="c1">// Print received Text frames, and, on completion, notify the console</span>
-    <span class="k">val</span> <span class="n">sink</span><span class="k">:</span> <span class="kt">Sink</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">WSFrame</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Process</span><span class="o">.</span><span class="n">constant</span> <span class="o">{</span>
-      <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">t</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="n">t</span><span class="o">))</span>
-      <span class="k">case</span> <span class="n">f</span>       <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">&quot;Unknown type: $f&quot;</span><span class="o">))</span>
-    <span class="o">}.</span><span class="n">onComplete</span><span class="o">(</span><span class="nc">Process</span><span class="o">.</span><span class="n">eval</span><span class="o">(</span><span class="nc">Task</span><span class="o">{</span> <span class="n">println</span><span class="o">(</span><span class="s">&quot;Terminated!&quot;</span><span class="o">)}).</span><span class="n">drain</span><span class="o">)</span>
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span>
+ <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"hello"</span> <span class="k">=&gt;</span>
+   <span class="nc">Ok</span><span class="o">(</span><span class="s">"Hello world."</span><span class="o">)</span>
 
-    <span class="c1">// Use the WS helper to make the Task[Response] carrying the info</span>
-    <span class="c1">// needed for the backend to upgrade to a WebSocket connection</span>
-    <span class="nc">WS</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">sink</span><span class="o">)</span>
+ <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"ws"</span> <span class="k">=&gt;</span>
+   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">awakeEvery</span><span class="o">(</span><span class="mf">1.</span><span class="n">seconds</span><span class="o">)(</span><span class="nc">Strategy</span><span class="o">.</span><span class="nc">DefaultStrategy</span><span class="o">,</span> <span class="nc">DefaultScheduler</span><span class="o">).</span><span class="n">map</span><span class="o">{</span> <span class="n">d</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="n">s</span><span class="s">"Ping! $d"</span><span class="o">)</span> <span class="o">}</span>
+   <span class="k">val</span> <span class="n">sink</span><span class="k">:</span> <span class="kt">Sink</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">WebSocketFrame</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Process</span><span class="o">.</span><span class="n">constant</span> <span class="o">{</span>
+     <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">t</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span> <span class="n">println</span><span class="o">(</span><span class="n">t</span><span class="o">))</span>
+     <span class="k">case</span> <span class="n">f</span>       <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"Unknown type: $f"</span><span class="o">))</span>
+   <span class="o">}</span>
+   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">sink</span><span class="o">))</span>
 
-  <span class="k">case</span> <span class="n">req</span> <span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;wsecho&quot;</span> <span class="k">=&gt;</span>
-    <span class="c1">// a scalaz topic acts as a hub to publish and subscribe to messages safely</span>
-    <span class="k">val</span> <span class="n">t</span> <span class="k">=</span> <span class="n">topic</span><span class="o">[</span><span class="kt">WSFrame</span><span class="o">]</span>
-    <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">t</span><span class="o">.</span><span class="n">subscribe</span><span class="o">.</span><span class="n">collect</span><span class="o">{</span> <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">msg</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="s">&quot;You sent the server: &quot;</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span> <span class="o">}</span>
-    <span class="nc">WS</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">t</span><span class="o">.</span><span class="n">publish</span><span class="o">)</span>
-<span class="o">}</span>
-</code></pre></div>
+ <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"wsecho"</span> <span class="k">=&gt;</span>
+   <span class="k">val</span> <span class="n">t</span> <span class="k">=</span> <span class="n">topic</span><span class="o">[</span><span class="kt">WebSocketFrame</span><span class="o">]()</span>
+   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">t</span><span class="o">.</span><span class="n">subscribe</span><span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
+     <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="s">"You sent the server: "</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span>
+   <span class="o">}</span>
+
+   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">t</span><span class="o">.</span><span class="n">publish</span><span class="o">))</span>
+</code></code></pre>
+
 <h2 id="toc_4">Choose your backend</h2>
 
 <p>http4s supports running the same service on multiple backends.  Pick the deployment model that fits your 
