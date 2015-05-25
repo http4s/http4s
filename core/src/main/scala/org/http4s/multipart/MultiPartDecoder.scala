@@ -19,29 +19,13 @@ object MultiPartEntityDecoder {
 
   private val boundary: Message => Option[Boundary] = msg => msg.contentType.flatMap{ _.mediaType.extensions.get("boundry").map( Boundary) }
 
-
-  val toByteVectorStream: Boundary => Int => ByteVector => Stream[ByteVector]  = { boundary => lastPos => bv => 
-      val start      = if (lastPos == 0) bv.indexOfSlice(boundary.toBV) else bv.indexOfSlice(boundary.toBV,lastPos)
-      lazy val end   = bv.indexOfSlice(boundary.toBV,start + boundary.lengthBV)
-      lazy val slice = bv.slice(start + boundary.lengthBV ,end - MultiPartDefinition.dash.length() )
-      if (start == -1 || end == -1 ) Stream.empty
-      else slice #:: toByteVectorStream(boundary)(lastPos + bv.length)(bv)  
-  }
-
-
   val headerBodySeparator  = B.CRLFBV.++(B.CRLFBV)
   
   
-  val toHeaders:Int => ByteVector => ParseFailure \/ List[Header] = {offset => bv => 
-    val split = bv.indexOfSlice(B.CRLFBV, offset)
-    val (header,tail) =  bv.splitAt(split)
-    ???
-  }
-  
   //TODO: Get Content-Type
-  val toResponse:ByteVector => ParseFailure \/ List[Header] => DecodeResult[Part] = {body => parseResult =>
-    val headersToResult:List[Header] => DecodeResult[Part]  = { l => 
-        l.find { _.is(`Content-Disposition`) } match {
+  val toResponse:ByteVector => ParseFailure \/ Headers => DecodeResult[Part] = {body => parseResult =>
+    val headersToResult:Headers => DecodeResult[Part]  = { h => 
+        h.find { _.is(`Content-Disposition`) } match {
           case None => DecodeResult.failure(ParseFailure("Missing Content-Disposition header")) 
           case Some(cd:`Content-Disposition`) => 
             val part = FormData(Name(cd.name.toString()),None,EntityEncoder.Entity(Process.emit(body)))
@@ -55,13 +39,13 @@ object MultiPartEntityDecoder {
   val decodePart: ByteVector  => DecodeResult[Part] = { bv =>
     val endOfHeaders     = bv.indexOfSlice(headerBodySeparator)
     val (headersBV,body) = bv.splitAt(endOfHeaders)
-    val headers          = toHeaders(0)(headersBV)
+    val headers          = MultipartHeaders(headersBV)
     toResponse(body)(headers)
   }
 
   
   val decodeMultiPartBody: Boundary => Message =>  Process[Task,Stream[DecodeResult[Part]]] = {boundary => message =>
-    val pStream = message.body.map { body => toByteVectorStream(boundary)(0)(body) }
+    val pStream = message.body.map {  _.toStream(boundary) }
     pStream.map { _.map(decodePart)}
   }
   
