@@ -39,7 +39,8 @@ object UrlForm {
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(q.multiParams))
 
-  private[http4s] def encodeString(charset: Charset)(urlForm: UrlForm): String = {
+  /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
+  def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
       UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlFormCodec.urlUnreserved)
 
