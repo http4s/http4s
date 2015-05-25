@@ -28,7 +28,7 @@ object HttpVersion extends HttpVersionInstances {
     case "HTTP/1.1" => right(`HTTP/1.1`)
     case "HTTP/1.0" => right(`HTTP/1.0`)
     case other => new Parser(s).HttpVersion.run()(ScalazDeliverySchemes.Disjunction).leftMap { _ =>
-      ParseFailure("Invalid charset", s"$s is not a supported CharSet on this system")
+      ParseFailure("Invalid HTTP version", s"$s was not found to be a valid HTTP version")
     }
   }
 

@@ -13,7 +13,7 @@ import scalaz.{\/-, -\/, Equal}
  * @param details Contains any relevant details omitted from the sanitized
  *                version of the error.  This may freely echo a Request.
  */
-final case class ParseFailure(sanitized: String, details: String = "")
+final case class ParseFailure(sanitized: String, details: String)
 
 final case class ParseException(failure: ParseFailure) extends RuntimeException(failure.sanitized)
 
@@ -22,6 +22,6 @@ object ParseFailure {
 }
 
 object ParseResult {
-  def fail(sanitized: String, details: String = "") = -\/(ParseFailure(sanitized, details))
+  def fail(sanitized: String, details: String) = -\/(ParseFailure(sanitized, details))
   def success[A](a: A) = \/-(a)
 }

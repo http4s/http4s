@@ -25,8 +25,8 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean) {
   def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
     val acc = Query.newBuilder
     decodeBuffer(input, (k,v) => acc += ((k,v)), flush) match {
-      case Some(e) => -\/(ParseFailure(e))
-      case None    => \/-(acc.result)
+      case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
+      case None    => ParseResult.success(acc.result)
     }
   }
 
