@@ -88,7 +88,7 @@ object QueryParamDecoder {
   def fromUnsafeCast[T](cast: QueryParameterValue => T)(typeName: String): QueryParamDecoder[T] = new QueryParamDecoder[T]{
     def decode(value: QueryParameterValue): ValidationNel[ParseFailure, T] =
       Validation.fromTryCatchNonFatal(cast(value)).leftMap(t =>
-        ParseFailure(s"Could not parse ${value.value} as a $typeName", t.getMessage)
+        ParseFailure("Query decoding failed", t.getMessage)
       ).toValidationNel
   }
 
@@ -114,7 +114,8 @@ object QueryParamDecoder {
   implicit val charQueryParamDecoder: QueryParamDecoder[Char] = new QueryParamDecoder[Char]{
     def decode(value: QueryParameterValue): ValidationNel[ParseFailure, Char] =
       if(value.value.size == 1) value.value.head.successNel
-      else ParseFailure(s"Could not parse ${value.value} as a Char") .failureNel
+      else ParseFailure("Failed to parse Char query parameter",
+                       s"Could not parse ${value.value} as a Char") .failureNel
   }
 
   implicit val stringQueryParamDecoder: QueryParamDecoder[String] = new QueryParamDecoder[String]{

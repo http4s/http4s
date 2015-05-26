@@ -32,10 +32,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     "flatMapR with failure" in {
       EntityDecoder.text
-        .flatMapR(s => DecodeResult.failure[String](ParseFailure("bummer")))
+        .flatMapR(s => DecodeResult.failure[String](ParseFailure("bummer", "real bummer")))
         .decode(req)
         .run
-        .run must beLeftDisjunction(ParseFailure("bummer"))
+        .run must beLeftDisjunction(ParseFailure("bummer", "real bummer"))
     }
   }
 
@@ -50,7 +50,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
-      val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!"))))
+      val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!", ""))))
       val resp = request.decodeWith(grumpyDecoder) { _ => Task.now(Response())}.run
       resp.status must equal (Status.BadRequest)
     }
@@ -143,7 +143,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
-      DecodeResult.failure(ParseFailure("Nope."))
+      DecodeResult.failure(ParseFailure("Nope.", ""))
     }
 
     "Not match invalid media type" in {
