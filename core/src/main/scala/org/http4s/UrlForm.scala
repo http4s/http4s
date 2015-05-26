@@ -4,7 +4,6 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
 
-import scala.collection.immutable.BitSet
 import scala.io.Codec
 
 
@@ -35,12 +34,13 @@ object UrlForm {
       )
     }
 
-  private[http4s] def decodeString(charset: Charset)(urlForm: String): ParseResult[UrlForm] =
+  /** Attempt to decode the `String` to a [[UrlForm]] */
+  def decodeString(charset: Charset)(urlForm: String): ParseResult[UrlForm] =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(_.groupBy(_._1).mapValues(_.flatMap(_._2)))
-      .map(UrlForm.apply)
+      .map(q => UrlForm(q.multiParams))
 
-  private[http4s] def encodeString(charset: Charset)(urlForm: UrlForm): String = {
+  /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
+  def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
       UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlFormCodec.urlUnreserved)
 
