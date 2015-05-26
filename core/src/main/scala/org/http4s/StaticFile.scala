@@ -67,9 +67,7 @@ object StaticFile {
 
   def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request])
                         (implicit es: ExecutorService): Option[Response] = {
-
-    if (start < 0 || end < start || buffsize <= 0)
-      throw new Exception(s"start: $start, end: $end, buffsize: $buffsize")
+    require (start >= 0 && end > start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
     if (!f.isFile) return None
 
@@ -96,11 +94,12 @@ object StaticFile {
         mt    <- MediaType.get((parts(0), parts(1)))
       } yield `Content-Type`(mt)
 
-      val headers =
-        `Last-Modified`(lastModified) :: `Content-Length`(contentLength) :: contentType.toList
+      val hs = `Last-Modified`(lastModified) ::
+               `Content-Length`(contentLength) ::
+               contentType.toList
 
       val r = Response(
-        headers = Headers(headers),
+        headers = Headers(hs),
         body = body,
         attributes = AttributeMap.empty.put(staticFileKey, f)
       )
