@@ -25,7 +25,6 @@ object MultiPartEntityDecoder {
   
   val toResult:ByteVector => ParseFailure \/ Headers => DecodeResult[Part] = {body => parseResult =>
     val headersToResult:Headers => DecodeResult[Part]  = { h =>
-        
         h.get(`Content-Disposition`) match {
           case None => DecodeResult.failure(ParseFailure("Missing Content-Disposition header")) 
           case Some(cd:`Content-Disposition`) => 
@@ -37,49 +36,25 @@ object MultiPartEntityDecoder {
             cd.parameters.get("name").fold[DecodeResult[Part]](DecodeResult.failure(ParseFailure("Unable to decode MutliPart body")))(success)
         }
     }    
-    
     parseResult.fold(DecodeResult.failure[Part], headersToResult)   
   }
   
   val decodePart: ByteVector  => DecodeResult[Part] = { bv =>
     val endOfHeaders     = bv.indexOfSlice(headerBodySeparator)
-    val (headersBV,body) = bv.splitAt(endOfHeaders)
+    val (headersBV,body) = bv  splitAt(endOfHeaders)
     val headers          = MultipartHeaders(headersBV)
-    println(s"part ${headersBV.decodeUtf8}")
-    toResult(body)(headers)
+    toResult(body.drop(headerBodySeparator.length))(headers)
   }
 
   
+  
   val decodeMultipartBody: Boundary => Message =>  Process[Task,Stream[DecodeResult[Part]]] = {
-    boundary => message =>
-    val delimiter          = new StringWriter()             <<
-                             B.CRLF                         <<
-                             MultipartDefinition.dash       << 
-                             boundary.value           result()
-    val close_delimiter    = new StringWriter()             <<
-                             delimiter                      <<
-                             MultipartDefinition.dash result()
-                             
-    //TODO:This needs to be a regular expression
-    val transport_padding  = " "
-    val start              = ByteVectorWriter() <<
-                             delimiter          <<
-                             transport_padding  <<
-                             B.CRLF toByteVector()
-    val end                = ByteVectorWriter() <<
-                             close_delimiter    <<
-                             transport_padding  <<
-                             B.CRLF toByteVector()
-    val encapsulation      = new StringWriter() <<
-                             delimiter          <<
-                             transport_padding  <<
-                             B.CRLF result()                              
-    val body = message.body
-    
-    body.map { 
+    boundary => message =>          
+    message.body.map { 
          _.
-         drop(start.length).
-         toStream(Boundary(encapsulation)).
+         drop(start(boundary).length).
+         dropRight(end(boundary).length).
+         toStream(Boundary(encapsulation(boundary))).
          map(decodePart)
     }
   }
@@ -90,7 +65,6 @@ object MultiPartEntityDecoder {
         case None           =>  DecodeResult.failure(ParseFailure("Missing boundary extention to Content-Type. " ,
                                                 msg.contentType.map(_.toString).getOrElse("No Content-Type found.")))
         case Some(boundary) =>   
-          println(s"some boundary $boundary")
           val x: Process[Task,Stream[DecodeResult[Part]]]          = decodeMultipartBody(boundary)(msg)
           val x1:Process[Task,Stream[Task[ParseFailure \/ Part]]] =  x.map{ _.map(_.fold(  _.left,  _.right))}
           val x2:Process[Task, ParseFailure \/ MultiPart]         = x1.flatMap { s => 

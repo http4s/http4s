@@ -14,16 +14,17 @@ import scodec.bits.ByteVector
 import org.http4s.EntityEncoder._
 import Entity._
 import scalaz.stream.Process
-import org.specs2.SpecificationWithJUnit
+import org.specs2.Specification
+import org.specs2.scalaz.DisjunctionMatchers
 
-
-class MultipartSpec extends SpecificationWithJUnit {
+class MultipartSpec extends Specification  with DisjunctionMatchers {
 
   def is = s2"""
-     I can haz multipart   $multipass
+    Multipart form data can be 
+      encoded  $encoded
      """
 
-  def multipass = {
+  def encoded = {
 
    implicit def mpe: EntityEncoder[MultiPart] = MultiPartEntityEncoder
 
@@ -35,30 +36,28 @@ class MultipartSpec extends SpecificationWithJUnit {
     val txtToEntity: String => EntityEncoder.Entity = in =>
         EntityEncoder.Entity(Process.emit(in).map(s => ByteVector(s.getBytes)))
 
-    val request    = Request(Method.POST, url)
+
     val ctf1       = Some(`Content-Type`(`text/plain`))
     val ef1        = txtToEntity("Text_Field_1")
     val field1     = FormData(Name("field1"), ctf1, ef1)
     val ef2        = txtToEntity("Text_Field_2")
     val field2     = FormData(Name("field2"), None, ef2)
-    val multiPart  = MultiPart(List(field1,field2))
-    val decoder    = MultiPartEntityDecoder
+    val multipart  = MultiPart(List(field1,field2))
 
-    //  val msg:Message = request.withHeaders(multiPart.headers).withBody(multiPart).map(decoder.decoder).run.run
-    //  println(s"parts are  __${decoder.decoder(msg).run.run}__")
-    //println(s"Content type is __${request.withHeaders(multiPart.headers).contentType.get.mediaType.extensions.get("boundry")}__")
-
-   val bodyDisjunction = request.withBody(multiPart).map { r => EntityDecoder.collectBinary(r).run }.run.run
-
-   bodyDisjunction.map { body =>
-      val res = Response(Ok).withHeaders(multiPart.headers).withBody(body).run
-      
-      //decoder.decodeBody(res.body)(multiPart.boundary.value).run.run
-   }
-
-
-
-    true === true
+    val entity = MultiPartEntityEncoder.toEntity(multipart)
+    
+    val body = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
+    
+    val request    = Request(method  = Method.POST,
+                             uri     = url,
+                             body    = Process.emit(body),
+                             headers = multipart.headers )
+          
+    val decoder    = MultiPartEntityDecoder.decoder
+    val decoded = decoder.decode(request)
+    val result = decoded.run.run
+    println(s"Body __${body.decodeUtf8}__\n\n\n")
+    result must beRightDisjunction(multipart)
   }
 
 }

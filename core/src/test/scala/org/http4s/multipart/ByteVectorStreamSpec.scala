@@ -6,13 +6,8 @@ import org.specs2.SpecificationWithJUnit
 import org.specs2.matcher.MatchFailure
 
 
-
 class ByteVectorStreamSpec extends SpecificationWithJUnit {
 
-/*
- * 
- *   
- */
   
   def is = s2"""
    ByteVector Stream can handle:
@@ -49,6 +44,7 @@ class ByteVectorStreamSpec extends SpecificationWithJUnit {
     }
   }
 
+  
   def multipleElementsNoEndBoundary = {
     val input      = ByteVector("I have a boundaries".getBytes)
     val byteVector = input ++  B.CRLFBV ++ input ++  B.CRLFBV  ++ input 
@@ -61,6 +57,7 @@ class ByteVectorStreamSpec extends SpecificationWithJUnit {
     }
   }  
 
+  
   def multipleElementsTrailingEndBoundary = {
     val input      = ByteVector("I have a boundaries".getBytes)
     val byteVector = input ++  B.CRLFBV ++ input ++  B.CRLFBV  ++ input  ++  B.CRLFBV 
@@ -74,14 +71,6 @@ class ByteVectorStreamSpec extends SpecificationWithJUnit {
     }
   }
   
- /**
-  * lastPos 0
-    start 0 end 47
-    lastPos 49
-    start 72 end 107
-    lastPos 109
-    start -1 end 47
-  */
   
   def headersExample = {
     val textHeaders = """Content-Disposition: file; filename="file2.gif"""" + B.CRLF + 

@@ -61,17 +61,13 @@ object B {
   def oundary = Boundary(value(rand.nextInt(69)) + endChar)
 
 }
-object MultipartDefinition {
 
-  val dash = "--"
-  
-
-}
 object MultipartHeaders {
 
   private val delimiter = ByteVector(":".getBytes)  
   
   def apply(bv:ByteVector): ParseFailure \/ Headers = { 
+    println("HEADERS")
     val empty:ParseFailure \/ Headers = Headers.empty.right
     val op:(ParseFailure \/ Headers, ByteVector) => ParseFailure \/ Headers = { (acc,h) =>
       lazy val (name,value ) = h.splitAt(h.indexOfSlice(delimiter))

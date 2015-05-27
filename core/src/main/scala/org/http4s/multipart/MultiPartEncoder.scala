@@ -24,7 +24,8 @@ object formDataEncoder extends EntityEncoder[FormData] {
   def toEntity(fd: FormData): Task[Entity] = {
     lazy val headers = fd.contentType.foldLeft(ByteVectorWriter() <<
                                                contentDisposition(fd.name.value) <<
-                                               B.CRLF)((w, ct) => w << ct) << B.CRLF
+                                               B.CRLF)((w, ct) => w << ct <<
+                                               B.CRLF) << B.CRLF
 
     Task { Entity(fd.content.body.map { body => headers.toByteVector() ++ body }) }
   }
@@ -47,46 +48,24 @@ object MultiPartEntityEncoder extends EntityEncoder[MultiPart] {
 
   def toEntity(mp: MultiPart): Task[Entity] = {
 
-    val boundary           = mp.boundary.value
-    val transport_padding  = " "
-    val delimiter          = new StringWriter()             <<
-                             B.CRLF                         <<
-                             MultipartDefinition.dash       << 
-                             boundary                 result()
-    val close_delimiter    = new StringWriter()             <<
-                             delimiter                      <<
-                             MultipartDefinition.dash result()
-
-    val _start             = ByteVectorWriter() <<
-                             delimiter          <<
-                             transport_padding  <<
-                             B.CRLF
-    val _end               = ByteVectorWriter() <<
-                             close_delimiter    <<
-                             transport_padding  <<
-                             B.CRLF
-    val encapsulation     = Entity(Process.emit(ByteVectorWriter()  <<
-                            delimiter                               <<
-                            transport_padding                       <<
-                            B.CRLF toByteVector()))
-
+    val _start         = Entity(Process.emit(start(mp.boundary)))
+    val _end           = Entity(Process.emit(end(mp.boundary)))
+    val _encapsulation = Entity(Process.emit(ByteVector(encapsulation(mp.boundary).getBytes)))
+    
     val appendPart: (Task[Entity], Part) => Task[Entity] = { (a, p) =>
       for {
         acc <- a
         ff  <- partEncoder.toEntity(p)
-      } yield entityInstance.append(acc, entityInstance.append(encapsulation, ff))
+      } yield entityInstance.append(acc, entityInstance.append(_encapsulation, ff))
     }
-
-    val start = Entity(Process.emit(_start toByteVector()))
-    val end   = Entity(Process.emit(_end   toByteVector()))
 
     val parts = mp.parts match {
       case x :: xs => xs.foldLeft(partEncoder.toEntity(x))(appendPart)
     }
 
     parts.
-      map(entityInstance.append(start, _)).
-      map(entityInstance.append(_, end))
+      map(entityInstance.append(_start, _)).
+      map(entityInstance.append(_, _end))
   }
 
 
