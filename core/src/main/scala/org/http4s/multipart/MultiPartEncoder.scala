@@ -49,29 +49,31 @@ object MultiPartEntityEncoder extends EntityEncoder[MultiPart] {
 
     val boundary           = mp.boundary.value
     val transport_padding  = " "
-    val dash               = "--"
-    val delimiter          = s"${B.CRLF}$dash$boundary"
-    val close_delimiter    = s"$delimiter$dash"
+    val delimiter          = new StringWriter()             <<
+                             B.CRLF                         <<
+                             MultipartDefinition.dash       << 
+                             boundary                 result()
+    val close_delimiter    = new StringWriter()             <<
+                             delimiter                      <<
+                             MultipartDefinition.dash result()
 
-    val _start = ByteVectorWriter() <<
-                 B.CRLF             <<
-                 dash               <<
-                 boundary           <<
-                 transport_padding  <<
-                 B.CRLF
-    val _end   = ByteVectorWriter() <<
-                 close_delimiter    <<
-                 transport_padding  <<
-                 B.CRLF
-    val encapsulation = Entity(Process.emit(ByteVectorWriter()  <<
-                                            delimiter           <<
-                                            transport_padding   <<
-                                            B.CRLF toByteVector()))
+    val _start             = ByteVectorWriter() <<
+                             delimiter          <<
+                             transport_padding  <<
+                             B.CRLF
+    val _end               = ByteVectorWriter() <<
+                             close_delimiter    <<
+                             transport_padding  <<
+                             B.CRLF
+    val encapsulation     = Entity(Process.emit(ByteVectorWriter()  <<
+                            delimiter                               <<
+                            transport_padding                       <<
+                            B.CRLF toByteVector()))
 
     val appendPart: (Task[Entity], Part) => Task[Entity] = { (a, p) =>
       for {
         acc <- a
-        ff <- partEncoder.toEntity(p)
+        ff  <- partEncoder.toEntity(p)
       } yield entityInstance.append(acc, entityInstance.append(encapsulation, ff))
     }
 
