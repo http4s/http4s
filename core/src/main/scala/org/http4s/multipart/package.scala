@@ -3,7 +3,13 @@ package org.http4s
 import org.http4s.util._
 import scodec.bits.ByteVector
 
+final case class Token(val value:String) {
 
+  lazy val bv = ByteVector(value.getBytes)
+
+  lazy val lengthBV = bv.length
+
+}
 package object multipart {
   
   val dash             = "--"
@@ -41,20 +47,20 @@ package object multipart {
                       
                      
   implicit class RichByteVector(bv: ByteVector) {
-    def toStream(boundary: Boundary): Stream[ByteVector] = {
+    def toStream(token: Token): Stream[ByteVector] = {
 
-      def byteVectorStream(boundary: Boundary, start: Int):Stream[ByteVector] = { 
+      def byteVectorStream(start: Int):Stream[ByteVector] = { 
 
             lazy val end   = {
-                               val e = if (start == 0) bv.indexOfSlice(boundary.toBV, start)  
-                                       else bv.indexOfSlice(boundary.toBV, start + boundary.lengthBV)
+                               val e = if (start == 0) bv.indexOfSlice(token.bv, start)  
+                                       else bv.indexOfSlice(token.bv, start + token.lengthBV)
                                if(e == -1 ) bv.length else e         
                              }   
             if (start == -1 || start >= bv.length) Stream.empty
-            else bv.slice(start,end) #:: byteVectorStream(boundary,end  + boundary.lengthBV )
+            else bv.slice(start,end) #:: byteVectorStream(end  + token.lengthBV )
       }
       
-      byteVectorStream(boundary,0) 
+      byteVectorStream(0) 
     }
   }
 

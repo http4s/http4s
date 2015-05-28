@@ -14,7 +14,7 @@ import scalaz._
 import Scalaz._
 import scalaz.stream._
 
-object MultiPartEntityDecoder {
+object MultipartEntityDecoder {
 
   implicit def charset = StandardCharsets.UTF_8
 
@@ -50,29 +50,28 @@ object MultiPartEntityDecoder {
   
   val decodeMultipartBody: Boundary => Message =>  Process[Task,Stream[DecodeResult[Part]]] = {
     boundary => message =>          
-    message.body.map { 
-         _.
+    message.body.map { _.
          drop(start(boundary).length).
          dropRight(end(boundary).length).
-         toStream(Boundary(encapsulation(boundary))).
+         toStream(Token(encapsulation(boundary))).
          map(decodePart)
     }
   }
   
   
-  val decoder:EntityDecoder[MultiPart] =  EntityDecoder.decodeBy(MediaRange.`multipart/*`)( msg =>
+  val decoder:EntityDecoder[Multipart] =  EntityDecoder.decodeBy(MediaRange.`multipart/*`)( msg =>
       boundary(msg) match {
         case None           =>  DecodeResult.failure(ParseFailure("Missing boundary extention to Content-Type. " ,
                                                 msg.contentType.map(_.toString).getOrElse("No Content-Type found.")))
         case Some(boundary) =>   
-          val x: Process[Task,Stream[DecodeResult[Part]]]          = decodeMultipartBody(boundary)(msg)
+          val x: Process[Task,Stream[DecodeResult[Part]]]         = decodeMultipartBody(boundary)(msg)
           val x1:Process[Task,Stream[Task[ParseFailure \/ Part]]] =  x.map{ _.map(_.fold(  _.left,  _.right))}
-          val x2:Process[Task, ParseFailure \/ MultiPart]         = x1.flatMap { s => 
-            val zero: ParseFailure \/ MultiPart = MultiPart(Seq.empty,boundary).right   
-            val op:  (ParseFailure \/ MultiPart, Task[ParseFailure \/ Part]) => ParseFailure \/ MultiPart = { (acc,tp) =>
-              val add:ParseFailure \/ MultiPart => ParseFailure \/ Part => ParseFailure \/ MultiPart =  { mp => p => (mp,p) match {
+          val x2:Process[Task, ParseFailure \/ Multipart]         = x1.flatMap { s => 
+            val zero: ParseFailure \/ Multipart = Multipart(Seq.empty,boundary).right   
+            val op:  (ParseFailure \/ Multipart, Task[ParseFailure \/ Part]) => ParseFailure \/ Multipart = { (acc,tp) =>
+              val add:ParseFailure \/ Multipart => ParseFailure \/ Part => ParseFailure \/ Multipart =  { mp => p => (mp,p) match {
                 case (-\/(f),_)  => mp
-                case ( _,-\/(f)) => f.left[MultiPart]
+                case ( _,-\/(f)) => f.left[Multipart]
                 case ( \/-(mb),\/-(pb)) => mb.copy(parts = mb.parts :+ pb).right  
               }
               }
@@ -82,9 +81,9 @@ object MultiPartEntityDecoder {
             }
             Process.emit(s.foldLeft(zero)(op))
           }
-         val x3:Process[Task, ParseFailure \/ MultiPart]  => DecodeResult[MultiPart] = { p => 
-          val y:Process[Task,   DecodeResult[MultiPart]]  = p.map { _.fold( DecodeResult.failure[MultiPart], DecodeResult.success[MultiPart])} 
-          y.runLast.run.getOrElse(DecodeResult.failure[MultiPart](ParseFailure("Unable to decode MutliPart body")))
+         val x3:Process[Task, ParseFailure \/ Multipart]  => DecodeResult[Multipart] = { p => 
+          val y:Process[Task,   DecodeResult[Multipart]]  = p.map { _.fold( DecodeResult.failure[Multipart], DecodeResult.success[Multipart])} 
+          y.runLast.run.getOrElse(DecodeResult.failure[Multipart](ParseFailure("Unable to decode MutliPart body")))
          }
           
          x3(x2)

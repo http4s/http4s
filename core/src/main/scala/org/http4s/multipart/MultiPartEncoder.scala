@@ -41,12 +41,12 @@ object partEncoder extends EntityEncoder[Part] {
 
 }
 
-object MultiPartEntityEncoder extends EntityEncoder[MultiPart] {
+object MultipartEntityEncoder extends EntityEncoder[Multipart] {
 
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty
 
-  def toEntity(mp: MultiPart): Task[Entity] = {
+  def toEntity(mp: Multipart): Task[Entity] = {
 
     val _start         = Entity(Process.emit(start(mp.boundary)))
     val _end           = Entity(Process.emit(end(mp.boundary)))

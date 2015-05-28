@@ -42,8 +42,8 @@ class MultipartHeadersSpec extends SpecificationWithJUnit  with DisjunctionMatch
  
  def multiple = {
        val textHeaders = """Content-Disposition: file; filename="file2.gif"""" + B.CRLF + 
-                         "Content-Type: image/gif"                             + B.CRLF +
-                         "Content-Transfer-Encoding: binary"                   + B.CRLF 
+                           "Content-Type: image/gif"                           + B.CRLF +
+                           "Content-Transfer-Encoding: binary"                 + B.CRLF 
     
     MultipartHeaders(ByteVector(textHeaders.getBytes)) match {
          case -\/( error )   => ko(error.details) 

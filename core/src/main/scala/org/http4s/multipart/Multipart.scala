@@ -13,18 +13,13 @@ import Scalaz._
 
 import scodec.bits.ByteVector
 
-
-/*
- * TODO: Consistent naming: Multipart NOT MultiPart 
- */
-
 final case class Name(value:String) extends AnyVal
 sealed trait Part
 final case class FormData(name:Name,
                           contentType: Option[ContentType],
                           content: Entity) extends Part
 
-final case class MultiPart(val parts: Seq[Part],val boundary:Boundary = B.oundary) {
+final case class Multipart(val parts: Seq[Part],val boundary:Boundary = B.oundary) {
 
   def headers = Headers(ContentType(MediaType.multipart("form-data", Some(boundary.value))))
 
@@ -67,8 +62,8 @@ object MultipartHeaders {
   private val delimiter = ByteVector(":".getBytes)  
   
   def apply(bv:ByteVector): ParseFailure \/ Headers = { 
-    println("HEADERS")
     val empty:ParseFailure \/ Headers = Headers.empty.right
+    
     val op:(ParseFailure \/ Headers, ByteVector) => ParseFailure \/ Headers = { (acc,h) =>
       lazy val (name,value ) = h.splitAt(h.indexOfSlice(delimiter))
       lazy val header  = (name.decodeUtf8 |@| value.drop(1).decodeUtf8) { (n,v) =>  Header(n.trim(),v.trim()) }.
@@ -76,6 +71,7 @@ object MultipartHeaders {
                           leftMap { t => ParseFailure("Unable to parse header", t.getMessage) }      
       acc.flatMap { c => header.fold( _.left , h => c.put(h).right) }
     }
-    bv.toStream(Boundary(B.CRLF)).foldLeft(empty)(op)        
+    
+    bv.toStream(Token(B.CRLF)).foldLeft(empty)(op)        
   }  
 }
