@@ -13,7 +13,7 @@ import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
-import org.http4s.server.middleware.authentication.DigestAuthentication
+import org.http4s.server.middleware.authentication._
 import org.http4s.twirl._
 
 import scalaz.stream.Process
@@ -166,8 +166,14 @@ object ExampleService {
   val digest = new DigestAuthentication(realm, auth_store)
 
   def service3 = digest( HttpService { 
-    case GET -> Root / "protected" =>
-      Ok("This page is protected using HTTP authentication")
+    case req @ GET -> Root / "protected" => {
+      (req.attributes.get(authenticatedUser), req.attributes.get(authenticatedRealm)) match {
+        case (Some(user), Some(realm)) => 
+          Ok("This page is protected using HTTP authentication; logged in user/realm: " + user + "/" + realm)
+        case _ => 
+          Ok("This page is protected using HTTP authentication; logged in user/realm unknown")
+      }
+    }
   } )
 
 }

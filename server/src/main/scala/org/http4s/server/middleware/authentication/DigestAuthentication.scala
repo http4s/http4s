@@ -12,6 +12,7 @@ import org.http4s.headers.Authorization
 import scala.concurrent.duration._
 
 import scalaz.concurrent.Task
+import scalaz._
 
 /**
  * Provides Digest Authentication from RFC 2617. Note that this class creates a new thread
@@ -34,9 +35,9 @@ class DigestAuthentication(realm: String, store: AuthenticationStore, nonceClean
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
   protected def getChallenge(req: Request) = {
-    def paramsToChallenge(params: Map[String, String]) = Some(Challenge("Digest", realm, params))
+    def paramsToChallenge(params: Map[String, String]) = \/-(Challenge("Digest", realm, params))
     checkAuth(req).flatMap(_ match {
-      case OK         => Task.now(None)
+      case OK(user, realm) => Task.now(-\/(addUserRealmAttributes(req, user, realm)))
       case StaleNonce => getChallengeParams(true).map(paramsToChallenge)
       case _          => getChallengeParams(false).map(paramsToChallenge)
     })
@@ -86,7 +87,7 @@ class DigestAuthentication(realm: String, store: AuthenticationStore, nonceClean
           case Some(password) =>
             val resp = DigestUtil.computeResponse(method, params("username"), realm, password, uri, nonce, nc, params("cnonce"), params("qop"))
 
-            if (resp == params("response")) OK
+            if (resp == params("response")) OK(params("username"), realm)
             else WrongResponse
         }
     }

@@ -4,6 +4,7 @@ package middleware
 package authentication
 
 import org.http4s.headers.Authorization
+import scalaz._
 import scalaz.concurrent.Task
 
 /**
@@ -13,9 +14,9 @@ import scalaz.concurrent.Task
  *              appropriate password.
  */
 class BasicAuthentication(realm: String, store: AuthenticationStore) extends Authentication {
-  protected def getChallenge(req: Request): Task[Option[Challenge]] = checkAuth(req).map {
-    case OK => None
-    case _ => Some(Challenge("Basic", realm, Nil.toMap))
+  protected def getChallenge(req: Request) = checkAuth(req).map {
+    case OK(user, realm) => -\/(addUserRealmAttributes(req, user, realm))
+    case _ => \/-(Challenge("Basic", realm, Nil.toMap))
   }
 
   private def checkAuth(req: Request): Task[AuthReply] = {
@@ -24,7 +25,7 @@ class BasicAuthentication(realm: String, store: AuthenticationStore) extends Aut
         store(realm, user).map {
           case None => UserUnknown
           case Some(server_pass) =>
-            if (server_pass == client_pass) OK
+            if (server_pass == client_pass) OK(user, realm)
             else WrongPassword
         }
 

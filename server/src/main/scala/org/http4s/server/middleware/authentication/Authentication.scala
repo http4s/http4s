@@ -4,6 +4,7 @@ package middleware
 package authentication
 
 import scalaz.concurrent.Task
+import scalaz._
 import org.http4s.headers.`WWW-Authenticate`
 
 /**
@@ -16,22 +17,29 @@ trait Authentication {
    * the returned Task is executed at most once (to allow for side-effects, 
    * e.g. the incrementation of a nonce counter in DigestAuthentication).
    * @param req The request received from the client.
-   * @return If req contains valid credentials, None is returned.
-   *         Otherwise, Some(challenge) is returned. In this case,
-   *         challenge will be included in the HTTP 401 Unauthorized
-   *         response that is returned to the client.
+   * @return If req contains valid credentials, a copy of req is returned that
+   *         contains additional attributes pertaining to authentication such
+   *         as the username and realm from the valid credentials.
+   *         If req does not contain valid credentials, a challenge is returned. 
+   *         This challenge will be included in the HTTP 401 
+   *         Unauthorized response that is returned to the client.
    *
    */
-  protected def getChallenge(req: Request): Task[Option[Challenge]]
+  protected def getChallenge(req: Request): Task[Request \/ Challenge]
+
+  // Utility function for implementors of getChallenge()
+  protected def addUserRealmAttributes(req: Request, user: String, realm: String) : Request =
+    req.withAttribute(authenticatedUser,user).withAttribute(authenticatedRealm, realm)
+    
 
   def apply(service: HttpService): HttpService = Service.lift {
     case req: Request => getChallenge(req).flatMap(_ match {
-      case None => service(req)
-      case Some(challenge) =>
+      case -\/(req) => service(req)
+      case \/-(challenge) =>
         Task.now(Some(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge))))
     })
   }
 }
 
 abstract class AuthReply
-
+case class OK(user: String, realm: String) extends AuthReply
