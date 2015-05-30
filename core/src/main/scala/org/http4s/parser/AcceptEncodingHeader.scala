@@ -23,7 +23,7 @@ import ContentCoding._
 import org.http4s.headers.`Accept-Encoding`
 import org.http4s.util.CaseInsensitiveString
 
-private[parser] trait AcceptEncodingHeader {
+private[http4s] object AcceptEncodingHeader {
 
 
   def ACCEPT_ENCODING(value: String) = new AcceptEncodingParser(value).parse

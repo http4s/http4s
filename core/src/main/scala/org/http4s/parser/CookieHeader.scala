@@ -22,7 +22,7 @@ import org.parboiled2._
 import org.http4s.headers.`Set-Cookie`
 import shapeless.{HNil, ::}
 
-private[parser] trait CookieHeader {
+private[http4s] object CookieHeader {
 
   def SET_COOKIE(value: String) = new SetCookieParser(value).parse
 

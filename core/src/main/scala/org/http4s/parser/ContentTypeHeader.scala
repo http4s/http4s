@@ -21,7 +21,7 @@ package parser
 import org.parboiled2._
 import headers.`Content-Type`
 
-private[parser] trait ContentTypeHeader {
+private[http4s] object ContentTypeHeader {
 
   def CONTENT_TYPE(value: String) = new ContentTypeParser(value).parse
 

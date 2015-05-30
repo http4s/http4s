@@ -1,9 +1,13 @@
 package org.http4s
 package headers
 
+import org.http4s.Header.Raw
 import org.http4s.util.{Renderable, Writer}
 
-object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton
+object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
+  override protected def parseHeader(raw: Raw): Option[`User-Agent`.HeaderT] =
+    parser.SimpleHeaders.USER_AGENT(raw.value).toOption
+}
 
 sealed trait AgentToken extends Renderable
 

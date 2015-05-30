@@ -8,7 +8,7 @@ import org.parboiled2._
 import scalaz.NonEmptyList
 
 
-private[parser] trait RangeParser {
+private[http4s] object RangeParser {
 
   def RANGE(value: String) = new Http4sHeaderParser[Range](value) with RangeRule {
     import Range.SubRange

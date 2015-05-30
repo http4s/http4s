@@ -29,7 +29,7 @@ import scalaz.NonEmptyList
 /**
  * parser rules for all headers that can be parsed with one simple rule
  */
-private[parser] trait SimpleHeaders { self: HttpParser =>
+private[http4s] object SimpleHeaders {
 
   def ALLOW(value: String): ParseResult[Allow] = {
     new Http4sHeaderParser[Allow](value) {
@@ -74,9 +74,9 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
     }
   }.parse
 
-//  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
-//  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
-//  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
+  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
+  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
+  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
   def HOST(value: String) = new Http4sHeaderParser[Host](value) {
     def entry = rule {
       (Token | IPv6Reference) ~ OptWS ~
@@ -141,5 +141,4 @@ private[parser] trait SimpleHeaders { self: HttpParser =>
       }
     }
   }.parse
-
 }

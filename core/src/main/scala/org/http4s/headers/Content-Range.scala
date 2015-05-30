@@ -1,10 +1,14 @@
 package org.http4s
 package headers
 
+import org.http4s.Header.Raw
 import org.http4s.util.Writer
 
 
 object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKey.Singleton {
+
+  override protected def parseHeader(raw: Raw): Option[`Content-Range`.HeaderT] =
+    parser.RangeParser.CONTENT_RANGE(raw.value).toOption
 
   def apply(range: Range.SubRange, length: Option[Long] = None): `Content-Range` = {
     `Content-Range`(RangeUnit.Bytes, range, length)

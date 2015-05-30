@@ -21,7 +21,7 @@ import org.parboiled2.{Rule1, ParserInput}
 import org.http4s.headers.`WWW-Authenticate`
 import org.http4s.Challenge
 
-private[parser] trait WwwAuthenticateHeader {
+private[http4s] object WwwAuthenticateHeader {
 
   def WWW_AUTHENTICATE(value: String) = new WWWAuthenticateParser(value).parse
 

@@ -1,6 +1,7 @@
 package org.http4s
 package headers
 
+import org.http4s.Header.Raw
 import org.http4s.util.{Renderable, Writer}
 
 import scalaz.NonEmptyList
@@ -8,6 +9,10 @@ import scalaz.NonEmptyList
 // See https://tools.ietf.org/html/rfc7233
 
 object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
+
+
+  override protected def parseHeader(raw: Raw): Option[Range.HeaderT] =
+    parser.RangeParser.RANGE(raw.value).toOption
 
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
     Range(unit, NonEmptyList(r1, rs:_*))

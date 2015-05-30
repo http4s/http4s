@@ -1,9 +1,15 @@
 package org.http4s
 package headers
 
+import org.http4s.Header.Raw
 import org.http4s.util.Writer
 
 object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKey.Singleton {
+
+
+  override protected def parseHeader(raw: Raw): Option[`Accept-Ranges`.HeaderT] =
+    parser.RangeParser.ACCEPT_RANGES(raw.value).toOption
+
   def apply(first: RangeUnit, more: RangeUnit*): `Accept-Ranges` = apply(first +: more)
   def bytes = apply(RangeUnit.Bytes)
   def none = apply(Nil)

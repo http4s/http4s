@@ -4,7 +4,7 @@ import org.http4s.Challenge
 import org.http4s.headers._
 import org.parboiled2._
 
-trait ProxyAuthenticateHeader {
+private[http4s] object ProxyAuthenticateHeader {
 
   def PROXY_AUTHENTICATE(value: String) = new ProxyAuthenticateParser(value).parse
 

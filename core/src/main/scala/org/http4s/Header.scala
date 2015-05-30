@@ -29,7 +29,7 @@ import scala.util.hashing.MurmurHash3
  * Abstract representation o the HTTP header
  * @see org.http4s.HeaderKey
  */
-trait Header extends Renderable with Product {
+sealed trait Header extends Renderable with Product {
   import Header.Raw
 
   def name: CaseInsensitiveString
@@ -56,16 +56,16 @@ trait Header extends Renderable with Product {
     renderValue(writer)
   }
 
-  final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
-
-  final override def equals(that: Any): Boolean = that match {
-    case h: AnyRef if this eq h => true
-    case h: Header =>
-      (name == h.name) &&
-      (parsed.productArity == h.parsed.productArity) &&
-      (parsed.productIterator sameElements h.parsed.productIterator)
-    case _ => false
-  }
+//  final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
+//
+//  final override def equals(that: Any): Boolean = that match {
+//    case h: AnyRef if this eq h => true
+//    case h: Header =>
+//      (name == h.name) &&
+//      (parsed.productArity == h.parsed.productArity) &&
+//      (parsed.productIterator sameElements h.parsed.productIterator)
+//    case _ => false
+//  }
 }
 
 object Header {
@@ -82,7 +82,17 @@ object Header {
    * @param value String representation of the header value
    */
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
-    override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
+
+    private var mParsed: Option[Header] = None
+
+    private[http4s] def doParse[T <: Header](parser: Raw => Option[T]): Option[T] = {
+      val p = parser(this)
+      if (p.nonEmpty) mParsed = p
+      p
+    }
+
+    override def parsed = mParsed.getOrElse(this) //parser.HttpParser.parseHeader(this).getOrElse(this)
+
     override def renderValue(writer: Writer): writer.type = writer.append(value)
   }
 

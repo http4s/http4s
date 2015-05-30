@@ -20,7 +20,7 @@ package parser
 
 import org.parboiled2._
 
-private[parser] trait AcceptLanguageHeader {
+private[http4s] object AcceptLanguageHeader {
 
   def ACCEPT_LANGUAGE(value: String) = new AcceptLanguageParser(value).parse
 

@@ -22,7 +22,7 @@ import org.parboiled2._
 import CharsetRange._
 
 
-private[parser] trait AcceptCharsetHeader {
+private[http4s] object AcceptCharsetHeader {
 
   def ACCEPT_CHARSET(value: String) = new AcceptCharsetParser(value).parse
 

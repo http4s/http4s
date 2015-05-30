@@ -22,7 +22,7 @@ import org.parboiled2._
 import scalaz.Validation
 import org.http4s.headers.Accept
 
-private[parser] trait AcceptHeader {
+private[http4s] object AcceptHeader {
 
   def ACCEPT(value: String): ParseResult[headers.Accept] = new AcceptParser(value).parse
 

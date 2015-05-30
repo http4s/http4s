@@ -1,9 +1,14 @@
 package org.http4s
 package headers
 
+import org.http4s.Header.Raw
 import org.http4s.util.Writer
 
-object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton {
+object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.Singleton  {
+
+  override protected def parseHeader(raw: Raw): Option[`Content-Type`.HeaderT] =
+    parser.ContentTypeHeader.CONTENT_TYPE(raw.value).toOption
+
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` = apply(mediaType, Some(charset))
   implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
 }

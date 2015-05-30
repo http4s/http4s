@@ -1,9 +1,14 @@
 package org.http4s
 package headers
 
+import org.http4s.Header.Raw
+
 import scalaz.NonEmptyList
 
-object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring
+object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
+  override protected def parseHeader(raw: Raw): Option[`Accept-Charset`.HeaderT] =
+    parser.AcceptCharsetHeader.ACCEPT_CHARSET(raw.value).toOption
+}
 
 final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends Header.RecurringRenderable {
   def key = `Accept-Charset`

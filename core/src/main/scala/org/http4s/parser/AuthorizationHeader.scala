@@ -22,7 +22,7 @@ import org.parboiled2.{Rule0, Rule1, ParserInput}
 import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString._
 
-private[parser] trait AuthorizationHeader {
+private[http4s] object AuthorizationHeader {
 
   def AUTHORIZATION(value: String) = new AuthorizationParser(value).parse
 
