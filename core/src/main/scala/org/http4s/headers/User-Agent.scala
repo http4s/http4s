@@ -2,11 +2,28 @@ package org.http4s
 package headers
 
 import org.http4s.Header.Raw
+import org.http4s.parser.Http4sHeaderParser
 import org.http4s.util.{Renderable, Writer}
+import org.parboiled2._
 
 object `User-Agent` extends HeaderKey.Internal[`User-Agent`] with HeaderKey.Singleton {
-  override protected def parseHeader(raw: Raw): Option[`User-Agent`.HeaderT] =
-    parser.SimpleHeaders.USER_AGENT(raw.value).toOption
+  override protected def parseHeader(raw: Raw): Option[`User-Agent`] = {
+    new Http4sHeaderParser[`User-Agent`](raw.value) {
+      def entry = rule {
+        product ~ zeroOrMore(RWS ~ (product | comment)) ~> (`User-Agent`(_,_))
+      }
+
+      def product: Rule1[AgentProduct] = rule {
+        Token ~ optional("/" ~ Token) ~> (AgentProduct(_,_))
+      }
+
+      def comment: Rule1[AgentComment] = rule {
+        capture(Comment) ~> { s: String => AgentComment(s.substring(1, s.length-1)) }
+      }
+
+      def RWS = rule { oneOrMore(anyOf(" \t")) }
+    }.parse.toOption
+  }
 }
 
 sealed trait AgentToken extends Renderable
