@@ -1,13 +1,10 @@
-package org.http4s.parser
+package org.http4s
+package headers
 
-import org.http4s.headers._
-import org.http4s._
-import org.specs2.mutable.Specification
 
-class ProxyAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`Proxy-Authenticate`] {
-  def hparse(value: String): ParseResult[`Proxy-Authenticate`] = HttpParser.PROXY_AUTHENTICATE(value)
+class WwwAuthenticateSpec extends HeaderParserSpec(`WWW-Authenticate`) {
 
-  override def parse(value: String) =  hparse(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
+  override def parse(value: String) =  hparse(value).getOrElse(sys.error(s"Couldn't parse: $value"))
 
   val params = Map("a"->"b", "c"->"d")
   val c = Challenge("Basic", "foo")
@@ -16,17 +13,17 @@ class ProxyAuthenticateHeaderSpec extends Specification with HeaderParserHelper[
 
   val wparams = c.copy(params = params)
 
-  "Proxy-Authenticate Header parser" should {
+  "WWW-Authenticate Header parser" should {
     "Render challenge correctly" in {
       c.renderString must be_==(str)
     }
 
     "Parse a basic authentication" in {
-      parse(str) must be_==(`Proxy-Authenticate`(c))
+      parse(str) must be_==(`WWW-Authenticate`(c))
     }
 
     "Parse a basic authentication with params" in {
-      parse(wparams.renderString) must be_==(`Proxy-Authenticate`(wparams))
+      parse(wparams.renderString) must be_==(`WWW-Authenticate`(wparams))
     }
 
     "Parse multiple concatenated authentications" in {

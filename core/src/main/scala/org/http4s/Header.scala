@@ -23,8 +23,6 @@ import scalaz.NonEmptyList
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
 import org.http4s.util.string._
 
-import scala.util.hashing.MurmurHash3
-
 /**
  * Abstract representation o the HTTP header
  * @see org.http4s.HeaderKey
@@ -55,17 +53,6 @@ sealed trait Header extends Renderable with Product {
     writer << name << ':' << ' '
     renderValue(writer)
   }
-
-//  final override def hashCode(): Int = MurmurHash3.mixLast(name.hashCode, MurmurHash3.productHash(parsed))
-//
-//  final override def equals(that: Any): Boolean = that match {
-//    case h: AnyRef if this eq h => true
-//    case h: Header =>
-//      (name == h.name) &&
-//      (parsed.productArity == h.parsed.productArity) &&
-//      (parsed.productIterator sameElements h.parsed.productIterator)
-//    case _ => false
-//  }
 }
 
 object Header {

@@ -1,9 +1,8 @@
-package org.http4s
-package parser
+package org.http4s.parser
 
 import java.nio.CharBuffer
 
-import org.specs2.mutable.Specification
+import org.http4s._
 
 import scala.io.Codec
 

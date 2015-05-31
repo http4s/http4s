@@ -1,5 +1,5 @@
 package org.http4s
-package parser
+package headers
 
 import org.http4s.MediaRange._
 import org.http4s.MediaType._

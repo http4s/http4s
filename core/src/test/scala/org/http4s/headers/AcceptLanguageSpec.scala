@@ -1,14 +1,8 @@
 package org.http4s
-package parser
+package headers
 
-import org.http4s.headers.`Accept-Language`
-import org.specs2.mutable.Specification
-import scalaz.Validation
-import org.http4s.{QValue, LanguageTag}
 
-class AcceptLanguageSpec extends Specification with HeaderParserHelper[`Accept-Language`] with Http4s {
-
-  def hparse(value: String): ParseResult[`Accept-Language`] = HttpParser.ACCEPT_LANGUAGE(value)
+class AcceptLanguageSpec extends HeaderParserSpec(`Accept-Language`) {
 
   val en = `Accept-Language`(LanguageTag("en"))
   val fr = `Accept-Language`(LanguageTag("fr"))

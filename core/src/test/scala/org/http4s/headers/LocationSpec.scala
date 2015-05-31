@@ -1,13 +1,11 @@
 package org.http4s
-package parser
-
-import org.http4s.{Headers, Header, Http4sSpec, Uri}
-import headers.Location
+package headers
 
 import scalaz.\/-
 
+
 // TODO: this could use more tests
-class LocationHeaderSpec extends Http4sSpec {
+class LocationSpec extends HeaderParserSpec(Location) {
 
   "LocationHeader parser" can {
     "Parse a simple uri" in {
