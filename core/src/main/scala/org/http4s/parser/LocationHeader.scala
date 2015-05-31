@@ -15,7 +15,8 @@ trait LocationHeader {
     override def charset = StandardCharsets.ISO_8859_1
 
     def entry: Rule1[Location] = rule {
-      AbsoluteUri ~> { uri => Location(uri) }
+      // https://tools.ietf.org/html/rfc3986#section-4.1
+      (AbsoluteUri | RelativeRef) ~> { uri => Location(uri) }
     }
 
   }
