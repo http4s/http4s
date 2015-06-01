@@ -188,7 +188,7 @@ object MediaType extends Registry {
   private def notBinary = false
 
     def multipart(subType: String, boundry: Option[String] = None) = {
-      val ext = boundry.map(b => Map( "boundry" -> b)).getOrElse(Map.empty)
+      val ext = boundry.map(b => Map( "boundary" -> b)).getOrElse(Map.empty)
       new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext)
     }
 
