@@ -18,7 +18,7 @@ object MultipartEntityDecoder {
 
   implicit def charset = StandardCharsets.UTF_8
 
-  private val boundary: Message => Option[Boundary] = msg => msg.contentType.flatMap{ _.mediaType.extensions.get("boundry").map( Boundary) }
+  private val boundary: Message => Option[Boundary] = msg => msg.contentType.flatMap{ _.mediaType.extensions.get("boundary").map( Boundary) }
 
   val headerBodySeparator  = B.CRLFBV.++(B.CRLFBV)
   
