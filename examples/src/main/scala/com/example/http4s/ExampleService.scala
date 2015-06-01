@@ -6,8 +6,10 @@ import scala.concurrent.{ExecutionContext, Future}
 import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.http4s._
 import org.http4s.MediaType._
-import org.http4s.dsl._
+
 import org.http4s.argonaut._
+import org.http4s.dsl._
+import org.http4s.multipart._
 import org.http4s.scalaxml._
 import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
@@ -25,6 +27,8 @@ import Argonaut._
 
 object ExampleService {
 
+  implicit def mpd: EntityDecoder[Multipart] = MultipartEntityDecoder.decoder  
+  
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService =
     service1(executionContext) orElse service2 orElse ScienceExperiments.service
 
@@ -124,6 +128,19 @@ object ExampleService {
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
         .map(Task.now)
         .getOrElse(NotFound())
+    ///////////////////////////////////////////////////////////////
+    //////////////////////// Multi Part //////////////////////////
+    case req @ GET -> Root / "form" =>  
+            println("FORM")
+      Ok(html.form())        
+    case req @ POST -> Root / "multipart" =>
+      println("MULTIPART")
+      req.decode[Multipart] { m =>
+        Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map { case f:FormData => f.name }.mkString("\n")}""")
+      }
+
+        
+        
   }
 
   // Services don't have to be monolithic, and middleware just transforms a service to a service
