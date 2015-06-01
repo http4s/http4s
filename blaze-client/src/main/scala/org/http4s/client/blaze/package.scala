@@ -39,7 +39,6 @@ package object blaze {
 
   /** Default blaze client */
   val defaultClient = SimpleHttp1Client(timeout = DefaultTimeout,
-                                   maxRedirects = 0,
                                      bufferSize = DefaultBufferSize,
                                        executor = ClientDefaultEC,
                                      sslContext = None)
