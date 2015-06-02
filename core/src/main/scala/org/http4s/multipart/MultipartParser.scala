@@ -6,6 +6,7 @@ import org.parboiled2.CharPredicate._
 final case class Pair(key:String,value:String)
 final case class PHeader(key:String,value:String, parameters:Option[Seq[Pair]])
 final case class BPart(headers:Seq[PHeader],content:String)
+final case class MB(head:BPart,parts:Seq[BPart])
 class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Parser {
 
   def Octet               = rule { "\u0000" - "\u00FF" }
@@ -47,7 +48,7 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
                             DashBoundary   ~ TransportPadding          ~ CRLF ~ 
                             BodyPart       ~ zeroOrMore(Encapsulation) ~
                             CloseDelimiter ~ TransportPadding          ~
-                            Epilogue       ~ EOI
+                            Epilogue       ~ EOI  ~> ( (h,e) => MB(h,e) )
                           }
   
 }
