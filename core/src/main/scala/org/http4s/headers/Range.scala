@@ -1,6 +1,8 @@
 package org.http4s
 package headers
 
+import org.http4s.Header.Raw
+import org.http4s.parser.{RangeRule, Http4sHeaderParser}
 import org.http4s.util.{Renderable, Writer}
 
 import scalaz.NonEmptyList
@@ -32,7 +34,15 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     }
   }
 
-
+  override protected def parseHeader(raw: Raw): Option[Range] = {
+    new Http4sHeaderParser[Range](raw.value) with RangeRule {
+      def entry = rule {
+        capture(oneOrMore(Alpha)) ~ '=' ~ oneOrMore(byteRange).separatedBy(',') ~> { (s: String, rs: Seq[SubRange]) =>
+          Range(RangeUnit(s), NonEmptyList(rs.head, rs.tail:_*))
+        }
+      }
+    }.parse.toOption
+  }
 }
 
 case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {

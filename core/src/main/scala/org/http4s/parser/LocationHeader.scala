@@ -6,7 +6,7 @@ import org.http4s.headers.Location
 import org.http4s._
 import org.parboiled2._
 
-trait LocationHeader {
+private[http4s] object LocationHeader {
 
   def LOCATION(value: String): ParseResult[Location] = new LocationParser(value).parse
 

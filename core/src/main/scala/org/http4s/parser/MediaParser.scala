@@ -3,7 +3,7 @@ package org.http4s.parser
 import org.http4s.{MediaType, MediaRange}
 import org.parboiled2._
 
-private[parser] trait MediaParser { self: Http4sHeaderParser[_] =>
+private[http4s] trait MediaParser { self: Http4sHeaderParser[_] =>
 
   def MediaRangeDef: Rule1[MediaRange] = rule {
     (("*/*" ~ push("*") ~ push("*"))              |
