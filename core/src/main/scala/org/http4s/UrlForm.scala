@@ -9,6 +9,18 @@ import scala.io.Codec
 
 class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
+
+  def get(key: String): Seq[String] =
+    this.getOrElse(key, Seq.empty[String])
+
+  def getOrElse(key: String, default: => Seq[String]): Seq[String] =
+    values.get(key).getOrElse(default)
+
+  def getFirst(key: String): Option[String] =
+    values.get(key).flatMap(_.headOption)
+
+  def getFirstOrElse(key: String, default: => String): String =
+    this.getFirst(key).getOrElse(default)
 }
 
 object UrlForm {

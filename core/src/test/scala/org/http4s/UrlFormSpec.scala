@@ -37,6 +37,38 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
         UrlForm.encodeString(charset)(urlForm)
       ) must_== \/-(urlForm)
     }
+
+    "get returns elements matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).get("key") must_== Seq("a", "b", "c")
+    }
+
+    "get returns empty Seq if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).get("notFound") must_== Seq.empty[String]
+    }
+
+    "getFirst returns first element matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("key") must_== Some("a")
+    }
+
+    "getFirst returns None if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("notFound") must_== None
+    }
+
+    "getOrElse returns elements matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getOrElse("key", Seq("d")) must_== Seq("a", "b", "c")
+    }
+
+    "getOrElse returns default if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getOrElse("notFound", Seq("d")) must_== Seq("d")
+    }
+
+    "getFirstOrElse returns first element matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("key", "d") must_== "a"
+    }
+
+    "getFirstOrElse returns default if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
+    }
   }
 
 }
