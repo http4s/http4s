@@ -110,7 +110,7 @@ private[http4s] object QueryParser {
   private case object KEY extends State
   private case object VALUE extends State
 
-  private val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq:_*)
+  private val QChars = BitSet((Pchar ++ "/?[]".toSet - '&' - '=').map(_.toInt).toSeq:_*)
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
   private def Unreserved =  "-._~".toSet ++ AlphaNum
   private def SubDelims  = "!$&'()*+,;=".toSet

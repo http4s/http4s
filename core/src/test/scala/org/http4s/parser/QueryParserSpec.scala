@@ -48,6 +48,10 @@ class QueryParserSpec extends Http4sSpec {
       parseQueryString("a=b;c") must beRightDisjunction(Query("a" -> Some("b"), "c" -> None))
     }
 
+    "Allow PHP-style [] in keys" in {
+      parseQueryString("a[]=b&a[]=c") must beRightDisjunction(Query("a[]" -> Some("b"), "a[]" -> Some("c")))
+    }
+
     "Reject a query with invalid char" in {
       parseQueryString("獾") must beLeftDisjunction
       parseQueryString("foo獾bar") must beLeftDisjunction
