@@ -25,6 +25,9 @@ import Method.{ PermitsBody, NoBody}
   */
 
 package object client {
+
+  type Middleware = Client => Client
+
   /** Syntax classes to generate a request directly from a [[Method]] */
   implicit class WithBodySyntax(val method: Method with PermitsBody) extends AnyVal with EntityRequestGenerator
   implicit class NoBodySyntax(val method: Method with NoBody) extends AnyVal with EmptyRequestGenerator

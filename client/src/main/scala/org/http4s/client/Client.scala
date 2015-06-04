@@ -26,7 +26,7 @@ trait Client {
     * @param req [[Request]] containing the headers, URI, etc.
     * @return Task which will generate the Response
     */
-  def prepAs[T](req: Request)(implicit d: EntityDecoder[T]): Task[T] = {
+  final def prepAs[T](req: Request)(implicit d: EntityDecoder[T]): Task[T] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(m.head, m.tail:_*))

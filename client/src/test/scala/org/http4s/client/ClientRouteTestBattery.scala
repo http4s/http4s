@@ -1,70 +1,39 @@
 package org.http4s
 package client
 
-import java.net.{ServerSocket, InetSocketAddress}
+import java.net.InetSocketAddress
 import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
 
-import org.specs2.specification.{ Fragment, Step }
+import org.specs2.specification.{ Fragments, Fragment }
 
-import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 
 
 abstract class ClientRouteTestBattery(name: String, client: Client)
-  extends Http4sSpec with GetRoutes {
+  extends JettyScaffold(name) with GetRoutes
+{
 
-  protected def timeout: Duration = 10.seconds
-
-  private val server = new JServer()
-
-  // Start the tests
-  name should {
-    Step(startup()) ^
-    runAllTests()   ^
-    Step(cleanup())
-  }
-
-  def startup() = {}
-
-  def cleanup() = {
+  override def cleanup() = {
     client.shutdown().run
-    server.stop()
+    super.cleanup()
   }
 
-  protected def runAllTests(): Seq[Fragment] = {
-    val port = ClientRouteTestBattery.getNextPort()
-    println(port)
-    val address = new InetSocketAddress(port)
-    initializeServer(address)
-    val gets = translateTests(port, Method.GET, getPaths)
-    println(gets)
-    gets.map { case (req, resp) => runTest(req, resp, address) }.toSeq
+  override def runAllTests(): Fragments = {
+    val address = initializeServer()
+    val gets = translateTests(address.getPort, Method.GET, getPaths)
+    val frags = gets.map { case (req, resp) => runTest(req, resp, address) }
+                    .toSeq
+                    .foldLeft(Fragments())(_ ^ _)
+
+    frags
   }
 
-  protected def initializeServer(address: InetSocketAddress): Int = {
-    val context = new ServletContextHandler()
-    context.setContextPath("/")
-    context.addServlet(new ServletHolder("Test-servlet", testServlet()), "/*")
-
-    server.setHandler(context)
-
-    val connector = new ServerConnector(server)
-    connector.setPort(address.getPort)
-
-    server.addConnector(connector)
-    server.start()
-
-    address.getPort
-  }
-
-  private def testServlet() = new HttpServlet {
+  override def testServlet() = new HttpServlet {
     override def doGet(req: HttpServletRequest, srv: HttpServletResponse) {
       getPaths.get(req.getRequestURI) match {
         case Some(r) => renderResponse(srv, r)
@@ -121,16 +90,3 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
   private def collectBody(body: EntityBody): Array[Byte] = body.runLog.run.toArray.map(_.toArray).flatten
 }
-
-object ClientRouteTestBattery {
-
-  // hack to get a free port
-  private def getNextPort() = {
-    val socket = new ServerSocket(0)
-    socket.setReuseAddress(true)
-    val port = socket.getLocalPort()
-    socket.close()
-    port
-  }
-}
-

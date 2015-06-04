@@ -14,16 +14,14 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     def client = defaultClient
 
     "Make simple http requests" in {
-      val resp = client(uri("https://github.com/")).as[String]
-        .run
+      val resp = client(uri("https://github.com/")).as[String].run
 //      println(resp.copy(body = halt))
 
       resp.length mustNotEqual 0
     }
 
     "Make simple https requests" in {
-      val resp = client(uri("https://github.com/")).as[String]
-        .run
+      val resp = client(uri("https://github.com/")).as[String].run
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.length mustNotEqual 0
@@ -34,11 +32,8 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
 
   "RecyclingHttp1Client" should {
 
-
-
     "Make simple http requests" in {
-      val resp = client(uri("https://github.com/")).as[String]
-        .run
+      val resp = client(uri("https://github.com/")).as[String].run
       //      println(resp.copy(body = halt))
 
       resp.length mustNotEqual 0
@@ -57,8 +52,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
     }
 
     "Make simple https requests" in {
-      val resp = client(uri("https://github.com/")).as[String]
-        .run
+      val resp = client(uri("https://github.com/")).as[String].run
       //      println(resp.copy(body = halt))
       //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.length mustNotEqual 0
