@@ -4,7 +4,7 @@ import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 
 import org.http4s.blaze.channel.SocketConnection
-import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
+import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.server.HttpService
 import org.http4s.server.blaze.{Http1ServerStage, WebSocketSupport}
@@ -53,7 +53,8 @@ import scala.concurrent.duration._
   def pipebuilder(conn: SocketConnection): LeafBuilder[ByteBuffer] =
     new Http1ServerStage(URITranslation.translateRoot("/http4s")(route), Some(conn)) with WebSocketSupport
 
-  NIO1SocketServerChannelFactory(pipebuilder, 12, 8*1024)
-    .bind(new InetSocketAddress(8080))
-    .run()
+  NIO1SocketServerGroup.fixedGroup(12, 8*1024)
+    .bind(new InetSocketAddress(8080), pipebuilder)
+    .get  // yolo! Its just an example.
+    .join()
 }
