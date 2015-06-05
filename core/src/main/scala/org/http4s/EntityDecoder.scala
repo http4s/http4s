@@ -110,10 +110,10 @@ object EntityDecoder extends EntityDecoderInstances {
     DecodeResult.success(msg.body.runFoldMap(identity))
 
   /** Decodes a message to a String */
-  def decodeString(msg: Message): Task[String] = {
+  def decodeString(msg: Message, defaultCharset: Option[Charset] = None): Task[String] = {
     val buff = new StringBuilder
     (msg.body |> process1.fold(buff) { (b, c) => {
-      b.append(new String(c.toArray, msg.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset))
+      b.append(new String(c.toArray, (msg.charset orElse defaultCharset getOrElse(Charset.`ISO-8859-1`)).nioCharset))
     }}).map(_.result()).runLastOr("")
   }
 }
