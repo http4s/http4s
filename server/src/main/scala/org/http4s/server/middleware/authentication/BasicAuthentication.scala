@@ -15,8 +15,8 @@ import scalaz.concurrent.Task
  */
 class BasicAuthentication(realm: String, store: AuthenticationStore) extends Authentication {
   protected def getChallenge(req: Request) = checkAuth(req).map {
-    case OK(user, realm) => -\/(addUserRealmAttributes(req, user, realm))
-    case _ => \/-(Challenge("Basic", realm, Nil.toMap))
+    case OK(user, realm) => \/-(addUserRealmAttributes(req, user, realm))
+    case _ => -\/(Challenge("Basic", realm, Nil.toMap))
   }
 
   private def checkAuth(req: Request): Task[AuthReply] = {

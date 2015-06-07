@@ -25,7 +25,7 @@ trait Authentication {
    *         Unauthorized response that is returned to the client.
    *
    */
-  protected def getChallenge(req: Request): Task[Request \/ Challenge]
+  protected def getChallenge(req: Request): Task[Challenge \/ Request]
 
   // Utility function for implementors of getChallenge()
   protected def addUserRealmAttributes(req: Request, user: String, realm: String) : Request =
@@ -34,8 +34,8 @@ trait Authentication {
 
   def apply(service: HttpService): HttpService = Service.lift {
     case req: Request => getChallenge(req).flatMap(_ match {
-      case -\/(req) => service(req)
-      case \/-(challenge) =>
+      case \/-(req) => service(req)
+      case -\/(challenge) =>
         Task.now(Some(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge))))
     })
   }
