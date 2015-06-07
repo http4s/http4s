@@ -41,5 +41,3 @@ trait Authentication {
   }
 }
 
-abstract class AuthReply
-case class OK(user: String, realm: String) extends AuthReply

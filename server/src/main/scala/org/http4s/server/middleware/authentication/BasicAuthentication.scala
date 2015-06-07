@@ -14,24 +14,29 @@ import scalaz.concurrent.Task
  *              appropriate password.
  */
 class BasicAuthentication(realm: String, store: AuthenticationStore) extends Authentication {
+
+  private trait AuthReply
+  private case class OK(user: String, realm: String) extends AuthReply
+  private case object NeedsAuth extends AuthReply
+
   protected def getChallenge(req: Request) = checkAuth(req).map {
     case OK(user, realm) => \/-(addUserRealmAttributes(req, user, realm))
-    case _ => -\/(Challenge("Basic", realm, Nil.toMap))
+    case NeedsAuth       => -\/(Challenge("Basic", realm, Nil.toMap))
   }
 
   private def checkAuth(req: Request): Task[AuthReply] = {
     req.headers.get(Authorization) match {
       case Some(Authorization(BasicCredentials(user, client_pass))) =>
         store(realm, user).map {
-          case None => UserUnknown
+          case None => NeedsAuth
           case Some(server_pass) =>
             if (server_pass == client_pass) OK(user, realm)
-            else WrongPassword
+            else NeedsAuth
         }
 
-      case Some(Authorization(_)) => Task.now(NoCredentials)
+      case Some(Authorization(_)) => Task.now(NeedsAuth)
 
-      case None => Task.now(NoAuthorizationHeader)
+      case None => Task.now(NeedsAuth)
     }
   }
 }
