@@ -15,6 +15,12 @@ object MockRoute extends Http4s {
     case req: Request if req.method == Method.POST && req.uri.path == "/echo" =>
       Task.now(Response(body = req.body))
 
+    case req: Request if req.uri.path ==  "/withslash" =>
+      Task.now(Response(Ok))
+
+    case req: Request if req.uri.path ==  "/withslash/" =>
+      Task.now(Response(Accepted))
+
     case req: Request if req.uri.path == "/fail" =>
       sys.error("Problem!")
       Response(Ok).withBody("No problem...")
