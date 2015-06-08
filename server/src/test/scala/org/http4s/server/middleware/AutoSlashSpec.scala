@@ -26,7 +26,7 @@ class AutoSlashSpec extends Http4sSpec {
       AutoSlash(route)(req).run.map(_.status) must_== Some(Status.Ok)
     }
 
-    "Not crash on empy paty" in {
+    "Not crash on empy path" in {
       val req = Request(uri = uri(""))
       AutoSlash(route)(req).run must_== None
     }
