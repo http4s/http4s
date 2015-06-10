@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 
 class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Content-Type`] {
 
-  def hparse(value: String): ParseResult[`Content-Type`] = HttpParser.CONTENT_TYPE(value)
+  def hparse(value: String): ParseResult[`Content-Type`] = HttpHeaderParser.CONTENT_TYPE(value)
 
   def simple = `Content-Type`(`text/html`)
   def charset = `Content-Type`(`text/html`, Charset.`UTF-8`)

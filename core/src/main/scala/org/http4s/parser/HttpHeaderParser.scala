@@ -18,15 +18,15 @@
 package org.http4s
 package parser
 
+import java.util
+
 import org.http4s.util.CaseInsensitiveString
 
-import scalaz.{Failure, Validation, Success}
+import Header.Parsed
 import org.http4s.util.string._
 
 
-private[http4s] object HttpParser extends HttpParser
-
-private[parser] trait HttpParser extends SimpleHeaders
+object HttpHeaderParser extends SimpleHeaders
                     with AcceptHeader
                     with AcceptLanguageHeader
                     with CacheControlHeader
@@ -40,23 +40,37 @@ private[parser] trait HttpParser extends SimpleHeaders
                     with ProxyAuthenticateHeader
                     with WwwAuthenticateHeader {
 
-  type HeaderParser = String => ParseResult[Header]
+  type HeaderParser = String => ParseResult[Parsed]
 
-  val rules: Map[CaseInsensitiveString, HeaderParser] =
-    this
-      .getClass
-      .getMethods
-      .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
-      .map { method =>
-        method.getName.replace('_', '-').ci -> { value: String =>
-          method.invoke(this, value)
-        }.asInstanceOf[HeaderParser]
-      }.toMap
+  private val allParsers = new util.concurrent.ConcurrentHashMap[CaseInsensitiveString, HeaderParser]
+
+
+  // Constructor
+  gatherBuiltIn()
+
+  /** Add a parser to the global header parser registry
+    * 
+    * @param key name of the header to register the parser for
+    * @param parser [[Header]] parser
+    * @return any existing parser already registered to that key
+    */
+  def addParser(key: CaseInsensitiveString, parser: HeaderParser): Option[HeaderParser] =
+    Option(allParsers.put(key, parser))
+
+
+  /** Remove the parser for the specified header key
+    *
+    * @param key name of the header to be removed
+    * @return `Some(parser)` if the parser exists, else `None`
+    */
+  def dropParser(key: CaseInsensitiveString): Option[HeaderParser] =
+    Option(allParsers.remove(key))
+
 
   def parseHeader(header: Header.Raw): ParseResult[Header] = {
-    rules.get(header.name) match {
-      case Some(parser) => parser(header.value)
-      case None => ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
+    allParsers.get(header.name) match {
+      case null =>  ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
+      case parser => parser(header.value)
     }
   }
 
@@ -84,4 +98,18 @@ private[parser] trait HttpParser extends SimpleHeaders
     ) map parseHeader
     assert(results.forall(_.isRight))
   }
+
+  private def gatherBuiltIn(): Unit =
+    this
+      .getClass
+      .getMethods
+      .filter(_.getName.forall(!_.isLower)) // only the header rules have no lower-case letter in their name
+      .foreach { method =>
+      val key = method.getName.replace('_', '-').ci
+      val parser ={ value: String =>
+        method.invoke(this, value)
+      }.asInstanceOf[HeaderParser]
+
+      addParser(key, parser)
+    }
 }

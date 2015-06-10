@@ -6,7 +6,7 @@ import org.http4s.headers.Authorization
 
 class AuthorizationHeaderSpec extends Http4sSpec {
 
-  def hparse(value: String) = HttpParser.AUTHORIZATION(value)
+  def hparse(value: String) = HttpHeaderParser.AUTHORIZATION(value)
 
   "Authorization header" should {
     "Parse a valid Oauth2 header" in {

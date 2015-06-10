@@ -7,7 +7,7 @@ import org.http4s.server.HttpService
 import org.http4s.Challenge
 import org.http4s.Status._
 import org.http4s.headers._
-import org.http4s.parser.HttpParser
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.CaseInsensitiveString
 
 import org.specs2.mutable.Specification
@@ -73,7 +73,7 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
   }
 
 
-  private def parse(value: String) = HttpParser.WWW_AUTHENTICATE(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
+  private def parse(value: String) = HttpHeaderParser.WWW_AUTHENTICATE(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
 
   "DigestAuthentication" should {
     "Respond to a request without authentication with 401" in {
