@@ -69,6 +69,14 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
     "getFirstOrElse returns default if no matching key" in {
       UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
     }
+
+    "construct consistently from kv-pairs or and Map[String, Seq[String]]" in check { map: Map[String, Seq[String]] =>
+      val flattened = for {
+        (k, vs) <- map.toSeq
+        v <- vs
+      } yield (k -> v)
+      UrlForm(flattened: _*) must_== UrlForm(map)
+    }
   }
 
 }

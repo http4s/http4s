@@ -4,10 +4,11 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
 
+import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
 
 
-class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal {
+class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
 
   def get(key: String): Seq[String] =
@@ -21,6 +22,11 @@ class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal {
 
   def getFirstOrElse(key: String, default: => String): String =
     this.getFirst(key).getOrElse(default)
+
+  def +(kv: (String, String)): UrlForm = {
+    val newValues = values.get(kv._1).fold(Seq(kv._2))(_ :+ kv._2)
+    UrlForm(values.updated(kv._1, newValues))
+  }
 }
 
 object UrlForm {
@@ -28,15 +34,16 @@ object UrlForm {
   val empty: UrlForm = new UrlForm(Map.empty)
 
   def apply(values: Map[String, Seq[String]]): UrlForm =
-    // value "" -> Seq() is just noise and it is not maintain during encoding round trip
-    if(values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
-    else new UrlForm(values)
+    // value key -> Seq() is just noise and it is not maintain during encoding round trip
+    new UrlForm(values.filter(_._2.nonEmpty))
 
-  def entityEncoder(charset: Charset): EntityEncoder[UrlForm] =
+  def apply(values: (String, String)*): UrlForm =
+    values.foldLeft(empty)(_ + _)
+
+  implicit def entityEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
-
 
   implicit val entityDecoder: EntityDecoder[UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
