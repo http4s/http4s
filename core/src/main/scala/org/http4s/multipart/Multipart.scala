@@ -57,21 +57,3 @@ object B {
 
 }
 
-object MultipartHeaders {
-
-  private val delimiter = ByteVector(":".getBytes)  
-  
-  def apply(bv:ByteVector): ParseFailure \/ Headers = { 
-    val empty:ParseFailure \/ Headers = Headers.empty.right
-    
-    val op:(ParseFailure \/ Headers, ByteVector) => ParseFailure \/ Headers = { (acc,h) =>
-      lazy val (name,value ) = h.splitAt(h.indexOfSlice(delimiter))
-      lazy val header  = (name.decodeUtf8 |@| value.drop(1).decodeUtf8) { (n,v) =>  Header(n.trim(),v.trim()) }.
-                          disjunction.
-                          leftMap { t => ParseFailure("Unable to parse header", t.getMessage) }      
-      acc.flatMap { c => header.fold( _.left , h => c.put(h).right) }
-    }
-    
-    bv.toStream(Token(B.CRLF)).foldLeft(empty)(op)        
-  }  
-}
