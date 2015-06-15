@@ -15,7 +15,7 @@ import scala.concurrent.duration._
 import org.http4s.util.string._
 
 class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] with NoTimeConversions {
-  def hparse(value: String): ParseResult[`Cache-Control`] = HttpParser.CACHE_CONTROL(value)
+  def hparse(value: String): ParseResult[`Cache-Control`] = HttpHeaderParser.CACHE_CONTROL(value)
 
   // Default values
   val valueless = List(`no-store`, `no-transform`, `only-if-cached`,

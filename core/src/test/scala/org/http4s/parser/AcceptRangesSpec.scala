@@ -6,7 +6,7 @@ import org.http4s.RangeUnit
 
 class AcceptRangesSpec extends Specification with HeaderParserHelper[`Accept-Ranges`] {
 
-  def hparse(value: String) = HttpParser.ACCEPT_RANGES(value)
+  def hparse(value: String) = HttpHeaderParser.ACCEPT_RANGES(value)
 
   "Accept-Ranges header" should {
 

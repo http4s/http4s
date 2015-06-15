@@ -6,7 +6,7 @@ import scalaz.Validation
 
 class AcceptCharsetSpec extends Http4sSpec with HeaderParserHelper[`Accept-Charset`] {
 
-  def hparse(value: String): ParseResult[`Accept-Charset`] = HttpParser.ACCEPT_CHARSET(value)
+  def hparse(value: String): ParseResult[`Accept-Charset`] = HttpHeaderParser.ACCEPT_CHARSET(value)
 
   "Accept-Charset" should {
     "parse any list of CharsetRanges to itself" in {

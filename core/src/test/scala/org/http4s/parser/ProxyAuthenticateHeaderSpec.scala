@@ -5,7 +5,7 @@ import org.http4s._
 import org.specs2.mutable.Specification
 
 class ProxyAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`Proxy-Authenticate`] {
-  def hparse(value: String): ParseResult[`Proxy-Authenticate`] = HttpParser.PROXY_AUTHENTICATE(value)
+  def hparse(value: String): ParseResult[`Proxy-Authenticate`] = HttpHeaderParser.PROXY_AUTHENTICATE(value)
 
   override def parse(value: String) =  hparse(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
 
