@@ -17,3 +17,6 @@ atlassian-ide-plugin.xml
 .ensime_lucene
 /TAGS
 .ensime_cache
+.cache-main
+.cache-tests
+
