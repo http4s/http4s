@@ -34,8 +34,9 @@ object UrlForm {
   val empty: UrlForm = new UrlForm(Map.empty)
 
   def apply(values: Map[String, Seq[String]]): UrlForm =
-    // value key -> Seq() is just noise and it is not maintain during encoding round trip
-    new UrlForm(values.filter(_._2.nonEmpty))
+    // value "" -> Seq() is just noise and it is not maintain during encoding round trip
+    if(values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
+    else new UrlForm(values)
 
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)

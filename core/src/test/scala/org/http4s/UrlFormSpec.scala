@@ -6,8 +6,8 @@ import org.specs2.ScalaCheck
 import org.specs2.matcher.Parameters
 
 import scala.collection.immutable.BitSet
-import scalaz.\/-
-
+import scalaz.{NonEmptyList, \/-}
+import scalaz.scalacheck.ScalazArbitrary.NonEmptyListArbitrary
 
 class UrlFormSpec extends Http4sSpec with ScalaCheck {
   // These tests are slow.  Let's lower the bar.
@@ -70,12 +70,13 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
       UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
     }
 
-    "construct consistently from kv-pairs or and Map[String, Seq[String]]" in check { map: Map[String, Seq[String]] =>
-      val flattened = for {
-        (k, vs) <- map.toSeq
-        v <- vs
-      } yield (k -> v)
-      UrlForm(flattened: _*) must_== UrlForm(map)
+    "construct consistently from kv-pairs or and Map[String, Seq[String]]" in check {
+      map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
+        val flattened = for {
+          (k, vs) <- map.toSeq
+          v <- vs.list
+        } yield (k -> v)
+        UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.list))
     }
   }
 
