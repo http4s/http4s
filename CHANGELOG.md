@@ -1,4 +1,4 @@
-# v0.8.0 (2015-06-16)
+# v0.8.1 (2015-06-16)
 * Authentication middleware integrated into the server package.
 * Static content tools integrated into the server package.
 * Rename HttpParser to HttpHeaderParser and allow registration and removal of header parsers.
@@ -8,6 +8,9 @@
 * Add server middleware for auto retrying uris of form '/foo/' as '/foo'.
 * Numerous bug fixes.
 * Numerous version bumps.
+
+# ~~v0.8.0 (2015-06-16)~~
+* Mistake.  Go straight to v0.8.1.
 
 # v0.7.0 (2015-05-05)
 * Add QueryParamMatcher to the dsl which returns a ValidationNel.
