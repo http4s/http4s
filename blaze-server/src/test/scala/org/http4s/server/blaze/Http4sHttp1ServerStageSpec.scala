@@ -4,13 +4,13 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.http4s.headers.Date
-import org.http4s.{DateTime, Status, Header, Response}
+import org.http4s.headers
+import org.http4s.headers.{`Transfer-Encoding`, Date}
+import org.http4s.{headers => H, _}
 import org.http4s.Status._
 import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
 import org.http4s.util.CaseInsensitiveString._
-import org.http4s.{headers => H}
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
@@ -104,6 +104,27 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
       pipeline.LeafBuilder(httpStage).base(head)
       head.sendInboundCommand(Cmd.Connected)
       head.result
+    }
+
+    "Honor a `Transfer-Coding: identity response" in {
+      val service = HttpService {
+        case req =>
+          val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
+          Task.now(Response(body = Process.emit(ByteVector("hello world".getBytes())), headers = headers))
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req = "GET /foo HTTP/1.1\r\n\r\n"
+
+      val buff = Await.result(httpStage(service, 1, Seq(req)), 5.seconds)
+
+      val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
+      // make sure we don't have signs of chunked encoding.
+      str.contains("0\r\n\r\n") must_== false
+      str.contains("hello world") must_== true
+
+      val (_, hdrs, _) = ResponseParser.apply(buff)
+      hdrs.find(_.name == `Transfer-Encoding`.name) must_== Some(`Transfer-Encoding`(TransferCoding.identity))
     }
 
     "Add a date header" in {

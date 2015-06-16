@@ -82,7 +82,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       else rr << '\r' << '\n'
 
       val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
-      new StaticWriter(b, h.length, this)
+      new IdentityWriter(b, h.length, this)
 
     case _ =>  // No Length designated for body or Transfer-Encoding included
       if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
@@ -90,23 +90,30 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
           logger.trace("Using static encoder")
           rr << '\r' << '\n'
           val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
-          new StaticWriter(b, -1, this)
+          new IdentityWriter(b, -1, this)
         }
         else {  // HTTP 1.0, but request was Keep-Alive.
           logger.trace("Using static encoder without length")
           new CachingStaticWriter(rr, this) // will cache for a bit, then signal close if the body is long
         }
       }
-      else {
-        bodyEncoding match { // HTTP >= 1.1 request without length. Will use a chunked encoder
-          case Some(h) => // Signaling chunked means flush every chunk
-            if (!h.hasChunked) logger.warn(s"Unknown transfer encoding: '${h.value}'. Defaulting to Chunked Encoding")
-            new ChunkProcessWriter(rr, this, trailer)
+      else bodyEncoding match { // HTTP >= 1.1 request without length. Will use a chunked encoder
+        case Some(enc) => // Signaling chunked means flush every chunk
+          if (enc.hasChunked) new ChunkProcessWriter(rr, this, trailer)
+          else  {   // going to do identity
+            if (enc.hasIdentity) {
+              rr << "Transfer-Encoding: identity\r\n"
+            } else {
+              logger.warn(s"Unknown transfer encoding: '${enc.value}'. Defaulting to Identity Encoding and stripping header")
+            }
+            rr << '\r' << '\n'
+            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
+            new IdentityWriter(b, -1, this)
+          }
 
-          case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
-            logger.trace("Using Caching Chunk Encoder")
-            new CachingChunkWriter(rr, this, trailer)
-        }
+        case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
+          logger.trace("Using Caching Chunk Encoder")
+          new CachingChunkWriter(rr, this, trailer)
       }
   }
 
