@@ -1,0 +1,211 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>impl - org.http4s.dsl.impl</title>
+          <meta name="description" content="impl - org.http4s.dsl.impl" />
+          <meta name="keywords" content="impl org.http4s.dsl.impl" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../index.html';
+            var hash = 'org.http4s.dsl.impl.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img src="../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.dsl">dsl</a></p>
+        <h1>impl</h1><span class="permalink">
+      <a href="../../../../index.html#org.http4s.dsl.impl.package" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">impl</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        
+        
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.dsl.impl.EmptyResponseGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="EmptyResponseGeneratorextendsAnywithResponseGenerator"></a>
+      <a id="EmptyResponseGenerator:EmptyResponseGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="EmptyResponseGenerator.html"><span class="name">EmptyResponseGenerator</span></a><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.dsl.impl.package@EmptyResponseGeneratorextendsAnywithResponseGenerator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"> Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><div class="fullcomment"><div class="comment cmt"><p> Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which will not contain a body</p><p>While it is possible to for the <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
+offer shortcut syntax to make intention clear and concise.
+</p></div><dl class="attributes block"> <div class="block">Example:
+               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = Status.Continue()</pre></li></ol>
+            </div></dl></div>
+    </li><li name="org.http4s.dsl.impl.EntityResponseGenerator" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="EntityResponseGeneratorextendsAnywithEmptyResponseGenerator"></a>
+      <a id="EntityResponseGenerator:EntityResponseGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="EntityResponseGenerator.html"><span class="name">EntityResponseGenerator</span></a><span class="result"> extends <a href="EmptyResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.EmptyResponseGenerator">EmptyResponseGenerator</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.dsl.impl.package@EntityResponseGeneratorextendsAnywithEmptyResponseGenerator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><div class="fullcomment"><div class="comment cmt"><p>Helper for the generation of a <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> which may contain a body</p><p>While it is possible to for the <a href="../../Response.html" class="extype" name="org.http4s.Response">org.http4s.Response</a> manually, the EntityResponseGenerators
+offer shortcut syntax to make intention clear and concise.
+</p></div><dl class="attributes block"> <div class="block">Example:
+               <ol><li class="cmt"><p></p><pre><span class="kw">val</span> resp: Task[Response] = Ok(<span class="lit">"Hello world!"</span>)</pre></li></ol>
+            </div></dl></div>
+    </li><li name="org.http4s.dsl.impl.LocationResponseGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="LocationResponseGeneratorextendsAnywithResponseGenerator"></a>
+      <a id="LocationResponseGenerator:LocationResponseGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="LocationResponseGenerator.html"><span class="name">LocationResponseGenerator</span></a><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.dsl.impl.package@LocationResponseGeneratorextendsAnywithResponseGenerator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.dsl.impl.ProxyAuthenticateResponseGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ProxyAuthenticateResponseGeneratorextendsAnywithResponseGenerator"></a>
+      <a id="ProxyAuthenticateResponseGenerator:ProxyAuthenticateResponseGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ProxyAuthenticateResponseGenerator.html"><span class="name">ProxyAuthenticateResponseGenerator</span></a><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.dsl.impl.package@ProxyAuthenticateResponseGeneratorextendsAnywithResponseGenerator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.dsl.impl.ResponseGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ResponseGeneratorextendsAny"></a>
+      <a id="ResponseGenerator:ResponseGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ResponseGenerator.html"><span class="name">ResponseGenerator</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.dsl.impl.package@ResponseGeneratorextendsAny" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.dsl.impl.WwwAuthenticateResponseGenerator" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="WwwAuthenticateResponseGeneratorextendsAnywithResponseGenerator"></a>
+      <a id="WwwAuthenticateResponseGenerator:WwwAuthenticateResponseGenerator"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="WwwAuthenticateResponseGenerator.html"><span class="name">WwwAuthenticateResponseGenerator</span></a><span class="result"> extends <a href="ResponseGenerator.html" class="extype" name="org.http4s.dsl.impl.ResponseGenerator">ResponseGenerator</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.dsl.impl.package@WwwAuthenticateResponseGeneratorextendsAnywithResponseGenerator" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
