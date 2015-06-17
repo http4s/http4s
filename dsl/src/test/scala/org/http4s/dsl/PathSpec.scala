@@ -18,7 +18,6 @@ class PathSpec extends Http4sSpec {
       Path("foo/bar").toList must_== (List("foo", "bar"))
     }
 
-
     "~ extractor on Path" in {
       (Path("/foo.json") match {
         case Root / "foo" ~ "json" => true
@@ -90,6 +89,13 @@ class PathSpec extends Http4sSpec {
         case Root / "1" / "2" / "3" / "test.json" => true
         case _                                    => false
       }) must beTrue
+    }
+
+    "/: extractor" in {
+      (Path("/1/2/3/test.json") match {
+        case "1" /: "2" /: path => Some(path)
+        case _ => None
+      }) must_== Some(Path("/3/test.json"))
     }
     
     "trailing slash" in {
