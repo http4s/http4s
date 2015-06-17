@@ -65,6 +65,12 @@ object ExampleService {
       Ok("<h2>This will have an html content type!</h2>")
           .withHeaders(`Content-Type`(`text/html`))
 
+    case req @ GET -> "static" /: path =>
+      // captures everything after "/directory" into `path`
+      // Try http://localhost:8080/http4s/nasa_blackhole_image.jpg
+      // See also org.http4s.server.staticcontent to create a mountable service for static content
+      StaticFile.fromResource(path.toString, Some(req)).fold(NotFound())(Task.now)
+
     ///////////////////////////////////////////////////////////////
     //////////////// Dealing with the message body ////////////////
     case req @ POST -> Root / "echo" =>
