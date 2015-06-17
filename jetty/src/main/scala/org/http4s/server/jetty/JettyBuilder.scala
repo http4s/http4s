@@ -3,17 +3,15 @@ package server
 package jetty
 
 import com.codahale.metrics.{InstrumentedExecutorService, MetricRegistry}
-import com.codahale.metrics.jetty9.{InstrumentedHandler, InstrumentedQueuedThreadPool, InstrumentedConnectionFactory}
+import com.codahale.metrics.jetty9.{InstrumentedQueuedThreadPool, InstrumentedConnectionFactory}
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
-import org.http4s.servlet.{ServletContainer, Http4sServlet}
 
 import java.net.InetSocketAddress
 import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
-import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
+import org.eclipse.jetty.server.ServerConnector
 import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 
 import scala.concurrent.duration._
