@@ -55,7 +55,7 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
             case StartupCallbackTag =>
               val ex = -\/(mkTimeoutEx(req))
               if (!stageState.compareAndSet(StartupCallbackTag, ex)) run()
-              else { /* NOOP he registered error should be handled below */ }
+              else { /* NOOP the registered error should be handled below */ }
 
             case _ => // NOOP
           }
@@ -75,13 +75,13 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
         case other =>
           c.cancel()
           stageShutdown()
-          Task.fail(new IllegalStateException(s"Somehow the client stage go a different result: $other"))
+          Task.fail(new IllegalStateException(s"Somehow the client stage got a different result: $other"))
       }
     }
   }
 
   private def mkTimeoutEx(req: Request) =
-    new TimeoutException(s"Client request $req  timed out after $timeout")
+    new TimeoutException(s"Client request $req timed out after $timeout")
 
   private def executeRequest(req: Request): Task[Response] = {
     logger.debug(s"Beginning request: $req")
