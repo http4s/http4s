@@ -13,7 +13,7 @@ import org.http4s.Http4s._
 import org.http4s.Uri._
 import org.http4s.util._
 import org.http4s.Status.Ok
-import scodec.bits.ByteVector
+import scodec.bits._
 import org.http4s.EntityEncoder._
 import Entity._
 import scalaz.stream.Process
@@ -25,16 +25,14 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
 
   def mpe: EntityEncoder[Multipart] = MultipartEntityEncoder
   def mpd: EntityDecoder[Multipart] = MultipartEntityDecoder.decoder
-  
-  
-//      encoded and decoded example A       $encodeAndDecodeA
-//      encoded and decoded example B       $encodeAndDecodeB
-//      encoded and decoded example C       $encodeAndDecodeC
-  
+    
   def is = s2"""
-    Multipart form data can be 
-      encoded and decoded example D       $encodeAndDecodeD
-      encoded and decoded example E       $encodeAndDecodeE      
+    Multipart form data can be
+        encoded and decoded example A       $encodeAndDecodeA
+        encoded and decoded example B       $encodeAndDecodeB
+        encoded and decoded example C       $encodeAndDecodeC        
+        encoded and decoded example D       $encodeAndDecodeD
+        encoded and decoded example E       $encodeAndDecodeE        
      """
   val url = Uri(
       scheme = Some(CaseInsensitiveString("https")),
@@ -58,7 +56,6 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
                              uri     = url,
                              body    = Process.emit(body),
                              headers = multipart.headers )
-          
     val decoded    = mpd.decode(request)
     val result     = decoded.run.run
 
@@ -77,8 +74,7 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = Process.emit(body),
-                             headers = multipart.headers )
-          
+                             headers = multipart.headers )                             
     val decoded    = mpd.decode(request)
     val result     = decoded.run.run
 
@@ -95,7 +91,7 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
     val field1     = FormData(Name("field1"), None, ef1)
     
     val ctf2       = Some(`Content-Type`(`image/png`))
-    val ef2        = fileToEntity(file,65557)
+    val ef2        = fileToEntity(file)
     val field2     = FormData(Name("image"), ctf2, ef2)
     
     
@@ -107,7 +103,7 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
                              uri     = url,
                              body    = Process.emit(body),
                              headers = multipart.headers )
-          
+                                       
     val decoded    = mpd.decode(request)
     val result     = decoded.run.run
     
@@ -160,7 +156,7 @@ I am a big moose
 --bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz--
       
       """
-    val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
+    val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = Process.emit(body).map(s => ByteVector(s.getBytes)),
@@ -173,12 +169,9 @@ I am a big moose
   }  
 
  
-  private def fileToEntity(f: File,length:Int): Entity = {
-    val fis   = new FileInputStream(f)
-    val array = new Array[Byte](length)
-    fis.read(array)
-    fis.close()
-    Entity(body = Process.emit(ByteVector(array)))
+  private def fileToEntity(f: File): Entity = {
+    val wow = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)
+    Entity(body = Process.emit(ByteVector(wow.toBase64.getBytes)))
   }  
   
 }

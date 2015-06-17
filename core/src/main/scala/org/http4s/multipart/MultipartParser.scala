@@ -35,15 +35,15 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
   def HeaderDelimiter     = rule { CRLF |  ";"   | "\"" }
   //  Avoid name collision with http4sHeader.
   def HeaderRule          = rule { 
-                                  (capture(Key)  ~ ':' ~ capture(Value)) ~ 
-                                  optional(";" ~ oneOrMore(HeaderParameters).separatedBy(";")) ~> ((k,v,p) => toHttp4sHeader(k,v,p) ) 
+                                  (OLWS ~ capture(Key) ~ OLWS ~ ':' ~ OLWS ~ capture(Value)) ~ OLWS ~ 
+                                  optional(";" ~ oneOrMore(HeaderParameters).separatedBy(";")) ~> ((k,v,p) => toHttp4sHeader(k.trim,v.trim,p) ) 
                             }
   def Parameters          = rule { oneOrMore(HeaderParameters).separatedBy(";") } 
   def HeaderParameters    = rule { OLWS  ~ (capture(Key)  ~  OLWS ~  '=' ~  OLWS ~ optional("\"") ~ capture(Value)) ~ optional("\"") ~  OLWS ~> ((k,v) => (k -> v))  } 
   def MimePartHeaders     = rule { zeroOrMore(HeaderRule ~ CRLF ) }
   def BodyEnd             = rule { CRLF ~ DashBoundary}
-  def BodyContent         = rule { capture(zeroOrMore(!BodyEnd ~ ANY)) ~>  (s => EntityEncoder.Entity(Process.emit(ByteVector(s.getBytes))))}
-  def BodyPart            = rule { (MimePartHeaders ~ CRLF ~ BodyContent) ~> ((h,b) => toMultipartPart(h,b))  }
+  def BodyContent         = rule { capture(zeroOrMore(!BodyEnd ~ ANY)) }
+  def BodyPart            = rule { (MimePartHeaders ~ CRLF ~ BodyContent) ~> ((h,b) => toPart(h,b))  }
   def Encapsulation       = rule { CRLF ~ DashBoundary ~ TransportPadding ~ CRLF ~ BodyPart }
   def MultipartBody       = rule {
                             Preamble       ~
@@ -55,7 +55,7 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
   
   import scalaz._
   import Scalaz._
-  
+    
   private def toHttp4sHeader(key:String,value:String, parameters:Option[Seq[(String, String)]]): ParseFailure \/ Header = parameters match {
     case None         =>  Header.Raw(key.ci,value).right
     case Some(params) =>  
@@ -67,23 +67,42 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
        map.get("name").fold(none)(some)
   }   
   
-  private def toMultipartPart(_headers:Seq[ParseFailure \/ Header],body:EntityEncoder.Entity): Seq[ParseFailure] \/ Part = {
+  
+  private def toPart(_headers:Seq[ParseFailure \/ Header],body:String): Seq[ParseFailure] \/ Part = {
     val headers = _headers.partition(_.isLeft) match {
       case (Nil,headers) => Headers(headers.flatMap(_.toOption).toList).right
       case (errs,_)    => errs.flatMap(_.swap.toOption).left
     }
-    val part: Headers => Seq[ParseFailure] \/ Part = { headers =>      
-      headers.get(`Content-Disposition`).fold[Seq[ParseFailure] \/ Part](
-            Seq(ParseFailure("Missing Content-Disposition header")).left)(
-            a => FormData(multipart.Name(a.dispositionType),None, body).right)
+    
+    val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
+      lazy val contentType = headers.get(`Content-Type`) 
+      lazy val  failure = {
+       Seq(ParseFailure("Missing Content-Disposition header")).left 
+      } 
+      lazy val  entityBody = EntityEncoder.Entity(Process.emit(ByteVector(body.getBytes))).right 
+//      contentType match {
+//        case Some(typ) if typ.mediaType.binary => 
+//          ByteVector.fromBase64(body).fold[ParseFailure \/ EntityEncoder.Entity](ParseFailure("Wasn't base64 :(").left)(
+//                                         vector => EntityEncoder.Entity(Process.emit(vector)).right)
+//        case _                               =>
+//          ByteVector.encodeUtf8(body).fold( err => ParseFailure(err.getMessage).left,
+//                                         vector => EntityEncoder.Entity(Process.emit(vector)).right)
+//      }              
+      lazy val success:`Content-Disposition` => Seq[ParseFailure] \/ Part = { cd =>        
+        
+        entityBody.bimap(f => Seq(f),  b => FormData(multipart.Name(cd.dispositionType),contentType,b))     
+      }
+      
+      headers.get(`Content-Disposition`).fold[Seq[ParseFailure] \/ Part](failure)(success)
     }
+    
     headers fold(ers => ers.left,part)
   }   
   
   
   private def toMultipart(_parts:Seq[Seq[ParseFailure] \/ Part]):Seq[ParseFailure] \/ Multipart = {
     _parts.partition(_.isLeft) match {
-      case (Nil,parts) => Multipart(parts.flatMap(_.toOption)).right
+      case (Nil,parts) => Multipart(parts.flatMap(_.toOption), boundary).right
       case (errs,_)    => errs.flatMap(_.swap.toOption).flatten.left
     }   
   } 
