@@ -197,6 +197,17 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
   }
 
   "Http1ClientStage responses" should {
+    "Timeout immediately with a timeout of 0 seconds" in {
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+      val req = Request(uri = parsed)
+
+      val tail = new Http1ClientStage(DefaultUserAgent, 0.seconds)
+      val h = new SlowTestHead(List(mkBuffer(resp)), 0.milli)
+      LeafBuilder(tail).base(h)
+
+      tail.runRequest(req).run must throwA[TimeoutException]
+    }
+
     "Timeout on slow response" in {
       val \/-(parsed) = Uri.fromString("http://www.foo.com")
       val req = Request(uri = parsed)
