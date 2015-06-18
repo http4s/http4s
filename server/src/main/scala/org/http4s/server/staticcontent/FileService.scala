@@ -14,6 +14,15 @@ import scalaz.{NonEmptyList, OptionT}
 
 object FileService {
 
+  /** [[FileService]] configuration
+    *
+    * @param systemPath path prefix to the folder from which content will be served
+    * @param pathPrefix prefix of Uri from which content will be served
+    * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
+    * @param bufferSize buffer size to use for internal read buffers
+    * @param executor [[ExecutorService]] to use when collecting content
+    * @param cacheStartegy strategy to use for caching purposes. Default to no caching.
+    */
   case class Config(systemPath: String,
                     pathPrefix: String = "",
                     pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
@@ -35,9 +44,9 @@ object FileService {
         .run
   }
 
-  /** Returns responses for static files.
-    * Directories are forbidden.
-    */
+  /* Returns responses for static files.
+   * Directories are forbidden.
+   */
   private def filesOnly(file: File, config: Config, req: Request): Task[Option[Response]] = Task.now {
     if (file.isDirectory()) Some(Response(Status.Unauthorized))
     else if (!file.isFile) None
@@ -45,7 +54,7 @@ object FileService {
       StaticFile.fromFile(file, config.bufferSize, Some(req))(config.executor)
                 .map(_.putHeaders(AcceptRangeHeader))
   }
-  
+
   private def validRange(start: Long, end: Option[Long], fileLength: Long): Boolean = {
     start < fileLength && (end match {
       case Some(end) => start >= 0 && start <= end
@@ -53,6 +62,7 @@ object FileService {
     })
   }
 
+  // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile(file: File, config: Config, req: Request): Option[Response] = req.headers.get(Range).flatMap {
     case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e))) if validRange(s, e, file.length) =>
       val size = file.length()
