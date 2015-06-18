@@ -36,7 +36,7 @@ object FileService {
     val uri = req.uri
     if (!uri.path.startsWith(config.pathPrefix)) Task.now(None)
     else OptionT(
-        getFile(config.systemPath + File.separator + getSubPath(uri, config.pathPrefix))
+        getFile(config.systemPath + '/' + getSubPath(uri, config.pathPrefix))
           .map{ f => config.pathCollector(f, config, req) }
           .getOrElse(Task.now(None))
       )
