@@ -17,9 +17,9 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
   "ContentType Header" should {
     "Generate the correct values" in {
       simple.value must be_==("text/html")
-      charset.value must be_==("text/html; charset=UTF-8")
-      extensions.value must be_==("text/html; foo=bar")
-      extensionsandset.value must be_==("text/html; foo=bar; charset=UTF-8")
+      charset.value must be_==("""text/html; charset=UTF-8""")
+      extensions.value must be_==("""text/html; foo="bar"""")
+      extensionsandset.value must be_==("""text/html; foo="bar"; charset=UTF-8""")
     }
 
     "Parse correctly" in {
