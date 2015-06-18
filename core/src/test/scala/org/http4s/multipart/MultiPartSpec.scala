@@ -28,11 +28,11 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
     
   def is = s2"""
     Multipart form data can be
-        encoded and decoded example A       $encodeAndDecodeA
-        encoded and decoded example B       $encodeAndDecodeB
-        encoded and decoded example C       $encodeAndDecodeC        
-        encoded and decoded example D       $encodeAndDecodeD
-        encoded and decoded example E       $encodeAndDecodeE        
+        encoded and decoded with    content types  $encodeAndDecodeMultipart
+        encoded and decoded without content types  $encodeAndDecodeMultipartMissingContentType
+        encoded and decoded with    binary data    $encodeAndDecodeMultipartWithBinaryFormData        
+        decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
+        decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes        
      """
   val url = Uri(
       scheme = Some(CaseInsensitiveString("https")),
@@ -42,13 +42,13 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
   val txtToEntity: String => EntityEncoder.Entity = in =>
       EntityEncoder.Entity(Process.emit(in).map(s => ByteVector(s.getBytes)))
    
-  def encodeAndDecodeA = {
+  def encodeAndDecodeMultipart = {
 
     val ctf1       = Some(`Content-Type`(`text/plain`))
-    val ef1        = txtToEntity("Text_Field_1")
-    val field1     = FormData(Name("field1"), ctf1, ef1)
+    val body1        = txtToEntity("Text_Field_1")
+    val field1     = FormData(Name("field1"), body1,ctf1)
     val ef2        = txtToEntity("Text_Field_2")
-    val field2     = FormData(Name("field2"), None, ef2)
+    val field2     = FormData(Name("field2"), ef2)
     val multipart  = Multipart(List(field1,field2))
     val entity     = mpe.toEntity(multipart)
     val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
@@ -63,10 +63,10 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
     result must beRightDisjunction(multipart)
   }
 
-  def encodeAndDecodeB = {
+  def encodeAndDecodeMultipartMissingContentType = {
 
     val ef1        = txtToEntity("Text_Field_1")
-    val field1     = FormData(Name("field1"), None, ef1)
+    val field1     = FormData(Name("field1"), ef1)
     val multipart  = Multipart(List(field1))
 
     val entity     = mpe.toEntity(multipart)
@@ -82,17 +82,17 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
     result must beRightDisjunction(multipart)
   }
 
-  def encodeAndDecodeC = {
+  def encodeAndDecodeMultipartWithBinaryFormData = {
 
     val path       = "./core/src/test/resources/Animated_PNG_example_bouncing_beach_ball.png"
     val file       = new File(path)
     
     val ef1        = txtToEntity("Text_Field_1")
-    val field1     = FormData(Name("field1"), None, ef1)
+    val field1     = FormData(Name("field1"),ef1)
     
     val ctf2       = Some(`Content-Type`(`image/png`))
     val ef2        = fileToEntity(file)
-    val field2     = FormData(Name("image"), ctf2, ef2)
+    val field2     = FormData(Name("image"), ef2,ctf2)
     
     
     val multipart  = Multipart(List(field1,field2))
@@ -110,7 +110,7 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
     result must beRightDisjunction(multipart)
   }
 
-  def encodeAndDecodeD = {
+  def decodeMultipartRequestWithContentTypes = {
 
     val body       = """
 ------WebKitFormBoundarycaZFo8IAKVROTEeD
@@ -142,7 +142,7 @@ Content-Type: application/pdf
   }
 
   
-  def encodeAndDecodeE = {
+  def decodeMultipartRequestWithoutContentTypes = {
 
     val body       = 
 """--bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz
@@ -161,7 +161,6 @@ I am a big moose
                              uri     = url,
                              body    = Process.emit(body).map(s => ByteVector(s.getBytes)),
                              headers = header)
-
     val decoded    = mpd.decode(request)
     val result     = decoded.run.run
     
@@ -170,8 +169,8 @@ I am a big moose
 
  
   private def fileToEntity(f: File): Entity = {
-    val wow = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)
-    Entity(body = Process.emit(ByteVector(wow.toBase64.getBytes)))
+    val bitVector = BitVector.fromMmap(new java.io.FileInputStream(f).getChannel)
+    Entity(body = Process.emit(ByteVector(bitVector.toBase64.getBytes)))
   }  
   
 }

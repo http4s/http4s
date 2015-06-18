@@ -14,10 +14,7 @@ import org.parboiled2.CharPredicate._
 class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Parser {
 
   def Octet               = rule { "\u0000" - "\u00FF" }
-  //TODO: This is a bit naughty
-  //This is a nicer way to write it val NL = rule { optional('\r') ~ '\n' } from 
-  //https://github.com/sirthias/parboiled2/blob/master/examples/src/main/scala/org/parboiled2/examples/CsvParser.scala#L3
-  def CRLF                = rule { str("\r\n") | str("\n") }
+  def CRLF                = rule { optional('\r') ~ '\n' }
   def Dash                = rule { str("--") }
   //http://www.rfc-editor.org/std/std68.txt
   def LWS                 = rule { anyOf(" \t") }  
@@ -60,7 +57,7 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
     case None         =>  Header.Raw(key.ci,value).right
     case Some(params) =>  
       val map = params.toList.toMap
-      val none:ParseFailure \/ Header = ParseFailure("Missing 'name' parameter. ").left 
+      lazy val none:ParseFailure \/ Header = ParseFailure("Missing 'name' parameter. ").left 
       val some:String => ParseFailure \/ Header = {name =>
          `Content-Disposition`(name,map - ("name")).right
        }
@@ -73,29 +70,17 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
       case (Nil,headers) => Headers(headers.flatMap(_.toOption).toList).right
       case (errs,_)    => errs.flatMap(_.swap.toOption).left
     }
-    
-    val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
+    lazy val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
       lazy val contentType = headers.get(`Content-Type`) 
       lazy val  failure = {
        Seq(ParseFailure("Missing Content-Disposition header")).left 
       } 
       lazy val  entityBody = EntityEncoder.Entity(Process.emit(ByteVector(body.getBytes))).right 
-//      contentType match {
-//        case Some(typ) if typ.mediaType.binary => 
-//          ByteVector.fromBase64(body).fold[ParseFailure \/ EntityEncoder.Entity](ParseFailure("Wasn't base64 :(").left)(
-//                                         vector => EntityEncoder.Entity(Process.emit(vector)).right)
-//        case _                               =>
-//          ByteVector.encodeUtf8(body).fold( err => ParseFailure(err.getMessage).left,
-//                                         vector => EntityEncoder.Entity(Process.emit(vector)).right)
-//      }              
-      lazy val success:`Content-Disposition` => Seq[ParseFailure] \/ Part = { cd =>        
-        
-        entityBody.bimap(f => Seq(f),  b => FormData(multipart.Name(cd.dispositionType),contentType,b))     
+      val success:`Content-Disposition` => Seq[ParseFailure] \/ Part = { cd =>        
+        entityBody.bimap(f => Seq(f),  b => FormData(multipart.Name(cd.dispositionType),b,contentType))     
       }
-      
       headers.get(`Content-Disposition`).fold[Seq[ParseFailure] \/ Part](failure)(success)
     }
-    
     headers fold(ers => ers.left,part)
   }   
   

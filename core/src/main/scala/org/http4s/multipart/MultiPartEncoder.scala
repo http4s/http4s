@@ -1,6 +1,8 @@
 package org.http4s
 package multipart
 
+import scala.util.Random
+
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.headers.{ `Content-Type` ⇒ ContentType, `Content-Disposition` => ContentDisposition }
@@ -22,10 +24,10 @@ object formDataEncoder extends EntityEncoder[FormData] {
   def headers: Headers = Headers.empty
 
   def toEntity(fd: FormData): Task[Entity] = {
-    lazy val headers = fd.contentType.foldLeft(ByteVectorWriter() <<
+    lazy val headers = fd.contentType.foldLeft(ByteVectorWriter()                <<
                                                contentDisposition(fd.name.value) <<
-                                               B.CRLF)((w, ct) => w << ct <<
-                                               B.CRLF) << B.CRLF
+                                               Boundary.CRLF)((w, ct) => w << ct        <<
+                                               Boundary.CRLF) << Boundary.CRLF
 
     Task { Entity(fd.content.body.map { body => headers.toByteVector() ++ body }) }
   }
@@ -47,6 +49,46 @@ object MultipartEntityEncoder extends EntityEncoder[Multipart] {
   def headers: Headers = Headers.empty
 
   def toEntity(mp: Multipart): Task[Entity] = {
+    
+  val dash             = "--"
+  def transportPadding = {
+    val rand = new Random()
+    val lws = " \t"
+    
+    def nextChar = lws(rand.nextInt(2))
+    def stream: Stream[Char] = Stream continually (nextChar)
+    // The BNF is zero or more
+    (stream take rand.nextInt(10)).mkString
+  } 
+  
+  val delimiter:     Boundary => String =     boundary =>
+                     new StringWriter()                <<
+                     Boundary.CRLF                     <<
+                     dash                              << 
+                     boundary.value              result()
+                     
+  val closeDelimiter:Boundary => String =     boundary =>
+                     new StringWriter()                <<
+                     delimiter(boundary)               <<
+                     dash                        result()
+                     
+  val start:         Boundary => ByteVector = boundary =>
+                     ByteVectorWriter()                <<
+                     delimiter(boundary)               <<
+                     transportPadding                  <<
+                     Boundary.CRLF         toByteVector()
+                     
+  val end:           Boundary => ByteVector = boundary =>
+                     ByteVectorWriter()                <<
+                     closeDelimiter(boundary)          <<
+                     transportPadding                  <<
+                     Boundary.CRLF         toByteVector()
+
+  val encapsulation: Boundary => String =     boundary =>
+                     new StringWriter()                <<
+                     delimiter(boundary)               <<
+                     transportPadding                  <<
+                     Boundary.CRLF               result()    
 
     val _start         = Entity(Process.emit(start(mp.boundary)))
     val _end           = Entity(Process.emit(end(mp.boundary)))
