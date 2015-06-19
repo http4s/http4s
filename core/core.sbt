@@ -1,4 +1,5 @@
-import com.typesafe.tools.mima.plugin.MimaKeys
+import com.typesafe.tools.mima.core._
+import com.typesafe.tools.mima.plugin.MimaKeys.binaryIssueFilters
 
 name := "http4s-core"
 
@@ -38,3 +39,12 @@ buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion)
 buildInfoPackage <<= organization
 
 mimaSettings
+
+binaryIssueFilters ++= Seq(
+  ProblemFilters.exclude[MissingMethodProblem]("org.http4s.util.Writer.quote$default$2"),
+  ProblemFilters.exclude[MissingMethodProblem]("org.http4s.util.Writer.<<#"),
+  ProblemFilters.exclude[MissingMethodProblem]("org.http4s.util.Writer.quote"),
+  ProblemFilters.exclude[MissingMethodProblem]("org.http4s.util.Writer.quote$default$3")
+)
+
+
