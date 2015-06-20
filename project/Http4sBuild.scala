@@ -57,7 +57,7 @@ object Http4sBuild extends Build {
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
   lazy val alpn_boot           = "org.mortbay.jetty.alpn"    % "alpn-boot"               %  "8.0.0.v20140317" // must use Java8!
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.8.1"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.8.2"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.1.6"
   lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
