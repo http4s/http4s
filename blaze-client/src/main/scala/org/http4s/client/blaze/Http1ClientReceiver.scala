@@ -12,7 +12,6 @@ import org.http4s.headers.Connection
 
 import scala.annotation.tailrec
 import scala.collection.mutable.ListBuffer
-import scala.concurrent.TimeoutException
 import scala.util.{Failure, Success}
 import scalaz.concurrent.Task
 import scalaz.stream.Cause.{End, Terminated}
