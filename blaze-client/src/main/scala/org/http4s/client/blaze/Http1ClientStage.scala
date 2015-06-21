@@ -57,7 +57,7 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
               if (!stageState.compareAndSet(StartupCallbackTag, ex)) run()
               else { /* NOOP the registered error should be handled below */ }
 
-            case _ => // NOOP
+            case _ => // NOOP we are already in an error state
           }
         }
       }, timeout)
@@ -106,8 +106,13 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
 
             enc.writeProcess(req.body).runAsync {
               case \/-(_)    => receiveResponse(cb, closeHeader)
-              case -\/(EOF)  => cb(-\/(new ClosedChannelException())) // Body failed to write.
-              case e@ -\/(_) => cb(e)
+
+                // See if we already have a reason for the failure
+              case e@ -\/(_) =>
+                stageState.get() match {
+                  case e@ -\/(_)   => cb(e)
+                  case \/-(cancel) => cancel.cancel(); shutdown(); cb(e)
+                }
             }
           } catch { case t: Throwable =>
             logger.error(t)("Error during request submission")
