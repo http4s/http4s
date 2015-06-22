@@ -11,23 +11,27 @@ import scala.concurrent.{ Promise, Future }
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 
-  @volatile
   private var acc = Vector[Array[Byte]]()
-
   private val p = Promise[ByteBuffer]
+
+  var closed = false
 
   def getBytes(): Array[Byte] = acc.toArray.flatten
 
   def result = p.future
 
-  override def writeRequest(data: ByteBuffer): Future[Unit] = {
-    val cpy = new Array[Byte](data.remaining())
-    data.get(cpy)
-    acc :+= cpy
-    Future.successful(())
+  override def writeRequest(data: ByteBuffer): Future[Unit] = synchronized {
+    if (closed) Future.failed(EOF)
+    else {
+      val cpy = new Array[Byte](data.remaining())
+      data.get(cpy)
+      acc :+= cpy
+      Future.successful(())
+    }
   }
 
-  override def stageShutdown(): Unit = {
+  override def stageShutdown(): Unit = synchronized {
+    closed = true
     super.stageShutdown()
     p.trySuccess(ByteBuffer.wrap(getBytes()))
   }
@@ -36,13 +40,13 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
 class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   private val bodyIt = body.iterator
 
-  override def readRequest(size: Int): Future[ByteBuffer] = {
-    if (bodyIt.hasNext) Future.successful(bodyIt.next())
+  override def readRequest(size: Int): Future[ByteBuffer] = synchronized {
+    if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
     else Future.failed(EOF)
   }
 }
 
-class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slow TestHead") {
+class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slow TestHead") { self =>
   import org.http4s.blaze.util.Execution.scheduler
 
   private val bodyIt = body.iterator
@@ -63,9 +67,11 @@ class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slo
     val p = Promise[ByteBuffer]
 
     scheduler.schedule(new Runnable {
-      override def run(): Unit = bodyIt.synchronized {
-        if (bodyIt.hasNext) p.trySuccess(bodyIt.next())
-        else p.tryFailure(EOF)
+      override def run(): Unit = self.synchronized {
+        bodyIt.synchronized {
+          if (!closed && bodyIt.hasNext) p.trySuccess(bodyIt.next())
+          else p.tryFailure(EOF)
+        }
       }
     }, pause)
 

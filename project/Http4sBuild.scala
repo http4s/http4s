@@ -42,7 +42,10 @@ object Http4sBuild extends Build {
   def compatibleVersion(version: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
-    val targetVersion = s"${targetMajor}.${targetMinor}.0"
+    val targetVersion = (targetMajor, targetMinor) match {
+      case (0, 8) => "0.8.1" // 0.8.0 was a bad release
+      case _ => s"${targetMajor}.${targetMinor}.0"
+    }
     if (targetVersion != currentVersionWithoutSnapshot)
       Some(targetVersion)
     else
@@ -54,13 +57,13 @@ object Http4sBuild extends Build {
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
   lazy val alpn_boot           = "org.mortbay.jetty.alpn"    % "alpn-boot"               %  "8.0.0.v20140317" // must use Java8!
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.8.1"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.8.2"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.1.6"
   lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.0"
-  lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.4.1"
+  lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.5.0"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.2.11.v20150529"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.2.11"

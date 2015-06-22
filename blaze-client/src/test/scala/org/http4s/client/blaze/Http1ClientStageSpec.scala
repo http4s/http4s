@@ -18,6 +18,9 @@ import scala.concurrent.Await
 import scala.concurrent.duration._
 
 import scalaz.\/-
+import scalaz.concurrent.Strategy._
+import scalaz.concurrent.Task
+import scalaz.stream.{time, Process}
 
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Specification with NoTimeConversions {
@@ -219,7 +222,32 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       tail.runRequest(req).run must throwA[TimeoutException]
     }
 
-    "Timeout on slow body" in {
+    "Timeout on slow POST body" in {
+      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+
+      def dataStream(n: Int): Process[Task, ByteVector] = {
+        implicit def defaultSecheduler = DefaultTimeoutScheduler
+        val interval = 1000.millis
+        time.awakeEvery(interval)
+          .map(_ => ByteVector.empty)
+          .take(n)
+      }
+
+      val req = Request(method = Method.POST, uri = parsed, body = dataStream(4))
+
+      val tail = new Http1ClientStage(DefaultUserAgent, 1.second)
+      val (f,b) = resp.splitAt(resp.length - 1)
+      val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
+      LeafBuilder(tail).base(h)
+
+      val result = tail.runRequest(req).flatMap { resp =>
+        EntityDecoder.text.decode(resp).run
+      }
+
+      result.run must throwA[TimeoutException]
+    }
+
+    "Timeout on slow response body" in {
       val \/-(parsed) = Uri.fromString("http://www.foo.com")
       val req = Request(uri = parsed)
 
