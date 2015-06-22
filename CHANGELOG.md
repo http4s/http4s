@@ -1,3 +1,13 @@
+# v0.8.2 (2015-06-22)
+* Patch instrumented handler for Jetty to time async contexts correctly.
+* Fix race condition with timeout registration and route execution in blaze client
+* Replace `ConcurrentHashMap` with synchronized `HashMap` in `staticcontent` package.
+* Fix static content from jars by avoiding `"//"` in path uris when serving static content.
+* Quote MediaRange extensions.
+* Upgrade to jawn-streamz-0.5.0 and blaze-0.8.2.
+* Improve error handling in blaze-client.
+* Respect the explicit default encoding passed to `decodeString`.
+
 # v0.8.1 (2015-06-16)
 * Authentication middleware integrated into the server package.
 * Static content tools integrated into the server package.
