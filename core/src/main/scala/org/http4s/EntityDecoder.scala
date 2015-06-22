@@ -113,7 +113,8 @@ object EntityDecoder extends EntityDecoderInstances {
   def decodeString(msg: Message, defaultCharset: Option[Charset] = None): Task[String] = {
     val buff = new StringBuilder
     (msg.body |> process1.fold(buff) { (b, c) => {
-      b.append(new String(c.toArray, (msg.charset orElse defaultCharset getOrElse(Charset.`ISO-8859-1`)).nioCharset))
+      val charset = msg.contentType.flatMap(_.definedCharset) orElse defaultCharset getOrElse(Charset.`ISO-8859-1`)
+      b.append(new String(c.toArray, charset.nioCharset))
     }}).map(_.result()).runLastOr("")
   }
 }
