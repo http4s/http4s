@@ -189,5 +189,22 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
   }
 
+  "decodeString" should {
+    val str = "Oekraïene"
+    "Use an charset defined by the Content-Type header" in {
+      val msg = Response(Ok).withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
+                            .withContentType(Some(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
+                            .run
 
+      EntityDecoder.decodeString(msg, defaultCharset = Some(Charset.`US-ASCII`)).run must_== str
+    }
+
+    "Use the default if the Content-Type header does not define one" in {
+      val msg = Response(Ok).withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
+                            .withContentType(Some(`Content-Type`(MediaType.`text/plain`, None)))
+                            .run
+
+      EntityDecoder.decodeString(msg, defaultCharset = Some(Charset.`UTF-8`)).run must_== str
+    }
+  }
 }
