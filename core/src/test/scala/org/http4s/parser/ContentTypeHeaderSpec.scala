@@ -21,7 +21,7 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
       charset.value must be_==("""text/html; charset=UTF-8""")
       extensions.value must be_==("""text/html; foo="bar"""")
       extensionsandset.value must be_==("""text/html; foo="bar"; charset=UTF-8""")
-      multipart.value must be_==("multipart/form-data; boundary=aLotOfMoose; charset=UTF-8")
+      multipart.value must be_==("""multipart/form-data; boundary="aLotOfMoose"; charset=UTF-8""")
     }
 
     "Parse correctly" in {
