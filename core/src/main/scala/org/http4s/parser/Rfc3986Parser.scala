@@ -22,7 +22,8 @@ private[parser] trait Rfc3986Parser { this: Parser =>
     }
   }
 
-  def RelativeRef = rule { RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (auth, path, query, fragment) =>
+  def RelativeRef = rule {
+    RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (auth, path, query, fragment) =>
     org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
     }
   }

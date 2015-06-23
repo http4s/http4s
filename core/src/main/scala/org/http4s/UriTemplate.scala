@@ -64,7 +64,7 @@ case class UriTemplate(
    */
   def expandQuery[T: QueryParamEncoder](name: String, values: List[T]): UriTemplate = {
     if (query.isEmpty) this
-    else copy(query = expandQueryN(query, name, values.map(String.valueOf(_))))
+    else copy(query = expandQueryN(query, name, values.map(QueryParamEncoder[T].encode(_).value)))
   }
 
   /**

@@ -7,7 +7,7 @@ import scalaz.Validation
 import scala.Predef._
 
 class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`WWW-Authenticate`] {
-  def hparse(value: String): ParseResult[`WWW-Authenticate`] = HttpParser.WWW_AUTHENTICATE(value)
+  def hparse(value: String): ParseResult[`WWW-Authenticate`] = HttpHeaderParser.WWW_AUTHENTICATE(value)
 
   override def parse(value: String) =  hparse(value).fold(err => sys.error(s"Couldn't parse: $value"), identity)
 

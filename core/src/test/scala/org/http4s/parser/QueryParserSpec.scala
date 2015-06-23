@@ -48,6 +48,15 @@ class QueryParserSpec extends Http4sSpec {
       parseQueryString("a=b;c") must beRightDisjunction(Query("a" -> Some("b"), "c" -> None))
     }
 
+    "Allow PHP-style [] in keys" in {
+      parseQueryString("a[]=b&a[]=c") must beRightDisjunction(Query("a[]" -> Some("b"), "a[]" -> Some("c")))
+    }
+
+    "QueryParser using QChars doesn't allow PHP-style [] in keys" in {
+      val queryString = "a[]=b&a[]=c"
+      new QueryParser(Codec.UTF8, true, QueryParser.QChars).decode(CharBuffer.wrap(queryString), true) must beLeftDisjunction
+    }
+
     "Reject a query with invalid char" in {
       parseQueryString("獾") must beLeftDisjunction
       parseQueryString("foo獾bar") must beLeftDisjunction

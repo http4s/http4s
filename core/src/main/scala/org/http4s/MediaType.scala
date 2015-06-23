@@ -74,11 +74,7 @@ sealed class MediaRange private[http4s](val mainType: String,
   }
 
   protected def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
-    extensions.foreach{ case (k,v) =>
-      // TODO: Determine if we need quotes or not in a more robust manner
-      if (v.contains(" ")) sb.append(String.format("; %s=\"%s\"", k,v))
-      else sb.append(s"; $k=$v")
-    }
+    extensions.foreach{ case (k,v) => sb << ';' << ' ' << k << '=' <<# v }
   }
 }
 

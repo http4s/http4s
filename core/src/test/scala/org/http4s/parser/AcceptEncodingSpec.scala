@@ -7,7 +7,7 @@ import scalaz.Validation
 import Http4s._
 
 class AcceptEncodingSpec extends Specification with HeaderParserHelper[`Accept-Encoding`] {
-  def hparse(value: String): ParseResult[`Accept-Encoding`] = HttpParser.ACCEPT_ENCODING(value)
+  def hparse(value: String): ParseResult[`Accept-Encoding`] = HttpHeaderParser.ACCEPT_ENCODING(value)
 
   val gzip = `Accept-Encoding`(ContentCoding.gzip)
   val gzip5 = `Accept-Encoding`(ContentCoding.gzip.withQValue(q(0.5)))

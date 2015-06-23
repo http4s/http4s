@@ -33,35 +33,55 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
   override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
 
   /** Generate a `Task[Response]` that will perform an HTTP 1 request on execution */
-  def runRequest(req: Request): Task[Response] = {
+  def runRequest(req: Request): Task[Response] = Task.suspend[Response] {
     // We need to race two Tasks, one that will result in failure, one that gives the Response
 
-      Task.suspend[Response] {
-        val c: Cancellable = ClientTickWheel.schedule(new Runnable {
-          override def run(): Unit = {
-            stageState.get() match {  // We must still be active, and the stage hasn't reset.
-              case c@ \/-(_) =>
-                val ex = mkTimeoutEx(req)
-                if (stageState.compareAndSet(c, -\/(ex))) {
-                  logger.debug(ex.getMessage)
-                  shutdown()
-                }
+    val StartupCallbackTag = -\/(null)
 
-              case _ => // NOOP
-            }
+    if (!stageState.compareAndSet(null, StartupCallbackTag)) Task.fail(InProgressException)
+    else {
+      val c = ClientTickWheel.schedule(new Runnable {
+        @tailrec
+        override def run(): Unit = {
+          stageState.get() match {  // We must still be active, and the stage hasn't reset.
+            case c@ \/-(_) =>
+              val ex = mkTimeoutEx(req)
+              if (stageState.compareAndSet(c, -\/(ex))) {
+                logger.debug(ex.getMessage)
+                shutdown()
+              }
+
+            // Somehow we have beaten the registration of this callback to stage
+            case StartupCallbackTag =>
+              val ex = -\/(mkTimeoutEx(req))
+              if (!stageState.compareAndSet(StartupCallbackTag, ex)) run()
+              else { /* NOOP the registered error should be handled below */ }
+
+            case _ => // NOOP we are already in an error state
           }
-        }, timeout)
-
-        if (!stageState.compareAndSet(null, \/-(c))) {
-          c.cancel()
-          Task.fail(InProgressException)
         }
-        else executeRequest(req)
+      }, timeout)
+
+      // There should only be two options at this point: StartupTag or the timeout exception registered above
+      stageState.getAndSet(\/-(c)) match {
+        case StartupCallbackTag =>
+          executeRequest(req)
+
+        case -\/(e) =>
+          c.cancel()
+          stageShutdown()
+          Task.fail(e)
+
+        case other =>
+          c.cancel()
+          stageShutdown()
+          Task.fail(new IllegalStateException(s"Somehow the client stage got a different result: $other"))
       }
+    }
   }
 
   private def mkTimeoutEx(req: Request) =
-    new TimeoutException(s"Client request $req  timed out after $timeout")
+    new TimeoutException(s"Client request $req timed out after $timeout")
 
   private def executeRequest(req: Request): Task[Response] = {
     logger.debug(s"Beginning request: $req")
@@ -86,8 +106,13 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
 
             enc.writeProcess(req.body).runAsync {
               case \/-(_)    => receiveResponse(cb, closeHeader)
-              case -\/(EOF)  => cb(-\/(new ClosedChannelException())) // Body failed to write.
-              case e@ -\/(_) => cb(e)
+
+                // See if we already have a reason for the failure
+              case e@ -\/(_) =>
+                stageState.get() match {
+                  case e@ -\/(_)   => cb(e)
+                  case \/-(cancel) => cancel.cancel(); shutdown(); cb(e)
+                }
             }
           } catch { case t: Throwable =>
             logger.error(t)("Error during request submission")

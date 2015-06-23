@@ -20,7 +20,7 @@ trait Json4sInstances[J] {
   protected def jsonMethods: JsonMethods[J]
 
   implicit lazy val jsonEncoder: EntityEncoder[JValue] =
-    EntityEncoder[String].contramap[JValue] { json =>
+    EntityEncoder.stringEncoder(Charset.`UTF-8`).contramap[JValue] { json =>
       // TODO naive implementation materializes to a String.
       // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
       jsonMethods.compact(jsonMethods.render(json))

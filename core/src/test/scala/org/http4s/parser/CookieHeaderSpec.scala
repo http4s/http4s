@@ -6,7 +6,7 @@ import org.specs2.mutable.Specification
 import scalaz.Validation
 
 class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Cookie`] {
-  def hparse(value: String): ParseResult[`Set-Cookie`] = HttpParser.SET_COOKIE(value)
+  def hparse(value: String): ParseResult[`Set-Cookie`] = HttpHeaderParser.SET_COOKIE(value)
 
   "Set-Cookie parser" should {
 
@@ -39,7 +39,7 @@ class SetCookieHeaderSpec extends Specification with HeaderParserHelper[`Set-Coo
 }
 
 class CookieHeaderSpec extends Specification with HeaderParserHelper[headers.Cookie] {
-  def hparse(value: String): ParseResult[headers.Cookie] = HttpParser.COOKIE(value)
+  def hparse(value: String): ParseResult[headers.Cookie] = HttpHeaderParser.COOKIE(value)
 
   val cookiestr = "key1=value1; key2=\"value2\""
   val cookies = Seq(Cookie("key1", "value1"), Cookie("key2", "value2"))

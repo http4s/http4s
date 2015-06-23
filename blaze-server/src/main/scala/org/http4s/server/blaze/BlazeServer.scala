@@ -13,8 +13,8 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
-import org.http4s.blaze.channel.nio1.NIO1SocketServerChannelFactory
-import org.http4s.blaze.channel.nio2.NIO2SocketServerChannelFactory
+import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
+import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
 
 import server.middleware.URITranslation
@@ -114,21 +114,21 @@ class BlazeBuilder(
 
     val factory =
       if (isNio2)
-        NIO2SocketServerChannelFactory(pipelineFactory)
+        NIO2SocketServerGroup.fixedGroup(12, 8 * 1024)
       else
-        NIO1SocketServerChannelFactory(pipelineFactory, 12, 8 * 1024)
+        NIO1SocketServerGroup.fixedGroup(12, 8 * 1024)
 
     var address = socketAddress
     if (address.isUnresolved)
       address = new InetSocketAddress(address.getHostString, address.getPort)
-    val serverChannel = factory.bind(address)
 
-    // Begin the server asynchronously
-    serverChannel.runAsync()
+    // if we have a Failure, it will be caught by the Task
+    val serverChannel = factory.bind(address, pipelineFactory).get
 
     new Server {
       override def shutdown: Task[this.type] = Task.delay {
         serverChannel.close()
+        factory.closeGroup()
         this
       }
 

@@ -26,14 +26,12 @@ class LocationHeaderSpec extends Http4sSpec {
       hs.get(Location) must_== Some(Location(uri))
     }
 
-    "Fail without an absolute uri" in {  // an absolute uri needs a scheme
-      val s = "www.foo.com"
+    "Parse a relative reference" in {
+      val s = "/cats"
       val \/-(uri) = Uri.fromString(s)
       val hs = Headers(Header("Location", s))
 
-      hs.get(Location) must_== None
+      hs.get(Location) must_== Some(Location(uri))
     }
-
   }
-
 }

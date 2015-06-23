@@ -20,22 +20,12 @@ package org.http4s
 
 import org.http4s.util.{Writer, Renderable}
 
-sealed abstract class RangeUnit extends Renderable {
-  def value: String
+object RangeUnit {
+  val Bytes = RangeUnit("bytes")     // The only range-unit defined in rfc7233
+  val None = new RangeUnit("none")
+}
+
+case class RangeUnit(value: String) extends Renderable {
   override def toString = value
   def render(writer: Writer): writer.type = writer.append(value)
 }
-
-object RangeUnit {
-
-  val bytes = new RangeUnit {
-    override def value = "bytes"
-  }
-
-  val none = new RangeUnit {
-    override def value = "none"
-  }
-
-  case class CustomRangeUnit(override val value: String) extends RangeUnit
-}
-

@@ -18,7 +18,7 @@ trait ArgonautInstances {
     }
 
   implicit val jsonEncoder: EntityEncoder[Json] =
-    EntityEncoder[String].contramap[Json] { json =>
+    EntityEncoder.stringEncoder(Charset.`UTF-8`).contramap[Json] { json =>
       // TODO naive implementation materializes to a String.
       // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
       Argonaut.nospace.pretty(json)

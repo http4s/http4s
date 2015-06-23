@@ -18,15 +18,15 @@ import scalaz.{-\/, \/-, \/}
   * If "" should be interpreted as no query that __MUST__ be
   * checked beforehand.
   */
-private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean) {
+private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars: BitSet = QueryParser.ExtendedQChars) {
 
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
   def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
     val acc = Query.newBuilder
     decodeBuffer(input, (k,v) => acc += ((k,v)), flush) match {
-      case Some(e) => -\/(ParseFailure(e))
-      case None    => \/-(acc.result)
+      case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
+      case None    => ParseResult.success(acc.result)
     }
   }
 
@@ -79,7 +79,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean) {
             valAcc.clear()
           }
 
-        case c if (QChars.contains(c)) => valAcc.append(c)
+        case c if (qChars.contains(c)) => valAcc.append(c)
 
         case c => error = s"Invalid char while splitting key/value pairs: '$c'"
       }
@@ -110,7 +110,13 @@ private[http4s] object QueryParser {
   private case object KEY extends State
   private case object VALUE extends State
 
-  private val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq:_*)
+  /** Defines the characters that are allowed unquoted within a query string as
+    * defined in RFC 3986*/
+  val QChars = BitSet((Pchar ++ "/?".toSet - '&' - '=').map(_.toInt).toSeq:_*)
+  /** PHP also includes square brackets ([ and ]) with query strings. This goes
+    * against the spec but due to PHP's widespread adoption it is necessary to
+    * support this extension. */
+  val ExtendedQChars = QChars ++ ("[]".map(_.toInt).toSet)
   private def Pchar = Unreserved ++ SubDelims ++ ":@%".toSet
   private def Unreserved =  "-._~".toSet ++ AlphaNum
   private def SubDelims  = "!$&'()*+,;=".toSet

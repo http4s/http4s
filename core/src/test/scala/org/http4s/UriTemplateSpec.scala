@@ -679,6 +679,20 @@ object UriTemplateSpec extends Specification {
       val tpl = UriTemplate(query = List(ParamExp("some")))
       tpl.expandQuery("unknown") must equalTo(tpl)
     }
+    "expand using a custom encoder if defined" in {
+      val types = ParamExp("type")
+      val path = List(PathElm("orders"))
+
+      case class Foo(bar: String)
+
+      val qpe =
+        new QueryParamEncoder[Foo] {
+          def encode(value: Foo) = new QueryParameterValue(value.bar)
+        }
+
+      UriTemplate(path = path, query = List(types)).expandQuery("type", Foo("whee"))(qpe) must
+        equalTo(UriTemplate(path = path, query = List(ParamElm("type", "whee"))))
+    }
   }
 
   "UriTemplate.expandFragment" should {

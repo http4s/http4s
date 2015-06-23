@@ -1,6 +1,10 @@
 package org.http4s.util
 
+
 import scodec.bits.ByteVector
+import scala.annotation.tailrec
+import scala.collection.immutable.BitSet
+
 
 /** A type class that describes how to efficiently render a type
  * @tparam T the type which will be rendered
@@ -42,6 +46,10 @@ object Renderable {
   }
 }
 
+object Writer {
+  val HeaderValueDQuote = BitSet("\\\"".map(_.toInt):_*)
+}
+
 /** Efficiently accumulate [[Renderable]] representations */
 trait Writer {
   def append(s: String):                 this.type
@@ -53,6 +61,21 @@ trait Writer {
   def append(long: Long):                this.type = append(long.toString)
 
   def append[T](r: T)(implicit R: Renderer[T]): this.type = R.render(this, r)
+
+  def quote(s: String, escapedChars: BitSet = Writer.HeaderValueDQuote, escapeChar: Char = '\\'): this.type = {
+    this << '"'
+
+    @tailrec
+    def go(i: Int): Unit = if (i < s.length) {
+      val c = s.charAt(i)
+      if (escapedChars.contains(c.toInt)) this << escapeChar
+      this << c
+      go(i+1)
+    }
+
+    go(0)
+    this << '"'
+  }
 
   def addStrings(s: Seq[String], sep: String = "", start: String = "", end: String = ""): this.type = {
     append(start)
@@ -73,6 +96,7 @@ trait Writer {
   }
 
   final def <<(s: String):                this.type = append(s)
+  final def <<#(s: String):               this.type = quote(s)
   final def <<(s: CaseInsensitiveString): this.type = append(s)
   final def <<(char: Char):               this.type = append(char)
   final def <<(float: Float):             this.type = append(float)
@@ -80,6 +104,7 @@ trait Writer {
   final def <<(int: Int):                 this.type = append(int)
   final def <<(long: Long):               this.type = append(long)
   final def <<[T: Renderer](r: T):        this.type = append(r)
+
 
 }
 

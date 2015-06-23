@@ -7,7 +7,7 @@ import org.specs2.mutable.Specification
 
 class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Content-Type`] {
 
-  def hparse(value: String): ParseResult[`Content-Type`] = HttpParser.CONTENT_TYPE(value)
+  def hparse(value: String): ParseResult[`Content-Type`] = HttpHeaderParser.CONTENT_TYPE(value)
 
   def simple = `Content-Type`(`text/html`)
   def charset = `Content-Type`(`text/html`, Charset.`UTF-8`)
@@ -17,10 +17,10 @@ class ContentTypeHeaderSpec extends Specification with HeaderParserHelper[`Conte
 
   "ContentType Header" should {
     "Generate the correct values" in {
-      simple.value must be_==("text/html")
-      charset.value must be_==("text/html; charset=UTF-8")
-      extensions.value must be_==("text/html; foo=bar")
-      extensionsandset.value must be_==("text/html; foo=bar; charset=UTF-8")
+      simple.value must be_==("text/html")      
+      charset.value must be_==("""text/html; charset=UTF-8""")
+      extensions.value must be_==("""text/html; foo="bar"""")
+      extensionsandset.value must be_==("""text/html; foo="bar"; charset=UTF-8""")
       multipart.value must be_==("multipart/form-data; boundary=aLotOfMoose; charset=UTF-8")
     }
 

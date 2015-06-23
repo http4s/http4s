@@ -6,8 +6,8 @@ import org.specs2.ScalaCheck
 import org.specs2.matcher.Parameters
 
 import scala.collection.immutable.BitSet
-import scalaz.\/-
-
+import scalaz.{NonEmptyList, \/-}
+import scalaz.scalacheck.ScalazArbitrary.NonEmptyListArbitrary
 
 class UrlFormSpec extends Http4sSpec with ScalaCheck {
   // These tests are slow.  Let's lower the bar.
@@ -36,6 +36,47 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
       UrlForm.decodeString(charset)(
         UrlForm.encodeString(charset)(urlForm)
       ) must_== \/-(urlForm)
+    }
+
+    "get returns elements matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).get("key") must_== Seq("a", "b", "c")
+    }
+
+    "get returns empty Seq if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).get("notFound") must_== Seq.empty[String]
+    }
+
+    "getFirst returns first element matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("key") must_== Some("a")
+    }
+
+    "getFirst returns None if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirst("notFound") must_== None
+    }
+
+    "getOrElse returns elements matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getOrElse("key", Seq("d")) must_== Seq("a", "b", "c")
+    }
+
+    "getOrElse returns default if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getOrElse("notFound", Seq("d")) must_== Seq("d")
+    }
+
+    "getFirstOrElse returns first element matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("key", "d") must_== "a"
+    }
+
+    "getFirstOrElse returns default if no matching key" in {
+      UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
+    }
+
+    "construct consistently from kv-pairs or and Map[String, Seq[String]]" in check {
+      map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
+        val flattened = for {
+          (k, vs) <- map.toSeq
+          v <- vs.list
+        } yield (k -> v)
+        UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.list))
     }
   }
 

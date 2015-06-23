@@ -37,17 +37,14 @@ final class Headers private (headers: List[Header])
     */
   def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
 
-  /** Attempt to get a [[org.http4s.Header.Raw]] from this collection of headers
+  /** Attempt to get a [[org.http4s.Header]] from this collection of headers
     *
     * @param key name of the header to find
-    * @return a scala.Option possibly containing the resulting [[org.http4s.Header.Raw]]
+    * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
     *
     * @see [[HeaderKey.Default]] in conjunction with get([[HeaderKey]])
     */
-  def get(key: CaseInsensitiveString): Option[Header.Raw] = {
-    val k = new StringKey { override def name = key }
-    get(k).map(_.toRaw)
-  }
+  def get(key: CaseInsensitiveString): Option[Header] = headers.find(_.name == key)
 
   /** Make a new collection adding the specified headers, replacing existing headers of singleton type
     * The passed headers are assumed to contain no duplicate Singleton headers.

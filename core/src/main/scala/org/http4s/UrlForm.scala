@@ -4,12 +4,29 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
 
-import scala.collection.immutable.BitSet
+import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
 
 
-class UrlForm(val values: Map[String, Seq[String]]) extends AnyVal {
+class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
+
+  def get(key: String): Seq[String] =
+    this.getOrElse(key, Seq.empty[String])
+
+  def getOrElse(key: String, default: => Seq[String]): Seq[String] =
+    values.get(key).getOrElse(default)
+
+  def getFirst(key: String): Option[String] =
+    values.get(key).flatMap(_.headOption)
+
+  def getFirstOrElse(key: String, default: => String): String =
+    this.getFirst(key).getOrElse(default)
+
+  def +(kv: (String, String)): UrlForm = {
+    val newValues = values.get(kv._1).fold(Seq(kv._2))(_ :+ kv._2)
+    UrlForm(values.updated(kv._1, newValues))
+  }
 }
 
 object UrlForm {
@@ -21,11 +38,13 @@ object UrlForm {
     if(values.get("").fold(false)(_.isEmpty)) new UrlForm(values - "")
     else new UrlForm(values)
 
-  def entityEncoder(charset: Charset): EntityEncoder[UrlForm] =
+  def apply(values: (String, String)*): UrlForm =
+    values.foldLeft(empty)(_ + _)
+
+  implicit def entityEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
-
 
   implicit val entityDecoder: EntityDecoder[UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
@@ -35,12 +54,13 @@ object UrlForm {
       )
     }
 
-  private[http4s] def decodeString(charset: Charset)(urlForm: String): ParseResult[UrlForm] =
+  /** Attempt to decode the `String` to a [[UrlForm]] */
+  def decodeString(charset: Charset)(urlForm: String): ParseResult[UrlForm] =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(_.groupBy(_._1).mapValues(_.flatMap(_._2)))
-      .map(UrlForm.apply)
+      .map(q => UrlForm(q.multiParams))
 
-  private[http4s] def encodeString(charset: Charset)(urlForm: UrlForm): String = {
+  /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
+  def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
       UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlFormCodec.urlUnreserved)
 

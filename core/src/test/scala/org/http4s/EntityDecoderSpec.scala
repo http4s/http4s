@@ -32,10 +32,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     "flatMapR with failure" in {
       EntityDecoder.text
-        .flatMapR(s => DecodeResult.failure[String](ParseFailure("bummer")))
+        .flatMapR(s => DecodeResult.failure[String](ParseFailure("bummer", "real bummer")))
         .decode(req)
         .run
-        .run must beLeftDisjunction(ParseFailure("bummer"))
+        .run must beLeftDisjunction(ParseFailure("bummer", "real bummer"))
     }
   }
 
@@ -50,7 +50,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
-      val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!"))))
+      val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!", ""))))
       val resp = request.decodeWith(grumpyDecoder) { _ => Task.now(Response())}.run
       resp.status must equal (Status.BadRequest)
     }
@@ -143,7 +143,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
-      DecodeResult.failure(ParseFailure("Nope."))
+      DecodeResult.failure(ParseFailure("Nope.", ""))
     }
 
     "Not match invalid media type" in {
@@ -189,5 +189,22 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
   }
 
+  "decodeString" should {
+    val str = "Oekraïene"
+    "Use an charset defined by the Content-Type header" in {
+      val msg = Response(Ok).withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
+                            .withContentType(Some(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
+                            .run
 
+      EntityDecoder.decodeString(msg, defaultCharset = Some(Charset.`US-ASCII`)).run must_== str
+    }
+
+    "Use the default if the Content-Type header does not define one" in {
+      val msg = Response(Ok).withBody(str.getBytes(Charset.`UTF-8`.nioCharset))
+                            .withContentType(Some(`Content-Type`(MediaType.`text/plain`, None)))
+                            .run
+
+      EntityDecoder.decodeString(msg, defaultCharset = Some(Charset.`UTF-8`)).run must_== str
+    }
+  }
 }

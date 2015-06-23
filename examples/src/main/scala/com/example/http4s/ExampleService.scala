@@ -15,6 +15,7 @@ import org.http4s.server._
 import org.http4s.server.middleware.EntityLimiter
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
+import org.http4s.server.middleware.authentication._
 import org.http4s.twirl._
 
 import scalaz.stream.Process
@@ -30,7 +31,7 @@ object ExampleService {
   implicit def mpd: EntityDecoder[Multipart] = MultipartEntityDecoder.decoder  
   
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService =
-    service1(executionContext) orElse service2 orElse ScienceExperiments.service
+    service1(executionContext) orElse service2 orElse service3 orElse ScienceExperiments.service
 
   def service1(implicit executionContext: ExecutionContext) = HttpService {
 
@@ -67,6 +68,12 @@ object ExampleService {
       // EntityEncoder typically deals with appropriate headers, but they can be overridden
       Ok("<h2>This will have an html content type!</h2>")
           .withHeaders(`Content-Type`(`text/html`))
+
+    case req @ GET -> "static" /: path =>
+      // captures everything after "/directory" into `path`
+      // Try http://localhost:8080/http4s/nasa_blackhole_image.jpg
+      // See also org.http4s.server.staticcontent to create a mountable service for static content
+      StaticFile.fromResource(path.toString, Some(req)).fold(NotFound())(Task.now)
 
     ///////////////////////////////////////////////////////////////
     //////////////// Dealing with the message body ////////////////
@@ -172,4 +179,24 @@ object ExampleService {
 
     Process.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
   }
+
+  // Services can be protected using HTTP authentication.
+  val realm = "testrealm"
+
+  def auth_store(r: String, u: String) = if (r == realm && u == "username") Task.now(Some("password"))
+    else Task.now(None)
+
+  val digest = new DigestAuthentication(realm, auth_store)
+
+  def service3 = digest( HttpService { 
+    case req @ GET -> Root / "protected" => {
+      (req.attributes.get(authenticatedUser), req.attributes.get(authenticatedRealm)) match {
+        case (Some(user), Some(realm)) => 
+          Ok("This page is protected using HTTP authentication; logged in user/realm: " + user + "/" + realm)
+        case _ => 
+          Ok("This page is protected using HTTP authentication; logged in user/realm unknown")
+      }
+    }
+  } )
+
 }

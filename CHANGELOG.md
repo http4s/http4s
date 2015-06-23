@@ -1,3 +1,27 @@
+# v0.8.2 (2015-06-22)
+* Patch instrumented handler for Jetty to time async contexts correctly.
+* Fix race condition with timeout registration and route execution in blaze client
+* Replace `ConcurrentHashMap` with synchronized `HashMap` in `staticcontent` package.
+* Fix static content from jars by avoiding `"//"` in path uris when serving static content.
+* Quote MediaRange extensions.
+* Upgrade to jawn-streamz-0.5.0 and blaze-0.8.2.
+* Improve error handling in blaze-client.
+* Respect the explicit default encoding passed to `decodeString`.
+
+# v0.8.1 (2015-06-16)
+* Authentication middleware integrated into the server package.
+* Static content tools integrated into the server package.
+* Rename HttpParser to HttpHeaderParser and allow registration and removal of header parsers.
+* Make UrlForm EntityDecoder implicitly resolvable.
+* Relax UrlForm parser strictness.
+* Add 'follow redirect' support as a client middleware.
+* Add server middleware for auto retrying uris of form '/foo/' as '/foo'.
+* Numerous bug fixes.
+* Numerous version bumps.
+
+# ~~v0.8.0 (2015-06-16)~~
+* Mistake.  Go straight to v0.8.1.
+
 # v0.7.0 (2015-05-05)
 * Add QueryParamMatcher to the dsl which returns a ValidationNel.
 * Dsl can differentiate between '/foo/' and '/foo'.

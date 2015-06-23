@@ -29,7 +29,7 @@ import scala.util.hashing.MurmurHash3
  * Abstract representation o the HTTP header
  * @see org.http4s.HeaderKey
  */
-trait Header extends Renderable with Product {
+sealed trait Header extends Renderable with Product {
   import Header.Raw
 
   def name: CaseInsensitiveString
@@ -82,7 +82,7 @@ object Header {
    * @param value String representation of the header value
    */
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
-    override lazy val parsed = parser.HttpParser.parseHeader(this).getOrElse(this)
+    override lazy val parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
     override def renderValue(writer: Writer): writer.type = writer.append(value)
   }
 

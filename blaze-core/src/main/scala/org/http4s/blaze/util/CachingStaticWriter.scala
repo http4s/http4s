@@ -2,8 +2,6 @@ package org.http4s.blaze.util
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-
-import org.http4s.blaze.StaticWriter
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
 import org.log4s.getLogger
@@ -69,7 +67,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
   }
 
   // Make the write stuff public
-  private class InnerWriter(buffer: ByteBuffer) extends StaticWriter(buffer, -1, out) {
+  private class InnerWriter(buffer: ByteBuffer) extends IdentityWriter(buffer, -1, out) {
     override def writeEnd(chunk: ByteVector): Future[Unit] = super.writeEnd(chunk)
     override def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = super.writeBodyChunk(chunk, flush)
   }

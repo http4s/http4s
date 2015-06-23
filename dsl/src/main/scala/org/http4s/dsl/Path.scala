@@ -125,6 +125,20 @@ case object Root extends Path {
   def startsWith(other: Path) = other == Root
 }
 
+/**
+ * Path separator extractor:
+ *   Path("/1/2/3/test.json") match {
+ *     case "1" /: "2" /: _ =>  ...
+ */
+object /: {
+  def unapply(path: Path): Option[(String, Path)] = {
+    path.toList match {
+      case Nil => None
+      case head :: tail => Some((head, Path(tail)))
+    }
+  }
+}
+
 // Base class for Integer and LongParam extractors.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] = {

@@ -1,14 +1,14 @@
-package org.http4s
-package blaze
+package org.http4s.blaze.util
 
 import java.nio.ByteBuffer
-import org.http4s.blaze.util.ProcessWriter
+
+import org.http4s.blaze.pipeline.TailStage
 import org.log4s.getLogger
-import pipeline.TailStage
-import scala.concurrent.{ExecutionContext, Future}
 import scodec.bits.ByteVector
 
-class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[ByteBuffer])
+import scala.concurrent.{ExecutionContext, Future}
+
+class IdentityWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[ByteBuffer])
                   (implicit val ec: ExecutionContext)
                               extends ProcessWriter {
   private[this] val logger = getLogger
@@ -18,6 +18,8 @@ class StaticWriter(private var buffer: ByteBuffer, size: Int, out: TailStage[Byt
   private def checkWritten(): Unit = if (size > 0 && written > size) {
     logger.warn(s"Expected $size bytes, $written written")
   }
+
+  override def requireClose(): Boolean = size < 0
 
   protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     val b = chunk.toByteBuffer
