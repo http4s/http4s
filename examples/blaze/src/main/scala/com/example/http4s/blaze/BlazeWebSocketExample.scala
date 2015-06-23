@@ -22,7 +22,7 @@ object BlazeWebSocketExample extends App {
 
 import scala.concurrent.duration._
   import scalaz.concurrent.Task
-  import scalaz.stream.async.topic
+  import scalaz.stream.async.unboundedQueue
   import scalaz.stream.{Process, Sink}
 
 /// code_ref: blaze_websocket_example
@@ -40,12 +40,12 @@ import scala.concurrent.duration._
       WS(Exchange(src, sink))
 
     case req@ GET -> Root / "wsecho" =>
-      val t = topic[WebSocketFrame]()
-      val src = t.subscribe.collect {
+      val q = unboundedQueue[WebSocketFrame]
+      val src = q.dequeue.collect {
         case Text(msg, _) => Text("You sent the server: " + msg)
       }
 
-      WS(Exchange(src, t.publish))
+      WS(Exchange(src, q.enqueue))
   }
 
 /// end_code_ref
