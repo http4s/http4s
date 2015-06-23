@@ -10,10 +10,12 @@ import org.http4s.util.string._
 
 import org.parboiled2._
 import org.parboiled2.CharPredicate._
+import org.log4s.getLogger
 
-class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Parser {
+case class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Parser {
 
-  def Octet               = rule { "\u0000" - "\u00FF" }
+  private[this] val logger = getLogger
+  
   def CRLF                = rule { optional('\r') ~ '\n' }
   def Dash                = rule { str("--") }
   //http://www.rfc-editor.org/std/std68.txt
@@ -28,15 +30,18 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
   def Epilogue            = DiscardText
   // See https://www.ietf.org/rfc/rfc2045.txt Section 5.1
   def Key                 = rule { oneOrMore(Alpha | '-' )    }
-  def Value               = rule { oneOrMore(!HeaderDelimiter ~ Octet)     }
+  def Value               = rule { oneOrMore(!HeaderDelimiter ~ ANY)     }
   def HeaderDelimiter     = rule { CRLF |  ";"   | "\"" }
-  //  Avoid name collision with http4sHeader.
+  //  Avoid name collision with http4s Header.
   def HeaderRule          = rule { 
                                   (OLWS ~ capture(Key) ~ OLWS ~ ':' ~ OLWS ~ capture(Value)) ~ OLWS ~ 
-                                  optional(";" ~ oneOrMore(HeaderParameters).separatedBy(";")) ~> ((k,v,p) => toHttp4sHeader(k.trim,v.trim,p) ) 
+                                  optional(";" ~ oneOrMore(HeaderParameters).separatedBy(";")) ~>
+                                  ((k,v,p) => toHttp4sHeader(k,v,p) ) 
                             }
   def Parameters          = rule { oneOrMore(HeaderParameters).separatedBy(";") } 
-  def HeaderParameters    = rule { OLWS  ~ (capture(Key)  ~  OLWS ~  '=' ~  OLWS ~ optional("\"") ~ capture(Value)) ~ optional("\"") ~  OLWS ~> ((k,v) => (k -> v))  } 
+  def HeaderParameters    = rule { OLWS  ~ (capture(Key)  ~  OLWS ~  '=' ~  OLWS ~ 
+                                   optional("\"") ~ capture(Value)) ~ optional("\"") ~  OLWS ~>
+                                                                           ((k,v) => (k -> v))  } 
   def MimePartHeaders     = rule { zeroOrMore(HeaderRule ~ CRLF ) }
   def BodyEnd             = rule { CRLF ~ DashBoundary}
   def BodyContent         = rule { capture(zeroOrMore(!BodyEnd ~ ANY)) }
@@ -53,22 +58,24 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
   import scalaz._
   import Scalaz._
     
-  private def toHttp4sHeader(key:String,value:String, parameters:Option[Seq[(String, String)]]): ParseFailure \/ Header = parameters match {
-    case None         =>  Header.Raw(key.ci,value).right
-    case Some(params) =>  
-      val map = params.toList.toMap
-      lazy val none:ParseFailure \/ Header = ParseFailure("Missing 'name' parameter. ").left 
-      val some:String => ParseFailure \/ Header = {name =>
-         `Content-Disposition`(name,map - ("name")).right
-       }
-       map.get("name").fold(none)(some)
-  }   
+  private def toHttp4sHeader(key:String,value:String, parameters:Option[Seq[(String, String)]]): ParseFailure \/ Header = 
+    parameters match {
+      case Some(params) if  key == "Content-Disposition" =>  
+        val map = params.toList.toMap
+        lazy val none:ParseFailure \/ Header = ParseFailure("Missing 'name' parameter. ").left 
+        val some:String => ParseFailure \/ Header = {name =>
+           `Content-Disposition`(name,map - ("name")).right
+         }
+         map.get("name").fold(none)(some)
+      case Some(params) =>  Header.Raw(key.ci,value).right
+      case None         =>  Header.Raw(key.ci,value).right 
+  }    
   
   
   private def toPart(_headers:Seq[ParseFailure \/ Header],body:String): Seq[ParseFailure] \/ Part = {
     val headers = _headers.partition(_.isLeft) match {
       case (Nil,headers) => Headers(headers.flatMap(_.toOption).toList).right
-      case (errs,_)    => errs.flatMap(_.swap.toOption).left
+      case (errs,_)      => errs.flatMap(_.swap.toOption).left
     }
     lazy val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
       lazy val contentType = headers.get(`Content-Type`) 
@@ -85,10 +92,10 @@ class MultipartParser(val input: ParserInput, val boundary:Boundary) extends Par
   }   
   
   
-  private def toMultipart(_parts:Seq[Seq[ParseFailure] \/ Part]):Seq[ParseFailure] \/ Multipart = {
+  private def toMultipart(_parts:Seq[Seq[ParseFailure] \/ Part]):Seq[ParseFailure] \/ Multipart = 
     _parts.partition(_.isLeft) match {
       case (Nil,parts) => Multipart(parts.flatMap(_.toOption), boundary).right
       case (errs,_)    => errs.flatMap(_.swap.toOption).flatten.left
-    }   
-  } 
+  }   
+  
 }
