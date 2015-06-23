@@ -62,7 +62,7 @@ case class MultipartParser(val input: ParserInput, val boundary:Boundary) extend
     parameters match {
       case Some(params) if  key == "Content-Disposition" =>  
         val map = params.toList.toMap
-        lazy val none:ParseFailure \/ Header = ParseFailure("Missing 'name' parameter. ").left 
+        lazy val none:ParseFailure \/ Header = ParseFailure("Missing parameter","Missing 'name' parameter. ").left 
         val some:String => ParseFailure \/ Header = {name =>
            `Content-Disposition`(name,map - ("name")).right
          }
@@ -80,7 +80,7 @@ case class MultipartParser(val input: ParserInput, val boundary:Boundary) extend
     lazy val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
       lazy val contentType = headers.get(`Content-Type`) 
       lazy val  failure = {
-       Seq(ParseFailure("Missing Content-Disposition header")).left 
+       Seq(ParseFailure("Missing header","Missing Content-Disposition header")).left 
       } 
       lazy val  entityBody = EntityEncoder.Entity(Process.emit(ByteVector(body.getBytes))).right 
       val success:`Content-Disposition` => Seq[ParseFailure] \/ Part = { cd =>        

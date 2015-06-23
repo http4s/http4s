@@ -48,11 +48,11 @@ object MultipartEntityDecoder {
                                           details   = s"${acc.details}\n${pf.details}" ) )
                 DecodeResult.failure(failure)
               case Failure(t)        =>  
-                DecodeResult.failure(ParseFailure(t.getMessage))
+                DecodeResult.failure(ParseFailure("Failure to parse multipart body", t.getMessage))
             }
           }
           
-          lazy val empty:DecodeResult[Multipart] = DecodeResult.failure(ParseFailure("Parse failed, nothing returned "))
+          lazy val empty:DecodeResult[Multipart] = DecodeResult.failure(ParseFailure("Nothing returned ","Nothing returned "))
           
           parseResult.fold(empty)(full)
       }
