@@ -123,7 +123,7 @@ object ServerTestRoutes {
       Response(Ok).withBody("Foo").putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req if req.method == Method.POST && req.pathInfo == "/echo" =>
-      Response(Ok).withBody(emit("post") ++ req.body.map(bs => new String(bs.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)))
+      Response(Ok).withBody(emit("post") ++ req.bodyAsText)
 
       // Kind of cheating, as the real NotModified response should have a Date header representing the current? time?
     case req if req.method == Method.GET && req.pathInfo == "/notmodified" => Task.now(Response(NotModified))

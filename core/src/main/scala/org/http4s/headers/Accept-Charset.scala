@@ -12,8 +12,7 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends He
   def qValue(charset: Charset): QValue = {
     def specific = values.list.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
     def splatted = values.list.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
-    def default = if (charset == Charset.`ISO-8859-1`) QValue.One else QValue.Zero
-    specific orElse splatted getOrElse default
+    specific orElse splatted getOrElse QValue.Zero
   }
 
   def isSatisfiedBy(charset: Charset) = qValue(charset) > QValue.Zero

@@ -12,8 +12,9 @@ import scala.concurrent.duration._
 import scalaz.{Reducer, Monoid}
 import scalaz.concurrent.Task
 import scalaz.stream.Process
-import scalaz.stream.time.awakeEvery
 import scalaz.stream.Process._
+import scalaz.stream.text.utf8Encode
+import scalaz.stream.time.awakeEvery
 
 /** These are routes that we tend to use for testing purposes
   * and will likely get folded into unit tests later in life */
@@ -59,7 +60,7 @@ object ScienceExperiments {
     ///////////////// Switch the response based on head of content //////////////////////
 
     case req@POST -> Root / "challenge1" =>
-      val body = req.body.map { c => new String(c.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)}
+      val body = req.bodyAsText
       def notGo = emit("Booo!!!")
       Ok {
         body.step match {
@@ -73,15 +74,15 @@ object ScienceExperiments {
       }
 
     case req @ POST -> Root / "challenge2" =>
-      val parser = await1[ByteVector] map {
-        case bits if (new String(bits.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)).startsWith("Go") =>
-          Task.now(Response(body = emit(bits) ++ req.body))
-        case bits if (new String(bits.toArray, req.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset)).startsWith("NoGo") =>
+      val parser = await1[String] map {
+        case chunk if chunk.startsWith("Go") =>
+          Task.now(Response(body = emit(chunk) ++ req.bodyAsText |> utf8Encode))
+        case chunk if chunk.startsWith("NoGo") =>
           BadRequest("Booo!")
         case _ =>
           BadRequest("no data")
       }
-      (req.body |> parser).runLastOr(InternalServerError()).run
+      (req.bodyAsText |> parser).runLastOr(InternalServerError()).run
 
     /*
       case req @ Post -> Root / "trailer" =>
