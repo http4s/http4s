@@ -30,7 +30,7 @@ object ClientExample {
     } yield Foo(bar))
 
     // jsonOf is defined for Json4s and Argonaut, just need the right decoder!
-    implicit val foDecoder = jsonOf[Foo]
+    implicit val fooDecoder = jsonOf[Foo]
 
     // Match on response code!
     val page2 = client(uri("https://twitter.com/doesnt_exist")).flatMap {
