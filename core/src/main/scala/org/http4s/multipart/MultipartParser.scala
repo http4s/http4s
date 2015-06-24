@@ -77,7 +77,7 @@ case class MultipartParser(val input: ParserInput, val boundary:Boundary) extend
       case (Nil,headers) => Headers(headers.flatMap(_.toOption).toList).right
       case (errs,_)      => errs.flatMap(_.swap.toOption).left
     }
-    lazy val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
+    val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
       lazy val contentType = headers.get(`Content-Type`) 
       lazy val  failure = {
        Seq(ParseFailure("Missing header","Missing Content-Disposition header")).left 
@@ -88,7 +88,7 @@ case class MultipartParser(val input: ParserInput, val boundary:Boundary) extend
       }
       headers.get(`Content-Disposition`).fold[Seq[ParseFailure] \/ Part](failure)(success)
     }
-    headers fold(ers => ers.left,part)
+    headers flatMap part 
   }   
   
   

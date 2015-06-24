@@ -22,10 +22,7 @@ final case class FormData(name:Name,
 final case class Multipart(val parts: Seq[Part],val boundary:Boundary = Boundary.create) {
   def headers = Headers(ContentType(MediaType.multipart("form-data", Some(boundary.value))))
 }
-case class Boundary(val value: String) {
-  lazy val toBV = ByteVector(value.getBytes)
-  lazy val lengthBV = toBV.length
-}
+case class Boundary(val value: String) 
 object Boundary {
   val CRLF = "\r\n"
   val CRLFBV = ByteVector(CRLF.getBytes)
