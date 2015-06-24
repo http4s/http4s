@@ -202,7 +202,7 @@ for embedded Tomcat and Jetty containers.</p>
 <span class="o">}</span> <span class="k">yield</span> <span class="nc">Foo</span><span class="o">(</span><span class="n">bar</span><span class="o">))</span>
 
 <span class="c1">// jsonOf is defined for Json4s and Argonaut, just need the right decoder!
-</span><span class="k">implicit</span> <span class="k">val</span> <span class="n">foDecoder</span> <span class="k">=</span> <span class="n">jsonOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
+</span><span class="k">implicit</span> <span class="k">val</span> <span class="n">fooDecoder</span> <span class="k">=</span> <span class="n">jsonOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
 
 <span class="c1">// Match on response code!
 </span><span class="k">val</span> <span class="n">page2</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"https://twitter.com/doesnt_exist"</span><span class="o">)).</span><span class="n">flatMap</span> <span class="o">{</span>
