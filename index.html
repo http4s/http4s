@@ -126,12 +126,12 @@ tying up too many threads.</p>
    <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">sink</span><span class="o">))</span>
 
  <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"wsecho"</span> <span class="k">=&gt;</span>
-   <span class="k">val</span> <span class="n">t</span> <span class="k">=</span> <span class="n">topic</span><span class="o">[</span><span class="kt">WebSocketFrame</span><span class="o">]()</span>
-   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">t</span><span class="o">.</span><span class="n">subscribe</span><span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
+   <span class="k">val</span> <span class="n">q</span> <span class="k">=</span> <span class="n">unboundedQueue</span><span class="o">[</span><span class="kt">WebSocketFrame</span><span class="o">]</span>
+   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dequeue</span><span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
      <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="s">"You sent the server: "</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span>
    <span class="o">}</span>
 
-   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">t</span><span class="o">.</span><span class="n">publish</span><span class="o">))</span>
+   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">q</span><span class="o">.</span><span class="n">enqueue</span><span class="o">))</span>
 </code></code></pre>
 
 <h2 id="toc_4">Choose your backend</h2>
