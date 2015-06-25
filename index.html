@@ -183,10 +183,12 @@ for embedded Tomcat and Jetty containers.</p>
 
 <span class="k">val</span> <span class="n">client</span> <span class="k">=</span> <span class="n">org</span><span class="o">.</span><span class="n">http4s</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">blaze</span><span class="o">.</span><span class="n">defaultClient</span>
 
-<span class="k">val</span> <span class="n">page</span><span class="k">:</span> <span class="kt">Task</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"https://www.google.com/"</span><span class="o">)).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="cm">/*
+val page: Task[String] = client(uri("https://www.google.com/")).as[String]
 
-<span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">run</span><span class="o">)</span>   <span class="c1">// each execution of the Task will refetch the page!
-</span><span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">run</span><span class="o">)</span>
+println(page.run)   // each execution of the Task will refetch the page!
+println(page.run)
+*/</span>
 
 <span class="c1">// We can do much more: how about decoding some JSON to a scala object
 // after matching based on the response status code?
@@ -205,7 +207,7 @@ for embedded Tomcat and Jetty containers.</p>
 </span><span class="k">implicit</span> <span class="k">val</span> <span class="n">foDecoder</span> <span class="k">=</span> <span class="n">jsonOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
 
 <span class="c1">// Match on response code!
-</span><span class="k">val</span> <span class="n">page2</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"https://http4s.org/example-endpoints/foo.json"</span><span class="o">)).</span><span class="n">flatMap</span> <span class="o">{</span>
+</span><span class="k">val</span> <span class="n">page2</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"http://http4s.org/resources/foo.json"</span><span class="o">)).</span><span class="n">flatMap</span> <span class="o">{</span>
   <span class="k">case</span> <span class="nc">Successful</span><span class="o">(</span><span class="n">resp</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">resp</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">Foo</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="s">"Received response: "</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span>
   <span class="k">case</span> <span class="nc">NotFound</span><span class="o">(</span><span class="n">resp</span><span class="o">)</span>   <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">now</span><span class="o">(</span><span class="s">"Not Found!!!"</span><span class="o">)</span>
   <span class="k">case</span> <span class="n">resp</span>             <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">now</span><span class="o">(</span><span class="s">"Failed: "</span> <span class="o">+</span> <span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="o">)</span>
