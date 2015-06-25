@@ -50,45 +50,45 @@ object MultipartEntityEncoder extends EntityEncoder[Multipart] {
 
   def toEntity(mp: Multipart): Task[Entity] = {
     
-  val dash             = "--"
-  def transportPadding = {
-    val rand = new Random()
-    val lws = " \t"
+    def transportPadding = {
+      val rand = new Random()
+      val lws = " \t"
+      
+      def nextChar = lws(rand.nextInt(2))
+      def stream: Stream[Char] = Stream continually (nextChar)
+      // The BNF is zero or more
+      (stream take rand.nextInt(10)).mkString
+    } 
     
-    def nextChar = lws(rand.nextInt(2))
-    def stream: Stream[Char] = Stream continually (nextChar)
-    // The BNF is zero or more
-    (stream take rand.nextInt(10)).mkString
-  } 
-  
-  val delimiter:     Boundary => String =     boundary =>
-                     new StringWriter()                <<
-                     Boundary.CRLF                     <<
-                     dash                              << 
-                     boundary.value              result()
-                     
-  val closeDelimiter:Boundary => String =     boundary =>
-                     new StringWriter()                <<
-                     delimiter(boundary)               <<
-                     dash                        result()
-                     
-  val start:         Boundary => ByteVector = boundary =>
-                     ByteVectorWriter()                <<
-                     delimiter(boundary)               <<
-                     transportPadding                  <<
-                     Boundary.CRLF         toByteVector()
-                     
-  val end:           Boundary => ByteVector = boundary =>
-                     ByteVectorWriter()                <<
-                     closeDelimiter(boundary)          <<
-                     transportPadding                  <<
-                     Boundary.CRLF         toByteVector()
-
-  val encapsulation: Boundary => String =     boundary =>
-                     new StringWriter()                <<
-                     delimiter(boundary)               <<
-                     transportPadding                  <<
-                     Boundary.CRLF               result()    
+    val dash             = "--"
+    val dashBoundary:  Boundary => String =     boundary =>
+                       new StringWriter()                <<
+                       dash                              << 
+                       boundary.value              result()    
+    val delimiter:     Boundary => String =     boundary =>
+                       new StringWriter()                <<
+                       Boundary.CRLF                     <<
+                       dash                              << 
+                       boundary.value              result()
+    val closeDelimiter:Boundary => String =     boundary =>
+                       new StringWriter()                <<
+                       delimiter(boundary)               <<
+                       dash                        result()          
+    val start:         Boundary => ByteVector = boundary =>
+                       ByteVectorWriter()                <<
+                       dashBoundary(boundary)            <<
+                       transportPadding                  <<
+                       Boundary.CRLF         toByteVector()
+    val end:           Boundary => ByteVector = boundary =>
+                       ByteVectorWriter()                <<
+                       closeDelimiter(boundary)          <<
+                       transportPadding      toByteVector()
+    val encapsulation: Boundary => String =     boundary =>
+                       new StringWriter()                <<
+                       Boundary.CRLF                     <<
+                       dashBoundary(boundary)            <<
+                       transportPadding                  <<
+                       Boundary.CRLF               result()    
 
     val _start         = Entity(Process.emit(start(mp.boundary)))
     val _end           = Entity(Process.emit(end(mp.boundary)))

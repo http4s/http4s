@@ -25,7 +25,7 @@ final case class Multipart(val parts: Seq[Part],val boundary:Boundary = Boundary
 case class Boundary(val value: String) 
 object Boundary {
   val CRLF = "\r\n"
-  val CRLFBV = ByteVector(CRLF.getBytes)
+  
   private val DIGIT = ('0' to '9').toList
   private val ALPHA = ('a' to 'z').toList ++ ('A' to 'Z').toList
   private val OTHER = """\()+_,-./:=? """.toSeq 
