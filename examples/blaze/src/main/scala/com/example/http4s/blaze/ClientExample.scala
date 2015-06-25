@@ -13,8 +13,8 @@ object ClientExample {
 
     val page: Task[String] = client(uri("https://www.google.com/")).as[String]
 
-    println(page.run)   // each execution of the Task will refetch the page!
-    println(page.run)
+    for (_ <- 1 to 2)
+      println(page.run.take(72))   // each execution of the Task will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
@@ -33,7 +33,7 @@ object ClientExample {
     implicit val foDecoder = jsonOf[Foo]
 
     // Match on response code!
-    val page2 = client(uri("https://twitter.com/doesnt_exist")).flatMap {
+    val page2 = client(uri("http://http4s.org/resources/foo.json")).flatMap {
       case Successful(resp) => resp.as[Foo].map("Received response: " + _)
       case NotFound(resp)   => Task.now("Not Found!!!")
       case resp             => Task.now("Failed: " + resp.status)

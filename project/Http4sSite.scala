@@ -20,6 +20,10 @@ object Http4sSite {
       case (m, (major, minor)) =>
         for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
     },
+    // TODO: This is a lot of silliness to get a static JSON file onto our site. :(
+    siteMappings <++= (baseDirectory) map { dir =>
+      Seq(dir / "src" / "jekyll" / "foo.json" -> "resources/foo.json")
+    },
     includeFilter in makeSite := "*" -- "*~",
     cleanSite <<= cleanSite0,
     synchLocal <<= synchLocal0,
