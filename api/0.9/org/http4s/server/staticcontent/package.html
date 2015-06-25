@@ -47,7 +47,9 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Helpers for serving static content from http4s</p><p>Note that these tools are relatively primitive and a dedicated server should be used
+for serious static content serving.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -89,7 +91,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.staticcontent.CacheStrategy" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.server.staticcontent.CacheStrategy" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="CacheStrategyextendsAnyRef"></a>
       <a id="CacheStrategy:CacheStrategy"></a>
       <h4 class="signature">
@@ -105,8 +107,11 @@
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
-      
-    </li><li name="org.http4s.server.staticcontent.MemoryCache" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Cache the body of a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a> for future use</p><div class="fullcomment"><div class="comment cmt"><p>Cache the body of a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a> for future use</p><p>A <a href="CacheStrategy.html" class="extype" name="org.http4s.server.staticcontent.CacheStrategy">CacheStrategy</a> acts like a after filter in that it can look at the
+<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a> and <a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a> of the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> and decide if the body for
+the response has already been cached, needs caching, or to let it pass through.
+</p></div></div>
+    </li><li name="org.http4s.server.staticcontent.MemoryCache" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="MemoryCacheextendsCacheStrategy"></a>
       <a id="MemoryCache:MemoryCache"></a>
       <h4 class="signature">
@@ -122,7 +127,9 @@
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt"><a href="CacheStrategy.html" class="extype" name="org.http4s.server.staticcontent.CacheStrategy">CacheStrategy</a> that will cache <u>all</u> <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a> bodies in local memory</p><div class="fullcomment"><div class="comment cmt"><p><a href="CacheStrategy.html" class="extype" name="org.http4s.server.staticcontent.CacheStrategy">CacheStrategy</a> that will cache <u>all</u> <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a> bodies in local memory</p><p>This is useful when serving a very limited amount of static content and want
+to avoid disk access.
+</p></div></div>
     </li></ol>
             </div>
 
@@ -180,7 +187,7 @@
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Cache strategy that doesn't cache anything, ever.</p>
     </li><li name="org.http4s.server.staticcontent.ResourceService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ResourceService"></a>
       <a id="ResourceService:ResourceService"></a>
@@ -231,7 +238,7 @@
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
-      <p class="shortcomment cmt">Make a new <a href="../package.html#HttpService=org.http4s.server.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">org.http4s.server.HttpService</a> that serves static files.</p>
+      <p class="shortcomment cmt">Make a new <a href="../package.html#HttpService=org.http4s.server.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">org.http4s.server.HttpService</a> that serves static files, possibly from the classpath.</p>
     </li></ol>
             </div>
 

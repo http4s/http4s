@@ -49,7 +49,10 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Cache the body of a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a> for future use</p><p>A <a href="" class="extype" name="org.http4s.server.staticcontent.CacheStrategy">CacheStrategy</a> acts like a after filter in that it can look at the
+<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a> and <a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a> of the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> and decide if the body for
+the response has already been cached, needs caching, or to let it pass through.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
@@ -112,7 +115,7 @@
         <img src="../../../../lib/permalink.png" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Performs the caching operations</p>
     </li></ol>
             </div>
 

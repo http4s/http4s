@@ -320,6 +320,23 @@
       </a>
     </span>
       <p class="shortcomment cmt">scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p><div class="fullcomment"><div class="comment cmt"><p>scalaz.stream.Process[Task,Chunk] representing the possible body of the response</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Response">Response</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Message#bodyAsText" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="bodyAsText(implicitdefaultCharset:org.http4s.Charset):scalaz.stream.Process[scalaz.concurrent.Task,String]"></a>
+      <a id="bodyAsText(Charset):Process[Task,String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">bodyAsText</span><span class="params">(<span class="implicit">implicit </span><span name="defaultCharset">defaultCharset: <a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a> = <span class="symbol"><span class="name"><a href="package.html#DefaultCharset:org.http4s.Charset">DefaultCharset</a></span></span></span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Response@bodyAsText(implicitdefaultCharset:org.http4s.Charset):scalaz.stream.Process[scalaz.concurrent.Task,String]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Response#change" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="change(body:org.http4s.EntityBody,headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Response.this.Self"></a>
       <a id="change(EntityBody,Headers,AttributeMap):Self"></a>
@@ -353,7 +370,8 @@
         <img src="../../lib/permalink.png" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Returns the charset parameter of the <code>Content-Type</code> header, if present.</p><div class="fullcomment"><div class="comment cmt"><p>Returns the charset parameter of the <code>Content-Type</code> header, if present.
+Does not introspect the body for media types that define a charset internally.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
