@@ -25,10 +25,11 @@ sealed trait Message extends MessageOps {
 
   final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Process[Task, String] = {
     (charset getOrElse defaultCharset) match {
-      case Charset.`UTF-8` => body |> utf8Decode
+      case Charset.`UTF-8` =>
+        // suspect this one is more efficient, though this is superstition
+        body |> utf8Decode
       case cs =>
-        // TODO broken if multi-byte sequences don't break cleanly on chunk boundaries
-        body map { chunk => new String(chunk.toArray, cs.nioCharset) }
+        body |> util.decode(cs)
     }
 
   }
