@@ -1,0 +1,21 @@
+#!/bin/bash
+
+set -e
+
+SBT_COMMAND=";test ;makeSite"
+if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
+  openssl aes-256-cbc -k $SECRET -in .travis.secrets.enc -d -a -out .travis.secrets
+  source .travis_secrets
+  rm .travis_secrets
+  echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
+  git config --global user.email "travis-ci@http4s.org"
+  git config --global user.name "Travis CI"
+  SBT_COMMAND="$SBT_COMMAND ;publish"
+  if [[ $TRAVIS_SCALA_VERSION == 2.11* ]]; then
+    git config --global user.email "travis-ci@http4s.org"
+    git config --global user.name "Travis CI"
+    SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
+  fi
+fi
+
+sbt ++$TRAVIS_SCALA_VERSION $SBT_COMMAND

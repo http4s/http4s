@@ -2,18 +2,11 @@ import sbt._
 import Keys._
 
 import scala.util.Properties.envOrNone
-import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys._
 
 object Http4sBuild extends Build {
-  lazy val mimaSettings = mimaDefaultSettings ++ {
-    Seq(
-      failOnProblem := compatibleVersion(version.value).isDefined,
-      previousArtifact := compatibleVersion(version.value) map {
-        organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-      }
-    )
-  }
+  // keys
+  val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
+  val jvmTarget = TaskKey[String]("jvm-target-version", "Defines the target JVM version for object files.")
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -22,19 +15,17 @@ object Http4sBuild extends Build {
     }
   }
 
-  lazy val travisCredentials = (envOrNone("SONATYPE_USER"), envOrNone("SONATYPE_PASS")) match {
-    case (Some(user), Some(pass)) =>
-      Some(Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass))
-    case _ =>
-      None
-  }
+  lazy val sonatypeEnvCredentials = (for {
+    user <- envOrNone("SONATYPE_USER")
+    pass <- envOrNone("SONATYPE_PASS")
+  } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)).toSeq
 
   def nexusRepoFor(version: String): Resolver = {
     val nexus = "https://oss.sonatype.org/"
     if (isSnapshot(version))
-      "snapshots" at nexus + "content/repositories/snapshots"
+      "snapshots" at s"$nexus/content/repositories/snapshots"
     else
-      "releases" at nexus + "service/local/staging/deploy/maven2"
+      "releases" at s"$nexus/service/local/staging/deploy/maven2"
   }
 
   def isSnapshot(version: String): Boolean = version.endsWith("-SNAPSHOT")
@@ -52,10 +43,12 @@ object Http4sBuild extends Build {
       None
   }
 
-  val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
+  lazy val javaVersion = VersionNumber(sys.props("java.specification.version")) match {
+    case VersionNumber(Seq(x, y, _*), _, _) => (x.toInt, y.toInt)
+  }
 
   lazy val argonautSupport     = "org.spire-math"           %% "argonaut-support"        % jawnParser.revision
-  lazy val alpn_boot           = "org.mortbay.jetty.alpn"    % "alpn-boot"               %  "8.0.0.v20140317" // must use Java8!
+  lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               %  "8.0.0.v20140317" // must use Java8!
   lazy val base64              = "net.iharder"               % "base64"                  % "2.3.8"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.8.2"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.1.6"
