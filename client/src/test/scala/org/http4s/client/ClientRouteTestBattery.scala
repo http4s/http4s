@@ -25,7 +25,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
   override def runAllTests(): Fragments = {
     val address = initializeServer()
-    val gets = translateTests(address.getPort, Method.GET, getPaths)
+    val gets = translateTests(address, Method.GET, getPaths)
     val frags = gets.map { case (req, resp) => runTest(req, resp, address) }
                     .toSeq
                     .foldLeft(Fragments())(_ ^ _)
@@ -68,9 +68,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     rec.httpVersion must be_==(expected.httpVersion)
   }
 
-  private def translateTests(port: Int, method: Method, paths: Map[String, Response]): Map[Request, Response] = {
+  private def translateTests(address: InetSocketAddress, method: Method, paths: Map[String, Response]): Map[Request, Response] = {
+    val port = address.getPort()
+    val name = address.getHostName()
     paths.map { case (s, r) =>
-      (Request(method, uri = Uri.fromString(s"http://localhost:$port$s").yolo), r)
+      (Request(method, uri = Uri.fromString(s"http://$name:$port$s").yolo), r)
     }
   }
 
