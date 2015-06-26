@@ -2,7 +2,12 @@
 
 set -e
 
-SBT_COMMAND=";test ;makeSite"
+SBT_COMMAND=";test"
+
+if [[ $TRAVIS_SCALA_VERSION == 2.11* ]]; then
+  SBT_COMMAND="$SBT_COMMAND ;makeSite"
+fi
+
 if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
   openssl aes-256-cbc -k $SECRET -in .travis.secrets.enc -d -a -out .travis.secrets
   source .travis_secrets
@@ -11,7 +16,7 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   git config --global user.email "travis-ci@http4s.org"
   git config --global user.name "Travis CI"
   SBT_COMMAND="$SBT_COMMAND ;publish"
-  if [[ $TRAVIS_SCALA_VERSION == 2.11* ]]; then
+  if [[ $SBT_COMMAND == *"makeSite"* ]]; then
     git config --global user.email "travis-ci@http4s.org"
     git config --global user.name "Travis CI"
     SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
