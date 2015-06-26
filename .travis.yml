@@ -9,8 +9,6 @@ env:
 rvm:
   - "1.9.3-p392"
 script: bash bin/travis
-notifications:
-  irc: "chat.freenode.net#http4s"
 webhooks:
   urls:
     - https://webhooks.gitter.im/e/aadbcad1ca1e91b5a189

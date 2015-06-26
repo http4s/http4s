@@ -1,6 +1,6 @@
 package org.http4s.client
 
-import java.net.{ServerSocket, InetSocketAddress}
+import java.net.{ServerSocket, InetSocketAddress, InetAddress}
 import javax.servlet.http.HttpServlet
 
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
@@ -35,7 +35,7 @@ abstract class JettyScaffold(name: String) extends Http4sSpec {
   protected def timeout: Duration = 10.seconds
 
   protected def initializeServer(): InetSocketAddress = {
-    val address = new InetSocketAddress(JettyScaffold.getNextPort())
+    val address = new InetSocketAddress(InetAddress.getLocalHost(), JettyScaffold.getNextPort())
 
     val context = new ServletContextHandler()
     context.setContextPath("/")
