@@ -1,6 +1,6 @@
 package com.example.http4s.blaze
 
-import java.io.File
+import java.io._
 
 import org.http4s._
 import org.http4s.client._
@@ -23,14 +23,15 @@ object ClientMultipartPostExample {
   val textFormData:String => String => FormData = name => value =>
     FormData(Name(name),Entity(Process.emit(ByteVector(value.getBytes))))
 
-  val fileFormData:String => java.io.File => FormData = {name => file => 
-    val bitVector = BitVector.fromMmap(new java.io.FileInputStream(file).getChannel)
+  val fileFormData:String => InputStream => FormData = {name => stream => 
+    
+    val bitVector = BitVector.fromInputStream(stream)
     FormData(Name(name),
              Entity(body = Process.emit(ByteVector(bitVector.toBase64.getBytes))),
              Some(`Content-Type`(`image/png`)))
   }  
-  
-  val ball = new File("../../core/src/test/resources/Animated_PNG_example_bouncing_beach_ball.png")
+                                                
+  val bottle = getClass().getResourceAsStream("/beerbottle.png")
   
   def go:String = {
     val url    = Uri(
@@ -39,7 +40,7 @@ object ClientMultipartPostExample {
       path      = "/post.php?dir=http4s")
       
     val multipart = Multipart(textFormData("text")("This is text.") ::
-                              fileFormData("BALL")(ball) ::
+                              fileFormData("BALL")(bottle) ::
                            Nil)
    val request = Method.POST(url,multipart).map(_.withHeaders(multipart.headers))
    val responseBody = client(request).as[String]
