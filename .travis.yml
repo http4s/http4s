@@ -18,8 +18,6 @@ before_script:
 script: sbt ++$TRAVIS_SCALA_VERSION test mimaReportBinaryIssues
 after_success: 
 - bash bin/travis-publish
-notifications:
-  irc: "chat.freenode.net#http4s"
 webhooks:
   urls:
     - https://webhooks.gitter.im/e/aadbcad1ca1e91b5a189
