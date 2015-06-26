@@ -5,6 +5,7 @@ set -e
 SBT_COMMAND=";test"
 
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]]; then
+  cd $TRAVIS_BUILD_DIR/src/jekyll && bundle install && cd -
   SBT_COMMAND="$SBT_COMMAND ;makeSite"
 fi
 
