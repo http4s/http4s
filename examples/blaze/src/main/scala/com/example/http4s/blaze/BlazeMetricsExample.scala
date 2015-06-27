@@ -5,12 +5,10 @@ package com.example.http4s.blaze
 import java.util.concurrent.TimeUnit
 
 import com.example.http4s.ExampleService
-import org.http4s.server.HttpService
+import org.http4s.server._
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.middleware.Metrics
 import org.http4s.dsl._
-
-
 
 import com.codahale.metrics._
 import com.codahale.metrics.json.MetricsModule

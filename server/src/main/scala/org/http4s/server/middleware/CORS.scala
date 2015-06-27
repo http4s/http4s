@@ -21,6 +21,7 @@ import scala.concurrent.duration._
 import scalaz._
 import Scalaz._
 import scalaz.concurrent.Task
+import scalaz.Kleisli._
 
 /**
   * CORS middleware config options.
@@ -43,27 +44,25 @@ case class CORSConfig(
   * based on information in CORS config.
   * Currently, you cannot make permissions depend on request details
   */
-class CORS(service: HttpService, config: CORSConfig) extends CORS.CORSF {
+class CORS(service: HttpService, config: CORSConfig) extends HttpService {
   import CORS._
   import Status.Ok
   import Task.now
 
-  def apply(req: Request): Task[Option[Response]] = ((req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
+  def apply(req: Request): Task[Response] = ((req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
     case (Method.OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
       logger.debug(s"Serving OPTIONS with CORS headers for ${acrm} ${req.uri}")
-      options(req, origin, acrm)
+      options(origin, acrm)(req)
     case (_, Some(origin), _) if allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString)) =>
       logger.debug(s"Adding CORS headers to ${req.method} ${req.uri}")
-      service.runT(req).map(corsHeaders(origin.value, req.method.renderString)).run
+      service(req).map(corsHeaders(origin.value, req.method.renderString))
     case _ =>
       logger.info(s"CORS headers were denied for ${req.method} ${req.uri}")
       service(req)
   })
 
-  def options(req: Request, origin: Header, acrm: Header): Task[Option[Response]] =
-    service
-      .or(req, now(Response(Ok))).liftM[OptionT]
-      .map(corsHeaders(origin.value, acrm.value)).run
+  def options(origin: Header, acrm: Header): HttpService =
+    kleisli(service).map(corsHeaders(origin.value, acrm.value)).run
 
   def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
     config.allowedHeaders.map(_.mkString("", ", ", "")).cata(
@@ -89,7 +88,6 @@ class CORS(service: HttpService, config: CORSConfig) extends CORS.CORSF {
 }
 
 object CORS {
-  type CORSF = Function1[Request, Task[Option[Response]]]
   private[CORS] val logger = getLogger
 
   def DefaultCORSConfig = CORSConfig(
@@ -97,5 +95,5 @@ object CORS {
     allowCredentials = true,
     maxAge = 1.day.toSeconds)
 
-  def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift(new CORS(service, config))
+  def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = new CORS(service, config)
 }

@@ -32,8 +32,8 @@ class CORSSpec extends Specification {
   "CORS" should {
     "Not showup if unrequested" in {
       val req = Request(uri = Uri(path = "foo"))
-      cors1.runT(req).map(_.headers must not contain(headerCheck _)).run.run.get
-      cors2.runT(req).map(_.headers must not contain(headerCheck _)).run.run.get
+      cors1(req).map(_.headers must not contain(headerCheck _)).run
+      cors2(req).map(_.headers must not contain(headerCheck _)).run
     }
 
     "Respect Access-Control-Allow-Credentials" in {
@@ -41,8 +41,8 @@ class CORSSpec extends Specification {
         Header("Origin", "http://allowed.com/"),
         Header("Access-Control-Request-Method", "GET")
       )
-      cors1.runT(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run.run.get
-      cors2.runT(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run.run.get
+      cors1(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "true")).run
+      cors2(req).map((resp: Response) => matchHeader(resp.headers, `Access-Control-Allow-Credentials`, "false")).run
     }
   }
 

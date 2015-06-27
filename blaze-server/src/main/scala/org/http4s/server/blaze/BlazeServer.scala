@@ -73,17 +73,7 @@ class BlazeBuilder(
     copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
 
   def start: Task[Server] = Task.delay {
-    val aggregateService = serviceMounts.foldLeft[HttpService](Service.empty) {
-      case (aggregate, ServiceMount(service, prefix)) =>
-        val prefixedService =
-          if (prefix.isEmpty || prefix == "/") service
-          else URITranslation.translateRoot(prefix)(service)
-
-        if (aggregate.run eq Service.empty.run)
-          prefixedService
-        else
-          prefixedService orElse aggregate
-    }
+    val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service })
 
     val pipelineFactory = getContext() match {
       case Some((ctx, clientAuth)) =>

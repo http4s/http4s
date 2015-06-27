@@ -9,6 +9,7 @@ import org.log4s.getLogger
 
 import scalaz.stream.Process._
 import scalaz.concurrent.Task
+import scalaz.Kleisli.kleisli
 
 import scodec.bits.ByteVector
 
@@ -17,12 +18,12 @@ object GZip {
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply(service: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = {
-    Service.lift { req: Request =>
+  def apply(service: HttpService, buffersize: Int = 512, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService =
+  { req: Request =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip)
                                   || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`) =>
-          service.map { resp =>
+          kleisli(service).map { resp =>
             if (isZippable(resp)) {
               logger.trace("GZip middleware encoding content")
               // Need to add the Gzip header
@@ -34,11 +35,10 @@ object GZip {
                 .copy(body = b)
             }
             else resp  // Don't touch it, Content-Encoding already set
-          }(req)
+          }.apply(req)
 
         case _ => service(req)
       }
-    }
   }
 
   private def isZippable(resp: Response): Boolean = {

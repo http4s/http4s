@@ -1,16 +1,21 @@
 package org.http4s
 package server.staticcontent
 
+import scalaz.Kleisli.kleisli
+import scalaz.concurrent.Task
+
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
-  val s = resourceService(ResourceService.Config(""))
+  val s = kleisli(resourceService(ResourceService.Config("")))
+    .andThenK(_.fold(Task.now(Response(Status.NotFound)))(Task.now))
+    .run
 
   "ResourceService" should {
 
     "Serve available content" in {
       val req = Request(uri = Uri.fromString("testresource.txt").yolo)
-      val rb = runReq(req).get
+      val rb = runReq(req)
 
       rb._1 must_== testResource
       rb._2.status must_== Status.Ok

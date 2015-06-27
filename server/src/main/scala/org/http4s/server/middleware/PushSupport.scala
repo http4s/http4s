@@ -3,6 +3,7 @@ package server
 package middleware
 
 import scalaz.concurrent.Task
+import scalaz.Kleisli.kleisli
 import org.log4s.getLogger
 
 object PushSupport {
@@ -45,28 +46,22 @@ object PushSupport {
     r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
+        val routeK = kleisli(route)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try route(newReq)
-            .flatMap {
-              case Some(response) =>                  // Inside the future result of this pushed resource
-                response.attributes.get(pushLocationKey)
-                  .map { pushed =>
-                    collectResponse(pushed, req, verify, route)
-                      .map(accumulated ++ _ :+ PushResponse(v.location, response))
-                  }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
-
-              case None => Task.now(accumulated)
-            }
+          try routeK.flatMapK { response =>
+            response.attributes.get(pushLocationKey).map { pushed =>
+              collectResponse(pushed, req, verify, route)
+                .map(accumulated ++ _ :+ PushResponse(v.location, response))
+            }.getOrElse(Task.now(accumulated:+PushResponse(v.location, response)))
+          }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
         } else {
-          try route(newReq).flatMap {    // Need to make sure to catch exceptions
-            case Some(resp) => facc.map(_ :+ PushResponse(v.location, resp))
-            case None       => facc
-          }
+          try routeK.flatMapK { resp => // Need to make sure to catch exceptions
+            facc.map(_ :+ PushResponse(v.location, resp))
+          }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
         }
       }
-
       else facc
     }
   
@@ -89,11 +84,7 @@ object PushSupport {
       }.getOrElse(resp)
     }
 
-    def go(req: Request): Task[Option[Response]] = service(req).map {
-      case Some(resp) => Some(gather(req, resp))
-      case None       => None
-    }
-    Service.lift(go)
+    { req => service(req).map(gather(req, _)) }
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)
