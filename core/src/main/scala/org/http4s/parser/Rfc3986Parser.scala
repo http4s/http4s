@@ -80,12 +80,13 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def IpV4Address = rule { 3.times(DecOctet ~ ".") ~ DecOctet }
 
+
   def DecOctet = rule {
-      "1" ~ 2.times(Digit)      |
-      ("1" - "9") ~ Digit       |
-      "2" ~ ("0" - "4") ~ Digit |
-      "25" ~ ("0" - "5")        |
-      Digit
+    "1"         ~ Digit       ~ Digit |
+    "2"         ~ ("0" - "4") ~ Digit |
+    "25"        ~ ("0" - "5")         |
+    ("1" - "9") ~ Digit               |
+    Digit
   }
 
   def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
