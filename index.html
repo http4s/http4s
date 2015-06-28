@@ -46,9 +46,7 @@
             <li class="dropdown">
             <a href="#" class="dropdown-toggle" data-toggle="dropdown"><i class="fa fa-gears"></i> Scaladoc <b class="caret"></b></a>
               <ul class="dropdown-menu">
-                <li><a href="http://http4s.org/api/0.9">0.9 (snapshot)</a></li>
-                <li><a href="http://http4s.org/api/0.7">0.8 (release)</a></li>
-                <li><a href="http://http4s.org/api/0.7">0.7 (release)</a></li>
+                <li><a href="http://http4s.org/api/0.7">0.7 (snapshot)</a></li>
                 <li><a href="http://http4s.org/api/0.6">0.6 (release)</a></li>
                 <li><a href="http://http4s.org/api/0.5">0.5 (release)</a></li>
                 <li><a href="http://http4s.org/api/0.4">0.4 (release)</a></li>
@@ -126,12 +124,12 @@ tying up too many threads.</p>
    <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">sink</span><span class="o">))</span>
 
  <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"wsecho"</span> <span class="k">=&gt;</span>
-   <span class="k">val</span> <span class="n">q</span> <span class="k">=</span> <span class="n">unboundedQueue</span><span class="o">[</span><span class="kt">WebSocketFrame</span><span class="o">]</span>
-   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dequeue</span><span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
+   <span class="k">val</span> <span class="n">t</span> <span class="k">=</span> <span class="n">topic</span><span class="o">[</span><span class="kt">WebSocketFrame</span><span class="o">]()</span>
+   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">t</span><span class="o">.</span><span class="n">subscribe</span><span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
      <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="s">"You sent the server: "</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span>
    <span class="o">}</span>
 
-   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">q</span><span class="o">.</span><span class="n">enqueue</span><span class="o">))</span>
+   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">t</span><span class="o">.</span><span class="n">publish</span><span class="o">))</span>
 </code></code></pre>
 
 <h2 id="toc_4">Choose your backend</h2>
@@ -185,9 +183,9 @@ for embedded Tomcat and Jetty containers.</p>
 
 <span class="k">val</span> <span class="n">page</span><span class="k">:</span> <span class="kt">Task</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"https://www.google.com/"</span><span class="o">)).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
 
-<span class="k">for</span> <span class="o">(</span><span class="k">_</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">2</span><span class="o">)</span>
-  <span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">72</span><span class="o">))</span>   <span class="c1">// each execution of the Task will refetch the page!
-</span>
+<span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">run</span><span class="o">)</span>   <span class="c1">// each execution of the Task will refetch the page!
+</span><span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">run</span><span class="o">)</span>
+
 <span class="c1">// We can do much more: how about decoding some JSON to a scala object
 // after matching based on the response status code?
 </span><span class="k">import</span> <span class="nn">org.http4s.Status.NotFound</span>
@@ -202,10 +200,10 @@ for embedded Tomcat and Jetty containers.</p>
 <span class="o">}</span> <span class="k">yield</span> <span class="nc">Foo</span><span class="o">(</span><span class="n">bar</span><span class="o">))</span>
 
 <span class="c1">// jsonOf is defined for Json4s and Argonaut, just need the right decoder!
-</span><span class="k">implicit</span> <span class="k">val</span> <span class="n">fooDecoder</span> <span class="k">=</span> <span class="n">jsonOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
+</span><span class="k">implicit</span> <span class="k">val</span> <span class="n">foDecoder</span> <span class="k">=</span> <span class="n">jsonOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
 
 <span class="c1">// Match on response code!
-</span><span class="k">val</span> <span class="n">page2</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"http://http4s.org/resources/foo.json"</span><span class="o">)).</span><span class="n">flatMap</span> <span class="o">{</span>
+</span><span class="k">val</span> <span class="n">page2</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"https://twitter.com/doesnt_exist"</span><span class="o">)).</span><span class="n">flatMap</span> <span class="o">{</span>
   <span class="k">case</span> <span class="nc">Successful</span><span class="o">(</span><span class="n">resp</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">resp</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">Foo</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="s">"Received response: "</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span>
   <span class="k">case</span> <span class="nc">NotFound</span><span class="o">(</span><span class="n">resp</span><span class="o">)</span>   <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">now</span><span class="o">(</span><span class="s">"Not Found!!!"</span><span class="o">)</span>
   <span class="k">case</span> <span class="n">resp</span>             <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">now</span><span class="o">(</span><span class="s">"Failed: "</span> <span class="o">+</span> <span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="o">)</span>
