@@ -153,7 +153,7 @@ sealed class JettyBuilder private (
     context.setContextPath("/")
 
     val handler = metricRegistry.fold[Handler](context) { reg =>
-      val h = new InstrumentedHandler(reg, metricPrefix)
+      val h = InstrumentedHandler(reg, Option(metricPrefix))
       h.setHandler(context)
       h
     }
