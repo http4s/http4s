@@ -3,7 +3,9 @@ package org.http4s
 import org.specs2.matcher.AnyMatchers
 import org.specs2.scalaz.{Spec, ScalazMatchers}
 
+import scalaz.std.AllInstances
+
 /**
  * Common stack for http4s' own specs.
  */
-trait Http4sSpec extends Spec with AnyMatchers with ScalazMatchers with Http4s with TestInstances
+trait Http4sSpec extends Spec with AnyMatchers with ScalazMatchers with Http4s with TestInstances with AllInstances

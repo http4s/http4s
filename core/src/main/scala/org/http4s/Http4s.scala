@@ -8,8 +8,7 @@ trait Http4s
 object Http4s extends Http4s
 
 trait Http4sInstances
-  extends scalaz.std.AllInstances
-  with EntityDecoderInstances
+  extends EntityDecoderInstances
   with HttpVersionInstances
   with EntityEncoderInstances
   with CharsetRangeInstances
