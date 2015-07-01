@@ -28,7 +28,7 @@ trait EmptyResponseGenerator extends Any with ResponseGenerator {
 
 /** Helper for the generation of a [[org.http4s.Response]] which may contain a body
   *
-  * While it is possible to for the [[org.http4s.Response]] manually, the EntityResponseGenerators
+  * While it is possible to construct the [[org.http4s.Response]] manually, the EntityResponseGenerators
   * offer shortcut syntax to make intention clear and concise.
   *
   * @example {{{
