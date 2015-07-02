@@ -1,3 +1,6 @@
+# v0.8.3 (2015-07-02)
+* Fix bug parsing IPv4 addresses found in URI construction.
+
 # v0.8.2 (2015-06-22)
 * Patch instrumented handler for Jetty to time async contexts correctly.
 * Fix race condition with timeout registration and route execution in blaze client
