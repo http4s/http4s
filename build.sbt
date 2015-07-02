@@ -219,7 +219,7 @@ lazy val docs = http4sProject("docs")
         examplesWar,
         loadTest
       ),
-    includeFilter in (JekyllSupport.Jekyll) := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json",
+    includeFilter in (JekyllSupport.Jekyll) := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json" | "CNAME",
     siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map {
       case (m, (major, minor)) => for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
     },
