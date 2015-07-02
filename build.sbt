@@ -54,7 +54,7 @@ organization in ThisBuild := "org.http4s"
 
 name := "http4s"
 
-version in ThisBuild := "0.8.3"
+version in ThisBuild := "0.8.4-SNAPSHOT"
 
 apiVersion in ThisBuild <<= version.map(extractApiVersion)
 
