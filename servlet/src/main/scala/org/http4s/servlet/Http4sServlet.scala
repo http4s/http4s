@@ -56,6 +56,7 @@ class Http4sServlet(service: HttpService,
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse): Unit =
     try {
       val ctx = servletRequest.startAsync()
+      ctx.setTimeout(asyncTimeoutMillis)
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
       toRequest(servletRequest).fold(
@@ -90,7 +91,7 @@ class Http4sServlet(service: HttpService,
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       if (!servletResponse.isCommitted) {
         val response = Response(Status.InternalServerError).withBody("Service timed out.")
-        renderResponse(response, servletResponse, bodyWriter)
+        renderResponse(response, servletResponse, bodyWriter).run
       }
       else {
         val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]

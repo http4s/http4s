@@ -114,5 +114,10 @@ object ScienceExperiments {
       val result = Task.reduceUnordered(tasks)(Reducer.identityReducer)
       Ok(result)
 
+    case req @ GET -> Root / "idle" / IntVar(seconds) =>
+      for {
+        _    <- Task.delay { Thread.sleep(seconds) }
+        resp <- Ok("finally!")
+      } yield resp
   }
 }
