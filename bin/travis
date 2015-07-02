@@ -13,8 +13,10 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   echo -e "Host github.com\n\tStrictHostKeyChecking no\n" >> ~/.ssh/config
   SBT_COMMAND="$SBT_COMMAND ;publish"
   if [[ $SBT_COMMAND == *"makeSite"* ]]; then
-    git config --global user.email "travis-ci@http4s.org"
-    git config --global user.name "Travis CI"
+    export GIT_AUTHOR_NAME="Travis CI"
+    export GIT_AUTHOR_EMAIL="travis-ci@http4s.org"
+    export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
+    export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
     SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
   fi
 fi
