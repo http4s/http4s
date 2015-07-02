@@ -17,7 +17,7 @@ version in ThisBuild := "0.9.0-SNAPSHOT"
 // Root project
 name := "root"
 
-version in ThisBuild := "0.8.3-SNAPSHOT"
+version in ThisBuild := "0.8.3"
 
 apiVersion in ThisBuild <<= version.map(extractApiVersion)
 
