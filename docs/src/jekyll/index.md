@@ -52,7 +52,7 @@ val service = HttpService {
 
 http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.
 
-{%code_ref ../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeWebSocketExample.scala blaze_websocket_example %}
+{%code_ref ../../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeWebSocketExample.scala blaze_websocket_example %}
 
 ## Choose your backend
 
@@ -62,7 +62,7 @@ needs now, and easily port if and when your needs change.
 
 [blaze](http://github.com/http4s/blaze) is an NIO framework.  Run http4s on blaze for maximum throughput.
 
-{%code_ref ../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeExample.scala blaze_server_example %}
+{%code_ref ../../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeExample.scala blaze_server_example %}
 
 ### Servlets
 
@@ -71,13 +71,13 @@ on your existing infrastructure, and take full advantage of the mature JVM ecosy
 http4s can run in a .war on any Servlet 3.0+ container, and comes with convenient builders
 for embedded Tomcat and Jetty containers.
 
-{%code_ref ../../examples/jetty/src/main/scala/com/example/http4s/jetty/JettyExample.scala jetty_example %}
+{%code_ref ../../../examples/jetty/src/main/scala/com/example/http4s/jetty/JettyExample.scala jetty_example %}
 
 ## An Asynchronous Client ##
 
 http4s also offers an asynchronous HTTP client built on the same model as the server.
 
-{%code_ref ../../examples/blaze/src/main/scala/com/example/http4s/blaze/ClientExample.scala blaze_client_example %}
+{%code_ref ../../../examples/blaze/src/main/scala/com/example/http4s/blaze/ClientExample.scala blaze_client_example %}
 
 ## Other features ##
 
