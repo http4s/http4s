@@ -1,17 +1,18 @@
 language: scala
 scala:
-  - 2.10.5
-  - 2.11.7
+- 2.10.5
+- 2.11.7
 jdk: oraclejdk7
 env:
   global:
-  - secure: IgzqZjDGDiXkBrGoTdAdj/em5C+rO48QSdeA3K0FTzuti8VuC4U7RslqiqokF1QziOxA6GYjB0sfVdupAnDmyuYLUjDDvvEuQu73bt1fucQxho2xUHq678xjorV2xKrAKriiFG8i4HMFNVL+vKKtScGTkjyNI29bdLYJS7Bftgw=
+  - secure: KYFDtmCrWla9HEUMnlNo8rNKAfFeigowxheDikTZr8ZMz/1n9QDqkYF0GBccmk1MwADccI6rhyTEvonZBEYXeJIs+AEMg3WYKaaTg+DYPWXLqXtenmuj9nDChJ28xdTOH/Ne0FtJ1icF7BxrpSepUHKLJma1LZFCSaA7gFdsgtE=
+  - secure: MxKRKhjMqSYKibM+IvnVdXRyo8lZNpR7Bx14TSwuUKy6aX9GRHSbGSJpJpr38I42jLgxQIiAPaADgpwE4u1FZnkPxY2+MNoWbNBoCyab7ApB4DyeyRWca5JSl1IJBOHIRknLgdDgwdHaRqZL+p3Dojni1STqwg1row6Y9wms4Es=
 rvm:
-  - "1.9.3-p392"
+- 1.9.3-p392
 script: bash bin/travis
 webhooks:
   urls:
-    - https://webhooks.gitter.im/e/aadbcad1ca1e91b5a189
+  - https://webhooks.gitter.im/e/aadbcad1ca1e91b5a189
   on_success: change
   on_failure: always
   on_start: false
