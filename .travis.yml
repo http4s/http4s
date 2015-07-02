@@ -16,3 +16,7 @@ webhooks:
   on_success: change
   on_failure: always
   on_start: false
+sudo: false
+cache:
+  directories:
+  - $HOME/.ivy2/cache
