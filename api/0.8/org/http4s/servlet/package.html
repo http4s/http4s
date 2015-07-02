@@ -28,11 +28,11 @@
         </head>
         <body class="value">
       <div id="definition">
-        <img src="../../../lib/package_big.png" />
+        <img alt="Package" src="../../../lib/package_big.png" />
         <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a></p>
         <h1>servlet</h1><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       </div>
@@ -49,7 +49,7 @@
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -75,7 +75,6 @@
               <li class="hideall out"><span>Hide All</span></li>
               <li class="showall in"><span>Show all</span></li>
             </ol>
-            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
           </div>
         <div id="visbl">
             <span class="filtertype">Visibility</span>
@@ -102,7 +101,7 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@AbstractAsyncListenerextendsAsyncListener" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -115,11 +114,11 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="BlockingServletIo.html"><span class="name">BlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="BlockingServletIo.html"><span class="name">BlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@BlockingServletIoextendsServletIowithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Use standard blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use standard blocking reads and writes.</p><p>This is more CPU efficient per request than <a href="NonBlockingServletIo.html" class="extype" name="org.http4s.servlet.NonBlockingServletIo">NonBlockingServletIo</a>, but is likely to
@@ -134,11 +133,11 @@ require a larger request thread pool for the same load.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">BodyWriter</span><span class="result"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">BodyWriter</span><span class="result"> = (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@BodyWriter=org.http4s.Response=&gt;scalaz.concurrent.Task[Unit]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -155,7 +154,7 @@ require a larger request thread pool for the same load.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@Http4sServletextendsHttpServlet" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -168,11 +167,11 @@ require a larger request thread pool for the same load.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="NonBlockingServletIo.html"><span class="name">NonBlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="NonBlockingServletIo.html"><span class="name">NonBlockingServletIo</span></a><span class="params">(<span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <a href="ServletIo.html" class="extype" name="org.http4s.servlet.ServletIo">ServletIo</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@NonBlockingServletIoextendsServletIowithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Use non-blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.</p><p>This can support more concurrent connections on a smaller request thread pool than <span class="extype" name="BlockingServletIO">BlockingServletIO</span>,
@@ -189,11 +188,11 @@ operationally annoying.
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ServletApiVersion.html"><span class="name">ServletApiVersion</span></a><span class="params">(<span name="major">major: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="minor">minor: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="ServletApiVersion.html" class="extype" name="org.http4s.servlet.ServletApiVersion">ServletApiVersion</a>] with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="ServletApiVersion.html"><span class="name">ServletApiVersion</span></a><span class="params">(<span name="major">major: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="minor">minor: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="ServletApiVersion.html" class="extype" name="org.http4s.servlet.ServletApiVersion">ServletApiVersion</a>] with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@ServletApiVersionextendsOrdered[org.http4s.servlet.ServletApiVersion]withProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -210,7 +209,7 @@ operationally annoying.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@ServletContainerextendsServerBuilderwithAsyncTimeoutSupport" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -223,11 +222,11 @@ operationally annoying.
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="ServletIo.html"><span class="name">ServletIo</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="ServletIo.html"><span class="name">ServletIo</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@ServletIoextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Determines the mode of I/O used for reading request bodies and writing response bodies.</p>
@@ -247,11 +246,11 @@ operationally annoying.
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">DefaultChunkSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">DefaultChunkSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@DefaultChunkSize:Int" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -268,7 +267,7 @@ operationally annoying.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@NullBodyWriter:org.http4s.servlet.package.BodyWriter" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
@@ -281,11 +280,11 @@ operationally annoying.
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="ServletApiVersion$.html"><span class="name">ServletApiVersion</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="ServletApiVersion$.html"><span class="name">ServletApiVersion</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@ServletApiVersion" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -302,7 +301,7 @@ operationally annoying.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@ServletContainer" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -319,7 +318,7 @@ operationally annoying.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.package@syntax" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" />
+        <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -333,9 +332,9 @@ operationally annoying.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

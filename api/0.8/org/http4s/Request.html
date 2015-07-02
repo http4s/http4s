@@ -28,15 +28,15 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="Request$.html" title="Go to companion"><img src="../../lib/class_to_object_big.png" /></a>
+        <a href="Request$.html" title="See companion object"><img alt="Class/Object" src="../../lib/class_to_object_big.png" /></a>
         <p id="owner"><a href="../package.html" class="extype" name="org">org</a>.<a href="package.html" class="extype" name="org.http4s">http4s</a></p>
-        <h1><a href="Request$.html" title="Go to companion">Request</a></h1><h3><span class="morelinks"><div>
+        <h1><a href="Request$.html" title="See companion object">Request</a></h1><h3><span class="morelinks"><div>
             Related Docs:
-            <a href="Request$.html" title="See companion">object Request</a>
+            <a href="Request$.html" title="See companion object">object Request</a>
             | <a href="package.html" class="extype" name="org.http4s">package http4s</a>
           </div></span></h3><span class="permalink">
       <a href="../../index.html#org.http4s.Request" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       </div>
@@ -47,16 +47,15 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Request</span><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="package.html#EmptyBody:scalaz.stream.Process0[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a> with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">Request</span><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="package.html#EmptyBody:scalaz.stream.Process0[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of an incoming HTTP message</p><p>A Request encapsulates the entirety of the incoming HTTP request including the
 status line, headers, and a possible request body.
-</p></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Methodwithorg.http4s.Method.Semantics.Safewithorg.http4s.Method.NoBody" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Methodwithorg.http4s.Method.Semantics.Defaultwithorg.http4s.Method.PermitsBody" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p></dd><dt class="param">uri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
-</p></dd></dl><div class="toggleContainer block">
+</p></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Methodwithorg.http4s.Method.Semantics.Safewithorg.http4s.Method.NoBody" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Methodwithorg.http4s.Method.Semantics.Defaultwithorg.http4s.Method.PermitsBody" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p></dd><dt class="param">uri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion</p></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -82,7 +81,6 @@ status line, headers, and a possible request body.
               <li class="hideall out"><span>Hide All</span></li>
               <li class="showall in"><span>Show all</span></li>
             </ol>
-            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
           </div>
         <div id="visbl">
             <span class="filtertype">Visibility</span>
@@ -107,11 +105,10 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@&lt;init&gt;(method:org.http4s.Method,uri:org.http4s.Uri,httpVersion:org.http4s.HttpVersion,headers:org.http4s.Headers,body:org.http4s.EntityBody,attributes:org.http4s.AttributeMap):org.http4s.Request" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Methodwithorg.http4s.Method.Semantics.Safewithorg.http4s.Method.NoBody" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Methodwithorg.http4s.Method.Semantics.Defaultwithorg.http4s.Method.PermitsBody" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p></dd><dt class="param">uri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
-</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">method</dt><dd class="cmt"><p><a href="Method$.html#GET:org.http4s.Methodwithorg.http4s.Method.Semantics.Safewithorg.http4s.Method.NoBody" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Methodwithorg.http4s.Method.Semantics.Defaultwithorg.http4s.Method.PermitsBody" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p></dd><dt class="param">uri</dt><dd class="cmt"><p>representation of the request URI</p></dd><dt class="param">httpVersion</dt><dd class="cmt"><p>the HTTP version</p></dd><dt class="param">headers</dt><dd class="cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></dd><dt class="param">body</dt><dd class="cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></dd><dt class="param">attributes</dt><dd class="cmt"><p>Immutable Map used for carrying additional information in a type safe fashion</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -130,7 +127,7 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@Self=org.http4s.Request" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -150,11 +147,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@!=(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -167,11 +164,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@##():Int" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -184,11 +181,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@==(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -205,11 +202,10 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@as[T](implicitdecoder:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the T
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type</p><p>If no valid <a href="Status.html" class="extype" name="org.http4s.Status">Status</a> has been described, allow Ok</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the T</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -223,7 +219,7 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@asInstanceOf[T0]:T0" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -240,13 +236,12 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@attemptAs[T](implicitdecoder:org.http4s.EntityDecoder[T]):org.http4s.DecodeResult[T]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
 </p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
-</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the <code>DecodeResult[T]</code>
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the <code>DecodeResult[T]</code></p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.Request#attributes" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="attributes:org.http4s.AttributeMap"></a>
       <a id="attributes:AttributeMap"></a>
@@ -260,12 +255,10 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@attributes:org.http4s.AttributeMap" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Immutable Map used for carrying additional information in a type safe fashion
-</p><div class="fullcomment"><div class="comment cmt"><p>Immutable Map used for carrying additional information in a type safe fashion
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+      <p class="shortcomment cmt">Immutable Map used for carrying additional information in a type safe fashion</p><div class="fullcomment"><div class="comment cmt"><p>Immutable Map used for carrying additional information in a type safe fashion</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Request#authType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="authType:Option[org.http4s.AuthScheme]"></a>
       <a id="authType:Option[AuthScheme]"></a>
@@ -275,11 +268,11 @@ status line, headers, and a possible request body.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">authType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="package.html#AuthScheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.AuthScheme">AuthScheme</a>]</span>
+        <span class="name">authType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="package.html#AuthScheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.AuthScheme">AuthScheme</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@authType:Option[org.http4s.AuthScheme]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -296,7 +289,7 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@body:org.http4s.EntityBody" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">scalaz.stream.Process[Task,Chunk] defining the body of the request</p><div class="fullcomment"><div class="comment cmt"><p>scalaz.stream.Process[Task,Chunk] defining the body of the request</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -313,7 +306,7 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@change(body:org.http4s.EntityBody,headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Request.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -326,11 +319,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">charset</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
+        <span class="name">charset</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Charset.html" class="extype" name="org.http4s.Charset">Charset</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@charset:Option[org.http4s.Charset]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -343,11 +336,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@clone():Object" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -366,11 +359,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
+        <span class="name">contentLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@contentLength:Option[Int]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -383,11 +376,11 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">contentType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>
+        <span class="name">contentType</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@contentType:Option[org.http4s.headers.Content-Type]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -404,7 +397,7 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@decode[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Helper method for decoding <a href="" class="extype" name="org.http4s.Request">Request</a>s</p><div class="fullcomment"><div class="comment cmt"><p>Helper method for decoding <a href="" class="extype" name="org.http4s.Request">Request</a>s</p><p>Attempt to decode the <a href="" class="extype" name="org.http4s.Request">Request</a> and, if successful, execute the continuation to get a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.
@@ -423,7 +416,7 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@decodeWith[A](decoder:org.http4s.EntityDecoder[A])(f:A=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Like <a href="#decode[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]" class="extmbr" name="org.http4s.Request#decode">decode</a>, but with an explicit decoder.</p>
@@ -436,11 +429,11 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -453,17 +446,16 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Remove headers that satisfy the predicate
 </p><div class="fullcomment"><div class="comment cmt"><p>Remove headers that satisfy the predicate
-</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -473,11 +465,11 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@finalize():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -500,7 +492,7 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -517,7 +509,7 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@headers:org.http4s.Headers" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p><div class="fullcomment"><div class="comment cmt"><p>collection of <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -534,7 +526,7 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@httpVersion:org.http4s.HttpVersion" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">the HTTP version</p><div class="fullcomment"><div class="comment cmt"><p>the HTTP version</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -547,11 +539,11 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isChunked</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isChunked</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@isChunked:Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
@@ -564,11 +556,11 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -585,7 +577,7 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@method:org.http4s.Method" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt"><a href="Method$.html#GET:org.http4s.Methodwithorg.http4s.Method.Semantics.Safewithorg.http4s.Method.NoBody" class="extmbr" name="org.http4s.Method#GET">Method.GET</a>, <a href="Method$.html#POST:org.http4s.Methodwithorg.http4s.Method.Semantics.Defaultwithorg.http4s.Method.PermitsBody" class="extmbr" name="org.http4s.Method#POST">Method.POST</a>, etc.</p>
@@ -602,7 +594,7 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@multiParams:Map[String,Seq[String]]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Representation of the query string as a map</p><div class="fullcomment"><div class="comment cmt"><p>Representation of the query string as a map</p><p>In case a parameter is available in query string but no value is there the
@@ -626,11 +618,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -643,11 +635,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@notify():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -660,11 +652,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@notifyAll():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -681,12 +673,11 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@params:Map[String,String]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">View of the head elements of the URI parameters in query string.</p><div class="fullcomment"><div class="comment cmt"><p>View of the head elements of the URI parameters in query string.</p><p>In case a parameter has no value the map returns an empty string.
-</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>multiParams
-</p></span></dd></dl></div>
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>multiParams</p></span></dd></dl></div>
     </li><li name="org.http4s.Request#pathInfo" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="pathInfo:String"></a>
       <a id="pathInfo:String"></a>
@@ -700,7 +691,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@pathInfo:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -713,11 +704,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">pathTranslated</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.io.File">File</span>]</span>
+        <span class="name">pathTranslated</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.io.File">File</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@pathTranslated:Option[java.io.File]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -734,7 +725,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@putHeaders(headers:org.http4s.Header*):Message.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -751,7 +742,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@queryString:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -764,11 +755,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remote</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
+        <span class="name">remote</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remote:Option[java.net.InetAddress]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -781,11 +772,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteAddr</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteAddr</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remoteAddr:Option[String]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -798,11 +789,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteHost</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteHost</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remoteHost:Option[String]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -815,11 +806,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remoteUser</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <span class="name">remoteUser</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remoteUser:Option[String]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -836,7 +827,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@removeHeader(key:org.http4s.HeaderKey):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -853,7 +844,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@scriptName:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -870,7 +861,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@serverName:String" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -883,11 +874,11 @@ an empty <code>Map</code> is returned.
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">serverPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">serverPort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@serverPort:Int" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -904,7 +895,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@serverSoftware:org.http4s.server.ServerSoftware" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -921,7 +912,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -938,7 +929,7 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@trailerHeaders:scalaz.concurrent.Task[org.http4s.Headers]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">The trailer headers, as specified in Section 3.6.1 of RFC 2616.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
@@ -957,7 +948,7 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@uri:org.http4s.Uri" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">representation of the request URI</p>
@@ -970,11 +961,11 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@wait():Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -993,11 +984,11 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1016,11 +1007,11 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@wait(x$1:Long):Unit" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -1043,13 +1034,12 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withAttribute[A](key:org.http4s.AttributeKey[A],value:A):Message.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
 </p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="tparam">A</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">key</dt><dd class="cmt"><p><a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a> with which to associate the value</p></dd><dt class="param">value</dt><dd class="cmt"><p>value associated with the key</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withAttribute" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withAttribute[V](entry:org.http4s.AttributeEntry[V]):MessageOps.this.Self"></a>
       <a id="withAttribute[V](AttributeEntry[V]):Self"></a>
@@ -1063,13 +1053,12 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withAttribute[V](entry:org.http4s.AttributeEntry[V]):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
 </p><div class="fullcomment"><div class="comment cmt"><p>Generates a new message object with the specified key/value pair appended to the <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">org.http4s.AttributeMap</a>
-</p></div><dl class="paramcmts block"><dt class="tparam">V</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="tparam">V</dt><dd class="cmt"><p>type of the value to store</p></dd><dt class="param">entry</dt><dd class="cmt"><p><a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a> entry to add</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object with the key/value pair appended</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.Message#withBody" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withBody[T](b:T)(implicitw:org.http4s.EntityEncoder[T]):scalaz.concurrent.Task[Message.this.Self]"></a>
       <a id="withBody[T](T)(EntityEncoder[T]):Task[Self]"></a>
@@ -1083,13 +1072,12 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withBody[T](b:T)(implicitw:org.http4s.EntityEncoder[T]):scalaz.concurrent.Task[Message.this.Self]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Replace the body of this message with a new body
 </p><div class="fullcomment"><div class="comment cmt"><p>Replace the body of this message with a new body
-</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the Body</p></dd><dt class="param">b</dt><dd class="cmt"><p>body to attach to this method</p></dd><dt class="param">w</dt><dd class="cmt"><p><a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> with which to convert the body to an <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></p></dd><dt>returns</dt><dd class="cmt"><p>a new message with the new body
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the Body</p></dd><dt class="param">b</dt><dd class="cmt"><p>body to attach to this method</p></dd><dt class="param">w</dt><dd class="cmt"><p><a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a> with which to convert the body to an <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></p></dd><dt>returns</dt><dd class="cmt"><p>a new message with the new body</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withContentType" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withContentType(contentType:Option[org.http4s.headers.Content-Type]):MessageOps.this.Self"></a>
       <a id="withContentType(Option[Content-Type]):Self"></a>
@@ -1099,11 +1087,11 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self=org.http4s.Request" class="extmbr" name="org.http4s.Request.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withContentType(contentType:Option[org.http4s.headers.Content-Type]):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -1120,13 +1108,12 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withHeaders(headers:org.http4s.Headers):Message.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
 </p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object
-</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
       <a id="withHeaders(Header*):Self"></a>
@@ -1140,7 +1127,7 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -1157,7 +1144,7 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withPathInfo(pi:String):org.http4s.Request" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
@@ -1174,7 +1161,7 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withTrailerHeaders(trailerHeaders:scalaz.concurrent.Task[org.http4s.Headers]):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -1191,7 +1178,7 @@ task might not complete unless the entire body has been consumed.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@withType(t:org.http4s.MediaType):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" />
+        <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Added the <span class="extype" name="`Content-Type`">`Content-Type`</span> header to the response</p><div class="fullcomment"><div class="comment cmt"><p>Added the <span class="extype" name="`Content-Type`">`Content-Type`</span> header to the response</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
@@ -1205,21 +1192,21 @@ task might not complete unless the entire body has been consumed.
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
             </div><div class="parent" name="org.http4s.Message">
               <h3>Inherited from <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></h3>
             </div><div class="parent" name="org.http4s.MessageOps">
               <h3>Inherited from <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>
