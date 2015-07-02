@@ -15,6 +15,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
 import scalaz.{-\/, EitherT, \/, \/-}
+import scalaz.stream.Process
 
 import util.UrlFormCodec.{ decode => formDecode }
 import util.byteVector._
@@ -136,6 +137,22 @@ trait EntityDecoderInstances {
   implicit val binary: EntityDecoder[ByteVector] = {
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary)
   }
+
+  implicit def sourceDecoder[A](implicit W: EntityDecoder[A]): EntityDecoder[Process[Task,A]] =
+    new EntityDecoder[Process[Task,A]] {
+      override def decode(msg: Message): DecodeResult[Process[Task,A]] = {
+        val result = msg.body.flatMap{ byteVector =>
+          val fakeMessage = Request(body = Process.emit(byteVector))
+          Process.await(W.decode(fakeMessage).run) {
+            case -\/(f) => Process.fail(ParseException(f))
+            case \/-(a) => Process.emit(a)
+          }
+        }
+        EitherT.right(Task.now(result))
+      }
+
+      override def consumes: Set[MediaRange] = W.consumes
+    }
 
   implicit val text: EntityDecoder[String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>

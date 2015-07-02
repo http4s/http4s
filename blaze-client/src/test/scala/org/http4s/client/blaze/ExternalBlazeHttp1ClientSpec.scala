@@ -1,6 +1,7 @@
 package org.http4s.client.blaze
 
 import scalaz.concurrent.Task
+import scalaz.stream.Process
 
 import org.http4s._
 
@@ -25,6 +26,21 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions wit
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.length mustNotEqual 0
+    }
+
+    "Treat a streaming http request as if it were not streaming" in {
+      val resp = client(uri("http://httpize.herokuapp.com/stream/10")).as[String].run
+
+
+      resp.count('T' == _) mustEqual 10
+    }
+
+    "Make chunked http request" in {
+      val resp = client(uri("http://httpize.herokuapp.com/stream/50")).as[Process[Task, String]].run
+
+      val result = resp.runLog.run
+
+      result.mkString.count('T' == _) mustEqual 50
     }
   }
 
