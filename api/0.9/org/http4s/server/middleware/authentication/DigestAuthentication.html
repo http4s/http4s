@@ -28,13 +28,13 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img src="../../../../../lib/class_big.png" />
+        <img alt="Class" src="../../../../../lib/class_big.png" />
         <p id="owner"><a href="../../../../package.html" class="extype" name="org">org</a>.<a href="../../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../../package.html" class="extype" name="org.http4s.server">server</a>.<a href="../package.html" class="extype" name="org.http4s.server.middleware">middleware</a>.<a href="package.html" class="extype" name="org.http4s.server.middleware.authentication">authentication</a></p>
         <h1>DigestAuthentication</h1><h3><span class="morelinks"><div>Related Doc:
             <a href="package.html" class="extype" name="org.http4s.server.middleware.authentication">package authentication</a>
           </div></span></h3><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       </div>
@@ -53,7 +53,7 @@
 on creation to clean up stale nonces. Please call <code><span class="extype" name="shutdown()">shutdown()</span></code> when the object is not
 used anymore to kill this thread.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -79,7 +79,6 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
               <li class="hideall out"><span>Hide All</span></li>
               <li class="showall in"><span>Show all</span></li>
             </ol>
-            <a href="http://docs.scala-lang.org/overviews/scaladoc/usage.html#members" target="_blank">Learn more about member selection</a>
           </div>
         <div id="visbl">
             <span class="filtertype">Visibility</span>
@@ -100,19 +99,18 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">DigestAuthentication</span><span class="params">(<span name="realm">realm: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="store">store: <a href="package.html#AuthenticationStore=(String,String)=&gt;scalaz.concurrent.Task[Option[String]]" class="extmbr" name="org.http4s.server.middleware.authentication.AuthenticationStore">AuthenticationStore</a></span>, <span name="nonceCleanupInterval">nonceCleanupInterval: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a> = <span class="symbol">3600.seconds</span></span>, <span name="nonceStaleTime">nonceStaleTime: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a> = <span class="symbol">3600.seconds</span></span>, <span name="nonceBits">nonceBits: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">160</span></span>)</span>
+        <span class="name">DigestAuthentication</span><span class="params">(<span name="realm">realm: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="store">store: <a href="package.html#AuthenticationStore=(String,String)=&gt;scalaz.concurrent.Task[Option[String]]" class="extmbr" name="org.http4s.server.middleware.authentication.AuthenticationStore">AuthenticationStore</a></span>, <span name="nonceCleanupInterval">nonceCleanupInterval: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a> = <span class="symbol">3600.seconds</span></span>, <span name="nonceStaleTime">nonceStaleTime: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a> = <span class="symbol">3600.seconds</span></span>, <span name="nonceBits">nonceBits: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">160</span></span>)</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@&lt;init&gt;(realm:String,store:org.http4s.server.middleware.authentication.AuthenticationStore,nonceCleanupInterval:scala.concurrent.duration.Duration,nonceStaleTime:scala.concurrent.duration.Duration,nonceBits:Int):org.http4s.server.middleware.authentication.DigestAuthentication" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">realm</dt><dd class="cmt"><p>The realm used for authentication purposes.</p></dd><dt class="param">store</dt><dd class="cmt"><p>A partial function mapping (realm, user) to the
              appropriate password.</p></dd><dt class="param">nonceCleanupInterval</dt><dd class="cmt"><p>Interval (in milliseconds) at which stale
                             nonces should be cleaned up.</p></dd><dt class="param">nonceStaleTime</dt><dd class="cmt"><p>Amount of time (in milliseconds) after which a nonce
                       is considered stale (i.e. not used for authentication
-                      purposes anymore).</p></dd><dt class="param">nonceBits</dt><dd class="cmt"><p>The number of random bits a nonce should consist of.
-</p></dd></dl></div>
+                      purposes anymore).</p></dd><dt class="param">nonceBits</dt><dd class="cmt"><p>The number of random bits a nonce should consist of.</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -131,11 +129,11 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@!=(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -148,11 +146,11 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@##():Int" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -165,11 +163,11 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@==(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -186,7 +184,7 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@addUserRealmAttributes(req:org.http4s.Request,user:String,realm:String):org.http4s.Request" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></dd></dl></div>
@@ -203,7 +201,7 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@apply(service:org.http4s.server.HttpService):org.http4s.server.HttpService" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></dd></dl></div>
@@ -220,7 +218,7 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@asInstanceOf[T0]:T0" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -233,11 +231,11 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@clone():Object" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -256,11 +254,11 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -273,11 +271,11 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@equals(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -290,11 +288,11 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@finalize():Unit" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -317,19 +315,17 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@getChallenge(req:org.http4s.Request):scalaz.concurrent.Task[scalaz.\/[org.http4s.Challenge,org.http4s.Request]]" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Side-effect of running the returned task: If req contains a valid
 AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p><div class="fullcomment"><div class="comment cmt"><p>Side-effect of running the returned task: If req contains a valid
-AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>The request received from the client.
-</p></dd><dt>returns</dt><dd class="cmt"><p>If req contains valid credentials, a copy of req is returned that
+AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div><dl class="paramcmts block"><dt class="param">req</dt><dd class="cmt"><p>The request received from the client.</p></dd><dt>returns</dt><dd class="cmt"><p>If req contains valid credentials, a copy of req is returned that
         contains additional attributes pertaining to authentication such
         as the username and realm from the valid credentials.
         If req does not contain valid credentials, a challenge is returned.
         This challenge will be included in the HTTP 401
-        Unauthorized response that is returned to the client.
-</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.middleware.authentication.DigestAuthentication">DigestAuthentication</a> → <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></dd></dl></div>
+        Unauthorized response that is returned to the client.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.middleware.authentication.DigestAuthentication">DigestAuthentication</a> → <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></dd></dl></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -343,7 +339,7 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@getClass():Class[_]" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -356,11 +352,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@hashCode():Int" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -373,11 +369,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
@@ -390,11 +386,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -407,11 +403,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@notify():Unit" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -424,11 +420,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@notifyAll():Unit" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -445,7 +441,7 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
@@ -462,7 +458,7 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@toString():String" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
@@ -475,11 +471,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@wait():Unit" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -498,11 +494,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -521,11 +517,11 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@wait(x$1:Long):Unit" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" />
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
@@ -547,9 +543,9 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <div class="parent" name="org.http4s.server.middleware.authentication.Authentication">
               <h3>Inherited from <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.5/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         
         </div>

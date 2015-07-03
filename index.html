@@ -113,7 +113,26 @@ tying up too many threads.</p>
 </code></pre></div>
 <p>http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.</p>
 
-<p>Code ref file &#39;../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeWebSocketExample.scala&#39; does not exist.</p>
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span>
+ <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"hello"</span> <span class="k">=&gt;</span>
+   <span class="nc">Ok</span><span class="o">(</span><span class="s">"Hello world."</span><span class="o">)</span>
+
+ <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"ws"</span> <span class="k">=&gt;</span>
+   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">awakeEvery</span><span class="o">(</span><span class="mf">1.</span><span class="n">seconds</span><span class="o">)(</span><span class="nc">Strategy</span><span class="o">.</span><span class="nc">DefaultStrategy</span><span class="o">,</span> <span class="nc">DefaultScheduler</span><span class="o">).</span><span class="n">map</span><span class="o">{</span> <span class="n">d</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="n">s</span><span class="s">"Ping! $d"</span><span class="o">)</span> <span class="o">}</span>
+   <span class="k">val</span> <span class="n">sink</span><span class="k">:</span> <span class="kt">Sink</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">WebSocketFrame</span><span class="o">]</span> <span class="k">=</span> <span class="nc">Process</span><span class="o">.</span><span class="n">constant</span> <span class="o">{</span>
+     <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">t</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span> <span class="n">println</span><span class="o">(</span><span class="n">t</span><span class="o">))</span>
+     <span class="k">case</span> <span class="n">f</span>       <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">delay</span><span class="o">(</span><span class="n">println</span><span class="o">(</span><span class="n">s</span><span class="s">"Unknown type: $f"</span><span class="o">))</span>
+   <span class="o">}</span>
+   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">sink</span><span class="o">))</span>
+
+ <span class="k">case</span> <span class="n">req</span><span class="k">@</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"wsecho"</span> <span class="k">=&gt;</span>
+   <span class="k">val</span> <span class="n">q</span> <span class="k">=</span> <span class="n">unboundedQueue</span><span class="o">[</span><span class="kt">WebSocketFrame</span><span class="o">]</span>
+   <span class="k">val</span> <span class="n">src</span> <span class="k">=</span> <span class="n">q</span><span class="o">.</span><span class="n">dequeue</span><span class="o">.</span><span class="n">collect</span> <span class="o">{</span>
+     <span class="k">case</span> <span class="nc">Text</span><span class="o">(</span><span class="n">msg</span><span class="o">,</span> <span class="k">_</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="nc">Text</span><span class="o">(</span><span class="s">"You sent the server: "</span> <span class="o">+</span> <span class="n">msg</span><span class="o">)</span>
+   <span class="o">}</span>
+
+   <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">q</span><span class="o">.</span><span class="n">enqueue</span><span class="o">))</span>
+</code></code></pre>
 
 <h2 id="toc_4">Choose your backend</h2>
 
@@ -124,7 +143,15 @@ needs now, and easily port if and when your needs change.</p>
 
 <p><a href="http://github.com/http4s/blaze">blaze</a> is an NIO framework.  Run http4s on blaze for maximum throughput.</p>
 
-<p>Code ref file &#39;../../examples/blaze/src/main/scala/com/example/http4s/blaze/BlazeExample.scala&#39; does not exist.</p>
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">import</span> <span class="nn">com.example.http4s.ExampleService</span>
+<span class="n">mport</span> <span class="n">org</span><span class="o">.</span><span class="n">http4s</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">blaze</span><span class="o">.</span><span class="nc">BlazeBuilder</span>
+
+<span class="n">bject</span> <span class="nc">BlazeExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+ <span class="nc">BlazeBuilder</span><span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
+   <span class="o">.</span><span class="n">run</span>
+   <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
+</code></code></pre>
 
 <h3 id="toc_6">Servlets</h3>
 
@@ -133,13 +160,58 @@ on your existing infrastructure, and take full advantage of the mature JVM ecosy
 http4s can run in a .war on any Servlet 3.0+ container, and comes with convenient builders
 for embedded Tomcat and Jetty containers.</p>
 
-<p>Code ref file &#39;../../examples/jetty/src/main/scala/com/example/http4s/jetty/JettyExample.scala&#39; does not exist.</p>
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight">
+<span class="k">object</span> <span class="nc">JettyExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+  <span class="k">val</span> <span class="n">metrics</span> <span class="k">=</span> <span class="k">new</span> <span class="nc">MetricRegistry</span>
+
+  <span class="nc">JettyBuilder</span>
+    <span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">withMetricRegistry</span><span class="o">(</span><span class="n">metrics</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mountServlet</span><span class="o">(</span><span class="k">new</span> <span class="nc">MetricsServlet</span><span class="o">(</span><span class="n">metrics</span><span class="o">),</span> <span class="s">"/metrics/*"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">run</span>
+    <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
+<span class="o">}</span>
+</code></code></pre>
 
 <h2 id="toc_7">An Asynchronous Client</h2>
 
 <p>http4s also offers an asynchronous HTTP client built on the same model as the server.</p>
 
-<p>Code ref file &#39;../../examples/blaze/src/main/scala/com/example/http4s/blaze/ClientExample.scala&#39; does not exist.</p>
+<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">import</span> <span class="nn">org.http4s.Http4s._</span>
+<span class="k">import</span> <span class="nn">scalaz.concurrent.Task</span>
+
+<span class="k">val</span> <span class="n">client</span> <span class="k">=</span> <span class="n">org</span><span class="o">.</span><span class="n">http4s</span><span class="o">.</span><span class="n">client</span><span class="o">.</span><span class="n">blaze</span><span class="o">.</span><span class="n">defaultClient</span>
+
+<span class="k">val</span> <span class="n">page</span><span class="k">:</span> <span class="kt">Task</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"https://www.google.com/"</span><span class="o">)).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+
+<span class="k">for</span> <span class="o">(</span><span class="k">_</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">2</span><span class="o">)</span>
+  <span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">72</span><span class="o">))</span>   <span class="c1">// each execution of the Task will refetch the page!
+</span>
+<span class="c1">// We can do much more: how about decoding some JSON to a scala object
+// after matching based on the response status code?
+</span><span class="k">import</span> <span class="nn">org.http4s.Status.NotFound</span>
+<span class="k">import</span> <span class="nn">org.http4s.Status.ResponseClass.Successful</span>
+<span class="k">import</span> <span class="nn">argonaut.DecodeJson</span>
+<span class="k">import</span> <span class="nn">org.http4s.argonaut.jsonOf</span>
+
+<span class="k">case</span> <span class="k">class</span> <span class="nc">Foo</span><span class="o">(</span><span class="n">bar</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
+
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">fooDecode</span> <span class="k">=</span> <span class="nc">DecodeJson</span><span class="o">(</span><span class="n">c</span> <span class="k">=&gt;</span> <span class="k">for</span> <span class="o">{</span> <span class="c1">// Argonaut decoder. Could also use json4s.
+</span>  <span class="n">bar</span> <span class="k">&lt;-</span> <span class="o">(</span><span class="n">c</span> <span class="o">--\</span> <span class="s">"bar"</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="nc">Foo</span><span class="o">(</span><span class="n">bar</span><span class="o">))</span>
+
+<span class="c1">// jsonOf is defined for Json4s and Argonaut, just need the right decoder!
+</span><span class="k">implicit</span> <span class="k">val</span> <span class="n">fooDecoder</span> <span class="k">=</span> <span class="n">jsonOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
+
+<span class="c1">// Match on response code!
+</span><span class="k">val</span> <span class="n">page2</span> <span class="k">=</span> <span class="n">client</span><span class="o">(</span><span class="n">uri</span><span class="o">(</span><span class="s">"http://http4s.org/resources/foo.json"</span><span class="o">)).</span><span class="n">flatMap</span> <span class="o">{</span>
+  <span class="k">case</span> <span class="nc">Successful</span><span class="o">(</span><span class="n">resp</span><span class="o">)</span> <span class="k">=&gt;</span> <span class="n">resp</span><span class="o">.</span><span class="n">as</span><span class="o">[</span><span class="kt">Foo</span><span class="o">].</span><span class="n">map</span><span class="o">(</span><span class="s">"Received response: "</span> <span class="o">+</span> <span class="k">_</span><span class="o">)</span>
+  <span class="k">case</span> <span class="nc">NotFound</span><span class="o">(</span><span class="n">resp</span><span class="o">)</span>   <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">now</span><span class="o">(</span><span class="s">"Not Found!!!"</span><span class="o">)</span>
+  <span class="k">case</span> <span class="n">resp</span>             <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">now</span><span class="o">(</span><span class="s">"Failed: "</span> <span class="o">+</span> <span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="o">)</span>
+<span class="o">}</span>
+
+<span class="n">println</span><span class="o">(</span><span class="n">page2</span><span class="o">.</span><span class="n">run</span><span class="o">)</span></code></code></pre>
 
 <h2 id="toc_8">Other features</h2>
 
