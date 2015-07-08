@@ -47,9 +47,9 @@ class AuthenticationSpec extends Http4sSpec {
       var isNuked = false
       val basic = new BasicAuthentication(realm, authStore)(nukeService { isNuked = true })
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
-      val res = basic(req)
+      val res = basic(req).run
       isNuked must_== false
-      res must_== Unauthorized
+      res.status must equal (Unauthorized)
     }
   }
 
@@ -181,7 +181,10 @@ class AuthenticationSpec extends Http4sSpec {
             case _ => false
           }) must_== true
           val res = doDigestAuth2(digest, challenge, false)._1
-          res.status must equal (Ok)
+          // We don't check whether res.status is Ok since it may not
+          // be due to the low nonce stale timer.  Instead, we check
+          // that it's found.
+          res.status mustNotEqual (NotFound)
         }(sched))
       Task.gatherUnordered(tasks).run
 
@@ -221,7 +224,7 @@ class AuthenticationSpec extends Http4sSpec {
         "uri" -> uri, "qop" -> qop, "nc" -> nc, "cnonce" -> cnonce, "response" -> response,
         "method" -> method)
 
-      val expected = (0 to params.size).map(i => (true, Unauthorized))
+      val expected = (0 to params.size).map(i => Unauthorized)
 
       val result = (0 to params.size).map(i => {
         val invalid_params = params.take(i) ++ params.drop(i + 1)

@@ -22,7 +22,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Not find missing file" in {
       val req = Request(uri = uri("server/src/test/resources/testresource.txtt"))
-      runReq(req) must_== None
+      runReq(req)._2.status must equal (Status.NotFound)
     }
 
     "Return a 206 PartialContent file" in {
