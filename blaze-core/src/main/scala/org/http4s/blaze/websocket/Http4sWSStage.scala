@@ -19,7 +19,7 @@ import pipeline.Command.EOF
 class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
   
-  private val alive = async.signalOf(true)
+  private val dead = async.signalOf(false)
 
   //////////////////////// Source and Sink generators ////////////////////////
 
@@ -38,7 +38,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
       def go(): Unit = channelRead().onComplete {
         case Success(ws) => ws match {
             case Close(_)    =>
-              alive.set(false).run
+              dead.set(true).run
               sendOutboundCommand(Command.Disconnect)
               cb(-\/(Cause.Terminated(Cause.End)))
 
@@ -82,7 +82,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
         sendOutboundCommand(Command.Disconnect)
     }
     
-    (alive.discrete.map(!_)).wye(ws.exchange.read.to(snk))(wye.interrupt).run.runAsync(onFinish)
+    (dead.discrete).wye(ws.exchange.read.to(snk))(wye.interrupt).run.runAsync(onFinish)
 
     // The sink is a bit more complicated
     val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))
@@ -98,7 +98,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
   }
 
   override protected def stageShutdown(): Unit = {
-    alive.set(false).run
+    dead.set(true).run
     super.stageShutdown()
   }
 }
