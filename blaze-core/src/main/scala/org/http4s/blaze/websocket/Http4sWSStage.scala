@@ -9,52 +9,43 @@ import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
 import org.http4s.{websocket => ws4s}
 
-import scalaz.stream.{Process, Sink}
-import scalaz.stream.Process._
-import scalaz.stream.Cause.{Terminated, End}
+import scalaz.stream._
+import scalaz.concurrent._
 import scalaz.{\/, \/-, -\/}
-import scalaz.concurrent.Task
 
 import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import pipeline.Command.EOF
 
 class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
-
-  @volatile private var alive = true
+  
+  private val alive = async.signalOf(true)
 
   //////////////////////// Source and Sink generators ////////////////////////
 
-  def sink: Sink[Task, WebSocketFrame] = {
-    def go(frame: WebSocketFrame): Task[Unit] = {
-      Task.async { cb =>
-        if (!alive) cb(-\/(Terminated(End)))
-        else {
-          channelWrite(frame).onComplete {
-            case Success(_)           => cb(\/-(()))
-            case Failure(Command.EOF) => cb(-\/(Terminated(End)))
-            case Failure(t)           => cb(-\/(t))
-          }(directec)
-        }
-      }
+  def snk: Sink[Task, WebSocketFrame] = sink.lift { frame =>
+    Task.async[Unit] { cb =>
+      channelWrite(frame).onComplete {
+        case Success(res) => cb(\/-(res))
+        case Failure(Command.EOF) => cb(-\/(Cause.Terminated(Cause.End)))
+        case Failure(t) => cb(-\/(t))
+      }(directec)
     }
-
-    Process.constant(go)
   }
-
+  
   def inputstream: Process[Task, WebSocketFrame] = {
     val t = Task.async[WebSocketFrame] { cb =>
       def go(): Unit = channelRead().onComplete {
         case Success(ws) => ws match {
             case Close(_)    =>
-              alive = false
+              alive.set(false).run
               sendOutboundCommand(Command.Disconnect)
-              cb(-\/(Terminated(End)))
+              cb(-\/(Cause.Terminated(Cause.End)))
 
             // TODO: do we expect ping frames here?
             case Ping(d)     =>  channelWrite(Pong(d)).onComplete {
               case Success(_)   => go()
-              case Failure(EOF) => cb(-\/(Terminated(End)))
+              case Failure(EOF) => cb(-\/(Cause.Terminated(Cause.End)))
               case Failure(t)   => cb(-\/(t))
             }(trampoline)
 
@@ -62,13 +53,13 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
             case f           => cb(\/-(f))
           }
 
-        case Failure(Command.EOF) => cb(-\/(Terminated(End)))
+        case Failure(Command.EOF) => cb(-\/(Cause.Terminated(Cause.End)))
         case Failure(e)           => cb(-\/(e))
       }(trampoline)
 
       go()
     }
-    repeatEval(t)
+    Process.repeatEval(t)
   }
 
   //////////////////////// Startup and Shutdown ////////////////////////
@@ -90,24 +81,24 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
         logger.trace(t)("WebSocket Exception")
         sendOutboundCommand(Command.Disconnect)
     }
-
-    ws.exchange.read.through(sink).run.runAsync(onFinish)
+    
+    (alive.discrete.map(!_)).wye(ws.exchange.read.to(snk))(wye.interrupt).run.runAsync(onFinish)
 
     // The sink is a bit more complicated
     val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))
 
     // if we never expect to get a message, we need to make sure the sink signals closed
     val routeSink: Sink[Task, WebSocketFrame] = ws.exchange.write match {
-      case Halt(End) => onFinish(\/-(())); discard
-      case Halt(e)   => onFinish(-\/(Terminated(e))); ws.exchange.write
-      case s => s ++ await(Task{onFinish(\/-(()))})(_ => discard)
+      case Process.Halt(Cause.End) => onFinish(\/-(())); discard
+      case Process.Halt(e)   => onFinish(-\/(Cause.Terminated(e))); ws.exchange.write
+      case s => s ++ Process.await(Task{onFinish(\/-(()))})(_ => discard)
     }
-
+    
     inputstream.to(routeSink).run.runAsync(onFinish)
   }
 
   override protected def stageShutdown(): Unit = {
-    alive = false
+    alive.set(false).run
     super.stageShutdown()
   }
 }
