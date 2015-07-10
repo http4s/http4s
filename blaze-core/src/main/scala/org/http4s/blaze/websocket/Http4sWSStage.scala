@@ -23,7 +23,8 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
 
   //////////////////////// Source and Sink generators ////////////////////////
 
-  def snk: Sink[Task, WebSocketFrame] = sink.lift { frame =>
+  // TODO: the two streams here should be made private
+  def sink: Sink[Task, WebSocketFrame] = scalaz.stream.sink.lift { frame =>
     Task.async[Unit] { cb =>
       channelWrite(frame).onComplete {
         case Success(res) => cb(\/-(res))
@@ -82,7 +83,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
         sendOutboundCommand(Command.Disconnect)
     }
     
-    (dead.discrete).wye(ws.exchange.read.to(snk))(wye.interrupt).run.runAsync(onFinish)
+    (dead.discrete).wye(ws.exchange.read.to(sink))(wye.interrupt).run.runAsync(onFinish)
 
     // The sink is a bit more complicated
     val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))
