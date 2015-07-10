@@ -63,7 +63,7 @@ class Http4sServlet(service: HttpService,
         handleRequest(ctx, _, bodyWriter)
       ).runAsync {
         case \/-(()) => ctx.complete()
-        case -\/(t) => throw t
+        case -\/(t) => errorHandler(servletRequest, servletResponse)(t)
       }
     }
     catch errorHandler(servletRequest, servletResponse)
@@ -111,10 +111,10 @@ class Http4sServlet(service: HttpService,
     }
 
   private def errorHandler(servletRequest: ServletRequest, servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
-    case NonFatal(t) if servletResponse.isCommitted =>
+    case t: Throwable if servletResponse.isCommitted =>
      logger.error(t)("Error processing request after response was committed")
 
-    case NonFatal(t) =>
+    case t: Throwable =>
       logger.error(t)("Error processing request")
       val response = Task.now(Response(Status.InternalServerError))
       // We don't know what I/O mode we're in here, and we're not rendering a body

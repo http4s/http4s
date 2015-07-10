@@ -114,5 +114,13 @@ object ScienceExperiments {
       val result = Task.reduceUnordered(tasks)(Reducer.identityReducer)
       Ok(result)
 
+    case GET -> Root / "fail" / "task" =>
+      Task.fail(new RuntimeException)
+
+    case GET -> Root / "fail" / "no-task" =>
+      throw new RuntimeException
+
+    case GET -> Root / "fail" / "fatally" =>
+      ???
   }
 }
