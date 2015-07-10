@@ -17,10 +17,9 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
 
-import server.middleware.URITranslation
-
 import org.log4s.getLogger
 
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 
@@ -69,20 +68,47 @@ class BlazeBuilder(
   def enableHttp2(enabled: Boolean): BlazeBuilder =
     copy(http2Support = enabled)
 
-  override def mountService(service: HttpService, prefix: String): BlazeBuilder =
-    copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
+  override def mountService(service: HttpService, prefix: String): BlazeBuilder = {
+    val prefixedService =
+                if (prefix.isEmpty || prefix == "/") service
+                else {
+                  val newCaret = prefix match {
+                    case "/"                    => 0
+                    case x if x.startsWith("/") => x.length
+                    case x                      => x.length + 1
+                  }
+
+                  service.contramap{ req: Request =>
+                    req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
+                  }
+                }
+    copy(serviceMounts = serviceMounts :+ ServiceMount(prefixedService, prefix))
+  }
+
 
   def start: Task[Server] = Task.delay {
-    val aggregateService = serviceMounts.foldLeft[HttpService](Service.empty) {
-      case (aggregate, ServiceMount(service, prefix)) =>
-        val prefixedService =
-          if (prefix.isEmpty || prefix == "/") service
-          else URITranslation.translateRoot(prefix)(service)
+    val aggregateService = {
+      // order by number of '/' and then by last added (the sort is allegedly stable)
+      val mounts = serviceMounts.reverse.sortBy(-_.prefix.split("/").length)
 
-        if (aggregate.run eq Service.empty.run)
-          prefixedService
-        else
-          prefixedService orElse aggregate
+      Service.lift { req: Request =>
+        // We go through the mounts, fist checking if they satisfy the prefix, then making sure
+        // they returned a result. This should allow for fall through behavior.
+        def go(it: Iterator[ServiceMount]): Task[Option[Response]] = {
+          if (it.hasNext) {
+            val next = it.next()
+            if (req.uri.path.startsWith(next.prefix)) {
+              next.service(req).flatMap {
+                case resp@Some(_) => Task.now(resp)
+                case None         => go(it)
+              }
+            }
+            else go(it)
+          }
+          else Task.now(None)
+        }
+        go(mounts.iterator)
+      }
     }
 
     val pipelineFactory = getContext() match {
