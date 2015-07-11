@@ -47,7 +47,6 @@ case class CORSConfig(
 class CORS(service: HttpService, config: CORSConfig) extends HttpService {
   import CORS._
   import Status.Ok
-  import Task.now
 
   def apply(req: Request): Task[Response] = ((req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
     case (Method.OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
@@ -61,8 +60,16 @@ class CORS(service: HttpService, config: CORSConfig) extends HttpService {
       service(req)
   })
 
-  def options(origin: Header, acrm: Header): HttpService =
-    kleisli(service).map(corsHeaders(origin.value, acrm.value)).run
+  def options(origin: Header, acrm: Header): HttpService = { req: Request =>
+    kleisli(service).map { resp =>
+      if (resp.status.isSuccess)
+        corsHeaders(origin.value, acrm.value)(resp)
+      else {
+        logger.info(s"CORS headers would have been allowed for ${req.method} ${req.uri}")
+        resp
+      }
+    }.run(req)
+  }
 
   def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
     config.allowedHeaders.map(_.mkString("", ", ", "")).cata(

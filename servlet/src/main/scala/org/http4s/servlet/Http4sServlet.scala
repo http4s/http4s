@@ -56,6 +56,7 @@ class Http4sServlet(service: HttpService,
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse): Unit =
     try {
       val ctx = servletRequest.startAsync()
+      ctx.setTimeout(asyncTimeoutMillis)
       // Must be done on the container thread for Tomcat's sake when using async I/O.
       val bodyWriter = servletIo.initWriter(servletResponse)
       toRequest(servletRequest).fold(
@@ -63,7 +64,7 @@ class Http4sServlet(service: HttpService,
         handleRequest(ctx, _, bodyWriter)
       ).runAsync {
         case \/-(()) => ctx.complete()
-        case -\/(t) => throw t
+        case -\/(t) => errorHandler(servletRequest, servletResponse)(t)
       }
     }
     catch errorHandler(servletRequest, servletResponse)
@@ -90,7 +91,7 @@ class Http4sServlet(service: HttpService,
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       if (!servletResponse.isCommitted) {
         val response = Response(Status.InternalServerError).withBody("Service timed out.")
-        renderResponse(response, servletResponse, bodyWriter)
+        renderResponse(response, servletResponse, bodyWriter).run
       }
       else {
         val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
@@ -111,10 +112,10 @@ class Http4sServlet(service: HttpService,
     }
 
   private def errorHandler(servletRequest: ServletRequest, servletResponse: HttpServletResponse): PartialFunction[Throwable, Unit] = {
-    case NonFatal(t) if servletResponse.isCommitted =>
+    case t: Throwable if servletResponse.isCommitted =>
      logger.error(t)("Error processing request after response was committed")
 
-    case NonFatal(t) =>
+    case t: Throwable =>
       logger.error(t)("Error processing request")
       val response = Task.now(Response(Status.InternalServerError))
       // We don't know what I/O mode we're in here, and we're not rendering a body

@@ -17,10 +17,9 @@ import org.http4s.blaze.channel.nio1.NIO1SocketServerGroup
 import org.http4s.blaze.channel.nio2.NIO2SocketServerGroup
 import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
 
-import server.middleware.URITranslation
-
 import org.log4s.getLogger
 
+import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 
@@ -69,8 +68,23 @@ class BlazeBuilder(
   def enableHttp2(enabled: Boolean): BlazeBuilder =
     copy(http2Support = enabled)
 
-  override def mountService(service: HttpService, prefix: String): BlazeBuilder =
-    copy(serviceMounts = serviceMounts :+ ServiceMount(service, prefix))
+  override def mountService(service: HttpService, prefix: String): BlazeBuilder = {
+    val prefixedService =
+                if (prefix.isEmpty || prefix == "/") service
+                else {
+                  val newCaret = prefix match {
+                    case "/"                    => 0
+                    case x if x.startsWith("/") => x.length
+                    case x                      => x.length + 1
+                  }
+
+                  service.compose { req: Request =>
+                    req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
+                  }
+                }
+    copy(serviceMounts = serviceMounts :+ ServiceMount(prefixedService, prefix))
+  }
+
 
   def start: Task[Server] = Task.delay {
     val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service })
