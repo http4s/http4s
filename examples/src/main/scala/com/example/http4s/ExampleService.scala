@@ -27,7 +27,7 @@ import Argonaut._
 object ExampleService {
 
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService =
-    service1(executionContext) orElse service2 orElse service3 orElse ScienceExperiments.service
+    service1(executionContext) orElse service2 orElse ScienceExperiments.service orElse service3
 
   def service1(implicit executionContext: ExecutionContext) = HttpService {
 
