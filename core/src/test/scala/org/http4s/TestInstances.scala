@@ -77,7 +77,7 @@ trait TestInstances {
       minor <- choose(0, 9)
     } yield HttpVersion.fromVersion(major, minor).yolo }
 
-  implicit val aribtraryNioCharset: Arbitrary[NioCharset] =
+  implicit val arbitraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
 
   implicit val arbitraryCharset: Arbitrary[Charset] =
