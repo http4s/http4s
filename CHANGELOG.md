@@ -1,4 +1,4 @@
-# v0.8.4 (2015-07-11)
+# v0.8.4 (2015-07-13)
 * Honor the buffer size parameter in gzip middleware.
 * Handle service exceptions in servlet backends.
 * Respect asyncTimeout in servlet backends.
