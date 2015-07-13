@@ -3,7 +3,7 @@ package org.http4s.server.staticcontent
 import java.util.concurrent.ExecutorService
 
 import org.http4s.server._
-import org.http4s.StaticFile
+import org.http4s.{Response, Request, StaticFile}
 
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.OptionT
@@ -26,7 +26,7 @@ object ResourceService {
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): HttpService = Service.lift { req =>
+  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = Service { req =>
     val uri = req.uri
     if (!uri.path.startsWith(config.pathPrefix)) Task.now(None)
     else OptionT(

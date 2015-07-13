@@ -2,9 +2,8 @@ package org.http4s.server.middleware.authentication
 
 import java.util.concurrent.Executors
 
-import org.http4s.{Uri, Request, Response, BasicCredentials, Headers, GenericCredentials}
+import org.http4s._
 import org.http4s.server.HttpService
-import org.http4s.Challenge
 import org.http4s.Status._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
@@ -13,15 +12,23 @@ import org.http4s.util.CaseInsensitiveString
 import org.specs2.mutable.Specification
 import org.specs2.time.NoTimeConversions
 
+import scalaz.\/
 import scalaz.concurrent.Task
 
 import scala.concurrent.duration._
 
-class AuthenticationSpec extends Specification with NoTimeConversions {
+class AuthenticationSpec extends Http4sSpec {
 
   val service = HttpService {
     case r if r.pathInfo == "/" => Response(Ok).withBody("foo")
     case r => Response.notFound(r)
+  }
+
+  def nukeService(launchTheNukes: => Unit) = HttpService {
+    case r if r.pathInfo == "/launch-the-nukes" => for {
+      _ <- Task.delay(launchTheNukes)
+      r <- Response(Gone).withBody("oops")
+    } yield r
   }
 
   val realm = "Test Realm"
@@ -35,40 +42,47 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
 
   val basic = new BasicAuthentication(realm, authStore)(service)
 
+  "Failure to authenticate" should {
+    "not run unauthorized routes" in {
+      var isNuked = false
+      val basic = new BasicAuthentication(realm, authStore)(nukeService { isNuked = true })
+      val req = Request(uri = Uri(path = "/launch-the-nukes"))
+      val res = basic(req).run
+      isNuked must_== false
+      res.status must equal (Unauthorized)
+    }
+  }
+
   "BasicAuthentication" should {
     "Respond to a request without authentication with 401" in {
       val req = Request(uri = Uri(path = "/"))
       val res = basic(req).run
 
-      res.isDefined must_== true
-      res.get.status must_== Unauthorized
-      res.get.headers.get(`WWW-Authenticate`).map(_.value) must beSome(Challenge("Basic", realm, Nil.toMap).toString)
+      res.status must equal (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
     "Respond to a request with unknown username with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
       val res = basic(req).run
 
-      res.isDefined must_== true
-      res.get.status must_== Unauthorized
-      res.get.headers.get(`WWW-Authenticate`).map(_.value) must beSome(Challenge("Basic", realm, Nil.toMap).toString)
+      res.status must equal (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
     "Respond to a request with wrong password with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
       val res = basic(req).run
 
-      res.isDefined must_== true
-      res.get.status must_== Unauthorized
-      res.get.headers.get(`WWW-Authenticate`).map(_.value) must beSome(Challenge("Basic", realm, Nil.toMap).toString)
+      res.status must equal (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
     "Respond to a request with correct credentials" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
       val res = basic(req).run
 
-      res.isDefined must_== true
-      res.get.status must_== Ok
+      res.status must equal (Ok)
     }
   }
 
@@ -82,9 +96,8 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
       val req = Request(uri = Uri(path = "/"))
       val res = digest(req).run
 
-      res.isDefined must_== true
-      res.get.status must_== Unauthorized
-      val opt = res.get.headers.get(`WWW-Authenticate`).map(_.value)
+      res.status must equal (Status.Unauthorized)
+      val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
       opt.isDefined must beTrue
       val challenge = parse(opt.get).values.head
       (challenge match {
@@ -101,9 +114,8 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
       val req = Request(uri = Uri(path = "/"))
       val res = digest(req).run
 
-      res.isDefined must_== true
-      res.get.status must_== Unauthorized
-      val opt = res.get.headers.get(`WWW-Authenticate`).map(_.value)
+      res.status must equal (Unauthorized)
+      val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
       opt.isDefined must beTrue
       val challenge = parse(opt.get).values.head
       challenge
@@ -148,12 +160,10 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
 
       val (res2, res3) = doDigestAuth2(digest, challenge, true)
 
-      res2.isDefined must_== true
-      res2.get.status must_== Ok
+      res2.status must equal (Ok)
 
       // Digest prevents replay
-      res3.isDefined must_== true
-      res3.get.status must_== Unauthorized
+      res3.status must equal (Unauthorized)
 
       ok
     }
@@ -171,9 +181,10 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
             case _ => false
           }) must_== true
           val res = doDigestAuth2(digest, challenge, false)._1
-          res.isDefined must_== true
-          // We don't check whether res.get.status is Ok since it may not
-          // be due to the low nonce stale timer.
+          // We don't check whether res.status is Ok since it may not
+          // be due to the low nonce stale timer.  Instead, we check
+          // that it's found.
+          res.status mustNotEqual (NotFound)
         }(sched))
       Task.gatherUnordered(tasks).run
 
@@ -189,8 +200,7 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
       val tasks = (1 to n).map(i =>
         Task {
           val res = doDigestAuth2(digest, challenge, false)._1
-          res.isDefined must_== true
-          res.get.status
+          res.status
         }(sched))
       val res = Task.gatherUnordered(tasks).run
       res.filter(s => s == Ok).size must_== 1
@@ -214,7 +224,7 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
         "uri" -> uri, "qop" -> qop, "nc" -> nc, "cnonce" -> cnonce, "response" -> response,
         "method" -> method)
 
-      val expected = (0 to params.size).map(i => (true, Unauthorized))
+      val expected = (0 to params.size).map(i => Unauthorized)
 
       val result = (0 to params.size).map(i => {
         val invalid_params = params.take(i) ++ params.drop(i + 1)
@@ -222,7 +232,7 @@ class AuthenticationSpec extends Specification with NoTimeConversions {
         val req = Request(uri = Uri(path = "/"), headers = Headers(header))
         val res = digest(req).run
 
-        (res.isDefined, res.get.status)
+        res.status
       })
 
       expected must_== result

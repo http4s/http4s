@@ -40,7 +40,7 @@ class EntityLimiterSpec extends Specification {
         case r: Request if r.uri.path == "/echo2" => r.decode[String](Response(Ok).withBody)
       }
 
-      val st = EntityLimiter(s, 3) orElse s2
+      val st = EntityLimiter(s, 3)
       (st.apply(Request(POST, uri("/echo2"), body = b))
         .map(_ => -1)
         .run must be_==(-1)) &&

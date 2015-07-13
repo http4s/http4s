@@ -120,11 +120,8 @@ class Http1ServerStage(service: HttpService,
       case Some(req) =>
         Task.fork(service(req))(pool)
           .runAsync {
-          case \/-(Some(resp)) =>
+          case \/-(resp) =>
             renderResponse(req, resp, cleanup)
-
-          case \/-(None)       =>
-            renderResponse(req, Response.notFound(req).run, cleanup)
 
           case -\/(t)    =>
             logger.error(t)(s"Error running route: $req")

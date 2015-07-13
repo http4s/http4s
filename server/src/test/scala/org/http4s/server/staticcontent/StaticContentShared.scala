@@ -21,9 +21,9 @@ private [staticcontent] trait StaticContentShared {
     ByteVector.view(bytes)
   }
 
-  def runReq(req: Request): Option[(ByteVector, Response)] = s(req).run.map { resp =>
-    val body = s(req).run.get.body.runLog.run.fold(ByteVector.empty)(_ ++ _)
+  def runReq(req: Request): (ByteVector, Response) = {
+    val resp = s(req).run
+    val body = resp.body.runLog.run.fold(ByteVector.empty)(_ ++ _)
     (body, resp)
   }
-
 }

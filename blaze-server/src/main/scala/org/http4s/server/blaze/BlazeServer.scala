@@ -78,7 +78,7 @@ class BlazeBuilder(
                     case x                      => x.length + 1
                   }
 
-                  service.contramap{ req: Request =>
+                  service.contramap { req: Request =>
                     req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
                   }
                 }
@@ -87,29 +87,7 @@ class BlazeBuilder(
 
 
   def start: Task[Server] = Task.delay {
-    val aggregateService = {
-      // order by number of '/' and then by last added (the sort is allegedly stable)
-      val mounts = serviceMounts.reverse.sortBy(-_.prefix.split("/").length)
-
-      Service.lift { req: Request =>
-        // We go through the mounts, fist checking if they satisfy the prefix, then making sure
-        // they returned a result. This should allow for fall through behavior.
-        def go(it: Iterator[ServiceMount]): Task[Option[Response]] = {
-          if (it.hasNext) {
-            val next = it.next()
-            if (req.uri.path.startsWith(next.prefix)) {
-              next.service(req).flatMap {
-                case resp@Some(_) => Task.now(resp)
-                case None         => go(it)
-              }
-            }
-            else go(it)
-          }
-          else Task.now(None)
-        }
-        go(mounts.iterator)
-      }
-    }
+    val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service })
 
     val pipelineFactory = getContext() match {
       case Some((ctx, clientAuth)) =>
