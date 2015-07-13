@@ -3,7 +3,6 @@ package server
 package middleware
 
 import scalaz.concurrent.Task
-import scalaz.Kleisli._
 
 /** Removes a trailing slash from [[Request]] path
   *
@@ -12,7 +11,7 @@ import scalaz.Kleisli._
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-  def apply(service: HttpService): HttpService = { req =>
+  def apply(service: HttpService): HttpService = Service { req =>
     service(req).flatMap {
       case resp if resp.status == Status.NotFound =>
         val p = req.uri.path

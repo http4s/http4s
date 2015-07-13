@@ -26,7 +26,7 @@ object ResourceService {
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = { req =>
+  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = Service { req =>
     val uri = req.uri
     if (!uri.path.startsWith(config.pathPrefix)) Task.now(None)
     else OptionT(

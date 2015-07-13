@@ -7,9 +7,8 @@ import scalaz.concurrent.Task
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
-  val s = kleisli(resourceService(ResourceService.Config("")))
-    .andThenK(_.fold(Task.now(Response(Status.NotFound)))(Task.now))
-    .run
+  val s = resourceService(ResourceService.Config(""))
+    .flatMapTask(_.fold(Task.now(Response(Status.NotFound)))(Task.now))
 
   "ResourceService" should {
 

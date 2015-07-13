@@ -46,9 +46,8 @@ object PushSupport {
     r.foldLeft(Task.now(Vector.empty[PushResponse])){ (facc, v) =>
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
-        val routeK = kleisli(route)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try routeK.flatMapK { response =>
+          try route.flatMapTask { response =>
             response.attributes.get(pushLocationKey).map { pushed =>
               collectResponse(pushed, req, verify, route)
                 .map(accumulated ++ _ :+ PushResponse(v.location, response))
@@ -56,7 +55,7 @@ object PushSupport {
           }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
         } else {
-          try routeK.flatMapK { resp => // Need to make sure to catch exceptions
+          try route.flatMapTask { resp => // Need to make sure to catch exceptions
             facc.map(_ :+ PushResponse(v.location, resp))
           }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
@@ -84,7 +83,7 @@ object PushSupport {
       }.getOrElse(resp)
     }
 
-    { req => service(req).map(gather(req, _)) }
+    Service { req => service(req).map(gather(req, _)) }
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)

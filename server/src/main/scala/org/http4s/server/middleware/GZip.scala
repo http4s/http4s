@@ -18,12 +18,12 @@ object GZip {
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply(service: HttpService, bufferSize: Int = 32 * 1024, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = {
+  def apply(service: HttpService, bufferSize: Int = 32 * 1024, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = Service {
     req: Request =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip)
                                   || acceptEncoding.satisfiedBy(ContentCoding.`x-gzip`) =>
-          kleisli(service).map { resp =>
+          service.map { resp =>
             if (isZippable(resp)) {
               logger.trace("GZip middleware encoding content")
               // Need to add the Gzip header

@@ -10,7 +10,7 @@ object URITranslation {
       case x                      => x.length + 1
     }
 
-    service compose { req: Request =>
+    service contramap { req: Request =>
       val oldCaret = req.attributes
         .get(Request.Keys.PathInfoCaret)
         .getOrElse(0)

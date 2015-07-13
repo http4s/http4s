@@ -6,9 +6,8 @@ import scalaz.concurrent.Task
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
-  val s = kleisli(fileService(FileService.Config(System.getProperty("user.dir"))))
-    .andThenK(_.fold(Task.now(Response(Status.NotFound)))(Task.now))
-    .run
+  val s = fileService(FileService.Config(System.getProperty("user.dir")))
+    .flatMapTask(_.fold(Task.now(Response(Status.NotFound)))(Task.now))
 
   "FileService" should {
 

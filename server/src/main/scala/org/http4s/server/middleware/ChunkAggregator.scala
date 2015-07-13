@@ -25,12 +25,12 @@ object ChunkAggregator {
     else Nil
   }
 
-  def apply(service: HttpService): HttpService = kleisli(service).map { response =>
+  def apply(service: HttpService): HttpService = service.map { response =>
     val chunks = compact(response.body)
     if (chunks.nonEmpty) {
       val h = response.headers.put(`Content-Length`(chunks.head.length))
       response.copy(body = emitAll(chunks), headers = h)
     }
     else response
-  }.run
+  }
 }

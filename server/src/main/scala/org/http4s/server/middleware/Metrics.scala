@@ -103,7 +103,7 @@ object Metrics {
       }
     }
 
-    { req: Request =>
+    Service { req: Request =>
       val now = System.nanoTime()
       active_requests.inc()
       new Task(srvc(req).get.map(onFinish(req.method, now)))
