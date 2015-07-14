@@ -1,8 +1,14 @@
 package org.http4s
 
+import scalaz.Kleisli
 import scalaz.concurrent.Task
 
 package object server {
+  type Service[A, B] = Kleisli[Task, A, B]
+  object Service {
+    def apply[A, B](f: A => Task[B]): Service[A, B] = Kleisli.kleisli(f)
+  }
+
   type PartialService[A, B] = Service[A, Option[B]]
 
   type HttpService = Service[Request, Response]

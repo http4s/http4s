@@ -15,7 +15,7 @@ object EntityLimiter {
   val DefaultMaxEntitySize: Int = 2097152
 
   def apply(service: HttpService, limit: Int = DefaultMaxEntitySize): HttpService =
-    service.contramap { req: Request => req.copy(body = req.body |> takeBytes(limit)) }
+    service.local { req: Request => req.copy(body = req.body |> takeBytes(limit)) }
 
   private def takeBytes(n: Int): Process1[ByteVector, ByteVector] = {
     def go(taken: Int, chunk: ByteVector): Process1[ByteVector, ByteVector] = {
