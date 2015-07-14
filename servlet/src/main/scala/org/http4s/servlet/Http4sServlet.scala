@@ -29,6 +29,9 @@ class Http4sServlet(service: HttpService,
 
   private[this] var serverSoftware: ServerSoftware = _
 
+  // micro-optimization: unwrap the service and call its .run directly
+  private[this] val serviceFn = service.run
+
   override def init(config: ServletConfig) {
     val servletContext = config.getServletContext
     val servletApiVersion = ServletApiVersion(servletContext)
@@ -80,7 +83,7 @@ class Http4sServlet(service: HttpService,
                             request: Request,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    val response = Task.fork(service(request))(threadPool)
+    val response = Task.fork(serviceFn(request))(threadPool)
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }

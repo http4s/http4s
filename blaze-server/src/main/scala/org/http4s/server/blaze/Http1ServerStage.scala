@@ -36,6 +36,9 @@ class Http1ServerStage(service: HttpService,
                   with TailStage[ByteBuffer]
                   with Http1Stage
 {
+  // micro-optimization: unwrap the service and call its .run directly
+  private[this] val serviceFn = service.run
+
   protected val ec = ExecutionContext.fromExecutorService(pool)
 
   val name = "Http4sServerStage"
@@ -118,7 +121,7 @@ class Http1ServerStage(service: HttpService,
 
     collectMessage(body) match {
       case Some(req) =>
-        Task.fork(service(req))(pool)
+        Task.fork(serviceFn(req))(pool)
           .runAsync {
           case \/-(resp) =>
             renderResponse(req, resp, cleanup)
