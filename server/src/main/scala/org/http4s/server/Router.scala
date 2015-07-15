@@ -5,7 +5,6 @@ import org.http4s.{Status, Response, Request}
 
 import scalaz.concurrent.Task
 
-
 object Router {
   // TODO A more efficient implementation does not require much imagination
   def apply(mappings: Seq[(String, HttpService)]): HttpService = {
@@ -16,7 +15,7 @@ object Router {
       prefix -> transformed
     }
 
-    Service { req =>
+    Service.lift { req =>
       table.find { case (prefix, _) =>
         req.pathInfo.startsWith(prefix)
       }.fold(HttpService.empty)(_._2 orElse HttpService.empty)(req)

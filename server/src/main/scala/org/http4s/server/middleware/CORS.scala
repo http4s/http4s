@@ -52,9 +52,9 @@ object CORS {
    * based on information in CORS config.
    * Currently, you cannot make permissions depend on request details
    */
-  def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service { req =>
+  def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
 
-    def options(origin: Header, acrm: Header): HttpService = Service { req: Request =>
+    def options(origin: Header, acrm: Header): HttpService = Service.lift { req: Request =>
       service.map { resp =>
         if (resp.status.isSuccess)
           corsHeaders(origin.value, acrm.value)(resp)

@@ -83,7 +83,7 @@ object PushSupport {
       }.getOrElse(resp)
     }
 
-    Service { req => service(req).map(gather(req, _)) }
+    Service.lift { req => service(req).map(gather(req, _)) }
   }
 
   private [PushSupport] case class PushLocation(location: String, cascade: Boolean)

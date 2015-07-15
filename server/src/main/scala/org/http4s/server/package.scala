@@ -5,8 +5,9 @@ import scalaz.concurrent.Task
 
 package object server {
   type Service[A, B] = Kleisli[Task, A, B]
+
   object Service {
-    def apply[A, B](f: A => Task[B]): Service[A, B] = Kleisli.kleisli(f)
+    def lift[A, B](f: A => Task[B]): Service[A, B] = Kleisli.kleisli(f)
   }
 
   type PartialService[A, B] = Service[A, Option[B]]
@@ -19,18 +20,18 @@ package object server {
      * defined, and Some result where it is.
      */
     def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =
-      Service {
+      Service.lift {
         pf.lift.andThen {
           case Some(respTask) => respTask
           case None => Task.now(Response(Status.NotFound))
         }
       }
 
-    val empty: HttpService = Service(Function.const(Task.now(Response(Status.NotFound))))
+    val empty: HttpService = Service.lift(Function.const(Task.now(Response(Status.NotFound))))
   }
 
   implicit class HttpServiceSyntax(val service: HttpService) extends AnyVal {
-    def orElse(that: HttpService): HttpService = Service { req: Request =>
+    def orElse(that: HttpService): HttpService = Service.lift { req: Request =>
       service(req).flatMap {
         case resp: Response if resp.status == Status.NotFound =>
           that(req)
@@ -43,7 +44,7 @@ package object server {
   type Middleware[A, B, C, D] = Service[A, B] => Service[C, D]
   object Middleware {
     def apply[A, B, C, D](f: (C, Service[A, B]) => Task[D]): Middleware[A, B, C, D] = {
-      service => Service {
+      service => Service.lift {
         req => f(req, service)
       }
     }
