@@ -7,7 +7,7 @@ import scalaz.concurrent.Task
 
 object Router {
   // TODO A more efficient implementation does not require much imagination
-  def apply(mappings: Seq[(String, HttpService)]): HttpService = {
+  def apply(mappings: (String, HttpService)*): HttpService = {
     val table = mappings.sortBy(_._1.length).reverse.map { case (prefix, service) =>
       val transformed =
         if (prefix.isEmpty || prefix == "/") service
@@ -18,7 +18,7 @@ object Router {
     Service.lift { req =>
       table.find { case (prefix, _) =>
         req.pathInfo.startsWith(prefix)
-      }.fold(HttpService.empty)(_._2 orElse HttpService.empty)(req)
+      }.fold(HttpService.empty)(_._2)(req)
     }
   }
 }

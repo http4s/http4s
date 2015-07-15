@@ -24,12 +24,12 @@ class RouterSpec extends Http4sSpec {
       Response(Ok).withBody("invisible")
   }
 
-  val service = Router(Seq(
+  val service = Router(
     "/numbers" -> numbers,
     "/" -> root,
     "/shadow" -> shadow,
     "/letters" -> letters
-  ))
+  )
 
   "A router" should {
     "translate mount prefixes" in {

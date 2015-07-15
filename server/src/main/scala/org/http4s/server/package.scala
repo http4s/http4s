@@ -51,27 +51,6 @@ package object server {
     val empty: HttpService = Service.lift(Function.const(Task.now(Response(Status.NotFound))))
   }
 
-  implicit class HttpServiceSyntax(val service: HttpService) extends AnyVal {
-    /**
-     * Returns a service that delegates the request to another service if this
-     * service responds with status [[Status.NotFound]].
-     */
-    /*
-     * TODO This could be generalized to Service if we had an Empty typeclass.  This has
-     * been added to alleycats and proposed for scalaz-contrib, but is not yet available
-     * in a project we depend on.  A Monoid is unacceptable, because we can't define a
-     * reasonable Eq/Equal typeclass for a Response due to the effects of the body.
-     */
-    def orElse(that: HttpService): HttpService = Service.lift { req: Request =>
-      service(req).flatMap {
-        case resp: Response if resp.status == Status.NotFound =>
-          that(req)
-        case resp =>
-          Task.now(resp)
-      }
-    }
-  }
-
   /**
    * A middleware is a function of one [[Service]] to another, possibly of a
    * different [[Request]] and [[Response]] type.  http4s comes with several
