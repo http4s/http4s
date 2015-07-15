@@ -20,4 +20,6 @@ package object http4s {
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
   type ParseResult[+A] = ParseFailure \/ A
+
+  val DefaultCharset = Charset.`UTF-8`
 }

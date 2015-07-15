@@ -41,16 +41,16 @@ object UrlForm {
   def apply(values: (String, String)*): UrlForm =
     values.foldLeft(empty)(_ + _)
 
-  implicit def entityEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[UrlForm] =
+  implicit def entityEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[UrlForm] =
     EntityEncoder.stringEncoder(charset)
       .contramap[UrlForm](encodeString(charset))
       .withContentType(`Content-Type`(MediaType.`application/x-www-form-urlencoded`, charset))
 
-  implicit val entityDecoder: EntityDecoder[UrlForm] =
+  implicit def entityDecoder(implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[UrlForm] =
     EntityDecoder.decodeBy(MediaType.`application/x-www-form-urlencoded`){ m =>
       DecodeResult(
         EntityDecoder.decodeString(m)
-          .map(decodeString(m.charset.getOrElse(Charset.`ISO-8859-1`)))
+          .map(decodeString(m.charset.getOrElse(defaultCharset)))
       )
     }
 

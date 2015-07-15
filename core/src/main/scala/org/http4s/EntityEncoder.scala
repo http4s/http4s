@@ -41,7 +41,7 @@ trait EntityEncoder[A] { self =>
   def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
-  def charset: Option[Charset] = headers.get(`Content-Type`).map(_.charset)
+  def charset: Option[Charset] = headers.get(`Content-Type`).flatMap(_.charset)
 
   /** Generate a new EntityEncoder that will contain the [[`Content-Type`]] header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[A] = new EntityEncoder[A] {
@@ -89,7 +89,7 @@ object EntityEncoder extends EntityEncoderInstances {
 
 trait EntityEncoderInstances0 {
   /** Encodes a value from its Show instance.  Too broad to be implicit, too useful to not exist. */
-   def showEncoder[A](implicit charset: Charset = Charset.`UTF-8`, show: Show[A]): EntityEncoder[A] = {
+   def showEncoder[A](implicit charset: Charset = DefaultCharset, show: Show[A]): EntityEncoder[A] = {
     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
     simple[A](hdr)(a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)))
   }
@@ -123,15 +123,15 @@ trait EntityEncoderInstances0 {
 }
 
 trait EntityEncoderInstances extends EntityEncoderInstances0 {
-  implicit def stringEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[String] = {
+  implicit def stringEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[String] = {
     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
     simple(hdr)(s => ByteVector.view(s.getBytes(charset.nioCharset)))
   }
 
-  implicit def charSequenceEncoder[A <: CharSequence](implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[CharSequence] =
+  implicit def charSequenceEncoder[A <: CharSequence](implicit charset: Charset = DefaultCharset): EntityEncoder[CharSequence] =
     stringEncoder.contramap(_.toString)
 
-  implicit def charArrayEncoder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Array[Char]] =
+  implicit def charArrayEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Array[Char]] =
     charSequenceEncoder.contramap(new String(_))
 
   implicit val charEncoder: EntityEncoder[Char] = charSequenceEncoder.contramap(Character.toString)
@@ -164,7 +164,7 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     chunkedEncoder { is: InputStream => io.chunkR(is) }
 
   // TODO parameterize chunk size
-  implicit def readerEncoder[A <: Reader](implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[A] =
+  implicit def readerEncoder[A <: Reader](implicit charset: Charset = DefaultCharset): EntityEncoder[A] =
     // TODO polish and contribute back to scalaz-stream
     sourceEncoder[Array[Char]].contramap { r: Reader =>
       val unsafeChunkR = io.resource(Task.delay(r))(

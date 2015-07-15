@@ -196,7 +196,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
                             .withContentType(Some(`Content-Type`(MediaType.`text/plain`, Some(Charset.`UTF-8`))))
                             .run
 
-      EntityDecoder.decodeString(msg, defaultCharset = Some(Charset.`US-ASCII`)).run must_== str
+      EntityDecoder.decodeString(msg)(Charset.`US-ASCII`).run must_== str
     }
 
     "Use the default if the Content-Type header does not define one" in {
@@ -204,7 +204,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
                             .withContentType(Some(`Content-Type`(MediaType.`text/plain`, None)))
                             .run
 
-      EntityDecoder.decodeString(msg, defaultCharset = Some(Charset.`UTF-8`)).run must_== str
+      EntityDecoder.decodeString(msg)(Charset.`UTF-8`).run must_== str
     }
   }
 }

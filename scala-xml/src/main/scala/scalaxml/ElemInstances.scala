@@ -9,7 +9,7 @@ import scala.xml._
 import scalaz.concurrent.Task
 
 trait ElemInstances {
-  implicit def xmlEnocder(implicit charset: Charset = Charset.`UTF-8`): EntityEncoder[Elem] =
+  implicit def xmlEnocder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
     EntityEncoder.stringEncoder(charset)
       .contramap[Elem](xml => xml.buildString(false))
       .withContentType(`Content-Type`(MediaType.`application/xml`))

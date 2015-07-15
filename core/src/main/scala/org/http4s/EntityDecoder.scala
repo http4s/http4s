@@ -12,6 +12,7 @@ import scala.annotation.unchecked.uncheckedVariance
 import scala.util.control.NonFatal
 import scalaz.Liskov.{<~<, refl}
 import scalaz.concurrent.Task
+import scalaz.std.string._
 import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
 import scalaz.{-\/, EitherT, \/, \/-}
@@ -110,13 +111,8 @@ object EntityDecoder extends EntityDecoderInstances {
     DecodeResult.success(msg.body.runFoldMap(identity))
 
   /** Decodes a message to a String */
-  def decodeString(msg: Message, defaultCharset: Option[Charset] = None): Task[String] = {
-    val buff = new StringBuilder
-    (msg.body |> process1.fold(buff) { (b, c) => {
-      val charset = msg.contentType.flatMap(_.definedCharset) orElse defaultCharset getOrElse(Charset.`ISO-8859-1`)
-      b.append(new String(c.toArray, charset.nioCharset))
-    }}).map(_.result()).runLastOr("")
-  }
+  def decodeString(msg: Message)(implicit defaultCharset: Charset = DefaultCharset): Task[String] =
+    msg.bodyAsText.foldMonoid.runLastOr("")
 }
 
 /** Implementations of the EntityDecoder instances */
@@ -137,9 +133,9 @@ trait EntityDecoderInstances {
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary)
   }
 
-  implicit val text: EntityDecoder[String] =
+  implicit def text(implicit defaultCharset: Charset = DefaultCharset): EntityDecoder[String] =
     EntityDecoder.decodeBy(MediaRange.`text/*`)(msg =>
-      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.getOrElse(Charset.`ISO-8859-1`).nioCharset))
+      collectBinary(msg).map(bs => new String(bs.toArray, msg.charset.getOrElse(defaultCharset).nioCharset))
     )
 
   // File operations // TODO: rewrite these using NIO non blocking FileChannels, and do these make sense as a 'decoder'?
