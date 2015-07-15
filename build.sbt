@@ -350,6 +350,10 @@ lazy val projectMetadata = Seq(
         <id>julien-truffaut</id>
         <name>Julien Truffaut</name>
       </developer>
+      <developer>
+        <id>kryptt</id>
+        <name>Rodolfo Hansen</name>
+      </developer>
     </developers>
   )
 )
