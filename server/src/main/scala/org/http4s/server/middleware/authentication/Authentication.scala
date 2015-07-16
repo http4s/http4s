@@ -11,7 +11,7 @@ import org.http4s.headers.`WWW-Authenticate`
  * Authentication instances are middleware that provide a
  * {@link HttpService} with HTTP authentication.
  */
-trait Authentication {
+trait Authentication extends HttpMiddleware {
   /**
    * Check if req contains valid credentials. You may assume that
    * the returned Task is executed at most once (to allow for side-effects, 
@@ -30,14 +30,14 @@ trait Authentication {
   // Utility function for implementors of getChallenge()
   protected def addUserRealmAttributes(req: Request, user: String, realm: String) : Request =
     req.withAttribute(authenticatedUser,user).withAttribute(authenticatedRealm, realm)
-    
 
-  def apply(service: HttpService): HttpService = Service.lift {
-    case req: Request => getChallenge(req).flatMap(_ match {
-      case \/-(req) => service(req)
+  def apply(service: HttpService): HttpService = Service.lift { req =>
+    getChallenge(req) flatMap {
+      case \/-(req) =>
+        service(req)
       case -\/(challenge) =>
-        Task.now(Some(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge))))
-    })
+        Task.now(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge)))
+    }
   }
 }
 

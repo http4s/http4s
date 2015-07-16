@@ -66,11 +66,11 @@ object Metrics {
       active_requests.dec()
     }
 
-    def onFinish(method: Method, start: Long)(r: Throwable\/Option[Response]): Throwable\/Option[Response] = {
+    def onFinish(method: Method, start: Long)(r: Throwable \/ Response): Throwable \/ Response = {
       val elapsed = System.nanoTime() - start
 
       r match {
-        case \/-(Some(r)) =>
+        case \/-(r) =>
           headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
           val code = r.status.code
 
@@ -93,14 +93,9 @@ object Metrics {
             }
           }
 
-          \/-(Some(r.copy(body = body)))
+          \/-(r.copy(body = body))
 
-        case r@ \/-(None)    =>
-          generalMetrics(method, elapsed)
-          resp4xx.update(elapsed, TimeUnit.NANOSECONDS)
-          r
-
-        case e@ -\/(_)       =>
+       case e@ -\/(_)       =>
           generalMetrics(method, elapsed)
           resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
           service_failure.update(elapsed, TimeUnit.NANOSECONDS)
@@ -108,12 +103,10 @@ object Metrics {
       }
     }
 
-    def go(req: Request): Task[Option[Response]] = {
+    Service.lift { req: Request =>
       val now = System.nanoTime()
       active_requests.inc()
-      new Task(srvc.run(req).get.map(onFinish(req.method, now)))
+      new Task(srvc(req).get.map(onFinish(req.method, now)))
     }
-
-    Service.lift(go)
   }
 }

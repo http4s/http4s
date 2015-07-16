@@ -38,6 +38,7 @@ lazy val core = libraryProject("core")
         log4s,
         parboiled,
         scalaReflect(scalaVersion.value) % "provided",
+        scalazCore,
         scalazStream,
         scodecBits
       ),

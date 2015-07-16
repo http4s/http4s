@@ -11,20 +11,18 @@ import scalaz.concurrent.Task
   * uri = "/foo/" to match the route.
   */
 object AutoSlash {
-
-  def apply(service: HttpService): HttpService = {
-    Service.lift { req =>
-      service.run(req).flatMap {
-        case r@Some(_) => Task.now(r)
-        case None      =>
-          val p = req.uri.path
-          if (p.isEmpty || p.charAt(p.length - 1) != '/') Task.now(None)
-          else {
-            val withSlash = req.copy(uri = req.uri.copy(path = p.substring(0, p.length - 1)))
-            service.run(withSlash)
-          }
-      }
+  def apply(service: HttpService): HttpService = Service.lift { req =>
+    service(req).flatMap {
+      case resp if resp.status == Status.NotFound =>
+        val p = req.uri.path
+        if (p.isEmpty || p.charAt(p.length - 1) != '/')
+          Task.now(resp)
+        else {
+          val withSlash = req.copy(uri = req.uri.copy(path = p.substring(0, p.length - 1)))
+          service.apply(withSlash)
+        }
+      case resp =>
+        Task.now(resp)
     }
   }
-
 }

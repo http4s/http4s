@@ -32,16 +32,16 @@ object FileService {
 
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): HttpService = Service.lift { req =>
+  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = PartialService.lift { req =>
     val uri = req.uri
-    if (!uri.path.startsWith(config.pathPrefix)) Task.now(None)
-    else OptionT(
+    if (!uri.path.startsWith(config.pathPrefix))
+      OptionT.none
+    else
+      OptionT(
         getFile(config.systemPath + '/' + getSubPath(uri, config.pathPrefix))
           .map{ f => config.pathCollector(f, config, req) }
           .getOrElse(Task.now(None))
-      )
-        .flatMapF(config.cacheStartegy.cache(uri, _))
-        .run
+      ).flatMapF(config.cacheStartegy.cache(uri, _))
   }
 
   /* Returns responses for static files.

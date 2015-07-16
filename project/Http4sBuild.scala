@@ -75,6 +75,7 @@ object Http4sBuild extends Build {
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.6"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.3"
+  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core" % "7.1.2"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % "7.1.2"
   lazy val scalazSpecs2        = "org.typelevel"            %% "scalaz-specs2"           % "0.3.0"
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.7.1a"

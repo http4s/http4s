@@ -26,11 +26,15 @@ import Argonaut._
 
 object ExampleService {
 
-  def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService =
-    service1(executionContext) orElse service2 orElse ScienceExperiments.service orElse service3
+  // A Router can mount multiple services to prefixes.  The request is passed to the
+  // service with the longest matching prefix.
+  def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = Router(
+    "" -> rootService,
+    "/auth" -> authService,
+    "/science" -> ScienceExperiments.service
+  )
 
-  def service1(implicit executionContext: ExecutionContext) = HttpService {
-
+  def rootService(implicit executionContext: ExecutionContext) = HttpService {
     case req @ GET -> Root =>
       // Supports Play Framework template -- see src/main/twirl.
       Ok(html.index())
@@ -133,25 +137,6 @@ object ExampleService {
         .getOrElse(NotFound())
   }
 
-  // Services don't have to be monolithic, and middleware just transforms a service to a service
-  def service2 = EntityLimiter(HttpService {
-    case req @ POST -> Root / "short-sum"  =>
-      req.decode[UrlForm] { data =>
-        data.values.get("short-sum") match {
-          case Some(Seq(s, _*)) =>
-            val sum = s.split(" ").filter(_.length > 0).map(_.trim.toInt).sum
-            Ok(sum.toString)
-
-          case None => BadRequest(s"Invalid data: " + data)
-        }
-      } handleWith { // We can use Task functions to manage errors
-        case EntityTooLarge(max) => PayloadTooLarge(s"Entity too large. Max size: $max")
-      }
-
-    case req @ GET -> Root / "short-sum" =>
-      Ok(html.submissionForm("short-sum"))
-  }, 3)
-
   // This is a mock data source, but could be a Process representing results from a database
   def dataStream(n: Int): Process[Task, String] = {
     implicit def defaultSecheduler = DefaultTimeoutScheduler
@@ -171,7 +156,9 @@ object ExampleService {
 
   val digest = new DigestAuthentication(realm, auth_store)
 
-  def service3 = digest( HttpService { 
+  // Digest is a middleware.  A middleware is a function from one service to another.
+  // In this case, the wrapped service is protected with digest authentication.
+  def authService = digest( HttpService {
     case req @ GET -> Root / "protected" => {
       (req.attributes.get(authenticatedUser), req.attributes.get(authenticatedRealm)) match {
         case (Some(user), Some(realm)) => 
@@ -181,5 +168,4 @@ object ExampleService {
       }
     }
   } )
-
 }

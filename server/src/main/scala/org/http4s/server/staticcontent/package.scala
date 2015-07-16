@@ -1,6 +1,6 @@
-package org.http4s.server
+package org.http4s
+package server
 
-import org.http4s.{Uri, RangeUnit}
 import org.http4s.headers.`Accept-Ranges`
 
 /** Helpers for serving static content from http4s
@@ -11,10 +11,10 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files, possibly from the classpath. */
-  def resourceService(config: ResourceService.Config): HttpService = ResourceService(config)
+  def resourceService(config: ResourceService.Config): PartialService[Request, Response]= ResourceService(config)
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  def fileService(config: FileService.Config): HttpService = FileService(config)
+  def fileService(config: FileService.Config): PartialService[Request, Response] = FileService(config)
 
   private[staticcontent] val sanitize = "\\.\\.".r.replaceAllIn(_: String, ".")
 

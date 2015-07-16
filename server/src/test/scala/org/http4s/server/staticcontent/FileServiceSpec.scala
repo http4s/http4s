@@ -1,17 +1,19 @@
 package org.http4s
-package server.staticcontent
+package server
+package staticcontent
 
+import scalaz.concurrent.Task
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
   val s = fileService(FileService.Config(System.getProperty("user.dir")))
+    .or(Task.now(Response(Status.NotFound)))
 
   "FileService" should {
 
     "Return a 200 Ok file" in {
       val req = Request(uri = uri("server/src/test/resources/testresource.txt"))
-      val rb = runReq(req).get
-
+      val rb = runReq(req)
 
       rb._1 must_== testResource
       rb._2.status must_== Status.Ok
@@ -19,13 +21,13 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Not find missing file" in {
       val req = Request(uri = uri("server/src/test/resources/testresource.txtt"))
-      runReq(req) must_== None
+      runReq(req)._2.status must equal (Status.NotFound)
     }
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(4)
       val req = Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(range)
-      val rb = runReq(req).get
+      val rb = runReq(req)
 
       rb._2.status must_== Status.PartialContent
       rb._1 must_== testResource.splitAt(4)._2
@@ -34,7 +36,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
     "Return a 206 PartialContent file" in {
       val range = headers.Range(-4)
       val req = Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(range)
-      val rb = runReq(req).get
+      val rb = runReq(req)
 
       rb._2.status must_== Status.PartialContent
       rb._1 must_== testResource.splitAt(testResource.size - 4)._2
@@ -44,7 +46,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
     "Return a 206 PartialContent file" in {
       val range = headers.Range(2,4)
       val req = Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(range)
-      val rb = runReq(req).get
+      val rb = runReq(req)
 
       rb._2.status must_== Status.PartialContent
       rb._1 must_== testResource.slice(2, 4 + 1)  // the end number is inclusive in the Range header
@@ -61,7 +63,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
                        )
       val reqs = ranges map (r => Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(r))
       forall(reqs) { req =>
-        val rb = runReq(req).get
+        val rb = runReq(req)
         rb._2.status must_== Status.Ok
         rb._1 must_== testResource
       }
