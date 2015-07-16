@@ -26,15 +26,15 @@ object ResourceService {
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = Service.lift { req =>
+  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = PartialService.lift { req =>
     val uri = req.uri
-    if (!uri.path.startsWith(config.pathPrefix)) Task.now(None)
-    else OptionT(
-          StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uri, config.pathPrefix)))
+    if (!uri.path.startsWith(config.pathPrefix))
+      OptionT.none
+    else
+      OptionT(
+        StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uri, config.pathPrefix)))
           .map{ f => Task.now(Some(f)) }
           .getOrElse(Task.now(None))
-        )
-          .flatMapF(config.cacheStartegy.cache(uri, _))
-          .run
+      ).flatMapF(config.cacheStartegy.cache(uri, _))
   }
 }

@@ -1,7 +1,11 @@
 package org.http4s
 
-import scalaz.Kleisli
+import scalaz.{OptionT, Kleisli}
 import scalaz.concurrent.Task
+import scalaz.std.option._
+import scalaz.syntax.kleisli._
+import scalaz.syntax.monad._
+import scalaz.syntax.traverse._
 
 package object server {
   /**
@@ -20,12 +24,50 @@ package object server {
      * @see [[HttpService.apply]]
      */
     def lift[A, B](f: A => Task[B]): Service[A, B] = Kleisli.kleisli(f)
+
+    /**
+      * Lifts a Task into a [[Service]].
+      *
+      */
+    def const[A, B](b: => Task[B]): Service[A, B] = b.liftKleisli
   }
 
   /**
    * A [[Service]] that returns an optional result.
    */
-  type PartialService[A, B] = Service[A, Option[B]]
+  type PartialService[A, B] = Kleisli[({type L[x] = OptionT[Task, x]})#L, A, B]
+
+  object PartialService {
+    /**
+     * Lifts an unwrapped function that returns an OptionT over Task into a [[PartialService]].
+     */
+    def lift[A, B](f: A => OptionT[Task, B]): PartialService[A, B] =
+      Kleisli.kleisliU(f)
+
+    /**
+      *  Lifts (by sequencing) an unwrapped function that returns an optional
+      *  Task into a [[PartialService]].
+      */
+    def liftS[A, B](f: A => Option[Task[B]]): PartialService[A, B] =
+      lift(f.andThen(o => OptionT(o.sequence)))
+
+    /**
+     * Lifts a partial function that returns a Task into a [[PartialService]].  Where the
+     * function is not defined, the [[PartialService]] returns `OptionT.none`
+     */
+    def liftPF[A, B](pf: PartialFunction[A, Task[B]]): PartialService[A, B] =
+      liftS(pf.lift)
+  }
+
+  implicit class PartialServiceSyntax[A, B](val service: PartialService[A, B]) extends AnyVal {
+    def or(default: => Task[B]): Service[A, B] =
+      service.mapK(_.getOrElseF(default))
+
+    def orElse(that: PartialService[A, B]): PartialService[A, B] =
+      PartialService.lift { req =>
+        service.run(req).orElse(that.run(req))
+      }
+  }
 
   /**
    * A [[Service]] that produces a Task to compute a [[Response]] from a
@@ -41,14 +83,10 @@ package object server {
      * is undefined.
      */
     def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =
-      Service.lift {
-        pf.lift.andThen {
-          case Some(respTask) => respTask
-          case None => Task.now(Response(Status.NotFound))
-        }
-      }
+      PartialService.liftPF(pf).or(notFound)
 
-    val empty: HttpService = Service.lift(Function.const(Task.now(Response(Status.NotFound))))
+    val notFound: Task[Response] = Task.now(Response(Status.NotFound))
+    val empty   : HttpService    = Service.const(notFound)
   }
 
   /**
