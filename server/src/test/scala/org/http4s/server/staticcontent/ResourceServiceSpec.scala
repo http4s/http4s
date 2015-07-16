@@ -1,14 +1,13 @@
 package org.http4s
-package server.staticcontent
+package server
+package staticcontent
 
-import scalaz.Kleisli.kleisli
 import scalaz.concurrent.Task
-
 
 class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
   val s = resourceService(ResourceService.Config(""))
-    .mapK(_.getOrElse(Response(Status.NotFound)))
+    .or(Task.now(Response(Status.NotFound)))
 
   "ResourceService" should {
 

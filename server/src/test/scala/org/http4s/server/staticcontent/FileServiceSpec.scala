@@ -1,13 +1,13 @@
 package org.http4s
-package server.staticcontent
+package server
+package staticcontent
 
-import scalaz.Kleisli.kleisli
 import scalaz.concurrent.Task
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
   val s = fileService(FileService.Config(System.getProperty("user.dir")))
-    .mapK(_.getOrElse(Response(Status.NotFound)))
+    .or(Task.now(Response(Status.NotFound)))
 
   "FileService" should {
 
