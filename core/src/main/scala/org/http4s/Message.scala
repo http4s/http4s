@@ -5,6 +5,8 @@ import java.net.InetAddress
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
 import scalaz.concurrent.Task
+import scalaz.stream.Process
+import scalaz.stream.text.utf8Decode
 import scalaz.syntax.monad._
 
 /**
@@ -20,6 +22,17 @@ sealed trait Message extends MessageOps {
   def headers: Headers
   
   def body: EntityBody
+
+  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Process[Task, String] = {
+    (charset getOrElse defaultCharset) match {
+      case Charset.`UTF-8` =>
+        // suspect this one is more efficient, though this is superstition
+        body |> utf8Decode
+      case cs =>
+        body |> util.decode(cs)
+    }
+
+  }
   
   def attributes: AttributeMap
   
@@ -72,7 +85,9 @@ sealed trait Message extends MessageOps {
 
   def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
-  def charset: Option[Charset] = contentType.map(_.charset)
+  /** Returns the charset parameter of the `Content-Type` header, if present.
+    * Does not introspect the body for media types that define a charset internally. */
+  def charset: Option[Charset] = contentType.flatMap(_.charset)
 
   def isChunked: Boolean = headers.get(`Transfer-Encoding`).exists(_.values.list.contains(TransferCoding.chunked))
 
