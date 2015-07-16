@@ -87,7 +87,7 @@ class BlazeBuilder(
 
 
   def start: Task[Server] = Task.delay {
-    val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service })
+    val aggregateService = Router(serviceMounts.map { mount => mount.prefix -> mount.service }: _*)
 
     val pipelineFactory = getContext() match {
       case Some((ctx, clientAuth)) =>
