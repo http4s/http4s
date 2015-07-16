@@ -28,12 +28,10 @@
         </head>
         <body class="value">
       <div id="definition">
-        <a href="CORS.html" title="See companion class"><img alt="Object/Class" src="../../../../lib/object_to_class_big.png" /></a>
+        <img alt="Object" src="../../../../lib/object_big.png" />
         <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.server">server</a>.<a href="package.html" class="extype" name="org.http4s.server.middleware">middleware</a></p>
-        <h1><a href="CORS.html" title="See companion class">CORS</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="CORS.html" title="See companion class">class CORS</a>
-            | <a href="package.html" class="extype" name="org.http4s.server.middleware">package middleware</a>
+        <h1>CORS</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="org.http4s.server.middleware">package middleware</a>
           </div></span></h3><span class="permalink">
       <a href="../../../../index.html#org.http4s.server.middleware.CORS$" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
@@ -90,27 +88,7 @@
         <div id="allMembers">
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.middleware.CORS.CORSF" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="CORSF=org.http4s.Request=&gt;scalaz.concurrent.Task[Option[org.http4s.Response]]"></a>
-      <a id="CORSF:CORSF"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">CORSF</span><span class="result"> = (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.CORS$@CORSF=org.http4s.Request=&gt;scalaz.concurrent.Task[Option[org.http4s.Response]]" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -184,7 +162,7 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.server.middleware.CORS#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.middleware.CORS#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(service:org.http4s.server.HttpService,config:org.http4s.server.middleware.CORSConfig):org.http4s.server.HttpService"></a>
       <a id="apply(HttpService,CORSConfig):HttpService"></a>
       <h4 class="signature">
@@ -193,14 +171,20 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=org.http4s.server.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>, <span name="config">config: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a> = <span class="symbol"><span class="name"><a href="#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig">DefaultCORSConfig</a></span></span></span>)</span><span class="result">: <a href="../package.html#HttpService=org.http4s.server.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
+        <span class="name">apply</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>, <span name="config">config: <a href="CORSConfig.html" class="extype" name="org.http4s.server.middleware.CORSConfig">CORSConfig</a> = <span class="symbol"><span class="name"><a href="#DefaultCORSConfig:org.http4s.server.middleware.CORSConfig">DefaultCORSConfig</a></span></span></span>)</span><span class="result">: <a href="../package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.server.middleware.CORS$@apply(service:org.http4s.server.HttpService,config:org.http4s.server.middleware.CORSConfig):org.http4s.server.HttpService" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">CORS middleware
+This middleware provides clients with CORS information
+based on information in CORS config.</p><div class="fullcomment"><div class="comment cmt"><p>CORS middleware
+This middleware provides clients with CORS information
+based on information in CORS config.
+Currently, you cannot make permissions depend on request details
+</p></div></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>

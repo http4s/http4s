@@ -53,7 +53,7 @@
 on creation to clean up stale nonces. Please call <code><span class="extype" name="shutdown()">shutdown()</span></code> when the object is not
 used anymore to kill this thread.</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a>, (<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>], <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -71,7 +71,7 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.server.middleware.authentication.DigestAuthentication"><span>DigestAuthentication</span></li><li class="in" name="org.http4s.server.middleware.authentication.Authentication"><span>Authentication</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.server.middleware.authentication.DigestAuthentication"><span>DigestAuthentication</span></li><li class="in" name="org.http4s.server.middleware.authentication.Authentication"><span>Authentication</span></li><li class="in" name="scala.Function1"><span>Function1</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -188,6 +188,26 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></dd></dl></div>
+    </li><li name="scala.Function1#andThen" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="andThen[A](g:R=&gt;A):T1=&gt;A"></a>
+      <a id="andThen[A]((Service[Request,Response])⇒A):(Service[Request,Response])⇒A"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">andThen</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="g">g: (<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <span class="extype" name="scala.Function1.andThen.A">A</span></span>)</span><span class="result">: (<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <span class="extype" name="scala.Function1.andThen.A">A</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@andThen[A](g:R=&gt;A):T1=&gt;A" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Function1</dd><dt>Annotations</dt><dd>
+                <span class="name">@unspecialized</span><span class="args">()</span>
+              
+        </dd></dl></div>
     </li><li name="org.http4s.server.middleware.authentication.Authentication#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(service:org.http4s.server.HttpService):org.http4s.server.HttpService"></a>
       <a id="apply(HttpService):HttpService"></a>
@@ -197,14 +217,14 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="service">service: <a href="../../package.html#HttpService=org.http4s.server.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.server.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
+        <span class="name">apply</span><span class="params">(<span name="service">service: <a href="../../package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@apply(service:org.http4s.server.HttpService):org.http4s.server.HttpService" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a> → Function1</dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -243,6 +263,26 @@ used anymore to kill this thread.</p></div><div class="toggleContainer block">
       
       <span class="defval" name="classOf[java.lang.CloneNotSupportedException]">...</span>
     </span>)</span>
+              
+        </dd></dl></div>
+    </li><li name="scala.Function1#compose" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="compose[A&lt;:&lt;?&gt;](g:&lt;?&gt;):A=&gt;R"></a>
+      <a id="compose[A]((A)⇒Service[Request,Response]):(A)⇒Service[Request,Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">compose</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="g">g: (<span class="extype" name="scala.Function1.compose.A">A</span>) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: (<span class="extype" name="scala.Function1.compose.A">A</span>) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.DigestAuthentication@compose[A](g:A=&gt;T1):A=&gt;R" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Function1</dd><dt>Annotations</dt><dd>
+                <span class="name">@unspecialized</span><span class="args">()</span>
               
         </dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -445,7 +485,7 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="scala.Function1#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
       <h4 class="signature">
@@ -461,7 +501,7 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Function1 → AnyRef → Any</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -542,6 +582,8 @@ AuthorizationHeader, the corresponding nonce counter (nc) is increased.</p></div
         <div id="inheritedMembers">
         <div class="parent" name="org.http4s.server.middleware.authentication.Authentication">
               <h3>Inherited from <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></h3>
+            </div><div class="parent" name="scala.Function1">
+              <h3>Inherited from (<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
