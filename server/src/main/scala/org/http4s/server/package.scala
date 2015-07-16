@@ -1,7 +1,8 @@
 package org.http4s
 
-import scalaz.Kleisli
+import scalaz.{OptionT, Kleisli}
 import scalaz.concurrent.Task
+import scalaz.syntax.monad._
 
 package object server {
   /**
@@ -25,7 +26,37 @@ package object server {
   /**
    * A [[Service]] that returns an optional result.
    */
-  type PartialService[A, B] = Service[A, Option[B]]
+  type PartialService[A, B] = Kleisli[({type L[x] = OptionT[Task, x]})#L, A, B]
+
+  object PartialService {
+    /**
+     * Lifts an unwrapped function that returns an OptionT over Task into a [[PartialService]].
+     */
+    def lift[A, B](f: A => OptionT[Task, B]): PartialService[A, B] =
+      Kleisli.kleisliU(f)
+
+    /**
+     * Lifts a partial function that returns a Task into a [[PartialService]].  Where the
+     * function is not defined, the [[PartialService]] returns `OptionT.none`
+     */
+    def liftPF[A, B](pf: PartialFunction[A, Task[B]]): PartialService[A, B] =
+      Kleisli.kleisli[({type L[x] = OptionT[Task, x]})#L, A, B] {
+        pf.lift.andThen {
+          case Some(b) => b.liftM[OptionT]
+          case None => OptionT.none
+        }
+      }
+  }
+
+  implicit class PartialServiceSyntax[A, B](val service: PartialService[A, B]) extends AnyVal {
+    def or(default: => Task[B]): Service[A, B] =
+      service.mapK(_.getOrElseF(default))
+
+    def orElse(that: PartialService[A, B]): PartialService[A, B] =
+      PartialService.lift { req =>
+        service.run(req).orElse(that.run(req))
+      }
+  }
 
   /**
    * A [[Service]] that produces a Task to compute a [[Response]] from a
