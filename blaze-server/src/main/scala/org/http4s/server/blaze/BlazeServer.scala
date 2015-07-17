@@ -19,7 +19,6 @@ import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
 
 import org.log4s.getLogger
 
-import scala.annotation.tailrec
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 
@@ -28,6 +27,7 @@ class BlazeBuilder(
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   isNio2: Boolean,
+  enableWebSockets: Boolean,
   sslBits: Option[SSLBits],
   isHttp2Enabled: Boolean,
   serviceMounts: Vector[ServiceMount]
@@ -35,6 +35,7 @@ class BlazeBuilder(
   extends ServerBuilder
   with IdleTimeoutSupport
   with SSLSupport
+  with server.WebSocketSupport
 {
   type Self = BlazeBuilder
 
@@ -44,10 +45,11 @@ class BlazeBuilder(
                  serviceExecutor: ExecutorService = serviceExecutor,
                      idleTimeout: Duration = idleTimeout,
                           isNio2: Boolean = isNio2,
+                enableWebSockets: Boolean = enableWebSockets,
                          sslBits: Option[SSLBits] = sslBits,
                     http2Support: Boolean = isHttp2Enabled,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, sslBits, http2Support, serviceMounts)
+    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, enableWebSockets, sslBits, http2Support, serviceMounts)
 
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
@@ -64,6 +66,8 @@ class BlazeBuilder(
   override def withIdleTimeout(idleTimeout: Duration): BlazeBuilder = copy(idleTimeout = idleTimeout)
 
   def withNio2(isNio2: Boolean): BlazeBuilder = copy(isNio2 = isNio2)
+
+  override def withWebSockets(enableWebsockets: Boolean): Self = copy(enableWebSockets = enableWebsockets)
 
   def enableHttp2(enabled: Boolean): BlazeBuilder =
     copy(http2Support = enabled)
@@ -96,7 +100,7 @@ class BlazeBuilder(
 
           val l1 =
             if (isHttp2Enabled) LeafBuilder(ProtocolSelector(eng, aggregateService, 4*1024, Some(conn), serviceExecutor))
-            else LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), serviceExecutor))
+            else LeafBuilder(Http1ServerStage(aggregateService, Some(conn), serviceExecutor, enableWebSockets))
 
           val l2 = if (idleTimeout.isFinite) l1.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
                    else l1
@@ -110,7 +114,7 @@ class BlazeBuilder(
       case None =>
         if (isHttp2Enabled) logger.warn("Http2 support requires TLS.")
         (conn: SocketConnection) => {
-          val leaf = LeafBuilder(new Http1ServerStage(aggregateService, Some(conn), serviceExecutor))
+          val leaf = LeafBuilder(Http1ServerStage(aggregateService, Some(conn), serviceExecutor, enableWebSockets))
           if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
           else leaf
         }
@@ -181,6 +185,7 @@ object BlazeBuilder extends BlazeBuilder(
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
+  enableWebSockets = true,
   sslBits = None,
   isHttp2Enabled = false,
   serviceMounts = Vector.empty
