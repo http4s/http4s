@@ -28,9 +28,19 @@ import scalaz.{\/-, -\/}
 import java.util.concurrent.ExecutorService
 
 
+object Http1ServerStage {
+  def apply(service: HttpService,
+            conn: Option[SocketConnection],
+            pool: ExecutorService = Strategy.DefaultExecutorService,
+            enableWebSockets: Boolean = false ): Http1ServerStage = {
+    if (enableWebSockets) new Http1ServerStage(service, conn, pool) with WebSocketSupport
+    else                  new Http1ServerStage(service, conn, pool)
+  }
+}
+
 class Http1ServerStage(service: HttpService,
                        conn: Option[SocketConnection],
-                       pool: ExecutorService = Strategy.DefaultExecutorService)
+                       pool: ExecutorService)
                   extends Http1ServerParser
                   with TailStage[ByteBuffer]
                   with Http1Stage

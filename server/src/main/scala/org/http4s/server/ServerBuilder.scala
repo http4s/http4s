@@ -83,3 +83,8 @@ trait MetricsSupport { this: ServerBuilder =>
 object MetricsSupport {
   val DefaultPrefix = "org.http4s.server"
 }
+
+trait WebSocketSupport { this: ServerBuilder =>
+  /* Enable websocket support */
+  def withWebSockets(enableWebsockets: Boolean): Self
+}
