@@ -203,18 +203,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
     </li><li name="org.http4s.server.blaze.Http1ServerStage#badMessage" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="badMessage(msg:String,t:org.http4s.blaze.http.http_parser.BaseExceptions.ParserException,req:org.http4s.Request):Unit"></a>
+      <a id="badMessage(debugMessage:String,t:org.http4s.blaze.http.http_parser.BaseExceptions.ParserException,req:org.http4s.Request):Unit"></a>
       <a id="badMessage(String,ParserException,Request):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">badMessage</span><span class="params">(<span name="msg">msg: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="t">t: <span class="extype" name="org.http4s.blaze.http.http_parser.BaseExceptions.ParserException">ParserException</span></span>, <span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">badMessage</span><span class="params">(<span name="debugMessage">debugMessage: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="t">t: <span class="extype" name="org.http4s.blaze.http.http_parser.BaseExceptions.ParserException">ParserException</span></span>, <span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.blaze.Http1ServerStage@badMessage(msg:String,t:org.http4s.blaze.http.http_parser.BaseExceptions.ParserException,req:org.http4s.Request):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.blaze.Http1ServerStage@badMessage(debugMessage:String,t:org.http4s.blaze.http.http_parser.BaseExceptions.ParserException,req:org.http4s.Request):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -841,6 +841,23 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Stage</dd></dl></div>
+    </li><li name="org.http4s.server.blaze.Http1ServerStage#internalServerError" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="internalServerError(errorMsg:String,t:Throwable,req:org.http4s.Request,bodyCleanup:()=&gt;scala.concurrent.Future[java.nio.ByteBuffer]):Unit"></a>
+      <a id="internalServerError(String,Throwable,Request,()⇒Future[ByteBuffer]):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">internalServerError</span><span class="params">(<span name="errorMsg">errorMsg: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="t">t: <span class="extype" name="scala.Throwable">Throwable</span></span>, <span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="bodyCleanup">bodyCleanup: () ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.blaze.Http1ServerStage@internalServerError(errorMsg:String,t:Throwable,req:org.http4s.Request,bodyCleanup:()=&gt;scala.concurrent.Future[java.nio.ByteBuffer]):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.blaze.http.http_parser.BodyAndHeaderParser#isChunked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isChunked():Boolean"></a>
       <a id="isChunked():Boolean"></a>
