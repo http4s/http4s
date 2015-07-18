@@ -47,13 +47,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeBuilder</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a> with <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></span>
+        <span class="name">BlazeBuilder</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a> with <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> with <a href="../WebSocketSupport.html" class="extype" name="org.http4s.server.WebSocketSupport">server.WebSocketSupport</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>, <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a>, <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../WebSocketSupport.html" class="extype" name="org.http4s.server.WebSocketSupport">server.WebSocketSupport</a>, <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>, <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a>, <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
             <div class="subClasses hiddenContent"><a href="BlazeBuilder$.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a></div>
@@ -74,7 +74,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.server.blaze.BlazeBuilder"><span>BlazeBuilder</span></li><li class="in" name="org.http4s.server.SSLSupport"><span>SSLSupport</span></li><li class="in" name="org.http4s.server.IdleTimeoutSupport"><span>IdleTimeoutSupport</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.server.blaze.BlazeBuilder"><span>BlazeBuilder</span></li><li class="in" name="org.http4s.server.WebSocketSupport"><span>WebSocketSupport</span></li><li class="in" name="org.http4s.server.SSLSupport"><span>SSLSupport</span></li><li class="in" name="org.http4s.server.IdleTimeoutSupport"><span>IdleTimeoutSupport</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -94,7 +94,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.blaze.BlazeBuilder#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder"></a>
+      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder"></a>
       <a id="&lt;init&gt;:BlazeBuilder"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -102,10 +102,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="serviceExecutor">serviceExecutor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="isNio2">isNio2: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="sslBits">sslBits: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../SSLSupport$$SSLBits.html" class="extype" name="org.http4s.server.SSLSupport.SSLBits">SSLBits</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="serviceMounts">serviceMounts: <span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="org.http4s.server.blaze.ServiceMount">ServiceMount</span>]</span>)</span>
+        <span class="name">BlazeBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="serviceExecutor">serviceExecutor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="isNio2">isNio2: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="enableWebSockets">enableWebSockets: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="sslBits">sslBits: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../SSLSupport$$SSLBits.html" class="extype" name="org.http4s.server.SSLSupport.SSLBits">SSLBits</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="serviceMounts">serviceMounts: <span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="org.http4s.server.blaze.ServiceMount">ServiceMount</span>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.blaze.BlazeBuilder@&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.blaze.BlazeBuilder@&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -696,6 +696,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.server.blaze.BlazeBuilder#withWebSockets" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withWebSockets(enableWebsockets:Boolean):BlazeBuilder.this.Self"></a>
+      <a id="withWebSockets(Boolean):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withWebSockets</span><span class="params">(<span name="enableWebsockets">enableWebsockets: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self=org.http4s.server.blaze.BlazeBuilder" class="extmbr" name="org.http4s.server.blaze.BlazeBuilder.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.blaze.BlazeBuilder@withWebSockets(enableWebsockets:Boolean):BlazeBuilder.this.Self" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../WebSocketSupport.html" class="extype" name="org.http4s.server.WebSocketSupport">WebSocketSupport</a></dd></dl></div>
     </li></ol>
             </div>
 
@@ -705,7 +722,9 @@
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.server.SSLSupport">
+        <div class="parent" name="org.http4s.server.WebSocketSupport">
+              <h3>Inherited from <a href="../WebSocketSupport.html" class="extype" name="org.http4s.server.WebSocketSupport">server.WebSocketSupport</a></h3>
+            </div><div class="parent" name="org.http4s.server.SSLSupport">
               <h3>Inherited from <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></h3>
             </div><div class="parent" name="org.http4s.server.IdleTimeoutSupport">
               <h3>Inherited from <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a></h3>

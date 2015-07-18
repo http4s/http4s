@@ -132,7 +132,13 @@ tying up too many threads.</p>
    <span class="o">}</span>
 
    <span class="nc">WS</span><span class="o">(</span><span class="nc">Exchange</span><span class="o">(</span><span class="n">src</span><span class="o">,</span> <span class="n">q</span><span class="o">.</span><span class="n">enqueue</span><span class="o">))</span>
-</code></code></pre>
+
+
+<span class="n">lazeBuilder</span><span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
+ <span class="o">.</span><span class="n">withWebSockets</span><span class="o">(</span><span class="kc">true</span><span class="o">)</span>
+ <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="n">route</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
+ <span class="o">.</span><span class="n">run</span>
+ <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span></code></code></pre>
 
 <h2 id="toc_4">Choose your backend</h2>
 
