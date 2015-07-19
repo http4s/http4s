@@ -11,16 +11,15 @@ import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtunidoc.Plugin.UnidocKeys._
 import pl.project13.scala.sbt.SbtJmh.jmhSettings
 
+// Global settings
 organization in ThisBuild := "org.http4s"
-version in ThisBuild := "0.9.0-SNAPSHOT"
+version      in ThisBuild := "0.9.0-SNAPSHOT"
+apiVersion   in ThisBuild <<= version.map(extractApiVersion)
+scalaVersion in ThisBuild := "2.10.5"
+crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.7"))
 
 // Root project
 name := "root"
-
-version in ThisBuild := "0.9.0-SNAPSHOT"
-
-apiVersion in ThisBuild <<= version.map(extractApiVersion)
-
 description := "A minimal, Scala-idiomatic library for HTTP"
 noPublishSettings
 
@@ -30,29 +29,26 @@ lazy val core = libraryProject("core")
     description := "Core http4s library for servers and clients",
     sourceGenerators in Compile <+= buildInfo,
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
-    buildInfoPackage := organization.value,
-    libraryDependencies ++= Seq(
-      Seq(
-        base64,
-        http4sWebsocket,
-        log4s,
-        parboiled,
-        scalaReflect(scalaVersion.value) % "provided",
-        scalazCore,
-        scalazStream,
-        scodecBits
-      ),
-      CrossVersion.partialVersion(scalaVersion.value) match {
-        case Some((2, 10)) =>
-          Seq(
-            compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
-            "org.scalamacros" %% "quasiquotes" % "2.0.1" cross CrossVersion.binary
-          )
-        case _ =>
-          Seq.empty
-      }
-    ).flatten
-  )
+    buildInfoPackage <<= organization,
+    libraryDependencies <++= scalaVersion { v => Seq(
+      base64,
+      http4sWebsocket,
+      log4s,
+      parboiled,
+      scalaReflect(v) % "provided",
+      scalazCore,
+      scalazStream,
+      scodecBits
+    ) },
+    libraryDependencies <++= scalaVersion (
+      VersionNumber(_).numbers match {
+        case Seq(2, 10, _*) => Seq(
+          compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
+          "org.scalamacros" %% "quasiquotes" % "2.0.1" cross CrossVersion.binary
+        )
+        case _ => Seq.empty
+      })
+)
 
 lazy val server = libraryProject("server")
   .settings(
@@ -167,8 +163,8 @@ lazy val json4sJackson = libraryProject("json4s-jackson")
 lazy val scalaXml = libraryProject("scala-xml")
   .settings(
     description := "Provides scala-xml codecs for http4s",
-    libraryDependencies ++= (CrossVersion.partialVersion(scalaVersion.value) match {
-      case Some((2, scalaMajor)) if scalaMajor >= 11 => Seq(Http4sBuild.scalaXml)
+    libraryDependencies <++= scalaVersion (VersionNumber(_).numbers match {
+      case Seq(2, scalaMajor, _*) if scalaMajor >= 11 => Seq(Http4sBuild.scalaXml)
       case _ => Seq.empty
     })
   )
@@ -296,8 +292,6 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
-description := "A minimal, Scala-idiomatic library for HTTP"
-
 def http4sProject(name: String) = Project(name, file(name))
   .settings(commonSettings)
   .settings(projectMetadata)
@@ -360,34 +354,44 @@ lazy val projectMetadata = Seq(
 )
 
 lazy val commonSettings = Seq(
-  apiVersion := {
-    val Seq(major, minor, _) = VersionNumber(version.value).numbers
-    (major.toInt, minor.toInt)
+  jvmTarget <<= scalaVersion.map {
+    VersionNumber(_).numbers match {
+      case Seq(2, 10, _*) => "1.7"
+      case _ => "1.8"
+    }
   },
-  scalaVersion := "2.10.5",
-  crossScalaVersions := Seq(scalaVersion.value, "2.11.7"),
-  jvmTarget := "1.7",
-  scalacOptions ++= Seq(
+  scalacOptions <<= jvmTarget.map { jvm => Seq(
     "-deprecation",
     "-feature",
     "-language:implicitConversions",
     "-language:higherKinds",
-    s"-target:jvm-${jvmTarget.value}",
+    s"-target:jvm-$jvm",
     "-unchecked",
     "-Xlint"
-  ),
-  javacOptions ++= Seq(
-    "-source", jvmTarget.value,
-    "-target", jvmTarget.value,
+  )},
+  scalacOptions <++= scalaVersion.map { v =>
+    if (delambdafyOpts(v)) Seq(
+      "-Ybackend:GenBCode",
+      "-Ydelambdafy:method",
+      "-Yopt:l:classpath"
+    ) else Seq.empty
+  },
+  javacOptions <++= jvmTarget.map { jvm => Seq(
+    "-source", jvm,
+    "-target", jvm,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
-  ),
+  )},
   resolvers ++= Seq(
     Resolver.typesafeRepo("releases"),
     Resolver.sonatypeRepo("snapshots"),
     "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
   ),
-  libraryDependencies ++= Seq(
+  libraryDependencies <++= scalaVersion(v =>
+    if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0")
+    else Seq.empty
+  ),
+  libraryDependencies  ++= Seq(
     scalameter,
     scalazScalacheckBinding,
     scalazSpecs2
@@ -396,7 +400,7 @@ lazy val commonSettings = Seq(
 
 lazy val publishSettings = Seq(
   publishMavenStyle := true,
-  publishTo := Some(nexusRepoFor(version.value)),
+  publishTo <<= version(v => Some(nexusRepoFor(v))),
   publishArtifact in Test := false,
   credentials ++= sonatypeEnvCredentials
 )
@@ -408,8 +412,16 @@ lazy val noPublishSettings = Seq(
 )
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
-  failOnProblem := compatibleVersion(version.value).isDefined,
-  previousArtifact := compatibleVersion(version.value) map {
-    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
-  }
+  failOnProblem <<= version(compatibleVersion(_).isDefined),
+  previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName)((ver, org, binVer, mod) => compatibleVersion(ver) map {
+    org % s"${mod}_${binVer}" % _
+  })
 )
+
+// Check whether to enable java 8 type lambdas
+// https://github.com/scala/make-release-notes/blob/2.11.x/experimental-backend.md
+// Minimum scala version is 2.11.8 due to sbt/sbt#2076
+def delambdafyOpts(v: String): Boolean = VersionNumber(v).numbers match {
+  case Seq(2, 11, x, _*) if x > 7 => true
+  case _ => false
+}
