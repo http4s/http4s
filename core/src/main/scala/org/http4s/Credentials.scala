@@ -19,9 +19,9 @@
 package org.http4s
 
 import java.nio.charset.StandardCharsets
+import java.util.Base64
 
 import org.http4s.util.{Renderable, Writer}
-import net.iharder.Base64
 
 sealed abstract class Credentials extends Renderable {
   def authScheme: AuthScheme
@@ -34,7 +34,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
   override lazy val value = {
     val userPass = username + ':' + password
     val bytes = userPass.getBytes(StandardCharsets.ISO_8859_1)
-    val cookie = Base64.encodeBytes(bytes)
+    val cookie = Base64.getEncoder.encodeToString(bytes)
     "Basic " + cookie
   }
 
@@ -43,7 +43,7 @@ case class BasicCredentials(username: String, password: String) extends Credenti
 
 object BasicCredentials {
   def apply(credentials: String): BasicCredentials = {
-    val bytes = Base64.decode(credentials)
+    val bytes = Base64.getDecoder.decode(credentials)
     val userPass = new String(bytes, StandardCharsets.ISO_8859_1)
     userPass.indexOf(':') match {
       case -1 => apply(userPass, "")
