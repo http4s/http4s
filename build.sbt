@@ -420,7 +420,8 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
 
 // Check whether to enable java 8 type lambdas
 // https://github.com/scala/make-release-notes/blob/2.11.x/experimental-backend.md
+// Minimum scala version is 2.11.8 due to sbt/sbt#2076
 def delambdafyOpts(v: String): Boolean = VersionNumber(v).numbers match {
-  case Seq(2, 11, x, _*) if x > 6 => true
+  case Seq(2, 11, x, _*) if x > 7 => true
   case _ => false
 }
