@@ -8,7 +8,6 @@ import org.http4s.headers.Authorization
 import org.http4s.util.string._
 import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
 
-import scala.annotation.unchecked.uncheckedStable
 import scala.collection.mutable.ListBuffer
 import scalaz.concurrent.Task
 
@@ -20,7 +19,7 @@ package object oauth1 {
 
   private val SHA1 = "HmacSHA1"
   private def UTF_8 = StandardCharsets.UTF_8
-  private val OutOfBounds = "oob"
+  private val OutOfBand = "oob"
 
   /** Sign the request with an OAuth Authorization header
     *
@@ -45,7 +44,7 @@ package object oauth1 {
       params += "oauth_timestamp"        -> (System.currentTimeMillis / 1000).toString
       params += "oauth_nonce"            -> System.nanoTime.toString
       params += "oauth_version"          -> "1.0"
-      params += "oauth_callback"         -> callback.map(c => encode(c.renderString)).getOrElse(OutOfBounds)
+      params += "oauth_callback"         -> callback.map(c => encode(c.renderString)).getOrElse(OutOfBand)
       token.foreach { t => params += "oauth_token" -> encode(t.value) }
       verifier.foreach { v => params += "oauth_verifier" -> encode(v) }
       params.result()
@@ -65,7 +64,7 @@ package object oauth1 {
     sha1.init(new crypto.spec.SecretKeySpec(bytes(key), SHA1))
 
     val sigBytes = sha1.doFinal(bytes(baseString))
-    net.iharder.Base64.encodeBytes(sigBytes)
+    java.util.Base64.getEncoder.encodeToString(sigBytes)
   }
 
   // Needs to have all params already encoded

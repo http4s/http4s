@@ -31,7 +31,6 @@ lazy val core = libraryProject("core")
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage <<= organization,
     libraryDependencies <++= scalaVersion { v => Seq(
-      base64,
       http4sWebsocket,
       log4s,
       parboiled,
