@@ -242,14 +242,8 @@ lazy val examples = http4sProject("examples")
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(
     description := "Examples of http4s server and clients on blaze",
-    libraryDependencies ++= Seq(
-      (javaVersion match {
-        case v if v >= (1, 8) => Seq(alpnBoot)
-        case _ => Seq.empty
-      }),
-      Seq(metricsJson)
-    ).flatten,
-    // ALPN is necessary for HTTP2 support, but requires Java 8
+    fork := true,
+    libraryDependencies ++= Seq(alpnBoot, metricsJson),
     javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
       for {
         file <- attList.map(_.data)
