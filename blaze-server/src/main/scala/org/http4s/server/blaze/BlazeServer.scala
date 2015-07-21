@@ -97,10 +97,20 @@ class BlazeBuilder(
       case Some((ctx, clientAuth)) =>
         (conn: SocketConnection) => {
           val eng = ctx.createSSLEngine()
+          val requestAttrs = {
+            var requestAttrs = AttributeMap.empty
+            (conn.local,conn.remote) match {
+              case (l: InetSocketAddress, r: InetSocketAddress) =>
+                requestAttrs = requestAttrs.put(Request.Keys.ConnectionInfo, Request.Connection(l,r, true))
+
+              case _ => /* NOOP */
+            }
+            requestAttrs
+          }
 
           val l1 =
-            if (isHttp2Enabled) LeafBuilder(ProtocolSelector(eng, aggregateService, 4*1024, Some(conn), serviceExecutor))
-            else LeafBuilder(Http1ServerStage(aggregateService, Some(conn), serviceExecutor, enableWebSockets))
+            if (isHttp2Enabled) LeafBuilder(ProtocolSelector(eng, aggregateService, 4*1024, requestAttrs, serviceExecutor))
+            else LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets))
 
           val l2 = if (idleTimeout.isFinite) l1.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
                    else l1
@@ -114,7 +124,17 @@ class BlazeBuilder(
       case None =>
         if (isHttp2Enabled) logger.warn("Http2 support requires TLS.")
         (conn: SocketConnection) => {
-          val leaf = LeafBuilder(Http1ServerStage(aggregateService, Some(conn), serviceExecutor, enableWebSockets))
+          val requestAttrs = {
+            var requestAttrs = AttributeMap.empty
+            (conn.local,conn.remote) match {
+              case (l: InetSocketAddress, r: InetSocketAddress) =>
+                requestAttrs = requestAttrs.put(Request.Keys.ConnectionInfo, Request.Connection(l,r, false))
+
+              case _ => /* NOOP */
+            }
+            requestAttrs
+          }
+          val leaf = LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets))
           if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
           else leaf
         }

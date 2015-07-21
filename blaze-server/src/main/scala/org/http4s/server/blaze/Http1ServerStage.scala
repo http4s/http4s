@@ -30,16 +30,16 @@ import java.util.concurrent.ExecutorService
 
 object Http1ServerStage {
   def apply(service: HttpService,
-            conn: Option[SocketConnection],
+            attributes: AttributeMap = AttributeMap.empty,
             pool: ExecutorService = Strategy.DefaultExecutorService,
             enableWebSockets: Boolean = false ): Http1ServerStage = {
-    if (enableWebSockets) new Http1ServerStage(service, conn, pool) with WebSocketSupport
-    else                  new Http1ServerStage(service, conn, pool)
+    if (enableWebSockets) new Http1ServerStage(service, attributes, pool) with WebSocketSupport
+    else                  new Http1ServerStage(service, attributes, pool)
   }
 }
 
 class Http1ServerStage(service: HttpService,
-                       conn: Option[SocketConnection],
+                       requestAttrs: AttributeMap,
                        pool: ExecutorService)
                   extends Http1ServerParser
                   with TailStage[ByteBuffer]
@@ -51,13 +51,6 @@ class Http1ServerStage(service: HttpService,
   protected val ec = ExecutionContext.fromExecutorService(pool)
 
   val name = "Http4sServerStage"
-
-  private val requestAttrs = (
-      for {
-        conn  <- conn
-        raddr <- conn.remoteInetAddress
-      } yield AttributeMap(AttributeEntry(Request.Keys.Remote, raddr))
-    ).getOrElse(AttributeMap.empty)
 
   private var uri: String = null
   private var method: String = null

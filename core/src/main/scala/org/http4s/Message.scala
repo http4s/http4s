@@ -1,7 +1,7 @@
 package org.http4s
 
 import java.io.File
-import java.net.InetAddress
+import java.net.{InetSocketAddress, InetAddress}
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
 import scalaz.concurrent.Task
@@ -185,20 +185,24 @@ case class Request(
    */
   def params: Map[String, String] = uri.params
 
-  lazy val remote: Option[InetAddress] = attributes.get(Keys.Remote)
-  lazy val remoteAddr: Option[String] = remote.map(_.getHostAddress)
+  lazy val remote: Option[InetSocketAddress] = attributes.get(Keys.ConnectionInfo).map(_.remote)
+  lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
   lazy val remoteHost: Option[String] = remote.map(_.getHostName)
+  lazy val remotePort: Option[Int]    = remote.map(_.getPort)
 
   lazy val remoteUser: Option[String] = None
 
-  lazy val serverName: String = {
-    uri.host.map(_.value)
+  lazy val server: Option[InetSocketAddress] = attributes.get(Keys.ConnectionInfo).map(_.local)
+  lazy val serverAddr: String = {
+    server.map(_.getHostString)
+      .orElse(uri.host.map(_.value))
       .orElse(headers.get(Host).map(_.host))
       .getOrElse(InetAddress.getLocalHost.getHostName)
   }
 
   lazy val serverPort: Int = {
-    uri.port
+    server.map(_.getPort)
+      .orElse(uri.port)
       .orElse(headers.get(Host).flatMap(_.port))
       .getOrElse(80)
   }
@@ -221,10 +225,13 @@ case class Request(
 }
 
 object Request {
+
+  case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
+
   object Keys {
     val PathInfoCaret = AttributeKey.http4s[Int]("request.pathInfoCaret")
     val PathTranslated = AttributeKey.http4s[File]("request.pathTranslated")
-    val Remote = AttributeKey.http4s[InetAddress]("request.remote")
+    val ConnectionInfo = AttributeKey.http4s[Connection]("request.remote")
     val ServerSoftware = AttributeKey.http4s[ServerSoftware]("request.serverSoftware")
   }
 }

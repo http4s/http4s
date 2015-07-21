@@ -6,7 +6,7 @@ import org.http4s.headers.`Transfer-Encoding`
 import server._
 
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-import java.net.InetAddress
+import java.net.{InetSocketAddress, InetAddress}
 
 import scala.collection.JavaConverters._
 import javax.servlet._
@@ -141,7 +141,11 @@ class Http4sServlet(service: HttpService,
       body = servletIo.reader(req),
       attributes = AttributeMap(
         Request.Keys.PathInfoCaret(req.getContextPath.length + req.getServletPath.length),
-        Request.Keys.Remote(InetAddress.getByName(req.getRemoteAddr)),
+        Request.Keys.ConnectionInfo(Request.Connection(
+          InetSocketAddress.createUnresolved(req.getRemoteAddr, req.getRemotePort),
+          InetSocketAddress.createUnresolved(req.getLocalAddr, req.getLocalPort),
+          req.isSecure
+        )),
         Request.Keys.ServerSoftware(serverSoftware)
       )
     )
