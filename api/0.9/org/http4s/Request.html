@@ -765,18 +765,18 @@ an empty <code>Map</code> is returned.
     </span>
       
     </li><li name="org.http4s.Request#remote" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="remote:Option[java.net.InetAddress]"></a>
-      <a id="remote:Option[InetAddress]"></a>
+      <a id="remote:Option[java.net.InetSocketAddress]"></a>
+      <a id="remote:Option[InetSocketAddress]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">remote</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetAddress">InetAddress</span>]</span>
+        <span class="name">remote</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@remote:Option[java.net.InetAddress]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@remote:Option[java.net.InetSocketAddress]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -811,6 +811,23 @@ an empty <code>Map</code> is returned.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@remoteHost:Option[String]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Request#remotePort" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="remotePort:Option[Int]"></a>
+      <a id="remotePort:Option[Int]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">remotePort</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Request@remotePort:Option[Int]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -866,19 +883,36 @@ an empty <code>Map</code> is returned.
       </a>
     </span>
       
-    </li><li name="org.http4s.Request#serverName" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="serverName:String"></a>
-      <a id="serverName:String"></a>
+    </li><li name="org.http4s.Request#server" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="server:Option[java.net.InetSocketAddress]"></a>
+      <a id="server:Option[InetSocketAddress]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
-        <span class="name">serverName</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">server</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@serverName:String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@server:Option[java.net.InetSocketAddress]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Request#serverAddr" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="serverAddr:String"></a>
+      <a id="serverAddr:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">lazy val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">serverAddr</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Request@serverAddr:String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
