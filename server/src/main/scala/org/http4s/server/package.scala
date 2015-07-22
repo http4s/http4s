@@ -85,7 +85,7 @@ package object server {
     def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =
       PartialService.liftPF(pf).or(notFound)
 
-    val notFound: Task[Response] = Task.now(Response(Status.NotFound))
+    val notFound: Task[Response] = Task.now(Response(Status.NotFound).withBody("404 Not Found.").run)
     val empty   : HttpService    = Service.const(notFound)
   }
 
