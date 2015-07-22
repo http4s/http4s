@@ -19,7 +19,7 @@ import scala.concurrent.duration.Duration
 /** Facilitates the use of ALPN when using blaze http2 support */
 object ProtocolSelector {
   def apply(engine: SSLEngine, service: HttpService,
-            maxHeaderLen: Int, conn: Option[SocketConnection], es: ExecutorService): ALPNSelector = {
+            maxHeaderLen: Int, requestAttributes: AttributeMap, es: ExecutorService): ALPNSelector = {
 
     def preference(protos: Seq[String]): String = {
       protos.find {
@@ -29,25 +29,21 @@ object ProtocolSelector {
     }
 
     def select(s: String): LeafBuilder[ByteBuffer] = s match {
-      case "h2" | "h2-14" | "h2-15" => LeafBuilder(http2Stage(service, maxHeaderLen, conn, es))
-      case _                        => LeafBuilder(new Http1ServerStage(service, conn, es))
+      case "h2" | "h2-14" | "h2-15" => LeafBuilder(http2Stage(service, maxHeaderLen, requestAttributes, es))
+      case _                        => LeafBuilder(new Http1ServerStage(service, requestAttributes, es))
     }
 
     new ALPNSelector(engine, preference, select)
   }
 
   private def http2Stage(service: HttpService, maxHeadersLength: Int,
-                         conn: Option[SocketConnection], es: ExecutorService): TailStage[ByteBuffer] = {
+                         requestAttributes: AttributeMap, es: ExecutorService): TailStage[ByteBuffer] = {
 
     // Make the objects that will be used for the whole connection
     val ec = ExecutionContext.fromExecutorService(es)
-    val ra = for {
-      conn <- conn
-      raddr <- conn.remoteInetAddress
-    } yield AttributeMap(AttributeEntry(Request.Keys.Remote, raddr))
 
     def newNode(streamId: Int): LeafBuilder[Http2Msg] = {
-      LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, ec, ra.getOrElse(AttributeMap.empty), service))
+      LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, ec, requestAttributes, service))
     }
 
     new Http2Stage(

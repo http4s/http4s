@@ -129,5 +129,12 @@ object ScienceExperiments {
         _    <- Task.delay { Thread.sleep(seconds) }
         resp <- Ok("finally!")
       } yield resp
+
+    case req @ GET -> Root / "connectioninfo" =>
+      val conn = req.attributes.get(Request.Keys.ConnectionInfo)
+
+      conn.fold(Ok("Couldn't find connection info!")){ case Request.Connection(loc,rem,secure) =>
+        Ok(s"Local: $loc, Remote: $rem, secure: $secure")
+      }
   }
 }
