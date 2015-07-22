@@ -9,6 +9,9 @@ env:
   - secure: MxKRKhjMqSYKibM+IvnVdXRyo8lZNpR7Bx14TSwuUKy6aX9GRHSbGSJpJpr38I42jLgxQIiAPaADgpwE4u1FZnkPxY2+MNoWbNBoCyab7ApB4DyeyRWca5JSl1IJBOHIRknLgdDgwdHaRqZL+p3Dojni1STqwg1row6Y9wms4Es=
 rvm:
 - 1.9.3-p392
+before_script:
+- mkdir -p $HOME/.sbt/launchers/0.13.8/
+- curl -L -o $HOME/.sbt/launchers/0.13.8/sbt-launch.jar http://dl.bintray.com/typesafe/ivy-releases/org.scala-sbt/sbt-launch/0.13.8/sbt-launch.jar
 script: bash bin/travis
 webhooks:
   urls:
