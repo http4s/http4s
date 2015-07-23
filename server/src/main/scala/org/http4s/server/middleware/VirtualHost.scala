@@ -32,7 +32,7 @@ object VirtualHost {
     * given. If the port is not given, it is ignored.
     */
   def wildcard(service: HttpService, wildcardHost: String, port: Option[Int] = None): HostService =
-    regex(service, wildcardHost.replace("*", "\\w+").replace(".", "\\."), port)
+    regex(service, wildcardHost.replace("*", "\\w+").replace(".", "\\.").replace("-", "\\-"), port)
 
   /** Create a [[HostService]] that uses a regular expression to match the host
     * string (which will be provided in lower case form) and port, if the port
@@ -58,10 +58,7 @@ object VirtualHost {
           val host = h.port match {
             case Some(_) => h
             case None =>
-              h.copy(port = req.uri.port.orElse(
-                 req.attributes.get(Request.Keys.ConnectionInfo).map(c => if (c.secure) 443 else 80)
-                )
-              )
+              h.copy(port = req.uri.port.orElse(req.isSecure.map(if (_) 443 else 80)))
           }
 
           all.collectFirst { case HostService(s,p) if p(host) => s(req) }
