@@ -291,7 +291,7 @@ def http4sProject(name: String) = Project(name, file(name))
   .settings(publishSettings)
   .settings(
     moduleName := s"http4s-$name",
-    logLevel := Level.Warn
+    testOptions in Test += Tests.Argument("xonly", "failtrace")
   )
 
 def libraryProject(name: String) = http4sProject(name)

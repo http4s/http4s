@@ -171,7 +171,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
         src => Task.delay(src.close())) { src =>
         Task.now { buf: Array[Char] => Task.delay {
           val m = src.read(buf)
-          println("BUFFER = "+buf.subSequence(0, m))
           if (m == buf.length) buf
           else if (m == -1) throw Terminated(End)
           else buf.slice(0, m)

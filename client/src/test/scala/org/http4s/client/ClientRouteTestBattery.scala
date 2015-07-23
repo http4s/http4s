@@ -43,7 +43,6 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   }
 
   private def runTest(req: Request, expected: Response, address: InetSocketAddress): Fragment = {
-    println(s"Running $req")
     s"Execute ${req.method}: ${req.uri}" in {
       val received = runTest(req, address)
       checkResponse(received, expected)
