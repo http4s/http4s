@@ -195,8 +195,8 @@ object LongVar extends NumericPathVar(_.toLong)
 /**
  * Multiple param extractor:
  * {{{
- *   object A extends QueryParamMatcher("a")
- *   object B extends QueryParamMatcher("b")
+ *   object A extends QueryParamDecoderMatcher[String]("a")
+ *   object B extends QueryParamDecoderMatcher[Int]("b")
  *   val service: HttpService = {
  *     case GET -> Root / "user" :? A(a) +& B(b) => ...
  * }}}
