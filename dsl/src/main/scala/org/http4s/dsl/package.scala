@@ -140,6 +140,12 @@ package object dsl extends Http4s {
   implicit class LoopDetectedSyntax(val status: LoopDetected.type) extends AnyVal with EntityResponseGenerator
   implicit class NotExtendedSyntax(val status: NotExtended.type) extends AnyVal with EntityResponseGenerator
   implicit class NetworkAuthenticationRequiredSyntax(val status: NetworkAuthenticationRequired.type) extends AnyVal with EntityResponseGenerator
+  
+  implicit class MethodOps(val method: Method) extends AnyVal {
+    def | (another: Method) = new MethodConcat(Set(method, another))
+  }
+  
+  implicit class MethodConcatOps(val methods: MethodConcat) extends AnyVal {
+    def | (another: Method) = new MethodConcat(methods.methods + another)
+  }
 }
-
-

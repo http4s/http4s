@@ -109,6 +109,18 @@ object -> {
   }
 }
 
+class MethodConcat(val methods: Set[Method]) {
+  /**
+   * HttpMethod 'or' extractor:
+   *  val request: Request = ???
+   *  request match {
+   *    case (Method.GET | Method.POST) -> Root / "123" => ???
+   *  }
+   */
+  def unapply(method: Method): Option[Method] = 
+    if (methods(method)) Some(method) else None
+}
+
 /**
  * Root extractor:
  *   Path("/") match {
