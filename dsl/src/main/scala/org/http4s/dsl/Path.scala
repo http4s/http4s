@@ -76,8 +76,10 @@ object ~ {
 
   /**
    * File extension matcher for String:
+   * {{{
    *   "example.json" match {
    *      case => "example" ~ "json" => ...
+   * }}}
    */
   def unapply(fileName: String): Option[(String, String)] = {
     fileName.lastIndexOf('.') match {
@@ -101,8 +103,10 @@ case class /(parent: Path, child: String) extends Path {
 object -> {
   /**
    * HttpMethod extractor:
+   * {{{
    *   (request.method, Path(request.path)) match {
    *     case Method.GET -> Root / "test.json" => ...
+   * }}}
    */
   def unapply(req: Request): Option[(Method, Path)] = {
     Some((req.method, Path(req.pathInfo)))
@@ -112,10 +116,12 @@ object -> {
 class MethodConcat(val methods: Set[Method]) {
   /**
    * HttpMethod 'or' extractor:
+   * {{{
    *  val request: Request = ???
    *  request match {
    *    case (Method.GET | Method.POST) -> Root / "123" => ???
    *  }
+   * }}}
    */
   def unapply(method: Method): Option[Method] = 
     if (methods(method)) Some(method) else None
@@ -123,9 +129,11 @@ class MethodConcat(val methods: Set[Method]) {
 
 /**
  * Root extractor:
+ * {{{
  *   Path("/") match {
  *     case Root => ...
  *   }
+ * }}}
  */
 case object Root extends Path {
   def toList: List[String] = Nil
@@ -137,8 +145,10 @@ case object Root extends Path {
 
 /**
  * Path separator extractor:
+ * {{{
  *   Path("/1/2/3/test.json") match {
  *     case "1" /: "2" /: _ =>  ...
+ * }}}
  */
 object /: {
   def unapply(path: Path): Option[(String, Path)] = {
@@ -166,24 +176,30 @@ protected class NumericPathVar[A <: AnyVal](cast: String => A) {
 
 /**
  * Integer extractor of a path variable:
+ * {{{
  *   Path("/user/123") match {
  *      case Root / "user" / IntParam(userId) => ...
+ * }}}
  */
 object IntVar extends NumericPathVar(_.toInt)
 
 /**
  * Long extractor of a path variable:
+ * {{{
  *   Path("/user/123") match {
  *      case Root / "user" / LongParam(userId) => ...
+ * }}}
  */
 object LongVar extends NumericPathVar(_.toLong)
 
 /**
  * Multiple param extractor:
- *   object A extends ParamMatcher("a")
- *   object B extends ParamMatcher("b")
+ * {{{
+ *   object A extends QueryParamDecoderMatcher[String]("a")
+ *   object B extends QueryParamDecoderMatcher[Int]("b")
  *   val service: HttpService = {
  *     case GET -> Root / "user" :? A(a) +& B(b) => ...
+ * }}}
  */
 object +& {
   def unapply(params: Map[String, Seq[String]]) = Some((params, params))
@@ -192,12 +208,14 @@ object +& {
 
 /**
  * param extractor using [[QueryParamDecoder]]:
+ * {{{
  *   case class Foo(i: Int)
  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
  *
  *   object FooMatcher extends QueryParamDecoderMatcher[Foo]("foo")
  *   val service: HttpService = {
  *     case GET -> Root / "closest" :? FooMatcher(2) => ...
+ * }}}
  */
 abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[T]] =
