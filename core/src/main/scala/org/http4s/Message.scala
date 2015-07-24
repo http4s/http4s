@@ -185,14 +185,16 @@ case class Request(
    */
   def params: Map[String, String] = uri.params
 
-  lazy val remote: Option[InetSocketAddress] = attributes.get(Keys.ConnectionInfo).map(_.remote)
+  private lazy val connectionInfo = attributes.get(Keys.ConnectionInfo)
+
+  lazy val remote: Option[InetSocketAddress] = connectionInfo.map(_.remote)
   lazy val remoteAddr: Option[String] = remote.map(_.getHostString)
   lazy val remoteHost: Option[String] = remote.map(_.getHostName)
   lazy val remotePort: Option[Int]    = remote.map(_.getPort)
 
   lazy val remoteUser: Option[String] = None
 
-  lazy val server: Option[InetSocketAddress] = attributes.get(Keys.ConnectionInfo).map(_.local)
+  lazy val server: Option[InetSocketAddress] = connectionInfo.map(_.local)
   lazy val serverAddr: String = {
     server.map(_.getHostString)
       .orElse(uri.host.map(_.value))
@@ -206,6 +208,9 @@ case class Request(
       .orElse(headers.get(Host).flatMap(_.port))
       .getOrElse(80)
   }
+
+  /** Whether the Request was received over a secure medium */
+  lazy val isSecure: Option[Boolean] = connectionInfo.map(_.secure)
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
