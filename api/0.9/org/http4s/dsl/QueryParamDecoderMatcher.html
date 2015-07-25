@@ -49,12 +49,12 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>param extractor using <a href="../QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>:
-  case class Foo(i: Int)
-  implicit val fooDecoder: QueryParamDecoder[Foo] = ...</p><p>  object FooMatcher extends QueryParamDecoderMatcher[Foo](&quot;foo&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;closest&quot; :? FooMatcher(2) =&gt; ...
-</p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>param extractor using <a href="../QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>:</p><pre><span class="kw">case</span> <span class="kw">class</span> Foo(i: <span class="std">Int</span>)
+<span class="kw">implicit</span> <span class="kw">val</span> fooDecoder: QueryParamDecoder[Foo] = ...
+
+<span class="kw">object</span> FooMatcher <span class="kw">extends</span> QueryParamDecoderMatcher[Foo](<span class="lit">"foo"</span>)
+<span class="kw">val</span> service: HttpService = {
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(<span class="num">2</span>) <span class="kw">=&gt;</span> ...</pre></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">

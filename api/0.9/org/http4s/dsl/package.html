@@ -955,14 +955,12 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">param extractor using <a href="../QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>:
-  case class Foo(i: Int)
-  implicit val fooDecoder: QueryParamDecoder[Foo] = ...</p><div class="fullcomment"><div class="comment cmt"><p>param extractor using <a href="../QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>:
-  case class Foo(i: Int)
-  implicit val fooDecoder: QueryParamDecoder[Foo] = ...</p><p>  object FooMatcher extends QueryParamDecoderMatcher[Foo](&quot;foo&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;closest&quot; :? FooMatcher(2) =&gt; ...
-</p></div></div>
+      <p class="shortcomment cmt">param extractor using <a href="../QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>:</p><div class="fullcomment"><div class="comment cmt"><p>param extractor using <a href="../QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>:</p><pre><span class="kw">case</span> <span class="kw">class</span> Foo(i: <span class="std">Int</span>)
+<span class="kw">implicit</span> <span class="kw">val</span> fooDecoder: QueryParamDecoder[Foo] = ...
+
+<span class="kw">object</span> FooMatcher <span class="kw">extends</span> QueryParamDecoderMatcher[Foo](<span class="lit">"foo"</span>)
+<span class="kw">val</span> service: HttpService = {
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(<span class="num">2</span>) <span class="kw">=&gt;</span> ...</pre></div></div>
     </li><li name="org.http4s.dsl.QueryParamMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="QueryParamMatcher[T]extendsQueryParamDecoderMatcher[T]"></a>
       <a id="QueryParamMatcher[T]:QueryParamMatcher[T]"></a>
@@ -1276,7 +1274,7 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.dsl.+&amp;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.dsl.+&amp;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="+&amp;"></a>
       <a id="+&amp;:+&amp;"></a>
       <h4 class="signature">
@@ -1292,11 +1290,10 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Multiple param extractor:
-  object A extends ParamMatcher(&quot;a&quot;)
-  object B extends ParamMatcher(&quot;b&quot;)
-  val service: HttpService = {
-    case GET -&gt; Root / &quot;user&quot; :? A(a) +&amp; B(b) =&gt; ...</p>
+      <p class="shortcomment cmt">Multiple param extractor:</p><div class="fullcomment"><div class="comment cmt"><p>Multiple param extractor:</p><pre><span class="kw">object</span> A <span class="kw">extends</span> QueryParamDecoderMatcher[<span class="std">String</span>](<span class="lit">"a"</span>)
+<span class="kw">object</span> B <span class="kw">extends</span> QueryParamDecoderMatcher[<span class="std">Int</span>](<span class="lit">"b"</span>)
+<span class="kw">val</span> service: HttpService = {
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"user"</span> :? A(a) +&amp; B(b) <span class="kw">=&gt;</span> ...</pre></div></div>
     </li><li name="org.http4s.dsl.-&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="-&gt;"></a>
       <a id="-&gt;:-&gt;"></a>
@@ -1314,7 +1311,7 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.dsl./:" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.dsl./:" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="/:"></a>
       <a id="/::/:"></a>
       <h4 class="signature">
@@ -1330,9 +1327,8 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Path separator extractor:
-  Path(&quot;/1/2/3/test.json&quot;) match {
-    case &quot;1&quot; /: &quot;2&quot; /: _ =&gt;  ...</p>
+      <p class="shortcomment cmt">Path separator extractor:</p><div class="fullcomment"><div class="comment cmt"><p>Path separator extractor:</p><pre>Path(<span class="lit">"/1/2/3/test.json"</span>) <span class="kw">match</span> {
+  <span class="kw">case</span> <span class="lit">"1"</span> /: <span class="lit">"2"</span> /: _ <span class="kw">=&gt;</span>  ...</pre></div></div>
     </li><li name="org.http4s.dsl.:?" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id=":?"></a>
       <a id=":?::?"></a>
@@ -1758,7 +1754,7 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.dsl.IntVar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.dsl.IntVar" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="IntVar"></a>
       <a id="IntVar:IntVar"></a>
       <h4 class="signature">
@@ -1774,9 +1770,8 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Integer extractor of a path variable:
-  Path(&quot;/user/123&quot;) match {
-     case Root / &quot;user&quot; / IntParam(userId) =&gt; ...</p>
+      <p class="shortcomment cmt">Integer extractor of a path variable:</p><div class="fullcomment"><div class="comment cmt"><p>Integer extractor of a path variable:</p><pre>Path(<span class="lit">"/user/123"</span>) <span class="kw">match</span> {
+   <span class="kw">case</span> Root / <span class="lit">"user"</span> / IntParam(userId) <span class="kw">=&gt;</span> ...</pre></div></div>
     </li><li name="org.http4s.dsl#InternalServerError" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="InternalServerError:org.http4s.Status.InternalServerError.type"></a>
       <a id="InternalServerError:Status.InternalServerError.type"></a>
@@ -1828,7 +1823,7 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.dsl.LongVar" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.dsl.LongVar" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="LongVar"></a>
       <a id="LongVar:LongVar"></a>
       <h4 class="signature">
@@ -1844,9 +1839,8 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Long extractor of a path variable:
-  Path(&quot;/user/123&quot;) match {
-     case Root / &quot;user&quot; / LongParam(userId) =&gt; ...</p>
+      <p class="shortcomment cmt">Long extractor of a path variable:</p><div class="fullcomment"><div class="comment cmt"><p>Long extractor of a path variable:</p><pre>Path(<span class="lit">"/user/123"</span>) <span class="kw">match</span> {
+   <span class="kw">case</span> Root / <span class="lit">"user"</span> / LongParam(userId) <span class="kw">=&gt;</span> ...</pre></div></div>
     </li><li name="org.http4s.dsl#LoopDetected" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="LoopDetected:org.http4s.Status.LoopDetected.type"></a>
       <a id="LoopDetected:Status.LoopDetected.type"></a>
@@ -2407,13 +2401,9 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Root extractor:
-  Path(&quot;/&quot;) match {
-    case Root =&gt; ...</p><div class="fullcomment"><div class="comment cmt"><p>Root extractor:
-  Path(&quot;/&quot;) match {
-    case Root =&gt; ...
-  }
-</p></div></div>
+      <p class="shortcomment cmt">Root extractor:</p><div class="fullcomment"><div class="comment cmt"><p>Root extractor:</p><pre>Path(<span class="lit">"/"</span>) <span class="kw">match</span> {
+  <span class="kw">case</span> Root <span class="kw">=&gt;</span> ...
+}</pre></div></div>
     </li><li name="org.http4s.dsl#SeeOther" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="SeeOther:org.http4s.Status.SeeOther.type"></a>
       <a id="SeeOther:Status.SeeOther.type"></a>
