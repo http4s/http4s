@@ -25,6 +25,11 @@ import scalaz.stream.{time, Process}
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
+  val www_foo_com = Uri.uri("http://www.foo.com")
+  val FooRequest = Request(uri = www_foo_com)
+  
+  val LongDuration = 30.seconds
+
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
@@ -59,11 +64,9 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
 
   "Http1ClientStage" should {
-    "Run a basic request" in {
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
 
-      val (request, response) = getSubmission(req, resp, 20.seconds)
+    "Run a basic request" in {
+      val (request, response) = getSubmission(FooRequest, resp, LongDuration)
       val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET / HTTP/1.1"
@@ -75,7 +78,7 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       val \/-(parsed) = Uri.fromString("http://www.foo.com" + uri)
       val req = Request(uri = parsed)
 
-      val (request, response) = getSubmission(req, resp, 20.seconds)
+      val (request, response) = getSubmission(req, resp, LongDuration)
       val statusline = request.split("\r\n").apply(0)
 
       statusline must_== "GET " + uri + " HTTP/1.1"
@@ -83,63 +86,53 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
     }
 
     "Fail when attempting to get a second request with one in progress" in {
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
-
-      val tail = new Http1ClientStage(DefaultUserAgent, 1.second)
+      val tail = new Http1ClientStage(DefaultUserAgent, LongDuration)
       val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
-      tail.runRequest(req).run  // we remain in the body
+      tail.runRequest(FooRequest).run  // we remain in the body
 
-      tail.runRequest(req).run must throwA[Http1ClientStage.InProgressException.type]
+      tail.runRequest(FooRequest).run must throwA[Http1ClientStage.InProgressException.type]
     }
 
     "Reset correctly" in {
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
-
-      val tail = new Http1ClientStage(DefaultUserAgent, 1.second)
+      val tail = new Http1ClientStage(DefaultUserAgent, LongDuration)
       val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
       // execute the first request and run the body to reset the stage
-      tail.runRequest(req).run.body.run.run
+      tail.runRequest(FooRequest).run.body.run.run
 
-      val result = tail.runRequest(req).run
+      val result = tail.runRequest(FooRequest).run
       result.headers.size must_== 1
     }
 
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
 
-      val tail = new Http1ClientStage(DefaultUserAgent, 30.second)
+      val tail = new Http1ClientStage(DefaultUserAgent, LongDuration)
       val h = new SeqTestHead(List(mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
-      val result = tail.runRequest(req).run
+      val result = tail.runRequest(FooRequest).run
 
       result.body.run.run must throwA[InvalidBodyException]
     }
 
     "Interpret a lack of length with a EOF as a valid message" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
 
-      val (_, response) = getSubmission(req, resp, 20.seconds)
+      val (_, response) = getSubmission(FooRequest, resp, LongDuration)
 
       response must_==("done")
     }
 
     "Utilize a provided Host header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed).withHeaders(headers.Host("bar.com"))
 
-      val (request, response) = getSubmission(req, resp, 20.seconds)
+      val req = FooRequest.withHeaders(headers.Host("bar.com"))
+
+      val (request, response) = getSubmission(req, resp, LongDuration)
 
       val requestLines = request.split("\r\n").toList
 
@@ -149,10 +142,8 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
     "Insert a User-Agent header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
 
-      val (request, response) = getSubmission(req, resp, 20.seconds)
+      val (request, response) = getSubmission(FooRequest, resp, LongDuration)
 
       val requestLines = request.split("\r\n").toList
 
@@ -162,10 +153,10 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
     "Use User-Agent header provided in Request" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed).withHeaders(Header.Raw("User-Agent".ci, "myagent"))
 
-      val (request, response) = getSubmission(req, resp, 20.seconds)
+      val req = FooRequest.withHeaders(Header.Raw("User-Agent".ci, "myagent"))
+
+      val (request, response) = getSubmission(req, resp, LongDuration)
 
       val requestLines = request.split("\r\n").toList
 
@@ -173,13 +164,11 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
       response must_==("done")
     }
 
-    "Not add a User-Agent header of configured with None" in {
+    "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
 
-      val tail = new Http1ClientStage(None, 20.seconds)
-      val (request, response) = getSubmission(req, resp, 20.seconds, tail)
+      val tail = new Http1ClientStage(None, LongDuration)
+      val (request, response) = getSubmission(FooRequest, resp, LongDuration, tail)
 
       val requestLines = request.split("\r\n").toList
 
@@ -189,8 +178,8 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
     "Allow an HTTP/1.0 request without a Host header" in {
       val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed, httpVersion = HttpVersion.`HTTP/1.0`)
+
+      val req = Request(uri = www_foo_com, httpVersion = HttpVersion.`HTTP/1.0`)
 
       val (request, response) = getSubmission(req, resp, 20.seconds)
 
@@ -201,29 +190,23 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
 
   "Http1ClientStage responses" should {
     "Timeout immediately with a timeout of 0 seconds" in {
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
-
       val tail = new Http1ClientStage(DefaultUserAgent, 0.seconds)
       val h = new SlowTestHead(List(mkBuffer(resp)), 0.milli)
       LeafBuilder(tail).base(h)
 
-      tail.runRequest(req).run must throwA[TimeoutException]
+      tail.runRequest(FooRequest).run must throwA[TimeoutException]
     }
 
     "Timeout on slow response" in {
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
-
       val tail = new Http1ClientStage(DefaultUserAgent, 1.second)
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
       LeafBuilder(tail).base(h)
 
-      tail.runRequest(req).run must throwA[TimeoutException]
+      tail.runRequest(FooRequest).run must throwA[TimeoutException]
     }
 
     "Timeout on slow POST body" in {
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
+
 
       def dataStream(n: Int): Process[Task, ByteVector] = {
         implicit def defaultSecheduler = DefaultTimeoutScheduler
@@ -233,7 +216,7 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
           .take(n)
       }
 
-      val req = Request(method = Method.POST, uri = parsed, body = dataStream(4))
+      val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
       val tail = new Http1ClientStage(DefaultUserAgent, 1.second)
       val (f,b) = resp.splitAt(resp.length - 1)
@@ -248,15 +231,12 @@ class Http1ClientStageSpec extends Specification with NoTimeConversions {
     }
 
     "Timeout on slow response body" in {
-      val \/-(parsed) = Uri.fromString("http://www.foo.com")
-      val req = Request(uri = parsed)
-
       val tail = new Http1ClientStage(DefaultUserAgent, 2.second)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       LeafBuilder(tail).base(h)
 
-      val result = tail.runRequest(req).flatMap { resp =>
+      val result = tail.runRequest(FooRequest).flatMap { resp =>
         EntityDecoder.text.decode(resp).run
       }
 
