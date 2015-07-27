@@ -27,14 +27,14 @@ object ResourceService {
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
   private[staticcontent] def apply(config: Config): PartialService[Request, Response] = PartialService.lift { req =>
-    val uri = req.uri
-    if (!uri.path.startsWith(config.pathPrefix))
+    val uriPath = req.pathInfo
+    if (!uriPath.startsWith(config.pathPrefix))
       OptionT.none
     else
       OptionT(
-        StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uri, config.pathPrefix)))
+        StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
           .map{ f => Task.now(Some(f)) }
           .getOrElse(Task.now(None))
-      ).flatMapF(config.cacheStartegy.cache(uri, _))
+      ).flatMapF(config.cacheStartegy.cache(uriPath, _))
   }
 }

@@ -6,5 +6,5 @@ import scalaz.concurrent.Task
 
 /** Cache strategy that doesn't cache anything, ever. */
 object NoopCacheStrategy extends CacheStrategy {
-  override def cache(path: Uri, resp: Response): Task[Response] = Task.now(resp)
+  override def cache(uriPath: String, resp: Response): Task[Response] = Task.now(resp)
 }
