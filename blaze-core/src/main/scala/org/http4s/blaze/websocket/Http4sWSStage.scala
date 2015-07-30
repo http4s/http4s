@@ -78,7 +78,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
           sendOutboundCommand(Command.Disconnect)
         }
       case -\/(t) =>
-        logger.trace(t)("WebSocket Exception")
+        logger.error(t)("WebSocket Exception")
         sendOutboundCommand(Command.Disconnect)
     }
     
