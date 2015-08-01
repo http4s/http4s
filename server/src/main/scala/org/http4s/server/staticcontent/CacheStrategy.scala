@@ -14,5 +14,5 @@ import scalaz.concurrent.Task
 trait CacheStrategy {
 
   /** Performs the caching operations */
-  def cache(path: Uri, resp: Response): Task[Response]
+  def cache(uriPath: String, resp: Response): Task[Response]
 }
