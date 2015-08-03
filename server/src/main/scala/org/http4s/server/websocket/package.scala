@@ -30,6 +30,9 @@ package object websocket {
    *                 the websocket protocol by terminating the connection immediately upon reception
    *                 of a `CloseFrame`. This bug will be addressed soon in an upcoming release and this message will be
    *                 removed.
+   *                 Currently, there is no way for the server to be notified when the connection is closed, neither in
+   *                 the case of a normal disconnection such as a Close handshake or due to a connection error. There
+   *                 are plans to address this limitation in the future.
    * @param status The status code to return to a client making a non-websocket HTTP request to this route
    */
   def WS(exchange: Exchange[WebSocketFrame, WebSocketFrame],
