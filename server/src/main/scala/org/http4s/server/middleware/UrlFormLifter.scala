@@ -1,11 +1,16 @@
 package org.http4s
-package server.middleware
-
-import org.http4s.server.{Service, HttpService}
+package server
+package middleware
 
 import scalaz.concurrent.Task
 
-
+/** [[Middleware]] for lifting application/x-www-form-urlencoded bodies into the
+  * request query params.
+  *
+  * The params are merged into the existing paras _after_ the existing query params. This
+  * means that if the query already contains the pair "foo" -> Some("bar"), parameters on
+  * the body must be acessed through `multiParams`.
+  */
 object UrlFormLifter {
 
   def apply(service: HttpService): HttpService =  Service.lift { req =>
@@ -26,7 +31,7 @@ object UrlFormLifter {
           .run
           .flatMap(_.fold(failure, addUrlForm))
 
-      case None => service(req)
+      case _ => service(req)
     }
   }
 
