@@ -39,6 +39,8 @@ final class Query private(pairs: Vector[KeyValue])
     else super.:+(elem)
   }
 
+  override def toVector: Vector[(String, Option[String])] = pairs
+
   /** Render the Query as a `String`.
     *
     * Pairs are separated by '&' and keys are separated from values by '='
