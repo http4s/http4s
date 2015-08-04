@@ -11,7 +11,6 @@ import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.util.CaseInsensitiveString._
 
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
 import scodec.bits.ByteVector
 
 import scala.concurrent.Await
@@ -21,9 +20,10 @@ import scalaz.\/-
 import scalaz.concurrent.Strategy._
 import scalaz.concurrent.Task
 import scalaz.stream.{time, Process}
+import scala.concurrent.ExecutionContext.Implicits.global
 
 // TODO: this needs more tests
-class Http1ClientStageSpec extends Specification with NoTimeConversions {
+class Http1ClientStageSpec extends Specification {
 
   val www_foo_com = Uri.uri("http://www.foo.com")
   val FooRequest = Request(uri = www_foo_com)

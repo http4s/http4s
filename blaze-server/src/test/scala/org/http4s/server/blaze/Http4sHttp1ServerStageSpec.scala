@@ -4,7 +4,6 @@ package blaze
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
-import org.http4s.headers
 import org.http4s.headers.{`Transfer-Encoding`, Date}
 import org.http4s.{headers => H, _}
 import org.http4s.Status._
@@ -12,7 +11,7 @@ import org.http4s.blaze._
 import org.http4s.blaze.pipeline.{Command => Cmd}
 import org.http4s.util.CaseInsensitiveString._
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
+import org.specs2.specification.core.Fragment
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
@@ -21,9 +20,11 @@ import scala.concurrent.duration.FiniteDuration
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.Process
 
+import scala.concurrent.ExecutionContext.Implicits.global
+
 import scodec.bits.ByteVector
 
-class Http1ServerStageSpec extends Specification with NoTimeConversions {
+class Http1ServerStageSpec extends Specification {
   def makeString(b: ByteBuffer): String = {
     val p = b.position()
     val a = new Array[Byte](b.remaining())
@@ -50,10 +51,10 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
   }
 
   "Http1ServerStage: Common responses" should {
-    ServerTestRoutes.testRequestResults.zipWithIndex.foreach { case ((req, (status,headers,resp)), i) =>
+    Fragment.foreach(ServerTestRoutes.testRequestResults.zipWithIndex) { case ((req, (status,headers,resp)), i) =>
       s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
         val result = runRequest(Seq(req), ServerTestRoutes())
-        result.map(parseAndDropDate) must be_== ((status, headers, resp)).await(0, FiniteDuration(5, "seconds"))
+        result.map(parseAndDropDate) must be_== ((status, headers, resp)).await(0, 5.seconds)
       }
     }
   }
@@ -67,7 +68,7 @@ class Http1ServerStageSpec extends Specification with NoTimeConversions {
     def runError(path: String) = runRequest(List(path), exceptionService)
         .map(parseAndDropDate)
         .map{ case (s, h, r) =>
-        val close = h.find{ h => h.toRaw.name == "connection".ci && h.toRaw.value == "close"}.isDefined
+        val close = h.exists{ h => h.toRaw.name == "connection".ci && h.toRaw.value == "close"}
         (s, close, r)
       }
 

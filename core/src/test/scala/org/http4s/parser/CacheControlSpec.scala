@@ -3,8 +3,6 @@ package parser
 
 import org.http4s.headers.`Cache-Control`
 import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
-import scalaz.Validation
 import org.http4s.CacheDirective._
 import org.http4s.CacheDirective.`s-maxage`
 import org.http4s.CacheDirective.`max-stale`
@@ -14,7 +12,7 @@ import org.http4s.CacheDirective.`private`
 import scala.concurrent.duration._
 import org.http4s.util.string._
 
-class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] with NoTimeConversions {
+class CacheControlSpec extends Specification with HeaderParserHelper[`Cache-Control`] {
   def hparse(value: String): ParseResult[`Cache-Control`] = HttpHeaderParser.CACHE_CONTROL(value)
 
   // Default values

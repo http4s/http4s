@@ -6,7 +6,7 @@ import javax.servlet.http.HttpServlet
 import org.eclipse.jetty.server.{Server => JServer, ServerConnector}
 import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
 import org.http4s.Http4sSpec
-import org.specs2.specification.{Fragments, Step}
+import org.specs2.specification.core.Fragments
 
 import scala.concurrent.duration._
 
@@ -20,10 +20,10 @@ abstract class JettyScaffold(name: String) extends Http4sSpec {
   protected def runAllTests(): Fragments
 
   // Start the tests
-  name can {
-    Step(startup()) ^
+  name >> {
+    step(startup()) ^
       runAllTests()   ^
-      Step(cleanup())
+      step(cleanup())
   }
 
   def startup() = {}

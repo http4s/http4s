@@ -2,13 +2,11 @@ package org.http4s
 package server
 package middleware
 
-import org.specs2.time.NoTimeConversions
-
 import scala.concurrent.duration._
 import scalaz.concurrent.Task
 import Method._
 
-class TimeoutSpec extends Http4sSpec with NoTimeConversions {
+class TimeoutSpec extends Http4sSpec {
 
   val myService = HttpService {
     case req if req.uri.path == "/fast" => Response(Status.Ok).withBody("Fast")
@@ -35,13 +33,13 @@ class TimeoutSpec extends Http4sSpec with NoTimeConversions {
       val customTimeout = Response(Status.GatewayTimeout) // some people return 504 here.
       val altTimeoutService = Timeout(500.millis, Task.now(customTimeout))(myService)
 
-      altTimeoutService(req).run.status must equal (customTimeout.status)
+      altTimeoutService.apply(req).run.status must equal (customTimeout.status)
     }
 
     "Handle infinite durations" in {
       val service = Timeout(Duration.Inf)(myService)
       
-      service(Request(GET, uri("/slow"))).run.status must equal(Status.Ok)
+      service.apply(Request(GET, uri("/slow"))).run.status must equal(Status.Ok)
     }
   }
 

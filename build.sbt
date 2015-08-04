@@ -291,7 +291,7 @@ def http4sProject(name: String) = Project(name, file(name))
   .settings(publishSettings)
   .settings(
     moduleName := s"http4s-$name",
-    testOptions in Test += Tests.Argument("xonly", "failtrace")
+    testOptions in Test += Tests.Argument(TestFrameworks.Specs2,"xonly", "failtrace")
   )
 
 def libraryProject(name: String) = http4sProject(name)
@@ -387,6 +387,7 @@ lazy val commonSettings = Seq(
   libraryDependencies  ++= Seq(
     scalameter,
     scalazScalacheckBinding,
+    scalaCheck,
     scalazSpecs2
   ).map(_ % "test")
 )

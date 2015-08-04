@@ -8,7 +8,7 @@ import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.client.testroutes.GetRoutes
 
-import org.specs2.specification.{ Fragments, Fragment }
+import org.specs2.specification.core.{ Fragments, Fragment }
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -28,7 +28,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
     val gets = translateTests(address, Method.GET, getPaths)
     val frags = gets.map { case (req, resp) => runTest(req, resp, address) }
                     .toSeq
-                    .foldLeft(Fragments())(_ ^ _)
+                    .foldLeft(Fragments())(_ append _)
 
     frags
   }

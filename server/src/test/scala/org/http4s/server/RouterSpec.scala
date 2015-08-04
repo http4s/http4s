@@ -33,23 +33,23 @@ class RouterSpec extends Http4sSpec {
 
   "A router" should {
     "translate mount prefixes" in {
-      service(Request(GET, uri("/numbers/1"))).run.as[String].run must equal ("one")
+      service.apply(Request(GET, uri("/numbers/1"))).run.as[String].run must equal ("one")
     }
 
     "require the correct prefix" in {
-      service(Request(GET, uri("/letters/1"))).run.status must equal (NotFound)
+      service.apply(Request(GET, uri("/letters/1"))).run.status must equal (NotFound)
     }
 
     "support root mappings" in {
-      service(Request(GET, uri("/about"))).run.as[String].run must equal ("about")
+      service.apply(Request(GET, uri("/about"))).run.as[String].run must equal ("about")
     }
 
     "match longer prefixes first" in {
-      service(Request(GET, uri("/shadow/shadowed"))).run.as[String].run must equal ("visible")
+      service.apply(Request(GET, uri("/shadow/shadowed"))).run.as[String].run must equal ("visible")
     }
 
     "404 on unknown prefixes" in {
-      service(Request(GET, uri("/symbols/~"))).run.status must equal (NotFound)
+      service.apply(Request(GET, uri("/symbols/~"))).run.status must equal (NotFound)
     }
   }
 }

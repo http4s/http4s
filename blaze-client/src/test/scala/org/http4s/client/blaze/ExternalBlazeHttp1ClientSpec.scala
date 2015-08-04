@@ -5,10 +5,9 @@ import scalaz.concurrent.Task
 import org.http4s._
 
 import org.specs2.mutable.After
-import org.specs2.time.NoTimeConversions
 
 // TODO: this should have a more comprehensive test suite
-class ExternalBlazeHttp1ClientSpec extends Http4sSpec with NoTimeConversions with After {
+class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
 
   "Blaze Simple Http1 Client" should {
     def client = defaultClient
