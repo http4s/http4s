@@ -14,7 +14,8 @@ import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUti
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
 
-import scalaz.{\/-, -\/, \/}
+import scalaz.\/
+import scalaz.syntax.std.option._
 
 
 /** Representation of the [[Request]] URI
@@ -116,15 +117,16 @@ case class Uri(
    * If the uri does not explicit a scheme, it will assume the [[Http]] scheme.
    */
   def asAddress: Throwable \/ InetSocketAddress = {
-    authority.map { auth =>
-      val host = auth.host.value
-      val assumedScheme = scheme.getOrElse(Http)
-      assumedScheme match {
-        case Http | Ws => \/-(new InetSocketAddress(host, 80))
-        case Https | Wss => \/-(new InetSocketAddress(host, 443))
-        case _ => -\/(new IOException("Unknown scheme"))
-      }
-    }.getOrElse(-\/(new IOException("Request must have an authority")))
+    val assumedScheme = scheme.getOrElse(Http)
+    val defaultPort = assumedScheme match {
+      case Http | Ws => Some(80)
+      case Https | Wss => Some(443)
+      case _ => None
+    }
+    for {
+      auth <- authority \/> new IOException("Request must have an authority")
+      port <- port.orElse(defaultPort) \/> new IOException("Unknown scheme")
+    } yield new InetSocketAddress(auth.host.value, port)
   }
 }
 
