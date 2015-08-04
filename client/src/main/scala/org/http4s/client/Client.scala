@@ -40,24 +40,24 @@ trait Client {
   /////////////////////////////////////////////////////////////////////////
 
   /** Prepare a single GET request
-    * @param req [[Uri]] of the request
+    * @param uri [[Uri]] of the request
     * @return Task which will generate the Response
     */
-  final def prepare(req: Uri): Task[Response] =
-    prepare(Request(uri = req))
+  final def prepare(uri: Uri): Task[Response] =
+    prepare(Request(uri = uri))
 
   /** Prepare a single GET request
-    * @param req [[Uri]] of the request
+    * @param uri [[Uri]] of the request
     * @return Task which will generate the Response
     */
-  final def apply(req: Uri): Task[Response] = prepare(req)
+  final def apply(uri: Uri): Task[Response] = prepare(uri)
 
   /** Prepare a single GET request
-    * @param req [[Uri]] of the request
+    * @param uri [[Uri]] of the request
     * @return Task which will generate the Response
     */
-  final def prepAs[T](req: Uri)(implicit d: EntityDecoder[T]): Task[T] =
-    prepAs(Request(uri = req))(d)
+  final def prepAs[T](uri: Uri)(implicit d: EntityDecoder[T]): Task[T] =
+    prepAs(Request(uri = uri))(d)
 
   /////////////////////////////////////////////////////////////////////////
 

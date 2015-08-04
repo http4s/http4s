@@ -26,7 +26,7 @@ final class BlazeClient(manager: ConnectionManager) extends Client {
             Task.now(r.copy(body = r.body ++ recycleProcess))
 
           case -\/(Command.EOF) if !freshClient =>
-            manager.getClient(req, fresh = true).flatMap(tryClient(_, true))
+            manager.getClient(req.uri, fresh = true).flatMap(tryClient(_, true))
 
           case -\/(e) =>
             if (!client.isClosed()) {
@@ -36,6 +36,6 @@ final class BlazeClient(manager: ConnectionManager) extends Client {
         }
     }
 
-    manager.getClient(req, fresh = false).flatMap(tryClient(_, false))
+    manager.getClient(req.uri, fresh = false).flatMap(tryClient(_, false))
   }
 }
