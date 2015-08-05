@@ -249,6 +249,28 @@ uri = &quot;/foo/&quot; to match the route.
       </a>
     </span>
       
+    </li><li name="org.http4s.server.middleware.UrlFormLifter" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="UrlFormLifter"></a>
+      <a id="UrlFormLifter:UrlFormLifter"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="UrlFormLifter$.html"><span class="name">UrlFormLifter</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.middleware.package@UrlFormLifter" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"><a href="../package.html#Middleware[A,B,C,D]=org.http4s.server.package.Service[A,B]=&gt;org.http4s.server.package.Service[C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a> for lifting application/x-www-form-urlencoded bodies into the
+request query params.</p><div class="fullcomment"><div class="comment cmt"><p><a href="../package.html#Middleware[A,B,C,D]=org.http4s.server.package.Service[A,B]=&gt;org.http4s.server.package.Service[C,D]" class="extmbr" name="org.http4s.server.Middleware">Middleware</a> for lifting application/x-www-form-urlencoded bodies into the
+request query params.</p><p>The params are merged into the existing paras _after_ the existing query params. This
+means that if the query already contains the pair &quot;foo&quot; -&gt; Some(&quot;bar&quot;), parameters on
+the body must be acessed through <code>multiParams</code>.
+</p></div></div>
     </li><li name="org.http4s.server.middleware.VirtualHost" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="VirtualHost"></a>
       <a id="VirtualHost:VirtualHost"></a>
