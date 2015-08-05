@@ -9,10 +9,6 @@ import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.CaseInsensitiveString
 
-import org.specs2.mutable.Specification
-import org.specs2.time.NoTimeConversions
-
-import scalaz.\/
 import scalaz.concurrent.Task
 
 import scala.concurrent.duration._
@@ -47,7 +43,7 @@ class AuthenticationSpec extends Http4sSpec {
       var isNuked = false
       val basic = new BasicAuthentication(realm, authStore)(nukeService { isNuked = true })
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
-      val res = basic(req).run
+      val res = basic.apply(req).run
       isNuked must_== false
       res.status must equal (Unauthorized)
     }
@@ -56,7 +52,7 @@ class AuthenticationSpec extends Http4sSpec {
   "BasicAuthentication" should {
     "Respond to a request without authentication with 401" in {
       val req = Request(uri = Uri(path = "/"))
-      val res = basic(req).run
+      val res = basic.apply(req).run
 
       res.status must equal (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -64,7 +60,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with unknown username with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
-      val res = basic(req).run
+      val res = basic.apply(req).run
 
       res.status must equal (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -72,7 +68,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with wrong password with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
-      val res = basic(req).run
+      val res = basic.apply(req).run
 
       res.status must equal (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -80,7 +76,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with correct credentials" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
-      val res = basic(req).run
+      val res = basic.apply(req).run
 
       res.status must equal (Ok)
     }
@@ -94,7 +90,7 @@ class AuthenticationSpec extends Http4sSpec {
       val da = new DigestAuthentication(realm, authStore)
       val digest = da(service)
       val req = Request(uri = Uri(path = "/"))
-      val res = digest(req).run
+      val res = digest.apply(req).run
 
       res.status must equal (Status.Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -112,7 +108,7 @@ class AuthenticationSpec extends Http4sSpec {
     def doDigestAuth1(digest: HttpService) = {
       // Get auth data
       val req = Request(uri = Uri(path = "/"))
-      val res = digest(req).run
+      val res = digest.apply(req).run
 
       res.status must equal (Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -139,10 +135,10 @@ class AuthenticationSpec extends Http4sSpec {
       val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), params))
 
       val req2 = Request(uri = Uri(path = "/"), headers = Headers(header))
-      val res2 = digest(req2).run
+      val res2 = digest.apply(req2).run
 
       if (withReplay) {
-        val res3 = digest(req2).run
+        val res3 = digest.apply(req2).run
         (res2, res3)
       } else
         (res2, null)
@@ -230,7 +226,7 @@ class AuthenticationSpec extends Http4sSpec {
         val invalid_params = params.take(i) ++ params.drop(i + 1)
         val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), invalid_params))
         val req = Request(uri = Uri(path = "/"), headers = Headers(header))
-        val res = digest(req).run
+        val res = digest.apply(req).run
 
         res.status
       })

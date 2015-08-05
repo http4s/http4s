@@ -13,6 +13,7 @@ import scodec.bits.ByteVector
 import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
+import scala.concurrent.ExecutionContext.Implicits.global
 
 import scalaz.concurrent.Task
 import scalaz.stream.{Cause, Process}

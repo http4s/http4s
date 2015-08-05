@@ -4,8 +4,7 @@ package blaze
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 
 import org.http4s._
-import org.http4s.client.JettyScaffold
-import org.specs2.specification.Fragments
+import org.specs2.specification.core.Fragments
 
 
 class FollowRedirectSpec extends JettyScaffold("blaze-client Redirect") {

@@ -17,6 +17,11 @@ class UriParserSpec extends Http4sSpec {
 
   "Uri.requestTarget" should {
 
+    def check(items: Seq[(String, Uri)]) = foreach(items) {
+      case (str, uri) =>
+        Uri.requestTarget(str) must beRightDisjunction(uri)
+    }
+
     // RFC 3986 examples
     // http://tools.ietf.org/html/rfc3986#section-1.1.2
 
@@ -154,14 +159,15 @@ class UriParserSpec extends Http4sSpec {
       }
     }
 
-    def check(items: Seq[(String, Uri)]) = foreach(items) {
-      case (str, uri) =>
-        Uri.requestTarget(str) must beRightDisjunction(uri)
-    }
-
   }
 
   "Uri.fromString" should {
+
+    def check(items: Seq[(String, Uri)]) = foreach(items) {
+      case (str, uri) =>
+        Uri.fromString(str) must beRightDisjunction(uri)
+    }
+
     "parse absolute URIs" in {
       val absoluteUris: Seq[(String, Uri)] = Seq(
         ("http://www.foo.com", Uri(Some("http".ci), Some(Authority(host = RegName("www.foo.com".ci))))),
@@ -208,11 +214,6 @@ class UriParserSpec extends Http4sSpec {
       Uri.fromString("/a/b?foo#bar") must beRightDisjunction.like { case u =>
         u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some("bar"))
       }
-    }
-
-    def check(items: Seq[(String, Uri)]) = foreach(items) {
-      case (str, uri) =>
-        Uri.fromString(str) must beRightDisjunction(uri)
     }
   }
 }

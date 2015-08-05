@@ -2,6 +2,7 @@ package org.http4s
 
 import org.specs2.matcher.MustThrownMatchers
 import org.http4s.Uri._
+import org.specs2.specification.core.Fragments
 
 import scalaz.Maybe
 
@@ -21,39 +22,39 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri" should {
     "Not UrlDecode the query String" in {
-      getUri("http://localhost:8080/blah?x=abc&y=ijk").query should_== Query.fromPairs("x"->"abc", "y"->"ijk")
+      getUri("http://localhost:8080/blah?x=abc&y=ijk").query must_== Query.fromPairs("x"->"abc", "y"->"ijk")
     }
 
     "Not UrlDecode the uri fragment" in {
-      getUri("http://localhost:8080/blah#x=abc&y=ijk").fragment should_== Some("x=abc&y=ijk")
+      getUri("http://localhost:8080/blah#x=abc&y=ijk").fragment must_== Some("x=abc&y=ijk")
     }
 
     "decode the scheme" in {
       val uri = getUri("http://localhost/")
-      uri.scheme should_== Some("http".ci)
+      uri.scheme must_== Some("http".ci)
     }
 
     "decode the authority" in {
       val uri1 = getUri("http://localhost/")
-      uri1.authority.get.host should_== RegName("localhost")
+      uri1.authority.get.host must_== RegName("localhost")
 
       val uri2 = getUri("http://localhost")
-      uri2.authority.get.host should_== RegName("localhost")
+      uri2.authority.get.host must_== RegName("localhost")
 
       val uri3 = getUri("/foo/bar")
-      uri3.authority should_== None
+      uri3.authority must_== None
 
       val auth = getUri("http://localhost:8080/").authority.get
-      auth.host should_== RegName("localhost")
-      auth.port should_== Some(8080)
+      auth.host must_== RegName("localhost")
+      auth.port must_== Some(8080)
     }
 
     "decode the port" in {
       val uri1 = getUri("http://localhost:8080/")
-      uri1.port should_== Some(8080)
+      uri1.port must_== Some(8080)
 
       val uri2 = getUri("http://localhost/")
-      uri2.port should_== None
+      uri2.port must_== None
     }
 
     "support a '/' operator when original uri has trailing slash" in {
@@ -72,8 +73,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   "Uri's with a query and fragment" should {
     "parse properly" in {
       val uri = getUri("http://localhost:8080/blah?x=abc#y=ijk")
-      uri.query should_== Query.fromPairs("x"->"abc")
-      uri.fragment should_== Some("y=ijk")
+      uri.query must_== Query.fromPairs("x"->"abc")
+      uri.fragment must_== Some("y=ijk")
     }
   }
 
@@ -82,15 +83,15 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     def getQueryParams(uri: String): Map[String, String] = getUri(uri).params
 
     "Handle queries with no spaces properly" in {
-      getQueryParams("http://localhost:8080/blah?x=abc&y=ijk") should_== Map("x" -> "abc", "y" -> "ijk")
-      getQueryParams("http://localhost:8080/blah?") should_== Map("" -> "")
-      getQueryParams("http://localhost:8080/blah") should_== Map.empty
+      getQueryParams("http://localhost:8080/blah?x=abc&y=ijk") must_== Map("x" -> "abc", "y" -> "ijk")
+      getQueryParams("http://localhost:8080/blah?") must_== Map("" -> "")
+      getQueryParams("http://localhost:8080/blah") must_== Map.empty
     }
 
     "Handle queries with spaces properly" in {
       // Issue #75
-      getQueryParams("http://localhost:8080/blah?x=a+bc&y=ijk") should_== Map("x" -> "a bc", "y" -> "ijk")
-      getQueryParams("http://localhost:8080/blah?x=a%20bc&y=ijk") should_== Map("x" -> "a bc", "y" -> "ijk")
+      getQueryParams("http://localhost:8080/blah?x=a+bc&y=ijk") must_== Map("x" -> "a bc", "y" -> "ijk")
+      getQueryParams("http://localhost:8080/blah?x=a%20bc&y=ijk") must_== Map("x" -> "a bc", "y" -> "ijk")
     }
 
   }
@@ -600,10 +601,10 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
     val base = getUri("http://a/b/c/d;p?q")
 
-    "correctly remove ./.. sequences" in {
+    "correctly remove ./.. sequences" >> {
       implicit class checkDotSequences(path: String) {
         def removingDotsShould_==(expected: String) =
-          s"$path -> $expected" in { removeDotSequences(path) should_== expected }
+          s"$path -> $expected" in { removeDotSequences(path) must_== expected }
       }
 
       // from RFC 3986 sec 5.2.4
@@ -613,10 +614,10 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
     implicit class check(relative: String) {
       def shouldResolveTo(expected: String) =
-        s"$base @ $relative -> $expected" in { base resolve getUri(relative) should_== getUri(expected) }
+        s"$base @ $relative -> $expected" in { base resolve getUri(relative) must_== getUri(expected) }
     }
 
-    "correctly resolve RFC 3986 sec 5.4 normal examples" in {
+    "correctly resolve RFC 3986 sec 5.4 normal examples" >> {
 
       // normal examples
       "g:h"           shouldResolveTo "g:h"
@@ -644,7 +645,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       "../../g"       shouldResolveTo "http://a/g"
     }
 
-    "correctly resolve RFC 3986 sec 5.4 abnormal examples" in {
+    "correctly resolve RFC 3986 sec 5.4 abnormal examples" >> {
       "../../../g"    shouldResolveTo "http://a/g"
       "../../../../g" shouldResolveTo "http://a/g"
 
