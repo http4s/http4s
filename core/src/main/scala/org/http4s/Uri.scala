@@ -33,6 +33,11 @@ case class Uri(
 {
   def withPath(path: Path): Uri = copy(path = path)
 
+  def /(newFragment: Path): Uri = {
+    val newPath = if (path.isEmpty || path.last != '/') path + "/" + newFragment else path + newFragment
+    copy(path = newPath)
+  }
+
   def host: Option[Host] = authority.map(_.host)
   def port: Option[Int] = authority.flatMap(_.port)
   def userInfo: Option[UserInfo] = authority.flatMap(_.userInfo)

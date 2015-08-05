@@ -55,6 +55,18 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       val uri2 = getUri("http://localhost/")
       uri2.port should_== None
     }
+
+    "support a '/' operator when original uri has trailing slash" in {
+      val uri = getUri("http://localhost:8080/")
+      val newUri = uri / "echo"
+      newUri must_== getUri("http://localhost:8080/echo")
+    }
+
+    "support a '/' operator when original uri has no trailing slash" in {
+      val uri = getUri("http://localhost:8080")
+      val newUri = uri / "echo"
+      newUri must_== getUri("http://localhost:8080/echo")
+    }
   }
 
   "Uri's with a query and fragment" should {
