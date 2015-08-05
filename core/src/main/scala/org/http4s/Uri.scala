@@ -1,5 +1,7 @@
 package org.http4s
 
+import java.io.IOException
+import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 
 import scala.language.experimental.macros
@@ -11,6 +13,9 @@ import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
+
+import scalaz.\/
+import scalaz.syntax.std.option._
 
 
 /** Representation of the [[Request]] URI
@@ -107,6 +112,27 @@ case class Uri(
   override protected def self: Self = this
 
   override protected def replaceQuery(query: Query): Self = copy(query = query)
+
+  /**
+   * Converts a [[Uri]] into an [[InetSocketAddress]] as long as this [[Uri]] has an authority.
+   * This conversion is a pretty straightforward translation, most of the work is inserting default port values
+   * if the [[Uri]] does not specify explicit ports.
+   * This method only has knowledge of the Http protocol (including websockets), it does not know how to guess ports
+   * for schemes it has no knowledge of and will return an [[IOException]] if it encounters an unknown scheme.
+   * If the uri does not explicit a scheme, it will assume the [[Http]] scheme.
+   */
+  def asAddress: Throwable \/ InetSocketAddress = {
+    val assumedScheme = scheme.getOrElse(Http)
+    val defaultPort = assumedScheme match {
+      case Http | Ws => Some(80)
+      case Https | Wss => Some(443)
+      case _ => None
+    }
+    for {
+      auth <- authority \/> new IOException("Request must have an authority")
+      port <- port.orElse(defaultPort) \/> new IOException("Unknown scheme")
+    } yield new InetSocketAddress(auth.host.value, port)
+  }
 }
 
 object Uri extends UriFunctions {
@@ -140,6 +166,11 @@ object Uri extends UriFunctions {
 
   type Path = String
   type Fragment = String
+
+  val Https: Scheme = "https".ci
+  val Http: Scheme  = "http".ci
+  val Ws: Scheme    = "ws".ci
+  val Wss: Scheme   = "wss".ci
 
   case class Authority(
     userInfo: Option[UserInfo] = None,

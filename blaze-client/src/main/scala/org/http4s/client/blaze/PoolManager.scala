@@ -1,11 +1,10 @@
 package org.http4s.client.blaze
 
-import org.http4s.Request
+import org.http4s.{Uri, Request}
 import org.http4s.Uri.{Authority, Scheme}
 import org.log4s.getLogger
 
 import scala.collection.mutable
-import scala.concurrent.Future
 import scalaz.concurrent.Task
 
 
@@ -45,14 +44,14 @@ final class PoolManager(maxPooledConnections: Int,
       }
     }
 
-  override def getClient(request: Request, fresh: Boolean): Task[BlazeClientStage] = Task.suspend {
+  override def getClient(uri: Uri, fresh: Boolean): Task[BlazeClientStage] = Task.suspend {
     cs.synchronized {
       if (closed) Task.fail(new Exception("Client is closed"))
       else cs.dequeueFirst { case Connection(sch, auth, _) =>
-        sch == request.uri.scheme && auth == request.uri.authority
+        sch == uri.scheme && auth == uri.authority
       } match {
         case Some(Connection(_, _, stage)) => Task.now(stage)
-        case None => builder.makeClient(request)
+        case None => builder.makeClient(uri)
       }
     }
   }
