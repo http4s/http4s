@@ -88,11 +88,14 @@ object StaticFile {
         if (f.length() < end) (halt, 0)
         else (fileToBody(f, start, end, buffsize), (end - start).toInt)
 
-      val contentType = for {
-        mime  <- Option(Files.probeContentType(f.toPath))
-        parts  = mime.split('/') if parts.length == 2
-        mt    <- MediaType.get((parts(0), parts(1)))
-      } yield `Content-Type`(mt)
+      val contentType = {
+        val name = f.getName()
+
+        name.lastIndexOf('.') match {
+          case -1 => None
+          case  i => MediaType.forExtension(name.substring(i + 1)).map(`Content-Type`(_))
+        }
+      }
 
       val hs = `Last-Modified`(lastModified) ::
                `Content-Length`(contentLength) ::
