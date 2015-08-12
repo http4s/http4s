@@ -26,7 +26,7 @@ final class BlazeClient(manager: ConnectionManager) extends Client {
             Task.now(r.copy(body = r.body ++ recycleProcess))
 
           case -\/(Command.EOF) if !freshClient =>
-            manager.getClient(req, fresh = true).flatMap(tryClient(_, true))
+            manager.getClient(req, freshClient = true).flatMap(tryClient(_, true))
 
           case -\/(e) =>
             if (!client.isClosed()) {
@@ -36,6 +36,8 @@ final class BlazeClient(manager: ConnectionManager) extends Client {
         }
     }
 
-    manager.getClient(req, fresh = false).flatMap(tryClient(_, false))
+    // TODO: Find a better strategy to deal with the potentially mutable body of the Request. Need to make sure the connection isn't stale.
+    val requireFresh = !req.body.isHalt
+    manager.getClient(req, freshClient = requireFresh).flatMap(tryClient(_, requireFresh))
   }
 }
