@@ -67,6 +67,8 @@ object StaticFile {
 
   def fromFile(f: File, start: Long, end: Long, buffsize: Int, req: Option[Request])
                         (implicit es: ExecutorService): Option[Response] = {
+    if(!f.exists()) return None
+    
     require (start >= 0 && end > start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
     if (!f.isFile) return None
