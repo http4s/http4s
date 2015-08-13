@@ -1,14 +1,14 @@
-package org.http4s
-package blaze
+package org.http4s.blaze.util
 
-import org.http4s.blaze.util.ProcessWriter
-import scodec.bits.ByteVector
-import scala.concurrent.{ExecutionContext, Future}
-import scalaz.stream.Process
-import scalaz.concurrent.Task
 import java.nio.ByteBuffer
+
 import org.http4s.blaze.pipeline.TailStage
+import scodec.bits.ByteVector
+
+import scala.concurrent.{ExecutionContext, Future}
 import scala.util.{Failure, Success}
+import scalaz.concurrent.Task
+import scalaz.stream.Process
 
 /** Discards the body, killing it so as to clean up resources
   *

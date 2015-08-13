@@ -59,12 +59,12 @@ class ProcessWriterSpec extends Specification {
     }
 
     "Write an await" in {
-      val p = Process.await(Task(emit(messageBuffer)))(identity)
+      val p = Process.eval(Task(messageBuffer))
       writeProcess(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
     }
 
     "Write two awaits" in {
-      val p = Process.await(Task(emit(messageBuffer)))(identity)
+      val p = Process.eval(Task(messageBuffer))
       writeProcess(p ++ p)(builder) must_== "Content-Length: 24\r\n\r\n" + message + message
     }
 
@@ -77,10 +77,10 @@ class ProcessWriterSpec extends Specification {
 
     "execute cleanup processes" in {
       var clean = false
-      val p = emit(messageBuffer).onComplete {
-        clean = true
-        Halt(End)
-      }
+      val p = emit(messageBuffer).onComplete(eval_(Task {
+          clean = true
+        }))
+
       writeProcess(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
       clean must_== true
     }
@@ -121,8 +121,7 @@ class ProcessWriterSpec extends Specification {
 
       // here we have to use awaits or the writer will unwind all the components of the emitseq
       val p2 = Process.await(Task(emit(ByteVector.empty)))(identity) ++
-         Process(messageBuffer) ++
-         Process.await(Task(emit(messageBuffer)))(identity)
+         Process(messageBuffer) ++ Process.eval(Task(messageBuffer))
 
       writeProcess(p2)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
         "c\r\n" +
@@ -149,12 +148,12 @@ class ProcessWriterSpec extends Specification {
     }
 
     "Write an await" in {
-      val p = Process.await(Task(emit(messageBuffer)))(identity)
+      val p = Process.eval(Task(messageBuffer))
       writeProcess(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
     }
 
     "Write two awaits" in {
-      val p = Process.await(Task(emit(messageBuffer)))(identity)
+      val p = Process.eval(Task(messageBuffer))
       writeProcess(p ++ p)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
         "c\r\n" +
         message + "\r\n" +
