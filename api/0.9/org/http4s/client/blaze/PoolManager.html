@@ -280,7 +280,7 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.blaze.PoolManager#getClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getClient(request:org.http4s.Request,fresh:Boolean):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]"></a>
+      <a id="getClient(request:org.http4s.Request,freshClient:Boolean):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]"></a>
       <a id="getClient(Request,Boolean):Task[BlazeClientStage]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -288,14 +288,14 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">getClient</span><span class="params">(<span name="request">request: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="fresh">fresh: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>]</span>
+        <span class="name">getClient</span><span class="params">(<span name="request">request: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="freshClient">freshClient: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.PoolManager@getClient(request:org.http4s.Request,fresh:Boolean):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.PoolManager@getClient(request:org.http4s.Request,freshClient:Boolean):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Get a connection to the provided address</p><div class="fullcomment"><div class="comment cmt"><p>Get a connection to the provided address</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p><a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> to connect too</p></dd><dt class="param">fresh</dt><dd class="cmt"><p>if the client should force a new connection</p></dd><dt>returns</dt><dd class="cmt"><p>a Future with the connected <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> of a blaze pipeline</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.PoolManager">PoolManager</a> → <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></dd></dl></div>
+      <p class="shortcomment cmt">Get a connection to the provided address</p><div class="fullcomment"><div class="comment cmt"><p>Get a connection to the provided address</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p><a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> to connect too</p></dd><dt class="param">freshClient</dt><dd class="cmt"><p>if the client should force a new connection</p></dd><dt>returns</dt><dd class="cmt"><p>a Future with the connected <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> of a blaze pipeline</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.PoolManager">PoolManager</a> → <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <a id="hashCode():Int"></a>
