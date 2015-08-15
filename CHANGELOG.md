@@ -1,16 +1,16 @@
 # v0.9.0 (2015-08-15)
-* Require Java8. ad0b473201dbb76b55db5882dc1919dadb579710
-* `StaticFile` uses the filename extension exclusively to determine media-type. 395c9c5550509e526bce8a240fb14bdad0d1229c
-* Add `/` method to `Uri`. 4964a2124eade0fac56824e2f7b9d398456deff7
-* Add `UrlFormLifter` middleware to aggregate url-form parameters with the query parameters. 90390d16a8195d5bd73830fcfeafa30731bea406
-* Add local address information to the `Request` type. dc6bb87b5e9a8b2795f07a8d84b7c9571d999dbc 
-* Add a Http method 'or' (`|`) extractor. 798743d75b8a211da362c104a4c4c9496a30dc26
-* Add `VirtualHost` middleware for serving multiple sites from one server. 7c3446a879457b6535dfeb9572d29e7068c2c49f
-* Add websocket configuration to the blaze server builder. 80a3c95d4aa13deb39ba85110f0ffd5d33c26392
-* Redefine default timeout status code to 500. db65be12e70d5b9d22b526f2c4bf5ae51f4f7f22 
-* Redefine the `Service` arrow result from `Task[Option[_]]` to `Task[_]`. 3f705f0b730af760ac4e11df5745f666f597a2b9
-* Don't extend `AllInstances` with `Http4s` omnibus import object. d7d7ec27ad7a61709e052a2e0c7c1018df97caeb
-* Use UTF-8 as the default encoding for text bodies. 1c6dedd94bf08a18ff2814e4fa3535c16239ec9b
+* Require Java8.
+* `StaticFile` uses the filename extension exclusively to determine media-type.
+* Add `/` method to `Uri`.
+* Add `UrlFormLifter` middleware to aggregate url-form parameters with the query parameters.
+* Add local address information to the `Request` type. 
+* Add a Http method 'or' (`|`) extractor.
+* Add `VirtualHost` middleware for serving multiple sites from one server.
+* Add websocket configuration to the blaze server builder.
+* Redefine default timeout status code to 500. 
+* Redefine the `Service` arrow result from `Task[Option[_]]` to `Task[_]`.
+* Don't extend `AllInstances` with `Http4s` omnibus import object.
+* Use UTF-8 as the default encoding for text bodies.
 * Numerous bug fixes by numerous contributors!
 
 # v0.8.4 (2015-07-13)
