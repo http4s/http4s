@@ -5,6 +5,7 @@ import com.earldouglas.xwp.XwpPlugin
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
+import com.typesafe.sbt.pgp.PgpKeys._
 import com.typesafe.sbt.site.JekyllSupport
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys._
@@ -401,6 +402,7 @@ lazy val publishSettings = Seq(
 
 lazy val noPublishSettings = Seq(
   publish := (),
+  publishSigned := (),
   publishLocal := (),
   publishArtifact := false
 )
