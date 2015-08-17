@@ -26,10 +26,7 @@ Building on the FP tools of scalaz not only makes an `HttpService` simple to def
 it also makes them easy to compose.  Adding gzip compression or rewriting URIs is
 as simple as applying a middleware to an `HttpService`.
 
-```scala
-val wcompression = middleware.GZip(service)
-val translated   = middleware.URITranslation.translateRoot("/http4s")(service)
-```
+{%code_ref ../test/scala/org/http4s/docs/CompositionExample.scala composition_example %}
 
 ### Asynchronous
 
@@ -37,18 +34,7 @@ Any http4s response can be streamed from an asynchronous source. http4s offers a
 of helpers to help you get your data out the door in the fastest way possible without
 tying up too many threads.
 
-```scala
-// Make your model safe and streaming by using a scalaz-stream Process
-def getData(req: Request): Process[Task, String] = ???
-
-val service = HttpService {
-  // Wire your data into your service
-  case GET -> Root / "streaming" => Ok(getData(req))
-
-  // You can use helpers to send any type of data with an available EntityEncoder[T]
-  case GET -> Root / "synchronous" => Ok("This is good to go right now.")
-}
-```
+{%code_ref ../test/scala/org/http4s/docs/AsynchronousExample.scala asynchronous_example %}
 
 http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.
 
