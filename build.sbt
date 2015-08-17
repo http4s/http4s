@@ -226,6 +226,7 @@ lazy val docs = http4sProject("docs")
       s"https://${token}@github.com/http4s/http4s.git"
     }
   )
+  .dependsOn(client, core, theDsl, server)
 
 lazy val examples = http4sProject("examples")
   .settings(noPublishSettings)
