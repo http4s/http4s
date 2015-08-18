@@ -74,6 +74,9 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
       if (len == chunkSize) {
         ByteVector.view(buff)
       }
+      else if (len <= 0) {
+        ByteVector.empty
+      }
       else {
         ByteVector.viewI(buff(_), len)
       }
