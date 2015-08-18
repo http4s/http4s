@@ -51,5 +51,13 @@ class RouterSpec extends Http4sSpec {
     "404 on unknown prefixes" in {
       service.apply(Request(GET, uri("/symbols/~"))).run.status must equal (NotFound)
     }
+
+    "Allow passing through of routes with identical prefixes" in {
+      val service = Router("" -> letters, "" -> numbers)
+
+      service.apply(Request(GET, uri("/1"))).run.as[String].run must equal ("one")
+
+      ok
+    }
   }
 }
