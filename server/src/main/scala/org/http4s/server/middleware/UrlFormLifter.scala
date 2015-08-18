@@ -13,7 +13,7 @@ import scalaz.concurrent.Task
   */
 object UrlFormLifter {
 
-  def apply(service: HttpService): HttpService =  Service.lift { req =>
+  def apply(service: HttpService): HttpService =  HttpService.lift { req =>
 
     def addUrlForm(form: UrlForm): Task[Response] = {
       val flatForm = form.values.toVector.flatMap{ case (k, vs) => vs.map(v => (k,Some(v))) }

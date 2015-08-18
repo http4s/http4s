@@ -21,7 +21,7 @@ object BlazeMetricsExample extends App {
   val mapper = new ObjectMapper()
                   .registerModule(new MetricsModule(TimeUnit.SECONDS, TimeUnit.SECONDS, true))
 
-  val metricsService = HttpService {
+  val metricsService = HttpService.liftPF {
     case GET -> Root =>
       val writer = mapper.writerWithDefaultPrettyPrinter()
       Ok(writer.writeValueAsString(metrics))

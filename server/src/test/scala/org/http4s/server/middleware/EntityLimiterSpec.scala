@@ -3,7 +3,7 @@ package server.middleware
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.server.{HttpService, Service}
+import org.http4s.server.HttpService
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
@@ -14,7 +14,7 @@ import Status._
 class EntityLimiterSpec extends Specification {
   import Http4s._
 
-  val s = HttpService {
+  val s = HttpService.liftPF {
     case r: Request if r.uri.path == "/echo" => r.decode[String](Response(Ok).withBody)
   }
 
@@ -36,7 +36,7 @@ class EntityLimiterSpec extends Specification {
     }
 
     "Chain correctly with other HttpServices" in {
-      val s2 = HttpService {
+      val s2 = HttpService.liftPF {
         case r: Request if r.uri.path == "/echo2" => r.decode[String](Response(Ok).withBody)
       }
 

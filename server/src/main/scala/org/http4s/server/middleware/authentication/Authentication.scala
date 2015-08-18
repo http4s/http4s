@@ -31,7 +31,7 @@ trait Authentication extends HttpMiddleware {
   protected def addUserRealmAttributes(req: Request, user: String, realm: String) : Request =
     req.withAttribute(authenticatedUser,user).withAttribute(authenticatedRealm, realm)
 
-  def apply(service: HttpService): HttpService = Service.lift { req =>
+  def apply(service: HttpService): HttpService = HttpService.lift { req =>
     getChallenge(req) flatMap {
       case \/-(req) =>
         service(req)

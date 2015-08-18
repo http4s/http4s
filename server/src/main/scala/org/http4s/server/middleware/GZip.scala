@@ -18,7 +18,7 @@ object GZip {
   
   // TODO: It could be possible to look for Task.now type bodies, and change the Content-Length header after
   // TODO      zipping and buffering all the input. Just a thought.
-  def apply(service: HttpService, bufferSize: Int = 32 * 1024, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = Service.lift {
+  def apply(service: HttpService, bufferSize: Int = 32 * 1024, level: Int = Deflater.DEFAULT_COMPRESSION): HttpService = HttpService.lift {
     req: Request =>
       req.headers.get(`Accept-Encoding`) match {
         case Some(acceptEncoding) if acceptEncoding.satisfiedBy(ContentCoding.gzip)

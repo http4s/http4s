@@ -10,7 +10,7 @@ import org.specs2.mutable.Specification
 
 class UriTranslationSpec extends Http4sSpec {
 
-  val service = HttpService {
+  val service = HttpService.lift {
     case r if r.pathInfo == "/foo" => Response(Ok).withBody("foo")
 
     case r if r.pathInfo == "/checkattr" =>

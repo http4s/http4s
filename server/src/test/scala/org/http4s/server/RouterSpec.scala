@@ -5,19 +5,19 @@ import org.http4s.Method._
 import org.http4s.Status._
 
 class RouterSpec extends Http4sSpec {
-  val numbers: HttpService = HttpService {
+  val numbers: HttpService = HttpService.liftPF {
     case req if req.pathInfo == "/1" =>
       Response(Ok).withBody("one")
   }
-  val letters: HttpService = HttpService {
+  val letters: HttpService = HttpService.liftPF {
     case req if req.pathInfo == "/b" =>
       Response(Ok).withBody("bee")
   }
-  val shadow: HttpService = HttpService {
+  val shadow: HttpService = HttpService.liftPF {
     case req if req.pathInfo == "/shadowed" =>
       Response(Ok).withBody("visible")
   }
-  val root: HttpService  = HttpService {
+  val root: HttpService  = HttpService.liftPF {
     case req if req.pathInfo == "/about" =>
       Response(Ok).withBody("about")
     case req if req.pathInfo == "/shadow/shadowed" =>

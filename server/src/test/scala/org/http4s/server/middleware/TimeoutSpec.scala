@@ -8,7 +8,7 @@ import Method._
 
 class TimeoutSpec extends Http4sSpec {
 
-  val myService = HttpService {
+  val myService = HttpService.liftPF {
     case req if req.uri.path == "/fast" => Response(Status.Ok).withBody("Fast")
     case req if req.uri.path == "/slow" => Task(Thread.sleep(1000)).flatMap(_ => Response(Status.Ok).withBody("Slow"))
   }

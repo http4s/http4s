@@ -15,7 +15,7 @@ import org.specs2.matcher.MustThrownMatchers
 
 class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
-  val route = HttpService {
+  val route = HttpService.lift {
     case r if r.method == GET && r.pathInfo == "/"            => Response(Ok).withBody("hello")
     case r if r.method == PUT && r.pathInfo == "/put"         => Response(Created).withBody(r.body)
     case r if r.method == GET && r.pathInfo == "/echoheaders" =>

@@ -9,15 +9,15 @@ import org.http4s.server.HttpService
 
 class VirtualHostSpec extends Http4sSpec {
 
-  val default = HttpService {
+  val default = HttpService.liftPF {
     case req => Response(Ok).withBody("default")
   }
 
-  val servicea = HttpService {
+  val servicea = HttpService.liftPF {
     case req => Response(Ok).withBody("servicea")
   }
 
-  val serviceb = HttpService {
+  val serviceb = HttpService.liftPF {
     case req => Response(Ok).withBody("serviceb")
   }
 

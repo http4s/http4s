@@ -8,7 +8,7 @@ import Status._
 
 object MockRoute extends Http4s {
 
-  def route(): HttpService = HttpService {
+  def route(): HttpService = HttpService.liftPF {
     case req: Request if req.uri.path ==  "/ping" =>
       Response(Ok).withBody("pong")
 

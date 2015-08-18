@@ -34,7 +34,7 @@ object ExampleService {
     "/science" -> ScienceExperiments.service
   )
 
-  def rootService(implicit executionContext: ExecutionContext) = HttpService {
+  def rootService(implicit executionContext: ExecutionContext) = HttpService.liftPF {
     case req @ GET -> Root =>
       // Supports Play Framework template -- see src/main/twirl.
       Ok(html.index())
@@ -158,7 +158,7 @@ object ExampleService {
 
   // Digest is a middleware.  A middleware is a function from one service to another.
   // In this case, the wrapped service is protected with digest authentication.
-  def authService = digest( HttpService {
+  def authService = digest( HttpService.liftPF {
     case req @ GET -> Root / "protected" => {
       (req.attributes.get(authenticatedUser), req.attributes.get(authenticatedRealm)) match {
         case (Some(user), Some(realm)) => 

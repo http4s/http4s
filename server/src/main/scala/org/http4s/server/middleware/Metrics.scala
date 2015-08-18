@@ -5,7 +5,7 @@ import java.util.concurrent.TimeUnit
 import com.codahale.metrics._
 
 import org.http4s.{Method, Response, Request}
-import org.http4s.server.{Service, HttpService}
+import org.http4s.server.HttpService
 
 import scalaz.stream.Cause.End
 import scalaz.{\/, -\/, \/-}
@@ -103,7 +103,7 @@ object Metrics {
       }
     }
 
-    Service.lift { req: Request =>
+    HttpService.lift { req: Request =>
       val now = System.nanoTime()
       active_requests.inc()
       new Task(srvc(req).get.map(onFinish(req.method, now)))

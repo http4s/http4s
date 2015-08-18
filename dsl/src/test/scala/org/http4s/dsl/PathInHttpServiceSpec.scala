@@ -1,7 +1,7 @@
 package org.http4s
 package dsl
 
-import org.http4s.server.{HttpService, MockServer, Service}
+import org.http4s.server.{HttpService, MockServer}
 import server.MockServer.MockResponse
 
 import scalaz.{ Failure, Success }
@@ -35,7 +35,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
 
   object OptValidatingCounter extends OptionalValidatingQueryParamDecoderMatcher[Int]("counter")
 
-  val service = HttpService {
+  val service = HttpService.lift {
     case GET -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: ${limit.l}")
     case GET -> Root / LongVar(id) =>
