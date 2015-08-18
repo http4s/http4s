@@ -20,9 +20,14 @@ class HttpService(val run: Request => Task[Response]) extends AnyVal {
 
 
   def orElse(service2: HttpService): HttpService = HttpService.lift { req =>
-    run(req).flatMap { resp =>
-      if (resp.status == Status.NotFound) service2(req)
-      else Task.now(resp)
+    run(req).flatMap { resp1 =>
+      if (resp1.status != Status.NotFound) Task.now(resp1)
+      else if (resp1 eq HttpService.notFoundResp) service2(req)
+      else service2(req).map { resp2 =>
+        // we received a custom `NotFound` response. If we don't match elsewhere, serve it.
+        if (resp2.status == Status.NotFound) resp1
+        else resp2
+      }
     }
   }
 }
@@ -38,7 +43,8 @@ object HttpService {
 
   def lift(f: Request => Task[Response]): HttpService = new HttpService(f)
 
-  val notFound: Task[Response] = Task.now(Response(Status.NotFound).withBody("404 Not Found.").run)
+  val notFoundResp = Response(Status.NotFound).withBody("404 Not Found.").run
+  val notFound: Task[Response] = Task.now(notFoundResp)
   val empty   : HttpService    = HttpService.lift(_ => notFound)
 }
 
