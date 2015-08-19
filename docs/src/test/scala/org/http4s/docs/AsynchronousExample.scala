@@ -15,7 +15,7 @@ class AsynchronousExample extends Specification {
     // Make your model safe and streaming by using a scalaz-stream Process
     def getData(req: Request): Process[Task, String] = ???
 
-    val service = HttpService.liftPF {
+    val service = HttpService {
       // Wire your data into your service
       case req@GET -> Root / "streaming" => Ok(getData(req))
 

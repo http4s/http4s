@@ -12,7 +12,7 @@ class HttpService(val run: Request => Task[Response]) extends AnyVal {
 
   def apply(req: Request): Task[Response] = run(req)
 
-  def contraMap(f: Request => Request): HttpService = HttpService.lift(f andThen run)
+  def contramap(f: Request => Request): HttpService = HttpService.lift(f andThen run)
 
   def flatMapM(f: Response => Task[Response]): HttpService = HttpService.lift(run.andThen(_.flatMap(f)))
 
@@ -33,6 +33,13 @@ class HttpService(val run: Request => Task[Response]) extends AnyVal {
 }
 
 object HttpService {
+  /**
+   * Lifts a partial function to an `HttpService`, answering with a [[Response]]
+   * with status [[Status.NotFound]] for any requests where the function
+   * is undefined.
+   */
+  def apply(pf: PartialFunction[Request, Task[Response]]): HttpService = liftPF(pf)
+
   /**
    * Lifts a partial function to an `HttpService`, answering with a [[Response]]
    * with status [[Status.NotFound]] for any requests where the function

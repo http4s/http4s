@@ -24,7 +24,7 @@ object ScienceExperiments {
 
   val flatBigString = (0 until 1000).map{ i => s"This is string number $i" }.foldLeft(""){_ + _}
 
-  def service = HttpService.liftPF {
+  def service = HttpService {
     ///////////////// Misc //////////////////////
     case req @ POST -> Root / "root-element-name" =>
       req.decode { root: Elem => Ok(root.label) }
