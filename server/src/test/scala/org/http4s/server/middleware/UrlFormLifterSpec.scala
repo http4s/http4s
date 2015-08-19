@@ -7,7 +7,7 @@ import org.http4s.server.HttpService
 class UrlFormLifterSpec extends Http4sSpec {
   val urlForm = UrlForm("foo" -> "bar")
 
-  val service = UrlFormLifter(HttpService {
+  val service = UrlFormLifter(HttpService.liftPF {
     case r@Request(Method.POST,_,_,_,_,_) =>
       r.uri.multiParams.get("foo") match {
         case Some(ps) => Response(status = Status.Ok).withBody(ps.mkString(","))

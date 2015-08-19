@@ -10,7 +10,7 @@ import org.http4s.server.HttpService
 
 class FollowRedirectSpec extends Http4sSpec {
 
-  val route = HttpService {
+  val route = HttpService.lift {
     case r if r.method == GET && r.pathInfo == "/ok"       => Response(Ok).withBody("hello")
     case r if r.method == GET && r.pathInfo == "/redirect" => Response(MovedPermanently).withHeaders(Location(uri("/ok"))).withBody("Go there.")
     case r if r.method == GET && r.pathInfo == "/loop"     => Response(MovedPermanently).withHeaders(Location(uri("/loop"))).withBody("Go there.")

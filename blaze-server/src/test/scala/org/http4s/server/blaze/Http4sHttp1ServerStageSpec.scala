@@ -60,7 +60,7 @@ class Http1ServerStageSpec extends Specification {
   }
 
   "Http1ServerStage: Errors" should {
-    val exceptionService = HttpService {
+    val exceptionService = HttpService.liftPF {
       case r if r.uri.path == "/sync" => sys.error("Synchronous error!")
       case r if r.uri.path == "/async" => Task.fail(new Exception("Asynchronous error!"))
     }
@@ -108,10 +108,9 @@ class Http1ServerStageSpec extends Specification {
     }
 
     "Honor a `Transfer-Coding: identity response" in {
-      val service = HttpService {
-        case req =>
-          val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
-          Task.now(Response(body = Process.emit(ByteVector("hello world".getBytes())), headers = headers))
+      val service = HttpService.lift { req =>
+        val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
+        Task.now(Response(body = Process.emit(ByteVector("hello world".getBytes())), headers = headers))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -129,7 +128,7 @@ class Http1ServerStageSpec extends Specification {
     }
 
     "Add a date header" in {
-      val service = HttpService {
+      val service = HttpService.lift {
         case req => Task.now(Response(body = req.body))
       }
 
@@ -145,8 +144,8 @@ class Http1ServerStageSpec extends Specification {
 
     "Honor an explicitly added date header" in {
       val dateHeader = Date(DateTime(4))
-      val service = HttpService {
-        case req => Task.now(Response(body = req.body).withHeaders(dateHeader))
+      val service = HttpService.lift {req =>
+        Task.now(Response(body = req.body).withHeaders(dateHeader))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -160,8 +159,8 @@ class Http1ServerStageSpec extends Specification {
     }
 
     "Handle routes that consumes the full request body for non-chunked" in {
-      val service = HttpService {
-        case req => Task.now(Response(body = req.body))
+      val service = HttpService.lift { req =>
+        Task.now(Response(body = req.body))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -175,8 +174,8 @@ class Http1ServerStageSpec extends Specification {
     }
 
     "Handle routes that ignores the body for non-chunked" in {
-      val service = HttpService {
-        case req => Task.now(Response(body = req.body))
+      val service = HttpService.lift { req =>
+        Task.now(Response(body = req.body))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -191,8 +190,8 @@ class Http1ServerStageSpec extends Specification {
 
     "Handle routes that ignores request body for non-chunked" in {
 
-      val service = HttpService {
-        case req =>  Task.now(Response(body = Process.emit(ByteVector.view("foo".getBytes))))
+      val service = HttpService.lift { req =>
+        Task.now(Response(body = Process.emit(ByteVector.view("foo".getBytes))))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -209,8 +208,8 @@ class Http1ServerStageSpec extends Specification {
 
     "Handle routes that runs the request body for non-chunked" in {
 
-      val service = HttpService {
-        case req =>  req.body.run.map { _ =>
+      val service = HttpService.lift {req =>
+        req.body.run.map { _ =>
           Response(body = Process.emit(ByteVector.view("foo".getBytes)))
         }
       }
@@ -229,8 +228,8 @@ class Http1ServerStageSpec extends Specification {
 
     "Handle routes that kills the request body for non-chunked" in {
 
-      val service = HttpService {
-        case req =>  req.body.kill.run.map { _ =>
+      val service = HttpService.lift {req =>
+        req.body.kill.run.map { _ =>
           Response(body = Process.emit(ByteVector.view("foo".getBytes)))
         }
       }
@@ -251,12 +250,11 @@ class Http1ServerStageSpec extends Specification {
     "Not die when two requests come in back to back" in {
 
       import scalaz.stream.Process.Step
-      val service = HttpService {
-        case req =>
-          req.body.step match {
-            case Step(p,_) => Task.now(Response(body = p))
-            case _ => sys.error("Failure.")
-          }
+      val service = HttpService.lift { req =>
+        req.body.step match {
+          case Step(p,_) => Task.now(Response(body = p))
+          case _ => sys.error("Failure.")
+        }
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -272,8 +270,8 @@ class Http1ServerStageSpec extends Specification {
 
     "Handle using the request body as the response body" in {
 
-      val service = HttpService {
-        case req => Task.now(Response(body = req.body))
+      val service = HttpService.lift { req =>
+        Task.now(Response(body = req.body))
       }
 
       // The first request will get split into two chunks, leaving the last byte off

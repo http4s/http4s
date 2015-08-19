@@ -4,7 +4,7 @@ import org.http4s.headers._
 import org.http4s.Http4s._
 import org.http4s.Status._
 import org.http4s._
-import org.http4s.server.{HttpService, Service}
+import org.http4s.server.HttpService
 import org.http4s.Charset._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
@@ -109,7 +109,7 @@ object ServerTestRoutes {
       (Status.NotModified, Set[Header](connKeep), ""))
   )
 
-  def apply() = HttpService {
+  def apply() = HttpService.liftPF {
     case req if req.method == Method.GET && req.pathInfo == "/get" => Response(Ok).withBody("get")
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
       Response(Ok).withBody(eval(Task("chu")) ++ eval(Task("nk"))).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))

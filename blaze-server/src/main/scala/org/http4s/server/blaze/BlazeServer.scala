@@ -82,7 +82,7 @@ class BlazeBuilder(
                     case x                      => x.length + 1
                   }
 
-                  service.local { req: Request =>
+                  service.contramap { req: Request =>
                     req.withAttribute(Request.Keys.PathInfoCaret(newCaret))
                   }
                 }

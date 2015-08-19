@@ -19,7 +19,7 @@ object BlazeWebSocketExample extends App {
 
 /// code_ref: blaze_websocket_example
 
-  val route = HttpService {
+  val route = HttpService.liftPF {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
 

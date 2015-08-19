@@ -48,7 +48,7 @@ object VirtualHost {
 
     val all = (first +: rest).toVector
 
-    Service.lift { req =>
+    HttpService.lift { req =>
       req.headers.get(Host) match {
         case None =>
           Response(BadRequest).withBody("Host header required.")

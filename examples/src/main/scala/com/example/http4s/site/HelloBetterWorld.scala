@@ -2,7 +2,7 @@ package com.example.http4s
 package site
 
 import org.http4s.dsl._
-import org.http4s.server.{HttpService, Service}
+import org.http4s.server.HttpService
 
 object HelloBetterWorld {
   /// code_ref: service

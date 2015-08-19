@@ -14,7 +14,7 @@ import Scalaz._
 
 class CORSSpec extends Specification {
 
-  val service = HttpService {
+  val service = HttpService.liftPF {
     case r => Response(Ok).withBody("foo")
   }
 

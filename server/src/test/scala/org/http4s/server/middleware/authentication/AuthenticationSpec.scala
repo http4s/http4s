@@ -15,12 +15,12 @@ import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
 
-  val service = HttpService {
+  val service = HttpService.lift {
     case r if r.pathInfo == "/" => Response(Ok).withBody("foo")
     case r => Response.notFound(r)
   }
 
-  def nukeService(launchTheNukes: => Unit) = HttpService {
+  def nukeService(launchTheNukes: => Unit) = HttpService.liftPF {
     case r if r.pathInfo == "/launch-the-nukes" => for {
       _ <- Task.delay(launchTheNukes)
       r <- Response(Gone).withBody("oops")
