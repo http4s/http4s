@@ -1,3 +1,6 @@
+# v0.9.1 (2015-08-19)
+* Fix bug in servlet nio handler.
+
 # v0.9.0 (2015-08-15)
 * Require Java8.
 * `StaticFile` uses the filename extension exclusively to determine media-type.
