@@ -37,7 +37,7 @@ class CORSSpec extends Specification {
     }
 
     "Respect Access-Control-Allow-Credentials" in {
-      val req = Request(uri = Uri(path= "foo")).withHeaders(
+      val req = Request(uri = Uri(path= "foo")).replaceAllHeaders(
         Header("Origin", "http://allowed.com/"),
         Header("Access-Control-Request-Method", "GET")
       )

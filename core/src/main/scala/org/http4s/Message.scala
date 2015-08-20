@@ -55,7 +55,7 @@ sealed trait Message extends MessageOps {
     * @param headers [[Headers]] containing the desired headers
     * @return a new Request object
     */
-  override def withHeaders(headers: Headers): Self = change(headers = headers)
+  override def replaceAllHeaders(headers: Headers): Self = change(headers = headers)
 
   /** Add the provided headers to the existing headers, replacing those of the same header name */
   override def putHeaders(headers: Header*): Self =

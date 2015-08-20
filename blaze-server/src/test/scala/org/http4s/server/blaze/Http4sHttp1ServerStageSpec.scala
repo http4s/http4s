@@ -146,7 +146,7 @@ class Http1ServerStageSpec extends Specification {
     "Honor an explicitly added date header" in {
       val dateHeader = Date(DateTime(4))
       val service = HttpService {
-        case req => Task.now(Response(body = req.body).withHeaders(dateHeader))
+        case req => Task.now(Response(body = req.body).replaceAllHeaders(dateHeader))
       }
 
       // The first request will get split into two chunks, leaving the last byte off

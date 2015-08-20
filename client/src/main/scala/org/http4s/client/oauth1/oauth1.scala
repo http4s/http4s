@@ -29,7 +29,7 @@ package object oauth1 {
                   verifier: Option[String], token: Option[Token]): Task[Request] = {
     getUserParams(req).map { case (req, params) =>
       val auth = genAuthHeader(req.method, req.uri, params, consumer, callback, verifier, token)
-      req.withHeaders(auth)
+      req.putHeaders(auth)
     }
   }
 

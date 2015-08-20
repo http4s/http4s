@@ -130,7 +130,7 @@ class Http1ClientStageSpec extends Specification {
     "Utilize a provided Host header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.withHeaders(headers.Host("bar.com"))
+      val req = FooRequest.replaceAllHeaders(headers.Host("bar.com"))
 
       val (request, response) = getSubmission(req, resp, LongDuration)
 
@@ -154,7 +154,7 @@ class Http1ClientStageSpec extends Specification {
     "Use User-Agent header provided in Request" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.withHeaders(Header.Raw("User-Agent".ci, "myagent"))
+      val req = FooRequest.replaceAllHeaders(Header.Raw("User-Agent".ci, "myagent"))
 
       val (request, response) = getSubmission(req, resp, LongDuration)
 

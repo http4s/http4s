@@ -53,7 +53,7 @@ object ExampleService {
 
     case GET -> Root / "streaming" =>
       // Its also easy to stream responses to clients
-      Ok(dataStream(100)).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(dataStream(100)).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
@@ -67,7 +67,7 @@ object ExampleService {
     case GET -> Root / "content-change" =>
       // EntityEncoder typically deals with appropriate headers, but they can be overridden
       Ok("<h2>This will have an html content type!</h2>")
-          .withHeaders(`Content-Type`(`text/html`))
+          .withContentType(Some(`Content-Type`(`text/html`)))
 
     case req @ GET -> "static" /: path =>
       // captures everything after "/directory" into `path`
@@ -80,7 +80,7 @@ object ExampleService {
     case req @ POST -> Root / "echo" =>
       // The body can be used in the response
       Ok(req.body)
-        .withHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
+        .putHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "echo" =>
       Ok(html.submissionForm("echo data"))
@@ -88,7 +88,7 @@ object ExampleService {
     case req @ POST -> Root / "echo2" =>
       // Even more useful, the body can be transformed in the response
       Ok(req.body.map(_.drop(6)))
-        .withHeaders(`Content-Type`(`text/plain`))
+        .putHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo2" =>
       Ok(html.submissionForm("echo data"))
@@ -128,7 +128,7 @@ object ExampleService {
       // http4s intends to be a forward looking library made with http2.0 in mind
       val data = <html><body><img src="image.jpg"/></body></html>
       Ok(data)
-        .withHeaders(`Content-Type`(`text/html`))
+        .withContentType(Some(`Content-Type`(`text/html`)))
         .push("/image.jpg")(req)
 
     case req @ GET -> Root / "image.jpg" =>
