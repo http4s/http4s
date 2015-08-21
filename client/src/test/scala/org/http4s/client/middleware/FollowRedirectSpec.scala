@@ -12,8 +12,8 @@ class FollowRedirectSpec extends Http4sSpec {
 
   val route = HttpService {
     case r if r.method == GET && r.pathInfo == "/ok"       => Response(Ok).withBody("hello")
-    case r if r.method == GET && r.pathInfo == "/redirect" => Response(MovedPermanently).withHeaders(Location(uri("/ok"))).withBody("Go there.")
-    case r if r.method == GET && r.pathInfo == "/loop"     => Response(MovedPermanently).withHeaders(Location(uri("/loop"))).withBody("Go there.")
+    case r if r.method == GET && r.pathInfo == "/redirect" => Response(MovedPermanently).replaceAllHeaders(Location(uri("/ok"))).withBody("Go there.")
+    case r if r.method == GET && r.pathInfo == "/loop"     => Response(MovedPermanently).replaceAllHeaders(Location(uri("/loop"))).withBody("Go there.")
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 

@@ -27,7 +27,7 @@ trait WebSocketSupport extends Http1ServerStage {
             logger.info(s"Invalid handshake $code, $msg")
             val resp = Response(Status.BadRequest)
               .withBody(msg)
-              .map(_.withHeaders(
+              .map(_.replaceAllHeaders(
                  Connection("close".ci),
                  Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
               )).run

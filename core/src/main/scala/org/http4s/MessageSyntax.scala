@@ -35,7 +35,7 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
     * @param headers [[Headers]] containing the desired headers
     * @return a new Request object
     */
-  override def withHeaders(headers: Headers): Self = self.map(_.withHeaders(headers))
+  override def replaceAllHeaders(headers: Headers): Self = self.map(_.replaceAllHeaders(headers))
 
   /** Add the provided headers to the existing headers, replacing those of the same header name */
   override def putHeaders(headers: Header*): Self = self.map(_.putHeaders(headers:_*))

@@ -32,7 +32,7 @@ object ScienceExperiments {
     case req @ GET -> Root / "date" =>
       val date = DateTime(100)
       Ok(date.toRfc1123DateTimeString)
-        .withHeaders(Date(date))
+        .putHeaders(Date(date))
 
     case req @ GET -> Root / "echo-headers" =>
       Ok(req.headers.mkString("\n"))
@@ -47,7 +47,7 @@ object ScienceExperiments {
     case req@GET -> Root / "bigstring3" => Ok(flatBigString)
 
     case GET -> Root / "zero-chunk" =>
-      Ok(Process("", "foo!")).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(Process("", "foo!")).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case GET -> Root / "bigfile" =>
       val size = 40*1024*1024   // 40 MB
@@ -55,7 +55,7 @@ object ScienceExperiments {
 
     case req @ POST -> Root / "rawecho" =>
       // The body can be used in the response
-      Ok(req.body).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(req.body).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     ///////////////// Switch the response based on head of content //////////////////////
 
@@ -98,7 +98,7 @@ object ScienceExperiments {
     ///////////////// Weird Route Failures //////////////////////
     case req @ GET -> Root / "hanging-body" =>
       Ok(Process(Task.now(ByteVector(Seq(' '.toByte))), Task.async[ByteVector] { cb => /* hang */}).eval)
-        .withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+        .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ GET -> Root / "broken-body" =>
       Ok(Process(Task{"Hello "}) ++ Process(Task{sys.error("Boom!")}) ++ Process(Task{"world!"}))
@@ -106,7 +106,7 @@ object ScienceExperiments {
     case req @ GET -> Root / "slow-body" =>
       val resp = "Hello world!".map(_.toString())
       val body = awakeEvery(2.seconds).zipWith(Process.emitAll(resp))((_, c) => c)
-      Ok(body).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(body).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
 
     case req @ POST -> Root / "ill-advised-echo" =>
       // Reads concurrently from the input.  Don't do this at home.
