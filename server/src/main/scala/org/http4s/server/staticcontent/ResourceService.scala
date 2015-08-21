@@ -6,7 +6,6 @@ import org.http4s.server._
 import org.http4s.{Response, Request, StaticFile}
 
 import scalaz.concurrent.{Strategy, Task}
-import scalaz.OptionT
 
 
 object ResourceService {
@@ -26,15 +25,12 @@ object ResourceService {
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = PartialService.lift { req =>
+  private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
-      OptionT.none
+      HttpService.notFound
     else
-      OptionT(
-        StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
-          .map{ f => Task.now(Some(f)) }
-          .getOrElse(Task.now(None))
-      ).flatMapF(config.cacheStartegy.cache(uriPath, _))
+      StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
+        .fold(HttpService.notFound)(config.cacheStartegy.cache(uriPath, _))
   }
 }

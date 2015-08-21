@@ -9,7 +9,7 @@ import org.http4s.headers.Range.SubRange
 import org.http4s.server._
 
 import scalaz.concurrent.{Strategy, Task}
-import scalaz.{NonEmptyList, OptionT}
+import scalaz.{NonEmptyList}
 
 
 object FileService {
@@ -32,16 +32,15 @@ object FileService {
 
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  private[staticcontent] def apply(config: Config): PartialService[Request, Response] = PartialService.lift { req =>
+  private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
-      OptionT.none
+      HttpService.notFound
     else
-      OptionT(
-        getFile(config.systemPath + '/' + getSubPath(uriPath, config.pathPrefix))
-          .map{ f => config.pathCollector(f, config, req) }
-          .getOrElse(Task.now(None))
-      ).flatMapF(config.cacheStartegy.cache(uriPath, _))
+      getFile(config.systemPath + '/' + getSubPath(uriPath, config.pathPrefix))
+        .map { f => config.pathCollector(f, config, req) }
+        .getOrElse(Task.now(None))
+        .flatMap(_.fold(HttpService.notFound)(config.cacheStartegy.cache(uriPath, _)))
   }
 
   /* Returns responses for static files.
