@@ -393,6 +393,42 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.TaskMessageOps#replaceAllHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replaceAllHeaders(headers:org.http4s.Headers):TaskMessageOps.this.Self"></a>
+      <a id="replaceAllHeaders(Headers):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskResponseOps.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.TaskResponseOps@replaceAllHeaders(headers:org.http4s.Headers):TaskMessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replaceAllHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
+      <a id="replaceAllHeaders(Header*):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskResponseOps.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.TaskResponseOps@replaceAllHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.TaskResponseOps#self" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="self:scalaz.concurrent.Task[org.http4s.Response]"></a>
       <a id="self:Task[Response]"></a>
@@ -499,42 +535,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.TaskMessageOps#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withHeaders(headers:org.http4s.Headers):TaskMessageOps.this.Self"></a>
-      <a id="withHeaders(Headers):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskResponseOps.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.TaskResponseOps@withHeaders(headers:org.http4s.Headers):TaskMessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
-      <a id="withHeaders(Header*):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskResponseOps.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.TaskResponseOps@withHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.TaskResponseOps#withStatus" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withStatus[S](status:S)(implicitevidence$1:S=&gt;org.http4s.Status):TaskResponseOps.this.Self"></a>
       <a id="withStatus[S](S)((S)⇒Status):Self"></a>
@@ -591,7 +591,52 @@
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.MessageOps#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
+      <a id="withHeaders(Header*):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskResponseOps.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.TaskResponseOps@withHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders. Will be removed in 0.11.x</p></dd></dl></div>
+    </li><li name="org.http4s.MessageOps#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withHeaders(headers:org.http4s.Headers):MessageOps.this.Self"></a>
+      <a id="withHeaders(Headers):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self=scalaz.concurrent.Task[M#Self]" class="extmbr" name="org.http4s.TaskResponseOps.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.TaskResponseOps@withHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd><dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders. Will be removed in 0.11.x</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
