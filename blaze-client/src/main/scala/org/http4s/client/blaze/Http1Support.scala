@@ -72,6 +72,15 @@ final class Http1Support(bufferSize: Int,
     val t = new Http1ClientStage(userAgent, timeout)(ec)
     val builder = LeafBuilder(t)
     uri match {
+      case Uri(Some(Https),Some(auth),_,_,_) =>
+        val eng = sslContext.createSSLEngine(auth.host.value, auth.port getOrElse 443)
+        eng.setUseClientMode(true)
+
+        val sslParams = eng.getSSLParameters
+        sslParams.setEndpointIdentificationAlgorithm("HTTPS")
+        eng.setSSLParameters(sslParams)
+
+        (builder.prepend(new SSLStage(eng)),t)
       case Uri(Some(Https),_,_,_,_) =>
         val eng = sslContext.createSSLEngine()
         eng.setUseClientMode(true)
