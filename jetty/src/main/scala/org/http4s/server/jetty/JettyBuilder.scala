@@ -3,7 +3,7 @@ package server
 package jetty
 
 import com.codahale.metrics.{InstrumentedExecutorService, MetricRegistry}
-import com.codahale.metrics.jetty9.{InstrumentedQueuedThreadPool, InstrumentedConnectionFactory}
+import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool
 import org.eclipse.jetty.util.ssl.SslContextFactory
 import org.eclipse.jetty.util.thread.QueuedThreadPool
 import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
