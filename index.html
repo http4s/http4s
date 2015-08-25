@@ -92,28 +92,25 @@ of helpers to facilitate the creation of the <code>Task[Response]</code> from co
 <p>Building on the FP tools of scalaz not only makes an <code>HttpService</code> simple to define,
 it also makes them easy to compose.  Adding gzip compression or rewriting URIs is
 as simple as applying a middleware to an <code>HttpService</code>.</p>
-
-<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">val</span> <span class="n">service</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span> <span class="k">case</span> <span class="n">req</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="s">"Foo"</span><span class="o">)</span> <span class="o">}</span>
-<span class="k">val</span> <span class="n">wcompression</span> <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">GZip</span><span class="o">(</span><span class="n">service</span><span class="o">)</span>
-<span class="k">val</span> <span class="n">translated</span>   <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">URITranslation</span><span class="o">.</span><span class="n">translateRoot</span><span class="o">(</span><span class="s">"/http4s"</span><span class="o">)(</span><span class="n">service</span><span class="o">)</span></code></code></pre>
-
+<div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="k">val</span> <span class="n">wcompression</span> <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">GZip</span><span class="o">(</span><span class="n">service</span><span class="o">)</span>
+<span class="k">val</span> <span class="n">translated</span>   <span class="k">=</span> <span class="n">middleware</span><span class="o">.</span><span class="nc">URITranslation</span><span class="o">.</span><span class="n">translateRoot</span><span class="o">(</span><span class="s">&quot;/http4s&quot;</span><span class="o">)(</span><span class="n">service</span><span class="o">)</span>
+</code></pre></div>
 <h3 id="toc_3">Asynchronous</h3>
 
 <p>Any http4s response can be streamed from an asynchronous source. http4s offers a variety
 of helpers to help you get your data out the door in the fastest way possible without
 tying up too many threads.</p>
-
-<pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="c1">// Make your model safe and streaming by using a scalaz-stream Process
-</span><span class="k">def</span> <span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="k">:</span> <span class="kt">Request</span><span class="o">)</span><span class="k">:</span> <span class="kt">Process</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
+<div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="c1">// Make your model safe and streaming by using a scalaz-stream Process</span>
+<span class="k">def</span> <span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="k">:</span> <span class="kt">Request</span><span class="o">)</span><span class="k">:</span> <span class="kt">Process</span><span class="o">[</span><span class="kt">Task</span>, <span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="o">???</span>
 
 <span class="k">val</span> <span class="n">service</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span>
-  <span class="c1">// Wire your data into your service
-</span>  <span class="k">case</span> <span class="n">req</span><span class="nd">@GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"streaming"</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="o">))</span>
+  <span class="c1">// Wire your data into your service</span>
+  <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;streaming&quot;</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="n">getData</span><span class="o">(</span><span class="n">req</span><span class="o">))</span>
 
-  <span class="c1">// You can use helpers to send any type of data with an available EntityEncoder[T]
-</span>  <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">"synchronous"</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="s">"This is good to go right now."</span><span class="o">)</span>
-<span class="o">}</span></code></code></pre>
-
+  <span class="c1">// You can use helpers to send any type of data with an available EntityEncoder[T]</span>
+  <span class="k">case</span> <span class="nc">GET</span> <span class="o">-&gt;</span> <span class="nc">Root</span> <span class="o">/</span> <span class="s">&quot;synchronous&quot;</span> <span class="k">=&gt;</span> <span class="nc">Ok</span><span class="o">(</span><span class="s">&quot;This is good to go right now.&quot;</span><span class="o">)</span>
+<span class="o">}</span>
+</code></pre></div>
 <p>http4s is a forward-looking technology.  HTTP/2.0 and WebSockets will play a central role.</p>
 
 <pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">val</span> <span class="n">route</span> <span class="k">=</span> <span class="nc">HttpService</span> <span class="o">{</span>
@@ -242,10 +239,10 @@ for embedded Tomcat and Jetty containers.</p>
 
 <p>Artifacts for scala 2.10 and 2.11 are available from Maven Central:</p>
 <div class="highlight"><pre><code class="scala language-scala" data-lang="scala"><span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;org.http4s&quot;</span> <span class="o">%%</span> <span class="s">&quot;http4s-dsl&quot;</span>          <span class="o">%</span> <span class="n">version</span>  <span class="c1">// to use the core dsl</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;org.http4s&quot;</span> <span class="o">%%</span> <span class="s">&quot;http4s-blaze-server&quot;</span> <span class="o">%</span> <span class="n">version</span>  <span class="c1">// to use the blaze backend</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;org.http4s&quot;</span> <span class="o">%%</span> <span class="s">&quot;http4s-blazeserver&quot;</span>  <span class="o">%</span> <span class="n">version</span>  <span class="c1">// to use the blaze backend</span>
 <span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;org.http4s&quot;</span> <span class="o">%%</span> <span class="s">&quot;http4s-servlet&quot;</span>      <span class="o">%</span> <span class="n">version</span>  <span class="c1">// to use the raw servlet backend</span>
 <span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;org.http4s&quot;</span> <span class="o">%%</span> <span class="s">&quot;http4s-jetty&quot;</span>        <span class="o">%</span> <span class="n">version</span>  <span class="c1">// to use the jetty servlet backend</span>
-<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;org.http4s&quot;</span> <span class="o">%%</span> <span class="s">&quot;http4s-blaze-client&quot;</span> <span class="o">%</span> <span class="n">version</span>  <span class="c1">// to use the blaze client</span>
+<span class="n">libraryDependencies</span> <span class="o">+=</span> <span class="s">&quot;org.http4s&quot;</span> <span class="o">%%</span> <span class="s">&quot;http4s-blazeclient&quot;</span>  <span class="o">%</span> <span class="n">version</span>  <span class="c1">// to use the blaze client</span>
 </code></pre></div>
 <p>Snapshots for the development branch are available in the sonatype snapshots repos.</p>
 
