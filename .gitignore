@@ -14,5 +14,6 @@ atlassian-ide-plugin.xml
 *.sublime-*
 .tags
 .tags_sorted_by_file
+.ensime_cache
 .ensime_lucene
 /TAGS
