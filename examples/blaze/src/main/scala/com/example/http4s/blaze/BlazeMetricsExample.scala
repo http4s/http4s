@@ -29,7 +29,7 @@ object BlazeMetricsExample extends App {
 
   val srvc = Router(
     "" -> Metrics.meter(metrics, "Sample")(ExampleService.service),
-    "metrics" -> metricsService
+    "/metrics" -> metricsService
   )
 
   BlazeBuilder.bindHttp(8080)
