@@ -70,8 +70,8 @@ object ExampleService {
           .withContentType(Some(`Content-Type`(`text/html`)))
 
     case req @ GET -> "static" /: path =>
-      // captures everything after "/directory" into `path`
-      // Try http://localhost:8080/http4s/nasa_blackhole_image.jpg
+      // captures everything after "/static" into `path`
+      // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
       // See also org.http4s.server.staticcontent to create a mountable service for static content
       StaticFile.fromResource(path.toString, Some(req)).fold(NotFound())(Task.now)
 
@@ -139,7 +139,7 @@ object ExampleService {
 
   // This is a mock data source, but could be a Process representing results from a database
   def dataStream(n: Int): Process[Task, String] = {
-    implicit def defaultSecheduler = DefaultTimeoutScheduler
+    implicit def defaultScheduler = DefaultTimeoutScheduler
     val interval = 100.millis
     val stream = time.awakeEvery(interval)
       .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")
