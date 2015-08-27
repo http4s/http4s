@@ -1,7 +1,7 @@
 package org.http4s.blaze
 
 import org.http4s.blaze.pipeline.HeadStage
-import org.http4s.blaze.pipeline.Command.{Disconnect, OutboundCommand, EOF}
+import org.http4s.blaze.pipeline.Command.{Disconnected, Disconnect, OutboundCommand, EOF}
 
 import java.nio.ByteBuffer
 
@@ -42,7 +42,10 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
 
   override def readRequest(size: Int): Future[ByteBuffer] = synchronized {
     if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
-    else Future.failed(EOF)
+    else {
+      sendInboundCommand(Disconnected)
+      Future.failed(EOF)
+    }
   }
 }
 
