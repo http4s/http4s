@@ -1,3 +1,4 @@
+<<<<<<< HEAD
 # v0.9.1 (2015-08-19)
 * Fix bug in servlet nio handler.
 
@@ -15,6 +16,11 @@
 * Don't extend `AllInstances` with `Http4s` omnibus import object.
 * Use UTF-8 as the default encoding for text bodies.
 * Numerous bug fixes by numerous contributors!
+=======
+# v0.8.5 (2015-08-26)
+* Preserve original headers when appending as opposed to quoting.
+* Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh
+>>>>>>> release-0.8.5
 
 # v0.8.4 (2015-07-13)
 * Honor the buffer size parameter in gzip middleware.
