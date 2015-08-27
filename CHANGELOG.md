@@ -1,3 +1,7 @@
+# v0.8.5 (2015-08-26)
+* Preserve original headers when appending as opposed to quoting.
+* Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh
+
 # v0.8.4 (2015-07-13)
 * Honor the buffer size parameter in gzip middleware.
 * Handle service exceptions in servlet backends.
