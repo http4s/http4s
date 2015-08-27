@@ -119,8 +119,8 @@ abstract class Http1ClientReceiver extends Http1ClientParser with BlazeClientSta
     }
 
     def terminationCondition() = stageState.get match {  // if we don't have a length, EOF signals the end of the body.
-      case -\/(e) => e
-      case _      =>
+      case -\/(e) if e != EOF => e
+      case _ =>
         if (definedContentLength() || isChunked()) InvalidBodyException("Received premature EOF.")
         else Terminated(End)
     }

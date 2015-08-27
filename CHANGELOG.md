@@ -1,3 +1,7 @@
+# v0.9.3 (2015-08-27)
+* Trampoline recursive calls in blaze ProcessWriter.
+* Handle server hangup and body termination correctly in blaze client.
+
 # v0.9.2 (2015-08-26)
 * Bump http4s-websockets to 1.0.3 to properly decode continuation opcode.
 * Fix metrics incompatibility when using Jetty 9.3 backend.
