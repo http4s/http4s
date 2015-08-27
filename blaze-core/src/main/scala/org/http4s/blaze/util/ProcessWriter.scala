@@ -11,6 +11,7 @@ import scalaz.stream.Process._
 import scalaz.stream.Cause._
 import scalaz.{-\/, \/, \/-}
 
+
 trait ProcessWriter {
 
   implicit protected def ec: ExecutionContext
@@ -52,7 +53,7 @@ trait ProcessWriter {
   final private def go(p: Process[Task, ByteVector], stack: List[StackElem], cb: CBType): Unit = p match {
     case Emit(seq) if seq.isEmpty =>
       if (stack.isEmpty) writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
-      else go(Try(stack.head.apply(End).run), stack.tail, cb)
+      else Trampoline(go(Try(stack.head.apply(End).run), stack.tail, cb))
 
     case Emit(seq) =>
       val buff = seq.reduce(_ ++ _)
@@ -62,9 +63,11 @@ trait ProcessWriter {
         case Failure(t) => go(Try(stack.head(Cause.Error(t)).run), stack.tail, cb)
       }
 
-    case Await(t, f) => t.runAsync {  // Wait for it to finish, then continue to unwind
-      case r@ \/-(_) => go(Try(f(r).run), stack, cb)
-      case -\/(t)    => go(Try(f(-\/(Error(t))).run), stack, cb)
+    case Await(t, f) => t.runAsync { r =>  // Wait for it to finish, then continue to unwind
+      Trampoline(r match {
+        case r@ \/-(_) => go(Try(f(r).run), stack, cb)
+        case -\/(t)    => go(Try(f(-\/(Error(t))).run), stack, cb)
+      })
     }
 
     case Append(head, tail) =>
@@ -74,9 +77,9 @@ trait ProcessWriter {
        else stack
      }
 
-     go(head, prepend(tail.length - 1, stack), cb)
+     Trampoline(go(head, prepend(tail.length - 1, stack), cb))
 
-    case Halt(cause) if stack.nonEmpty => go(Try(stack.head(cause).run), stack.tail, cb)
+    case Halt(cause) if stack.nonEmpty => Trampoline(go(Try(stack.head(cause).run), stack.tail, cb))
 
     // Rest are terminal cases
     case Halt(End) => writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
@@ -85,7 +88,7 @@ trait ProcessWriter {
                          .flatMap(_ => exceptionFlush())
                          .onComplete(completionListener(_, cb))
 
-    case Halt(Error(Terminated(cause))) => go(Halt(cause), stack, cb)
+    case Halt(Error(Terminated(cause))) => Trampoline(go(Halt(cause), stack, cb))
 
     case Halt(Error(t)) => exceptionFlush().onComplete {
       case Success(_) => cb(-\/(t))
@@ -96,6 +99,13 @@ trait ProcessWriter {
   private def completionListener(t: Try[_], cb: CBType): Unit = t match {
     case Success(_) =>  cb(\/-(()))
     case Failure(t) =>  cb(-\/(t))
+  }
+
+  @inline
+  private def Trampoline(next: => Unit): Unit = {
+    Execution.trampoline.execute(new Runnable {
+      override def run: Unit = next
+    })
   }
 
   @inline
