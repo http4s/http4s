@@ -70,5 +70,12 @@ class HeadersSpec extends Specification {
       base ++ Headers.empty eq base must_== true
       Headers.empty ++ base eq base must_== true
     }
+
+    "Preserve original headers when processing" in {
+      val rawAuth = Header("Authorization", "test this")
+
+      // Mapping to strings because Header equality is based on the *parsed* version
+      (Headers(rawAuth) ++ base).map(_.toString) must contain(===(rawAuth.toString))
+    }
   }
 }
