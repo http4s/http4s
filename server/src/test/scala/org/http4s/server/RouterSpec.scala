@@ -37,7 +37,10 @@ class RouterSpec extends Http4sSpec {
     }
 
     "require the correct prefix" in {
-      service.apply(Request(GET, uri("/letters/1"))).run.status must equal (NotFound)
+      val resp = service.apply(Request(GET, uri("/letters/1"))).run
+      resp.as[String].run must not equal ("bee")
+      resp.as[String].run must not equal ("one")
+      resp.status must equal (NotFound)
     }
 
     "support root mappings" in {
@@ -51,5 +54,11 @@ class RouterSpec extends Http4sSpec {
     "404 on unknown prefixes" in {
       service.apply(Request(GET, uri("/symbols/~"))).run.status must equal (NotFound)
     }
+
+    "Allow passing through of routes with identical prefixes" in {
+      Router("" -> letters, "" -> numbers).apply(Request(GET, uri("/1")))
+        .run.as[String].run must equal ("one")
+    }
+
   }
 }

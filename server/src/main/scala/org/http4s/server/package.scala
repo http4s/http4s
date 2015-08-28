@@ -1,13 +1,11 @@
 package org.http4s
 
-import scalaz.{OptionT, Kleisli}
+import scalaz.Kleisli
 import scalaz.concurrent.Task
-import scalaz.std.option._
 import scalaz.syntax.kleisli._
-import scalaz.syntax.monad._
-import scalaz.syntax.traverse._
 
 package object server {
+
   /**
    * A Service wraps a function of request type [[A]] to a Task that runs
    * to esponse type [[B]].  By wrapping the `Service`, we can compose them
@@ -18,8 +16,6 @@ package object server {
   object Service {
     /**
      * Lifts an unwrapped function that returns a Task into a [[Service]].
-     * No effort is made to provide a default response if a [[PartialFunction]]
-     * is passed in.
      *
      * @see [[HttpService.apply]]
      */
@@ -30,43 +26,20 @@ package object server {
       *
       */
     def const[A, B](b: => Task[B]): Service[A, B] = b.liftKleisli
-  }
-
-  /**
-   * A [[Service]] that returns an optional result.
-   */
-  type PartialService[A, B] = Kleisli[({type L[x] = OptionT[Task, x]})#L, A, B]
-
-  object PartialService {
-    /**
-     * Lifts an unwrapped function that returns an OptionT over Task into a [[PartialService]].
-     */
-    def lift[A, B](f: A => OptionT[Task, B]): PartialService[A, B] =
-      Kleisli.kleisliU(f)
 
     /**
-      *  Lifts (by sequencing) an unwrapped function that returns an optional
-      *  Task into a [[PartialService]].
+      *  Lifts a value into a [[Service]].
+      *
       */
-    def liftS[A, B](f: A => Option[Task[B]]): PartialService[A, B] =
-      lift(f.andThen(o => OptionT(o.sequence)))
+    def constVal[A, B](b: => B): Service[A, B] = Task.now(b).liftKleisli
 
     /**
-     * Lifts a partial function that returns a Task into a [[PartialService]].  Where the
-     * function is not defined, the [[PartialService]] returns `OptionT.none`
-     */
-    def liftPF[A, B](pf: PartialFunction[A, Task[B]]): PartialService[A, B] =
-      liftS(pf.lift)
-  }
+      * Allows Service chainig through an implicit [[Fallthrough]] instance.
+      *
+      */
+    def withFallback[A, B : Fallthrough](fallback: Service[A, B])(service: Service[A, B]): Service[A, B] =
+      service.flatMap(resp => Fallthrough[B].fallthrough(resp, fallback))
 
-  implicit class PartialServiceSyntax[A, B](val service: PartialService[A, B]) extends AnyVal {
-    def or(default: => Task[B]): Service[A, B] =
-      service.mapK(_.getOrElseF(default))
-
-    def orElse(that: PartialService[A, B]): PartialService[A, B] =
-      PartialService.lift { req =>
-        service.run(req).orElse(that.run(req))
-      }
   }
 
   /**
@@ -76,14 +49,35 @@ package object server {
    */
   type HttpService = Service[Request, Response]
 
+  /**
+    * There are 4 HttpService constructors:
+    * <ul>
+    *  <li>(Request => Task[Response]) => HttpService</li>
+    *  <li>PartialFunction[Request, Task[Response]] => HttpService</li>
+    *  <li>(PartialFunction[Request, Task[Response]], HttpService) => HttpService</li>
+    *  <li>(PartialFunction[Request, Task[Response]], Task[Response]) => HttpService</li>
+    * </ul>
+    */
   object HttpService {
+
+    /** Alternative application which lifts a partial function to an `HttpService`,
+      * answering with a [[Response]] with status [[Status.NotFound]] for any requests
+      * where the function is undefined.
+      */
+    def apply(pf: PartialFunction[Request, Task[Response]], default: HttpService = empty): HttpService =
+      Service.lift(req => pf.applyOrElse(req, default))
+
+    /** Alternative application  which lifts a partial function to an `HttpService`,
+      * answering with a [[Response]] as supplied by the default argument.
+      */
+    def apply(pf: PartialFunction[Request, Task[Response]], default: Task[Response]): HttpService =
+      Service.lift(req => pf.applyOrElse(req, (_: Request) => default))
+
     /**
-     * Lifts a partial function to an `HttpService`, answering with a [[Response]]
-     * with status [[Status.NotFound]] for any requests where the function
-     * is undefined.
-     */
-    def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =
-      PartialService.liftPF(pf).or(notFound)
+      * Lifts a (total) function to an `HttpService`. The function is expected to handle
+      * ALL requests it is given.
+      */
+    def lift(f: Request => Task[Response]): HttpService = Service.lift(f)
 
     val notFound: Task[Response] = Task.now(Response(Status.NotFound).withBody("404 Not Found.").run)
     val empty   : HttpService    = Service.const(notFound)
