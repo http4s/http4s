@@ -202,6 +202,23 @@
       </a>
     </span>
       <p class="shortcomment cmt">Lifts a Task into a <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>.</p>
+    </li><li name="org.http4s.server.Service#constVal" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="constVal[A,B](b:=&gt;B):org.http4s.server.package.Service[A,B]"></a>
+      <a id="constVal[A,B](⇒B):Service[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">constVal</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="b">b: ⇒ <span class="extype" name="org.http4s.server.Service.constVal.B">B</span></span>)</span><span class="result">: <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<span class="extype" name="org.http4s.server.Service.constVal.A">A</span>, <span class="extype" name="org.http4s.server.Service.constVal.B">B</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.package$$Service$@constVal[A,B](b:=&gt;B):org.http4s.server.package.Service[A,B]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt"> Lifts a value into a <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>.</p>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
@@ -327,9 +344,7 @@
       </a>
     </span>
       <p class="shortcomment cmt">Lifts an unwrapped function that returns a Task into a <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts an unwrapped function that returns a Task into a <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>.
-No effort is made to provide a default response if a <span class="extype" name="PartialFunction">PartialFunction</span>
-is passed in.
-</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="package$$HttpService$.html#apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]):org.http4s.server.package.HttpService" class="extmbr" name="org.http4s.server.HttpService#apply">HttpService.apply</a></p></span></dd></dl></div>
+</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="package$$HttpService$.html#apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]],default:scalaz.concurrent.Task[org.http4s.Response]):org.http4s.server.package.HttpService" class="extmbr" name="org.http4s.server.HttpService#apply">HttpService.apply</a></p></span></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -484,6 +499,23 @@ is passed in.
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.Service#withFallback" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="withFallback[A,B](fallback:org.http4s.server.package.Service[A,B])(service:org.http4s.server.package.Service[A,B])(implicitevidence$1:org.http4s.server.Fallthrough[B]):org.http4s.server.package.Service[A,B]"></a>
+      <a id="withFallback[A,B](Service[A,B])(Service[A,B])(Fallthrough[B]):Service[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withFallback</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="params">(<span name="fallback">fallback: <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<span class="extype" name="org.http4s.server.Service.withFallback.A">A</span>, <span class="extype" name="org.http4s.server.Service.withFallback.B">B</span>]</span>)</span><span class="params">(<span name="service">service: <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<span class="extype" name="org.http4s.server.Service.withFallback.A">A</span>, <span class="extype" name="org.http4s.server.Service.withFallback.B">B</span>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="Fallthrough.html" class="extype" name="org.http4s.server.Fallthrough">Fallthrough</a>[<span class="extype" name="org.http4s.server.Service.withFallback.B">B</span>]</span>)</span><span class="result">: <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<span class="extype" name="org.http4s.server.Service.withFallback.A">A</span>, <span class="extype" name="org.http4s.server.Service.withFallback.B">B</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.package$$Service$@withFallback[A,B](fallback:org.http4s.server.package.Service[A,B])(service:org.http4s.server.package.Service[A,B])(implicitevidence$1:org.http4s.server.Fallthrough[B]):org.http4s.server.package.Service[A,B]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Allows Service chainig through an implicit <a href="Fallthrough.html" class="extype" name="org.http4s.server.Fallthrough">Fallthrough</a> instance.</p>
     </li></ol>
             </div>
 

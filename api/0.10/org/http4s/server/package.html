@@ -105,6 +105,25 @@
       </a>
     </span>
       
+    </li><li name="org.http4s.server.Fallthrough" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Fallthrough[B]extendsAnyRef"></a>
+      <a id="Fallthrough[B]:Fallthrough[B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Fallthrough.html"><span class="name">Fallthrough</span></a><span class="tparams">[<span name="B">B</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.package@Fallthrough[B]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Encapsulates the notion of fallthrough orElse for a Service
+For any given B, if a Fallthrough[B] exists within implicit context
+then <span class="extype" name="Service#orElse">Service#orElse</span> can be used.</p>
     </li><li name="org.http4s.server.HttpMiddleware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]"></a>
       <a id="HttpMiddleware:HttpMiddleware"></a>
@@ -211,40 +230,6 @@ middlewares for composing common functionality into services.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.server.package@MockServerextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.server.PartialService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PartialService[A,B]=scalaz.Kleisli[[x]scalaz.OptionT[scalaz.concurrent.Task,x],A,B]"></a>
-      <a id="PartialService[A,B]:PartialService[A,B]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">PartialService</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[[x]<span class="extype" name="scalaz.OptionT">OptionT</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.server.&lt;refinement&gt;.L.x">x</span>], <span class="extype" name="org.http4s.server.PartialService.A">A</span>, <span class="extype" name="org.http4s.server.PartialService.B">B</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@PartialService[A,B]=scalaz.Kleisli[[x]scalaz.OptionT[scalaz.concurrent.Task,x],A,B]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">A <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a> that returns an optional result.</p>
-    </li><li name="org.http4s.server.PartialServiceSyntax" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PartialServiceSyntax[A,B]extendsAnyVal"></a>
-      <a id="PartialServiceSyntax[A,B]:PartialServiceSyntax[A,B]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">implicit final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$PartialServiceSyntax.html"><span class="name">PartialServiceSyntax</span></a><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@PartialServiceSyntax[A,B]extendsAnyVal" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -379,7 +364,24 @@ using Kleisli operations.
       </a>
     </span>
       
-    </li><li name="org.http4s.server.HttpService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.Fallthrough" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Fallthrough"></a>
+      <a id="Fallthrough:Fallthrough"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Fallthrough$.html"><span class="name">Fallthrough</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.package@Fallthrough" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Houses the principal <a href="Fallthrough.html" class="extype" name="org.http4s.server.Fallthrough">Fallthrough</a> typeclass instances.</p>
+    </li><li name="org.http4s.server.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpService"></a>
       <a id="HttpService:HttpService"></a>
       <h4 class="signature">
@@ -395,7 +397,7 @@ using Kleisli operations.
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">There are 4 HttpService constructors:</p><div class="fullcomment"><div class="comment cmt"><p>There are 4 HttpService constructors:</p><ul><li>(Request =&gt; Task[Response]) =&gt; HttpService</li><li>PartialFunction[Request, Task[Response]] =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], HttpService) =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], Task[Response]) =&gt; HttpService</li></ul></div></div>
     </li><li name="org.http4s.server.IdleTimeoutSupport" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IdleTimeoutSupport"></a>
       <a id="IdleTimeoutSupport:IdleTimeoutSupport"></a>
@@ -460,23 +462,6 @@ using Kleisli operations.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.server.package@MockServer" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.server.PartialService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PartialService"></a>
-      <a id="PartialService:PartialService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$PartialService$.html"><span class="name">PartialService</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@PartialService" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -636,6 +621,23 @@ using Kleisli operations.
       <p class="shortcomment cmt">Helpers for serving static content from http4s</p><div class="fullcomment"><div class="comment cmt"><p>Helpers for serving static content from http4s</p><p>Note that these tools are relatively primitive and a dedicated server should be used
 for serious static content serving.
 </p></div></div>
+    </li><li name="org.http4s.server.syntax" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="syntax"></a>
+      <a id="syntax:syntax"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <a href="syntax/package.html"><span class="name">syntax</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.package@syntax" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.server.tomcat" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="tomcat"></a>
       <a id="tomcat:tomcat"></a>

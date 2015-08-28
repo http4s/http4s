@@ -49,7 +49,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>There are 4 HttpService constructors:</p><ul><li>(Request =&gt; Task[Response]) =&gt; HttpService</li><li>PartialFunction[Request, Task[Response]] =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], HttpService) =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], Task[Response]) =&gt; HttpService</li></ul></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -146,24 +146,42 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.server.HttpService#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]):org.http4s.server.package.HttpService"></a>
-      <a id="apply(PartialFunction[Request,Task[Response]]):HttpService"></a>
+      <a id="apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]],default:scalaz.concurrent.Task[org.http4s.Response]):org.http4s.server.package.HttpService"></a>
+      <a id="apply(PartialFunction[Request,Task[Response]],Task[Response]):HttpService"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="pf">pf: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.PartialFunction" class="extype" target="_top">PartialFunction</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>)</span><span class="result">: <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
+        <span class="name">apply</span><span class="params">(<span name="pf">pf: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.PartialFunction" class="extype" target="_top">PartialFunction</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>, <span name="default">default: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package$$HttpService$@apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]]):org.http4s.server.package.HttpService" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.server.package$$HttpService$@apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]],default:scalaz.concurrent.Task[org.http4s.Response]):org.http4s.server.package.HttpService" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Lifts a partial function to an <code>HttpService</code>, answering with a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>
-with status <a href="../Status$.html#NotFound:org.http4s.Status" class="extmbr" name="org.http4s.Status#NotFound">Status.NotFound</a> for any requests where the function
-is undefined.</p>
+      <p class="shortcomment cmt">Alternative application  which lifts a partial function to an <code>HttpService</code>,
+answering with a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> as supplied by the default argument.</p>
+    </li><li name="org.http4s.server.HttpService#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]],default:org.http4s.server.package.HttpService):org.http4s.server.package.HttpService"></a>
+      <a id="apply(PartialFunction[Request,Task[Response]],HttpService):HttpService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="pf">pf: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.PartialFunction" class="extype" target="_top">PartialFunction</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]]</span>, <span name="default">default: <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a> = <span class="symbol"><span class="name"><a href="#empty:org.http4s.server.package.HttpService">empty</a></span></span></span>)</span><span class="result">: <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.package$$HttpService$@apply(pf:PartialFunction[org.http4s.Request,scalaz.concurrent.Task[org.http4s.Response]],default:org.http4s.server.package.HttpService):org.http4s.server.package.HttpService" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Alternative application which lifts a partial function to an <code>HttpService</code>,
+answering with a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> with status <a href="../Status$.html#NotFound:org.http4s.Status" class="extmbr" name="org.http4s.Status#NotFound">Status.NotFound</a> for any requests
+where the function is undefined.</p>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -329,6 +347,25 @@ is undefined.</p>
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.server.HttpService#lift" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="lift(f:org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.Response]):org.http4s.server.package.HttpService"></a>
+      <a id="lift((Request)⇒Task[Response]):HttpService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">lift</span><span class="params">(<span name="f">f: (<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.package$$HttpService$@lift(f:org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.Response]):org.http4s.server.package.HttpService" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Lifts a (total) function to an <code>HttpService</code>.</p><div class="fullcomment"><div class="comment cmt"><p>Lifts a (total) function to an <code>HttpService</code>. The function is expected to handle
+ALL requests it is given.
+</p></div></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>

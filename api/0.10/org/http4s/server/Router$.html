@@ -145,7 +145,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.server.Router#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.server.Router#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(mappings:(String,org.http4s.server.HttpService)*):org.http4s.server.HttpService"></a>
       <a id="apply((String,HttpService)*):HttpService"></a>
       <h4 class="signature">
@@ -161,7 +161,7 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Defines an HttpService based on list of mappings.</p><div class="fullcomment"><div class="comment cmt"><p>Defines an HttpService based on list of mappings.</p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p>define</p></span></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -202,6 +202,28 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.server.Router#define" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="define(mappings:(String,org.http4s.server.HttpService)*)(default:org.http4s.server.HttpService)(implicitfallthrough:org.http4s.server.Fallthrough[org.http4s.Response]):org.http4s.server.HttpService"></a>
+      <a id="define((String,HttpService)*)(HttpService)(Fallthrough[Response]):HttpService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">define</span><span class="params">(<span name="mappings">mappings: (<span class="extype" name="scala.Predef.String">String</span>, <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a>)*</span>)</span><span class="params">(<span name="default">default: <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a> = <span class="symbol"><span class="name"><a href="package$$HttpService$.html">HttpService.empty</a></span></span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="fallthrough">fallthrough: <a href="Fallthrough.html" class="extype" name="org.http4s.server.Fallthrough">Fallthrough</a>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <a href="package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.Router$@define(mappings:(String,org.http4s.server.HttpService)*)(default:org.http4s.server.HttpService)(implicitfallthrough:org.http4s.server.Fallthrough[org.http4s.Response]):org.http4s.server.HttpService" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Defines an HttpService based on list of mappings,
+a default Service to be used when none in the list match incomming requests,
+and an implicit Fallthrough which decides whether a request was matched.</p><div class="fullcomment"><div class="comment cmt"><p>Defines an HttpService based on list of mappings,
+a default Service to be used when none in the list match incomming requests,
+and an implicit Fallthrough which decides whether a request was matched.</p><p>The mappings are processed in descending order (longest first) of prefix length.
+</p></div></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
