@@ -241,6 +241,7 @@ lazy val examples = http4sProject("examples")
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
+  .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and clients on blaze",
     fork := true,
