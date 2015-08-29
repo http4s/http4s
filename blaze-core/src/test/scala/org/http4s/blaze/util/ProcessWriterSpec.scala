@@ -14,6 +14,7 @@ import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
+import scalaz.\/-
 
 import scalaz.concurrent.Task
 import scalaz.stream.{Cause, Process}
@@ -187,6 +188,40 @@ class ProcessWriterSpec extends Specification {
         "0\r\n" +
         "\r\n"
       clean must_== true
+    }
+
+    // Some tests for the raw unwinding process without HTTP encoding.
+    "write a deflated stream" in {
+      val p = eval(Task(messageBuffer)) |> scalaz.stream.compress.deflate()
+      DumpingWriter.dump(p) must_== p.runLog.run.foldLeft(ByteVector.empty)(_ ++ _)
+    }
+
+    val resource = scalaz.stream.io.resource(Task.delay("foo"))(_ => Task.now(())){ str =>
+        val it = str.iterator
+        Task.delay {
+          if (it.hasNext) ByteVector(it.next)
+          else throw Cause.Terminated(Cause.End)
+        }
+      }
+
+    "write a resource" in {
+      val p = resource
+      DumpingWriter.dump(p) must_== p.runLog.run.foldLeft(ByteVector.empty)(_ ++ _)
+    }
+
+    "write a deflated resource" in {
+      val p = resource |> scalaz.stream.compress.deflate()
+      DumpingWriter.dump(p) must_== p.runLog.run.foldLeft(ByteVector.empty)(_ ++ _)
+    }
+
+    "ProcessWriter must be stack safe" in {
+      val p = Process.repeatEval(Task.async[ByteVector]{ _(\/-(ByteVector.empty))}).take(300000)
+
+      // the scalaz.stream built of Task.async's is not stack safe
+      p.run.run must throwA[StackOverflowError]
+
+      // The dumping writer is stack safe when using a trampolining EC
+      DumpingWriter.dump(p) must_== ByteVector.empty
     }
   }
 }
