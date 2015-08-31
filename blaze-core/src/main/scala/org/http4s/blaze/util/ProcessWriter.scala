@@ -14,10 +14,11 @@ import scalaz.{-\/, \/, \/-}
 
 trait ProcessWriter {
 
-  implicit protected def ec: ExecutionContext
-
   private type CBType = Throwable \/ Unit => Unit
   private type StackElem = Cause => Trampoline[Process[Task,ByteVector]]
+
+  /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
+  implicit protected def ec: ExecutionContext
 
   /** write a ByteVector to the wire
     * If a request is cancelled, or the stream is closed this method should
@@ -37,6 +38,7 @@ trait ProcessWriter {
     */
   protected def writeEnd(chunk: ByteVector): Future[Unit]
 
+  /** Signifies if this `ProcessWriter` requires the connection be closed upon completion. */
   def requireClose(): Boolean = false
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
@@ -50,25 +52,32 @@ trait ProcessWriter {
     */
   def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async(go(p, Nil, _))
 
+  /** Helper to allow `go` to be tail recursive. Non recursive calls can 'bounce' through
+    * this function but must be properly trampolined or we risk stack overflows */
+  final private def bounce(p: Process[Task, ByteVector], stack: List[StackElem], cb: CBType): Unit =
+    go(p, stack, cb)
+
+  @tailrec
   final private def go(p: Process[Task, ByteVector], stack: List[StackElem], cb: CBType): Unit = p match {
     case Emit(seq) if seq.isEmpty =>
       if (stack.isEmpty) writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
-      else Trampoline(go(Try(stack.head.apply(End).run), stack.tail, cb))
+      else go(Try(stack.head.apply(End).run), stack.tail, cb)
 
     case Emit(seq) =>
       val buff = seq.reduce(_ ++ _)
       if (stack.isEmpty) writeEnd(buff).onComplete(completionListener(_, cb))
       else writeBodyChunk(buff, false).onComplete {
-        case Success(_) => go(Try(stack.head(End).run), stack.tail, cb)
-        case Failure(t) => go(Try(stack.head(Cause.Error(t)).run), stack.tail, cb)
+        case Success(_) => bounce(Try(stack.head(End).run), stack.tail, cb)
+        case Failure(t) => bounce(Try(stack.head(Cause.Error(t)).run), stack.tail, cb)
       }
 
-    case Await(t, f) => t.runAsync { r =>  // Wait for it to finish, then continue to unwind
-      Trampoline(r match {
-        case r@ \/-(_) => go(Try(f(r).run), stack, cb)
-        case -\/(t)    => go(Try(f(-\/(Error(t))).run), stack, cb)
+    case Await(t, f) => ec.execute(
+      new Runnable {
+        override def run(): Unit = t.runAsync { // Wait for it to finish, then continue to unwind
+          case r@ \/-(_) => bounce(Try(f(r).run), stack, cb)
+          case    -\/(e) => bounce(Try(f(-\/(Error(e))).run), stack, cb)
+        }
       })
-    }
 
     case Append(head, tail) =>
      @tailrec   // avoid as many intermediates as possible
@@ -77,9 +86,9 @@ trait ProcessWriter {
        else stack
      }
 
-     Trampoline(go(head, prepend(tail.length - 1, stack), cb))
+     go(head, prepend(tail.length - 1, stack), cb)
 
-    case Halt(cause) if stack.nonEmpty => Trampoline(go(Try(stack.head(cause).run), stack.tail, cb))
+    case Halt(cause) if stack.nonEmpty => go(Try(stack.head(cause).run), stack.tail, cb)
 
     // Rest are terminal cases
     case Halt(End) => writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
@@ -88,7 +97,7 @@ trait ProcessWriter {
                          .flatMap(_ => exceptionFlush())
                          .onComplete(completionListener(_, cb))
 
-    case Halt(Error(Terminated(cause))) => Trampoline(go(Halt(cause), stack, cb))
+    case Halt(Error(Terminated(cause))) => go(Halt(cause), stack, cb)
 
     case Halt(Error(t)) => exceptionFlush().onComplete {
       case Success(_) => cb(-\/(t))
@@ -99,13 +108,6 @@ trait ProcessWriter {
   private def completionListener(t: Try[_], cb: CBType): Unit = t match {
     case Success(_) =>  cb(\/-(()))
     case Failure(t) =>  cb(-\/(t))
-  }
-
-  @inline
-  private def Trampoline(next: => Unit): Unit = {
-    Execution.trampoline.execute(new Runnable {
-      override def run: Unit = next
-    })
   }
 
   @inline
