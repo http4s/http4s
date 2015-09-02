@@ -6,6 +6,9 @@ import org.json4s.JsonAST.JValue
 import org.json4s.{MappingException, Writer, Reader, JsonMethods}
 import _root_.jawn.support.json4s.Parser.facade
 
+import scalaz.concurrent.Task
+import scalaz.stream.Process
+
 trait Json4sInstances[J] {
   implicit lazy val json: EntityDecoder[JValue] = jawn.jawnDecoder(facade)
 
@@ -28,4 +31,7 @@ trait Json4sInstances[J] {
 
   def jsonEncoderOf[A](implicit writer: Writer[A]): EntityEncoder[A] =
     jsonEncoder.contramap[A](writer.write)
+
+  def jsonArrayEncoderOf[A](implicit writer: Writer[A]): EntityEncoder[Process[Task, A]] =
+    EntityEncoder.delimitedSource(jsonEncoderOf[A]).delimit("[", ",", "]")
 }

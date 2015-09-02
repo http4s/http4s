@@ -4,6 +4,7 @@ import java.io.{File, InputStream, Reader}
 import java.nio.ByteBuffer
 import java.nio.file.Path
 
+import scala.annotation.tailrec
 import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
@@ -12,10 +13,10 @@ import org.http4s.headers.`Content-Type`
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.option._
-import scalaz.stream.{Process0, Channel, Process, io}
+import scalaz.stream._
 import scalaz.stream.nio.file
 import scalaz.stream.Cause.{End, Terminated}
-import scalaz.stream.Process.emit
+import scalaz.stream.Process.{emit, eval}
 import scalaz.syntax.apply._
 import scodec.bits.ByteVector
 
@@ -51,16 +52,18 @@ trait EntityEncoder[A] { self =>
 }
 
 object EntityEncoder extends EntityEncoderInstances {
-  case class Entity(body: EntityBody, length: Option[Int] = None)
+
+  case class Entity(body: EntityBody, length: Option[Int] = None) {
+    def +(that: Entity): Entity =
+      Entity(this.body ++ that.body, (this.length |@| that.length)(_ + _))
+  }
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[A](implicit ev: EntityEncoder[A]): EntityEncoder[A] = ev
 
   object Entity {
-    implicit val entityInstance: Monoid[Entity] = Monoid.instance(
-      (a, b) => Entity(a.body ++ b.body, (a.length |@| b.length) { _ + _ }),
-      empty
-    )
+    implicit val entityInstance: Monoid[Entity] =
+      Monoid.instance(_ + _, empty)
 
     lazy val empty = Entity(EmptyBody, Some(0))
   }
@@ -68,12 +71,13 @@ object EntityEncoder extends EntityEncoderInstances {
   /** Create a new [[EntityEncoder]] */
   def encodeBy[A](hs: Headers)(f: A => Task[Entity]): EntityEncoder[A] = new EntityEncoder[A] {
     override def toEntity(a: A): Task[Entity] = f(a)
+
     override def headers: Headers = hs
   }
 
   /** Create a new [[EntityEncoder]] */
   def encodeBy[A](hs: Header*)(f: A => Task[Entity]): EntityEncoder[A] = {
-    val hdrs = if(hs.nonEmpty) Headers(hs.toList) else Headers.empty
+    val hdrs = if (hs.nonEmpty) Headers(hs.toList) else Headers.empty
     encodeBy(hdrs)(f)
   }
 
@@ -81,9 +85,26 @@ object EntityEncoder extends EntityEncoderInstances {
     *
     * This constructor is a helper for types that can be serialized synchronously, for example a String.
     */
-  def simple[A](hs: Header*)(toChunk: A => ByteVector): EntityEncoder[A] = encodeBy(hs:_*){ a =>
+  def simple[A](hs: Header*)(toChunk: A => ByteVector): EntityEncoder[A] = encodeBy(hs: _*) { a =>
     val c = toChunk(a)
     Task.now(Entity(emit(c), Some(c.length)))
+  }
+
+  def delimitedSource[A](implicit A: EntityEncoder[A]) =
+    new DelimitedSourceAux[A]
+
+  class DelimitedSourceAux[A](implicit A: EntityEncoder[A]) {
+    def delimit[H, S, T](header: H, separator: S, trailer: T)
+                        (implicit H: EntityEncoder[H], S: EntityEncoder[S], T: EntityEncoder[T]):
+    EntityEncoder[Process[Task, A]] = {
+      encodeBy(A.headers) { source =>
+        val sepEntity = EntityEncoder[S].toEntity(separator)
+        val entityProc: Process[Task, Entity] = (emit(EntityEncoder[H].toEntity(header)) ++
+          source.map(A.toEntity).intersperse(sepEntity) ++
+          emit(EntityEncoder[T].toEntity(trailer))).eval
+        entityProc.runFoldMap(identity)
+      }
+    }
   }
 }
 

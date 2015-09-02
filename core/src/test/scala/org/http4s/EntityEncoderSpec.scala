@@ -114,6 +114,26 @@ class EntityEncoderSpec extends Http4sSpec {
       EntityEncoder[ModelA] must_== w1
       EntityEncoder[ModelB] must_== w2
     }
+
+    "delimitedSource must delimit a source of entities" in {
+      val source = Process.emitAll(Seq("a", "b", "c"))
+      val entity = EntityEncoder.delimitedSource[String].delimit("[", ",", "]").toEntity(source).run
+      entity.length must_== Some(7)
+      writeToString(entity.body) must_== "[a,b,c]"
+    }
+
+    "delimitedSource must delimit an empty source of entities" in {
+      val source = Process.emitAll(Seq.empty[String])
+      val entity = EntityEncoder.delimitedSource[String].delimit("[", ",", "]").toEntity(source).run
+      entity.length must_== Some(2)
+      writeToString(entity.body) must_== "[]"
+    }
+
+    "delimitedSource preserves the headers of the source type" in {
+      val mediaType = MediaType.fromKey("text" -> "x-test")
+      val encoder = EntityEncoder[String].withContentType(mediaType)
+      EntityEncoder.delimitedSource(encoder).delimit("[", ",", "]").headers must_== encoder.headers
+    }
   }
 }
 

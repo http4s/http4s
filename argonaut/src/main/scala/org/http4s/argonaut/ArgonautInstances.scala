@@ -5,6 +5,9 @@ import _root_.argonaut.{EncodeJson, DecodeJson, Argonaut, Json}
 import _root_.jawn.support.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
 
+import scalaz.concurrent.Task
+import scalaz.stream.Process
+
 trait ArgonautInstances {
   implicit val json: EntityDecoder[Json] = jawn.jawnDecoder(facade)
 
@@ -26,4 +29,7 @@ trait ArgonautInstances {
 
   def jsonEncoderOf[A](implicit encoder: EncodeJson[A]): EntityEncoder[A] =
     jsonEncoder.contramap[A](encoder.encode)
+
+  def jsonArrayEncoderOf[A](implicit writer: EncodeJson[A]): EntityEncoder[Process[Task, A]] =
+    EntityEncoder.delimitedSource(jsonEncoderOf[A]).delimit("[", ",", "]")
 }
