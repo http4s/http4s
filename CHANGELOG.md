@@ -1,3 +1,10 @@
+# v0.10.0 (2015-09-03)
+* Replace `PartialService` with the `Fallthrough` typeclass and `orElse` syntax.
+* Rename `withHeaders` to `replaceAllHeaders`
+* Set https endpoint identification algorithm when possible.
+* Stack-safe `ProcessWriter` in blaze.
+* Configureable number of connector threads and buffer size in blaze-server.
+
 # v0.9.3 (2015-08-27)
 * Trampoline recursive calls in blaze ProcessWriter.
 * Handle server hangup and body termination correctly in blaze client.
