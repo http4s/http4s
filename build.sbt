@@ -50,6 +50,13 @@ lazy val core = libraryProject("core")
       })
 )
 
+lazy val optics = libraryProject("optics")
+  .settings(
+    description := "Optics for core http4s model",
+    libraryDependencies ++= Seq(monocleCore, monocleMacro)
+  )
+  .dependsOn(core % "compile;test->test")
+
 lazy val server = libraryProject("server")
   .settings(
     description := "Base library for building http4s servers",

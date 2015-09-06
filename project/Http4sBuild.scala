@@ -66,6 +66,8 @@ object Http4sBuild extends Build {
   lazy val metricsServlet      = "io.dropwizard.metrics"     % "metrics-servlet"         % metricsCore.revision
   lazy val metricsServlets     = "io.dropwizard.metrics"     % "metrics-servlets"        % metricsCore.revision
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
+  lazy val monocleCore      = "com.github.julien-truffaut"  %%  "monocle-core"           % "1.3.0-SNAPSHOT"
+  lazy val monocleMacro     = "com.github.julien-truffaut"  %%  "monocle-macro"          % monocleCore.revision
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.0"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.6"
