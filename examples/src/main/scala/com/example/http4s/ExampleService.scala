@@ -53,7 +53,7 @@ object ExampleService {
 
     case GET -> Root / "streaming" =>
       // Its also easy to stream responses to clients
-      Ok(dataStream(100)).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(dataStream(100))
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
@@ -79,8 +79,7 @@ object ExampleService {
     //////////////// Dealing with the message body ////////////////
     case req @ POST -> Root / "echo" =>
       // The body can be used in the response
-      Ok(req.body)
-        .putHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
+      Ok(req.body).putHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo" =>
       Ok(html.submissionForm("echo data"))

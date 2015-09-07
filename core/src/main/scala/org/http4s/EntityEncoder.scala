@@ -8,7 +8,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import scala.language.implicitConversions
 
 import org.http4s.EntityEncoder._
-import org.http4s.headers.`Content-Type`
+import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.option._
@@ -115,7 +115,13 @@ trait EntityEncoderInstances0 {
         Task.now(Entity(a.flatMap(a => Process.await(W.toEntity(a))(_.body)), None))
       }
 
-      override def headers: Headers = W.headers
+      override def headers: Headers =
+        W.headers.get(`Transfer-Encoding`) match {
+          case Some(transferCoding) if transferCoding.hasChunked =>
+            W.headers
+          case _ =>
+            W.headers.put(`Transfer-Encoding`(TransferCoding.chunked))
+        }
     }
 
   implicit def process0Encoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Process0[A]] =
