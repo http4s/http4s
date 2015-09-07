@@ -54,14 +54,6 @@ object ServerTestRoutes {
     ("GET /chunked HTTP/1.1\r\nConnection:close\r\n\r\n", (Status.Ok,
       Set(textPlain, chunked, connClose),
       "chunk")),
-    ///////////////////////////////// Paths without an explicit content encoding should cache and give a length header
-    ("GET /cachechunked HTTP/1.1\r\n\r\n", (Status.Ok,
-      Set(textPlain, length(5)),
-      "chunk")),
-    /////////////////////////////////
-    ("GET /cachechunked HTTP/1.1\r\nConnection:close\r\n\r\n", (Status.Ok,
-      Set(textPlain, length(5), connClose),
-      "chunk")),
     ///////////////////////////////// Content-Length and Transfer-Encoding free responses for HTTP/1.0
     ("GET /chunked HTTP/1.0\r\n\r\n", (Status.Ok,
       Set(textPlain), "chunk")),
@@ -112,9 +104,6 @@ object ServerTestRoutes {
   def apply() = HttpService {
     case req if req.method == Method.GET && req.pathInfo == "/get" => Response(Ok).withBody("get")
     case req if req.method == Method.GET && req.pathInfo == "/chunked" =>
-      Response(Ok).withBody(eval(Task("chu")) ++ eval(Task("nk"))).putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
-
-    case req if req.method == Method.GET && req.pathInfo == "/cachechunked" =>
       Response(Ok).withBody(eval(Task("chu")) ++ eval(Task("nk")))
 
     case req if req.method == Method.POST && req.pathInfo == "/post" => Response(Ok).withBody("post")
