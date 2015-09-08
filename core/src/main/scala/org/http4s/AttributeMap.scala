@@ -6,6 +6,8 @@
  */
 package org.http4s
 
+import scalaz.{Show, Equal}
+
 // T must be invariant to work properly.
 
 /** A key in an [[AttributeMap]] that constrains its associated value to be of type `T`.
@@ -67,8 +69,7 @@ final class AttributeMap private(private val backing: Map[AttributeKey[_], Any])
   def isEmpty: Boolean = backing.isEmpty
 }
 
-object AttributeMap
-{
+object AttributeMap {
   /** An [[AttributeMap]] without any mappings. */
   val empty: AttributeMap = new AttributeMap(Map.empty)
 
@@ -77,6 +78,9 @@ object AttributeMap
 
   /** Constructs an [[AttributeMap]] containing the given `entries`.*/
   def apply(entries: AttributeEntry[_]*): AttributeMap = empty ++ entries
+
+  implicit val eq: Equal[AttributeMap] = Equal.equalA
+  implicit val show: Show[AttributeMap] = Show.shows(_.backing.map{ case (k, v) => k.toString -> v.toString}.toString)
 }
 
 // type inference required less generality

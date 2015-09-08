@@ -8,6 +8,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
+import scalaz.Equal
 
 /** Collection representation of a query string
   *
@@ -132,6 +133,8 @@ object Query {
 
   def newBuilder: mutable.Builder[KeyValue, Query] =
     Vector.newBuilder[KeyValue].mapResult(v => new Query(v))
+
+  implicit val eq: Equal[Query] = Equal.equalA
 
   implicit val cbf: CanBuildFrom[Query, KeyValue, Query] = new CanBuildFrom[Query, KeyValue, Query] {
     override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder

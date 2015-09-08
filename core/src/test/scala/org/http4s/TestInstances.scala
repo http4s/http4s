@@ -7,13 +7,32 @@ import java.nio.charset.{Charset => NioCharset}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
 import org.scalacheck.{Arbitrary, Gen}
+import scodec.bits.ByteVector
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
-import scalaz.NonEmptyList
+import scalaz.{Show, Equal, NonEmptyList}
+import scalaz.syntax.equal._
+import scalaz.syntax.show._
 import scalaz.scalacheck.ScalazArbitrary._
 
 trait TestInstances {
+
+  implicit val requestEq: Equal[Request] = new Equal[Request] {
+    override def equal(a1: Request, a2: Request): Boolean =
+      a1.method === a2.method &&
+        a1.uri === a2.uri &&
+        a1.httpVersion === a2.httpVersion &&
+        a1.headers === a2.headers &&
+        a1.body.runLog.run.toList == a2.body.runLog.run.toList &&
+        a1.attributes === a2.attributes
+  }
+
+  implicit val requestShow: Show[Request] = Show.shows(r =>
+    s"Request(${r.method.shows}, ${r.uri.shows}, ${r.httpVersion.shows}, ${r.headers.shows}," +
+      s" ${r.body.runLog.run.foldLeft(ByteVector.empty)(_ ++ _)}, ${r.attributes.shows})"
+  )
+
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }

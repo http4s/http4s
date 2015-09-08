@@ -16,19 +16,19 @@ class OpticsSpec extends Http4sSpec {
 
   "optics" should {
     "match method" in {
-      (request._method composePrism method._GET).isMatching(req) must_== true
+      (request.method composePrism method.GET).isMatching(req) must_== true
     }
 
     "get header" in {
-      (request._headers composeLens at("age".ci)).get(req) must_== Some("15")
+      (request.headers composeLens at("age".ci)).get(req) must_== Some(Header("age", "15"))
     }
 
     "increase header" in {
-      (request._headers composeOptional
+      (request.headers composeOptional
         index("age".ci) composeLens
-        header._value composePrism
+        header.value composePrism
         stringToInt
-      ).set(10)(req) must_== req.withHeaders(Header("age", "10"))
+      ).set(10)(req) must equal (req.withHeaders(Header("age", "10")))
     }
   }
 

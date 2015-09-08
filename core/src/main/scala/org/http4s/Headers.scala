@@ -1,13 +1,13 @@
 package org.http4s
 
-import org.http4s.HeaderKey.StringKey
-import org.http4s.util.CaseInsensitiveString
 import org.http4s.headers.`Set-Cookie`
+import org.http4s.util.CaseInsensitiveString
 
-import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
-
+import scala.collection.{GenTraversableOnce, immutable, mutable}
+import scalaz.{Show, Equal}
+import scalaz.syntax.equal._
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
@@ -99,6 +99,12 @@ object Headers {
 
   /** Create a new Headers collection from the headers */
   def apply(headers: List[Header]): Headers = new Headers(headers)
+
+  implicit val eq: Equal[Headers] = Equal.equal((hs1, hs2) =>
+    hs1.size == hs2.size &&
+      hs1.zip(hs2).foldLeft(true){case (acc, (h1, h2)) => acc && h1 === h2}
+  )
+  implicit val show: Show[Headers] = Show.showA
 
   implicit val canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =
     new CanBuildFrom[TraversableOnce[Header], Header, Headers] {

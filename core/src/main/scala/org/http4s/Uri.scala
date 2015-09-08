@@ -12,6 +12,8 @@ import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUti
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
 
+import scalaz.{Show, Equal}
+
 
 /** Representation of the [[Request]] URI
   * Structure containing information related to a Uri. All fields except the
@@ -110,6 +112,10 @@ case class Uri(
 }
 
 object Uri extends UriFunctions {
+
+  implicit val eq: Equal[Uri] = Equal.equalA
+  implicit val show: Show[Uri] = Show.showA
+
   object macros {
     def uriLiteral(c: Context)(s: c.Expr[String]): c.Expr[Uri] = {
       import c.universe._

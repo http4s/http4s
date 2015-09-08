@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import scalaz.NonEmptyList
+import scalaz.{Equal, NonEmptyList}
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
 import org.http4s.util.string._
@@ -72,6 +72,8 @@ object Header {
   def unapply(header: Header): Option[(CaseInsensitiveString, String)] = Some((header.name, header.value))
 
   def apply(name: String, value: String): Raw = Raw(name.ci, value)
+
+  implicit val eq: Equal[Header] = Equal.equalA
 
   /**
    * Raw representation of the Header
