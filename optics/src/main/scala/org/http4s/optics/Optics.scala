@@ -2,7 +2,9 @@ package org.http4s.optics
 
 import monocle.function._
 import monocle.macros.{GenLens, GenPrism}
-import monocle.{Iso, Lens, Prism}
+import monocle.std.list._
+import monocle.{Iso, Lens, Prism, Traversal}
+import org.http4s.Header.Raw
 import org.http4s.Uri.{Authority, Fragment, Path}
 import org.http4s._
 import org.http4s.util.CaseInsensitiveString
@@ -45,19 +47,26 @@ object httpversion {
 object headers {
   val headersToList: Iso[Headers, List[Header]] = Iso[Headers, List[Header]](_.toList)(Headers(_))
 
-  implicit val atHeaders: At[Headers, CaseInsensitiveString, Header] = new At[Headers, CaseInsensitiveString, Header] {
-    override def at(i: CaseInsensitiveString): Lens[Headers, Option[Header]] =
-      Lens[Headers, Option[Header]](_.get(i)){
+  implicit val atHeaders: At[Headers, CaseInsensitiveString, String] = new At[Headers, CaseInsensitiveString, String] {
+    override def at(i: CaseInsensitiveString): Lens[Headers, Option[String]] =
+      Lens[Headers, Option[String]](_.get(i).map(_.value)){
         case None    => hs => Headers(hs.toList.filterNot(_.name == i))
-        case Some(h) => _.put(h)
+        case Some(v) => _.put(Raw(i, v))
       }
   }
 
-  implicit val indexHeaders: Index[Headers, CaseInsensitiveString, Header] =
+  implicit val indexHeaders: Index[Headers, CaseInsensitiveString, String] =
     Index.atIndex(atHeaders)
+
+  implicit val eachHeaders: Each[Headers, String] = new Each[Headers, String] {
+    override def each: Traversal[Headers, String] =
+      headersToList composeTraversal Each.each composeLens header.value
+  }
+
 }
 
 object header {
+  val name: Lens[Header, CaseInsensitiveString] = Lens[Header, CaseInsensitiveString](_.name)(n => h => Raw(n, h.value))
   val value: Lens[Header, String] = Lens[Header, String](_.value)(v => h => Header(h.name.value, v))
 }
 
