@@ -6,8 +6,9 @@ import org.http4s.util.CaseInsensitiveString
 import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
 import scala.collection.{GenTraversableOnce, immutable, mutable}
-import scalaz.{Show, Equal}
+import scalaz.std.list._
 import scalaz.syntax.equal._
+import scalaz.{Equal, Show}
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
@@ -101,8 +102,9 @@ object Headers {
   def apply(headers: List[Header]): Headers = new Headers(headers)
 
   implicit val eq: Equal[Headers] = Equal.equal((hs1, hs2) =>
-    hs1.size == hs2.size &&
-      hs1.zip(hs2).foldLeft(true){case (acc, (h1, h2)) => acc && h1 === h2}
+    hs1.size == hs2.size && hs1.groupBy(_.name).zip(hs2.groupBy(_.name)).foldLeft(true){
+      case (acc, ((_, h1), (_, h2))) => acc && h1.toList === h2.toList
+    }
   )
   implicit val show: Show[Headers] = Show.showA
 

@@ -1,10 +1,12 @@
 package org.http4s.optics
 
 import monocle.function.all._
-import monocle.std.string._
+import monocle.std.all._
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s._
 import org.http4s.optics.headers._
+
+import scalaz.NonEmptyList
 
 class OpticsSpec extends Http4sSpec {
 
@@ -20,19 +22,22 @@ class OpticsSpec extends Http4sSpec {
     }
 
     "get header" in {
-      (request.headers composeLens at("age".ci)).get(req) must_== Some("15")
+      (request.headers composeLens at("age".ci)).get(req) must_== Some(NonEmptyList("15"))
     }
 
     "set header" in {
-      (request.headers composeOptional index("age".ci) composePrism stringToInt)
-        .set(10)(req) must equal (req.copy(headers = req.headers.put(Header("age", "10"))))
+      (request.headers composeLens at("age".ci) composeIso optNelToList composePrism stringToInt.below)
+        .set(List(10))(req) must equal (req.copy(headers =
+          Headers(Header("age", "10"), Header("x-custom1", "hello"), Header("x-custom2", "20"))))
     }
 
     "multi header update" in {
-      (request.headers composeTraversal each composePrism stringToInt)
-        .modify(_ + 1)(req) must equal (req.copy(headers =
-          req.headers.put(Header("age", "16"), Header("x-custom2", "21"))
-        ))
+      (request.headers composeTraversal each composeTraversal each composePrism stringToInt)
+        .modify(_ + 1)(req) must equal (Request(
+        method = Method.GET,
+        uri = Uri(authority = Some(Authority(host = RegName("localhost"), port = Some(8080))), path = "/ping"),
+        headers = Headers(Header("age", "16"), Header("x-custom1", "hello"), Header("x-custom2", "21"))
+      ))
     }
   }
 
