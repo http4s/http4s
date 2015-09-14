@@ -88,7 +88,7 @@ object QueryParamDecoder {
   def fromUnsafeCast[T](cast: QueryParameterValue => T)(typeName: String): QueryParamDecoder[T] = new QueryParamDecoder[T]{
     def decode(value: QueryParameterValue): ValidationNel[ParseFailure, T] =
       Validation.fromTryCatchNonFatal(cast(value)).leftMap(t =>
-        ParseFailure("Query decoding failed", t.getMessage)
+        ParseFailure(s"Query decoding $typeName failed", t.getMessage)
       ).toValidationNel
   }
 
