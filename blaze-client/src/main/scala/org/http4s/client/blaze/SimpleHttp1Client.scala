@@ -15,5 +15,5 @@ object SimpleHttp1Client {
            executor: ExecutorService = bits.ClientDefaultEC,
          sslContext: Option[SSLContext] = None,
               group: Option[AsynchronousChannelGroup] = None) =
-    new BlazeClient(BasicManager(Http1Support(bufferSize, timeout, userAgent, executor, sslContext, group)))
+    new BlazeClient(ConnectionManager.basic(Http1Support(bufferSize, timeout, userAgent, executor, sslContext, group)))
 }

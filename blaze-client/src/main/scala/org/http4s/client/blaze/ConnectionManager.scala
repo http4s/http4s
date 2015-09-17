@@ -37,13 +37,13 @@ object ConnectionManager {
     * @param builder generator of new connections
     * */
   def basic(builder: ConnectionBuilder): ConnectionManager =
-    BasicManager(builder)
+    new BasicManager(builder)
 
   /** Create a [[ConnectionManager]] that will attempt to recycle connections
     *
     * @param maxPooledConnections max pool size before connections are closed
     * @param builder generator of new connections
     */
-  def pooled(maxPooledConnections: Int, builder: ConnectionBuilder): ConnectionManager =
-    PoolManager(maxPooledConnections, builder)
+  def pool(maxPooledConnections: Int, builder: ConnectionBuilder): ConnectionManager =
+    new PoolManager(maxPooledConnections, builder)
 }

@@ -5,16 +5,8 @@ package blaze
 import scalaz.concurrent.Task
 
 
-object BasicManager {
-
-  /** Create a [[ConnectionManager]] that creates new connections on each request
-  *
-  * @param builder generator of new connections
-  * */
-  def apply(builder: ConnectionBuilder): ConnectionManager = new BasicManager(builder)
-}
-
-private final class BasicManager private(builder: ConnectionBuilder) extends ConnectionManager {
+/* implementation bits for the basic client manager */
+private final class BasicManager (builder: ConnectionBuilder) extends ConnectionManager {
   override def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage] =
     builder(request)
 

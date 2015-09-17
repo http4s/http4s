@@ -21,7 +21,7 @@ object PooledHttp1Client {
                       sslContext: Option[SSLContext] = None,
                            group: Option[AsynchronousChannelGroup] = None) = {
     val http1 = Http1Support(bufferSize, timeout, userAgent, executor, sslContext, group)
-    val pool = PoolManager(maxPooledConnections, http1)
+    val pool = ConnectionManager.pool(maxPooledConnections, http1)
     new BlazeClient(pool)
   }
 }

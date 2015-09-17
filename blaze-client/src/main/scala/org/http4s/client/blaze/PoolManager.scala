@@ -8,20 +8,8 @@ import scala.collection.mutable
 import scalaz.concurrent.Task
 
 
-object PoolManager {
-
-  /** Create a [[ConnectionManager]] that will attempt to recycle connections
-    *
-    * @param maxPooledConnections max pool size before connections are closed
-    * @param builder generator of new connections
-    */
-  def apply(maxPooledConnections: Int, builder: ConnectionBuilder): ConnectionManager =
-    new PoolManager(maxPooledConnections, builder)
-}
-
 /* implementation bits for the pooled client manager */
-private final class PoolManager private(maxPooledConnections: Int,
-                                     builder: ConnectionBuilder) extends ConnectionManager {
+private final class PoolManager (maxPooledConnections: Int, builder: ConnectionBuilder) extends ConnectionManager {
 
   require(maxPooledConnections > 0, "Must have finite connection pool size")
 
