@@ -14,14 +14,15 @@ object PooledHttp1Client {
 
   /** Construct a new PooledHttp1Client */
   def apply(maxPooledConnections: Int = 10,
-                         timeout: Duration = bits.DefaultTimeout,
+                     idleTimeout: Duration = bits.DefaultTimeout,
+                  requestTimeout: Duration = Duration.Inf,
                        userAgent: Option[`User-Agent`] = bits.DefaultUserAgent,
                       bufferSize: Int = bits.DefaultBufferSize,
                         executor: ExecutorService = bits.ClientDefaultEC,
                       sslContext: Option[SSLContext] = None,
                            group: Option[AsynchronousChannelGroup] = None) = {
-    val http1 = Http1Support(bufferSize, timeout, userAgent, executor, sslContext, group)
+    val http1 = Http1Support(bufferSize, userAgent, executor, sslContext, group)
     val pool = ConnectionManager.pool(maxPooledConnections, http1)
-    new BlazeClient(pool)
+    new BlazeClient(pool, idleTimeout, requestTimeout)
   }
 }

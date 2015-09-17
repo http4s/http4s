@@ -18,7 +18,7 @@ package object blaze {
     *
     * This client will create a new connection for every request. */
   val defaultClient = SimpleHttp1Client(
-    timeout = bits.DefaultTimeout,
+    idleTimeout = bits.DefaultTimeout,
     bufferSize = bits.DefaultBufferSize,
     executor = bits.ClientDefaultEC,
     sslContext = None

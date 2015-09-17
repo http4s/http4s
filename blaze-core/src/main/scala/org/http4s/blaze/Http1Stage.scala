@@ -163,7 +163,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
           } catch {
             case t: ParserException =>
               fatalError(t, "Error parsing request body")
-              cb(-\/(InvalidBodyException(t.msg())))
+              cb(-\/(InvalidBodyException(t.getMessage())))
 
             case t: Throwable =>
               fatalError(t, "Error collecting body")
