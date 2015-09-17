@@ -4,6 +4,13 @@ import org.http4s.Request
 
 import scalaz.concurrent.Task
 
+/** type that is responsible for the client lifecycle
+  *
+  * The [[ConnectionManager]] is a general wrapper around a [[ConnectionBuilder]]
+  * that can pool resources in order to conserve on resources such as socket connections,
+  * CPU time, SSL handshakes, etc. Because It can contain significant resources it
+  * must have a mechanism to free resources associated with it.
+  */
 trait ConnectionManager {
 
   /** Shutdown this client, closing any open connections and freeing resources */
@@ -21,5 +28,5 @@ trait ConnectionManager {
     * @param request [[Request]] to connect too
     * @param stage the [[BlazeClientStage]] which to deal with
     */
-  def recycleClient(request: Request, stage: BlazeClientStage): Unit = stage.shutdown()
+  def recycleClient(request: Request, stage: BlazeClientStage): Unit
 }

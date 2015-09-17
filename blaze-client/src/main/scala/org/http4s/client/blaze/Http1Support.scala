@@ -24,34 +24,44 @@ import scalaz.concurrent.Task
 
 import scalaz.{\/, -\/, \/-}
 
+object Http1Support {
+  /** Create a new [[ConnectionBuilder]]
+   *
+   * @param bufferSize buffer size of the socket stages
+   * @param timeout duration of connection silence before a timeout is triggered
+   * @param userAgent User-Agent header information
+   * @param es `ExecutorService` on which computations should be run
+   * @param osslContext Optional `SSSContext` for secure requests
+   * @param group `AsynchronousChannelGroup` used to manage socket connections
+   * @return [[ConnectionBuilder]] for creating new requests
+   */
+  def apply(bufferSize: Int,
+               timeout: Duration,
+             userAgent: Option[`User-Agent`],
+                    es: ExecutorService,
+           osslContext: Option[SSLContext],
+                 group: Option[AsynchronousChannelGroup]): ConnectionBuilder = {
+    val builder = new Http1Support(bufferSize, timeout, userAgent, es, osslContext, group)
+    builder.makeClient
+  }
+
+  private val Https: Scheme = "https".ci
+  private val Http: Scheme  = "http".ci
+}
+
 /** Provides basic HTTP1 pipeline building
-  *
-  * Also serves as a non-recycling [[ConnectionManager]] */
-final class Http1Support(bufferSize: Int,
+  */
+final private class Http1Support(bufferSize: Int,
                             timeout: Duration,
                           userAgent: Option[`User-Agent`],
                                  es: ExecutorService,
                         osslContext: Option[SSLContext],
-                              group: Option[AsynchronousChannelGroup])
-  extends ConnectionBuilder with ConnectionManager
-{
+                              group: Option[AsynchronousChannelGroup]) {
   import Http1Support._
 
   private val ec = ExecutionContext.fromExecutorService(es)
-
   private val sslContext = osslContext.getOrElse(bits.sslContext)
   private val connectionManager = new ClientChannelFactory(bufferSize, group.orNull)
-
-  /** Get a connection to the provided address
-    * @param request [[Request]] to connect too
-    * @param fresh if the client should force a new connection
-    * @return a Future with the connected [[BlazeClientStage]] of a blaze pipeline
-    */
-  override def getClient(request: Request, fresh: Boolean): Task[BlazeClientStage] =
-    makeClient(request)
-
-  /** Free resources associated with this client factory */
-  override def shutdown(): Task[Unit] = Task.now(())
 
 ////////////////////////////////////////////////////
 
@@ -101,7 +111,3 @@ final class Http1Support(bufferSize: Int,
   }
 }
 
-private object Http1Support {
-  private val Https: Scheme = "https".ci
-  private val Http: Scheme  = "http".ci
-}
