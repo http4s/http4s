@@ -10,7 +10,7 @@ import scalaz.concurrent.Task
 
 object PoolManager {
 
-  /** Create a new [[ConnectionManager]] that will attempt to recycle connections
+  /** Create a [[ConnectionManager]] that will attempt to recycle connections
     *
     * @param maxPooledConnections max pool size before connections are closed
     * @param builder generator of new connections

@@ -5,10 +5,13 @@ package blaze
 import scalaz.concurrent.Task
 
 
-/** Create a basic [[ConnectionManager]] that creates new connections on each request */
 object BasicManager {
-  def apply(builder: ConnectionBuilder): ConnectionManager =
-    new BasicManager(builder)
+
+  /** Create a [[ConnectionManager]] that creates new connections on each request
+  *
+  * @param builder generator of new connections
+  * */
+  def apply(builder: ConnectionBuilder): ConnectionManager = new BasicManager(builder)
 }
 
 private final class BasicManager private(builder: ConnectionBuilder) extends ConnectionManager {
