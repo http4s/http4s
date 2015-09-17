@@ -10,6 +10,8 @@ import org.http4s.blaze.{SlowTestHead, SeqTestHead}
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.util.CaseInsensitiveString._
 
+import bits.DefaultUserAgent
+
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 

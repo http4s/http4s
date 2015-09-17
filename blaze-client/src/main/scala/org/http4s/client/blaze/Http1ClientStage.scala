@@ -40,7 +40,7 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
 
     if (!stageState.compareAndSet(null, StartupCallbackTag)) Task.fail(InProgressException)
     else {
-      val c = ClientTickWheel.schedule(new Runnable {
+      val c = bits.ClientTickWheel.schedule(new Runnable {
         @tailrec
         override def run(): Unit = {
           stageState.get() match {  // We must still be active, and the stage hasn't reset.
