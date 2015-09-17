@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../../index.html';
-            var hash = 'org.http4s.client.blaze.Http1Support';
+            var hash = 'org.http4s.client.blaze.Http1Support$';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -26,14 +26,14 @@
    	  </script>
     
         </head>
-        <body class="type">
+        <body class="value">
       <div id="definition">
-        <img alt="Class" src="../../../../lib/class_big.png" />
+        <img alt="Object" src="../../../../lib/object_big.png" />
         <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.client">client</a>.<a href="package.html" class="extype" name="org.http4s.client.blaze">blaze</a></p>
         <h1>Http1Support</h1><h3><span class="morelinks"><div>Related Doc:
             <a href="package.html" class="extype" name="org.http4s.client.blaze">package blaze</a>
           </div></span></h3><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -41,17 +41,17 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
+        <span class="modifier"></span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">Http1Support</span><span class="result"> extends <a href="ConnectionBuilder.html" class="extype" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a> with <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></span>
+        <span class="name">Http1Support</span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Provides basic HTTP1 pipeline building</p><p>Also serves as a non-recycling <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></p></div><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a>, <a href="ConnectionBuilder.html" class="extype" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -69,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.client.blaze.Http1Support"><span>Http1Support</span></li><li class="in" name="org.http4s.client.blaze.ConnectionManager"><span>ConnectionManager</span></li><li class="in" name="org.http4s.client.blaze.ConnectionBuilder"><span>ConnectionBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.client.blaze.Http1Support"><span>Http1Support</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -86,27 +86,7 @@
 
       <div id="template">
         <div id="allMembers">
-        <div id="constructors" class="members">
-              <h3>Instance Constructors</h3>
-              <ol><li name="org.http4s.client.blaze.Http1Support#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(bufferSize:Int,timeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],es:java.util.concurrent.ExecutorService,osslContext:Option[javax.net.ssl.SSLContext],group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.Http1Support"></a>
-      <a id="&lt;init&gt;:Http1Support"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">new</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Http1Support</span><span class="params">(<span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="es">es: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="osslContext">osslContext: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@&lt;init&gt;(bufferSize:Int,timeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],es:java.util.concurrent.ExecutorService,osslContext:Option[javax.net.ssl.SSLContext],group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.Http1Support" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         
 
@@ -126,7 +106,7 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -143,7 +123,7 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@##():Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@##():Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -160,11 +140,30 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1Support#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(bufferSize:Int,timeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],es:java.util.concurrent.ExecutorService,osslContext:Option[javax.net.ssl.SSLContext],group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.ConnectionBuilder"></a>
+      <a id="apply(Int,Duration,Option[User-Agent],ExecutorService,Option[SSLContext],Option[AsynchronousChannelGroup]):ConnectionBuilder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="timeout">timeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="es">es: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="osslContext">osslContext: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span><span class="result">: <a href="package.html#ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" class="extmbr" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@apply(bufferSize:Int,timeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],es:java.util.concurrent.ExecutorService,osslContext:Option[javax.net.ssl.SSLContext],group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.ConnectionBuilder" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a new <a href="package.html#ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" class="extmbr" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a>
+</p><div class="fullcomment"><div class="comment cmt"><p>Create a new <a href="package.html#ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" class="extmbr" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a>
+</p></div><dl class="paramcmts block"><dt class="param">bufferSize</dt><dd class="cmt"><p>buffer size of the socket stages</p></dd><dt class="param">timeout</dt><dd class="cmt"><p>duration of connection silence before a timeout is triggered</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>User-Agent header information</p></dd><dt class="param">es</dt><dd class="cmt"><p><code>ExecutorService</code> on which computations should be run</p></dd><dt class="param">osslContext</dt><dd class="cmt"><p>Optional <code>SSSContext</code> for secure requests</p></dd><dt class="param">group</dt><dd class="cmt"><p><code>AsynchronousChannelGroup</code> used to manage socket connections</p></dd><dt>returns</dt><dd class="cmt"><p><a href="package.html#ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" class="extmbr" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a> for creating new requests</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -177,7 +176,7 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -194,7 +193,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@clone():Object" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@clone():Object" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -217,7 +216,7 @@
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -234,7 +233,7 @@
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -251,7 +250,7 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@finalize():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -274,28 +273,11 @@
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@getClass():Class[_]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.Http1Support#getClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getClient(request:org.http4s.Request,fresh:Boolean):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]"></a>
-      <a id="getClient(Request,Boolean):Task[BlazeClientStage]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getClient</span><span class="params">(<span name="request">request: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="fresh">fresh: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@getClient(request:org.http4s.Request,fresh:Boolean):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Get a connection to the provided address</p><div class="fullcomment"><div class="comment cmt"><p>Get a connection to the provided address</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p><a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> to connect too</p></dd><dt class="param">fresh</dt><dd class="cmt"><p>if the client should force a new connection</p></dd><dt>returns</dt><dd class="cmt"><p>a Future with the connected <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> of a blaze pipeline</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1Support">Http1Support</a> → <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></dd></dl></div>
     </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="hashCode():Int"></a>
       <a id="hashCode():Int"></a>
@@ -308,7 +290,7 @@
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@hashCode():Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -325,28 +307,11 @@
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.Http1Support#makeClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="makeClient(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]"></a>
-      <a id="makeClient(Request):Task[BlazeClientStage]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">makeClient</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@makeClient(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Attempt to make a new client connection</p><div class="fullcomment"><div class="comment cmt"><p>Attempt to make a new client connection</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1Support">Http1Support</a> → <a href="ConnectionBuilder.html" class="extype" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -359,7 +324,7 @@
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -376,7 +341,7 @@
         <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@notify():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@notify():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -393,47 +358,11 @@
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.ConnectionManager#recycleClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="recycleClient(request:org.http4s.Request,stage:org.http4s.client.blaze.BlazeClientStage):Unit"></a>
-      <a id="recycleClient(Request,BlazeClientStage):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">recycleClient</span><span class="params">(<span name="request">request: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="stage">stage: <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@recycleClient(request:org.http4s.Request,stage:org.http4s.client.blaze.BlazeClientStage):Unit" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Recycle or close the connection
-Allow for smart reuse or simple closing of a connection after the completion of a request</p><div class="fullcomment"><div class="comment cmt"><p>Recycle or close the connection
-Allow for smart reuse or simple closing of a connection after the completion of a request</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p><a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> to connect too</p></dd><dt class="param">stage</dt><dd class="cmt"><p>the <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> which to deal with</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></dd></dl></div>
-    </li><li name="org.http4s.client.blaze.Http1Support#shutdown" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="shutdown():scalaz.concurrent.Task[Unit]"></a>
-      <a id="shutdown():Task[Unit]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">shutdown</span><span class="params">()</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@shutdown():scalaz.concurrent.Task[Unit]" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Free resources associated with this client factory</p><div class="fullcomment"><div class="comment cmt"><p>Free resources associated with this client factory</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1Support">Http1Support</a> → <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a> → <a href="ConnectionBuilder.html" class="extype" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -446,7 +375,7 @@ Allow for smart reuse or simple closing of a connection after the completion of 
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -463,7 +392,7 @@ Allow for smart reuse or simple closing of a connection after the completion of 
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@toString():String" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@toString():String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -480,7 +409,7 @@ Allow for smart reuse or simple closing of a connection after the completion of 
         <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@wait():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@wait():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -503,7 +432,7 @@ Allow for smart reuse or simple closing of a connection after the completion of 
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -526,7 +455,7 @@ Allow for smart reuse or simple closing of a connection after the completion of 
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1Support$@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -546,11 +475,7 @@ Allow for smart reuse or simple closing of a connection after the completion of 
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.client.blaze.ConnectionManager">
-              <h3>Inherited from <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></h3>
-            </div><div class="parent" name="org.http4s.client.blaze.ConnectionBuilder">
-              <h3>Inherited from <a href="ConnectionBuilder.html" class="extype" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a></h3>
-            </div><div class="parent" name="scala.AnyRef">
+        <div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>

@@ -122,24 +122,27 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.client.blaze.ConnectionBuilder" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ConnectionBuilderextendsAnyRef"></a>
+    </li><li name="org.http4s.client.blaze.ConnectionBuilder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]"></a>
       <a id="ConnectionBuilder:ConnectionBuilder"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <a href="ConnectionBuilder.html"><span class="name">ConnectionBuilder</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">ConnectionBuilder</span><span class="result"> = (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@ConnectionBuilderextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="org.http4s.client.blaze.ConnectionManager" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <p class="shortcomment cmt">Factory function for new client connections.</p><div class="fullcomment"><div class="comment cmt"><p>Factory function for new client connections.</p><p>The connections must be 'fresh' in the sense that they are newly created
+and failure of the resulting client stage is a sign of connection trouble
+not due to typical timeouts etc.
+</p></div></div>
+    </li><li name="org.http4s.client.blaze.ConnectionManager" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="ConnectionManagerextendsAnyRef"></a>
       <a id="ConnectionManager:ConnectionManager"></a>
       <h4 class="signature">
@@ -155,7 +158,11 @@
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">type that is responsible for the client lifecycle</p><div class="fullcomment"><div class="comment cmt"><p>type that is responsible for the client lifecycle</p><p>The <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a> is a general wrapper around a <a href="#ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" class="extmbr" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a>
+that can pool resources in order to conserve resources such as socket connections,
+CPU time, SSL handshakes, etc. Because It can contain significant resources it
+must have a mechanism to free resources associated with it.
+</p></div></div>
     </li><li name="org.http4s.client.blaze.Http1ClientReceiver" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Http1ClientReceiverextendsHttp1ClientParserwithBlazeClientStage"></a>
       <a id="Http1ClientReceiver:Http1ClientReceiver"></a>
@@ -190,40 +197,6 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.client.blaze.Http1Support" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Http1SupportextendsConnectionBuilderwithConnectionManager"></a>
-      <a id="Http1Support:Http1Support"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Http1Support.html"><span class="name">Http1Support</span></a><span class="result"> extends <a href="ConnectionBuilder.html" class="extype" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a> with <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1SupportextendsConnectionBuilderwithConnectionManager" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides basic HTTP1 pipeline building</p><div class="fullcomment"><div class="comment cmt"><p>Provides basic HTTP1 pipeline building</p><p>Also serves as a non-recycling <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></p></div></div>
-    </li><li name="org.http4s.client.blaze.PoolManager" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="PoolManagerextendsConnectionManager"></a>
-      <a id="PoolManager:PoolManager"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="PoolManager.html"><span class="name">PoolManager</span></a><span class="result"> extends <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@PoolManagerextendsConnectionManager" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides a foundation for pooling clients</p>
     </li></ol>
             </div>
 
@@ -231,7 +204,24 @@
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.client.blaze.Http1ClientStage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.client.blaze.ConnectionManager" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionManager"></a>
+      <a id="ConnectionManager:ConnectionManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionManager$.html"><span class="name">ConnectionManager</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@ConnectionManager" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.Http1ClientStage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Http1ClientStage"></a>
       <a id="Http1ClientStage:Http1ClientStage"></a>
       <h4 class="signature">
@@ -244,6 +234,23 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientStage" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze.Http1Support" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http1Support"></a>
+      <a id="Http1Support:Http1Support"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Http1Support$.html"><span class="name">Http1Support</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1Support" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -282,7 +289,7 @@
       </a>
     </span>
       <p class="shortcomment cmt">Create HTTP1 clients which will disconnect on completion of one request</p>
-    </li><li name="org.http4s.client.blaze#defaultClient" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.client.blaze#defaultClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="defaultClient:org.http4s.client.blaze.BlazeClient"></a>
       <a id="defaultClient:BlazeClient"></a>
       <h4 class="signature">
@@ -298,7 +305,7 @@
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Default blaze client</p>
+      <p class="shortcomment cmt">Default blaze client</p><div class="fullcomment"><div class="comment cmt"><p>Default blaze client</p><p>This client will create a new connection for every request.</p></div></div>
     </li></ol>
             </div>
 

@@ -28,10 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img alt="Trait" src="../../../../lib/trait_big.png" />
+        <a href="ConnectionManager$.html" title="See companion object"><img alt="Trait/Object" src="../../../../lib/trait_to_object_big.png" /></a>
         <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.client">client</a>.<a href="package.html" class="extype" name="org.http4s.client.blaze">blaze</a></p>
-        <h1>ConnectionManager</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="org.http4s.client.blaze">package blaze</a>
+        <h1><a href="ConnectionManager$.html" title="See companion object">ConnectionManager</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="ConnectionManager$.html" title="See companion object">object ConnectionManager</a>
+            | <a href="package.html" class="extype" name="org.http4s.client.blaze">package blaze</a>
           </div></span></h3><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.ConnectionManager" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
@@ -49,13 +51,14 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>type that is responsible for the client lifecycle</p><p>The <a href="" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a> is a general wrapper around a <a href="package.html#ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" class="extmbr" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a>
+that can pool resources in order to conserve resources such as socket connections,
+CPU time, SSL handshakes, etc. Because It can contain significant resources it
+must have a mechanism to free resources associated with it.
+</p></div><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="Http1Support.html" class="extype" name="org.http4s.client.blaze.Http1Support">Http1Support</a>, <a href="PoolManager.html" class="extype" name="org.http4s.client.blaze.PoolManager">PoolManager</a></div>
-          </div></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -112,6 +115,25 @@
       </a>
     </span>
       <p class="shortcomment cmt">Get a connection to the provided address</p><div class="fullcomment"><div class="comment cmt"><p>Get a connection to the provided address</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p><a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> to connect too</p></dd><dt class="param">freshClient</dt><dd class="cmt"><p>if the client should force a new connection</p></dd><dt>returns</dt><dd class="cmt"><p>a Future with the connected <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> of a blaze pipeline</p></dd></dl></div>
+    </li><li name="org.http4s.client.blaze.ConnectionManager#recycleClient" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="recycleClient(request:org.http4s.Request,stage:org.http4s.client.blaze.BlazeClientStage):Unit"></a>
+      <a id="recycleClient(Request,BlazeClientStage):Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">recycleClient</span><span class="params">(<span name="request">request: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="stage">stage: <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.ConnectionManager@recycleClient(request:org.http4s.Request,stage:org.http4s.client.blaze.BlazeClientStage):Unit" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Recycle or close the connection
+Allow for smart reuse or simple closing of a connection after the completion of a request</p><div class="fullcomment"><div class="comment cmt"><p>Recycle or close the connection
+Allow for smart reuse or simple closing of a connection after the completion of a request</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p><a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> to connect too</p></dd><dt class="param">stage</dt><dd class="cmt"><p>the <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> which to deal with</p></dd></dl></div>
     </li><li name="org.http4s.client.blaze.ConnectionManager#shutdown" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="shutdown():scalaz.concurrent.Task[Unit]"></a>
       <a id="shutdown():Task[Unit]"></a>
@@ -384,25 +406,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.ConnectionManager#recycleClient" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="recycleClient(request:org.http4s.Request,stage:org.http4s.client.blaze.BlazeClientStage):Unit"></a>
-      <a id="recycleClient(Request,BlazeClientStage):Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">recycleClient</span><span class="params">(<span name="request">request: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="stage">stage: <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.ConnectionManager@recycleClient(request:org.http4s.Request,stage:org.http4s.client.blaze.BlazeClientStage):Unit" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Recycle or close the connection
-Allow for smart reuse or simple closing of a connection after the completion of a request</p><div class="fullcomment"><div class="comment cmt"><p>Recycle or close the connection
-Allow for smart reuse or simple closing of a connection after the completion of a request</p></div><dl class="paramcmts block"><dt class="param">request</dt><dd class="cmt"><p><a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> to connect too</p></dd><dt class="param">stage</dt><dd class="cmt"><p>the <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> which to deal with</p></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
