@@ -163,25 +163,8 @@ that can pool resources in order to conserve resources such as socket connection
 CPU time, SSL handshakes, etc. Because It can contain significant resources it
 must have a mechanism to free resources associated with it.
 </p></div></div>
-    </li><li name="org.http4s.client.blaze.Http1ClientReceiver" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Http1ClientReceiverextendsHttp1ClientParserwithBlazeClientStage"></a>
-      <a id="Http1ClientReceiver:Http1ClientReceiver"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Http1ClientReceiver.html"><span class="name">Http1ClientReceiver</span></a><span class="result"> extends <span class="extype" name="org.http4s.blaze.http.http_parser.Http1ClientParser">Http1ClientParser</span> with <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientReceiverextendsHttp1ClientParserwithBlazeClientStage" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="org.http4s.client.blaze.Http1ClientStage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http1ClientStageextendsHttp1ClientReceiverwithHttp1Stage"></a>
+      <a id="Http1ClientStageextendsBlazeClientStagewithHttp1Stage"></a>
       <a id="Http1ClientStage:Http1ClientStage"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -189,10 +172,10 @@ must have a mechanism to free resources associated with it.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Http1ClientStage.html"><span class="name">Http1ClientStage</span></a><span class="result"> extends <a href="Http1ClientReceiver.html" class="extype" name="org.http4s.client.blaze.Http1ClientReceiver">Http1ClientReceiver</a> with <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></span>
+        <a href="Http1ClientStage.html"><span class="name">Http1ClientStage</span></a><span class="result"> extends <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> with <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientStageextendsHttp1ClientReceiverwithHttp1Stage" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientStageextendsBlazeClientStagewithHttp1Stage" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
