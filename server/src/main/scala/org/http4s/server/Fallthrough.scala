@@ -7,11 +7,15 @@ import scalaz.{Equal, Monoid}
   * Encapsulates the notion of fallthrough orElse for a Service
   * For any given B, if a Fallthrough[B] exists within implicit context
   * then [[Service#orElse]] can be used.
+  * The default Fallthrough implementation will select the first fallthrough
+  * response Whenever a sequence of fallthrough responses is observed.
   */
 trait Fallthrough[B] {
   def isFallthrough(a: B): Boolean
   def fallthrough[A](fst: B, snd: Service[A, B]): Service[A, B] =
-    if (isFallthrough(fst)) snd else Service.constVal(fst)
+    if (isFallthrough(fst)) snd.map { snd =>
+      if (isFallthrough(snd)) fst else snd
+    } else Service.constVal(fst)
 }
 
 /** Houses the principal [[Fallthrough]] typeclass instances. */
