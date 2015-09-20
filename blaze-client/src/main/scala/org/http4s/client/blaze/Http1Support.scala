@@ -28,7 +28,6 @@ object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param bufferSize buffer size of the socket stages
-   * @param timeout duration of connection silence before a timeout is triggered
    * @param userAgent User-Agent header information
    * @param es `ExecutorService` on which computations should be run
    * @param osslContext Optional `SSSContext` for secure requests
@@ -36,12 +35,11 @@ object Http1Support {
    * @return [[ConnectionBuilder]] for creating new requests
    */
   def apply(bufferSize: Int,
-               timeout: Duration,
              userAgent: Option[`User-Agent`],
                     es: ExecutorService,
            osslContext: Option[SSLContext],
                  group: Option[AsynchronousChannelGroup]): ConnectionBuilder = {
-    val builder = new Http1Support(bufferSize, timeout, userAgent, es, osslContext, group)
+    val builder = new Http1Support(bufferSize, userAgent, es, osslContext, group)
     builder.makeClient
   }
 
@@ -52,7 +50,6 @@ object Http1Support {
 /** Provides basic HTTP1 pipeline building
   */
 final private class Http1Support(bufferSize: Int,
-                            timeout: Duration,
                           userAgent: Option[`User-Agent`],
                                  es: ExecutorService,
                         osslContext: Option[SSLContext],
@@ -79,7 +76,7 @@ final private class Http1Support(bufferSize: Int,
   }
 
   private def buildStages(uri: Uri): (LeafBuilder[ByteBuffer], BlazeClientStage) = {
-    val t = new Http1ClientStage(userAgent, timeout)(ec)
+    val t = new Http1ClientStage(userAgent, ec)
     val builder = LeafBuilder(t)
     uri match {
       case Uri(Some(Https),Some(auth),_,_,_) =>

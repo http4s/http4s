@@ -52,10 +52,17 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
 class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slow TestHead") { self =>
   import org.http4s.blaze.util.Execution.scheduler
 
+  // Will serve as our point of synchronization
   private val bodyIt = body.iterator
+
+  private var currentRequest: Promise[ByteBuffer] = null
 
   private def clear(): Unit = bodyIt.synchronized {
     while(bodyIt.hasNext) bodyIt.next()
+    if (currentRequest != null) {
+      currentRequest.tryFailure(EOF)
+      currentRequest = null
+    }
   }
 
   override def outboundCommand(cmd: OutboundCommand): Unit = {
@@ -66,18 +73,22 @@ class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slo
     super.outboundCommand(cmd)
   }
 
-  override def readRequest(size: Int): Future[ByteBuffer] = {
-    val p = Promise[ByteBuffer]
-
-    scheduler.schedule(new Runnable {
-      override def run(): Unit = self.synchronized {
-        bodyIt.synchronized {
-          if (!closed && bodyIt.hasNext) p.trySuccess(bodyIt.next())
-          else p.tryFailure(EOF)
+  override def readRequest(size: Int): Future[ByteBuffer] = bodyIt.synchronized {
+    if (currentRequest != null) {
+      Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
+    }
+    else if (bodyIt.isEmpty) Future.failed(EOF)
+    else {
+      currentRequest = Promise[ByteBuffer]
+      scheduler.schedule(new Runnable {
+        override def run(): Unit = bodyIt.synchronized {
+          if (!closed && bodyIt.hasNext) currentRequest.trySuccess(bodyIt.next())
+          else currentRequest.tryFailure(EOF)
+          currentRequest = null
         }
-      }
-    }, pause)
+      }, pause)
 
-    p.future
+      currentRequest.future
+    }
   }
 }
