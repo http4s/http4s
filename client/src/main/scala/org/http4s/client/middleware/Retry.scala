@@ -28,7 +28,7 @@ object Retry {
       client.prepare(req) flatMap {
         case Successful(resp) => Task.now(resp)
         case fail => 
-          logger.info(s"Client request failed ${fail}, attempt ${attempt}, retrying ...")
+          logger.info(s"Request ${req} has failed attempt ${attempts} with reason ${fail}")
           backoff flatMap { f =>
             f(attempts).fold(Task.now(fail))(dur => nextAttempt(req, attempts, dur))
           }
