@@ -5,12 +5,18 @@ package middleware
 import org.http4s.Status.ResponseClass.Successful
 import org.http4s.{Response, Request, EmptyBody}
 import org.http4s.client.Client
+import org.log4s.getLogger
+
 import scala.concurrent.duration._
 import scala.math.{pow, min, random}
+
 import scalaz.concurrent.Task
 import scala.language.postfixOps
 
+
 object Retry {
+ 
+  private[this] val logger = getLogger
 
   def apply(backoff: Task[Int => Option[FiniteDuration]])(client: Client) = new Client {
 
@@ -21,9 +27,11 @@ object Retry {
     private def prepareLoop(req: Request, attempts: Int): Task[Response] = {
       client.prepare(req) flatMap {
         case Successful(resp) => Task.now(resp)
-        case fail => backoff flatMap { f =>
-          f(attempts).fold(Task.now(fail))(dur => nextAttempt(req, attempts, dur))
-        }
+        case fail => 
+          logger.info(s"Client request failed ${fail}, attempt ${attempt}, retrying ...")
+          backoff flatMap { f =>
+            f(attempts).fold(Task.now(fail))(dur => nextAttempt(req, attempts, dur))
+          }
       }
     }
 
