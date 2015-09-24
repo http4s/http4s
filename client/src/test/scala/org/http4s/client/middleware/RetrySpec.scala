@@ -26,13 +26,13 @@ class RetrySpec extends Http4sSpec {
     "Retry bad requests" in {
       val max = 2
       var attempts = 1
-      val policy = Task.delay((attmpts: Int) => {
+      val policy = (attmpts: Int) => {
         if (attempts >= max) None
         else {
           attempts = attempts + 1
           Some(10 milliseconds)
         }
-      })  
+      }
       val client = Retry(policy)(defaultClient)
       val resp = client(getUri(s"http://localhost/boom")).run
       attempts must_==2 
@@ -41,13 +41,13 @@ class RetrySpec extends Http4sSpec {
     "Not retry successful responses" in {
       val max = 2
       var attempts = 1
-      val policy = Task.delay((attmpts: Int) => {
+      val policy = (attmpts: Int) => {
         if (attempts >= max) None
         else {
           attempts = attempts + 1
           Some(10 milliseconds)
         }
-      })  
+      }
       val client = Retry(policy)(defaultClient)
       val resp = client(getUri(s"http://localhost/ok")).run
       attempts must_==1

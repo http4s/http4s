@@ -11,14 +11,13 @@ import scala.concurrent.duration._
 import scala.math.{pow, min, random}
 
 import scalaz.concurrent.Task
-import scala.language.postfixOps
 
 
 object Retry {
  
   private[this] val logger = getLogger
 
-  def apply(backoff: Task[Int => Option[FiniteDuration]])(client: Client) = new Client {
+  def apply(backoff: Int => Option[FiniteDuration])(client: Client) = new Client {
 
     def shutdown(): Task[Unit] = client.shutdown()
 
@@ -29,25 +28,20 @@ object Retry {
         case Successful(resp) => Task.now(resp)
         case fail => 
           logger.info(s"Request ${req} has failed attempt ${attempts} with reason ${fail}")
-          backoff flatMap { f =>
-            f(attempts).fold(Task.now(fail))(dur => nextAttempt(req, attempts, dur))
-          }
+          backoff(attempts).fold(Task.now(fail))(dur => nextAttempt(req, attempts, dur))
       }
     }
 
     private def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[Response] =
-      Task.async { prepareLoop(req.copy(body = EmptyBody), attempts + 1).get after duration runAsync }
+      Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1).get after duration).runAsync }
   }
 }
 
 object RetryPolicy {
 
-  def exponentialBackoff(maxWait: Duration, maxRetry: Int): Task[Int => Option[FiniteDuration]] = {
+  def exponentialBackoff(maxWait: Duration, maxRetry: Int): Int => Option[FiniteDuration] = {
     val maxInMillis = maxWait.toMillis
-    Task.delay(k =>
-      if (k > maxRetry) None
-      else Some(expBackoff(k, maxInMillis))
-    )
+    k => if (k > maxRetry) None else Some(expBackoff(k, maxInMillis))
   }
 
   private def expBackoff(k: Int, maxInMillis: Long): FiniteDuration = {
