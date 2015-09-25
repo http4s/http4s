@@ -12,6 +12,8 @@ class RouterSpec extends Http4sSpec {
   val letters: HttpService = HttpService {
     case req if req.pathInfo == "/b" =>
       Response(Ok).withBody("bee")
+    case _ =>
+      Response(NotFound).withBody("custom 404")
   }
   val shadow: HttpService = HttpService {
     case req if req.pathInfo == "/shadowed" =>
@@ -30,6 +32,8 @@ class RouterSpec extends Http4sSpec {
     "/shadow" -> shadow,
     "/letters" -> letters
   )
+
+  val notFound = HttpService.notFound.run.as[String].run
 
   "A router" should {
     "translate mount prefixes" in {
@@ -51,8 +55,12 @@ class RouterSpec extends Http4sSpec {
       service.apply(Request(GET, uri("/shadow/shadowed"))).run.as[String].run must equal ("visible")
     }
 
-    "404 on unknown prefixes" in {
-      service.apply(Request(GET, uri("/symbols/~"))).run.status must equal (NotFound)
+    "Offer the default 404 on unknown prefixes" in {
+      service.apply(Request(GET, uri("/symbols/~"))).run.as[String].run must equal (notFound)
+    }
+
+    "Preserve custom 404 responses under the right path" in {
+      service.apply(Request(GET, uri("/letters/a"))).run.as[String].run must equal ("custom 404")
     }
 
     "Allow passing through of routes with identical prefixes" in {
