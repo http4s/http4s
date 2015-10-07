@@ -29,7 +29,7 @@ object Fallthrough {
 
   /** A [[Response]] specific [[Fallthrough]] which considers any response with a 404
     * status code as a fallthrough. */
-  implicit val forTagged404Response: Fallthrough[Response] = new Fallthrough[Response] {
+  implicit def forResponse: Fallthrough[Response] = new Fallthrough[Response] {
     def isFallthrough(r: Response): Boolean =
       r.status.code == 404 && r.attributes.contains(fallthroughKey)
   }
