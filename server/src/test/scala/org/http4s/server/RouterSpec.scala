@@ -70,7 +70,7 @@ class RouterSpec extends Http4sSpec {
 
     "Return the tagged NotFound response if no route is found" in {
       val resp = Router("/foo" -> notFound).apply(Request(uri = uri("/bar"))).run
-      resp.attributes.contains(HttpService.notFoundServiceKey) must equal (true)
+      resp.attributes.contains(Fallthrough.fallthroughKey) must equal (true)
     }
 
   }

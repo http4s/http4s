@@ -46,7 +46,7 @@ class HttpServiceSpec extends Http4sSpec {
     "Properly fall through two aggregated service if no path matches" in {
       val resp = aggregate1.apply(Request(uri = uri("/wontMatch"))).run
       resp.status must equal (Status.NotFound)
-      resp.attributes.contains(HttpService.notFoundServiceKey) must equal (true)
+      resp.attributes.contains(Fallthrough.fallthroughKey) must equal (true)
     }
   }
 }
