@@ -1,124 +1,170 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
-import java.nio.channels.ClosedChannelException
+import java.util.concurrent.atomic.AtomicReference
 
-import org.http4s.blaze.pipeline.Command.EOF
-import org.http4s.headers.{`User-Agent`, Host, `Content-Length`}
-import org.http4s.{headers => H}
+import org.http4s._
 import org.http4s.Uri.{Authority, RegName}
+import org.http4s.{headers => H}
 import org.http4s.blaze.Http1Stage
-import org.http4s.blaze.util.{Cancellable, ProcessWriter}
-import org.http4s.util.{StringWriter, Writer}
-import org.http4s.{Request, Response, HttpVersion}
+import org.http4s.blaze.pipeline.Command
+import org.http4s.blaze.pipeline.Command.EOF
+import org.http4s.blaze.util.ProcessWriter
+import org.http4s.headers.{Host, `Content-Length`, `User-Agent`, Connection}
+import org.http4s.util.{Writer, StringWriter}
 
 import scala.annotation.tailrec
-import scala.concurrent.{TimeoutException, ExecutionContext}
-import scala.concurrent.duration._
+import scala.concurrent.ExecutionContext
+import scala.util.{Failure, Success}
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process.halt
-import scalaz.{-\/, \/, \/-}
+import scalaz.stream.Cause.{End, Terminated}
+import scalaz.stream.Process
+import scalaz.stream.Process.{Halt, halt}
+import scalaz.{\/, -\/, \/-}
 
-final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)(implicit protected val ec: ExecutionContext)
-                      extends Http1ClientReceiver with Http1Stage {
 
-  import Http1ClientStage._
+final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: ExecutionContext)
+  extends BlazeClientStage with Http1Stage
+{
+  import org.http4s.client.blaze.Http1ClientStage._
 
-  protected type Callback = Throwable\/Response => Unit
-  
   override def name: String = getClass.getName
+  private val parser = new BlazeHttp1ClientParser
+  private val stageState = new AtomicReference[State](Idle)
 
+  override def isClosed(): Boolean = stageState.get match {
+    case Error(_) => true
+    case _        => false
+  }
 
-  override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buffer))
+  override def shutdown(): Unit = stageShutdown()
 
-  /** Generate a `Task[Response]` that will perform an HTTP 1 request on execution */
+  // seal this off, use shutdown()
+  override def stageShutdown() = {
+    @tailrec
+    def go(): Unit = stageState.get match {
+      case Error(_) => // Done
+      case x => if (!stageState.compareAndSet(x, Error(EOF))) go() // We don't mind if things get canceled at this point.
+    }
+
+    go() // Close the stage.
+
+    sendOutboundCommand(Command.Disconnect)
+    super.stageShutdown()
+  }
+
+  @tailrec
+  def reset(): Unit = {
+    stageState.get() match {
+      case v@ (Running | Idle) =>
+        if (stageState.compareAndSet(v, Idle)) parser.reset()
+        else reset()
+      case Error(_) => // NOOP: we don't reset on an error.
+    }
+  }
+
   def runRequest(req: Request): Task[Response] = Task.suspend[Response] {
-    // We need to race two Tasks, one that will result in failure, one that gives the Response
+    if (!stageState.compareAndSet(Idle, Running)) Task.fail(InProgressException)
+    else executeRequest(req)
+  }
 
-    val StartupCallbackTag = -\/(null)
+  override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = parser.doParseContent(buffer)
 
-    if (!stageState.compareAndSet(null, StartupCallbackTag)) Task.fail(InProgressException)
-    else {
-      val c = ClientTickWheel.schedule(new Runnable {
-        @tailrec
-        override def run(): Unit = {
-          stageState.get() match {  // We must still be active, and the stage hasn't reset.
-            case c@ \/-(_) =>
-              val ex = mkTimeoutEx(req)
-              if (stageState.compareAndSet(c, -\/(ex))) {
-                logger.debug(ex.getMessage)
-                shutdown()
-              }
+  override protected def contentComplete(): Boolean = parser.contentComplete()
 
-            // Somehow we have beaten the registration of this callback to stage
-            case StartupCallbackTag =>
-              val ex = -\/(mkTimeoutEx(req))
-              if (!stageState.compareAndSet(StartupCallbackTag, ex)) run()
-              else { /* NOOP the registered error should be handled below */ }
+    private def executeRequest(req: Request): Task[Response] = {
+    logger.debug(s"Beginning request: $req")
+    validateRequest(req) match {
+      case Left(e)    => Task.fail(e)
+      case Right(req) => Task.suspend {
+        val rr = new StringWriter(512)
+        encodeRequestLine(req, rr)
+        Http1Stage.encodeHeaders(req.headers, rr, false)
 
-            case _ => // NOOP we are already in an error state
-          }
+        if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
+          rr << userAgent.get << '\r' << '\n'
         }
-      }, timeout)
 
-      // There should only be two options at this point: StartupTag or the timeout exception registered above
-      stageState.getAndSet(\/-(c)) match {
-        case StartupCallbackTag =>
-          executeRequest(req)
+        val mustClose = H.Connection.from(req.headers) match {
+          case Some(conn) => checkCloseConnection(conn, rr)
+          case None       => getHttpMinor(req) == 0
+        }
 
-        case -\/(e) =>
-          c.cancel()
-          stageShutdown()
-          Task.fail(e)
+        val bodyTask = getChunkEncoder(req, mustClose, rr)
+                          .writeProcess(req.body)
+                          .handle { case EOF => () } // If we get a pipeline closed, we might still be good. Check response
+        val respTask =  receiveResponse(mustClose)
 
-        case other =>
-          c.cancel()
-          stageShutdown()
-          Task.fail(new IllegalStateException(s"Somehow the client stage got a different result: $other"))
+        Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
       }
     }
   }
 
-  private def mkTimeoutEx(req: Request) =
-    new TimeoutException(s"Client request $req timed out after $timeout")
+  private def receiveResponse(close: Boolean): Task[Response] =
+    Task.async[Response](cb => readAndParsePrelude(cb, close, "Initial Read"))
 
-  private def executeRequest(req: Request): Task[Response] = {
-    logger.debug(s"Beginning request: $req")
-    validateRequest(req) match {
-      case Left(e)    => Task.fail(e)
-      case Right(req) =>
-        Task.async { cb =>
-          try {
-            val rr = new StringWriter(512)
-            encodeRequestLine(req, rr)
-            Http1Stage.encodeHeaders(req.headers, rr, false)
+  // this method will get some data, and try to continue parsing using the implicit ec
+  private def readAndParsePrelude(cb: Callback,  closeOnFinish: Boolean, phase: String): Unit = {
+    channelRead().onComplete {
+      case Success(buff) => parsePrelude(buff, closeOnFinish, cb)
+      case Failure(EOF)  => stageState.get match {
+        case Idle | Running => shutdown(); cb(-\/(EOF))
+        case Error(e)       => cb(-\/(e))
+      }
 
-            if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
-              rr << userAgent.get << '\r' << '\n'
-            }
+      case Failure(t)    =>
+        fatalError(t, s"Error during phase: $phase")
+        cb(-\/(t))
+    }(ec)
+  }
 
-            val closeHeader = H.Connection.from(req.headers)
-              .map(checkCloseConnection(_, rr))
-              .getOrElse(getHttpMinor(req) == 0)
-
-            val enc = getChunkEncoder(req, closeHeader, rr)
-
-            enc.writeProcess(req.body).runAsync {
-              case \/-(_)    => receiveResponse(cb, closeHeader)
-
-                // See if we already have a reason for the failure
-              case e@ -\/(_) =>
-                stageState.get() match {
-                  case e@ -\/(_)   => cb(e)
-                  case \/-(cancel) => cancel.cancel(); shutdown(); cb(e)
-                }
-            }
-          } catch { case t: Throwable =>
-            logger.error(t)("Error during request submission")
-            cb(-\/(t))
-          }
+  private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, cb: Callback): Unit = {
+    try {
+      if (!parser.finishedResponseLine(buffer)) readAndParsePrelude(cb, closeOnFinish, "Response Line Parsing")
+      else if (!parser.finishedHeaders(buffer)) readAndParsePrelude(cb, closeOnFinish, "Header Parsing")
+      else {
+        // we are now to the body
+        def terminationCondition() = stageState.get match {  // if we don't have a length, EOF signals the end of the body.
+          case Error(e) if e != EOF => e
+          case _ =>
+            if (parser.definedContentLength() || parser.isChunked()) InvalidBodyException("Received premature EOF.")
+            else Terminated(End)
         }
+
+        // Get headers and determine if we need to close
+        val headers = parser.getHeaders()
+        val status = parser.getStatus()
+        val httpVersion = parser.getHttpVersion()
+
+        // We are to the point of parsing the body and then cleaning up
+        val (rawBody,_) = collectBodyFromParser(buffer, terminationCondition)
+
+        // This part doesn't seem right.
+        val body = rawBody.onHalt {
+          case End => Process.eval_(Task {
+              if (closeOnFinish || headers.get(Connection).exists(_.hasClose)) {
+                logger.debug("Message body complete. Shutting down.")
+                stageShutdown()
+              }
+              else {
+                logger.debug(s"Resetting $name after completing request.")
+                reset()
+              }
+            })
+
+          case c => Process.await(Task {
+            logger.info(c.asThrowable)("Response body halted. Closing connection.")
+            stageShutdown()
+          })(_ => Halt(c))
+        }
+
+        cb(\/-(Response(status, httpVersion, headers, body)))
+      }
+    } catch {
+      case t: Throwable =>
+        logger.error(t)("Error during client request decode loop")
+        cb(-\/(t))
     }
   }
 
@@ -154,10 +200,22 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
     else Right(req) // All appears to be well
   }
 
-  private def getHttpMinor(req: Request): Int = req.httpVersion.minor
-
   private def getChunkEncoder(req: Request, closeHeader: Boolean, rr: StringWriter): ProcessWriter =
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
+}
+
+object Http1ClientStage {
+  private type Callback = Throwable\/Response => Unit
+
+  case object InProgressException extends Exception("Stage has request in progress")
+
+  // ADT representing the state that the ClientStage can be in
+  private sealed trait State
+  private case object Idle extends State
+  private case object Running extends State
+  private case class Error(exc: Exception) extends State
+
+  private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 
   private def encodeRequestLine(req: Request, writer: Writer): writer.type = {
     val uri = req.uri
@@ -177,9 +235,4 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], timeout: Duration)
     } else writer
   }
 }
-
-object Http1ClientStage {
-  case object InProgressException extends Exception("Stage has request in progress")
-}
-
 

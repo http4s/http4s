@@ -80,7 +80,7 @@ If you have a project you would like to include in this list, let us know on IRC
 
 ## Get it! ##
 
-Artifacts for scala 2.10 and 2.11 are available from Maven Central:
+http4s is built with Java 8. Artifacts for scala 2.10 and 2.11 are available from Maven Central:
 
 ```scala
 libraryDependencies += "org.http4s" %% "http4s-dsl"          % version  // to use the core dsl

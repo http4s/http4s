@@ -5,13 +5,11 @@ import org.http4s.Uri.{Authority, Scheme}
 import org.log4s.getLogger
 
 import scala.collection.mutable
-import scala.concurrent.Future
 import scalaz.concurrent.Task
 
 
-/** Provides a foundation for pooling clients */
-final class PoolManager(maxPooledConnections: Int,
-                                     builder: ConnectionBuilder) extends ConnectionManager {
+/* implementation bits for the pooled client manager */
+private final class PoolManager (maxPooledConnections: Int, builder: ConnectionBuilder) extends ConnectionManager {
 
   require(maxPooledConnections > 0, "Must have finite connection pool size")
 
@@ -22,11 +20,13 @@ final class PoolManager(maxPooledConnections: Int,
   private val cs = new mutable.Queue[Connection]()
 
   /** Shutdown this client, closing any open connections and freeing resources */
-  override def shutdown(): Task[Unit] = builder.shutdown().map {_ =>
+  override def shutdown(): Task[Unit] = Task.delay {
     logger.debug(s"Shutting down ${getClass.getName}.")
     cs.synchronized {
-      closed = true
-      cs.foreach(_.stage.shutdown())
+      if(!closed) {
+        closed = true
+        cs.foreach(_.stage.shutdown())
+      }
     }
   }
 
@@ -48,12 +48,12 @@ final class PoolManager(maxPooledConnections: Int,
   override def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage] = Task.suspend {
     cs.synchronized {
       if (closed) Task.fail(new Exception("Client is closed"))
-      else if (freshClient) builder.makeClient(request)
+      else if (freshClient) builder(request)
       else cs.dequeueFirst { case Connection(sch, auth, _) =>
         sch == request.uri.scheme && auth == request.uri.authority
       } match {
         case Some(Connection(_, _, stage)) => Task.now(stage)
-        case None => builder.makeClient(request)
+        case None => builder(request)
       }
     }
   }

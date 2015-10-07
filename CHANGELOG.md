@@ -1,3 +1,22 @@
+# v0.10.0 (2015-09-03)
+* Replace `PartialService` with the `Fallthrough` typeclass and `orElse` syntax.
+* Rename `withHeaders` to `replaceAllHeaders`
+* Set https endpoint identification algorithm when possible.
+* Stack-safe `ProcessWriter` in blaze.
+* Configureable number of connector threads and buffer size in blaze-server.
+
+# v0.9.3 (2015-08-27)
+* Trampoline recursive calls in blaze ProcessWriter.
+* Handle server hangup and body termination correctly in blaze client.
+
+# v0.9.2 (2015-08-26)
+* Bump http4s-websockets to 1.0.3 to properly decode continuation opcode.
+* Fix metrics incompatibility when using Jetty 9.3 backend.
+* Preserve original headers when appending as opposed to quoting.
+
+# v0.9.1 (2015-08-19)
+* Fix bug in servlet nio handler.
+
 # v0.9.0 (2015-08-15)
 * Require Java8.
 * `StaticFile` uses the filename extension exclusively to determine media-type.
@@ -12,6 +31,10 @@
 * Don't extend `AllInstances` with `Http4s` omnibus import object.
 * Use UTF-8 as the default encoding for text bodies.
 * Numerous bug fixes by numerous contributors!
+
+# v0.8.5 (2015-08-26)
+* Preserve original headers when appending as opposed to quoting.
+* Upgrade to jawn-0.8.3 to avoid transitive dependency on GPL2 jmh
 
 # v0.8.4 (2015-07-13)
 * Honor the buffer size parameter in gzip middleware.

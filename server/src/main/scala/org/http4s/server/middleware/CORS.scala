@@ -72,7 +72,7 @@ object CORS {
       ).putHeaders(
           Header("Vary", "Origin,Access-Control-Request-Methods"),
           Header("Access-Control-Allow-Credentials", config.allowCredentials.toString()),
-          Header("Access-Control-Allow-Methods", config.allowedMethods.cata(_.mkString("", " ", ""), acrm)),
+          Header("Access-Control-Allow-Methods", config.allowedMethods.cata(_.mkString("", ", ", ""), acrm)),
           Header("Access-Control-Allow-Origin", origin),
           Header("Access-Control-Max-Age", config.maxAge.toString())
         )

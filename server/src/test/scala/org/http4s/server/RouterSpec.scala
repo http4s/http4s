@@ -24,6 +24,10 @@ class RouterSpec extends Http4sSpec {
       Response(Ok).withBody("invisible")
   }
 
+  val notFound: HttpService = HttpService {
+    case _ => Response(NotFound).withBody("Custom NotFound")
+  }
+
   val service = Router(
     "/numbers" -> numbers,
     "/" -> root,
@@ -37,7 +41,10 @@ class RouterSpec extends Http4sSpec {
     }
 
     "require the correct prefix" in {
-      service.apply(Request(GET, uri("/letters/1"))).run.status must equal (NotFound)
+      val resp = service.apply(Request(GET, uri("/letters/1"))).run
+      resp.as[String].run must not equal ("bee")
+      resp.as[String].run must not equal ("one")
+      resp.status must equal (NotFound)
     }
 
     "support root mappings" in {
@@ -51,5 +58,20 @@ class RouterSpec extends Http4sSpec {
     "404 on unknown prefixes" in {
       service.apply(Request(GET, uri("/symbols/~"))).run.status must equal (NotFound)
     }
+
+    "Allow passing through of routes with identical prefixes" in {
+      Router("" -> letters, "" -> numbers).apply(Request(GET, uri("/1")))
+        .run.as[String].run must equal ("one")
+    }
+
+    "Serve custom NotFound responses" in {
+      Router("/foo" -> notFound).apply(Request(uri = uri("/foo/bar"))).run.as[String].run must equal ("Custom NotFound")
+    }
+
+    "Return the tagged NotFound response if no route is found" in {
+      val resp = Router("/foo" -> notFound).apply(Request(uri = uri("/bar"))).run
+      resp.attributes.contains(Fallthrough.fallthroughKey) must equal (true)
+    }
+
   }
 }

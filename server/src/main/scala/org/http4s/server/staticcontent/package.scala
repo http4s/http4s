@@ -11,10 +11,10 @@ import org.http4s.headers.`Accept-Ranges`
 package object staticcontent {
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files, possibly from the classpath. */
-  def resourceService(config: ResourceService.Config): PartialService[Request, Response]= ResourceService(config)
+  def resourceService(config: ResourceService.Config): Service[Request, Response]= ResourceService(config)
 
   /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
-  def fileService(config: FileService.Config): PartialService[Request, Response] = FileService(config)
+  def fileService(config: FileService.Config): Service[Request, Response] = FileService(config)
 
   private[staticcontent] val sanitize = "\\.\\.".r.replaceAllIn(_: String, ".")
 

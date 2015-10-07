@@ -44,10 +44,10 @@ object Http4sBuild extends Build {
   }
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.4.v20150727"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.8.2"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.10.0-SNAPSHOT"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.1.6"
   lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % gatlingTest.revision
-  lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.1"
+  lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.3"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
   lazy val jawnArgonaut        = "org.spire-math"           %% "jawn-argonaut"           % jawnParser.revision
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision

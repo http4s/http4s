@@ -41,16 +41,27 @@ trait MessageOps extends Any {
   }
 
   def removeHeader(key: HeaderKey): Self = filterHeaders(_ isNot key)
+/** Replaces the [[Header]]s of the incoming Request object
+    *
+    * @param headers [[Headers]] containing the desired headers
+    * @return a new Request object
+    */
+  @deprecated("Use replaceAllHeaders. Will be removed in 0.11.x", "0.10.0")
+  final def withHeaders(headers: Headers): Self = replaceAllHeaders(headers)
 
+  /** Replace the existing headers with those provided */
+  @deprecated("Use replaceAllHeaders. Will be removed in 0.11.x", "0.10.0")
+  final def withHeaders(headers: Header*): Self = replaceAllHeaders(Headers(headers.toList))
+  
   /** Replaces the [[Header]]s of the incoming Request object
     *
     * @param headers [[Headers]] containing the desired headers
     * @return a new Request object
     */
-  def withHeaders(headers: Headers): Self
+  def replaceAllHeaders(headers: Headers): Self
 
   /** Replace the existing headers with those provided */
-  def withHeaders(headers: Header*): Self = withHeaders(Headers(headers.toList))
+  def replaceAllHeaders(headers: Header*): Self = replaceAllHeaders(Headers(headers.toList))
 
   /** Add the provided headers to the existing headers, replacing those of the same header name
     * The passed headers are assumed to contain no duplicate Singleton headers.

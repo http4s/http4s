@@ -10,7 +10,6 @@ import scalaz.concurrent.Task
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
   val s = fileService(FileService.Config(System.getProperty("user.dir")))
-    .or(Task.now(Response(Status.NotFound)))
 
   "FileService" should {
 
@@ -52,7 +51,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(4)
-      val req = Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(range)
+      val req = Request(uri = uri("server/src/test/resources/testresource.txt")).replaceAllHeaders(range)
       val rb = runReq(req)
 
       rb._2.status must_== Status.PartialContent
@@ -61,7 +60,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(-4)
-      val req = Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(range)
+      val req = Request(uri = uri("server/src/test/resources/testresource.txt")).replaceAllHeaders(range)
       val rb = runReq(req)
 
       rb._2.status must_== Status.PartialContent
@@ -71,7 +70,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Return a 206 PartialContent file" in {
       val range = headers.Range(2,4)
-      val req = Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(range)
+      val req = Request(uri = uri("server/src/test/resources/testresource.txt")).replaceAllHeaders(range)
       val rb = runReq(req)
 
       rb._2.status must_== Status.PartialContent
@@ -87,7 +86,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
                         headers.Range(200, 201),
                         headers.Range(-200)
                        )
-      val reqs = ranges map (r => Request(uri = uri("server/src/test/resources/testresource.txt")).withHeaders(r))
+      val reqs = ranges map (r => Request(uri = uri("server/src/test/resources/testresource.txt")).replaceAllHeaders(r))
       forall(reqs) { req =>
         val rb = runReq(req)
         rb._2.status must_== Status.Ok

@@ -10,6 +10,7 @@ import java.util.concurrent.ExecutorService
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
 
+import org.http4s.blaze.channel
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.{SSLStage, QuietTimeoutStage}
 import org.http4s.blaze.channel.SocketConnection
@@ -27,6 +28,8 @@ class BlazeBuilder(
   serviceExecutor: ExecutorService,
   idleTimeout: Duration,
   isNio2: Boolean,
+  connectorPoolSize: Int,
+  bufferSize: Int,
   enableWebSockets: Boolean,
   sslBits: Option[SSLBits],
   isHttp2Enabled: Boolean,
@@ -45,11 +48,13 @@ class BlazeBuilder(
                  serviceExecutor: ExecutorService = serviceExecutor,
                      idleTimeout: Duration = idleTimeout,
                           isNio2: Boolean = isNio2,
+               connectorPoolSize: Int = connectorPoolSize,
+                      bufferSize: Int = bufferSize,
                 enableWebSockets: Boolean = enableWebSockets,
                          sslBits: Option[SSLBits] = sslBits,
                     http2Support: Boolean = isHttp2Enabled,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, enableWebSockets, sslBits, http2Support, serviceMounts)
+    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, serviceMounts)
 
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
@@ -64,6 +69,10 @@ class BlazeBuilder(
     copy(serviceExecutor = serviceExecutor)
 
   override def withIdleTimeout(idleTimeout: Duration): BlazeBuilder = copy(idleTimeout = idleTimeout)
+
+  def withConnectorPoolSize(size: Int): BlazeBuilder = copy(connectorPoolSize = size)
+
+  def withBufferSize(size: Int): BlazeBuilder = copy(bufferSize = size)
 
   def withNio2(isNio2: Boolean): BlazeBuilder = copy(isNio2 = isNio2)
 
@@ -205,6 +214,8 @@ object BlazeBuilder extends BlazeBuilder(
   serviceExecutor = Strategy.DefaultExecutorService,
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   isNio2 = false,
+  connectorPoolSize = channel.defaultPoolSize,
+  bufferSize = 64*1024,
   enableWebSockets = true,
   sslBits = None,
   isHttp2Enabled = false,

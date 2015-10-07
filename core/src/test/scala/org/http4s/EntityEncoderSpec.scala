@@ -3,7 +3,8 @@ package org.http4s
 import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
-import org.http4s.headers.`Content-Type`
+import org.http4s.EntityEncoder.Entity
+import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 
@@ -73,6 +74,30 @@ class EntityEncoderSpec extends Http4sSpec {
     "render processes" in {
       val helloWorld = Process("hello", "world")
       writeToString(helloWorld) must_== "helloworld"
+    }
+
+    "render processes with chunked transfer encoding" in {
+      implicitly[EntityEncoder[Process[Task, String]]].headers.get(`Transfer-Encoding`) must beLike {
+        case Some(coding) => coding.hasChunked must beTrue
+      }
+    }
+
+    "render processes with chunked transfer encoding without wiping out other encodings" in {
+      trait Foo
+      implicit val FooEncoder: EntityEncoder[Foo] =
+        EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.gzip)) { _ => Task.now(Entity.empty) }
+      implicitly[EntityEncoder[Process[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
+        case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.gzip, TransferCoding.chunked)
+      }
+    }
+
+    "render processes with chunked transfer encoding without duplicating chunked transfer encoding" in {
+      trait Foo
+      implicit val FooEncoder: EntityEncoder[Foo] =
+        EntityEncoder.encodeBy(`Transfer-Encoding`(TransferCoding.chunked)) { _ => Task.now(Entity.empty) }
+      implicitly[EntityEncoder[Process[Task, Foo]]].headers.get(`Transfer-Encoding`) must beLike {
+        case Some(coding) => coding must_== `Transfer-Encoding`(TransferCoding.chunked)
+      }
     }
 
     "render files" in {

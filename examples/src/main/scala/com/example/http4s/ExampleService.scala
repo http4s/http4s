@@ -53,7 +53,7 @@ object ExampleService {
 
     case GET -> Root / "streaming" =>
       // Its also easy to stream responses to clients
-      Ok(dataStream(100)).withHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+      Ok(dataStream(100))
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
@@ -67,11 +67,11 @@ object ExampleService {
     case GET -> Root / "content-change" =>
       // EntityEncoder typically deals with appropriate headers, but they can be overridden
       Ok("<h2>This will have an html content type!</h2>")
-          .withHeaders(`Content-Type`(`text/html`))
+          .withContentType(Some(`Content-Type`(`text/html`)))
 
     case req @ GET -> "static" /: path =>
-      // captures everything after "/directory" into `path`
-      // Try http://localhost:8080/http4s/nasa_blackhole_image.jpg
+      // captures everything after "/static" into `path`
+      // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
       // See also org.http4s.server.staticcontent to create a mountable service for static content
       StaticFile.fromResource(path.toString, Some(req)).fold(NotFound())(Task.now)
 
@@ -79,8 +79,7 @@ object ExampleService {
     //////////////// Dealing with the message body ////////////////
     case req @ POST -> Root / "echo" =>
       // The body can be used in the response
-      Ok(req.body)
-        .withHeaders(`Content-Type`(`text/plain`), `Transfer-Encoding`(TransferCoding.chunked))
+      Ok(req.body).putHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo" =>
       Ok(html.submissionForm("echo data"))
@@ -88,7 +87,7 @@ object ExampleService {
     case req @ POST -> Root / "echo2" =>
       // Even more useful, the body can be transformed in the response
       Ok(req.body.map(_.drop(6)))
-        .withHeaders(`Content-Type`(`text/plain`))
+        .putHeaders(`Content-Type`(`text/plain`))
 
     case req @ GET -> Root / "echo2" =>
       Ok(html.submissionForm("echo data"))
@@ -128,7 +127,7 @@ object ExampleService {
       // http4s intends to be a forward looking library made with http2.0 in mind
       val data = <html><body><img src="image.jpg"/></body></html>
       Ok(data)
-        .withHeaders(`Content-Type`(`text/html`))
+        .withContentType(Some(`Content-Type`(`text/html`)))
         .push("/image.jpg")(req)
 
     case req @ GET -> Root / "image.jpg" =>
@@ -139,7 +138,7 @@ object ExampleService {
 
   // This is a mock data source, but could be a Process representing results from a database
   def dataStream(n: Int): Process[Task, String] = {
-    implicit def defaultSecheduler = DefaultTimeoutScheduler
+    implicit def defaultScheduler = DefaultTimeoutScheduler
     val interval = 100.millis
     val stream = time.awakeEvery(interval)
       .map(_ => s"Current system time: ${System.currentTimeMillis()} ms\n")

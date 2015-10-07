@@ -1,45 +1,26 @@
-package org.http4s.client
+package org.http4s
+package client
 
-import java.util.concurrent.TimeUnit
-import java.util.concurrent._
-
-import org.http4s.BuildInfo
-import org.http4s.headers.{AgentProduct, `User-Agent`}
-import org.http4s.blaze.util.TickWheelExecutor
-
-import scala.concurrent.duration._
+import scalaz.concurrent.Task
 
 
 package object blaze {
 
-  // Centralize some defaults
-  private[blaze] val DefaultTimeout: Duration = 60.seconds
-  private[blaze] val DefaultBufferSize: Int = 8*1024
-  private[blaze] val DefaultUserAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version))))
-  private[blaze] val ClientDefaultEC = {
-    val threadFactory = new ThreadFactory {
-      val defaultThreadFactory = Executors.defaultThreadFactory()
-      def newThread(r: Runnable): Thread = {
-        val t = defaultThreadFactory.newThread(r)
-        t.setDaemon(true)
-        t
-      }
-    }
+  /** Factory function for new client connections.
+    *
+    * The connections must be 'fresh' in the sense that they are newly created
+    * and failure of the resulting client stage is a sign of connection trouble
+    * not due to typical timeouts etc.
+    */
+  type ConnectionBuilder = Request => Task[BlazeClientStage]
 
-    new ThreadPoolExecutor(
-      2,
-      Runtime.getRuntime.availableProcessors() * 6,
-      60L, TimeUnit.SECONDS,
-      new LinkedBlockingQueue[Runnable](),
-      threadFactory
-    )
-  }
-
-  private[blaze] val ClientTickWheel = new TickWheelExecutor()
-
-  /** Default blaze client */
-  val defaultClient = SimpleHttp1Client(timeout = DefaultTimeout,
-                                     bufferSize = DefaultBufferSize,
-                                       executor = ClientDefaultEC,
-                                     sslContext = None)
+  /** Default blaze client
+    *
+    * This client will create a new connection for every request. */
+  val defaultClient = SimpleHttp1Client(
+    idleTimeout = bits.DefaultTimeout,
+    bufferSize = bits.DefaultBufferSize,
+    executor = bits.ClientDefaultEC,
+    sslContext = None
+  )
 }
