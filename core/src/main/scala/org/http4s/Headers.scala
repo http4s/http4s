@@ -7,8 +7,7 @@ import scala.collection.generic.CanBuildFrom
 import scala.collection.mutable.ListBuffer
 import scala.collection.{GenTraversableOnce, immutable, mutable}
 import scalaz.std.list._
-import scalaz.syntax.equal._
-import scalaz.{Equal, Show}
+import scalaz.{NonEmptyList, Equal, Show}
 
 /** A collection of HTTP Headers */
 final class Headers private (headers: List[Header])
@@ -90,6 +89,26 @@ final class Headers private (headers: List[Header])
     }
     else super.++(that)
   }
+
+  /** Uncompress each Header */
+  def normalForm: Headers = {
+    val headersMap = foldLeft(Map.empty[CaseInsensitiveString, NonEmptyList[String]]) { (acc, h) =>
+      val hs = splitHeader(h.value)
+      acc + (h.name -> acc.get(h.name).fold(hs)(_.append(hs)))
+    }
+    // TODO according to Ross, splitting header changes the semantic for one header
+    Headers(
+      headersMap.foldLeft(List.empty[Header]){ case (acc, (k, vs)) =>
+        vs.map(Header.Raw(k, _)).list ++ acc
+      }
+    )
+  }
+
+  private def splitHeader(value: String): NonEmptyList[String] = {
+    val values = value.split(',').toList
+    NonEmptyList.nel(values.head, values.tail) // split always return an Array of size >= 1
+  }
+
 }
 
 object Headers {
@@ -101,11 +120,7 @@ object Headers {
   /** Create a new Headers collection from the headers */
   def apply(headers: List[Header]): Headers = new Headers(headers)
 
-  implicit val eq: Equal[Headers] = Equal.equal((hs1, hs2) =>
-    hs1.size == hs2.size && hs1.groupBy(_.name).zip(hs2.groupBy(_.name)).foldLeft(true){
-      case (acc, ((_, h1), (_, h2))) => acc && h1.toList === h2.toList
-    }
-  )
+  implicit val eq: Equal[Headers] = Equal.equalBy(_.normalForm.toList)
   implicit val show: Show[Headers] = Show.showA
 
   implicit val canBuildFrom: CanBuildFrom[Traversable[Header], Header, Headers] =

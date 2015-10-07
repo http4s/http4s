@@ -41,6 +41,4 @@ class OpticsSpec extends Http4sSpec {
     }
   }
 
-
-
 }
