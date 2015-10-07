@@ -1,0 +1,70 @@
+package org.http4s.optics
+
+import monocle.Prism
+import org.http4s.Status
+
+object status {
+
+  val Continue: Prism[Status, Unit] = Prism.only(Status.Continue)
+  val SwitchingProtocols: Prism[Status, Unit] = Prism.only(Status.SwitchingProtocols)
+  val Processing: Prism[Status, Unit] = Prism.only(Status.Processing)
+
+  val Ok: Prism[Status, Unit] = Prism.only(Status.Ok)
+  val Created: Prism[Status, Unit] = Prism.only(Status.Created)
+  val Accepted: Prism[Status, Unit] = Prism.only(Status.Accepted)
+  val NonAuthoritativeInformation: Prism[Status, Unit] = Prism.only(Status.NonAuthoritativeInformation)
+  val NoContent: Prism[Status, Unit] = Prism.only(Status.NoContent)
+  val ResetContent: Prism[Status, Unit] = Prism.only(Status.ResetContent)
+  val PartialContent: Prism[Status, Unit] = Prism.only(Status.PartialContent)
+  val MultiStatus: Prism[Status, Unit] = Prism.only(Status.MultiStatus)
+  val AlreadyReported: Prism[Status, Unit] = Prism.only(Status.AlreadyReported)
+  val IMUsed: Prism[Status, Unit] = Prism.only(Status.IMUsed)
+
+  val MultipleChoices: Prism[Status, Unit] = Prism.only(Status.MultipleChoices)
+  val MovedPermanently: Prism[Status, Unit] = Prism.only(Status.MovedPermanently)
+  val Found: Prism[Status, Unit] = Prism.only(Status.Found)
+  val SeeOther: Prism[Status, Unit] = Prism.only(Status.SeeOther)
+  val NotModified: Prism[Status, Unit] = Prism.only(Status.NotModified)
+  val UseProxy: Prism[Status, Unit] = Prism.only(Status.UseProxy)
+  val TemporaryRedirect: Prism[Status, Unit] = Prism.only(Status.TemporaryRedirect)
+  val PermanentRedirect: Prism[Status, Unit] = Prism.only(Status.PermanentRedirect)
+
+  val BadRequest: Prism[Status, Unit] = Prism.only(Status.BadRequest)
+  val Unauthorized: Prism[Status, Unit] = Prism.only(Status.Unauthorized)
+  val PaymentRequired: Prism[Status, Unit] = Prism.only(Status.PaymentRequired)
+  val Forbidden: Prism[Status, Unit] = Prism.only(Status.Forbidden)
+  val NotFound: Prism[Status, Unit] = Prism.only(Status.NotFound)
+  val MethodNotAllowed: Prism[Status, Unit] = Prism.only(Status.MethodNotAllowed)
+  val NotAcceptable: Prism[Status, Unit] = Prism.only(Status.NotAcceptable)
+  val ProxyAuthenticationRequired: Prism[Status, Unit] = Prism.only(Status.ProxyAuthenticationRequired)
+  val RequestTimeout: Prism[Status, Unit] = Prism.only(Status.RequestTimeout)
+  val Conflict: Prism[Status, Unit] = Prism.only(Status.Conflict)
+  val Gone: Prism[Status, Unit] = Prism.only(Status.Gone)
+  val LengthRequired: Prism[Status, Unit] = Prism.only(Status.LengthRequired)
+  val PreconditionFailed: Prism[Status, Unit] = Prism.only(Status.PreconditionFailed)
+  val PayloadTooLarge: Prism[Status, Unit] = Prism.only(Status.PayloadTooLarge)
+  val UriTooLong: Prism[Status, Unit] = Prism.only(Status.UriTooLong)
+  val UnsupportedMediaType: Prism[Status, Unit] = Prism.only(Status.UnsupportedMediaType)
+  val RangeNotSatisfiable: Prism[Status, Unit] = Prism.only(Status.RangeNotSatisfiable)
+  val ExpectationFailed: Prism[Status, Unit] = Prism.only(Status.ExpectationFailed)
+  val UnprocessableEntity: Prism[Status, Unit] = Prism.only(Status.UnprocessableEntity)
+  val Locked: Prism[Status, Unit] = Prism.only(Status.Locked)
+  val FailedDependency: Prism[Status, Unit] = Prism.only(Status.FailedDependency)
+  val UpgradeRequired: Prism[Status, Unit] = Prism.only(Status.UpgradeRequired)
+  val PreconditionRequired: Prism[Status, Unit] = Prism.only(Status.PreconditionRequired)
+  val TooManyRequests: Prism[Status, Unit] = Prism.only(Status.TooManyRequests)
+  val RequestHeaderFieldsTooLarge: Prism[Status, Unit] = Prism.only(Status.RequestHeaderFieldsTooLarge)
+
+  val InternalServerError: Prism[Status, Unit] = Prism.only(Status.InternalServerError)
+  val NotImplemented: Prism[Status, Unit] = Prism.only(Status.NotImplemented)
+  val BadGateway: Prism[Status, Unit] = Prism.only(Status.BadGateway)
+  val ServiceUnavailable: Prism[Status, Unit] = Prism.only(Status.ServiceUnavailable)
+  val GatewayTimeout: Prism[Status, Unit] = Prism.only(Status.GatewayTimeout)
+  val HttpVersionNotSupported: Prism[Status, Unit] = Prism.only(Status.HttpVersionNotSupported)
+  val VariantAlsoNegotiates: Prism[Status, Unit] = Prism.only(Status.VariantAlsoNegotiates)
+  val InsufficientStorage: Prism[Status, Unit] = Prism.only(Status.InsufficientStorage)
+  val LoopDetected: Prism[Status, Unit] = Prism.only(Status.LoopDetected)
+  val NotExtended: Prism[Status, Unit] = Prism.only(Status.NotExtended)
+  val NetworkAuthenticationRequired: Prism[Status, Unit] = Prism.only(Status.NetworkAuthenticationRequired)
+
+}

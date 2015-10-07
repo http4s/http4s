@@ -38,7 +38,7 @@ final case class Status private (code: Int)(val reason: String = "", val isEntit
   }
 }
 
-object Status {
+object Status extends StatusInstances {
   sealed trait ResponseClass {
     def isSuccess: Boolean
 
