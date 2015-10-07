@@ -79,7 +79,16 @@ package object server {
       */
     def lift(f: Request => Task[Response]): HttpService = Service.lift(f)
 
-    val notFound: Task[Response] = Task.now(Response(Status.NotFound).withBody("404 Not Found.").run)
+    /** The default 'Not Found' response used when lifting a partial function
+      * to a [[HttpService]] or general 'not handled' results.
+      * 
+      * This particular instance is tagged with an so that it interacts appropriately
+      * attribute to play well with the default [[Fallthrough]] behavior.
+      */
+    val notFound: Task[Response] = Task.now(Response(Status.NotFound)
+                                               .withAttribute(Fallthrough.fallthroughKey, ())
+                                               .withBody("404 Not Found.").run)
+    
     val empty   : HttpService    = Service.const(notFound)
   }
 

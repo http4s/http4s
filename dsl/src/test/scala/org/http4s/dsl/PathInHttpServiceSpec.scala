@@ -158,7 +158,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
     "validating parameter present with incorrect format" in {
       val response = server(Request(GET, Uri(path = "/valid", query = Query.fromString("counter=foo"))))
       response.status must equal (BadRequest)
-      response.body must equalTo("Query decoding failed")
+      response.body must equalTo("Query decoding Int failed")
     }
     "optional validating parameter present" in {
       val response = server(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=3"))))
@@ -173,7 +173,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
     "optional validating parameter present with incorrect format" in {
       val response = server(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=foo"))))
       response.status must equal (BadRequest)
-      response.body must equalTo("Query decoding failed")
+      response.body must equalTo("Query decoding Int failed")
     }
 
   }
