@@ -27,7 +27,8 @@ object Fallthrough {
   /** A [[Response]] specific [[Fallthrough]] which considers any response with a 404
     * status code as a fallthrough. */
   implicit def forResponse: Fallthrough[Response] = new Fallthrough[Response] {
-    def isFallthrough(r: Response): Boolean = r.status.code == 404
+    def isFallthrough(r: Response): Boolean =
+      r.status.code == 404 && r.attributes.contains(HttpService.notFoundServiceKey)
   }
 
   /** A [[Fallthrough]] which never falls through. */

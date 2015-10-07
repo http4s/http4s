@@ -5,36 +5,48 @@ import syntax.ServiceOps
 
 class HttpServiceSpec extends Http4sSpec {
 
-  val srvc1 = HttpService.lift { _ =>
-    Response(Status.NotFound).withBody("srvc1")
-  }
-
- val srvc2 = HttpService {
+ val srvc1 = HttpService {
    case req if req.pathInfo == "/match" =>
     Response(Status.Ok).withBody("match")
 
-   case _ => Response(Status.NotFound).withBody("srvc2")
+   case req if req.pathInfo == "/conflict" =>
+     Response(Status.Ok).withBody("srvc1conflict")
+
+   case req if req.pathInfo == "/notfound" =>
+     Response(Status.NotFound).withBody("notfound")
   }
 
-  val srvc3 = HttpService {
-    case _ if false => ???
+  val srvc2 = HttpService {
+    case req if req.pathInfo == "/srvc2" =>
+      Response(Status.Ok).withBody("srvc2")
+
+    case req if req.pathInfo == "/conflict" =>
+     Response(Status.Ok).withBody("srvc2conflict")
   }
 
   val aggregate1 = srvc1 orElse srvc2
 
-  val aggregate2 = srvc3 || srvc1
-
   "HttpService" should {
-    "Fall through to a second service on NotFound" in {
+    "Return a valid Response from the first service of an aggregate" in {
       aggregate1.apply(Request(uri = uri("/match"))).run.as[String].run must equal ("match")
     }
 
-    "Passthrough custom NotFound" in {
-      aggregate1.apply(Request(uri = uri("/wontMatch"))).run.as[String].run must equal ("srvc2")
+    "Return a custom NotFound from the first service of an aggregate" in {
+      aggregate1.apply(Request(uri = uri("/notfound"))).run.as[String].run must equal ("notfound")
     }
 
-    "Safely skip undefined behavior" in {
-      aggregate2.apply(Request(uri = uri("/wontMatch"))).run.as[String].run must equal ("srvc1")
+    "Accept the first matching route in the case of overlapping paths" in {
+      aggregate1.apply(Request(uri = uri("/conflict"))).run.as[String].run must equal ("srvc1conflict")
+    }
+
+    "Fall through the first service that doesn't match to a second matching service" in {
+      aggregate1.apply(Request(uri = uri("/srvc2"))).run.as[String].run must equal ("srvc2")
+    }
+
+    "Properly fall through two aggregated service if no path matches" in {
+      val resp = aggregate1.apply(Request(uri = uri("/wontMatch"))).run
+      resp.status must equal (Status.NotFound)
+      resp.attributes.contains(HttpService.notFoundServiceKey) must equal (true)
     }
   }
 }

@@ -79,7 +79,18 @@ package object server {
       */
     def lift(f: Request => Task[Response]): HttpService = Service.lift(f)
 
-    val notFound: Task[Response] = Task.now(Response(Status.NotFound).withBody("404 Not Found.").run)
+    val notFoundServiceKey = AttributeKey.http4s[Unit]("defaultNotFound")
+
+    /** The default 'Not Found' response used when lifting a partial function
+      * to a [[HttpService]] or general 'not handled' results.
+      * 
+      * This particular instance is tagged with an so that it interacts appropriately
+      * attribute to play well with the default [[Fallthrough]] behavior.
+      */
+    val notFound: Task[Response] = Task.now(Response(Status.NotFound)
+                                               .withAttribute(notFoundServiceKey, ())
+                                               .withBody("404 Not Found.").run)
+    
     val empty   : HttpService    = Service.const(notFound)
   }
 
