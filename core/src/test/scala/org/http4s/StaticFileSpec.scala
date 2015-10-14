@@ -23,5 +23,12 @@ class StaticFileSpec extends Http4sSpec {
 
       forall(tests){ case (p,om) => check(p, om) }
     }
+
+    "handle an empty file" in {
+      val emptyFile = File.createTempFile("empty", null)
+
+      StaticFile.fromFile(emptyFile) must beSome[Response]
+    }
+
   }
 }
