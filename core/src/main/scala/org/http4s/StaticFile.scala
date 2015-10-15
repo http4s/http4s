@@ -69,7 +69,7 @@ object StaticFile {
                         (implicit es: ExecutorService): Option[Response] = {
     if (!f.isFile) return None
 
-    require (start >= 0 && end > start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
+    require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
     val lastModified = DateTime(f.lastModified())
 
