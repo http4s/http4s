@@ -15,8 +15,9 @@ object SimpleHttp1Client {
           userAgent: Option[`User-Agent`] = bits.DefaultUserAgent,
            executor: ExecutorService = bits.ClientDefaultEC,
          sslContext: Option[SSLContext] = None,
+     endpointAuthentication: Boolean = true,
               group: Option[AsynchronousChannelGroup] = None) = {
-    val manager = ConnectionManager.basic(Http1Support(bufferSize,  userAgent, executor, sslContext, group))
+    val manager = ConnectionManager.basic(Http1Support(bufferSize,  userAgent, executor, sslContext, endpointAuthentication, group))
     new BlazeClient(manager, idleTimeout, requestTimeout)
   }
 }
