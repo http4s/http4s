@@ -7,11 +7,11 @@ class ServletContainerSpec extends Http4sSpec {
     import ServletContainer.prefixMapping
 
     "append /* when prefix does not have trailing slash" in {
-      prefixMapping("/foo") must equal("/foo/*")
+      prefixMapping("/foo") must_== ("/foo/*")
     }
 
     "append * when prefix has trailing slash" in {
-      prefixMapping("/") must equal("/*")
+      prefixMapping("/") must_== ("/*")
     }
   }
 }

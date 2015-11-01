@@ -30,12 +30,12 @@ class RetrySpec extends Http4sSpec {
         if (attempts >= max) None
         else {
           attempts = attempts + 1
-          Some(10 milliseconds)
+          Some(10.milliseconds)
         }
       }
       val client = Retry(policy)(defaultClient)
       val resp = client(getUri(s"http://localhost/boom")).run
-      attempts must_==2 
+      attempts must_== 2
     }
 
     "Not retry successful responses" in {
@@ -45,7 +45,7 @@ class RetrySpec extends Http4sSpec {
         if (attempts >= max) None
         else {
           attempts = attempts + 1
-          Some(10 milliseconds)
+          Some(10.milliseconds)
         }
       }
       val client = Retry(policy)(defaultClient)

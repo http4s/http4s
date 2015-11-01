@@ -391,7 +391,8 @@ lazy val commonSettings = Seq(
     scalameter,
     scalazScalacheckBinding,
     scalaCheck,
-    scalazSpecs2
+    specs2,
+    specs2_scalacheck
   ).map(_ % "test")
 )
 

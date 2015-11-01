@@ -45,7 +45,7 @@ class AuthenticationSpec extends Http4sSpec {
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
       val res = basic.apply(req).run
       isNuked must_== false
-      res.status must equal (Unauthorized)
+      res.status must_== (Unauthorized)
     }
   }
 
@@ -54,31 +54,31 @@ class AuthenticationSpec extends Http4sSpec {
       val req = Request(uri = Uri(path = "/"))
       val res = basic.apply(req).run
 
-      res.status must equal (Unauthorized)
-      res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
+      res.status must_== (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
     "Respond to a request with unknown username with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
       val res = basic.apply(req).run
 
-      res.status must equal (Unauthorized)
-      res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
+      res.status must_== (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
     "Respond to a request with wrong password with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
       val res = basic.apply(req).run
 
-      res.status must equal (Unauthorized)
-      res.headers.get(`WWW-Authenticate`).map(_.value) must equal (Some(Challenge("Basic", realm, Nil.toMap).toString))
+      res.status must_== (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
     "Respond to a request with correct credentials" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
       val res = basic.apply(req).run
 
-      res.status must equal (Ok)
+      res.status must_== (Ok)
     }
   }
 
@@ -92,7 +92,7 @@ class AuthenticationSpec extends Http4sSpec {
       val req = Request(uri = Uri(path = "/"))
       val res = digest.apply(req).run
 
-      res.status must equal (Status.Unauthorized)
+      res.status must_== (Status.Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
       opt.isDefined must beTrue
       val challenge = parse(opt.get).values.head
@@ -110,7 +110,7 @@ class AuthenticationSpec extends Http4sSpec {
       val req = Request(uri = Uri(path = "/"))
       val res = digest.apply(req).run
 
-      res.status must equal (Unauthorized)
+      res.status must_== (Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
       opt.isDefined must beTrue
       val challenge = parse(opt.get).values.head
@@ -156,10 +156,10 @@ class AuthenticationSpec extends Http4sSpec {
 
       val (res2, res3) = doDigestAuth2(digest, challenge, true)
 
-      res2.status must equal (Ok)
+      res2.status must_== (Ok)
 
       // Digest prevents replay
-      res3.status must equal (Unauthorized)
+      res3.status must_== (Unauthorized)
 
       ok
     }

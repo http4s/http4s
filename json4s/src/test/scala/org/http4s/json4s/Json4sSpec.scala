@@ -21,7 +21,7 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     }
 
     "write compact JSON" in {
-      writeToString(json) must equal ("""{"test":"json4s"}""")
+      writeToString(json) must_== ("""{"test":"json4s"}""")
     }
   }
 
@@ -31,19 +31,19 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     }
 
     "write compact JSON with a json4s writer" in {
-      writeToString(42.some)(jsonEncoderOf[Option[Int]]) must equal ("""42""")
+      writeToString(42.some)(jsonEncoderOf[Option[Int]]) must_== ("""42""")
     }
   }
 
   "jsonOf" should {
     "decode JSON from an json4s reader" in {
       val result = jsonOf[Int].decode(Request().withBody("42").run)
-      result.run.run must beRightDisjunction(42)
+      result.run.run must be_\/-(42)
     }
 
     "handle reader failures" in {
       val result = jsonOf[Int].decode(Request().withBody(""""oops"""").run)
-      result.run.run must beLeftDisjunction.like {
+      result.run.run must be_-\/.like {
         case ParseFailure("Could not map JSON", _) => ok
       }
     }

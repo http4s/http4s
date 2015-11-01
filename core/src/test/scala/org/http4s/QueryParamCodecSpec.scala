@@ -1,10 +1,9 @@
 package org.http4s
 
-import org.specs2.scalaz.Spec
 import scalaz.std.string._
 import scalaz.std.anyVal._
 
-class QueryParamCodecSpec extends Spec {
+class QueryParamCodecSpec extends Http4sSpec {
 
   checkAll("Boolean QueryParamCodec", QueryParamCodecLaws[Boolean])
   checkAll("Double QueryParamCodec" , QueryParamCodecLaws[Double])

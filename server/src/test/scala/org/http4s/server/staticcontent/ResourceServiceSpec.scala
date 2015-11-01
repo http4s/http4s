@@ -46,7 +46,7 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
 
     "Generate non on missing content" in {
       val req = Request(uri = Uri.fromString("testresource.txtt").yolo)
-      runReq(req)._2.status must equal (Status.NotFound)
+      runReq(req)._2.status must_== (Status.NotFound)
     }
   }
 

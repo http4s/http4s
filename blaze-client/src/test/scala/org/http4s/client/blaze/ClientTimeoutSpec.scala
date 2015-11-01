@@ -121,7 +121,7 @@ class ClientTimeoutSpec extends Http4sSpec {
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(10.second, 30.seconds)
 
-      c.prepare(req).as[String].run must equal("done")
+      c.prepare(req).as[String].run must_== ("done")
     }
 
     "Request timeout on slow response body" in {

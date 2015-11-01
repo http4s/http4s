@@ -53,8 +53,8 @@ class Http1ServerStageSpec extends Specification {
   "Http1ServerStage: Common responses" should {
     Fragment.foreach(ServerTestRoutes.testRequestResults.zipWithIndex) { case ((req, (status,headers,resp)), i) =>
       s"Run request $i Run request: --------\n${req.split("\r\n\r\n")(0)}\n" in {
-        val result = runRequest(Seq(req), ServerTestRoutes())
-        result.map(parseAndDropDate) must be_== ((status, headers, resp)).await(0, 5.seconds)
+        val result = Await.result(runRequest(Seq(req), ServerTestRoutes()), 5.seconds)
+        parseAndDropDate(result) must_== ((status, headers, resp))
       }
     }
   }
@@ -74,16 +74,18 @@ class Http1ServerStageSpec extends Specification {
 
     "Deal with synchronous errors" in {
       val path = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      val result = runError(path)
+      val (s,c,_) = Await.result(runError(path), 10.seconds)
 
-      result.map{ case (s, c, _) => (s, c)} must be_== ((InternalServerError, true)).await
+      s must_== InternalServerError
+      c must_== true
     }
 
     "Deal with asynchronous errors" in {
       val path = "GET /async HTTP/1.1\r\nConnection:keep-alive\r\n\r\n"
-      val result = runError(path)
+      val (s,c,_) = Await.result(runError(path), 10.seconds)
 
-      result.map{ case (s, c, _) => (s, c)} must be_== ((InternalServerError, true)).await
+      s must_== InternalServerError
+      c must_== true
     }
   }
 

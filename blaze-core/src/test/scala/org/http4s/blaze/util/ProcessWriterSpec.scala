@@ -95,7 +95,7 @@ class ProcessWriterSpec extends Specification {
           else throw Cause.Terminated(Cause.End)
         }
       }
-      val p = Process.repeatEval(t) ++ emit(ByteVector("bar".getBytes(StandardCharsets.ISO_8859_1)))
+      val p = Process.repeatEval(t).onHalt(_.asHalt) ++ emit(ByteVector("bar".getBytes(StandardCharsets.ISO_8859_1)))
       writeProcess(p)(builder) must_== "Content-Length: 9\r\n\r\n" + "foofoobar"
     }
   }

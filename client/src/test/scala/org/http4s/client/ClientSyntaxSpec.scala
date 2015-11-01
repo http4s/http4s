@@ -83,14 +83,14 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
     "attemptAs with successful result" in {
       client(req).attemptAs[String]
-        .run.run must beRightDisjunction("hello")
+        .run.run must be_\/-("hello")
     }
 
     "attemptAs with failed parsing result" in {
       val grouchyEncoder = EntityDecoder.decodeBy[Any](MediaRange.`*/*`) { _ =>
         DecodeResult.failure(ParseFailure("MEH!", "MEH!"))
       }
-      client(req).attemptAs[Any](grouchyEncoder).run.run must beLeftDisjunction
+      client(req).attemptAs[Any](grouchyEncoder).run.run must be_-\/
     }
 
     "prepAs must add Accept header" in {

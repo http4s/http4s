@@ -41,7 +41,7 @@ class ScalaXmlSpec extends Http4sSpec {
     "return 400 on parse error" in {
       val body = strBody("This is not XML.")
       val tresp = server(Request(body = body))
-      tresp.run.status must equal (Status.BadRequest)
+      tresp.run.status must_== (Status.BadRequest)
     }
   }
 
