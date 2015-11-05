@@ -38,8 +38,9 @@ object Http1Support {
              userAgent: Option[`User-Agent`],
                     es: ExecutorService,
            osslContext: Option[SSLContext],
+       endpointAuthentication: Boolean,
                  group: Option[AsynchronousChannelGroup]): ConnectionBuilder = {
-    val builder = new Http1Support(bufferSize, userAgent, es, osslContext, group)
+    val builder = new Http1Support(bufferSize, userAgent, es, osslContext, endpointAuthentication, group)
     builder.makeClient
   }
 
@@ -53,6 +54,7 @@ final private class Http1Support(bufferSize: Int,
                           userAgent: Option[`User-Agent`],
                                  es: ExecutorService,
                         osslContext: Option[SSLContext],
+             endpointAuthentication: Boolean,
                               group: Option[AsynchronousChannelGroup]) {
   import Http1Support._
 
@@ -79,7 +81,7 @@ final private class Http1Support(bufferSize: Int,
     val t = new Http1ClientStage(userAgent, ec)
     val builder = LeafBuilder(t)
     uri match {
-      case Uri(Some(Https),Some(auth),_,_,_) =>
+      case Uri(Some(Https),Some(auth),_,_,_) if endpointAuthentication =>
         val eng = sslContext.createSSLEngine(auth.host.value, auth.port getOrElse 443)
         eng.setUseClientMode(true)
 
@@ -88,6 +90,7 @@ final private class Http1Support(bufferSize: Int,
         eng.setSSLParameters(sslParams)
 
         (builder.prepend(new SSLStage(eng)),t)
+
       case Uri(Some(Https),_,_,_,_) =>
         val eng = sslContext.createSSLEngine()
         eng.setUseClientMode(true)
