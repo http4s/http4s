@@ -124,7 +124,7 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
             state.set(Blocked(cb))
         }
       }
-    }
+    } onHalt (_.asHalt)
   }
 
   override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = {

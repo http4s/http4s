@@ -122,7 +122,7 @@ class Http2NodeStage(streamId: Int,
       }
     }
 
-    Process.repeatEval(t)
+    Process.repeatEval(t).onHalt(_.asHalt)
   }
 
   private def checkAndRunRequest(hs: Headers, endStream: Boolean): Unit = {

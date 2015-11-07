@@ -27,7 +27,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         .flatMapR(s => DecodeResult.success("bar"))
         .decode(req)
         .run
-        .run must beRightDisjunction("bar")
+        .run must be_\/-("bar")
     }
 
     "flatMapR with failure" in {
@@ -35,7 +35,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         .flatMapR(s => DecodeResult.failure[String](ParseFailure("bummer", "real bummer")))
         .decode(req)
         .run
-        .run must beLeftDisjunction(ParseFailure("bummer", "real bummer"))
+        .run must be_-\/(ParseFailure("bummer", "real bummer"))
     }
   }
 
@@ -46,13 +46,13 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
         request.decodeWith(happyDecoder) { s => cb(\/-(s)); Task.now(Response()) }.run
-      }.run must equal ("hooray")
+      }.run must_== ("hooray")
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!", ""))))
       val resp = request.decodeWith(grumpyDecoder) { _ => Task.now(Response())}.run
-      resp.status must equal (Status.BadRequest)
+      resp.status must_== (Status.BadRequest)
     }
   }
 
@@ -175,7 +175,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request()
-      binary.decode(msg).run.run must beRightDisjunction.like { case ByteVector.empty => ok }
+      binary.decode(msg).run.run must be_\/-.like { case ByteVector.empty => ok }
     }
 
     "concat ByteVectors" in {

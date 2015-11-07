@@ -11,7 +11,7 @@ class AcceptCharsetSpec extends Http4sSpec with HeaderParserHelper[`Accept-Chars
   "Accept-Charset" should {
     "parse any list of CharsetRanges to itself" in {
       prop { h: `Accept-Charset` =>
-        hparse(h.value) must beRightDisjunction(h)
+        hparse(h.value) must be_\/-(h)
       }
     }
 

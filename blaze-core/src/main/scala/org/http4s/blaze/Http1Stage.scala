@@ -174,7 +174,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
         else cb(-\/(Terminated(End)))
       }
 
-      (repeatEval(t), () => drainBody(currentBuffer))
+      (repeatEval(t).onHalt(_.asHalt), () => drainBody(currentBuffer))
     }
   }
 

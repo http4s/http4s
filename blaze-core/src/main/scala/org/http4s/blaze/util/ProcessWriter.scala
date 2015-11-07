@@ -71,7 +71,7 @@ trait ProcessWriter {
         case Failure(t) => bounce(Try(stack.head(Cause.Error(t)).run), stack.tail, cb)
       }
 
-    case Await(t, f) => ec.execute(
+    case Await(t, f, _) => ec.execute(
       new Runnable {
         override def run(): Unit = t.runAsync { // Wait for it to finish, then continue to unwind
           case r@ \/-(_) => bounce(Try(f(r).run), stack, cb)

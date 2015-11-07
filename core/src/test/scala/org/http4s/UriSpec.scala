@@ -241,7 +241,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt")
       foreach (examples) { e =>
-        Uri.fromString(e) must beRightDisjunction.like { case u => u.toString must be_==(e) }
+        Uri.fromString(e) must be_\/-.like { case u => u.toString must be_==(e) }
       }
     }
 

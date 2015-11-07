@@ -59,7 +59,7 @@ class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
 
       go()
     }
-    Process.repeatEval(t)
+    Process.repeatEval(t).onHalt(_.asHalt)
   }
 
   //////////////////////// Startup and Shutdown ////////////////////////

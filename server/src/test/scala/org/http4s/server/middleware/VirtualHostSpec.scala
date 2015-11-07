@@ -44,21 +44,21 @@ class VirtualHostSpec extends Http4sSpec {
         val req = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("servicea"))
 
-        virtualServices.apply(req).run.as[String].run must equal ("servicea")
+        virtualServices.apply(req).run.as[String].run must_== ("servicea")
       }
 
       "honor the Host header port" in {
         val req = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("serviceb", Some(80)))
 
-        virtualServices.apply(req).run.as[String].run must equal ("serviceb")
+        virtualServices.apply(req).run.as[String].run must_== ("serviceb")
       }
 
       "ignore the Host header port if not specified" in {
         val good = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("servicea", Some(80)))
 
-        virtualServices.apply(good).run.as[String].run must equal ("servicea")
+        virtualServices.apply(good).run.as[String].run must_== ("servicea")
       }
 
       "result in a 404 if the hosts fail to match" in {
@@ -80,14 +80,14 @@ class VirtualHostSpec extends Http4sSpec {
         val req = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("servicea", Some(80)))
 
-        virtualServices.apply(req).run.as[String].run must equal ("servicea")
+        virtualServices.apply(req).run.as[String].run must_== ("servicea")
       }
 
       "allow for a dash in the service" in {
         val req = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("foo.foo-service", Some(80)))
 
-        virtualServices.apply(req).run.as[String].run must equal ("default")
+        virtualServices.apply(req).run.as[String].run must_== ("default")
       }
 
       "match a route with a wildcard route" in {
@@ -97,7 +97,7 @@ class VirtualHostSpec extends Http4sSpec {
                        req.replaceAllHeaders(Host("b.service", Some(80))))
 
         forall(reqs){ req =>
-          virtualServices.apply(req).run.as[String].run must equal ("serviceb")
+          virtualServices.apply(req).run.as[String].run must_== ("serviceb")
         }
       }
 
