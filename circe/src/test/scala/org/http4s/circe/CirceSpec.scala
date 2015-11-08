@@ -28,7 +28,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
 
     "write compact JSON" in {
-      writeToString(json) must equal ("""{"test":"CirceSupport"}""")
+      writeToString(json) must_== ("""{"test":"CirceSupport"}""")
     }
   }
 
@@ -38,7 +38,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
 
     "write compact JSON" in {
-      writeToString(foo)(jsonEncoderOf[Foo]) must equal ("""{"bar":42}""")
+      writeToString(foo)(jsonEncoderOf[Foo]) must_== ("""{"bar":42}""")
     }
   }
 
@@ -57,7 +57,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
       val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.numberOrNull(42))).run)
-      result.run.run must beRightDisjunction(Foo(42))
+      result.run.run must be_\/-(Foo(42))
     }
   }
 }
