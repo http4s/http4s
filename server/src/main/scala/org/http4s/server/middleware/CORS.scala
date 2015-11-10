@@ -2,6 +2,8 @@ package org.http4s
 package server
 package middleware
 
+import Method.OPTIONS
+
 import org.http4s.headers.{
   `Access-Control-Allow-Origin`,
   `Access-Control-Allow-Credentials`,
@@ -41,6 +43,9 @@ case class CORSConfig(
 object CORS {
   private[CORS] val logger = getLogger
 
+  private[CORS] val ok =
+    Service.constVal[Request, Response](Response(Status.Ok))
+
   def DefaultCORSConfig = CORSConfig(
     anyOrigin = true,
     allowCredentials = true,
@@ -54,16 +59,15 @@ object CORS {
    */
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
 
-    def options(origin: Header, acrm: Header): HttpService = Service.lift { req: Request =>
-      service.map { resp =>
+    def options(origin: Header, acrm: Header): HttpService =
+      Service.withFallback(ok)(service).map { resp =>
         if (resp.status.isSuccess)
           corsHeaders(origin.value, acrm.value)(resp)
         else {
           logger.info(s"CORS headers would have been allowed for ${req.method} ${req.uri}")
           resp
         }
-      }.run(req)
-    }
+      }
 
     def corsHeaders(origin: String, acrm: String)(resp: Response): Response =
       config.allowedHeaders.map(_.mkString("", ", ", "")).cata(
@@ -89,7 +93,7 @@ object CORS {
     }
 
     (req.method, req.headers.get(Origin), req.headers.get(`Access-Control-Request-Method`)) match {
-      case (Method.OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
+      case (OPTIONS, Some(origin), Some(acrm)) if allowCORS(origin, acrm) =>
         logger.debug(s"Serving OPTIONS with CORS headers for ${acrm} ${req.uri}")
         options(origin, acrm)(req)
       case (_, Some(origin), _) if allowCORS(origin, Header("Access-Control-Request-Method", req.method.renderString)) =>
