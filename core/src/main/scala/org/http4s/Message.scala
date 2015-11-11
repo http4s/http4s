@@ -217,11 +217,18 @@ case class Request(
   /** Helper method for decoding [[Request]]s
     *
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated.
+    * If decoding fails, a BadRequest [[Response]] is generated. If the decoder does not support the
+    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
   def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
     decoder.decode(this).fold(
-      e => Response(Status.BadRequest, httpVersion).withBody(e.sanitized),
+      e => e match {
+        case e: ParseFailure => Response(Status.BadRequest, httpVersion).withBody(e.sanitized)
+        case e: MediaTypeMismatch => Response(Status.UnsupportedMediaType, httpVersion).withBody(
+          s"${e.messageType} is not a supported media type. Please send a request that satisfies one of the following media ranges: ${e.expected}")
+        case e: MediaTypeMissing => Response(Status.UnsupportedMediaType, httpVersion).withBody(
+          s"Please specify a media type in the following ranges: ${e.expected}")
+      },
       f
     ).join
 

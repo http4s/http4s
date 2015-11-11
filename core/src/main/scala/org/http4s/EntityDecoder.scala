@@ -20,10 +20,11 @@ import scalaz.{-\/, EitherT, \/, \/-}
 import util.UrlFormCodec.{ decode => formDecode }
 import util.byteVector._
 
-/** A type that can be used to decode an [[EntityBody]]
-  * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
+/** A type that can be used to decode a [[Message]]
+  * EntityDecoder is used to attempt to decode a [[Message]] returning the
   * entire resulting A. If an error occurs it will result in a failed Task
-  * These are not streaming constructs.
+  * The default decoders provided here are not streaming, but one could implement
+  * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder
   */
 sealed trait EntityDecoder[T] { self =>
@@ -33,17 +34,24 @@ sealed trait EntityDecoder[T] { self =>
   /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
 
+  /** Whether or not this [[EntityDecoder]] will attempt to decode a message
+    * that does not specify a [[MediaRange]]
+    */
+  def isLenient: Boolean
+
   /** Make a new [[EntityDecoder]] by mapping the output result */
   def map[T2](f: T => T2): EntityDecoder[T2] = new EntityDecoder[T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
     override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
+    override def isLenient = self.isLenient
   }
 
   def flatMapR[T2](f: T => DecodeResult[T2]): EntityDecoder[T2] = new EntityDecoder[T2] {
     override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).flatMap(f)
 
     override def consumes: Set[MediaRange] = self.consumes
+    override def isLenient = self.isLenient
   }
 
   /** Combine two [[EntityDecoder]]'s
@@ -60,7 +68,7 @@ sealed trait EntityDecoder[T] { self =>
   def matchesMediaType(msg: Message): Boolean = {
     msg.headers.get(`Content-Type`) match {
       case Some(h) => matchesMediaType(h.mediaType)
-      case None => false
+      case None => isLenient
     }
   }
 
@@ -71,6 +79,18 @@ sealed trait EntityDecoder[T] { self =>
   // shamelessly stolen from IList
   def widen[B](implicit ev: T <~< B): EntityDecoder[B] =
     ev.subst[({type λ[-α] = EntityDecoder[α @uncheckedVariance] <~< EntityDecoder[B]})#λ](refl)(this)
+
+  def asLenient = new EntityDecoder[T] {
+    override def decode(msg: Message): DecodeResult[T] = this.decode(msg)
+    override def consumes: Set[MediaRange] = self.consumes
+    override def isLenient: Boolean = true
+  }
+
+  def asStrict = new EntityDecoder[T] {
+    override def decode(msg: Message): DecodeResult[T] = this.decode(msg)
+    override def consumes: Set[MediaRange] = self.consumes
+    override def isLenient: Boolean = false
+  }
 }
 
 /** EntityDecoder is used to attempt to decode an [[EntityBody]]
@@ -84,7 +104,8 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** Create a new [[EntityDecoder]]
     *
-    * The new [[EntityEncoder]] will attempt to decoder messages of type `T`
+    * The new [[EntityDecoder]] will attempt to decode messages of type `T`
+    * only if the [[Message]] satisfies the provided [[MediaRange]]s
     */
   def decodeBy[T](r1: MediaRange, rs: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
@@ -95,6 +116,7 @@ object EntityDecoder extends EntityDecoderInstances {
     }
 
     override val consumes: Set[MediaRange] = (r1 +: rs).toSet
+    override val isLenient = false
   }
 
   private class OrDec[T](a: EntityDecoder[T], b: EntityDecoder[T]) extends EntityDecoder[T] {
@@ -104,6 +126,7 @@ object EntityDecoder extends EntityDecoderInstances {
     }
 
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
+    override val isLenient = a.isLenient || b.isLenient
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
@@ -127,6 +150,7 @@ trait EntityDecoderInstances {
       DecodeResult(msg.body.kill.run.flatMap(_ => Task.fail(t)))
     }
     override def consumes: Set[MediaRange] = Set.empty
+    override def isLenient = true
   }
 
   implicit val binary: EntityDecoder[ByteVector] = {
@@ -153,13 +177,13 @@ trait EntityDecoderInstances {
 }
 
 object DecodeResult {
-  def apply[A](task: Task[ParseResult[A]]): DecodeResult[A] = EitherT[Task, ParseFailure, A](task)
+  def apply[A](task: Task[ParseResult[A]]): DecodeResult[A] = EitherT[Task, DecodeFailure, A](task)
 
   def success[A](a: Task[A]): DecodeResult[A] = EitherT.right(a)
 
   def success[A](a: A): DecodeResult[A] = EitherT(Task.now(\/-(a): ParseFailure\/A))
 
-  def failure[A](e: Task[ParseFailure]): DecodeResult[A] = EitherT.left(e)
+  def failure[A](e: Task[DecodeFailure]): DecodeResult[A] = EitherT.left(e)
 
-  def failure[A](e: ParseFailure): DecodeResult[A] = EitherT(Task.now(-\/(e): ParseFailure\/A))
+  def failure[A](e: DecodeFailure): DecodeResult[A] = EitherT(Task.now(-\/(e): DecodeFailure\/A))
 }

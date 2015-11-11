@@ -37,6 +37,85 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         .run
         .run must be_-\/(ParseFailure("bummer", "real bummer"))
     }
+
+    val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
+      DecodeResult.failure(ParseFailure("Nope.", ""))
+    }
+
+    val strictDecoder = EntityDecoder.decodeBy(MediaType.`application/gnutar`) { msg =>
+      DecodeResult.success(1)
+    }
+
+    val otherStrictDecoder = EntityDecoder.decodeBy(MediaType.`application/excel`) { msg =>
+      DecodeResult.success(2)
+    }
+
+    "Not match invalid media type" in {
+      val req = Response(Ok).withBody("foo").run
+      nonMatchingDecoder.matchesMediaType(req) must_== false
+    }
+
+    "Match valid media range" in {
+      val req = Response(Ok).withBody("foo").run
+      EntityDecoder.text.matchesMediaType(req) must_== true
+    }
+
+    "Match request without media type only if isLenient is true" in {
+      val req = Request()
+      strictDecoder.matchesMediaType(req) must_== false
+      strictDecoder.asLenient.matchesMediaType(req) must_== true
+    }
+
+    "Match valid media type to a range" in {
+      val req = Request(headers = Headers(`Content-Type`(MediaType.`text/css`)))
+      EntityDecoder.text.matchesMediaType(req) must_== true
+    }
+
+    "Match with consistent behavior" in {
+      val tpe = MediaType.`text/css`
+      val req = Request(headers = Headers(`Content-Type`(tpe)))
+      (EntityDecoder.text.matchesMediaType(req) must_== true)   and
+        (EntityDecoder.text.matchesMediaType(tpe) must_== true)   and
+        (nonMatchingDecoder.matchesMediaType(req) must_== false) and
+        (nonMatchingDecoder.matchesMediaType(tpe) must_== false)
+    }
+
+    "composing EntityDecoders with orElse" >> {
+      "a composite decoder is lenenient if any of it's child decoders are lenient" in {
+        (strictDecoder orElse otherStrictDecoder).isLenient must_== false
+        (strictDecoder.asLenient orElse otherStrictDecoder).isLenient must_== true
+        (strictDecoder orElse otherStrictDecoder.asLenient).isLenient must_== true
+        (strictDecoder.asLenient orElse otherStrictDecoder.asLenient).isLenient must_== true
+      }
+      "if the first decoder is lenient, it will attempt to decode a Message without a MediaType" in {
+        val req = Request()
+        (strictDecoder.asLenient orElse otherStrictDecoder).decode(req) must_== DecodeResult.success(1)
+      }
+      "if both decoders are strict, a message without a MediaType will produce a MediaTypeMissing decode failure" in {
+        val req = Request()
+        val consumes = strictDecoder.consumes ++ otherStrictDecoder.consumes
+        (strictDecoder orElse otherStrictDecoder).decode(req) must_== DecodeResult.failure(MediaTypeMissing(consumes))
+      }
+      "A message with a MediaType that is not supported by any of the decoders" +
+        " will always produce a MediaTypeMismatch decode failure" in {
+        val reqMediaType = MediaType.`application/atom+xml`
+        val req = Request(headers = Headers(`Content-Type`(reqMediaType)))
+        val expected = DecodeResult.failure(MediaTypeMismatch(reqMediaType, strictDecoder.consumes ++ otherStrictDecoder.consumes))
+        (strictDecoder orElse otherStrictDecoder).decode(req) must_== expected
+        (strictDecoder.asLenient orElse otherStrictDecoder).decode(req) must_== expected
+        (strictDecoder orElse otherStrictDecoder.asLenient).decode(req) must_== expected
+        (strictDecoder.asLenient orElse otherStrictDecoder.asLenient).decode(req) must_== expected
+      }
+      "A catch all decoder will always attempt to decode a message" in {
+        val reqSomeOtherMediaType = Request(headers = Headers(`Content-Type`(MediaType.`text/x-h`)))
+        val reqNoMediaType = Request()
+        val catchAllDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+          DecodeResult.success(3)
+        }
+        (strictDecoder orElse catchAllDecoder).decode(reqSomeOtherMediaType) must_== DecodeResult.success(3)
+        (strictDecoder orElse catchAllDecoder).decode(reqNoMediaType) must_== DecodeResult.success(3)
+      }
+    }
   }
 
   "apply" should {
@@ -136,40 +215,6 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         tmpFile.delete()
       }
     }
-
-    "Match any media type" in {
-      val req = Response(Ok).withBody("foo").run
-      binary.matchesMediaType(req) must_== true
-    }
-
-    val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
-      DecodeResult.failure(ParseFailure("Nope.", ""))
-    }
-
-    "Not match invalid media type" in {
-      val req = Response(Ok).withBody("foo").run
-      nonMatchingDecoder.matchesMediaType(req) must_== false
-    }
-
-    "Match valid media range" in {
-      val req = Response(Ok).withBody("foo").run
-      EntityDecoder.text.matchesMediaType(req) must_== true
-    }
-
-    "Match valid media type to a range" in {
-      val req = Request(headers = Headers(`Content-Type`(MediaType.`text/css`)))
-      EntityDecoder.text.matchesMediaType(req) must_== true
-    }
-
-    "Match with consistent behavior" in {
-      val tpe = MediaType.`text/css`
-      val req = Request(headers = Headers(`Content-Type`(tpe)))
-      (EntityDecoder.text.matchesMediaType(req) must_== true)   and
-      (EntityDecoder.text.matchesMediaType(tpe) must_== true)   and
-      (nonMatchingDecoder.matchesMediaType(req) must_== false) and
-      (nonMatchingDecoder.matchesMediaType(tpe) must_== false)
-    }
-
   }
 
   "binary EntityDecoder" should {
@@ -186,6 +231,11 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val result = binary.decode(msg).run.run
 
       result must_== (\/-(ByteVector(1, 2, 3, 4, 5, 6)))
+    }
+
+    "Match any media type" in {
+      val req = Response(Ok).withBody("foo").run
+      binary.matchesMediaType(req) must_== true
     }
   }
 
