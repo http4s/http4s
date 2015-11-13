@@ -29,14 +29,7 @@ import util.byteVector._
   */
 sealed trait EntityDecoder[T] { self =>
   /** Attempt to decode the body of the [[Message]] */
-  def decode(msg: Message): DecodeResult[T]
-
-  def decodeStrict(msg: Message): MediaTypeError \/ DecodeResult[T] = {
-    msg.headers.get(`Content-Type`).map{ contentType =>
-      if (matchesMediaType(contentType.mediaType)) \/-(decode(msg))
-      else -\/(MediaTypeMismatch(contentType.mediaType,consumes))
-    }.getOrElse(-\/(MediaTypeMissing(consumes)))
-  }
+  def decode(msg: Message, strict: Boolean): DecodeResult[T]
 
   /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
@@ -45,11 +38,11 @@ sealed trait EntityDecoder[T] { self =>
   def map[T2](f: T => T2): EntityDecoder[T2] = new EntityDecoder[T2] {
     override def consumes: Set[MediaRange] = self.consumes
 
-    override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).map(f)
+    override def decode(msg: Message, strict: Boolean): DecodeResult[T2] = self.decode(msg, strict).map(f)
   }
 
   def flatMapR[T2](f: T => DecodeResult[T2]): EntityDecoder[T2] = new EntityDecoder[T2] {
-    override def decode(msg: Message): DecodeResult[T2] = self.decode(msg).flatMap(f)
+    override def decode(msg: Message, strict: Boolean): DecodeResult[T2] = self.decode(msg, strict).flatMap(f)
 
     override def consumes: Set[MediaRange] = self.consumes
   }
@@ -78,6 +71,9 @@ sealed trait EntityDecoder[T] { self =>
   */
 object EntityDecoder extends EntityDecoderInstances {
 
+  // This is not a real media type but will still be matched by `*/*`
+  private val UndefinedMediaType = new MediaType("UNKNOWN","UNKNOWN")
+
   /** summon an implicit [[EntityEncoder]] */
   def apply[T](implicit ev: EntityDecoder[T]): EntityDecoder[T] = ev
 
@@ -87,8 +83,16 @@ object EntityDecoder extends EntityDecoderInstances {
     * only if the [[Message]] satisfies the provided [[MediaRange]]s
     */
   def decodeBy[T](r1: MediaRange, rs: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
-    override def decode(msg: Message): DecodeResult[T] = {
-      try f(msg)
+    override def decode(msg: Message, strict: Boolean): DecodeResult[T] = {
+      try {
+        if (strict) msg.headers.get(`Content-Type`) match {
+          case Some(c) if matchesMediaType(c.mediaType) => f(msg)
+          case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
+          case None if matchesMediaType(UndefinedMediaType) => f(msg)
+          case None => DecodeResult.failure(MediaTypeMissing(consumes))
+        }
+        else f(msg)
+      }
       catch {
         case NonFatal(e) => DecodeResult[T](Task.fail(e))
       }
@@ -98,12 +102,15 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   private class OrDec[T](a: EntityDecoder[T], b: EntityDecoder[T]) extends EntityDecoder[T] {
-    override def decode(msg: Message): DecodeResult[T] = {
-      msg.headers.get(`Content-Type`).map { contentType =>
-        if (a.matchesMediaType(contentType.mediaType)) a.decode(msg)
-        else b.decode(msg)
-      }.getOrElse {
-        a.decode(msg).orElse(b.decode(msg))
+    override def decode(msg: Message, strict: Boolean): DecodeResult[T] = {
+      msg.headers.get(`Content-Type`) match {
+        case Some(contentType) =>
+          if (a.matchesMediaType(contentType.mediaType)) a.decode(msg, strict)
+          else b.decode(msg, strict)
+
+        case None =>
+          if (a.matchesMediaType(UndefinedMediaType)) a.decode(msg, strict)
+          else b.decode(msg, strict)
       }
     }
 
@@ -127,7 +134,7 @@ trait EntityDecoderInstances {
 
   /** Provides a mechanism to fail decoding */
   def error[T](t: Throwable) = new EntityDecoder[T] {
-    override def decode(msg: Message): DecodeResult[T] = {
+    override def decode(msg: Message, strict: Boolean): DecodeResult[T] = {
       DecodeResult(msg.body.kill.run.flatMap(_ => Task.fail(t)))
     }
     override def consumes: Set[MediaRange] = Set.empty
@@ -157,13 +164,13 @@ trait EntityDecoderInstances {
 }
 
 object DecodeResult {
-  def apply[A](task: Task[ParseResult[A]]): DecodeResult[A] = EitherT[Task, ParseFailure, A](task)
+  def apply[A](task: Task[ParseResult[A]]): DecodeResult[A] = EitherT[Task, DecodeFailure, A](task)
 
   def success[A](a: Task[A]): DecodeResult[A] = EitherT.right(a)
 
   def success[A](a: A): DecodeResult[A] = EitherT(Task.now(\/-(a): ParseFailure\/A))
 
-  def failure[A](e: Task[ParseFailure]): DecodeResult[A] = EitherT.left(e)
+  def failure[A](e: Task[DecodeFailure]): DecodeResult[A] = EitherT.left(e)
 
-  def failure[A](e: ParseFailure): DecodeResult[A] = EitherT(Task.now(-\/(e): ParseFailure\/A))
+  def failure[A](e: DecodeFailure): DecodeResult[A] = EitherT(Task.now(-\/(e): DecodeFailure\/A))
 }

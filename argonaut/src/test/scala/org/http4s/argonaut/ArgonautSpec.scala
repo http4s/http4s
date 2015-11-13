@@ -51,7 +51,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
 
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
-      val result = jsonOf[Foo].decode(Request().withBody(jObjectFields("bar" -> jNumberOrNull(42))).run)
+      val result = jsonOf[Foo].decode(Request().withBody(jObjectFields("bar" -> jNumberOrNull(42))).run, strict = true)
       result.run.run must be_\/-(Foo(42))
     }
   }

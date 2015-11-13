@@ -35,7 +35,7 @@ package object client {
 
   implicit def wHeadersDec[T](implicit decoder: EntityDecoder[T]): EntityDecoder[(Headers, T)] = {
     val s = decoder.consumes.toList
-    EntityDecoder.decodeBy(s.head, s.tail:_*)(resp => decoder.decode(resp).map(t => (resp.headers,t)))
+    EntityDecoder.decodeBy(s.head, s.tail:_*)(resp => decoder.decode(resp, strict = true).map(t => (resp.headers,t)))
   }
 
 }

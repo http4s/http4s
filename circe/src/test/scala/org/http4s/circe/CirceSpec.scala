@@ -56,7 +56,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
-      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.numberOrNull(42))).run)
+      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.numberOrNull(42))).run, strict = true)
       result.run.run must be_\/-(Foo(42))
     }
   }

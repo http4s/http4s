@@ -13,7 +13,7 @@ import scalaz.concurrent.Task
   */
 object UrlFormLifter {
 
-  def apply(service: HttpService): HttpService =  Service.lift { req =>
+  def apply(service: HttpService, strictDecode: Boolean = false): HttpService =  Service.lift { req =>
 
     def addUrlForm(form: UrlForm): Task[Response] = {
       val flatForm = form.values.toVector.flatMap{ case (k, vs) => vs.map(v => (k,Some(v))) }
@@ -27,16 +27,13 @@ object UrlFormLifter {
     req.headers.get(headers.`Content-Type`) match {
       case Some(headers.`Content-Type`(MediaType.`application/x-www-form-urlencoded`,_)) if checkRequest(req) =>
         UrlForm.entityDecoder
-          .decode(req)
+          .decode(req, strictDecode)
           .run
-          .flatMap(_.fold(failure, addUrlForm))
+          .flatMap(_.fold(_.toHttpResponse(req.httpVersion), addUrlForm))
 
       case _ => service(req)
     }
   }
-
-  private def failure(failure: ParseFailure): Task[Response] =
-    Response(Status.BadRequest).withBody("400 BadRequest.\n" + failure.sanitized)
 
   private def checkRequest(req: Request): Boolean = {
     req.method == Method.POST || req.method == Method.PUT
