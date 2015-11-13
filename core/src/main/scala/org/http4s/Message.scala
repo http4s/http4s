@@ -217,23 +217,39 @@ case class Request(
   /** Helper method for decoding [[Request]]s
     *
     * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, a BadRequest [[Response]] is generated.
+    */
+  def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
+    toResponse(f)(decoder.decode(this))
+
+  private def toResponse[A](f: A => Task[Response])(result: DecodeResult[A]) =
+    result.fold(e => Response(Status.BadRequest, httpVersion).withBody(e.sanitized),f).join
+
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
     * If decoding fails, a BadRequest [[Response]] is generated. If the decoder does not support the
     * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
     */
-  def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
-    decoder.decode(this).fold(
-      e => e match {
-        case e: ParseFailure => Response(Status.BadRequest, httpVersion).withBody(e.sanitized)
+  def decodeStrict[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
+    decoder.decodeStrict(this).fold(
+      mediaError => mediaError match {
         case e: MediaTypeMismatch => Response(Status.UnsupportedMediaType, httpVersion).withBody(
           s"${e.messageType} is not a supported media type. Please send a request that satisfies one of the following media ranges: ${e.expected}")
         case e: MediaTypeMissing => Response(Status.UnsupportedMediaType, httpVersion).withBody(
           s"Please specify a media type in the following ranges: ${e.expected}")
       },
-      f
-    ).join
+      toResponse(f)
+    )
 
-  /** Like [[decode]], but with an explicit decoder. */
-  def decodeWith[A](decoder: EntityDecoder[A])(f: A => Task[Response]): Task[Response] = decode(f)(decoder)
+  /** Like [[decode]], but with an explicit decoder.
+    * @param strict If strict, will return a [[Status.UnsupportedMediaType]] http Response if this message's
+    *               [[MediaType]] is not supported by the provided decoder
+    */
+  def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean = false)(f: A => Task[Response]): Task[Response] = {
+    if (strict) decodeStrict(f)(decoder)
+    else decode(f)(decoder)
+  }
 }
 
 object Request {
