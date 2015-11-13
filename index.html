@@ -157,7 +157,7 @@ needs now, and easily port if and when your needs change.</p>
 <pre><code class="language-Rouge::Lexers::Scala" data-lang="Rouge::Lexers::Scala"><code class="highlight"><span class="k">import</span> <span class="nn">com.example.http4s.ExampleService</span>
 <span class="n">mport</span> <span class="n">org</span><span class="o">.</span><span class="n">http4s</span><span class="o">.</span><span class="n">server</span><span class="o">.</span><span class="n">blaze</span><span class="o">.</span><span class="nc">BlazeBuilder</span>
 
-<span class="n">bject</span> <span class="nc">BlazeExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
+<span class="n">object</span> <span class="nc">BlazeExample</span> <span class="k">extends</span> <span class="nc">App</span> <span class="o">{</span>
  <span class="nc">BlazeBuilder</span><span class="o">.</span><span class="n">bindHttp</span><span class="o">(</span><span class="mi">8080</span><span class="o">)</span>
    <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
    <span class="o">.</span><span class="n">run</span>
