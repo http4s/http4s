@@ -80,10 +80,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     "composing EntityDecoders with orElse" >> {
-      "if a Message has no MediaType. all decoders get a shot at decoding the message" in { implicit ee: ExecutionEnv =>
+      "if a Message has no MediaType, the first one attempts to decode it" in { implicit ee: ExecutionEnv =>
         val req = Request()
         (decoder1 orElse decoder2).decode(req).run.run must_== DecodeResult.success(1).run.run
-        (failDecoder orElse decoder1).decode(req).run.run must_== DecodeResult.success(1).run.run
+        (failDecoder orElse decoder1).decode(req).run.run must_== DecodeResult.failure(ParseFailure("Nope.", "")).run.run
       }
       "A message with a MediaType that is not supported by any of the decoders" +
         " will be attempted by the last decoder" in {

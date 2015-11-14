@@ -54,10 +54,12 @@ sealed trait EntityDecoder[T] { self =>
     override def consumes: Set[MediaRange] = self.consumes
   }
 
-  /** Combine two [[EntityDecoder]]'s
+  /** Combine two [[EntityDecoder]]s
     *
-    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
-    * and if not, defer to the second [[EntityDecoder]]
+    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode
+    * based on the [[Message]] [[`Content-Type`]], and if not, defer to the second [[EntityDecoder]]
+    *
+    * If the Message does not have a [[`Content-Type]], the first decoder will attempt to decode it.
     * @param other backup [[EntityDecoder]]
     */
   def orElse[T2](other: EntityDecoder[T2])(implicit ev: T <~< T2): EntityDecoder[T2] =
@@ -103,7 +105,7 @@ object EntityDecoder extends EntityDecoderInstances {
         if (a.matchesMediaType(contentType.mediaType)) a.decode(msg)
         else b.decode(msg)
       }.getOrElse {
-        a.decode(msg).orElse(b.decode(msg))
+        a.decode(msg)
       }
     }
 
