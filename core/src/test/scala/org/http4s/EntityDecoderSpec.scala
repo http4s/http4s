@@ -1,7 +1,8 @@
 package org.http4s
 
 import org.http4s.Status.Ok
-import org.specs2.execute.{PendingUntilFixed, Pending}
+import org.specs2.concurrent.ExecutionEnv
+import org.specs2.execute.PendingUntilFixed
 import scodec.bits.ByteVector
 import org.http4s.headers.`Content-Type`
 
@@ -9,7 +10,7 @@ import java.io.{FileInputStream,File,InputStreamReader}
 
 import scala.language.postfixOps
 import scala.util.control.NonFatal
-import scalaz.\/-
+import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 
@@ -36,6 +37,71 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         .decode(req)
         .run
         .run must be_-\/(ParseFailure("bummer", "real bummer"))
+    }
+
+    val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
+      DecodeResult.failure(ParseFailure("Nope.", ""))
+    }
+
+    val decoder1 = EntityDecoder.decodeBy(MediaType.`application/gnutar`) { msg =>
+      DecodeResult.success(1)
+    }
+
+    val decoder2 = EntityDecoder.decodeBy(MediaType.`application/excel`) { msg =>
+      DecodeResult.success(2)
+    }
+
+    val failDecoder = EntityDecoder.decodeBy[Int](MediaType.`application/soap+xml`) { msg =>
+      DecodeResult.failure(ParseFailure("Nope.", ""))
+    }
+
+    "Not match invalid media type" in {
+      nonMatchingDecoder.matchesMediaType(MediaType.`text/plain`) must_== false
+    }
+
+    "Match valid media range" in {
+      EntityDecoder.text.matchesMediaType(MediaType.`text/plain`) must_== true
+    }
+
+    "Match valid media type to a range" in {
+      EntityDecoder.text.matchesMediaType(MediaType.`text/css`) must_== true
+    }
+
+    "decodeStrict" >> {
+      "should produce a MediaTypeMissing if message has no content type" in {
+        val req = Request()
+        decoder1.decodeStrict(req) must_== -\/(MediaTypeMissing(decoder1.consumes))
+      }
+      "should produce a MediaTypeMismatch if message has unsupported content type" in {
+        val tpe = MediaType.`text/css`
+        val req = Request(headers = Headers(`Content-Type`(tpe)))
+        decoder1.decodeStrict(req) must_== -\/(MediaTypeMismatch(tpe, decoder1.consumes))
+      }
+    }
+
+    "composing EntityDecoders with orElse" >> {
+      "if a Message has no MediaType, the first one attempts to decode it" in { implicit ee: ExecutionEnv =>
+        val req = Request()
+        (decoder1 orElse decoder2).decode(req).run.run must_== DecodeResult.success(1).run.run
+        (failDecoder orElse decoder1).decode(req).run.run must_== DecodeResult.failure(ParseFailure("Nope.", "")).run.run
+      }
+      "A message with a MediaType that is not supported by any of the decoders" +
+        " will be attempted by the last decoder" in {
+        val reqMediaType = MediaType.`application/atom+xml`
+        val req = Request(headers = Headers(`Content-Type`(reqMediaType)))
+        val expected = DecodeResult.success(2)
+        (decoder1 orElse decoder2).decode(req).run.run must_== expected.run.run
+      }
+      "A catch all decoder will always attempt to decode a message" in {
+        val reqSomeOtherMediaType = Request(headers = Headers(`Content-Type`(MediaType.`text/x-h`)))
+        val reqNoMediaType = Request()
+        val catchAllDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`) { msg =>
+          DecodeResult.success(3)
+        }
+        (decoder1 orElse catchAllDecoder).decode(reqSomeOtherMediaType).run.run must_== DecodeResult.success(3).run.run
+        (catchAllDecoder orElse decoder1).decode(reqSomeOtherMediaType).run.run must_== DecodeResult.success(3).run.run
+        (catchAllDecoder orElse decoder1).decode(reqNoMediaType).run.run must_== DecodeResult.success(3).run.run
+      }
     }
   }
 
@@ -136,40 +202,6 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         tmpFile.delete()
       }
     }
-
-    "Match any media type" in {
-      val req = Response(Ok).withBody("foo").run
-      binary.matchesMediaType(req) must_== true
-    }
-
-    val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
-      DecodeResult.failure(ParseFailure("Nope.", ""))
-    }
-
-    "Not match invalid media type" in {
-      val req = Response(Ok).withBody("foo").run
-      nonMatchingDecoder.matchesMediaType(req) must_== false
-    }
-
-    "Match valid media range" in {
-      val req = Response(Ok).withBody("foo").run
-      EntityDecoder.text.matchesMediaType(req) must_== true
-    }
-
-    "Match valid media type to a range" in {
-      val req = Request(headers = Headers(`Content-Type`(MediaType.`text/css`)))
-      EntityDecoder.text.matchesMediaType(req) must_== true
-    }
-
-    "Match with consistent behavior" in {
-      val tpe = MediaType.`text/css`
-      val req = Request(headers = Headers(`Content-Type`(tpe)))
-      (EntityDecoder.text.matchesMediaType(req) must_== true)   and
-      (EntityDecoder.text.matchesMediaType(tpe) must_== true)   and
-      (nonMatchingDecoder.matchesMediaType(req) must_== false) and
-      (nonMatchingDecoder.matchesMediaType(tpe) must_== false)
-    }
-
   }
 
   "binary EntityDecoder" should {
@@ -186,6 +218,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val result = binary.decode(msg).run.run
 
       result must_== (\/-(ByteVector(1, 2, 3, 4, 5, 6)))
+    }
+
+    "Match any media type" in {
+      binary.matchesMediaType(MediaType.`text/plain`) must_== true
     }
   }
 

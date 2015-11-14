@@ -20,15 +20,23 @@ import scalaz.{-\/, EitherT, \/, \/-}
 import util.UrlFormCodec.{ decode => formDecode }
 import util.byteVector._
 
-/** A type that can be used to decode an [[EntityBody]]
-  * EntityDecoder is used to attempt to decode an [[EntityBody]] returning the
+/** A type that can be used to decode a [[Message]]
+  * EntityDecoder is used to attempt to decode a [[Message]] returning the
   * entire resulting A. If an error occurs it will result in a failed Task
-  * These are not streaming constructs.
+  * The default decoders provided here are not streaming, but one could implement
+  * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder
   */
 sealed trait EntityDecoder[T] { self =>
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message): DecodeResult[T]
+
+  def decodeStrict(msg: Message): MediaTypeError \/ DecodeResult[T] = {
+    msg.headers.get(`Content-Type`).map{ contentType =>
+      if (matchesMediaType(contentType.mediaType)) \/-(decode(msg))
+      else -\/(MediaTypeMismatch(contentType.mediaType,consumes))
+    }.getOrElse(-\/(MediaTypeMissing(consumes)))
+  }
 
   /** The [[MediaRange]]s this [[EntityDecoder]] knows how to handle */
   def consumes: Set[MediaRange]
@@ -46,23 +54,16 @@ sealed trait EntityDecoder[T] { self =>
     override def consumes: Set[MediaRange] = self.consumes
   }
 
-  /** Combine two [[EntityDecoder]]'s
+  /** Combine two [[EntityDecoder]]s
     *
-    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode,
-    * and if not, defer to the second [[EntityDecoder]]
+    * The new [[EntityDecoder]] will first attempt to determine if it can perform the decode
+    * based on the [[Message]] [[`Content-Type`]], and if not, defer to the second [[EntityDecoder]]
+    *
+    * If the Message does not have a [[`Content-Type]], the first decoder will attempt to decode it.
     * @param other backup [[EntityDecoder]]
     */
   def orElse[T2](other: EntityDecoder[T2])(implicit ev: T <~< T2): EntityDecoder[T2] =
     new EntityDecoder.OrDec(widen[T2], other)
-
-  /** true if the [[Message]]s Content-Type header contains a [[MediaType]]
-    * this [[EntityDecoder]] knows how to decode */
-  def matchesMediaType(msg: Message): Boolean = {
-    msg.headers.get(`Content-Type`) match {
-      case Some(h) => matchesMediaType(h.mediaType)
-      case None => false
-    }
-  }
 
   /** true if this [[EntityDecoder]] knows how to decode the provided [[MediaType]] */
   def matchesMediaType(mediaType: MediaType): Boolean =
@@ -84,7 +85,8 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** Create a new [[EntityDecoder]]
     *
-    * The new [[EntityEncoder]] will attempt to decoder messages of type `T`
+    * The new [[EntityDecoder]] will attempt to decode messages of type `T`
+    * only if the [[Message]] satisfies the provided [[MediaRange]]s
     */
   def decodeBy[T](r1: MediaRange, rs: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
@@ -99,8 +101,12 @@ object EntityDecoder extends EntityDecoderInstances {
 
   private class OrDec[T](a: EntityDecoder[T], b: EntityDecoder[T]) extends EntityDecoder[T] {
     override def decode(msg: Message): DecodeResult[T] = {
-      if (a.matchesMediaType(msg)) a.decode(msg)
-      else b.decode(msg)
+      msg.headers.get(`Content-Type`).map { contentType =>
+        if (a.matchesMediaType(contentType.mediaType)) a.decode(msg)
+        else b.decode(msg)
+      }.getOrElse {
+        a.decode(msg)
+      }
     }
 
     override val consumes: Set[MediaRange] = a.consumes ++ b.consumes
