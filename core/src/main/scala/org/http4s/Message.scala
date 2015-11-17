@@ -14,8 +14,8 @@ import scalaz.syntax.monad._
  * while most of the functionality is found in [[MessageSyntax]] and [[ResponseOps]]
  * @see [[MessageSyntax]], [[ResponseOps]]
  */
-sealed trait Message extends MessageOps {
-  type Self <: Message
+sealed trait Message extends MessageOps { self =>
+  type Self <: Message { type Self = self.Self }
 
   def httpVersion: HttpVersion
   
@@ -235,7 +235,7 @@ case class Request(
     * @param strict If strict, will return a [[Status.UnsupportedMediaType]] http Response if this message's
     *               [[MediaType]] is not supported by the provided decoder
     */
-  def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean = false)(f: A => Task[Response]): Task[Response] =
+  def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
 }
 

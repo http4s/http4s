@@ -106,13 +106,13 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "invoke the function with  the right on a success" in {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
-        request.decodeWith(happyDecoder) { s => cb(\/-(s)); Task.now(Response()) }.run
+        request.decodeWith(happyDecoder, strict = false) { s => cb(\/-(s)); Task.now(Response()) }.run
       }.run must_== ("hooray")
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(ParseFailure("Bah!", ""))))
-      val resp = request.decodeWith(grumpyDecoder) { _ => Task.now(Response())}.run
+      val resp = request.decodeWith(grumpyDecoder, strict = false) { _ => Task.now(Response())}.run
       resp.status must_== (Status.BadRequest)
     }
   }
@@ -168,7 +168,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       try {
         val response = mocServe(Request()) {
           case req =>
-            req.decodeWith(textFile(tmpFile)) { _ =>
+            req.decodeWith(textFile(tmpFile), strict = false) { _ =>
               Response(Ok).withBody("Hello")
             }
         }.run
@@ -186,7 +186,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val tmpFile = File.createTempFile("foo", "bar")
       try {
         val response = mocServe(Request()) {
-          case req => req.decodeWith(binFile(tmpFile)) { _ => Response(Ok).withBody("Hello")}
+          case req => req.decodeWith(binFile(tmpFile), strict = false) { _ => Response(Ok).withBody("Hello")}
         }.run
 
         response.status must_== (Status.Ok)
