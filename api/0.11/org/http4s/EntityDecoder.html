@@ -51,10 +51,11 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A type that can be used to decode an <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>
-EntityDecoder is used to attempt to decode an <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> returning the
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A type that can be used to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>
+EntityDecoder is used to attempt to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> returning the
 entire resulting A. If an error occurs it will result in a failed Task
-These are not streaming constructs.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</dd></dl><div class="toggleContainer block">
+The default decoders provided here are not streaming, but one could implement
+a streaming decoder by having the value of A be some kind of streaming construct.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -115,18 +116,18 @@ These are not streaming constructs.</p></div><dl class="paramcmts block"><dt cla
     </span>
       <p class="shortcomment cmt">The <a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>s this <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> knows how to handle</p>
     </li><li name="org.http4s.EntityDecoder#decode" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="decode(msg:org.http4s.Message):org.http4s.DecodeResult[T]"></a>
-      <a id="decode(Message):DecodeResult[T]"></a>
+      <a id="decode(msg:org.http4s.Message,strict:Boolean):org.http4s.DecodeResult[T]"></a>
+      <a id="decode(Message,Boolean):DecodeResult[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decode</span><span class="params">(<span name="msg">msg: <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</span>
+        <span class="name">decode</span><span class="params">(<span name="msg">msg: <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></span>, <span name="strict">strict: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.EntityDecoder@decode(msg:org.http4s.Message):org.http4s.DecodeResult[T]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.EntityDecoder@decode(msg:org.http4s.Message,strict:Boolean):org.http4s.DecodeResult[T]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -293,7 +294,7 @@ These are not streaming constructs.</p></div><dl class="paramcmts block"><dt cla
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">flatMapR</span><span class="tparams">[<span name="T2">T2</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.EntityDecoder.T">T</span>) ⇒ <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.flatMapR.T2">T2</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.flatMapR.T2">T2</span>]</span>
+        <span class="name">flatMapR</span><span class="tparams">[<span name="T2">T2</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.EntityDecoder.T">T</span>) ⇒ <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.EntityDecoder.flatMapR.T2">T2</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.EntityDecoder.flatMapR.T2">T2</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.EntityDecoder@flatMapR[T2](f:T=&gt;org.http4s.DecodeResult[T2]):org.http4s.EntityDecoder[T2]" title="Permalink" target="_top">
@@ -386,24 +387,6 @@ These are not streaming constructs.</p></div><dl class="paramcmts block"><dt cla
       </a>
     </span>
       <p class="shortcomment cmt">true if this <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> knows how to decode the provided <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></p>
-    </li><li name="org.http4s.EntityDecoder#matchesMediaType" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="matchesMediaType(msg:org.http4s.Message):Boolean"></a>
-      <a id="matchesMediaType(Message):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">matchesMediaType</span><span class="params">(<span name="msg">msg: <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.EntityDecoder@matchesMediaType(msg:org.http4s.Message):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">true if the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>s Content-Type header contains a <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>
-this <a href="" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> knows how to decode</p>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>

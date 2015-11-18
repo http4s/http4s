@@ -52,7 +52,7 @@
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response
-while most of the functionality is found in <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> and <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
+while most of the functionality is found in <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> and <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a></dd><dt>See also</dt><dd><span class="cmt"><p><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
@@ -97,7 +97,7 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="org.http4s.Message.Self" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="Self&lt;:org.http4s.Message"></a>
+      <a id="Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}"></a>
       <a id="Self:Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -105,10 +105,10 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">Self</span><span class="result"> &lt;: <a href="" class="extype" name="org.http4s.Message">Message</a></span>
+        <span class="name">Self</span><span class="result"> &lt;: <a href="" class="extype" name="org.http4s.Message">Message</a> { type Self = Message.this.Self }</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Message@Self&lt;:org.http4s.Message" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Message@Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -161,7 +161,7 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">change</span><span class="params">(<span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol">body</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">headers</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">attributes</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">change</span><span class="params">(<span name="body">body: <a href="package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol">body</span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol">headers</span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol">attributes</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@change(body:org.http4s.EntityBody,headers:org.http4s.Headers,attributes:org.http4s.AttributeMap):Message.this.Self" title="Permalink" target="_top">
@@ -302,7 +302,7 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">attemptAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>
+        <span class="name">attemptAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@attemptAs[T](implicitdecoder:org.http4s.EntityDecoder[T]):org.http4s.DecodeResult[T]" title="Permalink" target="_top">
@@ -447,7 +447,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self" title="Permalink" target="_top">
@@ -608,7 +608,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@putHeaders(headers:org.http4s.Header*):Message.this.Self" title="Permalink" target="_top">
@@ -625,7 +625,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">removeHeader</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">removeHeader</span><span class="params">(<span name="key">key: <a href="HeaderKey.html" class="extype" name="org.http4s.HeaderKey">HeaderKey</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@removeHeader(key:org.http4s.HeaderKey):MessageOps.this.Self" title="Permalink" target="_top">
@@ -642,7 +642,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@replaceAllHeaders(headers:org.http4s.Headers):Message.this.Self" title="Permalink" target="_top">
@@ -661,7 +661,7 @@ Does not introspect the body for media types that define a charset internally.</
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@replaceAllHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
@@ -800,7 +800,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withAttribute</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="key">key: <a href="AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="org.http4s.Message.withAttribute.A">A</span>]</span>, <span name="value">value: <span class="extype" name="org.http4s.Message.withAttribute.A">A</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withAttribute[A](key:org.http4s.AttributeKey[A],value:A):Message.this.Self" title="Permalink" target="_top">
@@ -819,7 +819,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAttribute</span><span class="tparams">[<span name="V">V</span>]</span><span class="params">(<span name="entry">entry: <a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a>[<span class="extype" name="org.http4s.MessageOps.withAttribute.V">V</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withAttribute</span><span class="tparams">[<span name="V">V</span>]</span><span class="params">(<span name="entry">entry: <a href="AttributeEntry.html" class="extype" name="org.http4s.AttributeEntry">AttributeEntry</a>[<span class="extype" name="org.http4s.MessageOps.withAttribute.V">V</span>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withAttribute[V](entry:org.http4s.AttributeEntry[V]):MessageOps.this.Self" title="Permalink" target="_top">
@@ -838,7 +838,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="b">b: <span class="extype" name="org.http4s.Message.withBody.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.Message.withBody.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a>]</span>
+        <span class="name">withBody</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="b">b: <span class="extype" name="org.http4s.Message.withBody.T">T</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="w">w: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.Message.withBody.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withBody[T](b:T)(implicitw:org.http4s.EntityEncoder[T]):scalaz.concurrent.Task[Message.this.Self]" title="Permalink" target="_top">
@@ -857,7 +857,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withContentType(contentType:Option[org.http4s.headers.Content-Type]):MessageOps.this.Self" title="Permalink" target="_top">
@@ -874,7 +874,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withTrailerHeaders</span><span class="params">(<span name="trailerHeaders">trailerHeaders: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withTrailerHeaders</span><span class="params">(<span name="trailerHeaders">trailerHeaders: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withTrailerHeaders(trailerHeaders:scalaz.concurrent.Task[org.http4s.Headers]):MessageOps.this.Self" title="Permalink" target="_top">
@@ -891,7 +891,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withType</span><span class="params">(<span name="t">t: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name">withType</span><span class="params">(<span name="t">t: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withType(t:org.http4s.MediaType):MessageOps.this.Self" title="Permalink" target="_top">
@@ -915,7 +915,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
@@ -935,7 +935,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">

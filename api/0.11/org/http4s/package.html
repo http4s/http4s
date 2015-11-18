@@ -333,8 +333,42 @@ for keys with the same label and same types.</p></div></div>
 Does not support TimeZones, all DateTime values are always GMT based.
 Note that this implementation discards milliseconds (i.e. rounds down to full seconds).
 </p></div></div>
+    </li><li name="org.http4s.DecodeFailure" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="DecodeFailureextendsAnyRef"></a>
+      <a id="DecodeFailure:DecodeFailure"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="DecodeFailure.html"><span class="name">DecodeFailure</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@DecodeFailureextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.DecodeFailureException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DecodeFailureExceptionextendsRuntimeExceptionwithProductwithSerializable"></a>
+      <a id="DecodeFailureException:DecodeFailureException"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DecodeFailureException.html"><span class="name">DecodeFailureException</span></a><span class="params">(<span name="failure">failure: <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@DecodeFailureExceptionextendsRuntimeExceptionwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.DecodeResult" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]"></a>
+      <a id="DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]"></a>
       <a id="DecodeResult[T]:DecodeResult[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -342,10 +376,10 @@ Note that this implementation discards milliseconds (i.e. rounds down to full se
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">DecodeResult</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> = <span class="extype" name="scalaz.EitherT">EitherT</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>, <span class="extype" name="org.http4s.DecodeResult.T">T</span>]</span>
+        <span class="name">DecodeResult</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> = <span class="extype" name="scalaz.EitherT">EitherT</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>, <span class="extype" name="org.http4s.DecodeResult.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -383,12 +417,13 @@ Note that this implementation discards milliseconds (i.e. rounds down to full se
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">A type that can be used to decode an <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>
-EntityDecoder is used to attempt to decode an <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> returning the
-entire resulting A.</p><div class="fullcomment"><div class="comment cmt"><p>A type that can be used to decode an <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a>
-EntityDecoder is used to attempt to decode an <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> returning the
+      <p class="shortcomment cmt">A type that can be used to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>
+EntityDecoder is used to attempt to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> returning the
+entire resulting A.</p><div class="fullcomment"><div class="comment cmt"><p>A type that can be used to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>
+EntityDecoder is used to attempt to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> returning the
 entire resulting A. If an error occurs it will result in a failed Task
-These are not streaming constructs.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl></div>
+The default decoders provided here are not streaming, but one could implement
+a streaming decoder by having the value of A be some kind of streaming construct.</p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>result type produced by the decoder</p></dd></dl></div>
     </li><li name="org.http4s.EntityDecoderInstances" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="EntityDecoderInstancesextendsAnyRef"></a>
       <a id="EntityDecoderInstances:EntityDecoderInstances"></a>
@@ -747,6 +782,41 @@ These are not streaming constructs.</p></div><dl class="paramcmts block"><dt cla
       </a>
     </span>
       
+    </li><li name="org.http4s.MediaTypeMismatch" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MediaTypeMismatchextendsDecodeFailurewithProductwithSerializable"></a>
+      <a id="MediaTypeMismatch:MediaTypeMismatch"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MediaTypeMismatch.html"><span class="name">MediaTypeMismatch</span></a><span class="params">(<span name="messageType">messageType: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>, <span name="expected">expected: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@MediaTypeMismatchextendsDecodeFailurewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Indicates that no <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> matches the <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> of the message being decoded</p>
+    </li><li name="org.http4s.MediaTypeMissing" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MediaTypeMissingextendsDecodeFailurewithProductwithSerializable"></a>
+      <a id="MediaTypeMissing:MediaTypeMissing"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MediaTypeMissing.html"><span class="name">MediaTypeMissing</span></a><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@MediaTypeMissingextendsDecodeFailurewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Indicates that a Message attempting to be decoded has no <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> and no
+<a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> was lenient enough to accept it.</p>
     </li><li name="org.http4s.Message" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="MessageextendsMessageOps"></a>
       <a id="Message:Message"></a>
@@ -869,7 +939,7 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
     </span>
       
     </li><li name="org.http4s.ParseFailure" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ParseFailureextendsProductwithSerializable"></a>
+      <a id="ParseFailureextendsDecodeFailurewithProductwithSerializable"></a>
       <a id="ParseFailure:ParseFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -877,10 +947,10 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ParseFailure.html"><span class="name">ParseFailure</span></a><span class="params">(<span name="sanitized">sanitized: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="ParseFailure.html"><span class="name">ParseFailure</span></a><span class="params">(<span name="sanitized">sanitized: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@ParseFailureextendsProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@ParseFailureextendsDecodeFailurewithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

@@ -154,7 +154,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="task">task: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="package.html#ParseResult[+A]=scalaz.\/[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<span class="extype" name="org.http4s.DecodeResult.apply.A">A</span>]]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.apply.A">A</span>]</span>
+        <span class="name">apply</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="task">task: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="package.html#ParseResult[+A]=scalaz.\/[org.http4s.ParseFailure,A]" class="extmbr" name="org.http4s.ParseResult">ParseResult</a>[<span class="extype" name="org.http4s.DecodeResult.apply.A">A</span>]]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.apply.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.DecodeResult$@apply[A](task:scalaz.concurrent.Task[org.http4s.ParseResult[A]]):org.http4s.DecodeResult[A]" title="Permalink" target="_top">
@@ -237,35 +237,35 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.DecodeResult#failure" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="failure[A](e:org.http4s.ParseFailure):org.http4s.DecodeResult[A]"></a>
-      <a id="failure[A](ParseFailure):DecodeResult[A]"></a>
+      <a id="failure[A](e:org.http4s.DecodeFailure):org.http4s.DecodeResult[A]"></a>
+      <a id="failure[A](DecodeFailure):DecodeResult[A]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">failure</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="e">e: <a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a></span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.failure.A">A</span>]</span>
+        <span class="name">failure</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="e">e: <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.failure.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeResult$@failure[A](e:org.http4s.ParseFailure):org.http4s.DecodeResult[A]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.DecodeResult$@failure[A](e:org.http4s.DecodeFailure):org.http4s.DecodeResult[A]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
     </li><li name="org.http4s.DecodeResult#failure" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="failure[A](e:scalaz.concurrent.Task[org.http4s.ParseFailure]):org.http4s.DecodeResult[A]"></a>
-      <a id="failure[A](Task[ParseFailure]):DecodeResult[A]"></a>
+      <a id="failure[A](e:scalaz.concurrent.Task[org.http4s.DecodeFailure]):org.http4s.DecodeResult[A]"></a>
+      <a id="failure[A](Task[DecodeFailure]):DecodeResult[A]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">failure</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="e">e: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.failure.A">A</span>]</span>
+        <span class="name">failure</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="e">e: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.failure.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeResult$@failure[A](e:scalaz.concurrent.Task[org.http4s.ParseFailure]):org.http4s.DecodeResult[A]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.DecodeResult$@failure[A](e:scalaz.concurrent.Task[org.http4s.DecodeFailure]):org.http4s.DecodeResult[A]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -404,7 +404,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">success</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.DecodeResult.success.A">A</span></span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.success.A">A</span>]</span>
+        <span class="name">success</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="org.http4s.DecodeResult.success.A">A</span></span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.success.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.DecodeResult$@success[A](a:A):org.http4s.DecodeResult[A]" title="Permalink" target="_top">
@@ -421,7 +421,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">success</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.DecodeResult.success.A">A</span>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.success.A">A</span>]</span>
+        <span class="name">success</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="a">a: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.DecodeResult.success.A">A</span>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.DecodeResult.success.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.DecodeResult$@success[A](a:scalaz.concurrent.Task[A]):org.http4s.DecodeResult[A]" title="Permalink" target="_top">

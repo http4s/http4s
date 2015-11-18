@@ -232,7 +232,7 @@ status line, headers, and a possible request body.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">attemptAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.ParseFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>
+        <span class="name">attemptAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>)</span><span class="result">: <a href="package.html#DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]" class="extmbr" name="org.http4s.DecodeResult">DecodeResult</a>[<span class="extype" name="org.http4s.Message.attemptAs.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Request@attemptAs[T](implicitdecoder:org.http4s.EntityDecoder[T]):org.http4s.DecodeResult[T]" title="Permalink" target="_top">
@@ -421,23 +421,44 @@ Does not introspect the body for media types that define a charset internally.</
       <p class="shortcomment cmt">Helper method for decoding <a href="" class="extype" name="org.http4s.Request">Request</a>s</p><div class="fullcomment"><div class="comment cmt"><p>Helper method for decoding <a href="" class="extype" name="org.http4s.Request">Request</a>s</p><p>Attempt to decode the <a href="" class="extype" name="org.http4s.Request">Request</a> and, if successful, execute the continuation to get a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.
 If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated.
 </p></div></div>
-    </li><li name="org.http4s.Request#decodeWith" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="decodeWith[A](decoder:org.http4s.EntityDecoder[A])(f:A=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="decodeWith[A](EntityDecoder[A])((A)⇒Task[Response]):Task[Response]"></a>
+    </li><li name="org.http4s.Request#decodeStrict" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="decodeStrict[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="decodeStrict[A]((A)⇒Task[Response])(EntityDecoder[A]):Task[Response]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">decodeWith</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Request.decodeWith.A">A</span>]</span>)</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.Request.decodeWith.A">A</span>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">decodeStrict</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.Request.decodeStrict.A">A</span>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Request.decodeStrict.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Request@decodeWith[A](decoder:org.http4s.EntityDecoder[A])(f:A=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Request@decodeStrict[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Like <a href="#decode[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]" class="extmbr" name="org.http4s.Request#decode">decode</a>, but with an explicit decoder.</p>
+      <p class="shortcomment cmt">Helper method for decoding <a href="" class="extype" name="org.http4s.Request">Request</a>s</p><div class="fullcomment"><div class="comment cmt"><p>Helper method for decoding <a href="" class="extype" name="org.http4s.Request">Request</a>s</p><p>Attempt to decode the <a href="" class="extype" name="org.http4s.Request">Request</a> and, if successful, execute the continuation to get a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.
+If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated. If the decoder does not support the
+<a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> of the <a href="" class="extype" name="org.http4s.Request">Request</a>, a <code>UnsupportedMediaType</code> <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> is generated instead.
+</p></div></div>
+    </li><li name="org.http4s.Request#decodeWith" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="decodeWith[A](decoder:org.http4s.EntityDecoder[A],strict:Boolean)(f:A=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="decodeWith[A](EntityDecoder[A],Boolean)((A)⇒Task[Response]):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">decodeWith</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.Request.decodeWith.A">A</span>]</span>, <span name="strict">strict: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.Request.decodeWith.A">A</span>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Request@decodeWith[A](decoder:org.http4s.EntityDecoder[A],strict:Boolean)(f:A=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Like <a href="#decode[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]" class="extmbr" name="org.http4s.Request#decode">decode</a>, but with an explicit decoder.</p><div class="fullcomment"><div class="comment cmt"><p>Like <a href="#decode[A](f:A=&gt;scalaz.concurrent.Task[org.http4s.Response])(implicitdecoder:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[org.http4s.Response]" class="extmbr" name="org.http4s.Request#decode">decode</a>, but with an explicit decoder.</p></div><dl class="paramcmts block"><dt class="param">strict</dt><dd class="cmt"><p>If strict, will return a <a href="Status$.html#UnsupportedMediaType:org.http4s.Status" class="extmbr" name="org.http4s.Status#UnsupportedMediaType">Status.UnsupportedMediaType</a> http Response if this message's
+              <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> is not supported by the provided decoder</p></dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
