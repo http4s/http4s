@@ -49,7 +49,7 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
     * @return the `Task` which will generate the `ParseFailure\/T`
     */
   override def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T] = EitherT(self.flatMap { msg =>
-    decoder.decode(msg).run
+    decoder.decode(msg, false).run
   })
 }
 

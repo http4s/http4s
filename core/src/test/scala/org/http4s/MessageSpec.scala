@@ -2,6 +2,10 @@ package org.http4s
 
 import java.net.InetSocketAddress
 
+import org.http4s.headers.`Content-Type`
+
+import scalaz.concurrent.Task
+
 
 class MessageSpec extends Http4sSpec {
 
@@ -32,6 +36,23 @@ class MessageSpec extends Http4sSpec {
         val r = Request().withAttribute(Request.Keys.ConnectionInfo(Request.Connection(local, remote, false)))
         r.serverPort must_== local.getPort
         r.remotePort must beSome(remote.getPort)
+      }
+    }
+  }
+
+  "Message" should {
+    "decode" >> {
+      "produce a UnsupportedMediaType in the event of a decode failure" >> {
+        "MediaTypeMismatch" in {
+          val req = Request(headers = Headers(`Content-Type`(MediaType.`application/base64`)))
+          req.decodeWith(EntityDecoder.text, strict = true)(txt => Task.now(Response())).run.status must_==
+            Status.UnsupportedMediaType
+        }
+        "MediaTypeMissing" in {
+          val req = Request()
+          req.decodeWith(EntityDecoder.text, strict = true)(txt => Task.now(Response())).run.status must_==
+            Status.UnsupportedMediaType
+        }
       }
     }
   }

@@ -33,7 +33,7 @@ trait Client {
     } else req
 
     prepare(r).flatMap { resp =>
-      d.decode(resp).fold(e => throw ParseException(e), identity)
+      d.decode(resp, strict = true).fold(e => throw DecodeFailureException(e), identity)
     }
   }
 

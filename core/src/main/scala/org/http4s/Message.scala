@@ -14,8 +14,8 @@ import scalaz.syntax.monad._
  * while most of the functionality is found in [[MessageSyntax]] and [[ResponseOps]]
  * @see [[MessageSyntax]], [[ResponseOps]]
  */
-sealed trait Message extends MessageOps {
-  type Self <: Message
+sealed trait Message extends MessageOps { self =>
+  type Self <: Message { type Self = self.Self }
 
   def httpVersion: HttpVersion
   
@@ -104,7 +104,7 @@ sealed trait Message extends MessageOps {
     * @return the `Task` which will generate the `DecodeResult[T]`
     */
   override def attemptAs[T](implicit decoder: EntityDecoder[T]): DecodeResult[T] =
-    decoder.decode(this)
+    decoder.decode(this, strict = false)
 }
 
 object Message {
@@ -220,13 +220,23 @@ case class Request(
     * If decoding fails, a BadRequest [[Response]] is generated.
     */
   def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
-    decoder.decode(this).fold(
-      e => Response(Status.BadRequest, httpVersion).withBody(e.sanitized),
-      f
-    ).join
+    decodeWith(decoder, strict = false)(f)
 
-  /** Like [[decode]], but with an explicit decoder. */
-  def decodeWith[A](decoder: EntityDecoder[A])(f: A => Task[Response]): Task[Response] = decode(f)(decoder)
+  /** Helper method for decoding [[Request]]s
+    *
+    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
+    * If decoding fails, a BadRequest [[Response]] is generated. If the decoder does not support the
+    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
+    */
+  def decodeStrict[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
+    decodeWith(decoder, true)(f)
+
+  /** Like [[decode]], but with an explicit decoder.
+    * @param strict If strict, will return a [[Status.UnsupportedMediaType]] http Response if this message's
+    *               [[MediaType]] is not supported by the provided decoder
+    */
+  def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
+    decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
 }
 
 object Request {

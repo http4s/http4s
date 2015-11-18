@@ -15,7 +15,7 @@ package object http4s {
 
   def EmptyBody = Process.halt
 
-  type DecodeResult[T] = EitherT[Task, ParseFailure, T]
+  type DecodeResult[T] = EitherT[Task, DecodeFailure, T]
 
   val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
