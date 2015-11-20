@@ -133,4 +133,26 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       (org.http4s.QValue.fromString(_).valueOr(e => throw new ParseException(e.copy(sanitized = "Invalid q-value"))))) |
     (ch('1') ~ optional(ch('.') ~ zeroOrMore(ch('0'))) ~ push(org.http4s.QValue.One))
   }
+
+  /* 2.3 ETag http://tools.ietf.org/html/rfc7232#section-2.3
+     entity-tag = [ weak ] opaque-tag
+     weak       = %x57.2F ; "W/", case-sensitive
+     opaque-tag = DQUOTE *etagc DQUOTE
+     etagc      = %x21 / %x23-7E / obs-text ; VCHAR except double quotes, plus obs-text
+   */
+  def EntityTag: Rule1[headers.ETag.EntityTag] = {
+    def weak: Rule1[Boolean] = rule { "W/" ~ push(true) | push(false) }
+
+    // obs-text: http://tools.ietf.org/html/rfc7230#section-3.2.6
+    def obsText: Rule0 = rule { "\u0080" - "\u00FF" }
+
+    def etagc: Rule0 = rule { "\u0021" | "\u0023" - "\u007e" | obsText }
+
+    def opaqueTag: Rule1[String] = rule { '"' ~ capture(zeroOrMore(etagc)) ~ '"' }
+
+    rule {
+      weak ~ opaqueTag ~> { (weak: Boolean, tag: String) => headers.ETag.EntityTag(tag, weak) }
+    }
+  }
+
 }

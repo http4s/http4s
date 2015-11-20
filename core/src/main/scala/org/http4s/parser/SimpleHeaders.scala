@@ -21,6 +21,7 @@ package parser
 
 import headers._
 import java.net.InetAddress
+import org.http4s.headers.ETag.EntityTag
 import org.http4s.util.CaseInsensitiveString._
 import org.parboiled2.Rule1
 
@@ -97,14 +98,15 @@ private[parser] trait SimpleHeaders {
   }.parse
 
   def ETAG(value: String) = new Http4sHeaderParser[ETag](value) {
-    def entry = rule {
-      capture(zeroOrMore(AlphaNum)) ~> (ETag(_))
-    }
+    def entry = rule { EntityTag ~> (ETag(_)) }
   }.parse
 
   def IF_NONE_MATCH(value: String) = new Http4sHeaderParser[`If-None-Match`](value) {
     def entry = rule {
-      capture(zeroOrMore(AlphaNum)) ~> (`If-None-Match`(_))
+      "*" ~ push(`If-None-Match`.`*`) |
+      oneOrMore(EntityTag).separatedBy(ListSep) ~> { tags: Seq[EntityTag] =>
+        `If-None-Match`(Some(NonEmptyList(tags.head, tags.tail:_*)))
+      }
     }
   }.parse
 

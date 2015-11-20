@@ -3,8 +3,9 @@ package parser
 
 import Http4s._
 import headers._
+import org.http4s.headers.ETag.EntityTag
 import org.specs2.mutable.Specification
-import scalaz.{NonEmptyList, Success}
+import scalaz.{\/-, NonEmptyList, Success}
 import java.net.InetAddress
 
 class SimpleHeadersSpec extends Http4sSpec {
@@ -78,13 +79,26 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse ETag" in {
-      val header = ETag("hash")
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      ETag.EntityTag("hash", weak = true).toString() must_== "W/\"hash\""
+      ETag.EntityTag("hash", weak = false).toString() must_== "\"hash\""
+
+      val headers = Seq(ETag(ETag.EntityTag("hash")),
+                        ETag(ETag.EntityTag("hash", true)))
+
+      foreach(headers){ header =>
+        HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      }
     }
 
     "parse If-None-Match" in {
-      val header = `If-None-Match`("hash")
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      val headers = Seq(`If-None-Match`(EntityTag("hash")),
+                        `If-None-Match`(EntityTag("123-999")),
+                        `If-None-Match`(EntityTag("123-999"), EntityTag("hash")),
+                        `If-None-Match`(EntityTag("123-999", weak = true), EntityTag("hash")),
+                        `If-None-Match`.`*`)
+      foreach(headers){ header =>
+        HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      }
     }
 
     "parse Transfer-Encoding" in {
