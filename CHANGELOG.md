@@ -1,3 +1,18 @@
+# v0.11.0 (2015-11-20)
+* Upgrade to scalaz-stream 0.8
+* Add Circe JSON support module.
+* Add ability to require content-type matching with EntityDecoders.
+* Cleanup blaze-client internals.
+* Handle empty static files.
+* Add ability to disable endpoint authentication for the blaze client.
+* Add charset encoding for Argonaut JSON EntityEncoder.
+
+# v0.10.1 (2015-10-07)
+* Processes render data in chunked encoding by default.
+* Incorporate type name into error message of QueryParam.
+* Comma separate Access-Control-Allow-Methods header values.
+* Default FallThrough behavior inspects for the FallThrough.fallthroughKey.
+
 # v0.10.0 (2015-09-03)
 * Replace `PartialService` with the `Fallthrough` typeclass and `orElse` syntax.
 * Rename `withHeaders` to `replaceAllHeaders`
