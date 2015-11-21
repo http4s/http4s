@@ -82,8 +82,8 @@ class SimpleHeadersSpec extends Http4sSpec {
       ETag.EntityTag("hash", weak = true).toString() must_== "W/\"hash\""
       ETag.EntityTag("hash", weak = false).toString() must_== "\"hash\""
 
-      val headers = Seq(ETag(ETag.EntityTag("hash")),
-                        ETag(ETag.EntityTag("hash", true)))
+      val headers = Seq(ETag("hash"),
+                        ETag("hash", true))
 
       foreach(headers){ header =>
         HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)

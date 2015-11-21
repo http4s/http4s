@@ -98,7 +98,7 @@ private[parser] trait SimpleHeaders {
   }.parse
 
   def ETAG(value: String) = new Http4sHeaderParser[ETag](value) {
-    def entry = rule { EntityTag ~> (ETag(_)) }
+    def entry = rule { EntityTag ~> (ETag(_: ETag.EntityTag)) }
   }.parse
 
   def IF_NONE_MATCH(value: String) = new Http4sHeaderParser[`If-None-Match`](value) {

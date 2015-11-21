@@ -10,6 +10,8 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
       else "\"" + tag + '"'
     }
   }
+
+  def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
 }
 
 final case class ETag(tag: ETag.EntityTag) extends Header.Parsed {
