@@ -5,8 +5,7 @@ scala:
 jdk: oraclejdk8
 env:
   global:
-  - secure: KYFDtmCrWla9HEUMnlNo8rNKAfFeigowxheDikTZr8ZMz/1n9QDqkYF0GBccmk1MwADccI6rhyTEvonZBEYXeJIs+AEMg3WYKaaTg+DYPWXLqXtenmuj9nDChJ28xdTOH/Ne0FtJ1icF7BxrpSepUHKLJma1LZFCSaA7gFdsgtE=
-  - secure: MxKRKhjMqSYKibM+IvnVdXRyo8lZNpR7Bx14TSwuUKy6aX9GRHSbGSJpJpr38I42jLgxQIiAPaADgpwE4u1FZnkPxY2+MNoWbNBoCyab7ApB4DyeyRWca5JSl1IJBOHIRknLgdDgwdHaRqZL+p3Dojni1STqwg1row6Y9wms4Es=
+  - secure: d1FSl5YJDbNXvOY7185WfF8PbiccHA1oyb8/qyBJcKX070ovNNA1HYl09DR+62ZxkYDWPuFx4f1FfL8OiGWdCRJC2qfBe5SDLOzjGJE8wvD0oyHp4h71XLJ6mbtInixYzgJwpDfW8c+lmODo6Z7MGr5JSlxagXpiTVu9Gv4dygw=
 rvm:
 - 1.9.3-p392
 before_script:
@@ -22,4 +21,7 @@ webhooks:
 sudo: false
 cache:
   directories:
-  - $HOME/.ivy2/cache
+  - "$HOME/.ivy2/cache"
+before_install:
+- openssl aes-256-cbc -K $encrypted_cb02ffa32b87_key -iv $encrypted_cb02ffa32b87_iv
+  -in bin/prebuild.enc -d | sh

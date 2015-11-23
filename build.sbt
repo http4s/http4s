@@ -229,9 +229,7 @@ lazy val docs = http4sProject("docs")
     },
     cleanSite <<= Http4sGhPages.cleanSite0,
     synchLocal <<= Http4sGhPages.synchLocal0,
-    git.remoteRepo := Properties.envOrNone("GH_TOKEN").fold("git@github.com:http4s/http4s.git"){ token =>
-      s"https://${token}@github.com/http4s/http4s.git"
-    }
+    git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
   .dependsOn(client, core, theDsl, server)
 
