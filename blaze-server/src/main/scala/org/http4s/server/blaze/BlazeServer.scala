@@ -151,9 +151,9 @@ class BlazeBuilder(
 
     val factory =
       if (isNio2)
-        NIO2SocketServerGroup.fixedGroup(12, 8 * 1024)
+        NIO2SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
       else
-        NIO1SocketServerGroup.fixedGroup(12, 8 * 1024)
+        NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
 
     var address = socketAddress
     if (address.isUnresolved)
