@@ -223,6 +223,19 @@ lazy val docs = http4sProject("docs")
         examplesWar,
         loadTest
       ),
+    // documentation source code linking
+    scalacOptions in (Compile,doc) <++= (version, apiVersion, scmInfo, baseDirectory in ThisBuild) map {
+      case (v, (maj,min), Some(s), b) => 
+        val sourceTemplate =
+          if (v.endsWith("SNAPSHOT"))
+            s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
+          else 
+            s"${s.browseUrl}/tree/v$maj.$min.0€{FILE_PATH}.scala"
+        Seq("-implicits",
+            "-doc-source-url", sourceTemplate,
+            "-sourcepath", b.getAbsolutePath)
+      case _ => Seq.empty
+    },
     includeFilter in (JekyllSupport.Jekyll) := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json" | "CNAME",
     siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map {
       case (m, (major, minor)) => for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
