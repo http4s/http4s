@@ -56,6 +56,7 @@ case class BlockingServletIo(chunkSize: Int) extends ServletIo {
  */
 case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   private[this] val LeftEnd = Terminated(End).left
+  private[this] val RightUnit = ().right
 
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = {
     type Callback = Throwable \/ ByteVector => Unit
@@ -121,20 +122,20 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
             if (state.compareAndSet(blocked, e))
               cb(t.left)
           case _ =>
-            state.set(Blocked(cb))
         }
       }
     } onHalt (_.asHalt)
   }
 
   override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = {
-    type Callback = Throwable \/ (ByteVector => Unit) => Unit
+    type Callback[A] = Throwable \/ A => Unit
 
     sealed trait State
     case object Init extends State
     case object Ready extends State
     case class Errored(t: Throwable) extends State
-    case class Blocked(cb: Callback) extends State
+    case class Blocked(cb: Callback[ByteVector => Unit]) extends State
+    case class AwaitingLastWrite(cb: Callback[Unit]) extends State
 
     val out = servletResponse.getOutputStream
     /*
@@ -158,13 +159,15 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
       override def onWritePossible(): Unit = {
         state.getAndSet(Ready) match {
           case Blocked(cb) => cb(writeChunk)
+          case AwaitingLastWrite(cb) => cb(RightUnit)
           case old =>
         }
       }
 
       override def onError(t: Throwable): Unit =  {
         state.getAndSet(Errored(t)) match {
-          case Blocked(cb) => cb(-\/(t))
+          case Blocked(cb) => cb(t.left)
+          case AwaitingLastWrite(cb) => cb(t.left)
           case _ =>
         }
       }
@@ -176,7 +179,19 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
      */
     out.setWriteListener(listener)
 
-    val bodyWriter = { response: Response =>
+    val awaitLastWrite = eval_ {
+      Task.fork {
+        Task.async[Unit] { cb =>
+          state.getAndSet(AwaitingLastWrite(cb)) match {
+            case Ready if out.isReady =>
+              cb(RightUnit)
+            case _ =>
+          }
+        }
+      }(TrampolineExecutionContext)
+    }
+
+    { response: Response =>
       if (response.isChunked)
         autoFlush = true
       response.body.evalMap { chunk =>
@@ -190,11 +205,9 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
               if (state.compareAndSet(blocked, e))
                 cb(-\/(t))
             case _ =>
-              state.set(Blocked(cb))
           }
         }.map(_(chunk)))(TrampolineExecutionContext)
-      }.run
+      }.append(awaitLastWrite).run
     }
-    bodyWriter
   }
 }
