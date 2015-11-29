@@ -12,7 +12,7 @@ object EntityLimiter {
 
   case class EntityTooLarge(limit: Int) extends Exception with NoStackTrace
 
-  val DefaultMaxEntitySize: Int = 2097152
+  val DefaultMaxEntitySize: Int = 2*1024*1024 // 2 MB default
 
   def apply(service: HttpService, limit: Int = DefaultMaxEntitySize): HttpService =
     service.local { req: Request => req.copy(body = req.body |> takeBytes(limit)) }
@@ -23,7 +23,7 @@ object EntityLimiter {
       if (sz > n) fail(EntityTooLarge(n))
       else emit(chunk) ++ receive1(go(sz, _))
     }
-    await(Get[ByteVector])(go(0,_))
+    receive1(go(0,_))
   }
 
   def comsumeUpTo(n: Int): Process1[ByteVector, ByteVector] = {
