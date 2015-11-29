@@ -53,7 +53,7 @@ object Http4sBuild extends Build {
   lazy val jawnArgonaut        = "org.spire-math"           %% "jawn-argonaut"           % jawnParser.revision
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.3"
-  lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.5.2"
+  lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.7.0"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.2.v20150730"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.2.11"
