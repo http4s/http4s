@@ -9,7 +9,7 @@ libraryDependencies ++= Seq(
   jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
 )
 
-// Adds NPN to the boot classpath for Spdy support
+// Adds ALPN to the boot classpath for HTTP/2 support
 javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
    for {
      file <- attList.map(_.data)
