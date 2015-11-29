@@ -1,3 +1,9 @@
+# v0.11.1 (2015-11-29)
+* Honor `connectorPoolSize` and `bufferSize` parameters in `BlazeBuilder`.
+* Add convenient `ETag` header constructor.
+* Wait for final chunk to be written before closing the async context in non-blocking servlet I/O.
+* Upgrade to jawn-streamz-0.7.0 to use scalaz-stream-0.8 across the board.
+
 # v0.11.0 (2015-11-20)
 * Upgrade to scalaz-stream 0.8
 * Add Circe JSON support module.
