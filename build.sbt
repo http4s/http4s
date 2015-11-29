@@ -102,7 +102,7 @@ lazy val jetty = libraryProject("jetty")
       jettyServlet
     )
   )
-  .dependsOn(servlet)
+  .dependsOn(servlet, theDsl % "test->test")
 
 lazy val tomcat = libraryProject("tomcat")
   .settings(
@@ -406,6 +406,7 @@ lazy val commonSettings = Seq(
     else Seq.empty
   ),
   libraryDependencies  ++= Seq(
+    logbackClassic,
     scalameter,
     scalazScalacheckBinding,
     scalaCheck,
