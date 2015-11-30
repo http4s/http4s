@@ -49,7 +49,7 @@ case class BlockingServletIo(chunkSize: Int) extends ServletIo {
 /**
  * Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.
  *
- * This can support more concurrent connections on a smaller request thread pool than [[BlockingServletIO]],
+ * This can support more concurrent connections on a smaller request thread pool than [[BlockingServletIo]],
  * but consumes more CPU per request.  It is also known to cause IllegalStateExceptions in the logs
  * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
  * operationally annoying.
@@ -108,23 +108,25 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
 
     if (in.isFinished)
       halt
-    else repeatEval {
-      Task.async[ByteVector] { cb =>
-        val blocked = Blocked(cb)
-        state.getAndSet(blocked) match {
-          case Ready if in.isReady =>
-            if (state.compareAndSet(blocked, Ready))
-              cb(read)
-          case Complete =>
-            if (state.compareAndSet(blocked, Complete))
-              cb(LeftEnd)
-          case e @ Errored(t) =>
-            if (state.compareAndSet(blocked, e))
-              cb(t.left)
-          case _ =>
+    else repeatEval (
+      Task.fork {
+        Task.async[ByteVector] { cb =>
+          val blocked = Blocked(cb)
+          state.getAndSet(blocked) match {
+            case Ready if in.isReady =>
+              if (state.compareAndSet(blocked, Ready))
+                cb(read)
+            case Complete =>
+              if (state.compareAndSet(blocked, Complete))
+                cb(LeftEnd)
+            case e@Errored(t) =>
+              if (state.compareAndSet(blocked, e))
+                cb(t.left)
+            case _ =>
+          }
         }
-      }
-    } onHalt (_.asHalt)
+      }(TrampolineExecutionContext)
+      ) onHalt (_.asHalt)
   }
 
   override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = {
