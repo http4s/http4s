@@ -10,16 +10,19 @@ import scala.concurrent.duration.Duration
 import scala.util.{Failure, Success}
 
 import org.http4s.blaze.pipeline.MidStage
-import org.http4s.blaze.pipeline.Command.{EOF, Disconnect}
+import org.http4s.blaze.pipeline.Command.{Error, OutboundCommand, EOF, Disconnect}
 import org.http4s.blaze.util.{ Cancellable, TickWheelExecutor }
 
 
 final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Duration, exec: TickWheelExecutor)
-  extends MidStage[ByteBuffer, ByteBuffer] 
+  extends MidStage[ByteBuffer, ByteBuffer]
 { stage =>
 
   private implicit val ec = org.http4s.blaze.util.Execution.directec
   private var activeReqTimeout: Cancellable = Cancellable.noopCancel
+
+  // The timeoutState contains a Cancellable, null, or a TimeoutException
+  private val timeoutState = new AtomicReference[AnyRef](null)
 
   override def name: String = s"ClientTimeoutStage: Idle: $idleTimeout, Request: $requestTimeout"
 
@@ -40,9 +43,6 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
     }
   }
 
-  // The timeoutState contains a Cancellable, null, or a TimeoutException
-  private val timeoutState = new AtomicReference[Any](null)
-
   // Startup on creation
 
   /////////// Pass through implementations ////////////////////////////////
@@ -57,6 +57,14 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
 
   override def writeRequest(data: Seq[ByteBuffer]): Future[Unit] =
     checkTimeout(channelWrite(data))
+
+  override def outboundCommand(cmd: OutboundCommand): Unit = cmd match {
+    // We want to swallow `TimeoutException`'s we have created
+    case Error(t: TimeoutException) if t eq timeoutState.get() =>
+      sendOutboundCommand(Disconnect)
+
+    case cmd => super.outboundCommand(cmd)
+  }
 
   /////////// Protected impl bits //////////////////////////////////////////
 

@@ -55,13 +55,13 @@ class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slo
   // Will serve as our point of synchronization
   private val bodyIt = body.iterator
 
-  private var currentRequest: Promise[ByteBuffer] = null
+  private var currentRequest: Option[Promise[ByteBuffer]] = None
 
-  private def clear(): Unit = bodyIt.synchronized {
+  private def clear(): Unit = synchronized {
     while(bodyIt.hasNext) bodyIt.next()
-    if (currentRequest != null) {
-      currentRequest.tryFailure(EOF)
-      currentRequest = null
+    currentRequest.foreach { req =>
+      req.tryFailure(EOF)
+      currentRequest = None
     }
   }
 
@@ -73,22 +73,21 @@ class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slo
     super.outboundCommand(cmd)
   }
 
-  override def readRequest(size: Int): Future[ByteBuffer] = bodyIt.synchronized {
-    if (currentRequest != null) {
-      Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
-    }
-    else if (bodyIt.isEmpty) Future.failed(EOF)
-    else {
-      currentRequest = Promise[ByteBuffer]
-      scheduler.schedule(new Runnable {
-        override def run(): Unit = bodyIt.synchronized {
-          if (!closed && bodyIt.hasNext) currentRequest.trySuccess(bodyIt.next())
-          else currentRequest.tryFailure(EOF)
-          currentRequest = null
-        }
-      }, pause)
+  override def readRequest(size: Int): Future[ByteBuffer] = self.synchronized {
+    currentRequest match {
+      case Some(_) => Future.failed(new IllegalStateException("Cannot serve multiple concurrent read requests"))
+      case None =>
+        val p = Promise[ByteBuffer]
+        currentRequest = Some(p)
 
-      currentRequest.future
+        scheduler.schedule(new Runnable {
+          override def run(): Unit = self.synchronized {
+            if (!closed && bodyIt.hasNext) p.trySuccess(bodyIt.next())
+            else p.tryFailure(EOF)
+          }
+        }, pause)
+
+        p.future
     }
   }
 }
