@@ -1,7 +1,7 @@
 package org.http4s.client
 package middleware
 
-import org.http4s.{Uri, Status, Http4sSpec, Response}
+import org.http4s.{Uri, Status, Http4sSpec, Request, Response}
 import org.http4s.Status._
 import org.http4s.Method._
 import org.http4s.headers.Location
@@ -14,6 +14,9 @@ class FollowRedirectSpec extends Http4sSpec {
     case r if r.method == GET && r.pathInfo == "/ok"       => Response(Ok).withBody("hello")
     case r if r.method == GET && r.pathInfo == "/redirect" => Response(MovedPermanently).replaceAllHeaders(Location(uri("/ok"))).withBody("Go there.")
     case r if r.method == GET && r.pathInfo == "/loop"     => Response(MovedPermanently).replaceAllHeaders(Location(uri("/loop"))).withBody("Go there.")
+    case r if r.method == POST && r.pathInfo == "/303"      => 
+      Response(SeeOther).replaceAllHeaders(Location(uri("/ok"))).withBody("Go to /ok")
+
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
@@ -27,14 +30,15 @@ class FollowRedirectSpec extends Http4sSpec {
       resp.status must_== Status.Ok
     }
 
-    "Terminate redirect loop" in {
+    "Not redirect more than 'maxRedirects' iterations" in {
       val resp = client(getUri(s"http://localhost/loop")).run
       resp.status must_== Status.MovedPermanently
     }
 
-    "Not redirect more than 'maxRedirects' iterations" in {
-      val resp = defaultClient(getUri(s"http://localhost/redirect")).run
-      resp.status must_== Status.MovedPermanently
+    "Use a GET method on redirect with 303 response code" in {
+      val resp = client(Request(method=POST, uri=getUri(s"http://localhost/303"))).run
+      resp.status must_== Status.Ok
+      resp.as[String].run must_== "hello"
     }
   }
 

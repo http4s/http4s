@@ -33,7 +33,10 @@ object FollowRedirect {
                 fragment = uri.fragment orElse req.uri.fragment
               )
 
-              prepareLoop(req.copy(uri = nextUri, body = EmptyBody), redirects + 1)
+              prepareLoop(
+                req.copy(method = method, uri = nextUri, body = EmptyBody),
+                redirects + 1
+              )
 
             case _ => Task.now(resp)
           }
