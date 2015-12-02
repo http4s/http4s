@@ -18,7 +18,6 @@ import scalaz.stream.time.awakeEvery
 object BlazeWebSocketExample extends App {
 
 /// code_ref: blaze_websocket_example
-
   val route = HttpService {
     case GET -> Root / "hello" =>
       Ok("Hello world.")
@@ -45,6 +44,5 @@ object BlazeWebSocketExample extends App {
     .mountService(route, "/http4s")
     .run
     .awaitShutdown()
-
-  /// end_code_ref
+/// end_code_ref
 }

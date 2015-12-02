@@ -8,7 +8,7 @@ json4s_version: 3.2.10
 
 source:      .
 destination: ../../target/site
-plugins:     ./_plugins
+plugins_dir: ./_plugins
 
 future:      true
 lsi:         false
