@@ -12,7 +12,7 @@ import scalaz.concurrent.Task
 trait BlazeClientStage extends TailStage[ByteBuffer] {
 
   /** Create a computation that will turn the [[Request]] into a [[Response]] */
-  def runRequest(req: Request): Task[Response]
+  def runRequest(req: Request, preludeFlush: Boolean): Task[Response]
 
   /** Determine if the stage is closed and resources have been freed */
   def isClosed(): Boolean
