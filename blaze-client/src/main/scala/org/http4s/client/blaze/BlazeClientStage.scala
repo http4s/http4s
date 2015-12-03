@@ -10,10 +10,16 @@ import org.http4s.{Request, Response}
 import scalaz.concurrent.Task
 
 trait BlazeClientStage extends TailStage[ByteBuffer] {
+
+  /** Create a computation that will turn the [[Request]] into a [[Response]] */
   def runRequest(req: Request): Task[Response]
 
+  /** Determine if the stage is closed and resources have been freed */
   def isClosed(): Boolean
 
+  /** Close down the stage
+   *  Freeing resources and potentially aborting a [[Response]]
+   */
   def shutdown(): Unit
 
   override protected def finalize(): Unit = {

@@ -97,6 +97,7 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: 
         val respTask =  receiveResponse(mustClose)
 
         Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
+            .handleWith { case t => stageShutdown(); Task.fail(t) }
       }
     }
   }
