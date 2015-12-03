@@ -1,6 +1,7 @@
 package org.http4s.client.blaze
 
 import java.nio.ByteBuffer
+import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
 import org.http4s._
@@ -40,18 +41,39 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: 
 
   override def shutdown(): Unit = stageShutdown()
 
-  // seal this off, use shutdown()
-  override def stageShutdown() = {
-    @tailrec
-    def go(): Unit = stageState.get match {
-      case Error(_) => // Done
-      case x => if (!stageState.compareAndSet(x, Error(EOF))) go() // We don't mind if things get canceled at this point.
+  override def stageShutdown() = shutdownWithError(EOF)
+
+  override protected def fatalError(t: Throwable, msg: String): Unit = {
+    val realErr = t match {
+      case _: TimeoutException => EOF
+      case EOF                 => EOF
+      case t                   => 
+        logger.error(t)(s"Fatal Error: $msg")
+        t
     }
 
-    go() // Close the stage.
+    shutdownWithError(realErr)
+  }
 
-    sendOutboundCommand(Command.Disconnect)
-    super.stageShutdown()
+  @tailrec
+  private def shutdownWithError(t: Throwable): Unit = stageState.get match {
+    // If we have a real error, lets put it here.
+    case st@ Error(EOF) if t != EOF => 
+      if (!stageState.compareAndSet(st, Error(t))) shutdownWithError(t)
+      else sendOutboundCommand(Command.Error(t))
+
+    case Error(_) => // NOOP: already shutdown
+
+    case x => 
+      if (!stageState.compareAndSet(x, Error(t))) shutdownWithError(t)
+      else {
+        val cmd = t match { 
+          case EOF => Command.Disconnect
+          case _   => Command.Error(t)
+        }
+        sendOutboundCommand(cmd)
+        super.stageShutdown()
+      }
   }
 
   @tailrec
@@ -97,7 +119,10 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: 
         val respTask =  receiveResponse(mustClose)
 
         Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
-            .handleWith { case t => stageShutdown(); Task.fail(t) }
+            .handleWith { case t => 
+                            fatalError(t, "Error executing request")
+                            Task.fail(t) 
+                        }
       }
     }
   }
@@ -214,7 +239,7 @@ object Http1ClientStage {
   private sealed trait State
   private case object Idle extends State
   private case object Running extends State
-  private case class Error(exc: Exception) extends State
+  private case class Error(exc: Throwable) extends State
 
   private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 
