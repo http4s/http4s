@@ -57,9 +57,11 @@ class Http1ClientStageSpec extends Specification {
     (request, result)
   }
 
-  def getSubmission(req: Request, resp: String): (String, String) =
-    getSubmission(req, resp, new Http1ClientStage(DefaultUserAgent, ec))
-
+  def getSubmission(req: Request, resp: String): (String, String) = {
+    val tail = new Http1ClientStage(DefaultUserAgent, ec)
+    try getSubmission(req, resp, tail)
+    finally { tail.shutdown() }
+  }
 
   "Http1ClientStage" should {
 
@@ -88,33 +90,49 @@ class Http1ClientStageSpec extends Specification {
       val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
-      tail.runRequest(FooRequest).run  // we remain in the body
-
-      tail.runRequest(FooRequest).run must throwA[Http1ClientStage.InProgressException.type]
+      try {
+        tail.runRequest(FooRequest).run  // we remain in the body
+        tail.runRequest(FooRequest).run must throwA[Http1ClientStage.InProgressException.type]
+      }
+      finally {
+        tail.shutdown()
+      }
     }
 
     "Reset correctly" in {
       val tail = new Http1ClientStage(DefaultUserAgent, ec)
-      val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
-      LeafBuilder(tail).base(h)
+      try {
+        val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
+        LeafBuilder(tail).base(h)
 
-      // execute the first request and run the body to reset the stage
-      tail.runRequest(FooRequest).run.body.run.run
+        // execute the first request and run the body to reset the stage
+        tail.runRequest(FooRequest).run.body.run.run
 
-      val result = tail.runRequest(FooRequest).run
-      result.headers.size must_== 1
+        val result = tail.runRequest(FooRequest).run
+        tail.shutdown()
+
+        result.headers.size must_== 1
+      }
+      finally {
+        tail.shutdown()
+      }
     }
 
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
-
       val tail = new Http1ClientStage(DefaultUserAgent, ec)
-      val h = new SeqTestHead(List(mkBuffer(resp)))
-      LeafBuilder(tail).base(h)
 
-      val result = tail.runRequest(FooRequest).run
+      try {
+        val h = new SeqTestHead(List(mkBuffer(resp)))
+        LeafBuilder(tail).base(h)
 
-      result.body.run.run must throwA[InvalidBodyException]
+        val result = tail.runRequest(FooRequest).run
+
+        result.body.run.run must throwA[InvalidBodyException]
+      }
+      finally {
+        tail.shutdown()
+      }
     }
 
     "Interpret a lack of length with a EOF as a valid message" in {
@@ -164,14 +182,20 @@ class Http1ClientStageSpec extends Specification {
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-
       val tail = new Http1ClientStage(None, ec)
-      val (request, response) = getSubmission(FooRequest, resp, tail)
 
-      val requestLines = request.split("\r\n").toList
+      try {
+        val (request, response) = getSubmission(FooRequest, resp, tail)
+        tail.shutdown()
 
-      requestLines.find(_.startsWith("User-Agent")) must beNone
-      response must_==("done")
+        val requestLines = request.split("\r\n").toList
+
+        requestLines.find(_.startsWith("User-Agent")) must beNone
+        response must_==("done")
+      }
+      finally {
+        tail.shutdown()
+      }
     }
 
     "Allow an HTTP/1.0 request without a Host header" in {
