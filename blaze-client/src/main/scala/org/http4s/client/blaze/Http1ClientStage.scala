@@ -86,16 +86,16 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: 
     }
   }
 
-  def runRequest(req: Request): Task[Response] = Task.suspend[Response] {
+  def runRequest(req: Request, flushPrelude: Boolean): Task[Response] = Task.suspend[Response] {
     if (!stageState.compareAndSet(Idle, Running)) Task.fail(InProgressException)
-    else executeRequest(req)
+    else executeRequest(req, flushPrelude)
   }
 
   override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = parser.doParseContent(buffer)
 
   override protected def contentComplete(): Boolean = parser.contentComplete()
 
-    private def executeRequest(req: Request): Task[Response] = {
+  private def executeRequest(req: Request, flushPrelude: Boolean): Task[Response] = {
     logger.debug(s"Beginning request: $req")
     validateRequest(req) match {
       case Left(e)    => Task.fail(e)
@@ -113,16 +113,24 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: 
           case None       => getHttpMinor(req) == 0
         }
 
-        val bodyTask = getChunkEncoder(req, mustClose, rr)
-                          .writeProcess(req.body)
-                          .handle { case EOF => () } // If we get a pipeline closed, we might still be good. Check response
+        val next: Task[StringWriter] = if (flushPrelude) {
+          // Write the prelude as a test and feed a ___fresh___ StringWriter forward
+          ???
+
+        } else Task.now(rr)
+
+        next.flatMap{ rr =>
+          val bodyTask = getChunkEncoder(req, mustClose, rr)
+            .writeProcess(req.body)
+            .handle { case EOF => () } // If we get a pipeline closed, we might still be good. Check response
         val respTask =  receiveResponse(mustClose)
 
-        Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
-            .handleWith { case t => 
-                            fatalError(t, "Error executing request")
-                            Task.fail(t) 
-                        }
+          Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
+            .handleWith { case t =>
+              fatalError(t, "Error executing request")
+              Task.fail(t)
+            }
+        }
       }
     }
   }
