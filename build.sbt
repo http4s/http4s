@@ -435,7 +435,9 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
       exclude[IncompatibleResultTypeProblem]("org.http4s.client.blaze.Http1ClientStage.org$http4s$client$blaze$Http1ClientStage$$terminationCondition$1"),
       exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.org$http4s$client$blaze$BlazeClientStage$$super$finalize"),
       exclude[IncompatibleMethTypeProblem]("org.http4s.client.blaze.Http1ClientStage#Error.apply"),
-      exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.finalize")
+      exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.finalize"),
+      exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.runRequest"),
+      exclude[MissingMethodProblem]("org.http4s.client.blaze.Http1ClientStage.org$http4s$client$blaze$Http1ClientStage$$executeRequest")
     )
   }
 )
