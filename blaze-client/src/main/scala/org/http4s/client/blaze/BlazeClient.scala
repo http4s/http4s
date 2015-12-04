@@ -30,7 +30,7 @@ final class BlazeClient(manager: ConnectionManager, idleTimeout: Duration, reque
               manager.recycleClient(req, client)
             }
           })
-          Task.now(r.copy(body = r.body ++ recycleProcess))
+          Task.now(r.copy(body = r.body.onComplete(recycleProcess)))
 
         case -\/(Command.EOF) if !freshClient =>
           manager.getClient(req, freshClient = true).flatMap(tryClient(_, true))
