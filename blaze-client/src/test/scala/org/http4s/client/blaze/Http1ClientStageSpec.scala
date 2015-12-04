@@ -24,9 +24,9 @@ class Http1ClientStageSpec extends Specification {
 
   val ec = org.http4s.blaze.util.Execution.trampoline
 
-  val www_foo_com = Uri.uri("http://www.foo.com")
-  val FooRequest = Request(uri = www_foo_com)
-  
+  val www_foo_test = Uri.uri("http://www.foo.test")
+  val FooRequest = Request(uri = www_foo_test)
+
   val LongDuration = 30.seconds
 
   // Common throw away response
@@ -75,7 +75,7 @@ class Http1ClientStageSpec extends Specification {
 
     "Submit a request line with a query" in {
       val uri = "/huh?foo=bar"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com" + uri)
+      val \/-(parsed) = Uri.fromString("http://www.foo.test" + uri)
       val req = Request(uri = parsed)
 
       val (request, response) = getSubmission(req, resp)
@@ -146,13 +146,13 @@ class Http1ClientStageSpec extends Specification {
     "Utilize a provided Host header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.replaceAllHeaders(headers.Host("bar.com"))
+      val req = FooRequest.replaceAllHeaders(headers.Host("bar.test"))
 
       val (request, response) = getSubmission(req, resp)
 
       val requestLines = request.split("\r\n").toList
 
-      requestLines must contain("Host: bar.com")
+      requestLines must contain("Host: bar.test")
       response must_==("done")
     }
 
@@ -201,7 +201,7 @@ class Http1ClientStageSpec extends Specification {
     "Allow an HTTP/1.0 request without a Host header" in {
       val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
 
-      val req = Request(uri = www_foo_com, httpVersion = HttpVersion.`HTTP/1.0`)
+      val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
 
       val (request, response) = getSubmission(req, resp)
 
