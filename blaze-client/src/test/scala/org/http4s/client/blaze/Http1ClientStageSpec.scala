@@ -35,7 +35,7 @@ class Http1ClientStageSpec extends Specification {
   def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  def getSubmission(req: Request, resp: String, stage: Http1ClientStage): (String, String) = {
+  def getSubmission(req: Request, resp: String, stage: Http1ClientStage, flushPrelude: Boolean): (String, String) = {
     val h = new SeqTestHead(resp.toSeq.map{ chr =>
       val b = ByteBuffer.allocate(1)
       b.put(chr.toByte).flip()
@@ -43,7 +43,7 @@ class Http1ClientStageSpec extends Specification {
     })
     LeafBuilder(stage).base(h)
 
-    val result = new String(stage.runRequest(req, false)
+    val result = new String(stage.runRequest(req, flushPrelude)
       .run
       .body
       .runLog
@@ -57,9 +57,9 @@ class Http1ClientStageSpec extends Specification {
     (request, result)
   }
 
-  def getSubmission(req: Request, resp: String): (String, String) = {
+  def getSubmission(req: Request, resp: String, flushPrelude: Boolean = false): (String, String) = {
     val tail = new Http1ClientStage(DefaultUserAgent, ec)
-    try getSubmission(req, resp, tail)
+    try getSubmission(req, resp, tail, flushPrelude)
     finally { tail.shutdown() }
   }
 
@@ -185,7 +185,7 @@ class Http1ClientStageSpec extends Specification {
       val tail = new Http1ClientStage(None, ec)
 
       try {
-        val (request, response) = getSubmission(FooRequest, resp, tail)
+        val (request, response) = getSubmission(FooRequest, resp, tail, false)
         tail.shutdown()
 
         val requestLines = request.split("\r\n").toList
@@ -206,6 +206,17 @@ class Http1ClientStageSpec extends Specification {
       val (request, response) = getSubmission(req, resp)
 
       request must not contain("Host:")
+      response must_==("done")
+    }
+
+    "Support flushing the prelude" in {
+      val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
+      /*
+       * We flush the prelude first to test connection liveness in pooled
+       * scenarios before we consume the body.  Make sure we can handle
+       * it.  Ensure that we still get a well-formed response.
+       */
+      val (request, response) = getSubmission(req, resp, true)
       response must_==("done")
     }
   }
