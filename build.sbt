@@ -422,7 +422,22 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   failOnProblem <<= version(compatibleVersion(_).isDefined),
   previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName)((ver, org, binVer, mod) => compatibleVersion(ver) map {
     org % s"${mod}_${binVer}" % _
-  })
+  }),
+  binaryIssueFilters ++= {
+    import com.typesafe.tools.mima.core._
+    import com.typesafe.tools.mima.core.ProblemFilters._
+    Seq(
+      exclude[IncompatibleMethTypeProblem]("org.http4s.client.blaze.Http1ClientStage#Error.copy"),
+      exclude[IncompatibleResultTypeProblem]("org.http4s.client.blaze.Http1ClientStage#Error.exc"),
+      exclude[IncompatibleResultTypeProblem]("org.http4s.client.blaze.Http1ClientStage#Error.copy$default$1"),
+      exclude[IncompatibleMethTypeProblem]("org.http4s.client.blaze.Http1ClientStage#Error.this"),
+      exclude[IncompatibleResultTypeProblem]("org.http4s.client.blaze.ClientTimeoutStage.org$http4s$client$blaze$ClientTimeoutStage$$activeReqTimeout"),
+      exclude[IncompatibleResultTypeProblem]("org.http4s.client.blaze.Http1ClientStage.org$http4s$client$blaze$Http1ClientStage$$terminationCondition$1"),
+      exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.org$http4s$client$blaze$BlazeClientStage$$super$finalize"),
+      exclude[IncompatibleMethTypeProblem]("org.http4s.client.blaze.Http1ClientStage#Error.apply"),
+      exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.finalize")
+    )
+  }
 )
 
 // Check whether to enable java 8 type lambdas
