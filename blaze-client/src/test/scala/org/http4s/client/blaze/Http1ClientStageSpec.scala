@@ -43,7 +43,7 @@ class Http1ClientStageSpec extends Specification {
     })
     LeafBuilder(stage).base(h)
 
-    val result = new String(stage.runRequest(req)
+    val result = new String(stage.runRequest(req, false)
       .run
       .body
       .runLog
@@ -91,8 +91,8 @@ class Http1ClientStageSpec extends Specification {
       LeafBuilder(tail).base(h)
 
       try {
-        tail.runRequest(FooRequest).run  // we remain in the body
-        tail.runRequest(FooRequest).run must throwA[Http1ClientStage.InProgressException.type]
+        tail.runRequest(FooRequest, false).run  // we remain in the body
+        tail.runRequest(FooRequest, false).run must throwA[Http1ClientStage.InProgressException.type]
       }
       finally {
         tail.shutdown()
@@ -106,9 +106,9 @@ class Http1ClientStageSpec extends Specification {
         LeafBuilder(tail).base(h)
 
         // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest).run.body.run.run
+        tail.runRequest(FooRequest, false).run.body.run.run
 
-        val result = tail.runRequest(FooRequest).run
+        val result = tail.runRequest(FooRequest, false).run
         tail.shutdown()
 
         result.headers.size must_== 1
@@ -126,7 +126,7 @@ class Http1ClientStageSpec extends Specification {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val result = tail.runRequest(FooRequest).run
+        val result = tail.runRequest(FooRequest, false).run
 
         result.body.run.run must throwA[InvalidBodyException]
       }

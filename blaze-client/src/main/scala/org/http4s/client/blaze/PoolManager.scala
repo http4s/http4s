@@ -48,12 +48,19 @@ private final class PoolManager (maxPooledConnections: Int, builder: ConnectionB
   override def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage] = Task.suspend {
     cs.synchronized {
       if (closed) Task.fail(new Exception("Client is closed"))
-      else if (freshClient) builder(request)
+      else if (freshClient)  {
+        logger.debug("Creating new connection, per request.")
+        builder(request)
+      }
       else cs.dequeueFirst { case Connection(sch, auth, _) =>
         sch == request.uri.scheme && auth == request.uri.authority
       } match {
-        case Some(Connection(_, _, stage)) => Task.now(stage)
-        case None => builder(request)
+        case Some(Connection(_, _, stage)) =>
+          logger.debug("Recycling connection.")
+          Task.now(stage)
+        case None =>
+          logger.debug("No pooled connection available.  Creating new connection.")
+          builder(request)
       }
     }
   }
