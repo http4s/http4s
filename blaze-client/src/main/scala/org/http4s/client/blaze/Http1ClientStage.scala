@@ -88,6 +88,9 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: 
     }
   }
 
+  def runRequest(req: Request): Task[Response] =
+    runRequest(req, false)
+
   def runRequest(req: Request, flushPrelude: Boolean): Task[Response] = Task.suspend[Response] {
     if (!stageState.compareAndSet(Idle, Running)) Task.fail(InProgressException)
     else executeRequest(req, flushPrelude)
