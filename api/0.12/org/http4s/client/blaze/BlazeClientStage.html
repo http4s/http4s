@@ -135,22 +135,22 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Stage</dd></dl></div>
     </li><li name="org.http4s.client.blaze.BlazeClientStage#runRequest" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="runRequest(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="runRequest(Request):Task[Response]"></a>
+      <a id="runRequest(req:org.http4s.Request,preludeFlush:Boolean):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="runRequest(Request,Boolean):Task[Response]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">runRequest</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">runRequest</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="preludeFlush">preludeFlush: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientStage@runRequest(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientStage@runRequest(req:org.http4s.Request,preludeFlush:Boolean):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Create a computation that will turn the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> into a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a></p>
+      
     </li><li name="org.http4s.client.blaze.BlazeClientStage#shutdown" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="shutdown():Unit"></a>
       <a id="shutdown():Unit"></a>
@@ -170,6 +170,26 @@
       <p class="shortcomment cmt">Close down the stage
  Freeing resources and potentially aborting a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>
 </p>
+    </li><li name="org.http4s.client.blaze.BlazeClientStage#runRequest" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="runRequest(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="runRequest(Request):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version Overload preserved for binary compatibility. Use runRequest(Request, Boolean).) 0.11.2">runRequest</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientStage@runRequest(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Create a computation that will turn the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> into a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a></p><div class="fullcomment"><div class="comment cmt"><p>Create a computation that will turn the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> into a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a></p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version Overload preserved for binary compatibility. Use runRequest(Request, Boolean).)</i> 0.11.2</p></dd></dl></div>
     </li></ol>
             </div>
 
