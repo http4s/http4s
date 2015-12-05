@@ -24,9 +24,9 @@ class Http1ClientStageSpec extends Specification {
 
   val ec = org.http4s.blaze.util.Execution.trampoline
 
-  val www_foo_com = Uri.uri("http://www.foo.com")
-  val FooRequest = Request(uri = www_foo_com)
-  
+  val www_foo_test = Uri.uri("http://www.foo.test")
+  val FooRequest = Request(uri = www_foo_test)
+
   val LongDuration = 30.seconds
 
   // Common throw away response
@@ -35,7 +35,7 @@ class Http1ClientStageSpec extends Specification {
   def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  def getSubmission(req: Request, resp: String, stage: Http1ClientStage): (String, String) = {
+  def getSubmission(req: Request, resp: String, stage: Http1ClientStage, flushPrelude: Boolean): (String, String) = {
     val h = new SeqTestHead(resp.toSeq.map{ chr =>
       val b = ByteBuffer.allocate(1)
       b.put(chr.toByte).flip()
@@ -43,7 +43,7 @@ class Http1ClientStageSpec extends Specification {
     })
     LeafBuilder(stage).base(h)
 
-    val result = new String(stage.runRequest(req)
+    val result = new String(stage.runRequest(req, flushPrelude)
       .run
       .body
       .runLog
@@ -57,9 +57,9 @@ class Http1ClientStageSpec extends Specification {
     (request, result)
   }
 
-  def getSubmission(req: Request, resp: String): (String, String) = {
+  def getSubmission(req: Request, resp: String, flushPrelude: Boolean = false): (String, String) = {
     val tail = new Http1ClientStage(DefaultUserAgent, ec)
-    try getSubmission(req, resp, tail)
+    try getSubmission(req, resp, tail, flushPrelude)
     finally { tail.shutdown() }
   }
 
@@ -75,7 +75,7 @@ class Http1ClientStageSpec extends Specification {
 
     "Submit a request line with a query" in {
       val uri = "/huh?foo=bar"
-      val \/-(parsed) = Uri.fromString("http://www.foo.com" + uri)
+      val \/-(parsed) = Uri.fromString("http://www.foo.test" + uri)
       val req = Request(uri = parsed)
 
       val (request, response) = getSubmission(req, resp)
@@ -91,8 +91,8 @@ class Http1ClientStageSpec extends Specification {
       LeafBuilder(tail).base(h)
 
       try {
-        tail.runRequest(FooRequest).run  // we remain in the body
-        tail.runRequest(FooRequest).run must throwA[Http1ClientStage.InProgressException.type]
+        tail.runRequest(FooRequest, false).run  // we remain in the body
+        tail.runRequest(FooRequest, false).run must throwA[Http1ClientStage.InProgressException.type]
       }
       finally {
         tail.shutdown()
@@ -106,9 +106,9 @@ class Http1ClientStageSpec extends Specification {
         LeafBuilder(tail).base(h)
 
         // execute the first request and run the body to reset the stage
-        tail.runRequest(FooRequest).run.body.run.run
+        tail.runRequest(FooRequest, false).run.body.run.run
 
-        val result = tail.runRequest(FooRequest).run
+        val result = tail.runRequest(FooRequest, false).run
         tail.shutdown()
 
         result.headers.size must_== 1
@@ -126,7 +126,7 @@ class Http1ClientStageSpec extends Specification {
         val h = new SeqTestHead(List(mkBuffer(resp)))
         LeafBuilder(tail).base(h)
 
-        val result = tail.runRequest(FooRequest).run
+        val result = tail.runRequest(FooRequest, false).run
 
         result.body.run.run must throwA[InvalidBodyException]
       }
@@ -146,13 +146,13 @@ class Http1ClientStageSpec extends Specification {
     "Utilize a provided Host header" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
 
-      val req = FooRequest.replaceAllHeaders(headers.Host("bar.com"))
+      val req = FooRequest.replaceAllHeaders(headers.Host("bar.test"))
 
       val (request, response) = getSubmission(req, resp)
 
       val requestLines = request.split("\r\n").toList
 
-      requestLines must contain("Host: bar.com")
+      requestLines must contain("Host: bar.test")
       response must_==("done")
     }
 
@@ -185,7 +185,7 @@ class Http1ClientStageSpec extends Specification {
       val tail = new Http1ClientStage(None, ec)
 
       try {
-        val (request, response) = getSubmission(FooRequest, resp, tail)
+        val (request, response) = getSubmission(FooRequest, resp, tail, false)
         tail.shutdown()
 
         val requestLines = request.split("\r\n").toList
@@ -201,11 +201,22 @@ class Http1ClientStageSpec extends Specification {
     "Allow an HTTP/1.0 request without a Host header" in {
       val resp = "HTTP/1.0 200 OK\r\n\r\ndone"
 
-      val req = Request(uri = www_foo_com, httpVersion = HttpVersion.`HTTP/1.0`)
+      val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
 
       val (request, response) = getSubmission(req, resp)
 
       request must not contain("Host:")
+      response must_==("done")
+    }
+
+    "Support flushing the prelude" in {
+      val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.0`)
+      /*
+       * We flush the prelude first to test connection liveness in pooled
+       * scenarios before we consume the body.  Make sure we can handle
+       * it.  Ensure that we still get a well-formed response.
+       */
+      val (request, response) = getSubmission(req, resp, true)
       response must_==("done")
     }
   }

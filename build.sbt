@@ -433,7 +433,13 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
   failOnProblem <<= version(compatibleVersion(_).isDefined),
   previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName)((ver, org, binVer, mod) => compatibleVersion(ver) map {
     org % s"${mod}_${binVer}" % _
-  })
+  }),
+  binaryIssueFilters ++= {
+    import com.typesafe.tools.mima.core._
+    import com.typesafe.tools.mima.core.ProblemFilters._
+    Seq(
+    )
+  }
 )
 
 // Check whether to enable java 8 type lambdas

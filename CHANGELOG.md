@@ -1,3 +1,10 @@
+# v0.11.2 (2015-12-04)
+* Fix stack safety issue in async servlet I/O.
+* Reduce noise from timeout exceptions in `ClientTimeoutStage`.
+* Address file descriptor leaks in blaze-client.
+* Fix `FollowRedirect` middleware for 303 responses.
+* Support keep-alives for client requests with bodies. 
+
 # v0.11.1 (2015-11-29)
 * Honor `connectorPoolSize` and `bufferSize` parameters in `BlazeBuilder`.
 * Add convenient `ETag` header constructor.
