@@ -46,7 +46,10 @@ final private class BlazeHttp1ClientParser extends Http1ClientParser {
                                             scheme: String,
                                             majorversion: Int,
                                             minorversion: Int): Unit = {
-    status = Status.fromIntAndReason(code, reason).valueOr(e => throw new ParseException(e))
+    status = {
+      if (reason == null || reason.isEmpty) Status.fromInt(code)
+      else Status.fromIntAndReason(code, reason)
+    }.valueOr(e => throw new ParseException(e))
     httpVersion = {
       if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
       else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`
