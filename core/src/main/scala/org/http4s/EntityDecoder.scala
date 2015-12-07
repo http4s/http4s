@@ -27,7 +27,7 @@ import util.byteVector._
   * a streaming decoder by having the value of A be some kind of streaming construct.
   * @tparam T result type produced by the decoder
   */
-sealed trait EntityDecoder[T] { self =>
+trait EntityDecoder[T] { self =>
   /** Attempt to decode the body of the [[Message]] */
   def decode(msg: Message, strict: Boolean): DecodeResult[T]
 
