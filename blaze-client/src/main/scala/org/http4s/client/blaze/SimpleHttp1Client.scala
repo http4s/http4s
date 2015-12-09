@@ -10,14 +10,15 @@ import scala.concurrent.duration.Duration
 /** Create HTTP1 clients which will disconnect on completion of one request */
 object SimpleHttp1Client {
   def apply(idleTimeout: Duration = bits.DefaultTimeout,
-     requestTimeout: Duration = Duration.Inf,
-         bufferSize: Int = bits.DefaultBufferSize,
-          userAgent: Option[`User-Agent`] = bits.DefaultUserAgent,
-           executor: ExecutorService = bits.ClientDefaultEC,
-         sslContext: Option[SSLContext] = None,
-     endpointAuthentication: Boolean = true,
-              group: Option[AsynchronousChannelGroup] = None) = {
-    val manager = ConnectionManager.basic(Http1Support(bufferSize,  userAgent, executor, sslContext, endpointAuthentication, group))
-    new BlazeClient(manager, idleTimeout, requestTimeout)
+         requestTimeout: Duration = Duration.Inf,
+                lenient: Boolean = false,
+             bufferSize: Int = bits.DefaultBufferSize,
+              userAgent: Option[`User-Agent`] = bits.DefaultUserAgent,
+               executor: ExecutorService = bits.ClientDefaultEC,
+             sslContext: Option[SSLContext] = None,
+ endpointAuthentication: Boolean = true,
+                  group: Option[AsynchronousChannelGroup] = None) = {
+    val manager = ConnectionManager.basic(Http1Support(bufferSize, lenient, userAgent, executor, sslContext, endpointAuthentication, group))
+    new BlazeClient(manager, idleTimeout, requestTimeout, lenient)
   }
 }

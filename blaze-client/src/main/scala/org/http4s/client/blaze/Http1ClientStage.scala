@@ -27,13 +27,13 @@ import scalaz.stream.Process.{Halt, halt}
 import scalaz.{\/, -\/, \/-}
 
 
-final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: ExecutionContext)
+final class Http1ClientStage(lenient: Boolean, userAgent: Option[`User-Agent`], protected val ec: ExecutionContext)
   extends BlazeClientStage with Http1Stage
 {
   import org.http4s.client.blaze.Http1ClientStage._
 
   override def name: String = getClass.getName
-  private val parser = new BlazeHttp1ClientParser
+  private val parser = new BlazeHttp1ClientParser(lenient)
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed(): Boolean = stageState.get match {

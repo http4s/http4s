@@ -23,4 +23,16 @@ package object blaze {
     executor = bits.ClientDefaultEC,
     sslContext = None
   )
+
+  /** Lenient blaze client
+    *
+    * This is a variant of default client which silently drops headers with illegal characters. */
+  val lenientClient = SimpleHttp1Client(
+    lenient = true,
+    idleTimeout = bits.DefaultTimeout,
+    bufferSize = bits.DefaultBufferSize,
+    executor = bits.ClientDefaultEC,
+    sslContext = None
+  )
+
 }

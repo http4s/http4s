@@ -6,7 +6,7 @@ import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
 
-final private class BlazeHttp1ClientParser extends Http1ClientParser {
+final private class BlazeHttp1ClientParser(lenient: Boolean) extends Http1ClientParser(lenient) {
   private val headers = new ListBuffer[Header]
   private var status: Status = _
   private var httpVersion: HttpVersion = _
