@@ -1,6 +1,7 @@
 package org.http4s.client.blaze
 
 import org.http4s.Request
+import org.http4s.Uri.{Scheme, Authority}
 
 import scalaz.concurrent.Task
 
@@ -12,7 +13,6 @@ import scalaz.concurrent.Task
   * must have a mechanism to free resources associated with it.
   */
 trait ConnectionManager {
-
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
@@ -41,9 +41,10 @@ object ConnectionManager {
 
   /** Create a [[ConnectionManager]] that will attempt to recycle connections
     *
-    * @param maxPooledConnections max pool size before connections are closed
     * @param builder generator of new connections
+    * @param maxTotal max total connections
+    * @param maxPerKey max connections per request key
     */
-  def pool(maxPooledConnections: Int, builder: ConnectionBuilder): ConnectionManager =
-    new PoolManager(maxPooledConnections, builder)
+  def pool(builder: ConnectionBuilder, maxTotal: Int, maxPerKey: Int): ConnectionManager =
+    new PoolManager(builder, maxTotal, maxPerKey)
 }

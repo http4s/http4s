@@ -64,24 +64,24 @@ final private class Http1Support(bufferSize: Int,
 
 ////////////////////////////////////////////////////
 
-  def makeClient(req: Request): Task[BlazeClientStage] = getAddress(req) match {
-    case \/-(a) => task.futureToTask(buildPipeline(req, a))(ec)
+  def makeClient(requestKey: RequestKey): Task[BlazeClientStage] = getAddress(requestKey) match {
+    case \/-(a) => task.futureToTask(buildPipeline(requestKey, a))(ec)
     case -\/(t) => Task.fail(t)
   }
 
-  private def buildPipeline(req: Request, addr: InetSocketAddress): Future[BlazeClientStage] = {
+  private def buildPipeline(requestKey: RequestKey, addr: InetSocketAddress): Future[BlazeClientStage] = {
     connectionManager.connect(addr, bufferSize).map { head =>
-      val (builder, t) = buildStages(req.uri)
+      val (builder, t) = buildStages(requestKey)
       builder.base(head)
       t
     }(ec)
   }
 
-  private def buildStages(uri: Uri): (LeafBuilder[ByteBuffer], BlazeClientStage) = {
+  private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeClientStage) = {
     val t = new Http1ClientStage(userAgent, ec)
     val builder = LeafBuilder(t)
-    uri match {
-      case Uri(Some(Https),Some(auth),_,_,_) if endpointAuthentication =>
+    requestKey match {
+      case RequestKey(Https, auth) if endpointAuthentication =>
         val eng = sslContext.createSSLEngine(auth.host.value, auth.port getOrElse 443)
         eng.setUseClientMode(true)
 
@@ -91,7 +91,7 @@ final private class Http1Support(bufferSize: Int,
 
         (builder.prepend(new SSLStage(eng)),t)
 
-      case Uri(Some(Https),_,_,_,_) =>
+      case RequestKey(Https, _) =>
         val eng = sslContext.createSSLEngine()
         eng.setUseClientMode(true)
         (builder.prepend(new SSLStage(eng)),t)
@@ -100,13 +100,12 @@ final private class Http1Support(bufferSize: Int,
     }
   }
 
-  private def getAddress(req: Request): Throwable\/InetSocketAddress = {
-    req.uri match {
-      case Uri(_,None,_,_,_)       => -\/(new IOException("Request must have an authority"))
-      case Uri(s,Some(auth),_,_,_) =>
-        val port = auth.port orElse s.map{ s => if (s == Https) 443 else 80 } getOrElse 80
+  private def getAddress(requestKey: RequestKey): Throwable \/ InetSocketAddress = {
+    requestKey match {
+      case RequestKey(s, auth) =>
+        val port = auth.port getOrElse { if (s == Https) 443 else 80 }
         val host = auth.host.value
-        \/-(new InetSocketAddress(host, port))
+        \/.fromTryCatchNonFatal(new InetSocketAddress(host, port))
     }
   }
 }

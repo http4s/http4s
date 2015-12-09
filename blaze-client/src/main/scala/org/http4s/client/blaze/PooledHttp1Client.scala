@@ -13,7 +13,8 @@ import scala.concurrent.duration.Duration
 object PooledHttp1Client {
 
   /** Construct a new PooledHttp1Client */
-  def apply(maxPooledConnections: Int = 10,
+  def apply(maxConnectionsPerKey: Int = 10,
+             maxTotalConnections: Int = 10,
                      idleTimeout: Duration = bits.DefaultTimeout,
                   requestTimeout: Duration = Duration.Inf,
                        userAgent: Option[`User-Agent`] = bits.DefaultUserAgent,
@@ -23,7 +24,7 @@ object PooledHttp1Client {
           endpointAuthentication: Boolean = true,
                            group: Option[AsynchronousChannelGroup] = None) = {
     val http1 = Http1Support(bufferSize, userAgent, executor, sslContext, endpointAuthentication, group)
-    val pool = ConnectionManager.pool(maxPooledConnections, http1)
+    val pool = ConnectionManager.pool(http1, maxTotalConnections, maxConnectionsPerKey)
     new BlazeClient(pool, idleTimeout, requestTimeout)
   }
 }

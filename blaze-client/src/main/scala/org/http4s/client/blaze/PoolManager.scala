@@ -1,66 +1,62 @@
 package org.http4s.client.blaze
 
+import java.nio.ByteBuffer
+
+import org.apache.commons.pool2.{PooledObject, BaseKeyedPooledObjectFactory}
+import org.apache.commons.pool2.impl.{GenericKeyedObjectPoolConfig, DefaultPooledObject, GenericKeyedObjectPool}
 import org.http4s.Request
 import org.http4s.Uri.{Authority, Scheme}
+import org.http4s.blaze.pipeline.Command.InboundCommand
 import org.log4s.getLogger
 
-import scala.collection.mutable
+import scala.concurrent.duration.Duration
+import scala.concurrent.{Await, ExecutionContext, Future, Promise}
 import scalaz.concurrent.Task
 
-
 /* implementation bits for the pooled client manager */
-private final class PoolManager (maxPooledConnections: Int, builder: ConnectionBuilder) extends ConnectionManager {
-
-  require(maxPooledConnections > 0, "Must have finite connection pool size")
-
-  private case class Connection(scheme: Option[Scheme], auth: Option[Authority], stage: BlazeClientStage)
-
+private final class PoolManager(builder: ConnectionBuilder,
+                                maxTotal: Int,
+                                maxTotalPerKey: Int)
+  extends ConnectionManager
+{
   private[this] val logger = getLogger
-  private var closed = false  // All access in synchronized blocks, no need to be volatile
-  private val cs = new mutable.Queue[Connection]()
+
+  private def closed = pool.isClosed
+
+  private val pool = {
+    val factory = new BaseKeyedPooledObjectFactory[RequestKey, BlazeClientStage] {
+      override def wrap(value: BlazeClientStage) = new DefaultPooledObject(value)
+      override def create(key: RequestKey) = builder(key)./*gulp*/run/*gulp*/
+      override def validateObject(key: RequestKey, p: PooledObject[BlazeClientStage]): Boolean =
+        !p.getObject.isClosed
+      override def destroyObject(key: RequestKey, p: PooledObject[BlazeClientStage]): Unit =
+        p.getObject.shutdown()
+    }
+    val config = new GenericKeyedObjectPoolConfig
+    config.setMaxTotal(maxTotal)
+    config.setMaxTotalPerKey(maxTotalPerKey)
+    config.setTestOnBorrow(true)
+    new GenericKeyedObjectPool[RequestKey, BlazeClientStage](factory)
+  }
 
   /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = Task.delay {
-    logger.debug(s"Shutting down ${getClass.getName}.")
-    cs.synchronized {
-      if(!closed) {
-        closed = true
-        cs.foreach(_.stage.shutdown())
-      }
-    }
+    pool.close()
   }
 
-  override def recycleClient(request: Request, stage: BlazeClientStage): Unit =
-    cs.synchronized {
-      if (closed) stage.shutdown()
-      else {
-          logger.debug("Recycling connection.")
-          cs += Connection(request.uri.scheme, request.uri.authority, stage)
+  override def recycleClient(request: Request, stage: BlazeClientStage): Unit = {
+    val key = RequestKey.fromRequest(request)
+    logger.debug(s"Returning connection to ${key}.")
+    pool.returnObject(key, stage)
+  }
 
-        while (cs.size >= maxPooledConnections) {  // drop connections until the pool will fit this connection
-          logger.trace(s"Shutting down connection due to pool excess: Max: $maxPooledConnections")
-          val Connection(_, _, stage) = cs.dequeue()
-          stage.shutdown()
-        }
-      }
-    }
-
-  override def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage] = Task.suspend {
-    cs.synchronized {
-      if (closed) Task.fail(new Exception("Client is closed"))
-      else if (freshClient)  {
-        logger.debug("Creating new connection, per request.")
-        builder(request)
-      }
-      else cs.dequeueFirst { case Connection(sch, auth, _) =>
-        sch == request.uri.scheme && auth == request.uri.authority
-      } match {
-        case Some(Connection(_, _, stage)) =>
-          logger.debug("Recycling connection.")
-          Task.now(stage)
-        case None =>
-          logger.debug("No pooled connection available.  Creating new connection.")
-          builder(request)
+  override def getClient(request: Request, ignored: Boolean): Task[BlazeClientStage] = Task.suspend {
+    if (closed) Task.fail(new Exception("Client is closed"))
+    else {
+      val key = RequestKey.fromRequest(request)
+      Task {
+        logger.debug(s"Borrowing connection to ${key}.")
+        pool.borrowObject(key)
       }
     }
   }

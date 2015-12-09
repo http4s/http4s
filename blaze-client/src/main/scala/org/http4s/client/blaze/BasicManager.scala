@@ -8,7 +8,7 @@ import scalaz.concurrent.Task
 /* implementation bits for the basic client manager */
 private final class BasicManager (builder: ConnectionBuilder) extends ConnectionManager {
   override def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage] =
-    builder(request)
+    builder(RequestKey.fromRequest(request))
 
   override def shutdown(): Task[Unit] = Task(())
 

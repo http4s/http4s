@@ -10,7 +10,6 @@ import org.http4s.{Request, Response}
 import scalaz.concurrent.Task
 
 trait BlazeClientStage extends TailStage[ByteBuffer] {
-
   /** Create a computation that will turn the [[Request]] into a [[Response]] */
   @deprecated("0.11.2", "Overload preserved for binary compatibility. Use runRequest(Request, Boolean).")
   def runRequest(req: Request): Task[Response]
