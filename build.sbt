@@ -80,7 +80,6 @@ lazy val blazeServer = libraryProject("blaze-server")
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
     description := "blaze implementation for http4s clients",
-    libraryDependencies += commonsPool2
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 

@@ -16,19 +16,9 @@ trait ConnectionManager {
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
-  /** Get a connection to the provided address
-    * @param request [[Request]] to connect too
-    * @param freshClient if the client should force a new connection
-    * @return a Future with the connected [[BlazeClientStage]] of a blaze pipeline
+   /** Execute a block of code with a (possibly pooled) blaze client stage.
     */
-  def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage]
-  
-  /** Recycle or close the connection
-    * Allow for smart reuse or simple closing of a connection after the completion of a request
-    * @param request [[Request]] to connect too
-    * @param stage the [[BlazeClientStage]] which to deal with
-    */
-  def recycleClient(request: Request, stage: BlazeClientStage): Unit
+  def withClient[A](request: Request)(f: BlazeClientStage => Task[A]): Task[A]
 }
 
 object ConnectionManager {
@@ -43,8 +33,7 @@ object ConnectionManager {
     *
     * @param builder generator of new connections
     * @param maxTotal max total connections
-    * @param maxPerKey max connections per request key
     */
-  def pool(builder: ConnectionBuilder, maxTotal: Int, maxPerKey: Int): ConnectionManager =
-    new PoolManager(builder, maxTotal, maxPerKey)
+  def pool(builder: ConnectionBuilder, maxTotal: Int): ConnectionManager =
+    new PoolManager(builder, maxTotal)
 }
