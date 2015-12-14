@@ -15,6 +15,8 @@ import scalaz.stream.Process._
 import scalaz.stream.io.chunkR
 import scalaz.syntax.either._
 
+import org.log4s.getLogger
+
 /**
  * Determines the mode of I/O used for reading request bodies and writing response bodies.
  */
@@ -55,6 +57,8 @@ case class BlockingServletIo(chunkSize: Int) extends ServletIo {
  * operationally annoying.
  */
 case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
+  private[this] val logger = getLogger
+
   private[this] val LeftEnd = Terminated(End).left
 
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = {
@@ -147,7 +151,9 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
     @volatile var autoFlush = false
 
     val writeChunk = { chunk: ByteVector =>
-      if (out.isReady) {
+      if (!out.isReady) {
+        logger.error(s"writeChunk called while out was not ready, bytes will be lost!")
+      } else {
         out.write(chunk.toArray)
         if (autoFlush && out.isReady)
           out.flush()
