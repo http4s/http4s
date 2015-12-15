@@ -31,9 +31,9 @@ class ChunkProcessWriter(private var headers: StringWriter,
       trailer.map { trailerHeaders =>
         if (trailerHeaders.nonEmpty) {
           val rr = new StringWriter(256)
-          rr << '0' << '\r' << '\n'             // Last chunk
-          trailerHeaders.foreach( h =>  rr << h.name.toString << ": " << h << '\r' << '\n')   // trailers
-          rr << '\r' << '\n'          // end of chunks
+          rr << "0\r\n" // Last chunk
+          trailerHeaders.foreach( h =>  rr << h.name.toString << ": " << h << "\r\n") // trailers
+          rr << "\r\n" // end of chunks
           ByteBuffer.wrap(rr.result().getBytes(ISO_8859_1))
         }
         else ChunkEndBuffer

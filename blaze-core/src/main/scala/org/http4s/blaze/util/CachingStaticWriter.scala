@@ -32,7 +32,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
     bodyBuffer = null
 
     if (innerWriter == null) {  // We haven't written anything yet
-      writer << '\r' << '\n'
+      writer << "\r\n"
       val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.ISO_8859_1))
       new InnerWriter(b).writeBodyChunk(c, flush = true)
     }
@@ -57,7 +57,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer], buff
       val c = addChunk(chunk)
       if (flush || c.length >= bufferSize) { // time to just abort and stream it
         _forceClose = true
-        writer << '\r' << '\n'
+        writer << "\r\n"
         val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.ISO_8859_1))
         innerWriter = new InnerWriter(b)
         innerWriter.writeBodyChunk(chunk, flush)
