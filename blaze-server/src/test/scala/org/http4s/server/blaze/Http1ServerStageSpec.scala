@@ -3,6 +3,7 @@ package blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 
 import org.http4s.headers.{`Transfer-Encoding`, Date}
 import org.http4s.{headers => H, _}
@@ -146,7 +147,7 @@ class Http1ServerStageSpec extends Specification {
     }
 
     "Honor an explicitly added date header" in {
-      val dateHeader = Date(DateTime(4))
+      val dateHeader = Date(Instant.ofEpochMilli(0))
       val service = HttpService {
         case req => Task.now(Response(body = req.body).replaceAllHeaders(dateHeader))
       }
@@ -158,6 +159,7 @@ class Http1ServerStageSpec extends Specification {
 
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
+
       hdrs.find(_.name == Date.name) must_== Some(dateHeader)
     }
 

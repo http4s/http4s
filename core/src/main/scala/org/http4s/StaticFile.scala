@@ -5,8 +5,8 @@ import java.util.Collections
 import java.net.URL
 import java.nio.ByteBuffer
 import java.nio.channels.{CompletionHandler, AsynchronousFileChannel}
-import java.nio.file.Files
 import java.util.concurrent.ExecutorService
+import java.time.Instant
 
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.{\/-, -\/}
@@ -38,7 +38,7 @@ object StaticFile {
 
   def fromURL(url: URL, req: Option[Request] = None)
              (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
-    val lastmod = DateTime(url.openConnection.getLastModified())
+    val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified())
     val expired = req
       .flatMap(_.headers.get(`If-Modified-Since`))
       .map(_.date.compareTo(lastmod) < 0)
@@ -71,7 +71,7 @@ object StaticFile {
 
     require (start >= 0 && end >= start && buffsize > 0, s"start: $start, end: $end, buffsize: $buffsize")
 
-    val lastModified = DateTime(f.lastModified())
+    val lastModified = Instant.ofEpochMilli(f.lastModified())
 
     // See if we need to actually resend the file
     val notModified = for {

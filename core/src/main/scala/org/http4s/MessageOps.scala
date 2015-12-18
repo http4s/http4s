@@ -1,5 +1,7 @@
 package org.http4s
 
+import java.time.{ZoneOffset, Instant}
+
 import org.http4s.headers.{`Set-Cookie`, `Content-Type`}
 
 import scalaz.\/
@@ -106,15 +108,15 @@ trait ResponseOps extends Any with MessageOps {
   /** Add a Set-Cookie header with the provided values */
   def addCookie(name: String,
                 content: String,
-                expires: Option[DateTime] = None): Self = addCookie(Cookie(name, content, expires))
+                expires: Option[Instant] = None): Self = addCookie(Cookie(name, content, expires))
 
   /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
   def removeCookie(cookie: Cookie): Self = putHeaders(`Set-Cookie`(cookie.copy(content = "",
-    expires = Some(DateTime.UnixEpoch), maxAge = Some(0))))
+    expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))))
 
   /** Add a Set-Cookie which will remove the specified cookie from the client */
   def removeCookie(name: String): Self = putHeaders(`Set-Cookie`(
-    Cookie(name, "", expires = Some(DateTime.UnixEpoch), maxAge = Some(0))
+    Cookie(name, "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))
   ))
 }
 

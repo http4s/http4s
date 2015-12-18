@@ -18,6 +18,8 @@
 package org.http4s
 package parser
 
+import java.time.{ZonedDateTime, ZoneOffset, Instant}
+
 import org.parboiled2._
 import scala.util.Try
 import shapeless.{HNil, ::}
@@ -33,42 +35,35 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Parameter: Rule1[(String,String)] = rule { Token ~ "=" ~ OptWS ~ Value ~> ((_: String, _: String)) }
 
-  def HttpDate: Rule1[DateTime] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) }
+  def HttpDate: Rule1[Instant] = rule { (RFC1123Date | RFC850Date | ASCTimeDate) }
 
-  def RFC1123Date: Rule1[DateTime] = rule {
+  // RFC1123 date string, e.g. `Sun, 06 Nov 1994 08:49:37 GMT`
+  def RFC1123Date: Rule1[Instant] = rule {
     // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
   Wkday ~ str(", ") ~ Date1 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
-    (year: Int, hour: Int, min: Int, sec: Int) =>
-            createDateTime(year, _:Int, _:Int, hour, min, sec, _:Int)
-        } ~> {
-          (wkday: Int, day: Int, month: Int, f: Function3[Int, Int, Int, DateTime]) =>
-            f(month, day, wkday)
-        }
-  }
-
-  def RFC850Date: Rule1[DateTime] = rule {
-    // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
-    Weekday ~ str(", ") ~ Date2 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
-      (year: Int, hour: Int, min: Int, sec: Int) =>
-        createDateTime(year, _:Int, _:Int, hour, min, sec, _:Int)
-    } ~> {
-      (wkday: Int, day: Int, month: Int, f: Function3[Int, Int, Int, DateTime]) =>
-        f(month, day, wkday)
+      (wkday: Int, day: Int, month: Int, year: Int, hour: Int, min: Int, sec: Int) =>
+        createDateTime(year, month, day, hour, min, sec, wkday)
     }
   }
 
-  def ASCTimeDate: Rule1[DateTime] = rule {
+  def RFC850Date: Rule1[Instant] = rule {
+    // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
+    Weekday ~ str(", ") ~ Date2 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
+      (month: Int, day: Int, wkday: Int, year: Int, hour: Int, min: Int, sec: Int) =>
+        createDateTime(year, month, day, hour, min, sec, wkday)
+    }
+  }
+
+  def ASCTimeDate: Rule1[Instant] = rule {
     Wkday ~ ch(' ') ~ Date3 ~ ch(' ') ~ Time ~ ch(' ') ~ Digit4 ~> {
-      (hour:Int, min:Int, sec:Int, year:Int) =>
-        createDateTime(year, _:Int, _:Int, hour, min, sec, _:Int)
-      } ~> { (wkday:Int, month:Int, day:Int, f: (Int, Int, Int) => DateTime) =>
-        f(month, day, wkday)
+      (wkday:Int, month:Int, day:Int, hour:Int, min:Int, sec:Int, year:Int) =>
+        createDateTime(year, month, day, hour, min, sec, wkday)
       }
   }
 
-  def Date1: RuleN[Int::Int::Int::HNil] = rule { Digit2 ~ ch(' ') ~ Month ~ ch(' ') ~ Digit4 }
+  def Date1: RuleN[Int::Int::Int::HNil] = rule { (Digit2 | Digit1) ~ ch(' ') ~ Month ~ ch(' ') ~ Digit4 }
 
-  def Date2: RuleN[Int::Int::Int::HNil] = rule { Digit2 ~ ch('-') ~ Month ~ ch('-') ~ Digit4 }
+  def Date2: RuleN[Int::Int::Int::HNil] = rule { (Digit2 | Digit1) ~ ch('-') ~ Month ~ ch('-') ~ Digit4 }
 
   def Date3: Rule2[Int, Int] = rule { Month ~ ch(' ') ~ (Digit2 | ch(' ') ~ Digit1) }
 
@@ -118,8 +113,8 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
     { (a:Int,b:Int,c:Int,d:Int) => InetAddress.getByAddress(Array(a.toByte, b.toByte, c.toByte, d.toByte)) }
   }
 
-  private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int) = {
-    Try(DateTime(year, month, day, hour, min, sec)).getOrElse {
+  private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int): Instant = {
+    Try(ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC).toInstant).getOrElse {
       // TODO Would be better if this message had the real input.
       throw new Exception("Invalid date: "+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec )
     }

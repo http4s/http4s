@@ -1,5 +1,7 @@
 package org.http4s
 
+import java.time.Instant
+
 import org.specs2.mutable.Specification
 import headers._
 
@@ -28,7 +30,7 @@ class HeaderSpec extends Specification {
       h1 == h2 should beTrue
       h2 == h1 should beTrue
 
-      val h3 = Date(DateTime.now).toRaw.parsed
+      val h3 = Date(Instant.now()).toRaw.parsed
       val h4 = h3.toRaw
 
       h3 == h4 should beTrue
