@@ -1,5 +1,9 @@
 package org.http4s.util
 
+import java.text.SimpleDateFormat
+import java.time.Instant
+import java.util.Locale
+
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 
@@ -18,6 +22,15 @@ trait Renderer[T] {
 
 object Renderer {
   def renderString[T: Renderer](t: T): String = new StringWriter().append(t).result
+
+  implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
+
+    private val dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
+
+    override def render(writer: Writer, t: Instant): writer.type =
+      writer << dateFormat.format(java.util.Date.from(t))
+
+  }
 }
 
 /** Mixin that makes a type writable by a [[Writer]] without needing a [[Renderer]] instance */

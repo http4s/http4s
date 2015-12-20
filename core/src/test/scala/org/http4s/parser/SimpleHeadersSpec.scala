@@ -1,10 +1,11 @@
 package org.http4s
 package parser
 
+import java.time.Instant
+
 import Http4s._
 import headers._
 import org.http4s.headers.ETag.EntityTag
-import org.specs2.mutable.Specification
 import scalaz.{\/-, NonEmptyList, Success}
 import java.net.InetAddress
 
@@ -44,7 +45,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Date" in {       // mills are lost, get rid of them
-      val header = Date(DateTime.now).toRaw.parsed
+      val header = Date(Instant.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -63,7 +64,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse Last-Modified" in {
-      val header = `Last-Modified`(DateTime.now).toRaw.parsed
+      val header = `Last-Modified`(Instant.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
       val bad = Header(header.name.toString, "foo")
@@ -71,7 +72,7 @@ class SimpleHeadersSpec extends Http4sSpec {
     }
 
     "parse If-Modified-Since" in {
-      val header = `If-Modified-Since`(DateTime.now).toRaw.parsed
+      val header = `If-Modified-Since`(Instant.now).toRaw.parsed
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
 
       val bad = Header(header.name.toString, "foo")

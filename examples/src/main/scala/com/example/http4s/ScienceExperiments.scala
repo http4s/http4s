@@ -1,5 +1,7 @@
 package com.example.http4s
 
+import java.time.{ZoneOffset, Instant}
+
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.headers.{Date, `Transfer-Encoding`}
@@ -30,8 +32,8 @@ object ScienceExperiments {
       req.decode { root: Elem => Ok(root.label) }
 
     case req @ GET -> Root / "date" =>
-      val date = DateTime(100)
-      Ok(date.toRfc1123DateTimeString)
+      val date = Instant.ofEpochMilli(100)
+      Ok(date.toString())
         .putHeaders(Date(date))
 
     case req @ GET -> Root / "echo-headers" =>

@@ -18,6 +18,8 @@
 package org.http4s
 package parser
 
+import java.time.Instant
+
 import org.parboiled2._
 import org.http4s.headers.`Set-Cookie`
 import shapeless.{HNil, ::}
@@ -59,7 +61,7 @@ private[parser] trait CookieHeader {
     }
 
     def CookieAttrs: Rule[Cookie::HNil, Cookie::HNil] = rule {
-      "Expires=" ~ HttpDate ~> { (cookie: Cookie, dateTime: DateTime) => cookie.copy(expires = Some(dateTime)) } |
+      "Expires=" ~ HttpDate ~> { (cookie: Cookie, dateTime: Instant) => cookie.copy(expires = Some(dateTime)) } |
       "Max-Age=" ~ NonNegativeLong ~> { (cookie: Cookie, seconds: Long) => cookie.copy(maxAge = Some(seconds)) } |
       "Domain="  ~ DomainName ~> { (cookie: Cookie, domainName: String) => cookie.copy(domain = Some(domainName)) } |
       "Path="    ~ StringValue ~> { (cookie: Cookie, pathValue: String) => cookie.copy(path = Some(pathValue)) } |

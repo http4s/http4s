@@ -22,6 +22,8 @@ import collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
 import org.http4s.util.{Renderable, Writer}
 
+import java.time.Instant
+
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)
   
@@ -120,7 +122,7 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
 case class Cookie(
   name: String,
   content: String,
-  expires: Option[DateTime] = None,
+  expires: Option[Instant] = None,
   maxAge: Option[Long] = None,
   domain: Option[String] = None,
   path: Option[String] = None,
@@ -133,7 +135,7 @@ case class Cookie(
 
   override def render(writer: Writer): writer.type = {
     writer.append(name).append("=\"").append(content).append('"')
-    expires.foreach{ e => writer.append("; Expires=").append(e.toRfc1123DateTimeString) }
+    expires.foreach{ e => writer.append("; Expires=").append(e) }
     maxAge.foreach(writer.append("; Max-Age=").append(_))
     domain.foreach(writer.append("; Domain=").append(_))
     path.foreach(writer.append("; Path=").append(_))
@@ -144,6 +146,6 @@ case class Cookie(
   }
 
   def clearCookie: headers.`Set-Cookie` = {
-    headers.`Set-Cookie`(copy(content = "", expires = Some(DateTime.UnixEpoch), maxAge = Some(0L)))
+    headers.`Set-Cookie`(copy(content = "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0L)))
   }
 }

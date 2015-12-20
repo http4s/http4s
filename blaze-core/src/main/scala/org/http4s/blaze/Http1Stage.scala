@@ -3,6 +3,7 @@ package blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
+import java.time.Instant
 
 import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.{headers => H}
@@ -248,7 +249,7 @@ object Http1Stage {
     }
 
     if (isServer && !dateEncoded) {
-      rr << H.Date.name << ':' << ' '; DateTime.now.renderRfc1123DateTimeString(rr) << '\r' << '\n'
+      rr << H.Date.name << ':' << ' ' << Instant.now() << '\r' << '\n'
     }
 
     encoding

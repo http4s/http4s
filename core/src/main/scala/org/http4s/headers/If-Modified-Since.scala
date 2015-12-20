@@ -1,13 +1,15 @@
 package org.http4s
 package headers
 
-import org.http4s.util.Writer
+import java.time.Instant
+
+import org.http4s.util.{Renderer, Writer}
 
 object `If-Modified-Since` extends HeaderKey.Internal[`If-Modified-Since`] with HeaderKey.Singleton
 
-final case class `If-Modified-Since`(date: DateTime) extends Header.Parsed {
+final case class `If-Modified-Since`(date: Instant) extends Header.Parsed {
   override def key: HeaderKey = `If-Modified-Since`
-  override def value: String = date.toRfc1123DateTimeString
+  override def value: String = Renderer.renderString(date)
   override def renderValue(writer: Writer): writer.type = writer.append(value)
 }
 
