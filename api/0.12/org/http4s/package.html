@@ -288,7 +288,7 @@ for keys with the same label and same types.</p></div></div>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Cookie.html"><span class="name">Cookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="DateTime.html" class="extype" name="org.http4s.DateTime">DateTime</a>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a>] = <span class="symbol">None</span></span>, <span name="domain">domain: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">false</span></span>, <span name="extension">extension: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Cookie.html"><span class="name">Cookie</span></a><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="content">content: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="expires">expires: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.time.Instant">Instant</span>] = <span class="symbol">None</span></span>, <span name="maxAge">maxAge: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a>] = <span class="symbol">None</span></span>, <span name="domain">domain: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="path">path: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="secure">secure: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">false</span></span>, <span name="httpOnly">httpOnly: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">false</span></span>, <span name="extension">extension: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@CookieextendsRenderablewithProductwithSerializable" title="Permalink" target="_top">
@@ -313,26 +313,6 @@ for keys with the same label and same types.</p></div></div>
       </a>
     </span>
       
-    </li><li name="org.http4s.DateTime" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DateTimeextendsOrdered[org.http4s.DateTime]withRenderablewithProduct6[Int,Int,Int,Int,Int,Int]"></a>
-      <a id="DateTime:DateTime"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="DateTime.html"><span class="name">DateTime</span></a><span class="result"> extends <span class="extype" name="scala.Ordered">Ordered</span>[<a href="DateTime.html" class="extype" name="org.http4s.DateTime">DateTime</a>] with <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product6" class="extype" target="_top">Product6</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@DateTimeextendsOrdered[org.http4s.DateTime]withRenderablewithProduct6[Int,Int,Int,Int,Int,Int]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Immutable, fast and efficient Date + Time implementation without any dependencies.</p><div class="fullcomment"><div class="comment cmt"><p>Immutable, fast and efficient Date + Time implementation without any dependencies.
-Does not support TimeZones, all DateTime values are always GMT based.
-Note that this implementation discards milliseconds (i.e. rounds down to full seconds).
-</p></div></div>
     </li><li name="org.http4s.DecodeFailure" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="DecodeFailureextendsAnyRef"></a>
       <a id="DecodeFailure:DecodeFailure"></a>
@@ -1612,23 +1592,6 @@ http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtm
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@ContentCoding" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.DateTime" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DateTime"></a>
-      <a id="DateTime:DateTime"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="DateTime$.html"><span class="name">DateTime</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@DateTime" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
