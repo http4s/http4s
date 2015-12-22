@@ -276,7 +276,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
     description := "Example of http4s server on Tomcat",
     fork := true,
     libraryDependencies += metricsServlets,
-    mainClass in Revolver.reStart := Some("com.example.http4s.jetty.JettyExample")
+    mainClass in Revolver.reStart := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)
 
@@ -435,7 +435,8 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
       exclude[IncompatibleMethTypeProblem]("org.http4s.client.blaze.Http1ClientStage#Error.apply"),
       exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.finalize"),
       exclude[MissingMethodProblem]("org.http4s.client.blaze.BlazeClientStage.runRequest"),
-      exclude[MissingMethodProblem]("org.http4s.client.blaze.Http1ClientStage.org$http4s$client$blaze$Http1ClientStage$$executeRequest")
+      exclude[MissingMethodProblem]("org.http4s.client.blaze.Http1ClientStage.org$http4s$client$blaze$Http1ClientStage$$executeRequest"),
+      exclude[MissingMethodProblem]("org.http4s.servlet.NonBlockingServletIo.org$http4s$servlet$NonBlockingServletIo$$read$1")
     )
   }
 )
