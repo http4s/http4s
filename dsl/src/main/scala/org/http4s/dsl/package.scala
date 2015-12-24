@@ -63,6 +63,7 @@ package object dsl extends Http4s {
   val PreconditionRequired: Status.PreconditionRequired.type = Status.PreconditionRequired
   val TooManyRequests: Status.TooManyRequests.type = Status.TooManyRequests
   val RequestHeaderFieldsTooLarge: Status.RequestHeaderFieldsTooLarge.type = Status.RequestHeaderFieldsTooLarge
+  val UnavailableForLegalReasons: Status.UnavailableForLegalReasons.type = Status.UnavailableForLegalReasons
 
   val InternalServerError: Status.InternalServerError.type = Status.InternalServerError
   val NotImplemented: Status.NotImplemented.type = Status.NotImplemented
@@ -128,6 +129,7 @@ package object dsl extends Http4s {
   implicit class PreconditionRequiredSyntax(val status: PreconditionRequired.type) extends AnyVal with EntityResponseGenerator
   implicit class TooManyRequestsSyntax(val status: TooManyRequests.type) extends AnyVal with EntityResponseGenerator
   implicit class RequestHeaderFieldsTooLargeSyntax(val status: RequestHeaderFieldsTooLarge.type) extends AnyVal with EntityResponseGenerator
+  implicit class UnavailableForLegalReasonsSyntax(val status: UnavailableForLegalReasons.type) extends AnyVal with EntityResponseGenerator
 
   implicit class InternalServerErrorSyntax(val status: InternalServerError.type) extends AnyVal with EntityResponseGenerator
   implicit class NotImplementedSyntax(val status: NotImplemented.type) extends AnyVal with EntityResponseGenerator
