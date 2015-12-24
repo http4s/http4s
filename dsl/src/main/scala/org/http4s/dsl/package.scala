@@ -63,6 +63,7 @@ package object dsl extends Http4s {
   val PreconditionRequired: Status.PreconditionRequired.type = Status.PreconditionRequired
   val TooManyRequests: Status.TooManyRequests.type = Status.TooManyRequests
   val RequestHeaderFieldsTooLarge: Status.RequestHeaderFieldsTooLarge.type = Status.RequestHeaderFieldsTooLarge
+  val UnavailableForLegalReasons: Status.UnavailableForLegalReasons.type = Status.UnavailableForLegalReasons
 
   val InternalServerError: Status.InternalServerError.type = Status.InternalServerError
   val NotImplemented: Status.NotImplemented.type = Status.NotImplemented
