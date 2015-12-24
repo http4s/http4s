@@ -129,7 +129,7 @@ package object dsl extends Http4s {
   implicit class PreconditionRequiredSyntax(val status: PreconditionRequired.type) extends AnyVal with EntityResponseGenerator
   implicit class TooManyRequestsSyntax(val status: TooManyRequests.type) extends AnyVal with EntityResponseGenerator
   implicit class RequestHeaderFieldsTooLargeSyntax(val status: RequestHeaderFieldsTooLarge.type) extends AnyVal with EntityResponseGenerator
-  implicit class UnavailableForLegalReasons(val status: UnavailableForLegalReasons.type) extends AnyVal with EntityResponseGenerator
+  implicit class UnavailableForLegalReasonsSyntax(val status: UnavailableForLegalReasons.type) extends AnyVal with EntityResponseGenerator
 
   implicit class InternalServerErrorSyntax(val status: InternalServerError.type) extends AnyVal with EntityResponseGenerator
   implicit class NotImplementedSyntax(val status: NotImplemented.type) extends AnyVal with EntityResponseGenerator
