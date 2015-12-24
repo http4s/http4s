@@ -131,6 +131,7 @@ object Status {
   val PreconditionRequired = register(Status(428)("Precondition Required"))
   val TooManyRequests = register(Status(429)("Too Many Requests"))
   val RequestHeaderFieldsTooLarge = register(Status(431)("Request Header Fields Too Large"))
+  val UnavailableForLegalReasons = register(Status(451)("Unavailable For Legal Reasons"))
 
   val InternalServerError = register(Status(500)("Internal Server Error"))
   val NotImplemented = register(Status(501)("Not Implemented"))
