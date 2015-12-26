@@ -110,7 +110,7 @@ class Http1ServerStageSpec extends Specification {
       head.result
     }
 
-    "Honor a `Transfer-Coding: identity response" in {
+    "Do not send `Transfer-Coding: identity` response" in {
       val service = HttpService {
         case req =>
           val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
@@ -128,7 +128,7 @@ class Http1ServerStageSpec extends Specification {
       str.contains("hello world") must_== true
 
       val (_, hdrs, _) = ResponseParser.apply(buff)
-      hdrs.find(_.name == `Transfer-Encoding`.name) must_== Some(`Transfer-Encoding`(TransferCoding.identity))
+      hdrs.find(_.name == `Transfer-Encoding`.name) must_== None
     }
 
     "Add a date header" in {

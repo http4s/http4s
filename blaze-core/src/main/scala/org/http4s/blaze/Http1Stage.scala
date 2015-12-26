@@ -102,11 +102,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
         case Some(enc) => // Signaling chunked means flush every chunk
           if (enc.hasChunked) new ChunkProcessWriter(rr, this, trailer)
           else  {   // going to do identity
-            if (enc.hasIdentity) {
-              rr << "Transfer-Encoding: identity\r\n"
-            } else {
-              logger.warn(s"Unknown transfer encoding: '${enc.value}'. Defaulting to Identity Encoding and stripping header")
-            }
+            logger.warn(s"Unknown transfer encoding: '${enc.value}'. Stripping header.")
             rr << "\r\n"
             val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
             new IdentityWriter(b, -1, this)
