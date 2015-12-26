@@ -14,7 +14,7 @@ import scalaz.concurrent.Task
 class CachingChunkWriter(headers: StringWriter,
                          pipe: TailStage[ByteBuffer],
                          trailer: Task[Headers],
-                         bufferSize: Int = 10*1024)(implicit ec: ExecutionContext)
+                         bufferMaxSize: Int = 10*1024)(implicit ec: ExecutionContext)
               extends ChunkProcessWriter(headers, pipe, trailer) {
 
   private var bodyBuffer: ByteVector = null
@@ -41,7 +41,7 @@ class CachingChunkWriter(headers: StringWriter,
 
   override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     val c = addChunk(chunk)
-    if (c.length >= bufferSize || flush) { // time to flush
+    if (c.length >= bufferMaxSize || flush) { // time to flush
       bodyBuffer = null
       super.writeBodyChunk(c, true)
     }

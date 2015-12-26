@@ -169,7 +169,7 @@ class Http1ServerStage(service: HttpService,
           closeConnection()
           logger.trace("Request/route requested closing connection.")
         } else bodyCleanup().onComplete {
-          case s@ Success(_) => // Serve another connection
+          case s@ Success(_) => // Serve another request using s
             reset()
             reqLoopCallback(s)
 
