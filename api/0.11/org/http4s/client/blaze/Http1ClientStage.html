@@ -433,7 +433,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.blaze.Http1Stage#fatalError" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+    </li><li name="org.http4s.client.blaze.Http1ClientStage#fatalError" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="fatalError(t:Throwable,msg:String):Unit"></a>
       <a id="fatalError(Throwable,String):Unit"></a>
       <h4 class="signature">
@@ -451,8 +451,8 @@
     </span>
       <p class="shortcomment cmt">Called when a fatal error has occurred
 The method logs an error and shuts down the stage, sending the error outbound</p><div class="fullcomment"><div class="comment cmt"><p>Called when a fatal error has occurred
-The method logs an error and shuts down the stage, sending the error outbound</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></dd></dl></div>
-    </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
+The method logs an error and shuts down the stage, sending the error outbound</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeClientStage#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
       <h4 class="signature">
@@ -468,13 +468,7 @@ The method logs an error and shuts down the stage, sending the error outbound</p
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected[<a href="../../../../java$lang.html" class="extype" name="java.lang">java.lang</a>] </dd><dt>Definition Classes</dt><dd>AnyRef</dd><dt>Annotations</dt><dd>
-                <span class="name">@throws</span><span class="args">(<span>
-      
-      <span class="symbol">classOf[java.lang.Throwable]</span>
-    </span>)</span>
-              
-        </dd></dl></div>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> → AnyRef</dd></dl></div>
     </li><li name="org.http4s.blaze.pipeline.Tail#findOutboundStage" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="findOutboundStage[C&lt;:org.http4s.blaze.pipeline.Stage](clazz:Class[C]):Option[C]"></a>
       <a id="findOutboundStage[C&lt;:Stage](Class[C]):Option[C]"></a>
@@ -612,7 +606,7 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
+      <p class="shortcomment cmt">Determine if the stage is closed and resources have been freed</p><div class="fullcomment"><div class="comment cmt"><p>Determine if the stage is closed and resources have been freed</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
@@ -753,6 +747,23 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
               
         </dd></dl></div>
     </li><li name="org.http4s.client.blaze.Http1ClientStage#runRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="runRequest(req:org.http4s.Request,flushPrelude:Boolean):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="runRequest(Request,Boolean):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">runRequest</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="flushPrelude">flushPrelude: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.Http1ClientStage@runRequest(req:org.http4s.Request,flushPrelude:Boolean):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
+    </li><li name="org.http4s.client.blaze.Http1ClientStage#runRequest" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="runRequest(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]"></a>
       <a id="runRequest(Request):Task[Response]"></a>
       <h4 class="signature">
@@ -768,7 +779,7 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
+      <p class="shortcomment cmt">Create a computation that will turn the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> into a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a></p><div class="fullcomment"><div class="comment cmt"><p>Create a computation that will turn the <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a> into a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a></p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
     </li><li name="org.http4s.blaze.pipeline.Tail#sendOutboundCommand" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="sendOutboundCommand(cmd:org.http4s.blaze.pipeline.Command.OutboundCommand):Unit"></a>
       <a id="sendOutboundCommand(OutboundCommand):Unit"></a>
@@ -802,7 +813,11 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
+      <p class="shortcomment cmt">Close down the stage
+ Freeing resources and potentially aborting a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>
+</p><div class="fullcomment"><div class="comment cmt"><p>Close down the stage
+ Freeing resources and potentially aborting a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.client.blaze.Http1ClientStage">Http1ClientStage</a> → <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></dd></dl></div>
     </li><li name="org.http4s.blaze.pipeline.Tail#spliceBefore" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="spliceBefore(stage:org.http4s.blaze.pipeline.MidStage[I,I]):Unit"></a>
       <a id="spliceBefore(MidStage[ByteBuffer,ByteBuffer]):Unit"></a>

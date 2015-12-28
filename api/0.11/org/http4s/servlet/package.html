@@ -174,7 +174,7 @@ require a larger request thread pool for the same load.
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Use non-blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.</p><p>This can support more concurrent connections on a smaller request thread pool than <span class="extype" name="BlockingServletIO">BlockingServletIO</span>,
+      <p class="shortcomment cmt">Use non-blocking reads and writes.</p><div class="fullcomment"><div class="comment cmt"><p>Use non-blocking reads and writes.  Available only on containers that support Servlet 3.1.</p><p>This can support more concurrent connections on a smaller request thread pool than <a href="BlockingServletIo.html" class="extype" name="org.http4s.servlet.BlockingServletIo">BlockingServletIo</a>,
 but consumes more CPU per request.  It is also known to cause IllegalStateExceptions in the logs
 under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
 operationally annoying.
