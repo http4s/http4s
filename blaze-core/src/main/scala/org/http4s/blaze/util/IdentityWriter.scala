@@ -46,5 +46,18 @@ class IdentityWriter(private var headers: ByteBuffer, size: Int, out: TailStage[
       else out.channelWrite(b)
     }
 
-  protected def writeEnd(chunk: ByteVector): Future[Unit] = writeBodyChunk(chunk, flush = true)
+  protected def writeEnd(chunk: ByteVector): Future[Unit] = {
+    val total = bodyBytesWritten + chunk.size
+
+    if (size < 0 || total >= size) writeBodyChunk(chunk, flush = true)
+    else {
+      val msg = s"Expected `Content-Length: $size` bytes, but only $total were written."
+
+      logger.warn(msg)
+
+      writeBodyChunk(chunk, flush = true) flatMap {_ =>
+        Future.failed(new IllegalStateException(msg))
+      }
+    }
+  }
 }
