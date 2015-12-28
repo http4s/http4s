@@ -152,7 +152,13 @@ class Http1ServerStage(service: HttpService,
     val bodyEncoder = {
       if (req.method == Method.HEAD ||
             (!resp.status.isEntityAllowed && lengthHeader.isEmpty && respTransferCoding.isEmpty)) {
-        // We don't have a body so we just get the headers
+        // We don't have a body (or don't want to send it) so we just get the headers
+
+        if (req.method == Method.HEAD) {
+          // write the explicitly set Transfer-Encoding header
+          respTransferCoding.filter(_.hasChunked).map(_ => "Transfer-Encoding: chunked\r\n" ).
+            foreach(rr << _)
+        }
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
         if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
