@@ -17,10 +17,18 @@ object UrlFormCodec {
       if (sb.nonEmpty) sb.append('&')
 
       if (vs.isEmpty) sb.append(formEncode(k))
-      else vs.foreach { v =>
-        sb.append(formEncode(k))
-          .append('=')
-          .append(formEncode(v))
+      else {
+        def addKvPair(v: String): Unit = {
+          sb.append(formEncode(k))
+            .append('=')
+            .append(formEncode(v))
+        }
+
+        addKvPair(vs.head)
+        vs.tail.foreach { v =>
+          sb.append('&')
+          addKvPair(v)
+        }
       }
     }
 
