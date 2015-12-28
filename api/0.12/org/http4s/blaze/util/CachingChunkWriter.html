@@ -94,7 +94,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.blaze.util.CachingChunkWriter#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(headers:org.http4s.util.StringWriter,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer],trailer:scalaz.concurrent.Task[org.http4s.Headers],bufferSize:Int)(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.util.CachingChunkWriter"></a>
+      <a id="&lt;init&gt;(headers:org.http4s.util.StringWriter,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer],trailer:scalaz.concurrent.Task[org.http4s.Headers],bufferMaxSize:Int)(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.util.CachingChunkWriter"></a>
       <a id="&lt;init&gt;:CachingChunkWriter"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -102,10 +102,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">CachingChunkWriter</span><span class="params">(<span name="headers">headers: <a href="../../util/StringWriter.html" class="extype" name="org.http4s.util.StringWriter">StringWriter</a></span>, <span name="pipe">pipe: <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>, <span name="trailer">trailer: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">10*1024</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>)</span>
+        <span class="name">CachingChunkWriter</span><span class="params">(<span name="headers">headers: <a href="../../util/StringWriter.html" class="extype" name="org.http4s.util.StringWriter">StringWriter</a></span>, <span name="pipe">pipe: <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>, <span name="trailer">trailer: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Headers.html" class="extype" name="org.http4s.Headers">Headers</a>]</span>, <span name="bufferMaxSize">bufferMaxSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">10*1024</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="ec">ec: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.ExecutionContext" class="extype" target="_top">ExecutionContext</a></span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.util.CachingChunkWriter@&lt;init&gt;(headers:org.http4s.util.StringWriter,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer],trailer:scalaz.concurrent.Task[org.http4s.Headers],bufferSize:Int)(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.util.CachingChunkWriter" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.blaze.util.CachingChunkWriter@&lt;init&gt;(headers:org.http4s.util.StringWriter,pipe:org.http4s.blaze.pipeline.TailStage[java.nio.ByteBuffer],trailer:scalaz.concurrent.Task[org.http4s.Headers],bufferMaxSize:Int)(implicitec:scala.concurrent.ExecutionContext):org.http4s.blaze.util.CachingChunkWriter" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -692,10 +692,7 @@
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">write a ByteVector to the wire
-If a request is cancelled, or the stream is closed this method should
-return a failed Future with Cancelled as the exception
-</p><div class="fullcomment"><div class="comment cmt"><p>write a ByteVector to the wire
+      <p class="shortcomment cmt">Write a ByteVector to the wire.</p><div class="fullcomment"><div class="comment cmt"><p>Write a ByteVector to the wire.
 If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.CachingChunkWriter">CachingChunkWriter</a> → <a href="ChunkProcessWriter.html" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
