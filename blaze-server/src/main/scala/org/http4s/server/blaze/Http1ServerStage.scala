@@ -136,7 +136,7 @@ class Http1ServerStage(service: HttpService,
 
   protected def renderResponse(req: Request, resp: Response, bodyCleanup: () => Future[ByteBuffer]) {
     val rr = new StringWriter(512)
-    rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << '\r' << '\n'
+    rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 
     val respTransferCoding = Http1Stage.encodeHeaders(resp.headers, rr, true) // kind of tricky method returns Option[Transfer-Encoding]
     val respConn = Connection.from(resp.headers)
@@ -155,7 +155,7 @@ class Http1ServerStage(service: HttpService,
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
         if (!closeOnFinish && minor == 0 && respConn.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
-        else rr << '\r' << '\n'
+        else rr << "\r\n"
 
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
         new BodylessWriter(b, this, closeOnFinish)(ec)
@@ -169,7 +169,7 @@ class Http1ServerStage(service: HttpService,
           closeConnection()
           logger.trace("Request/route requested closing connection.")
         } else bodyCleanup().onComplete {
-          case s@ Success(_) => // Serve another connection
+          case s@ Success(_) => // Serve another request using s
             reset()
             reqLoopCallback(s)
 

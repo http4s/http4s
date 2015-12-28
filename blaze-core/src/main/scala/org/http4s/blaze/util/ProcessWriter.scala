@@ -20,7 +20,7 @@ trait ProcessWriter {
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
   implicit protected def ec: ExecutionContext
 
-  /** write a ByteVector to the wire
+  /** Write a ByteVector to the wire.
     * If a request is cancelled, or the stream is closed this method should
     * return a failed Future with Cancelled as the exception
     *

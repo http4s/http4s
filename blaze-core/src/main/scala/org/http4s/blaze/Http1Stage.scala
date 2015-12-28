@@ -80,7 +80,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
       // add KeepAlive to Http 1.0 responses if the header isn't already present
       if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
-      else rr << '\r' << '\n'
+      else rr << "\r\n"
 
       val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
       new IdentityWriter(b, h.length, this)
@@ -89,7 +89,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
         if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
           logger.trace("Using static encoder")
-          rr << '\r' << '\n'
+          rr << "\r\n"
           val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
           new IdentityWriter(b, -1, this)
         }
@@ -102,12 +102,8 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
         case Some(enc) => // Signaling chunked means flush every chunk
           if (enc.hasChunked) new ChunkProcessWriter(rr, this, trailer)
           else  {   // going to do identity
-            if (enc.hasIdentity) {
-              rr << "Transfer-Encoding: identity\r\n"
-            } else {
-              logger.warn(s"Unknown transfer encoding: '${enc.value}'. Defaulting to Identity Encoding and stripping header")
-            }
-            rr << '\r' << '\n'
+            logger.warn(s"Unknown transfer encoding: '${enc.value}'. Stripping header.")
+            rr << "\r\n"
             val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
             new IdentityWriter(b, -1, this)
           }
@@ -244,12 +240,12 @@ object Http1Stage {
     headers.foreach { header =>
       if (isServer && header.name == H.Date.name) dateEncoded = true
 
-      if (header.name != `Transfer-Encoding`.name) rr << header << '\r' << '\n'
+      if (header.name != `Transfer-Encoding`.name) rr << header << "\r\n"
       else encoding = `Transfer-Encoding`.matchHeader(header)
     }
 
     if (isServer && !dateEncoded) {
-      rr << H.Date.name << ':' << ' ' << Instant.now() << '\r' << '\n'
+      rr << H.Date.name << ": " << Instant.now() << "\r\n"
     }
 
     encoding
