@@ -8,6 +8,7 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 import org.http4s.util.TrampolineExecutionContext
 import scodec.bits.ByteVector
 
+import scala.annotation.tailrec
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.{\/, -\/}
 import scalaz.concurrent.Task
@@ -73,64 +74,88 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
 
     val in = servletRequest.getInputStream
 
-    def read = {
+    val state = new AtomicReference[State](null)
+
+    def read(cb: Callback) = {
       val buff = new Array[Byte](chunkSize)
       val len = in.read(buff)
-      if (len == chunkSize) {
-        ByteVector.view(buff)
+
+      if (len == chunkSize) cb(ByteVector.view(buff).right)
+      else if (len < 0) {
+        state.compareAndSet(Ready, Complete) // will not overwrite an `Errored` state
+        cb(LeftEnd)
       }
-      else if (len <= 0) {
-        ByteVector.empty
+      else if (len == 0) {
+        logger.warn("Encountered a read of length 0")
+        cb(ByteVector.empty.right)
       }
-      else {
-        ByteVector.viewI(buff(_), len)
-      }
-    }.right
-
-    val state = new AtomicReference[State](Ready)
-
-    val listener = new ReadListener {
-      override def onDataAvailable(): Unit =
-        state.getAndSet(Ready) match {
-          case Blocked(cb) => cb(read)
-          case _ =>
-        }
-
-      override def onError(t: Throwable): Unit =
-        state.getAndSet(Errored(t)) match {
-          case Blocked(cb) => cb(t.left)
-          case _ =>
-        }
-
-      override def onAllDataRead(): Unit =
-        state.getAndSet(Complete) match {
-          case Blocked(cb) => cb(LeftEnd)
-          case _ =>
-        }
+      else cb(ByteVector(buff, 0, len).right)
     }
-    in.setReadListener(listener)
 
-    if (in.isFinished)
-      halt
-    else repeatEval (
-      Task.fork {
-        Task.async[ByteVector] { cb =>
-          val blocked = Blocked(cb)
-          state.getAndSet(blocked) match {
-            case Ready if in.isReady =>
-              if (state.compareAndSet(blocked, Ready))
-                cb(read)
-            case Complete =>
-              if (state.compareAndSet(blocked, Complete))
-                cb(LeftEnd)
-            case e@Errored(t) =>
-              if (state.compareAndSet(blocked, e))
-                cb(t.left)
-            case _ =>
-          }
+    if (in.isFinished) halt
+    else {
+      // This Task sets the callback and waits for the first bytes to read
+      val registerRead = Task.async[ByteVector] { cb =>
+        if (!state.compareAndSet(null, Blocked(cb))) {
+          cb(new IllegalStateException("Shouldn't have gotten here: I should be the first to set a state").left)
         }
-      }(TrampolineExecutionContext)
+        else in.setReadListener(
+          new ReadListener {
+            override def onDataAvailable(): Unit =
+              state.getAndSet(Ready) match {
+                case Blocked(cb) => read(cb)
+                case _ =>
+              }
+
+            override def onError(t: Throwable): Unit =
+              state.getAndSet(Errored(t)) match {
+                case Blocked(cb) => cb(t.left)
+                case _ =>
+              }
+
+            override def onAllDataRead(): Unit =
+              state.getAndSet(Complete) match {
+                case Blocked(cb) => cb(LeftEnd)
+                case _ =>
+              }
+          }
+        )
+      }
+
+      eval(registerRead) ++ repeatEval ( // perform the initial set then transition into normal read mode
+        Task.fork {
+          Task.async[ByteVector] { cb =>
+            @tailrec
+            def go(): Unit = state.get match {
+              case Ready if in.isReady => read(cb)
+
+              case Ready => // wasn't ready so set the callback and double check that we're still not ready
+                val blocked = Blocked(cb)
+                if (state.compareAndSet(Ready, blocked)) {
+                  if (in.isReady && state.compareAndSet(blocked, Ready)) {
+                    read(cb) // data became available while we were setting up the callbacks
+                  }
+                  else { /* NOOP: our callback is either still needed or has been handled */ }
+                }
+                else go() // Our state transitioned so try again.
+
+              case Complete => cb(LeftEnd)
+
+              case e@Errored(t) => cb(t.left)
+
+              // This should never happen so throw a huge fit if it does.
+              case Blocked(c1) =>
+                val t = new IllegalStateException("Two callbacks found in read state")
+                cb(t.left)
+                c1(t.left)
+                logger.error(t)("This should never happen. Please report.")
+                throw t
+            }
+            go()
+          }
+        }(TrampolineExecutionContext)
       ) onHalt (_.asHalt)
+    }
   }
 
   override protected[servlet] def initWriter(servletResponse: HttpServletResponse): BodyWriter = {
@@ -191,8 +216,7 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
       Task.fork {
         Task.async[Unit] { cb =>
           state.getAndSet(AwaitingLastWrite(cb)) match {
-            case Ready if out.isReady =>
-              cb(RightUnit)
+            case Ready if out.isReady => cb(RightUnit)
             case _ =>
           }
         }

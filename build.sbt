@@ -289,7 +289,7 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
     description := "Example of http4s server on Tomcat",
     fork := true,
     libraryDependencies += metricsServlets,
-    mainClass in Revolver.reStart := Some("com.example.http4s.jetty.JettyExample")
+    mainClass in Revolver.reStart := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)
 
