@@ -33,7 +33,7 @@ class CachingChunkWriter(headers: StringWriter,
     else Future.successful(())
   }
 
-  override protected def writeEnd(chunk: ByteVector): Future[Unit] = {
+  override protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
     val b = addChunk(chunk)
     bodyBuffer = null
     super.writeEnd(b)

@@ -164,8 +164,8 @@ class Http1ServerStage(service: HttpService,
     }
 
     bodyEncoder.writeProcess(resp.body).runAsync {
-      case \/-(_) =>
-        if (closeOnFinish || bodyEncoder.requireClose()) {
+      case \/-(requireClose) =>
+        if (closeOnFinish || requireClose) {
           closeConnection()
           logger.trace("Request/route requested closing connection.")
         } else bodyCleanup().onComplete {

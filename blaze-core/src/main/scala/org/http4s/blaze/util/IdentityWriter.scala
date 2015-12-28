@@ -19,8 +19,6 @@ class IdentityWriter(private var headers: ByteBuffer, size: Int, out: TailStage[
   private def willOverflow(count: Int) =
     if (size < 0) false else (count + bodyBytesWritten > size)
 
-  override def requireClose(): Boolean = size < 0
-
   protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] =
     if (willOverflow(chunk.size)) {
       // never write past what we have promised using the Content-Length header
@@ -46,10 +44,11 @@ class IdentityWriter(private var headers: ByteBuffer, size: Int, out: TailStage[
       else out.channelWrite(b)
     }
 
-  protected def writeEnd(chunk: ByteVector): Future[Unit] = {
+  protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
     val total = bodyBytesWritten + chunk.size
 
-    if (size < 0 || total >= size) writeBodyChunk(chunk, flush = true)
+    if (size < 0 || total >= size) writeBodyChunk(chunk, flush = true).
+      map(Function.const(size < 0)) // require close if infinite
     else {
       val msg = s"Expected `Content-Length: $size` bytes, but only $total were written."
 

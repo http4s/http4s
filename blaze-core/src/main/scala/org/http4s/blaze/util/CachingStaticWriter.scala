@@ -20,8 +20,6 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer],
   private var bodyBuffer: ByteVector = null
   private var innerWriter: InnerWriter = null
 
-  override def requireClose(): Boolean = _forceClose
-
   private def addChunk(b: ByteVector): ByteVector = {
     if (bodyBuffer == null) bodyBuffer = b
     else bodyBuffer = bodyBuffer ++ b
@@ -40,7 +38,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer],
     else writeBodyChunk(c, flush = true)    // we are already proceeding
   }
 
-  override protected def writeEnd(chunk: ByteVector): Future[Unit] = {
+  override protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
     if (innerWriter != null) innerWriter.writeEnd(chunk)
     else {  // We are finished! Write the length and the keep alive
       val c = addChunk(chunk)
@@ -48,7 +46,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer],
 
       val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.ISO_8859_1))
 
-      new InnerWriter(b).writeEnd(c)
+      new InnerWriter(b).writeEnd(c).map(_ || _forceClose)
     }
   }
 
@@ -69,7 +67,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer],
 
   // Make the write stuff public
   private class InnerWriter(buffer: ByteBuffer) extends IdentityWriter(buffer, -1, out) {
-    override def writeEnd(chunk: ByteVector): Future[Unit] = super.writeEnd(chunk)
+    override def writeEnd(chunk: ByteVector): Future[Boolean] = super.writeEnd(chunk)
     override def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = super.writeBodyChunk(chunk, flush)
   }
 }

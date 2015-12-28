@@ -25,10 +25,13 @@ class DumpingWriter extends ProcessWriter {
 
   override implicit protected def ec: ExecutionContext = Execution.trampoline
 
-  override protected def writeEnd(chunk: ByteVector): Future[Unit] = buffers.synchronized {
+  override protected def writeEnd(chunk: ByteVector): Future[Boolean] = buffers.synchronized {
+    buffers += chunk
+    Future.successful(false)
+  }
+
+  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     buffers += chunk
     Future.successful(())
   }
-
-  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = writeEnd(chunk)
 }

@@ -21,21 +21,21 @@ class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Bo
 
   private lazy val doneFuture = Future.successful( () )
 
-  override def requireClose(): Boolean = close
-
   /** Doesn't write the process, just the headers and kills the process, if an error if necessary
     *
     * @param p Process[Task, Chunk] that will be killed
     * @return the Task which when run will send the headers and kill the body process
     */
-  override def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async[Unit] { cb =>
+  override def writeProcess(p: Process[Task, ByteVector]): Task[Boolean] = Task.async { cb =>
+    val callback = cb.compose((t: scalaz.\/[Throwable, Unit]) => t.map(_ => close))
+
     pipe.channelWrite(headers).onComplete {
-      case Success(_) => p.kill.run.runAsync(cb)
-      case Failure(t) => p.kill.onComplete(Process.fail(t)).run.runAsync(cb)
+      case Success(_) => p.kill.run.runAsync(callback)
+      case Failure(t) => p.kill.onComplete(Process.fail(t)).run.runAsync(callback)
     }
   }
 
-  override protected def writeEnd(chunk: ByteVector): Future[Unit] = doneFuture
+  override protected def writeEnd(chunk: ByteVector): Future[Boolean] = doneFuture.map(_ => close)
 
   override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = doneFuture
 }
