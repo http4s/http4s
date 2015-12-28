@@ -1,8 +1,8 @@
 package org.http4s.util
 
-import java.text.SimpleDateFormat
-import java.time.Instant
-import java.util.{ Locale, TimeZone }
+import java.time.{ZoneId, Instant}
+import java.time.format.DateTimeFormatter
+import java.util.Locale
 
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
@@ -25,11 +25,13 @@ object Renderer {
 
   implicit val RFC7231InstantRenderer: Renderer[Instant] = new Renderer[Instant] {
 
-    private val dateFormat = new SimpleDateFormat("EEE, dd MMM yyyy HH:mm:ss z", Locale.US)
-    dateFormat.setTimeZone(TimeZone.getTimeZone("UTC"))
+    private val dateFormat =
+      DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
+        .withLocale(Locale.US)
+        .withZone(ZoneId.of("UTC"))
 
     override def render(writer: Writer, t: Instant): writer.type =
-      writer << dateFormat.format(java.util.Date.from(t))
+      writer << dateFormat.format(t)
 
   }
 }
