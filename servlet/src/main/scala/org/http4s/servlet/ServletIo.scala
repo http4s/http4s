@@ -5,7 +5,7 @@ import java.util.concurrent.atomic.AtomicReference
 import javax.servlet.{WriteListener, ReadListener}
 import javax.servlet.http.{HttpServletResponse, HttpServletRequest}
 
-import org.http4s.util.TrampolineExecutionContext
+import org.http4s.util.{TrampolineExecutionContext, bug}
 import scodec.bits.ByteVector
 
 import scala.annotation.tailrec
@@ -67,6 +67,7 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
     type Callback = Throwable \/ ByteVector => Unit
 
     sealed trait State
+    case object Init extends State
     case object Ready extends State
     case object Complete extends State
     case class Errored(t: Throwable) extends State
@@ -74,7 +75,7 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
 
     val in = servletRequest.getInputStream
 
-    val state = new AtomicReference[State](null)
+    val state = new AtomicReference[State](Init)
 
     def read(cb: Callback) = {
       val buff = new Array[Byte](chunkSize)
@@ -96,8 +97,8 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
     else {
       // This Task sets the callback and waits for the first bytes to read
       val registerRead = Task.async[ByteVector] { cb =>
-        if (!state.compareAndSet(null, Blocked(cb))) {
-          cb(new IllegalStateException("Shouldn't have gotten here: I should be the first to set a state").left)
+        if (!state.compareAndSet(Init, Blocked(cb))) {
+          cb(bug("Shouldn't have gotten here: I should be the first to set a state").left)
         }
         else in.setReadListener(
           new ReadListener {
@@ -145,11 +146,14 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
 
               // This should never happen so throw a huge fit if it does.
               case Blocked(c1) =>
-                val t = new IllegalStateException("Two callbacks found in read state")
+                val t = bug("Two callbacks found in read state")
                 cb(t.left)
                 c1(t.left)
                 logger.error(t)("This should never happen. Please report.")
                 throw t
+
+              case Init =>
+                cb(bug("Should have left Init state by now").left)
             }
             go()
           }
