@@ -1,3 +1,10 @@
+# v0.11.3 (2015-12-28)
+* Blaze upgrade to fix parsing HTTP responses without a reason phrase.
+* Don't write more than Content-Length bytes in blaze.
+* Fix infinite loop in non-blocking Servlet I/O.
+* Never write a response body on HEAD requests to blaze.
+* Add missing `'&'` between multivalued k/v pairs in `UrlFormCodec.encode`
+
 # v0.11.2 (2015-12-04)
 * Fix stack safety issue in async servlet I/O.
 * Reduce noise from timeout exceptions in `ClientTimeoutStage`.

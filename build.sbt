@@ -14,7 +14,7 @@ import pl.project13.scala.sbt.SbtJmh.jmhSettings
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := "0.11.3-SNAPSHOT"
+version      in ThisBuild := "0.11.3"
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaVersion in ThisBuild := "2.10.6"
 crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.7"))
