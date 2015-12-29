@@ -561,23 +561,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.blaze.util.ProcessWriter#requireClose" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="requireClose():Boolean"></a>
-      <a id="requireClose():Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">requireClose</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.util.ChunkProcessWriter@requireClose():Boolean" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Signifies if this <code>ProcessWriter</code> requires the connection be closed upon completion.</p><div class="fullcomment"><div class="comment cmt"><p>Signifies if this <code>ProcessWriter</code> requires the connection be closed upon completion.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -702,38 +685,42 @@ If a request is cancelled, or the stream is closed this method should
 return a failed Future with Cancelled as the exception
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="org.http4s.blaze.util.ChunkProcessWriter#writeEnd" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Unit]"></a>
-      <a id="writeEnd(ByteVector):Future[Unit]"></a>
+      <a id="writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Boolean]"></a>
+      <a id="writeEnd(ByteVector):Future[Boolean]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <a href="http://scodec.org/api/scodec-bits/1.0.9/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">writeEnd</span><span class="params">(<span name="chunk">chunk: <a href="http://scodec.org/api/scodec-bits/1.0.9/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.Future" class="extype" target="_top">Future</a>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.util.ChunkProcessWriter@writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Unit]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.blaze.util.ChunkProcessWriter@writeEnd(chunk:scodec.bits.ByteVector):scala.concurrent.Future[Boolean]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Write the ending chunk and, in chunked encoding, a trailer to the wire.</p><div class="fullcomment"><div class="comment cmt"><p>Write the ending chunk and, in chunked encoding, a trailer to the wire.
-If a request is cancelled, or the stream is closed this method should
-return a failed Future with Cancelled as the exception
-</p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
+      <p class="shortcomment cmt">Write the ending chunk and, in chunked encoding, a trailer to the
+wire.</p><div class="fullcomment"><div class="comment cmt"><p>Write the ending chunk and, in chunked encoding, a trailer to the
+wire.  If a request is cancelled, or the stream is closed this
+method should return a failed Future with Cancelled as the
+exception, or a Future with a Boolean to indicate whether the
+connection is to be closed or not.
+</p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue (if <code>false</code>) or
+to close the connection (if <code>true</code>)</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="org.http4s.blaze.util.ProcessWriter#writeProcess" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]):scalaz.concurrent.Task[Unit]"></a>
-      <a id="writeProcess(Process[Task,ByteVector]):Task[Unit]"></a>
+      <a id="writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]):scalaz.concurrent.Task[Boolean]"></a>
+      <a id="writeProcess(Process[Task,ByteVector]):Task[Boolean]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeProcess</span><span class="params">(<span name="p">p: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://scodec.org/api/scodec-bits/1.0.9/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>
+        <span class="name">writeProcess</span><span class="params">(<span name="p">p: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://scodec.org/api/scodec-bits/1.0.9/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.util.ChunkProcessWriter@writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]):scalaz.concurrent.Task[Unit]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.blaze.util.ChunkProcessWriter@writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]):scalaz.concurrent.Task[Boolean]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
