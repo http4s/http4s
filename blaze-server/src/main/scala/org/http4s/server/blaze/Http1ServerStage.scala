@@ -27,20 +27,25 @@ import java.util.concurrent.ExecutorService
 
 
 object Http1ServerStage {
+
+  val defaultMaxDrain: Long = 256*1024
+
   def apply(service: HttpService,
             attributes: AttributeMap = AttributeMap.empty,
+            maxDrainSize: Long = defaultMaxDrain,
             pool: ExecutorService = Strategy.DefaultExecutorService,
             enableWebSockets: Boolean = false ): Http1ServerStage = {
-    if (enableWebSockets) new Http1ServerStage(service, attributes, pool) with WebSocketSupport
-    else                  new Http1ServerStage(service, attributes, pool)
+    if (enableWebSockets) new Http1ServerStage(service, attributes, maxDrainSize, pool) with WebSocketSupport
+    else                  new Http1ServerStage(service, attributes, maxDrainSize, pool)
   }
 }
 
 class Http1ServerStage(service: HttpService,
                        requestAttrs: AttributeMap,
+                       maxDrainSize: Long,
                        pool: ExecutorService)
-                  extends TailStage[ByteBuffer]
-                  with Http1Stage
+                  extends Http1Stage(maxDrainSize)
+                  with TailStage[ByteBuffer]
 {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
@@ -155,7 +160,7 @@ class Http1ServerStage(service: HttpService,
           closeConnection()
           logger.trace("Request/route requested closing connection.")
         } else bodyCleanup().onComplete {
-          case s@ Success(_) => // Serve another request using s
+          case s@ Success(_) => // Serve another request
             parser.reset()
             reqLoopCallback(s)
 

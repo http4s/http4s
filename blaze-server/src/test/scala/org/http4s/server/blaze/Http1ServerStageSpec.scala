@@ -42,7 +42,7 @@ class Http1ServerStageSpec extends Specification {
 
   def runRequest(req: Seq[String], service: HttpService): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-    val httpStage = new Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService)
+    val httpStage = Http1ServerStage(service, AttributeMap.empty, Http1ServerStage.defaultMaxDrain, Strategy.DefaultExecutorService)
 
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
@@ -90,9 +90,9 @@ class Http1ServerStageSpec extends Specification {
 
   "Http1ServerStage: routes" should {
 
-    def httpStage(service: HttpService, requests: Int, input: Seq[String]): Future[ByteBuffer] = {
+    def httpStage(service: HttpService, input: Seq[String]): Future[ByteBuffer] = {
       val head = new SeqTestHead(input.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8))))
-      val httpStage = new Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService)
+      val httpStage = Http1ServerStage(service, AttributeMap.empty, Http1ServerStage.defaultMaxDrain, Strategy.DefaultExecutorService)
 
       pipeline.LeafBuilder(httpStage).base(head)
       head.sendInboundCommand(Cmd.Connected)
@@ -109,7 +109,7 @@ class Http1ServerStageSpec extends Specification {
       // The first request will get split into two chunks, leaving the last byte off
       val req = "GET /foo HTTP/1.1\r\n\r\n"
 
-      val buff = Await.result(httpStage(service, 1, Seq(req)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(req)), 5.seconds)
 
       val str = StandardCharsets.ISO_8859_1.decode(buff.duplicate()).toString
       // make sure we don't have signs of chunked encoding.
@@ -128,7 +128,7 @@ class Http1ServerStageSpec extends Specification {
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-      val buff = Await.result(httpStage(service, 1, Seq(req1)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(req1)), 5.seconds)
 
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
@@ -144,7 +144,7 @@ class Http1ServerStageSpec extends Specification {
       // The first request will get split into two chunks, leaving the last byte off
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
 
-      val buff = Await.result(httpStage(service, 1, Seq(req1)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(req1)), 5.seconds)
 
       // Both responses must succeed
       val (_, hdrs, _) = ResponseParser.apply(buff)
@@ -161,7 +161,7 @@ class Http1ServerStageSpec extends Specification {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val (r11,r12) = req1.splitAt(req1.length - 1)
 
-      val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(r11,r12)), 5.seconds)
 
       // Both responses must succeed
       parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
@@ -176,7 +176,7 @@ class Http1ServerStageSpec extends Specification {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val (r11,r12) = req1.splitAt(req1.length - 1)
 
-      val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(r11,r12)), 5.seconds)
 
       // Both responses must succeed
       parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
@@ -193,11 +193,39 @@ class Http1ServerStageSpec extends Specification {
       val (r11,r12) = req1.splitAt(req1.length - 1)
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
+    }
+
+    "Close the connection after the initial request with a excessively large request body" in {
+
+      val service = HttpService {
+        case req =>  Task.now(Response(body = Process.emit(ByteVector.view("foo".getBytes))))
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val size = 512*1024
+      val bodyStr = "0" * size
+
+      val req1 = {
+        def go(str: String, acc: Vector[String]): Vector[String] = {
+          val (a,b) = str.splitAt(1024)
+          if (b.isEmpty) acc :+ a
+          else go(b, acc :+ a)
+        }
+        go(s"POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: $size\r\n\r\n$bodyStr", Vector.empty)
+      }
+
+      val req2 = "GET /sync HTTP/1.1\r\nConnection:keep-alive\r\n"
+
+      val buff = Await.result(httpStage(service, req1 :+ req2), 5.seconds)
+
+      // the first response must succeed, but the excessive body that was used will trigger a disconnect
+      dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
+      buff.remaining() must_== 0
     }
 
     "Handle routes that runs the request body for non-chunked" in {
@@ -213,7 +241,7 @@ class Http1ServerStageSpec extends Specification {
       val (r11,r12) = req1.splitAt(req1.length - 1)
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
@@ -233,7 +261,7 @@ class Http1ServerStageSpec extends Specification {
       val (r11,r12) = req1.splitAt(req1.length - 1)
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(httpStage(service, 2, Seq(r11,r12,req2)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(r11,r12,req2)), 5.seconds)
 
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(3)), "foo"))
@@ -256,7 +284,7 @@ class Http1ServerStageSpec extends Specification {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(httpStage(service, 2, Seq(req1 + req2)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(req1 + req2)), 5.seconds)
 
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
@@ -273,7 +301,7 @@ class Http1ServerStageSpec extends Specification {
       val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
       val req2 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 5\r\n\r\ntotal"
 
-      val buff = Await.result(httpStage(service, 2, Seq(req1, req2)), 5.seconds)
+      val buff = Await.result(httpStage(service, Seq(req1, req2)), 5.seconds)
 
       // Both responses must succeed
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))

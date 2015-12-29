@@ -119,7 +119,7 @@ class BlazeBuilder(
 
           val l1 =
             if (isHttp2Enabled) LeafBuilder(ProtocolSelector(eng, aggregateService, 4*1024, requestAttrs, serviceExecutor))
-            else LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets))
+            else LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, Http1ServerStage.defaultMaxDrain, serviceExecutor, enableWebSockets))
 
           val l2 = if (idleTimeout.isFinite) l1.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
                    else l1
@@ -143,7 +143,7 @@ class BlazeBuilder(
             }
             requestAttrs
           }
-          val leaf = LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets))
+          val leaf = LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, Http1ServerStage.defaultMaxDrain, serviceExecutor, enableWebSockets))
           if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
           else leaf
         }

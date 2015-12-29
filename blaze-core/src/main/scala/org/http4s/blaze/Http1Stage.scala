@@ -9,7 +9,6 @@ import org.http4s.headers.`Transfer-Encoding`
 import org.http4s.{headers => H}
 import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
-import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.pipeline.{Command, TailStage}
 import org.http4s.blaze.util._
 import org.http4s.util.{Writer, StringWriter}
@@ -23,7 +22,13 @@ import scalaz.stream.Cause.{Terminated, End}
 import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
 
-trait Http1Stage { self: TailStage[ByteBuffer] =>
+/** Utility bits for dealing with the HTTP 1.x protocol
+  *
+  * @param maxDrainLength maximum bytes before draining the body will signal EOF.
+  *                       A value  < 0 signals to always drain the entire body
+  *                       It is the responsibility of the caller to close the connection.
+  */
+abstract class Http1Stage(maxDrainLength: Long) { self: TailStage[ByteBuffer] =>
 
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
@@ -119,7 +124,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     * @param buffer starting `ByteBuffer` to use in parsing.
     * @param eofCondition If the other end hangs up, this is the condition used in the Process for termination.
     *                     The desired result will differ between Client and Server as the former can interpret
-    *                     and [[EOF]] as the end of the body while a server cannot.
+    *                     and [[Command.EOF]] as the end of the body while a server cannot.
     */
   final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition:() => Throwable): (EntityBody, () => Future[ByteBuffer]) = {
     if (contentComplete()) {
@@ -149,7 +154,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                     currentBuffer = BufferTools.concatBuffers(currentBuffer, b)
                     go()
 
-                  case Failure(EOF) =>
+                  case Failure(Command.EOF) =>
                     cb(-\/(eofCondition()))
 
                   case Failure(t)   =>
@@ -190,22 +195,28 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
   final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
     logger.trace(s"Draining body: $buffer")
 
-    def drainBody(buffer: ByteBuffer, p: Promise[ByteBuffer]): Unit = {
+    def drainBody(buffer: ByteBuffer, count: Long, p: Promise[ByteBuffer]): Unit = {
       try {
         if (!contentComplete()) {
           while(!contentComplete() && doParseContent(buffer).nonEmpty) { } // we just discard the results
 
-          if (!contentComplete()) {
+          if (contentComplete()) p.trySuccess(buffer)
+          else if (maxDrainLength > 0 && count >= maxDrainLength) {
+            // we've read too much data so just send the EOF to trigger a connection shutdown
+            logger.info(s"Maximum discarded body reached: max: ${maxDrainLength}, read: ${count}")
+            p.tryFailure(Command.EOF)
+          }
+          else {
             logger.trace("drainBody needs more data.")
             channelRead().onComplete {
               case Success(newBuffer) =>
+                val readSize = newBuffer.remaining()
                 logger.trace(s"Drain buffer received: $newBuffer")
-                drainBody(concatBuffers(buffer, newBuffer), p)
+                drainBody(concatBuffers(buffer, newBuffer), count + readSize, p)
 
               case Failure(t) => p.tryFailure(t)
             }(Execution.trampoline)
           }
-          else p.trySuccess(buffer)
         }
         else {
           logger.trace("Body drained.")
@@ -216,7 +227,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 
     if (!contentComplete()) {
       val p = Promise[ByteBuffer]
-      drainBody(buffer, p)
+      drainBody(buffer, buffer.remaining(), p)
       p.future
     }
     else {
