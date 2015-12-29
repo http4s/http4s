@@ -16,7 +16,6 @@ import org.specs2.specification.core.Fragment
 
 import scala.concurrent.{Await, Future}
 import scala.concurrent.duration._
-import scala.concurrent.duration.FiniteDuration
 
 import scalaz.concurrent.{Strategy, Task}
 import scalaz.stream.Process
@@ -43,9 +42,8 @@ class Http1ServerStageSpec extends Specification {
 
   def runRequest(req: Seq[String], service: HttpService): Future[ByteBuffer] = {
     val head = new SeqTestHead(req.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-    val httpStage = new Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService) {
-      override def reset(): Unit = head.stageShutdown()     // shutdown the stage after a complete request
-    }
+    val httpStage = new Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService)
+
     pipeline.LeafBuilder(httpStage).base(head)
     head.sendInboundCommand(Cmd.Connected)
     head.result
@@ -93,17 +91,8 @@ class Http1ServerStageSpec extends Specification {
   "Http1ServerStage: routes" should {
 
     def httpStage(service: HttpService, requests: Int, input: Seq[String]): Future[ByteBuffer] = {
-      val head = new SeqTestHead(input.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))))
-      val httpStage = new Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService) {
-        @volatile var count = 0
-
-        override def reset(): Unit = {
-          // shutdown the stage after it completes two requests
-          count += 1
-          if (count < requests) super.reset()
-          else head.stageShutdown()
-        }
-      }
+      val head = new SeqTestHead(input.map(s => ByteBuffer.wrap(s.getBytes(StandardCharsets.UTF_8))))
+      val httpStage = new Http1ServerStage(service, AttributeMap.empty, Strategy.DefaultExecutorService)
 
       pipeline.LeafBuilder(httpStage).base(head)
       head.sendInboundCommand(Cmd.Connected)

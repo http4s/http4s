@@ -43,6 +43,7 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   override def readRequest(size: Int): Future[ByteBuffer] = synchronized {
     if (!closed && bodyIt.hasNext) Future.successful(bodyIt.next())
     else {
+      stageShutdown()
       sendInboundCommand(Disconnected)
       Future.failed(EOF)
     }
