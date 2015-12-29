@@ -25,9 +25,9 @@ class ChunkProcessWriter(private var headers: StringWriter,
     else Future.successful(())
   }
 
-  protected def writeEnd(chunk: ByteVector): Future[Unit] = {
+  protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
     def writeTrailer = {
-      val promise = Promise[Unit]
+      val promise = Promise[Boolean]
       trailer.map { trailerHeaders =>
         if (trailerHeaders.nonEmpty) {
           val rr = new StringWriter(256)
@@ -38,13 +38,13 @@ class ChunkProcessWriter(private var headers: StringWriter,
         }
         else ChunkEndBuffer
       }.runAsync {
-        case \/-(buffer) => promise.completeWith(pipe.channelWrite(buffer))
+        case \/-(buffer) => promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
         case -\/(t) => promise.failure(t)
       }
       promise.future
     }
 
-    if (headers != null) {  // This is the first write, so we can add a body length instead of chunking
+    val f = if (headers != null) {  // This is the first write, so we can add a body length instead of chunking
       val h = headers
       headers = null
 
@@ -65,6 +65,8 @@ class ChunkProcessWriter(private var headers: StringWriter,
       if (chunk.nonEmpty) writeBodyChunk(chunk, true).flatMap { _ => writeTrailer }
       else writeTrailer
     }
+
+    f.map(Function.const(false))
   }
 
   private def writeLength(length: Int): ByteBuffer = {

@@ -14,7 +14,7 @@ import scalaz.{-\/, \/, \/-}
 
 trait ProcessWriter {
 
-  private type CBType = Throwable \/ Unit => Unit
+  private type CBType = Throwable \/ Boolean => Unit
   private type StackElem = Cause => Trampoline[Process[Task,ByteVector]]
 
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
@@ -29,17 +29,17 @@ trait ProcessWriter {
     */
   protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit]
 
-  /** Write the ending chunk and, in chunked encoding, a trailer to the wire.
-    * If a request is cancelled, or the stream is closed this method should
-    * return a failed Future with Cancelled as the exception
+  /** Write the ending chunk and, in chunked encoding, a trailer to the
+    * wire.  If a request is cancelled, or the stream is closed this
+    * method should return a failed Future with Cancelled as the
+    * exception, or a Future with a Boolean to indicate whether the
+    * connection is to be closed or not.
     *
     * @param chunk BodyChunk to write to wire
-    * @return a future letting you know when its safe to continue
+    * @return a future letting you know when its safe to continue (if `false`) or
+    * to close the connection (if `true`)
     */
-  protected def writeEnd(chunk: ByteVector): Future[Unit]
-
-  /** Signifies if this `ProcessWriter` requires the connection be closed upon completion. */
-  def requireClose(): Boolean = false
+  protected def writeEnd(chunk: ByteVector): Future[Boolean]
 
   /** Called in the event of an Await failure to alert the pipeline to cleanup */
   protected def exceptionFlush(): Future[Unit] = Future.successful(())
@@ -50,7 +50,7 @@ trait ProcessWriter {
     * @param p Process[Task, ByteVector] to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeProcess(p: Process[Task, ByteVector]): Task[Unit] = Task.async(go(p, Nil, _))
+  def writeProcess(p: Process[Task, ByteVector]): Task[Boolean] = Task.async(go(p, Nil, _))
 
   /** Helper to allow `go` to be tail recursive. Non recursive calls can 'bounce' through
     * this function but must be properly trampolined or we risk stack overflows */
@@ -94,7 +94,7 @@ trait ProcessWriter {
     case Halt(End) => writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
 
     case Halt(Kill) => writeEnd(ByteVector.empty)
-                         .flatMap(_ => exceptionFlush())
+                         .flatMap(requireClose => exceptionFlush().map(_ => requireClose))
                          .onComplete(completionListener(_, cb))
 
     case Halt(Error(Terminated(cause))) => go(Halt(cause), stack, cb)
@@ -105,8 +105,8 @@ trait ProcessWriter {
     }
   }
 
-  private def completionListener(t: Try[_], cb: CBType): Unit = t match {
-    case Success(_) =>  cb(\/-(()))
+  private def completionListener(t: Try[Boolean], cb: CBType): Unit = t match {
+    case Success(requireClose) =>  cb(\/-(requireClose))
     case Failure(t) =>  cb(-\/(t))
   }
 
