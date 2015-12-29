@@ -163,9 +163,24 @@ class Http1ServerStageSpec extends Specification {
       hdrs.find(_.name == Date.name) must_== Some(dateHeader)
     }
 
+    "Handle routes that echos full request body for non-chunked" in {
+      val service = HttpService {
+        case req => Task.now(Response(body = req.body))
+      }
+
+      // The first request will get split into two chunks, leaving the last byte off
+      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
+      val (r11,r12) = req1.splitAt(req1.length - 1)
+
+      val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
+
+      // Both responses must succeed
+      parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
+    }
+
     "Handle routes that consumes the full request body for non-chunked" in {
       val service = HttpService {
-        case req => Task.now(Response(body = req.body))
+        case req => req.as[String].flatMap { s => Response().withBody("Result: " + s) }
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -175,28 +190,14 @@ class Http1ServerStageSpec extends Specification {
       val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
 
       // Both responses must succeed
-      parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
+      parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(8 + 4), H.
+                                       `Content-Type`(MediaType.`text/plain`, Charset.`UTF-8`)), "Result: done"))
     }
 
-    "Handle routes that ignores the body for non-chunked" in {
-      val service = HttpService {
-        case req => Task.now(Response(body = req.body))
-      }
-
-      // The first request will get split into two chunks, leaving the last byte off
-      val req1 = "POST /sync HTTP/1.1\r\nConnection:keep-alive\r\nContent-Length: 4\r\n\r\ndone"
-      val (r11,r12) = req1.splitAt(req1.length - 1)
-
-      val buff = Await.result(httpStage(service, 1, Seq(r11,r12)), 5.seconds)
-
-      // Both responses must succeed
-      parseAndDropDate(buff) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
-    }
-
-    "Handle routes that ignores request body for non-chunked" in {
+    "Maintain keep-alive behavior for routes that ignore a non-chunked request body" in {
 
       val service = HttpService {
-        case req =>  Task.now(Response(body = Process.emit(ByteVector.view("foo".getBytes))))
+        case _ =>  Task.now(Response(body = Process.emit(ByteVector.view("foo".getBytes))))
       }
 
       // The first request will get split into two chunks, leaving the last byte off
@@ -212,7 +213,6 @@ class Http1ServerStageSpec extends Specification {
     }
 
     "Handle routes that runs the request body for non-chunked" in {
-
       val service = HttpService {
         case req =>  req.body.run.map { _ =>
           Response(body = Process.emit(ByteVector.view("foo".getBytes)))
