@@ -13,14 +13,14 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
     def client = defaultClient
 
     "Make simple http requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
+      val resp = client.getAs[String](uri("https://github.com/")).run
 //      println(resp.copy(body = halt))
 
       resp.length mustNotEqual 0
     }
 
     "Make simple https requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
+      val resp = client.getAs[String](uri("https://github.com/")).run
 //      println(resp.copy(body = halt))
 //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.length mustNotEqual 0
@@ -32,7 +32,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
   "RecyclingHttp1Client" should {
 
     "Make simple http requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
+      val resp = client.getAs[String](uri("https://github.com/")).run
       //      println(resp.copy(body = halt))
 
       resp.length mustNotEqual 0
@@ -41,7 +41,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
     "Repeat a simple http request" in {
       val f = (0 until 10).map(_ => Task.fork {
         val req = uri("https://github.com/")
-        val resp = client(req).as[String]
+        val resp = client.getAs[String](req)
         resp.map(_.length)
       })
 
@@ -51,7 +51,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
     }
 
     "Make simple https requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
+      val resp = client.getAs[String](uri("https://github.com/")).run
       //      println(resp.copy(body = halt))
       //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
       resp.length mustNotEqual 0
