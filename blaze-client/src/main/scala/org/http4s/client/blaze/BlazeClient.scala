@@ -10,7 +10,7 @@ import scalaz.stream.Process.eval_
 import scalaz.{-\/, \/-}
 
 /** Blaze client implementation */
-final class BlazeClient(manager: ConnectionManager, idleTimeout: Duration, requestTimeout: Duration) extends Client {
+final class BlazeClient(manager: ConnectionManager, idleTimeout: Duration, requestTimeout: Duration, lenient: Boolean) extends Client {
 
   /** Shutdown this client, closing any open connections and freeing resources */
   override def shutdown(): Task[Unit] = manager.shutdown()

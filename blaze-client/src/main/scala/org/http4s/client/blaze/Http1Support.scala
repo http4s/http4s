@@ -28,6 +28,7 @@ object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param bufferSize buffer size of the socket stages
+   * @param lenient switch to allow malformed headers
    * @param userAgent User-Agent header information
    * @param es `ExecutorService` on which computations should be run
    * @param osslContext Optional `SSSContext` for secure requests
@@ -35,12 +36,13 @@ object Http1Support {
    * @return [[ConnectionBuilder]] for creating new requests
    */
   def apply(bufferSize: Int,
+               lenient: Boolean,
              userAgent: Option[`User-Agent`],
                     es: ExecutorService,
            osslContext: Option[SSLContext],
        endpointAuthentication: Boolean,
                  group: Option[AsynchronousChannelGroup]): ConnectionBuilder = {
-    val builder = new Http1Support(bufferSize, userAgent, es, osslContext, endpointAuthentication, group)
+    val builder = new Http1Support(bufferSize, lenient, userAgent, es, osslContext, endpointAuthentication, group)
     builder.makeClient
   }
 
@@ -51,11 +53,12 @@ object Http1Support {
 /** Provides basic HTTP1 pipeline building
   */
 final private class Http1Support(bufferSize: Int,
-                          userAgent: Option[`User-Agent`],
-                                 es: ExecutorService,
-                        osslContext: Option[SSLContext],
-             endpointAuthentication: Boolean,
-                              group: Option[AsynchronousChannelGroup]) {
+                                    lenient: Boolean,
+                                  userAgent: Option[`User-Agent`],
+                                         es: ExecutorService,
+                                osslContext: Option[SSLContext],
+                     endpointAuthentication: Boolean,
+                                      group: Option[AsynchronousChannelGroup]) {
   import Http1Support._
 
   private val ec = ExecutionContext.fromExecutorService(es)
@@ -78,7 +81,7 @@ final private class Http1Support(bufferSize: Int,
   }
 
   private def buildStages(uri: Uri): (LeafBuilder[ByteBuffer], BlazeClientStage) = {
-    val t = new Http1ClientStage(userAgent, ec)
+    val t = new Http1ClientStage(lenient, userAgent, ec)
     val builder = LeafBuilder(t)
     uri match {
       case Uri(Some(Https),Some(auth),_,_,_) if endpointAuthentication =>
