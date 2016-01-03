@@ -30,7 +30,7 @@ object ProtocolSelector {
 
     def select(s: String): LeafBuilder[ByteBuffer] = s match {
       case "h2" | "h2-14" | "h2-15" => LeafBuilder(http2Stage(service, maxHeaderLen, requestAttributes, es))
-      case _                        => LeafBuilder(Http1ServerStage(service, requestAttributes, Http1ServerStage.defaultMaxDrain, es))
+      case _                        => LeafBuilder(Http1ServerStage(service, requestAttributes, es))
     }
 
     new ALPNSelector(engine, preference, select)

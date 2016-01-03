@@ -22,13 +22,8 @@ import scalaz.stream.Cause.{Terminated, End}
 import scalaz.{-\/, \/-}
 import scalaz.concurrent.Task
 
-/** Utility bits for dealing with the HTTP 1.x protocol
-  *
-  * @param maxDrainLength maximum bytes before draining the body will signal EOF.
-  *                       A value  < 0 signals to always drain the entire body
-  *                       It is the responsibility of the caller to close the connection.
-  */
-abstract class Http1Stage(maxDrainLength: Long) { self: TailStage[ByteBuffer] =>
+/** Utility bits for dealing with the HTTP 1.x protocol */
+trait Http1Stage { self: TailStage[ByteBuffer] =>
 
   /** ExecutionContext to be used for all Future continuations
     * '''WARNING:''' The ExecutionContext should trampoline or risk possibly unhandled stack overflows */
@@ -195,44 +190,13 @@ abstract class Http1Stage(maxDrainLength: Long) { self: TailStage[ByteBuffer] =>
   final protected def drainBody(buffer: ByteBuffer): Future[ByteBuffer] = {
     logger.trace(s"Draining body: $buffer")
 
-    def drainBody(buffer: ByteBuffer, count: Long, p: Promise[ByteBuffer]): Unit = {
-      try {
-        if (!contentComplete()) {
-          while(!contentComplete() && doParseContent(buffer).nonEmpty) { } // we just discard the results
+    while (!contentComplete() && doParseContent(buffer).nonEmpty) { /* NOOP */ }
 
-          if (contentComplete()) p.trySuccess(buffer)
-          else if (maxDrainLength > 0 && count >= maxDrainLength) {
-            // we've read too much data so just send the EOF to trigger a connection shutdown
-            logger.info(s"Maximum discarded body reached: max: ${maxDrainLength}, read: ${count}")
-            p.tryFailure(Command.EOF)
-          }
-          else {
-            logger.trace("drainBody needs more data.")
-            channelRead().onComplete {
-              case Success(newBuffer) =>
-                val readSize = newBuffer.remaining()
-                logger.trace(s"Drain buffer received: $newBuffer")
-                drainBody(concatBuffers(buffer, newBuffer), count + readSize, p)
-
-              case Failure(t) => p.tryFailure(t)
-            }(Execution.trampoline)
-          }
-        }
-        else {
-          logger.trace("Body drained.")
-          p.trySuccess(buffer)
-        }
-      } catch { case t: Throwable => p.tryFailure(t) }
-    }
-
-    if (!contentComplete()) {
-      val p = Promise[ByteBuffer]
-      drainBody(buffer, buffer.remaining(), p)
-      p.future
-    }
+    if (contentComplete()) Future.successful(buffer)
     else {
-      logger.trace("No body to drain.")
-      Future.successful(buffer)
+      // Send the EOF to trigger a connection shutdown
+      logger.info(s"HTTP body not read to completion. Dropping connection.")
+      Future.failed(Command.EOF)
     }
   }
 }

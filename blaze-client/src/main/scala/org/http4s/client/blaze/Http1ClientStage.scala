@@ -28,7 +28,7 @@ import scalaz.{\/, -\/, \/-}
 
 
 final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: ExecutionContext)
-  extends Http1Stage(-1) with BlazeClientStage
+  extends Http1Stage with BlazeClientStage
 {
   import org.http4s.client.blaze.Http1ClientStage._
 
