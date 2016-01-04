@@ -47,13 +47,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">Http1ClientStage</span><span class="result"> extends <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a> with <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></span>
+        <span class="name">Http1ClientStage</span><span class="result"> extends <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a> with <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-client/src/main/scala/org/http4s/client/blaze/Http1ClientStage.scala" target="_blank">Http1ClientStage.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a>, <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>, <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>, <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>], <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span>, <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -71,7 +71,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.client.blaze.Http1ClientStage"><span>Http1ClientStage</span></li><li class="in" name="org.http4s.blaze.Http1Stage"><span>Http1Stage</span></li><li class="in" name="org.http4s.client.blaze.BlazeClientStage"><span>BlazeClientStage</span></li><li class="in" name="org.http4s.blaze.pipeline.TailStage"><span>TailStage</span></li><li class="in" name="org.http4s.blaze.pipeline.Tail"><span>Tail</span></li><li class="in" name="org.http4s.blaze.pipeline.Stage"><span>Stage</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.client.blaze.Http1ClientStage"><span>Http1ClientStage</span></li><li class="in" name="org.http4s.client.blaze.BlazeClientStage"><span>BlazeClientStage</span></li><li class="in" name="org.http4s.blaze.pipeline.TailStage"><span>TailStage</span></li><li class="in" name="org.http4s.blaze.pipeline.Tail"><span>Tail</span></li><li class="in" name="org.http4s.blaze.pipeline.Stage"><span>Stage</span></li><li class="in" name="org.http4s.blaze.Http1Stage"><span>Http1Stage</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
                 <span class="filtertype">Implicitly<br />
@@ -378,7 +378,7 @@
       <p class="shortcomment cmt">Makes a <code>Process[Task, ByteVector]</code> and a function used to drain the line if terminated early.</p><div class="fullcomment"><div class="comment cmt"><p>Makes a <code>Process[Task, ByteVector]</code> and a function used to drain the line if terminated early.
 </p></div><dl class="paramcmts block"><dt class="param">buffer</dt><dd class="cmt"><p>starting <code>ByteBuffer</code> to use in parsing.</p></dd><dt class="param">eofCondition</dt><dd class="cmt"><p>If the other end hangs up, this is the condition used in the Process for termination.
                     The desired result will differ between Client and Server as the former can interpret
-                    and <span class="extype" name="EOF">EOF</span> as the end of the body while a server cannot.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></dd></dl></div>
+                    and <span class="extype" name="Command.EOF">Command.EOF</span> as the end of the body while a server cannot.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></dd></dl></div>
     </li><li name="org.http4s.client.blaze.Http1ClientStage#contentComplete" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="contentComplete():Boolean"></a>
       <a id="contentComplete():Boolean"></a>
@@ -1160,9 +1160,7 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.blaze.Http1Stage">
-              <h3>Inherited from <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></h3>
-            </div><div class="parent" name="org.http4s.client.blaze.BlazeClientStage">
+        <div class="parent" name="org.http4s.client.blaze.BlazeClientStage">
               <h3>Inherited from <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></h3>
             </div><div class="parent" name="org.http4s.blaze.pipeline.TailStage">
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</h3>
@@ -1170,6 +1168,8 @@ adding the appropriate Connection and Transfer-Encoding headers along the way</p
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Tail">Tail</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</h3>
             </div><div class="parent" name="org.http4s.blaze.pipeline.Stage">
               <h3>Inherited from <span class="extype" name="org.http4s.blaze.pipeline.Stage">Stage</span></h3>
+            </div><div class="parent" name="org.http4s.blaze.Http1Stage">
+              <h3>Inherited from <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a></h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">

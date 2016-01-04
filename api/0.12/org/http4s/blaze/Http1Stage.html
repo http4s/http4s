@@ -51,7 +51,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a> with <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-core/src/main/scala/org/http4s/blaze/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Utility bits for dealing with the HTTP 1.x protocol</p></div><dl class="attributes block"> <dt>Self Type</dt><dd><a href="" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a> with <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</dd><dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-core/src/main/scala/org/http4s/blaze/Http1Stage.scala" target="_blank">Http1Stage.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
@@ -332,7 +332,7 @@
       <p class="shortcomment cmt">Makes a <code>Process[Task, ByteVector]</code> and a function used to drain the line if terminated early.</p><div class="fullcomment"><div class="comment cmt"><p>Makes a <code>Process[Task, ByteVector]</code> and a function used to drain the line if terminated early.
 </p></div><dl class="paramcmts block"><dt class="param">buffer</dt><dd class="cmt"><p>starting <code>ByteBuffer</code> to use in parsing.</p></dd><dt class="param">eofCondition</dt><dd class="cmt"><p>If the other end hangs up, this is the condition used in the Process for termination.
                     The desired result will differ between Client and Server as the former can interpret
-                    and <span class="extype" name="EOF">EOF</span> as the end of the body while a server cannot.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+                    and <span class="extype" name="Command.EOF">Command.EOF</span> as the end of the body while a server cannot.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.blaze.Http1Stage#drainBody" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="drainBody(buffer:java.nio.ByteBuffer):scala.concurrent.Future[java.nio.ByteBuffer]"></a>
       <a id="drainBody(ByteBuffer):Future[ByteBuffer]"></a>
