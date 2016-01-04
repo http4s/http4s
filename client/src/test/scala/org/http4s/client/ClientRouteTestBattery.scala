@@ -52,7 +52,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   private def runTest(req: Request, address: InetSocketAddress): Response = {
     val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
       port = Some(address.getPort)))))
-    client.prepare(newreq).runFor(timeout)
+    client.stream(newreq).runFor(timeout)
   }
 
   private def checkResponse(rec: Response, expected: Response) = {

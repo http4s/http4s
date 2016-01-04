@@ -4,81 +4,143 @@ import org.http4s._
 import org.http4s.headers.Accept
 
 import scalaz.concurrent.Task
+import scalaz.stream.Process.eval_
 
 trait Client {
 
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
-  /** Prepare a single request
-    * @param req [[Request]] containing the headers, URI, etc.
-    * @return Task which will generate the Response
+  /**
+    * Opens a disposable response.  The caller is responsible for running
+    * the result's dispose task to free the underlying connection.  The response
+    * body may not be read after calling dispose.
+    *
+    * This is a low-level method meant for implementors of clients and client
+    * middleware.  It is encouraged that callers use [[fetch]], or if necessary,
+    * [[stream]] instead.
     */
-  def prepare(req: Request): Task[Response]
+  def open(req: Request): Task[DisposableResponse]
 
-  /** Prepare a single request
-    * @param req [[Request]] containing the headers, URI, etc.
-    * @return Task which will generate the Response
+  /**
+    * Streams a response.  The caller is responsible for running the response
+    * body in order to free the underlying connection.
+    *
+    * This is a low-level method.  It is encouraged that callers use [[fetch]]
+    * instead.
     */
-  final def apply(req: Request): Task[Response] = prepare(req)
+  final def stream(req: Request): Task[Response] =
+    open(req).map { case DisposableResponse(resp, dispose) =>
+      resp.copy(body = resp.body ++ eval_(dispose))
+    }
 
-  /** Prepare a single request
-    * @param req [[Request]] containing the headers, URI, etc.
-    * @return Task which will generate the Response
+  @deprecated("Use stream (equivalent) or fetch (safer)", "0.12")
+  final def apply(req: Request): Task[Response] =
+    stream(req)
+
+  @deprecated("Use stream (equivalent) or fetch (safer)", "0.12")
+  final def prepare(req: Request): Task[Response] =
+    stream(req)
+
+  /**
+    * Fetches and handles a response asynchronously.  The underlying connection is
+    * closed when the task returned by `f` completes, and no further reads from the
+    * response body are permitted.
     */
-  final def prepAs[T](req: Request)(implicit d: EntityDecoder[T]): Task[T] = {
+  final def fetch[A](req: Request)(f: Response => Task[A]): Task[A] =
+    open(req).flatMap { case DisposableResponse(resp, dispose) =>
+      f(resp).onFinish { case _ => dispose }
+    }
+
+  /**
+    * Fetches and decodes a response asynchronously.
+    */
+  final def fetchAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
       req.putHeaders(Accept(m.head, m.tail:_*))
     } else req
-
-    prepare(r).flatMap { resp =>
-      d.decode(resp, strict = true).fold(e => throw DecodeFailureException(e), identity)
+    fetch(r) { resp =>
+      d.decode(resp, false).fold(e => throw DecodeFailureException(e), identity)
     }
   }
 
-  /////////////////////////////////////////////////////////////////////////
+  @deprecated("Use fetchAs", "0.12")
+  final def prepAs[T](req: Request)(implicit d: EntityDecoder[T]): Task[T] =
+    fetchAs(req)(d)
 
-  /** Prepare a single GET request
-    * @param req [[Uri]] of the request
-    * @return Task which will generate the Response
+  /**
+    * Executes a GET request on the given uri.  The caller is responsible for
+    * running the response body in order to free the underlying
+    * connection.
+    *
+    * This is a low-level method.  It is encouraged that callers use [[get]]
+    * instead.
     */
-  final def prepare(req: Uri): Task[Response] =
-    prepare(Request(uri = req))
+  final def getStream(uri: Uri): Task[Response] =
+    stream(Request(Method.GET, uri = uri))
 
-  /** Prepare a single GET request
-    * @param req [[Uri]] of the request
-    * @return Task which will generate the Response
+  @deprecated("Use getStream (equivalent) or get (safer)", "0.12")
+  final def prepare(uri: Uri): Task[Response] =
+    getStream(uri)
+
+  @deprecated("Use getStream (equivalent) or get (safer)", "0.12")
+  final def apply(uri: Uri): Task[Response] =
+    getStream(uri)
+
+  /**
+    * Executes a GET request and handles the response asynchronously.  The underlying
+    * connection is closed when the task returned by `f` completes, and no further
+    * reads from the response body are permitted.
     */
-  final def apply(req: Uri): Task[Response] = prepare(req)
+  final def get[A](uri: Uri)(f: Response => Task[A]): Task[A] =
+    fetch(Request(Method.GET, uri = uri))(f)
 
-  /** Prepare a single GET request
-    * @param req [[Uri]] of the request
-    * @return Task which will generate the Response
+  /**
+    * Executes a GET request and decodes the response.
     */
-  final def prepAs[T](req: Uri)(implicit d: EntityDecoder[T]): Task[T] =
-    prepAs(Request(uri = req))(d)
+  final def getAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
+    fetchAs(Request(Method.GET, uri = uri))(d)
 
-  /////////////////////////////////////////////////////////////////////////
+  @deprecated("Use getAs", "0.12")
+  final def prepAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
+    getAs(uri)(d)
 
-  /** Prepare a single request
-    * @param req `Task[Request]` containing the headers, URI, etc
-    * @return Task which will generate the Response
+  /**
+    * Streams a response.  The caller is responsible for running the response
+    * body in order to free the underlying connection.
+    *
+    * This is a low-level method.  It is encouraged that callers use [[fetch]]
+    * instead.
     */
+  final def stream(req: Task[Request]): Task[Response] =
+    req.flatMap(stream)
+
+  @deprecated("Use stream (equivalent) or fetch (safer)", "0.12")
   final def prepare(req: Task[Request]): Task[Response] =
-    req.flatMap(prepare)
+    stream(req)
 
-  /** Prepare a single request
-    * @param req `Task[Request]` containing the headers, URI, etc
-    * @return Task which will generate the Response
-    */
+  @deprecated("Use stream (equivalent) or fetch (safer)", "0.12")
   final def apply(req: Task[Request]): Task[Response] =
-    prepare(req)
+    stream(req)
 
-  /** Prepare a single request
-    * @param req `Task[Request]` containing the headers, URI, etc
-    * @return Task which will generate the Response
+  /**
+    * Fetches and handles a response asynchronously.  The underlying connection is
+    * closed when the task returned by `f` completes, and no further reads from the
+    * response body are permitted.
     */
-  final def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
-    req.flatMap(prepAs(_)(d))
+  final def fetch[A](req: Task[Request])(f: Response => Task[A]): Task[A] =
+    req.flatMap(fetch(_)(f))
+
+  /**
+    * Fetches and decodes a response asynchronously.
+    */
+  final def fetchAs[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
+    req.flatMap(fetchAs(_)(d))
+
+  @deprecated("Use fetchAs", "0.12")
+  final def prepAs[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
+    fetchAs(req)(d)
 }
+
+case class DisposableResponse(response: Response, dispose: Task[Unit])

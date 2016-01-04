@@ -7,6 +7,6 @@ import org.http4s.client.blaze.{defaultClient => client}
 
 object ClientPostExample extends App {
   val req = POST(uri("https://duckduckgo.com/"), UrlForm("q" -> "http4s"))
-  val responseBody = client(req).as[String]
+  val responseBody = client.fetchAs[String](req)
   println(responseBody.run)
 }
