@@ -22,8 +22,9 @@ object Http4sBuild extends Build {
 
   def nexusRepoFor(version: String): Resolver = {
     val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot(version))
-      "snapshots" at s"$nexus/content/repositories/snapshots"
+    if (isSnapshot(version)) 
+      //"snapshots" at s"$nexus/content/repositories/snapshots"
+      Resolver.file("file", new File(Path.userHome.absolutePath+"/.m2/repository"))
     else
       "releases" at s"$nexus/service/local/staging/deploy/maven2"
   }
