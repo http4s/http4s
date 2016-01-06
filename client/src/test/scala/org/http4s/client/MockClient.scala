@@ -4,8 +4,8 @@ package client
 import scalaz.concurrent.Task
 
 object MockClient {
-  def apply(service: HttpService) = Client(
-    open = service.map(resp => DisposableResponse(resp, Task.now(()))),
+  def apply(service: HttpService, dispose: Task[Unit] = Task.now(())) = Client(
+    open = service.map(resp => DisposableResponse(resp, dispose)),
     shutdown = Task.now(())
   )
 }

@@ -4,7 +4,8 @@ package client
 import org.http4s.headers.Accept
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process.eval_
+import scalaz.stream.Process
+import scalaz.stream.Process.{eval, eval_}
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -60,21 +61,26 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * underlying HTTP connection.
     *
     * This is intended for use in proxy servers.  [[fetch]], [[fetchAs]],
-    * and [[toService]] are safer alternatives, as their signatures guarantee
-    * disposal of the HTTP connection.
+    * [[toService]], and [[streaming]] are safer alternatives, as their
+    * signatures guarantee disposal of the HTTP connection.
     */
-  def streaming: HttpService =
+  def toHttpService: HttpService =
     open.map { case DisposableResponse(response, dispose) =>
-      response.copy(body = response.body ++ eval_(dispose))
+      response.copy(body = response.body.onComplete(eval_(dispose)))
     }
 
-  @deprecated("Use streaming.run for compatibility, or fetch for safety", "0.12")
-  def prepare(req: Request): Task[Response] =
-    streaming.run(req)
+  def streaming[A](req: Request)(f: Response => Process[Task, A]): Process[Task, A] =
+    eval(open(req).map { case DisposableResponse(response, dispose) =>
+      f(response).onComplete(eval_(dispose))
+    }).flatMap(identity)
 
-  @deprecated("Use streaming.run for compatibility, or fetch for safety", "0.12")
+  @deprecated("Use toHttpService.run for compatibility, or fetch for safety", "0.12")
+  def prepare(req: Request): Task[Response] =
+    toHttpService.run(req)
+
+  @deprecated("Use toHttpService.run for compatibility, or fetch for safety", "0.12")
   def apply(req: Request): Task[Response] =
-    streaming.run(req)
+    toHttpService.run(req)
 
   /**
     * Submits a request and decodes the response.  The underlying HTTP connection
@@ -105,13 +111,13 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def get[A](uri: Uri)(f: Response => Task[A]): Task[A] =
     fetch(Request(Method.GET, uri))(f)
 
-  @deprecated("Use streaming.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
+  @deprecated("Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
   def prepare(uri: Uri): Task[Response] =
-    streaming.run(Request(Method.GET, uri))
+    toHttpService.run(Request(Method.GET, uri))
 
-  @deprecated("Use streaming.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
+  @deprecated("Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
   def apply(uri: Uri): Task[Response] =
-    streaming.run(Request(Method.GET, uri))
+    toHttpService.run(Request(Method.GET, uri))
 
   /**
     * Submits a GET request and decodes the response.  The underlying HTTP connection
@@ -135,13 +141,13 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def fetch[A](req: Task[Request])(f: Response => Task[A]): Task[A] =
     req.flatMap(fetch(_)(f))
 
-  @deprecated("Use streaming =<< req for compatibility, or fetch for safety", "0.12")
+  @deprecated("Use toHttpService =<< req for compatibility, or fetch for safety", "0.12")
   def prepare(req: Task[Request]): Task[Response] =
-    streaming =<< req
+    toHttpService =<< req
 
-  @deprecated("Use streaming =<< req for compatibility, or fetch for safety", "0.12")
+  @deprecated("Use toHttpService =<< req for compatibility, or fetch for safety", "0.12")
   def apply(req: Task[Request]): Task[Response] =
-    streaming =<< req
+    toHttpService =<< req
 
   /**
     * Submits a request and decodes the response.  The underlying HTTP connection
