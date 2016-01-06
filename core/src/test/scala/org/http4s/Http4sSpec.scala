@@ -11,7 +11,7 @@ package org.http4s
 
 import org.specs2.ScalaCheck
 import org.specs2.scalacheck.Parameters
-import org.specs2.matcher.{AnyMatchers, OptionMatchers, DisjunctionMatchers}
+import org.specs2.matcher.{TaskMatchers, AnyMatchers, OptionMatchers, DisjunctionMatchers}
 import org.specs2.mutable.Specification
 import org.specs2.specification.dsl.FragmentsDsl
 import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
@@ -33,6 +33,7 @@ trait Http4sSpec extends Specification
   with TestInstances
   with AllInstances
   with FragmentsDsl
+  with TaskMatchers
 {
   def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty) {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))

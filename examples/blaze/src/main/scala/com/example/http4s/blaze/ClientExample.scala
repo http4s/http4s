@@ -11,7 +11,7 @@ object ClientExample {
 
     val client = org.http4s.client.blaze.defaultClient
 
-    val page: Task[String] = client(uri("https://www.google.com/")).as[String]
+    val page: Task[String] = client.getAs[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
       println(page.run.take(72))   // each execution of the Task will refetch the page!
@@ -33,7 +33,7 @@ object ClientExample {
     implicit val fooDecoder = jsonOf[Foo]
 
     // Match on response code!
-    val page2 = client(uri("http://http4s.org/resources/foo.json")).flatMap {
+    val page2 = client.get(uri("http://http4s.org/resources/foo.json")) {
       case Successful(resp) => resp.as[Foo].map("Received response: " + _)
       case NotFound(resp)   => Task.now("Not Found!!!")
       case resp             => Task.now("Failed: " + resp.status)

@@ -19,7 +19,7 @@ class RetrySpec extends Http4sSpec {
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val defaultClient = new MockClient(route)
+  val defaultClient = MockClient(route)
 
   "Retry Client" should {
     "Retry bad requests" in {
@@ -33,7 +33,7 @@ class RetrySpec extends Http4sSpec {
         }
       }
       val client = Retry(policy)(defaultClient)
-      val resp = client(getUri(s"http://localhost/boom")).run
+      val resp = client.getAs[String](uri("http://localhost/boom")).run
       attempts must_== 2
     }
 
@@ -48,10 +48,8 @@ class RetrySpec extends Http4sSpec {
         }
       }
       val client = Retry(policy)(defaultClient)
-      val resp = client(getUri(s"http://localhost/ok")).run
+      val resp = client.getAs[String](uri("http://localhost/ok")).run
       attempts must_==1
     }
   }
-
-  def getUri(s: String): Uri = Uri.fromString(s).getOrElse(sys.error("Bad uri."))
 }

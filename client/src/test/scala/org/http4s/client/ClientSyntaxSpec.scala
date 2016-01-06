@@ -24,102 +24,69 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val client = new MockClient(route)
+  val client = MockClient(route)
 
   val req = Request(GET, uri("http://www.foo.bar/"))
 
   "Client" should {
-
-    "support Uris" in {
-      client(req.uri).as[String]
-        .run must_== "hello"
+    "match responses to Uris with get" in {
+      client.get(req.uri) {
+        case Ok(resp) => Task.now("Ok")
+        case _ => Task.now("fail")
+      } must returnValue("Ok")
     }
 
-    "support Requests" in {
-      client(req).as[String]
-        .run must_== "hello"
+    "match responses to requests with fetch" in {
+      client.fetch(req) {
+        case Ok(resp) => Task.now("Ok")
+        case _ => Task.now("fail")
+      } must returnValue("Ok")
     }
 
-    "support Task[Request]s" in {
-      client(Task(req)).as[String]
-        .run must_== "hello"
+    "match responses to request tasks with fetch" in {
+      client.fetch(Task.now(req)) {
+        case Ok(resp) => Task.now("Ok")
+        case _ => Task.now("fail")
+      } must returnValue("Ok")
     }
 
-    "default to Ok if no Status is mentioned" in {
-      client(req).as[String]
-        .run must_== "hello"
+    "fetch Uris with getAs" in {
+      client.getAs[String](req.uri) must returnValue("hello")
     }
 
-    "use Status for Response matching and extraction" in {
-      client(req).map {
-        case Ok(resp) => "Ok"
-        case _ => "fail"
-      }.run must_== "Ok"
-
-      client(req).map {
-        case NotFound(resp) => "fail"
-        case _ => "nomatch"
-      }.run must_== "nomatch"
+    "fetch requests with fetchAs" in {
+      client.fetchAs[String](req) must returnValue("hello")
     }
 
-    "use Status for Response matching and extraction" in {
-      client(req).flatMap {
-        case Successful(resp) => resp.as[String]
-        case _                => Task.now("fail")
-      }.run must_== "hello"
-
-      client(req).map {
-        case ServerError(resp) => "fail"
-        case _ => "nomatch"
-      }.run must_== "nomatch"
+    "fetch request tasks with fetchAs" in {
+      client.fetchAs[String](Task.now(req)) must returnValue("hello")
     }
 
-    "implicitly resolve to get headers and body" in {
-      client(req).as[(Headers, String)]
-        .run._2 must_== "hello"
+    "add Accept header on getAs" in {
+      client.getAs[String](uri("http://www.foo.com/echoheaders")) must returnValue("Accept: text/*")
     }
 
-    "attemptAs with successful result" in {
-      client(req).attemptAs[String]
-        .run.run must be_\/-("hello")
+    "add Accept header on fetchAs for requests" in {
+      client.fetchAs[String](Request(GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
-    "attemptAs with failed parsing result" in {
-      val grouchyEncoder = EntityDecoder.decodeBy[Any](MediaRange.`*/*`) { _ =>
-        DecodeResult.failure(ParseFailure("MEH!", "MEH!"))
-      }
-      client(req).attemptAs[Any](grouchyEncoder).run.run must be_-\/
+    "add Accept header on fetchAs for requests" in {
+      client.fetchAs[String](GET(uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
     }
 
-    "prepAs must add Accept header" in {
-      client.prepAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text)
-        .run must_== "Accept: text/*"
-
-      client.prepAs[String](GET(uri("http://www.foo.com/echoheaders")))
-        .run must_== "Accept: text/*"
-
-      client.prepAs[String](uri("http://www.foo.com/echoheaders"))
-        .run must_== "Accept: text/*"
-
-      // Are we combining our mediatypes correctly? This is more of an EntityDecoder spec
+    "combine entity decoder media types correctly" in {
+      // This is more of an EntityDecoder spec
       val edec = EntityDecoder.decodeBy(MediaType.`image/jpeg`)(_ => DecodeResult.success("foo!"))
-      client.prepAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec)
-        .run must_== "Accept: text/*, image/jpeg"
+      client.fetchAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec) must returnValue("Accept: text/*, image/jpeg")
     }
   }
 
   "RequestResponseGenerator" should {
     "Generate requests based on Method" in {
-      client(GET(uri("http://www.foo.com/"))).as[String]
-        .run must_== "hello"
-      //      GET("http://www.foo.com/", "cats").on(Ok).as[String].run must_== "hello"  // Doesn't compile, body not allowed
+      client.fetchAs[String](GET(uri("http://www.foo.com/"))) must returnValue("hello")
 
-      // The PUT: /put path just echos the body
-      client(PUT(uri("http://www.foo.com/put"))).as[String]
-        .run must_== ""
-
-      client(PUT(uri("http://www.foo.com/put"), "foo")).as[String] // body allowed
-        .run must_== "foo"
+      // The PUT: /put path just echoes the body
+      client.fetchAs[String](PUT(uri("http://www.foo.com/put"), "hello?")) must returnValue("hello?")
     }
   }
 }
