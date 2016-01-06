@@ -3,11 +3,9 @@ package client
 
 import org.http4s.Status.ResponseClass._
 import org.http4s.headers.Accept
-import org.parboiled2.ParseError
 
 import scalaz.concurrent.Task
 
-import org.http4s.server.HttpService
 import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
 import org.http4s.Method._
 

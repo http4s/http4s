@@ -1,11 +1,10 @@
-package org.http4s.client
+package org.http4s
+package client
 package middleware
 
-import org.http4s.{Uri, Status, Http4sSpec, Response}
 import org.http4s.Status._
 import org.http4s.Method._
 import org.http4s.headers.Location
-import org.http4s.server.HttpService
 
 import scalaz.concurrent.Task
 

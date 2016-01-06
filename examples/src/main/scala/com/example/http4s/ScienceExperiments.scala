@@ -1,11 +1,10 @@
 package com.example.http4s
 
-import java.time.{ZoneOffset, Instant}
+import java.time.Instant
 
 import org.http4s._
 import org.http4s.dsl._
-import org.http4s.headers.{Date, `Transfer-Encoding`}
-import org.http4s.server.HttpService
+import org.http4s.headers.Date
 import org.http4s.scalaxml._
 import scodec.bits.ByteVector
 

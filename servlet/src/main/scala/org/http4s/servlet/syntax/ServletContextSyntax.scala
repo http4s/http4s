@@ -1,10 +1,10 @@
-package org.http4s.servlet
+package org.http4s
+package servlet
 package syntax
 
 import javax.servlet.{ServletRegistration, ServletContext}
 
-import org.http4s.server.{AsyncTimeoutSupport, HttpService}
-import org.http4s.servlet._
+import org.http4s.server.AsyncTimeoutSupport
 
 import scalaz.concurrent.Strategy
 

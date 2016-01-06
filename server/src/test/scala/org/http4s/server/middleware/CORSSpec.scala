@@ -1,9 +1,9 @@
-package org.http4s.server.middleware
+package org.http4s
+package server
+package middleware
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.{Uri, Request, Response, Header, Headers, HeaderKey, Method}
-import org.http4s.server.HttpService
 import org.http4s.Status._
 import org.http4s.Method._
 import org.http4s.headers._

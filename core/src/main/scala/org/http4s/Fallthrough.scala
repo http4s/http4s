@@ -1,5 +1,4 @@
 package org.http4s
-package server
 
 import scalaz.{Equal, Monoid}
 

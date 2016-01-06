@@ -1,16 +1,14 @@
-package org.http4s.server.blaze
+package org.http4s
+package server
+package blaze
 
 import java.nio.ByteBuffer
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLEngine
 
-import org.http4s.blaze.channel.SocketConnection
-import org.http4s.{Request, AttributeEntry, AttributeMap}
 import org.http4s.blaze.http.http20._
 import org.http4s.blaze.http.http20.NodeMsg.Http2Msg
 import org.http4s.blaze.pipeline.{TailStage, LeafBuilder}
-import org.http4s.server.HttpService
-
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.duration.Duration

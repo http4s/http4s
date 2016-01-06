@@ -1,7 +1,7 @@
 package org.http4s
 package dsl
 
-import org.http4s.server.{HttpService, MockServer, Service}
+import org.http4s.server.MockServer
 import server.MockServer.MockResponse
 
 import scalaz.{ Failure, Success }

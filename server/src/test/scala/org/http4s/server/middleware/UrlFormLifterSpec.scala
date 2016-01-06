@@ -1,8 +1,6 @@
 package org.http4s
-package server.middleware
-
-import org.http4s.server.HttpService
-
+package server
+package middleware
 
 class UrlFormLifterSpec extends Http4sSpec {
   val urlForm = UrlForm("foo" -> "bar")

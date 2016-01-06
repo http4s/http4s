@@ -1,4 +1,5 @@
-package org.http4s.server
+package org.http4s
+package server
 
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService

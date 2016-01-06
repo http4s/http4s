@@ -1,9 +1,9 @@
 package org.http4s
-package server.middleware
+package server
+package middleware
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.server.{HttpService, Service}
 import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
