@@ -373,7 +373,7 @@ for keys with the same label and same types.</p></div></div>
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">EntityBody</span><span class="result"> = <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://scodec.org/api/scodec-bits/1.0.9/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>
+        <span class="name">EntityBody</span><span class="result"> = <a href="http://docs.typelevel.org/api/scalaz-stream/stable/0.8/doc/index.html#scalaz.stream.Process" class="extype" target="_top">Process</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://scodec.org/api/scodec-bits/1.0.9/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" title="Permalink" target="_top">
@@ -472,6 +472,25 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </a>
     </span>
       
+    </li><li name="org.http4s.Fallthrough" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Fallthrough[B]extendsAnyRef"></a>
+      <a id="Fallthrough[B]:Fallthrough[B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Fallthrough.html"><span class="name">Fallthrough</span></a><span class="tparams">[<span name="B">B</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@Fallthrough[B]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Encapsulates the notion of fallthrough orElse for a Service
+For any given B, if a Fallthrough[B] exists within implicit context
+then <span class="extype" name="Service#orElse">Service#orElse</span> can be used.</p>
     </li><li name="org.http4s.GenericCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="GenericCredentialsextendsCredentialswithProductwithSerializable"></a>
       <a id="GenericCredentials:GenericCredentials"></a>
@@ -642,6 +661,27 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </a>
     </span>
       
+    </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]"></a>
+      <a id="HttpService:HttpService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">HttpService</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a> that produces a Task to compute a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> from a
+<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a> that produces a Task to compute a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> from a
+<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>.  An HttpService can be run on any supported http4s
+server backend, such as Blaze, Jetty, or Tomcat.
+</p></div></div>
     </li><li name="org.http4s.HttpVersion" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="HttpVersionextendsRenderablewithOrdered[org.http4s.HttpVersion]withProductwithSerializable"></a>
       <a id="HttpVersion:HttpVersion"></a>
@@ -1239,6 +1279,27 @@ status line, headers, and a possible request body.
       </a>
     </span>
       
+    </li><li name="org.http4s.Service" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]"></a>
+      <a id="Service[A,B]:Service[A,B]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">Service</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.Service.A">A</span>, <span class="extype" name="org.http4s.Service.B">B</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A Service wraps a function of request type <span class="extype" name="A">A</span> to a Task that runs
+to esponse type <span class="extype" name="B">B</span>.</p><div class="fullcomment"><div class="comment cmt"><p>A Service wraps a function of request type <span class="extype" name="A">A</span> to a Task that runs
+to esponse type <span class="extype" name="B">B</span>.  By wrapping the <code>Service</code>, we can compose them
+using Kleisli operations.
+</p></div></div>
     </li><li name="org.http4s.Status" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="StatusextendsOrdered[org.http4s.Status]withRenderablewithProductwithSerializable"></a>
       <a id="Status:Status"></a>
@@ -1683,6 +1744,23 @@ with some commonly used instances which can be resolved implicitly.</p>
       </a>
     </span>
       
+    </li><li name="org.http4s.Fallthrough" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Fallthrough"></a>
+      <a id="Fallthrough:Fallthrough"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Fallthrough$.html"><span class="name">Fallthrough</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@Fallthrough" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Houses the principal <a href="Fallthrough.html" class="extype" name="org.http4s.Fallthrough">Fallthrough</a> typeclass instances.</p>
     </li><li name="org.http4s.Header" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Header"></a>
       <a id="Header:Header"></a>
@@ -1802,6 +1880,23 @@ with some commonly used instances which can be resolved implicitly.</p>
       </a>
     </span>
       
+    </li><li name="org.http4s.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="HttpService"></a>
+      <a id="HttpService:HttpService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="HttpService$.html"><span class="name">HttpService</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@HttpService" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">There are 4 HttpService constructors:</p><div class="fullcomment"><div class="comment cmt"><p>There are 4 HttpService constructors:</p><ul><li>(Request =&gt; Task[Response]) =&gt; HttpService</li><li>PartialFunction[Request, Task[Response]] =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], HttpService) =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], Task[Response]) =&gt; HttpService</li></ul></div></div>
     </li><li name="org.http4s.HttpVersion" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpVersion"></a>
       <a id="HttpVersion:HttpVersion"></a>
@@ -2121,6 +2216,23 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@Response" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.Service" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Service"></a>
+      <a id="Service:Service"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="Service$.html"><span class="name">Service</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@Service" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

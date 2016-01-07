@@ -105,25 +105,6 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.server.Fallthrough" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Fallthrough[B]extendsAnyRef"></a>
-      <a id="Fallthrough[B]:Fallthrough[B]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Fallthrough.html"><span class="name">Fallthrough</span></a><span class="tparams">[<span name="B">B</span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@Fallthrough[B]extendsAnyRef" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Encapsulates the notion of fallthrough orElse for a Service
-For any given B, if a Fallthrough[B] exists within implicit context
-then <span class="extype" name="Service#orElse">Service#orElse</span> can be used.</p>
     </li><li name="org.http4s.server.HttpMiddleware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]"></a>
       <a id="HttpMiddleware:HttpMiddleware"></a>
@@ -133,35 +114,14 @@ then <span class="extype" name="Service#orElse">Service#orElse</span> can be use
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">HttpMiddleware</span><span class="result"> = (<a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">HttpMiddleware</span><span class="result"> = (<a href="../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.server.package@HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">An HTTP middleware converts an <a href="#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a> to another.</p>
-    </li><li name="org.http4s.server.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]"></a>
-      <a id="HttpService:HttpService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">HttpService</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">A <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a> that produces a Task to compute a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> from a
-<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a> that produces a Task to compute a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> from a
-<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  An HttpService can be run on any supported http4s
-server backend, such as Blaze, Jetty, or Tomcat.
-</p></div></div>
+      <p class="shortcomment cmt">An HTTP middleware converts an <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a> to another.</p>
     </li><li name="org.http4s.server.IdleTimeoutSupport" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="IdleTimeoutSupportextendsAnyRef"></a>
       <a id="IdleTimeoutSupport:IdleTimeoutSupport"></a>
@@ -197,7 +157,7 @@ server backend, such as Blaze, Jetty, or Tomcat.
     </span>
       
     </li><li name="org.http4s.server.Middleware" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Middleware[A,B,C,D]=org.http4s.server.package.Service[A,B]=&gt;org.http4s.server.package.Service[C,D]"></a>
+      <a id="Middleware[A,B,C,D]=org.http4s.Service[A,B]=&gt;org.http4s.Service[C,D]"></a>
       <a id="Middleware[A,B,C,D]:Middleware[A,B,C,D]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -205,15 +165,15 @@ server backend, such as Blaze, Jetty, or Tomcat.
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">Middleware</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>, <span name="D">D</span>]</span><span class="result"> = (<a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<span class="extype" name="org.http4s.server.Middleware.A">A</span>, <span class="extype" name="org.http4s.server.Middleware.B">B</span>]) ⇒ <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<span class="extype" name="org.http4s.server.Middleware.C">C</span>, <span class="extype" name="org.http4s.server.Middleware.D">D</span>]</span>
+        <span class="name">Middleware</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>, <span name="C">C</span>, <span name="D">D</span>]</span><span class="result"> = (<a href="../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.server.Middleware.A">A</span>, <span class="extype" name="org.http4s.server.Middleware.B">B</span>]) ⇒ <a href="../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<span class="extype" name="org.http4s.server.Middleware.C">C</span>, <span class="extype" name="org.http4s.server.Middleware.D">D</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@Middleware[A,B,C,D]=org.http4s.server.package.Service[A,B]=&gt;org.http4s.server.package.Service[C,D]" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.server.package@Middleware[A,B,C,D]=org.http4s.Service[A,B]=&gt;org.http4s.Service[C,D]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">A middleware is a function of one <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a> to another, possibly of a
-different <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a> and <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> type.</p><div class="fullcomment"><div class="comment cmt"><p>A middleware is a function of one <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a> to another, possibly of a
+      <p class="shortcomment cmt">A middleware is a function of one <a href="../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a> to another, possibly of a
+different <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a> and <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> type.</p><div class="fullcomment"><div class="comment cmt"><p>A middleware is a function of one <a href="../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a> to another, possibly of a
 different <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a> and <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> type.  http4s comes with several
 middlewares for composing common functionality into services.
 </p></div></div>
@@ -302,27 +262,6 @@ middlewares for composing common functionality into services.
       </a>
     </span>
       
-    </li><li name="org.http4s.server.Service" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]"></a>
-      <a id="Service[A,B]:Service[A,B]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Service</span><span class="tparams">[<span name="A">A</span>, <span name="B">B</span>]</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.server.Service.A">A</span>, <span class="extype" name="org.http4s.server.Service.B">B</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">A Service wraps a function of request type <span class="extype" name="A">A</span> to a Task that runs
-to esponse type <span class="extype" name="B">B</span>.</p><div class="fullcomment"><div class="comment cmt"><p>A Service wraps a function of request type <span class="extype" name="A">A</span> to a Task that runs
-to esponse type <span class="extype" name="B">B</span>.  By wrapping the <code>Service</code>, we can compose them
-using Kleisli operations.
-</p></div></div>
     </li><li name="org.http4s.server.WebSocketSupport" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="WebSocketSupportextendsAnyRef"></a>
       <a id="WebSocketSupport:WebSocketSupport"></a>
@@ -364,40 +303,6 @@ using Kleisli operations.
       </a>
     </span>
       
-    </li><li name="org.http4s.server.Fallthrough" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Fallthrough"></a>
-      <a id="Fallthrough:Fallthrough"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="Fallthrough$.html"><span class="name">Fallthrough</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@Fallthrough" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Houses the principal <a href="Fallthrough.html" class="extype" name="org.http4s.server.Fallthrough">Fallthrough</a> typeclass instances.</p>
-    </li><li name="org.http4s.server.HttpService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="HttpService"></a>
-      <a id="HttpService:HttpService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$HttpService$.html"><span class="name">HttpService</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@HttpService" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">There are 4 HttpService constructors:</p><div class="fullcomment"><div class="comment cmt"><p>There are 4 HttpService constructors:</p><ul><li>(Request =&gt; Task[Response]) =&gt; HttpService</li><li>PartialFunction[Request, Task[Response]] =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], HttpService) =&gt; HttpService</li><li>(PartialFunction[Request, Task[Response]], Task[Response]) =&gt; HttpService</li></ul></div></div>
     </li><li name="org.http4s.server.IdleTimeoutSupport" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="IdleTimeoutSupport"></a>
       <a id="IdleTimeoutSupport:IdleTimeoutSupport"></a>
@@ -530,23 +435,6 @@ using Kleisli operations.
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.server.package@ServerSoftware" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.server.Service" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Service"></a>
-      <a id="Service:Service"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="package$$Service$.html"><span class="name">Service</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.package@Service" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

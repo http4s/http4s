@@ -101,23 +101,45 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.client.Client" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="ClientextendsAnyRef"></a>
+              <ol><li name="org.http4s.client.Client" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ClientextendsProductwithSerializable"></a>
       <a id="Client:Client"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Client.html"><span class="name">Client</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="Client.html"><span class="name">Client</span></a><span class="params">(<span name="open">open: <a href="../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a>]</span>, <span name="shutdown">shutdown: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.package@ClientextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.client.package@ClientextendsProductwithSerializable" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.</p><div class="fullcomment"><div class="comment cmt"><p>A <a href="Client.html" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
+</p></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
+            a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
+            implementations and middlewares.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
+                open connections and freeing resources</p></dd></dl></div>
+    </li><li name="org.http4s.client.DisposableResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="DisposableResponseextendsProductwithSerializable"></a>
+      <a id="DisposableResponse:DisposableResponse"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="DisposableResponse.html"><span class="name">DisposableResponse</span></a><span class="params">(<span name="response">response: <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a></span>, <span name="dispose">dispose: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.package@DisposableResponseextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Contains a <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a> that needs to be disposed of to free the underlying
+HTTP connection.</p>
     </li><li name="org.http4s.client.Middleware" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Middleware=org.http4s.client.Client=&gt;org.http4s.client.Client"></a>
       <a id="Middleware:Middleware"></a>

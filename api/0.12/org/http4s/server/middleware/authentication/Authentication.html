@@ -50,10 +50,10 @@
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Authentication instances are middleware that provide a
-<code><a href="../../package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></code> with HTTP authentication.
+<code><a href="../../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></code> with HTTP authentication.
 </p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/authentication/Authentication.scala" target="_blank">Authentication.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent">(<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>], <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent">(<a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>], <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
             <div class="subClasses hiddenContent"><a href="BasicAuthentication.html" class="extype" name="org.http4s.server.middleware.authentication.BasicAuthentication">BasicAuthentication</a>, <a href="DigestAuthentication.html" class="extype" name="org.http4s.server.middleware.authentication.DigestAuthentication">DigestAuthentication</a></div>
@@ -253,7 +253,7 @@ e.g. the incrementation of a nonce counter in DigestAuthentication).</p></div><d
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">andThen</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="g">g: (<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <span class="extype" name="scala.Function1.andThen.A">A</span></span>)</span><span class="result">: (<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <span class="extype" name="scala.Function1.andThen.A">A</span></span>
+        <span class="name">andThen</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="g">g: (<a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <span class="extype" name="scala.Function1.andThen.A">A</span></span>)</span><span class="result">: (<a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <span class="extype" name="scala.Function1.andThen.A">A</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.Authentication@andThen[A](g:R=&gt;A):T1=&gt;A" title="Permalink" target="_top">
@@ -265,7 +265,7 @@ e.g. the incrementation of a nonce counter in DigestAuthentication).</p></div><d
               
         </dd></dl></div>
     </li><li name="org.http4s.server.middleware.authentication.Authentication#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(service:org.http4s.server.HttpService):org.http4s.server.HttpService"></a>
+      <a id="apply(service:org.http4s.HttpService):org.http4s.HttpService"></a>
       <a id="apply(HttpService):HttpService"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -273,10 +273,10 @@ e.g. the incrementation of a nonce counter in DigestAuthentication).</p></div><d
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="service">service: <a href="../../package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.server.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpService">HttpService</a></span>
+        <span class="name">apply</span><span class="params">(<span name="service">service: <a href="../../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.Authentication@apply(service:org.http4s.server.HttpService):org.http4s.server.HttpService" title="Permalink" target="_top">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.Authentication@apply(service:org.http4s.HttpService):org.http4s.HttpService" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -330,7 +330,7 @@ e.g. the incrementation of a nonce counter in DigestAuthentication).</p></div><d
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">compose</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="g">g: (<span class="extype" name="scala.Function1.compose.A">A</span>) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: (<span class="extype" name="scala.Function1.compose.A">A</span>) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+        <span class="name">compose</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="g">g: (<span class="extype" name="scala.Function1.compose.A">A</span>) ⇒ <a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: (<span class="extype" name="scala.Function1.compose.A">A</span>) ⇒ <a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../../index.html#org.http4s.server.middleware.authentication.Authentication@compose[A](g:A=&gt;T1):A=&gt;R" title="Permalink" target="_top">
@@ -742,7 +742,7 @@ e.g. the incrementation of a nonce counter in DigestAuthentication).</p></div><d
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Function1">
-              <h3>Inherited from (<a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.server.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</h3>
+              <h3>Inherited from (<a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]) ⇒ <a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="../../../Response.html" class="extype" name="org.http4s.Response">Response</a>]</h3>
             </div><div class="parent" name="scala.AnyRef">
               <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
