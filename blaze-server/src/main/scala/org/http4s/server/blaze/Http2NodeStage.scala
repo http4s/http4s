@@ -1,4 +1,6 @@
-package org.http4s.server.blaze
+package org.http4s
+package server
+package blaze
 
 import java.util.Locale
 
@@ -6,7 +8,6 @@ import org.http4s.Header.Raw
 import org.http4s.Status._
 import org.http4s.blaze.http.Headers
 import org.http4s.blaze.http.http20.{Http2StageTools, Http2Exception, NodeMsg}
-import org.http4s.server.HttpService
 
 import org.http4s.{Method => HMethod, Headers => HHeaders, _}
 import org.http4s.blaze.pipeline.{ Command => Cmd }

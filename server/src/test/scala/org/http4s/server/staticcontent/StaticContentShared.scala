@@ -1,9 +1,9 @@
-package org.http4s.server.staticcontent
+package org.http4s
+package server
+package staticcontent
 
 import java.nio.charset.StandardCharsets
 
-import org.http4s.server.HttpService
-import org.http4s.{Response, Request}
 import scodec.bits.ByteVector
 
 

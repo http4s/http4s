@@ -10,19 +10,8 @@ import org.specs2.mutable.After
 class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
 
   "Blaze Simple Http1 Client" should {
-    def client = defaultClient
-
-    "Make simple http requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
-//      println(resp.copy(body = halt))
-
-      resp.length mustNotEqual 0
-    }
-
     "Make simple https requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
-//      println(resp.copy(body = halt))
-//      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
+      val resp = defaultClient.getAs[String](uri("https://github.com/")).run
       resp.length mustNotEqual 0
     }
   }
@@ -30,18 +19,16 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
   val client = PooledHttp1Client()
 
   "RecyclingHttp1Client" should {
+    def fetchBody = client.toService(_.as[String]).local { uri: Uri => Request(uri = uri) }
 
-    "Make simple http requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
-      //      println(resp.copy(body = halt))
-
+    "Make simple https requests" in {
+      val resp = fetchBody.run(uri("https://github.com/")).run
       resp.length mustNotEqual 0
     }
 
-    "Repeat a simple http request" in {
+    "Repeat a simple https request" in {
       val f = (0 until 10).map(_ => Task.fork {
-        val req = uri("https://github.com/")
-        val resp = client(req).as[String]
+        val resp = fetchBody.run(uri("https://github.com/"))
         resp.map(_.length)
       })
 
@@ -49,14 +36,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
         length mustNotEqual 0
       }
     }
-
-    "Make simple https requests" in {
-      val resp = client(uri("https://github.com/")).as[String].run
-      //      println(resp.copy(body = halt))
-      //      println("Body -------------------------\n" + gatherBody(resp.body) + "\n--------------------------")
-      resp.length mustNotEqual 0
-    }
   }
 
-  override def after = client.shutdown()
+  override def after = client.shutdown
 }

@@ -1,4 +1,6 @@
-package org.http4s.server.staticcontent
+package org.http4s
+package server
+package staticcontent
 
 import java.util.concurrent.ExecutorService
 

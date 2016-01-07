@@ -1,6 +1,6 @@
 package com.example.http4s.blaze
 
-import org.http4s.server.HttpService
+import org.http4s._
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.websocket.WebsocketBits._
 import org.http4s.dsl._

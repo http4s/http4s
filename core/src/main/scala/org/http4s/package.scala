@@ -1,6 +1,6 @@
 package org
 
-import scalaz.{EitherT, \/}
+import scalaz.{Kleisli, EitherT, \/}
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -22,4 +22,18 @@ package object http4s {
   type ParseResult[+A] = ParseFailure \/ A
 
   val DefaultCharset = Charset.`UTF-8`
+
+  /**
+   * A Service wraps a function of request type [[A]] to a Task that runs
+   * to esponse type [[B]].  By wrapping the `Service`, we can compose them
+   * using Kleisli operations.
+   */
+  type Service[A, B] = Kleisli[Task, A, B]
+
+  /**
+    * A [[Service]] that produces a Task to compute a [[Response]] from a
+    * [[Request]].  An HttpService can be run on any supported http4s
+    * server backend, such as Blaze, Jetty, or Tomcat.
+    */
+  type HttpService = Service[Request, Response]
 }

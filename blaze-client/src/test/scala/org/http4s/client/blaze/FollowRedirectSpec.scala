@@ -6,6 +6,8 @@ import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
 import org.http4s._
 import org.specs2.specification.core.Fragments
 
+import scalaz.concurrent.Task
+
 
 class FollowRedirectSpec extends JettyScaffold("blaze-client Redirect") {
 
@@ -21,6 +23,11 @@ class FollowRedirectSpec extends JettyScaffold("blaze-client Redirect") {
           resp.addHeader("location", "/good")
           resp.getOutputStream().print("redirect")
 
+        case "/redirect2" =>
+          resp.setStatus(Status.MovedPermanently.code)
+          resp.addHeader("location", "/redirect")
+          resp.getOutputStream().print("redirect")
+
         case "/redirectloop" =>
           resp.setStatus(Status.MovedPermanently.code)
           resp.addHeader("Location", "/redirectloop")
@@ -31,20 +38,18 @@ class FollowRedirectSpec extends JettyScaffold("blaze-client Redirect") {
 
   override protected def runAllTests(): Fragments = {
     val addr = initializeServer()
+    val status = client.toService(resp => Task.now(resp.status)).local { uri: Uri => Request(uri = uri) }
 
     "Honor redirect" in {
-      val resp = client(getUri(s"http://localhost:${addr.getPort}/redirect")).run
-      resp.status must_== Status.Ok
+      status.run(getUri(s"http://localhost:${addr.getPort}/redirect")) must returnValue(Status.Ok)
     }
 
     "Terminate redirect loop" in {
-      val resp = client(getUri(s"http://localhost:${addr.getPort}/redirectloop")).run
-      resp.status must_== Status.MovedPermanently
+      status.run(getUri(s"http://localhost:${addr.getPort}/redirectloop")) must returnValue(Status.MovedPermanently)
     }
 
     "Not redirect more than 'maxRedirects' iterations" in {
-      val resp = defaultClient(getUri(s"http://localhost:${addr.getPort}/redirect")).run
-      resp.status must_== Status.MovedPermanently
+      status.run(getUri(s"http://localhost:${addr.getPort}/redirect2")) must returnValue(Status.MovedPermanently)
     }
   }
 

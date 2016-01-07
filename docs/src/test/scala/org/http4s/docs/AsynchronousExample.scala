@@ -1,7 +1,6 @@
 package org.http4s
 package docs
 
-import org.http4s.server.HttpService
 import org.http4s.dsl._
 
 import org.specs2.mutable.Specification

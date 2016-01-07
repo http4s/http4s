@@ -1,10 +1,10 @@
-package org.http4s.server.blaze
+package org.http4s
+package server
+package blaze
 
 import org.http4s.headers._
 import org.http4s.Http4s._
 import org.http4s.Status._
-import org.http4s._
-import org.http4s.server.{HttpService, Service}
 import org.http4s.Charset._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._

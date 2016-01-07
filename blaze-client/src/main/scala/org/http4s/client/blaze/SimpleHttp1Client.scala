@@ -18,6 +18,6 @@ object SimpleHttp1Client {
      endpointAuthentication: Boolean = true,
               group: Option[AsynchronousChannelGroup] = None) = {
     val manager = ConnectionManager.basic(Http1Support(bufferSize,  userAgent, executor, sslContext, endpointAuthentication, group))
-    new BlazeClient(manager, idleTimeout, requestTimeout)
+    BlazeClient(manager, idleTimeout, requestTimeout)
   }
 }

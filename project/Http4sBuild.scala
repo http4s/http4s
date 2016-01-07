@@ -75,7 +75,8 @@ object Http4sBuild extends Build {
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % scalazCore.revision
   lazy val scalaCheck          = "org.scalacheck"           %% "scalacheck"              % "1.12.4"
   lazy val specs2              = "org.specs2"               %% "specs2-core"             % "3.6.5"
-  lazy val specs2_scalacheck   = "org.specs2"               %% "specs2-scalacheck"       % specs2.revision
+  lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2.revision
+  lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2.revision
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.8"
   lazy val scodecBits          = "org.scodec"               %% "scodec-bits"             % "1.0.9"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.24"

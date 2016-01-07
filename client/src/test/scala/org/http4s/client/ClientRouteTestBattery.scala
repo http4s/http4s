@@ -19,7 +19,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 {
 
   override def cleanup() = {
-    client.shutdown().run
+    client.shutdown.run
     super.cleanup()
   }
 
@@ -44,15 +44,16 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
   private def runTest(req: Request, expected: Response, address: InetSocketAddress): Fragment = {
     s"Execute ${req.method}: ${req.uri}" in {
-      val received = runTest(req, address)
-      checkResponse(received, expected)
+      runTest(req, address) { resp =>
+        Task.delay(checkResponse(resp, expected))
+      }
     }
   }
 
-  private def runTest(req: Request, address: InetSocketAddress): Response = {
+  private def runTest[A](req: Request, address: InetSocketAddress)(f: Response => Task[A]): A = {
     val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
       port = Some(address.getPort)))))
-    client.prepare(newreq).runFor(timeout)
+    client.fetch(newreq)(f).runFor(timeout)
   }
 
   private def checkResponse(rec: Response, expected: Response) = {

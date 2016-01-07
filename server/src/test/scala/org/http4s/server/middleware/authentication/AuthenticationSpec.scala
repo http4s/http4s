@@ -1,9 +1,10 @@
-package org.http4s.server.middleware.authentication
+package org.http4s
+package server
+package middleware
+package authentication
 
 import java.util.concurrent.Executors
 
-import org.http4s._
-import org.http4s.server.HttpService
 import org.http4s.Status._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser

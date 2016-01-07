@@ -1,13 +1,12 @@
 /* https://github.com/http4s/http4s/issues/454#issuecomment-160144299 */
-package org.http4s.server.jetty
+package org.http4s
+package server
+package jetty
 
 import org.eclipse.jetty.server.{ServerConnector, Server, HttpConnectionFactory, HttpConfiguration}
 import org.eclipse.jetty.servlet.{ServletContextHandler, ServletHolder}
-import org.http4s.server.HttpService
-import org.http4s.servlet.{ServletContainer, Http4sServlet}
+import org.http4s.servlet.Http4sServlet
 import org.http4s.dsl._
-import scala.concurrent.duration._
-import scalaz.concurrent.Strategy
 
 object Issue454 {
   // If the bug is not triggered right away, try increasing or

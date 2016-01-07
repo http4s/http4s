@@ -1,11 +1,12 @@
-package org.http4s.server.middleware
+package org.http4s
+package server
+package middleware
 
 import java.util.concurrent.TimeUnit
 
 import com.codahale.metrics._
 
 import org.http4s.{Method, Response, Request}
-import org.http4s.server.{Service, HttpService}
 
 import scalaz.stream.Cause.End
 import scalaz.{\/, -\/, \/-}

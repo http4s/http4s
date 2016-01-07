@@ -3,15 +3,13 @@ package com.example.http4s
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
-import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`, `Content-Length`}
+import org.http4s.headers.{`Content-Type`, `Content-Length`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
 import org.http4s.argonaut._
 import org.http4s.scalaxml._
 import org.http4s.server._
-import org.http4s.server.middleware.EntityLimiter
-import org.http4s.server.middleware.EntityLimiter.EntityTooLarge
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication._
 import org.http4s.twirl._

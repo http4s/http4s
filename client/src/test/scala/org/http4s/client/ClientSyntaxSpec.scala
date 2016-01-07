@@ -1,13 +1,12 @@
 package org.http4s
 package client
 
-import org.http4s.Status.ResponseClass._
+import org.http4s.Http4sSpec
 import org.http4s.headers.Accept
-import org.parboiled2.ParseError
 
 import scalaz.concurrent.Task
+import scalaz.stream.Process
 
-import org.http4s.server.HttpService
 import org.http4s.Status.{Ok, NotFound, Created, BadRequest}
 import org.http4s.Method._
 
@@ -26,102 +25,137 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val client = new MockClient(route)
+  val client = MockClient(route)
 
   val req = Request(GET, uri("http://www.foo.bar/"))
 
+  object SadTrombone extends Exception("sad trombone")
+
+  def assertDisposes(f: Client => Task[Unit]) = {
+    var disposed = false
+    val disposingClient = MockClient(route, Task.delay(disposed = true))
+    f(disposingClient).attemptRun
+    disposed must beTrue
+  }
+
   "Client" should {
-
-    "support Uris" in {
-      client(req.uri).as[String]
-        .run must_== "hello"
+    "match responses to Uris with get" in {
+      client.get(req.uri) {
+        case Ok(resp) => Task.now("Ok")
+        case _ => Task.now("fail")
+      } must returnValue("Ok")
     }
 
-    "support Requests" in {
-      client(req).as[String]
-        .run must_== "hello"
+    "match responses to requests with fetch" in {
+      client.fetch(req) {
+        case Ok(resp) => Task.now("Ok")
+        case _ => Task.now("fail")
+      } must returnValue("Ok")
     }
 
-    "support Task[Request]s" in {
-      client(Task(req)).as[String]
-        .run must_== "hello"
+    "match responses to request tasks with fetch" in {
+      client.fetch(Task.now(req)) {
+        case Ok(resp) => Task.now("Ok")
+        case _ => Task.now("fail")
+      } must returnValue("Ok")
     }
 
-    "default to Ok if no Status is mentioned" in {
-      client(req).as[String]
-        .run must_== "hello"
+    "match responses to request tasks with fetch" in {
+      client.fetch(Task.now(req)) {
+        case Ok(resp) => Task.now("Ok")
+        case _ => Task.now("fail")
+      } must returnValue("Ok")
     }
 
-    "use Status for Response matching and extraction" in {
-      client(req).map {
-        case Ok(resp) => "Ok"
-        case _ => "fail"
-      }.run must_== "Ok"
-
-      client(req).map {
-        case NotFound(resp) => "fail"
-        case _ => "nomatch"
-      }.run must_== "nomatch"
+    "get disposes of the response on success" in {
+      assertDisposes(_.get(req.uri) { _ => Task.now(()) })
     }
 
-    "use Status for Response matching and extraction" in {
-      client(req).flatMap {
-        case Successful(resp) => resp.as[String]
-        case _                => Task.now("fail")
-      }.run must_== "hello"
-
-      client(req).map {
-        case ServerError(resp) => "fail"
-        case _ => "nomatch"
-      }.run must_== "nomatch"
+    "get disposes of the response on failure" in {
+      assertDisposes(_.get(req.uri) { _ => Task.fail(SadTrombone) })
     }
 
-    "implicitly resolve to get headers and body" in {
-      client(req).as[(Headers, String)]
-        .run._2 must_== "hello"
+    "fetch disposes of the response on success" in {
+      assertDisposes(_.fetch(req) { _ => Task.now(()) })
     }
 
-    "attemptAs with successful result" in {
-      client(req).attemptAs[String]
-        .run.run must be_\/-("hello")
+    "fetch disposes of the response on failure" in {
+      assertDisposes(_.fetch(req) { _ => Task.fail(SadTrombone) })
     }
 
-    "attemptAs with failed parsing result" in {
-      val grouchyEncoder = EntityDecoder.decodeBy[Any](MediaRange.`*/*`) { _ =>
-        DecodeResult.failure(ParseFailure("MEH!", "MEH!"))
-      }
-      client(req).attemptAs[Any](grouchyEncoder).run.run must be_-\/
+    "fetch on task disposes of the response on success" in {
+      assertDisposes(_.fetch(Task.now(req)) { _ => Task.now(()) })
     }
 
-    "prepAs must add Accept header" in {
-      client.prepAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text)
-        .run must_== "Accept: text/*"
+    "fetch on task disposes of the response on failure" in {
+      assertDisposes(_.fetch(Task.now(req)) { _ => Task.fail(SadTrombone) })
+    }
 
-      client.prepAs[String](GET(uri("http://www.foo.com/echoheaders")))
-        .run must_== "Accept: text/*"
+    "fetch Uris with getAs" in {
+      client.getAs[String](req.uri) must returnValue("hello")
+    }
 
-      client.prepAs[String](uri("http://www.foo.com/echoheaders"))
-        .run must_== "Accept: text/*"
+    "fetch requests with fetchAs" in {
+      client.fetchAs[String](req) must returnValue("hello")
+    }
 
-      // Are we combining our mediatypes correctly? This is more of an EntityDecoder spec
+    "fetch request tasks with fetchAs" in {
+      client.fetchAs[String](Task.now(req)) must returnValue("hello")
+    }
+
+    "add Accept header on getAs" in {
+      client.getAs[String](uri("http://www.foo.com/echoheaders")) must returnValue("Accept: text/*")
+    }
+
+    "add Accept header on fetchAs for requests" in {
+      client.fetchAs[String](Request(GET, uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
+    }
+
+    "add Accept header on fetchAs for requests" in {
+      client.fetchAs[String](GET(uri("http://www.foo.com/echoheaders"))) must returnValue("Accept: text/*")
+    }
+
+    "combine entity decoder media types correctly" in {
+      // This is more of an EntityDecoder spec
       val edec = EntityDecoder.decodeBy(MediaType.`image/jpeg`)(_ => DecodeResult.success("foo!"))
-      client.prepAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec)
-        .run must_== "Accept: text/*, image/jpeg"
+      client.fetchAs(GET(uri("http://www.foo.com/echoheaders")))(EntityDecoder.text orElse edec) must returnValue("Accept: text/*, image/jpeg")
+    }
+
+    "streaming returns a stream" in {
+      client.streaming(req)(_.body.pipe(scalaz.stream.text.utf8Decode)).runLog.run must_== Vector("hello")
+    }
+
+    "streaming disposes of the response on success" in {
+      assertDisposes(_.streaming(req)(_.body).run)
+    }
+
+    "streaming disposes of the response on failure" in {
+      assertDisposes(_.streaming(req)(_ => Process.fail(SadTrombone).toSource).run)
+    }
+
+    "toService disposes of the response on success" in {
+      assertDisposes(_.toService(_ => Task.now(())).run(req))
+    }
+
+    "toService disposes of the response on failure" in {
+      assertDisposes(_.toService(_ => Task.fail(SadTrombone)).run(req))
+    }
+
+    "toHttpService disposes the response if the body is run" in {
+      assertDisposes(_.toHttpService.flatMapK(_.body.run).run(req))
+    }
+
+    "toHttpService disposes of the response if the body is run, even if it fails" in {
+      assertDisposes(_.toHttpService.flatMapK(_.body.flatMap(_ => Process.fail(SadTrombone).toSource).run).run(req))
     }
   }
 
   "RequestResponseGenerator" should {
     "Generate requests based on Method" in {
-      client(GET(uri("http://www.foo.com/"))).as[String]
-        .run must_== "hello"
-      //      GET("http://www.foo.com/", "cats").on(Ok).as[String].run must_== "hello"  // Doesn't compile, body not allowed
+      client.fetchAs[String](GET(uri("http://www.foo.com/"))) must returnValue("hello")
 
-      // The PUT: /put path just echos the body
-      client(PUT(uri("http://www.foo.com/put"))).as[String]
-        .run must_== ""
-
-      client(PUT(uri("http://www.foo.com/put"), "foo")).as[String] // body allowed
-        .run must_== "foo"
+      // The PUT: /put path just echoes the body
+      client.fetchAs[String](PUT(uri("http://www.foo.com/put"), "hello?")) must returnValue("hello?")
     }
   }
 }

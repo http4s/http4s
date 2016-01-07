@@ -1,11 +1,10 @@
-package org.http4s.client
+package org.http4s
+package client
 package middleware
 
-import org.http4s.{Uri, Status, Http4sSpec, Request, Response}
 import org.http4s.Status._
 import org.http4s.Method._
 import org.http4s.headers.Location
-import org.http4s.server.HttpService
 
 
 class FollowRedirectSpec extends Http4sSpec {
@@ -21,26 +20,21 @@ class FollowRedirectSpec extends Http4sSpec {
   }
 
 
-  val defaultClient = new MockClient(route)
+  val defaultClient = MockClient(route)
   val client = FollowRedirect(1)(defaultClient)
+  val fetchBody = client.toService(_.as[String])
   
   "FollowRedirect" should {
     "Honor redirect" in {
-      val resp = client(getUri(s"http://localhost/redirect")).run
-      resp.status must_== Status.Ok
+      fetchBody =<< GET(uri("http://localhost/redirect")) must returnValue("hello")
     }
 
     "Not redirect more than 'maxRedirects' iterations" in {
-      val resp = client(getUri(s"http://localhost/loop")).run
-      resp.status must_== Status.MovedPermanently
+      fetchBody =<< GET(uri("http://localhost/loop")) must returnValue("Go there.")
     }
 
     "Use a GET method on redirect with 303 response code" in {
-      val resp = client(Request(method=POST, uri=getUri(s"http://localhost/303"))).run
-      resp.status must_== Status.Ok
-      resp.as[String].run must_== "hello"
+      fetchBody =<< POST(uri("http://localhost/303")) must returnValue("hello")
     }
   }
-
-  def getUri(s: String): Uri = Uri.fromString(s).getOrElse(sys.error("Bad uri."))
 }
