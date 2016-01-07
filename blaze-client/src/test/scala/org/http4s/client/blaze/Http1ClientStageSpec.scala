@@ -26,6 +26,7 @@ class Http1ClientStageSpec extends Specification {
 
   val www_foo_test = Uri.uri("http://www.foo.test")
   val FooRequest = Request(uri = www_foo_test)
+  val FooRequestKey = RequestKey.fromRequest(FooRequest)
 
   val LongDuration = 30.seconds
 
@@ -58,7 +59,8 @@ class Http1ClientStageSpec extends Specification {
   }
 
   def getSubmission(req: Request, resp: String, flushPrelude: Boolean = false): (String, String) = {
-    val tail = new Http1ClientStage(DefaultUserAgent, ec)
+    val key = RequestKey.fromRequest(req)
+    val tail = new Http1ClientStage(key, DefaultUserAgent, ec)
     try getSubmission(req, resp, tail, flushPrelude)
     finally { tail.shutdown() }
   }
@@ -86,7 +88,7 @@ class Http1ClientStageSpec extends Specification {
     }
 
     "Fail when attempting to get a second request with one in progress" in {
-      val tail = new Http1ClientStage(DefaultUserAgent, ec)
+      val tail = new Http1ClientStage(FooRequestKey, DefaultUserAgent, ec)
       val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
@@ -100,7 +102,7 @@ class Http1ClientStageSpec extends Specification {
     }
 
     "Reset correctly" in {
-      val tail = new Http1ClientStage(DefaultUserAgent, ec)
+      val tail = new Http1ClientStage(FooRequestKey, DefaultUserAgent, ec)
       try {
         val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
         LeafBuilder(tail).base(h)
@@ -120,7 +122,7 @@ class Http1ClientStageSpec extends Specification {
 
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
-      val tail = new Http1ClientStage(DefaultUserAgent, ec)
+      val tail = new Http1ClientStage(FooRequestKey, DefaultUserAgent, ec)
 
       try {
         val h = new SeqTestHead(List(mkBuffer(resp)))
@@ -182,7 +184,7 @@ class Http1ClientStageSpec extends Specification {
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val tail = new Http1ClientStage(None, ec)
+      val tail = new Http1ClientStage(FooRequestKey, None, ec)
 
       try {
         val (request, response) = getSubmission(FooRequest, resp, tail, false)

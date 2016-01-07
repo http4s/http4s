@@ -7,12 +7,14 @@ import scalaz.concurrent.Task
 
 /* implementation bits for the basic client manager */
 private final class BasicManager (builder: ConnectionBuilder) extends ConnectionManager {
-  override def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage] =
-    builder(request)
+  override def getClient(requestKey: RequestKey): Task[BlazeClientStage] =
+    builder(requestKey)
 
-  override def shutdown(): Task[Unit] = Task(())
+  override def shutdown(): Task[Unit] =
+    Task.now(())
 
-  override def recycleClient(request: Request, stage: BlazeClientStage): Unit = stage.shutdown()
+  override def releaseClient(request: RequestKey, stage: BlazeClientStage, keepAlive: Boolean): Unit =
+    stage.shutdown()
 }
 
 

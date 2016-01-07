@@ -1,6 +1,7 @@
 package org.http4s.client.blaze
 
 import org.http4s.Request
+import org.http4s.Uri.{Scheme, Authority}
 
 import scalaz.concurrent.Task
 
@@ -12,23 +13,19 @@ import scalaz.concurrent.Task
   * must have a mechanism to free resources associated with it.
   */
 trait ConnectionManager {
-
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
-  /** Get a connection to the provided address
-    * @param request [[Request]] to connect too
-    * @param freshClient if the client should force a new connection
-    * @return a Future with the connected [[BlazeClientStage]] of a blaze pipeline
-    */
-  def getClient(request: Request, freshClient: Boolean): Task[BlazeClientStage]
+  /** Get a connection for the provided request key. */
+  def getClient(requestKey: RequestKey): Task[BlazeClientStage]
   
-  /** Recycle or close the connection
-    * Allow for smart reuse or simple closing of a connection after the completion of a request
-    * @param request [[Request]] to connect too
-    * @param stage the [[BlazeClientStage]] which to deal with
+  /** Release the connection with the given request key.
+    *
+    * @param keepAlive true if the connection may be kept alive to serve subsequent requests.
+    *                  Implementations must close the connection if this is false, but may
+    *                  keep it open if it is true.
     */
-  def recycleClient(request: Request, stage: BlazeClientStage): Unit
+  def releaseClient(requestKey: RequestKey, stage: BlazeClientStage, keepAlive: Boolean): Unit
 }
 
 object ConnectionManager {
@@ -41,9 +38,9 @@ object ConnectionManager {
 
   /** Create a [[ConnectionManager]] that will attempt to recycle connections
     *
-    * @param maxPooledConnections max pool size before connections are closed
     * @param builder generator of new connections
+    * @param maxTotal max total connections
     */
-  def pool(maxPooledConnections: Int, builder: ConnectionBuilder): ConnectionManager =
-    new PoolManager(maxPooledConnections, builder)
+  def pool(builder: ConnectionBuilder, maxTotal: Int): ConnectionManager =
+    new PoolManager(builder, maxTotal)
 }

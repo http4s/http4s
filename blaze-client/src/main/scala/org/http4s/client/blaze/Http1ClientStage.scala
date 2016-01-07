@@ -27,7 +27,9 @@ import scalaz.stream.Process.{Halt, halt}
 import scalaz.{\/, -\/, \/-}
 
 
-final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: ExecutionContext)
+final class Http1ClientStage(val requestKey: RequestKey,
+                             userAgent: Option[`User-Agent`],
+                             protected val ec: ExecutionContext)
   extends Http1Stage with BlazeClientStage
 {
   import org.http4s.client.blaze.Http1ClientStage._
@@ -87,9 +89,6 @@ final class Http1ClientStage(userAgent: Option[`User-Agent`], protected val ec: 
       case Error(_) => // NOOP: we don't reset on an error.
     }
   }
-
-  def runRequest(req: Request): Task[Response] =
-    runRequest(req, false)
 
   def runRequest(req: Request, flushPrelude: Boolean): Task[Response] = Task.suspend[Response] {
     if (!stageState.compareAndSet(Idle, Running)) Task.fail(InProgressException)

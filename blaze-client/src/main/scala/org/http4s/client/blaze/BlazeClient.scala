@@ -12,33 +12,31 @@ import scalaz.{-\/, \/-}
 object BlazeClient {
   def apply(manager: ConnectionManager, idleTimeout: Duration, requestTimeout: Duration): Client = {
     Client(Service.lift { req =>
-      def tryClient(client: BlazeClientStage, freshClient: Boolean, flushPrelude: Boolean): Task[DisposableResponse] = {
+      val key = RequestKey.fromRequest(req)
+      def tryClient(client: BlazeClientStage, flushPrelude: Boolean): Task[DisposableResponse] = {
         // Add the timeout stage to the pipeline
         val ts = new ClientTimeoutStage(idleTimeout, requestTimeout, bits.ClientTickWheel)
         client.spliceBefore(ts)
         ts.initialize()
 
         client.runRequest(req, flushPrelude).attempt.flatMap {
-          case \/-(r)    =>
+          case \/-(r)  =>
             val dispose = Task.delay {
-              if (!client.isClosed()) {
-                ts.removeStage
-                manager.recycleClient(req, client)
-              }
+              manager.releaseClient(key, client, !client.isClosed())
             }
             Task.now(DisposableResponse(r, dispose))
 
-          case -\/(Command.EOF) if !freshClient =>
-            manager.getClient(req, freshClient = true).flatMap(tryClient(_, true, flushPrelude))
+          case -\/(Command.EOF) =>
+            manager.releaseClient(key, client, false)
+            manager.getClient(key).flatMap(tryClient(_, flushPrelude))
 
           case -\/(e) =>
-            if (!client.isClosed()) client.shutdown()
+            manager.releaseClient(key, client, false)
             Task.fail(e)
         }
       }
-
       val flushPrelude = !req.body.isHalt
-      manager.getClient(req, false).flatMap(tryClient(_, false, flushPrelude))
+      manager.getClient(key).flatMap(tryClient(_, flushPrelude))
     }, manager.shutdown())
   }
 }

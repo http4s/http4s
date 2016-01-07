@@ -10,11 +10,6 @@ import org.http4s.{Request, Response}
 import scalaz.concurrent.Task
 
 trait BlazeClientStage extends TailStage[ByteBuffer] {
-
-  /** Create a computation that will turn the [[Request]] into a [[Response]] */
-  @deprecated("0.11.2", "Overload preserved for binary compatibility. Use runRequest(Request, Boolean).")
-  def runRequest(req: Request): Task[Response]
-
   def runRequest(req: Request, preludeFlush: Boolean): Task[Response]
 
   /** Determine if the stage is closed and resources have been freed */
@@ -35,4 +30,9 @@ trait BlazeClientStage extends TailStage[ByteBuffer] {
         logger.error(t)("Failure finalizing the client stage")
     }
   }
+
+  /** The key for requests we are able to serve */
+  def requestKey: RequestKey
+
+  def reset(): Unit
 }
