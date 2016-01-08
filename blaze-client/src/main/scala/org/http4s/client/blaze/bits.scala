@@ -10,6 +10,7 @@ import java.util.concurrent._
 import org.http4s.BuildInfo
 import org.http4s.headers.{AgentProduct, `User-Agent`}
 import org.http4s.blaze.util.TickWheelExecutor
+import org.http4s.util.threads
 
 import scala.concurrent.duration._
 
@@ -19,15 +20,7 @@ private[blaze] object bits {
   val DefaultBufferSize: Int = 8*1024
   val DefaultUserAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version))))
   val ClientDefaultEC = {
-    val threadFactory = new ThreadFactory {
-      val defaultThreadFactory = Executors.defaultThreadFactory()
-      def newThread(r: Runnable): Thread = {
-        val t = defaultThreadFactory.newThread(r)
-        t.setDaemon(true)
-        t
-      }
-    }
-
+    val threadFactory = threads.threadFactory(name = (i => s"http4s-blaze-client-$i"), daemon = true)
     new ThreadPoolExecutor(
       2,
       Runtime.getRuntime.availableProcessors() * 6,
