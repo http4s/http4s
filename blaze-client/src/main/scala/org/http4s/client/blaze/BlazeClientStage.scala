@@ -13,7 +13,10 @@ trait BlazeClientStage extends TailStage[ByteBuffer] {
   def runRequest(req: Request, preludeFlush: Boolean): Task[Response]
 
   /** Determine if the stage is closed and resources have been freed */
-  def isClosed(): Boolean
+  def isClosed: Boolean
+
+  /** Determine if the connection can be recycled */
+  def isRecyclable: Boolean
 
   /** Close down the stage
    *  Freeing resources and potentially aborting a [[Response]]
@@ -21,7 +24,7 @@ trait BlazeClientStage extends TailStage[ByteBuffer] {
   def shutdown(): Unit
 
   override protected def finalize(): Unit = {
-    try if (!isClosed()) {
+    try if (!isClosed) {
       logger.warn("BlazeClientStage was not disconnected and could result in a resource leak")
       shutdown()
       super.finalize()
@@ -33,6 +36,4 @@ trait BlazeClientStage extends TailStage[ByteBuffer] {
 
   /** The key for requests we are able to serve */
   def requestKey: RequestKey
-
-  def reset(): Unit
 }

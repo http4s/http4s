@@ -38,10 +38,13 @@ final class Http1ClientStage(val requestKey: RequestKey,
   private val parser = new BlazeHttp1ClientParser
   private val stageState = new AtomicReference[State](Idle)
 
-  override def isClosed(): Boolean = stageState.get match {
+  override def isClosed: Boolean = stageState.get match {
     case Error(_) => true
     case _        => false
   }
+
+  override def isRecyclable =
+    stageState.get == Idle
 
   override def shutdown(): Unit = stageShutdown()
 
@@ -188,21 +191,20 @@ final class Http1ClientStage(val requestKey: RequestKey,
         // We are to the point of parsing the body and then cleaning up
         val (rawBody,_) = collectBodyFromParser(buffer, terminationCondition)
 
-        // This part doesn't seem right.
         val body = rawBody.onHalt {
           case End => Process.eval_(Task {
-              if (closeOnFinish || headers.get(Connection).exists(_.hasClose)) {
-                logger.debug("Message body complete. Shutting down.")
-                stageShutdown()
-              }
-              else {
-                logger.debug(s"Resetting $name after completing request.")
-                reset()
-              }
-            })
+            if (closeOnFinish || headers.get(Connection).exists(_.hasClose)) {
+              logger.debug("Message body complete. Shutting down.")
+              stageShutdown()
+            }
+            else {
+              logger.debug(s"Resetting $name after completing request.")
+              reset()
+            }
+          })
 
           case c => Process.await(Task {
-            logger.info(c.asThrowable)("Response body halted. Closing connection.")
+            logger.debug(c.asThrowable)("Response body halted. Closing connection.")
             stageShutdown()
           })(_ => Halt(c))
         }
