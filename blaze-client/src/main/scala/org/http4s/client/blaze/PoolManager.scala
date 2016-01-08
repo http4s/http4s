@@ -113,7 +113,7 @@ private final class PoolManager(builder: ConnectionBuilder,
     logger.debug(s"Disposing of connection: ${stats}")
     synchronized {
       allocated -= 1
-      stage.foreach { s => if (!s.isClosed()) s.shutdown() }
+      stage.foreach { s => if (!s.isClosed) s.shutdown() }
       if (!isClosed && waitQueue.nonEmpty) {
         logger.debug(s"Replacing failed connection: ${stats}")
         createConnection(key)
