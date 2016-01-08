@@ -22,6 +22,8 @@ object BlazeClient {
         client.runRequest(req, flushPrelude).attempt.flatMap {
           case \/-(r)  =>
             val dispose = Task.delay {
+              if (!client.isClosed())
+                ts.removeStage
               manager.releaseClient(key, client, !client.isClosed())
             }
             Task.now(DisposableResponse(r, dispose))
