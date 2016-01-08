@@ -7,15 +7,11 @@ import org.log4s.getLogger
 import scala.collection.mutable
 import scalaz.{-\/, \/-, \/}
 import scalaz.syntax.either._
-import scalaz.concurrent.{Actor, Task}
+import scalaz.concurrent.Task
 
 private object PoolManager {
   type Callback[A] = Throwable \/ A => Unit
-  sealed trait Protocol
-  case class RequestConnection(key: RequestKey, callback: Callback[BlazeClientStage]) extends Protocol
-  case class ReturnConnection(key: RequestKey, stage: BlazeClientStage) extends Protocol
-  case class DisposeConnection(key: RequestKey, stage: Option[BlazeClientStage]) extends Protocol
-  case class Shutdown(callback: Callback[Unit]) extends Protocol
+  case class Waiting(key: RequestKey, callback: Callback[BlazeClientStage])
 }
 import PoolManager._
 
@@ -27,7 +23,7 @@ private final class PoolManager(builder: ConnectionBuilder,
   private var isClosed = false
   private var allocated = 0
   private val idleQueue = new mutable.Queue[BlazeClientStage]
-  private val waitQueue = new mutable.Queue[Callback[BlazeClientStage]]()
+  private val waitQueue = new mutable.Queue[Waiting]
 
   private def stats =
     s"allocated=${allocated} idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
@@ -39,10 +35,10 @@ private final class PoolManager(builder: ConnectionBuilder,
       Task.fork(builder(key)).runAsync {
         case \/-(stage) =>
           logger.debug(s"Submitting fresh connection to pool: ${stats}")
-          actor ! ReturnConnection(key, stage)
+          returnConnection(key, stage)
         case -\/(t) =>
           logger.error(t)("Error establishing client connection")
-          actor ! DisposeConnection(key, None)
+          disposeConnection(key, None)
       }
     }
     else {
@@ -50,9 +46,9 @@ private final class PoolManager(builder: ConnectionBuilder,
     }
   }
 
-  private val actor = Actor[Protocol] {
-    case RequestConnection(key, callback) =>
-      logger.debug(s"Requesting connection: ${stats}")
+  def getClient(key: RequestKey): Task[BlazeClientStage] = Task.async { callback =>
+    logger.debug(s"Requesting connection: ${stats}")
+    synchronized {
       if (!isClosed) {
         def go(): Unit = {
           idleQueue.dequeueFirst(_.requestKey == key) match {
@@ -63,29 +59,37 @@ private final class PoolManager(builder: ConnectionBuilder,
               logger.debug(s"Evicting closed connection: ${stats}")
               allocated -= 1
               go()
+            case None if idleQueue.nonEmpty =>
+              logger.debug(s"No connections available for the desired key.  Evicting and creating a connection: ${stats}")
+              allocated -= 1
+              idleQueue.dequeue().shutdown()
+              createConnection(key)
+              waitQueue.enqueue(Waiting(key, callback))
             case None =>
               logger.debug(s"No connections available.  Waiting on new connection: ${stats}")
               createConnection(key)
-              waitQueue.enqueue(callback)
+              waitQueue.enqueue(Waiting(key, callback))
           }
         }
         go()
       }
       else
         callback(new IllegalStateException("Connection pool is closed").left)
+    }
+  }
 
-    case ReturnConnection(key, stage) =>
+  private def returnConnection(key: RequestKey, stage: BlazeClientStage) =
+    synchronized {
       logger.debug(s"Reallocating connection: ${stats}")
       if (!isClosed) {
         if (!stage.isClosed) {
-          stage.reset()
-          if (waitQueue.nonEmpty) {
-            logger.debug(s"Fulfilling waiting connection request: ${stats}")
-            waitQueue.dequeue.apply(stage.right)
-          }
-          else {
-            logger.debug(s"Returning idle connection to pool: ${stats}")
-            idleQueue.enqueue(stage)
+          waitQueue.dequeueFirst(_.key == key) match {
+            case Some(Waiting(_, callback)) =>
+              logger.debug(s"Fulfilling waiting connection request: ${stats}")
+              callback(stage.right)
+            case None =>
+              logger.debug(s"Returning idle connection to pool: ${stats}")
+              idleQueue.enqueue(stage)
           }
         }
         else if (waitQueue.nonEmpty) {
@@ -103,38 +107,35 @@ private final class PoolManager(builder: ConnectionBuilder,
         stage.shutdown()
         allocated -= 1
       }
+    }
 
-    case DisposeConnection(key, stage) =>
-      logger.debug(s"Disposing of connection: ${stats}")
+  private def disposeConnection(key: RequestKey, stage: Option[BlazeClientStage]) = {
+    logger.debug(s"Disposing of connection: ${stats}")
+    synchronized {
       allocated -= 1
       stage.foreach { s => if (!s.isClosed()) s.shutdown() }
       if (!isClosed && waitQueue.nonEmpty) {
         logger.debug(s"Replacing failed connection: ${stats}")
         createConnection(key)
       }
-
-    case Shutdown(callback) =>
-      callback(\/.fromTryCatchNonFatal {
-        logger.info(s"Shutting down connection pool: ${stats}")
-        if (!isClosed) {
-          isClosed = true
-          idleQueue.foreach(_.shutdown())
-          allocated = 0
-        }
-      })
+    }
   }
 
-  override def shutdown(): Task[Unit] =
-    Task.async(actor ! Shutdown(_))
-
-  override def getClient(requestKey: RequestKey): Task[BlazeClientStage] =
-    Task.async[BlazeClientStage](actor ! RequestConnection(requestKey, _))
+  def shutdown() = Task.delay {
+    logger.info(s"Shutting down connection pool: ${stats}")
+    synchronized {
+      if (!isClosed) {
+        isClosed = true
+        idleQueue.foreach(_.shutdown())
+        allocated = 0
+      }
+    }
+  }
 
   override def releaseClient(requestKey: RequestKey, stage: BlazeClientStage, keepAlive: Boolean): Unit = {
-    val msg = if (keepAlive)
-      ReturnConnection(requestKey, stage)
+    if (keepAlive)
+      returnConnection(requestKey, stage)
     else
-      DisposeConnection(requestKey, Some(stage))
-    actor ! msg
+      disposeConnection(requestKey, Some(stage))
   }
 }
