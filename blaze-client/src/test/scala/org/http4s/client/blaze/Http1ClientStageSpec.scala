@@ -89,7 +89,8 @@ class Http1ClientStageSpec extends Specification {
 
     "Fail when attempting to get a second request with one in progress" in {
       val tail = new Http1ClientStage(FooRequestKey, DefaultUserAgent, ec)
-      val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
+      val (frag1,frag2) = resp.splitAt(resp.length-1)
+      val h = new SeqTestHead(List(mkBuffer(frag1), mkBuffer(frag2), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
 
       try {
