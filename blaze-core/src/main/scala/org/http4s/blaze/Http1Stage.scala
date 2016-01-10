@@ -126,53 +126,72 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       if (buffer.remaining() == 0) Http1Stage.CachedEmptyBody
       else (EmptyBody, () => Future.successful(buffer))
     }
-    else {
-      @volatile var currentBuffer = buffer
+      // try parsing the existing buffer: many requests will come as a single chunk
+    else if (buffer.hasRemaining()) doParseContent(buffer) match {
+      case Some(chunk) if contentComplete() =>
+        emit(ByteVector(chunk)) -> Http1Stage.futureBufferThunk(buffer)
 
-      // TODO: we need to work trailers into here somehow
-      val t = Task.async[ByteVector]{ cb =>
-        if (!contentComplete()) {
+      case Some(chunk) =>
+        val (rst,end) = streamingBody(buffer, eofCondition)
+        (emit(ByteVector(chunk)) ++ rst, end)
 
-          def go(): Unit = try {
-            val parseResult = doParseContent(currentBuffer)
-            logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
-            parseResult match {
-              case Some(result) =>
-                cb(\/-(ByteVector(result)))
+      case None if contentComplete() =>
+        if (buffer.hasRemaining) EmptyBody -> Http1Stage.futureBufferThunk(buffer)
+        else Http1Stage.CachedEmptyBody
 
-              case None if contentComplete() =>
-                cb(-\/(Terminated(End)))
-
-              case None =>
-                channelRead().onComplete {
-                  case Success(b)   =>
-                    currentBuffer = BufferTools.concatBuffers(currentBuffer, b)
-                    go()
-
-                  case Failure(Command.EOF) =>
-                    cb(-\/(eofCondition()))
-
-                  case Failure(t)   =>
-                    logger.error(t)("Unexpected error reading body.")
-                    cb(-\/(t))
-                }
-            }
-          } catch {
-            case t: ParserException =>
-              fatalError(t, "Error parsing request body")
-              cb(-\/(InvalidBodyException(t.getMessage())))
-
-            case t: Throwable =>
-              fatalError(t, "Error collecting body")
-              cb(-\/(t))
-          }
-          go()
-        }
-        else cb(-\/(Terminated(End)))
-      }
-
-      (repeatEval(t).onHalt(_.asHalt), () => drainBody(currentBuffer))
+      case None => streamingBody(buffer, eofCondition)
     }
+      // we are not finished and need more data.
+    else streamingBody(buffer, eofCondition)
+  }
+
+  // Streams the body off the wire
+  private def streamingBody(buffer: ByteBuffer, eofCondition:() => Throwable): (EntityBody, () => Future[ByteBuffer]) = {
+    @volatile var currentBuffer = buffer
+
+    // TODO: we need to work trailers into here somehow
+    val t = Task.async[ByteVector]{ cb =>
+      if (!contentComplete()) {
+
+        def go(): Unit = try {
+          val parseResult = doParseContent(currentBuffer)
+          logger.trace(s"ParseResult: $parseResult, content complete: ${contentComplete()}")
+          parseResult match {
+            case Some(result) =>
+              cb(\/-(ByteVector(result)))
+
+            case None if contentComplete() =>
+              cb(-\/(Terminated(End)))
+
+            case None =>
+              channelRead().onComplete {
+                case Success(b)   =>
+                  currentBuffer = BufferTools.concatBuffers(currentBuffer, b)
+                  go()
+
+                case Failure(Command.EOF) =>
+                  cb(-\/(eofCondition()))
+
+                case Failure(t)   =>
+                  logger.error(t)("Unexpected error reading body.")
+                  cb(-\/(t))
+              }
+          }
+        } catch {
+          case t: ParserException =>
+            fatalError(t, "Error parsing request body")
+            cb(-\/(InvalidBodyException(t.getMessage())))
+
+          case t: Throwable =>
+            fatalError(t, "Error collecting body")
+            cb(-\/(t))
+        }
+        go()
+      }
+      else cb(-\/(Terminated(End)))
+    }
+
+    (repeatEval(t).onHalt(_.asHalt), () => drainBody(currentBuffer))
   }
 
   /** Called when a fatal error has occurred
@@ -202,9 +221,17 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
 }
 
 object Http1Stage {
-  val CachedEmptyBody = {
-    val f = Future.successful(emptyBuffer)
-    (EmptyBody, () => f)
+
+  private val CachedEmptyBufferThunk = {
+    val b = Future.successful(emptyBuffer)
+    () => b
+  }
+
+  private val CachedEmptyBody = EmptyBody -> CachedEmptyBufferThunk
+
+  private def futureBufferThunk(buffer: ByteBuffer): () => Future[ByteBuffer] = {
+    if (buffer.hasRemaining) { () => Future.successful(buffer) }
+    else CachedEmptyBufferThunk
   }
 
   /** Encodes the headers into the Writer, except the Transfer-Encoding header which may be returned

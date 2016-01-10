@@ -68,7 +68,7 @@ private final class PoolManager(builder: ConnectionBuilder,
               createConnection(key, callback)
 
             case None if idleQueue.nonEmpty =>
-              logger.debug(s"No connections available for the desired key.  Evicting and creating a connection: ${stats}")
+              logger.debug(s"No connections available for the desired key. Evicting oldest and creating a new connection: ${stats}")
               allocated -= 1
               idleQueue.dequeue().shutdown()
               createConnection(key, callback)
@@ -94,11 +94,13 @@ private final class PoolManager(builder: ConnectionBuilder,
             case Some(Waiting(_, callback)) =>
               logger.debug(s"Fulfilling waiting connection request: ${stats}")
               callback(stage.right)
+
             case None if waitQueue.isEmpty =>
               logger.debug(s"Returning idle connection to pool: ${stats}")
               idleQueue.enqueue(stage)
 
-            case None => // this connection didn't match any pending request, kill it and start a new one for a queued request
+            // returned connection didn't match any pending request: kill it and start a new one for a queued request
+            case None =>
               stage.shutdown()
               allocated -= 1
               val Waiting(key, callback) = waitQueue.dequeue()
@@ -113,9 +115,7 @@ private final class PoolManager(builder: ConnectionBuilder,
             val Waiting(key, callback) = waitQueue.dequeue()
             createConnection(key, callback)
           }
-          else {
-            logger.debug(s"Connection was closed, but nothing to do. Shrinking pool: ${stats}")
-          }
+          else logger.debug(s"Connection is closed; no pending requests. Shrinking pool: ${stats}")
         }
       }
       else if (!stage.isClosed) {
