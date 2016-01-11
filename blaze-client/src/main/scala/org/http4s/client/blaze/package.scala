@@ -10,13 +10,6 @@ import scalaz.concurrent.Task
 
 
 package object blaze {
-  /** Factory function for new client connections.
-    *
-    * The connections must be 'fresh' in the sense that they are newly created
-    * and failure of the resulting client stage is a sign of connection trouble
-    * not due to typical timeouts etc.
-    */
-  type ConnectionBuilder = RequestKey => Task[BlazeClientStage]
 
   /** Default blaze client
     *

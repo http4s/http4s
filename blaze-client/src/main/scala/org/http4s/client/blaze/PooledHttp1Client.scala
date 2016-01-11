@@ -1,4 +1,6 @@
-package org.http4s.client.blaze
+package org.http4s
+package client
+package blaze
 
 import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.ExecutorService
@@ -7,7 +9,6 @@ import javax.net.ssl.SSLContext
 import org.http4s.headers.`User-Agent`
 
 import scala.concurrent.duration.Duration
-
 
 /** Create a HTTP1 client which will attempt to recycle connections */
 object PooledHttp1Client {

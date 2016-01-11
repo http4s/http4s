@@ -10,32 +10,32 @@ import scalaz.{-\/, \/-}
 
 /** Blaze client implementation */
 object BlazeClient {
-  def apply(manager: ConnectionManager, idleTimeout: Duration, requestTimeout: Duration): Client = {
+  def apply[A <: BlazeConnection](manager: ConnectionManager[A], idleTimeout: Duration, requestTimeout: Duration): Client = {
     Client(Service.lift { req =>
       val key = RequestKey.fromRequest(req)
-      def tryClient(client: BlazeClientStage, flushPrelude: Boolean): Task[DisposableResponse] = {
+      def loop(connection: A, flushPrelude: Boolean): Task[DisposableResponse] = {
         // Add the timeout stage to the pipeline
         val ts = new ClientTimeoutStage(idleTimeout, requestTimeout, bits.ClientTickWheel)
-        client.spliceBefore(ts)
+        connection.spliceBefore(ts)
         ts.initialize()
 
-        client.runRequest(req, flushPrelude).attempt.flatMap {
+        connection.runRequest(req, flushPrelude).attempt.flatMap {
           case \/-(r)  =>
             val dispose = Task.delay(ts.removeStage)
-              .flatMap { _ => manager.release(client) }
+              .flatMap { _ => manager.release(connection) }
             Task.now(DisposableResponse(r, dispose))
 
           case -\/(Command.EOF) =>
-            manager.dispose(client)
-            manager.borrow(key).flatMap(tryClient(_, flushPrelude))
+            manager.invalidate(connection)
+            manager.borrow(key).flatMap(loop(_, flushPrelude))
 
           case -\/(e) =>
-            manager.dispose(client)
+            manager.invalidate(connection)
             Task.fail(e)
         }
       }
       val flushPrelude = !req.body.isHalt
-      manager.borrow(key).flatMap(tryClient(_, flushPrelude))
+      manager.borrow(key).flatMap(loop(_, flushPrelude))
     }, manager.shutdown())
   }
 }

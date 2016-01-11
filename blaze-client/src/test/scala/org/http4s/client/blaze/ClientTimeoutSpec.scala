@@ -27,7 +27,7 @@ class ClientTimeoutSpec extends Http4sSpec {
   def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
   
-  def mkClient(head: => HeadStage[ByteBuffer], tail: => BlazeClientStage)
+  def mkClient(head: => HeadStage[ByteBuffer], tail: => BlazeConnection)
               (idleTimeout: Duration, requestTimeout: Duration): Client = {
     val manager = MockClientBuilder.manager(head, tail)
     BlazeClient(manager, idleTimeout, requestTimeout)
@@ -36,13 +36,13 @@ class ClientTimeoutSpec extends Http4sSpec {
   "Http1ClientStage responses" should {
     "Timeout immediately with an idle timeout of 0 seconds" in {
       val c = mkClient(new SlowTestHead(List(mkBuffer(resp)), 0.seconds), 
-                       new Http1ClientStage(FooRequestKey, None, ec))(0.milli, Duration.Inf)
+                       new Http1Connection(FooRequestKey, None, ec))(0.milli, Duration.Inf)
 
       c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
     }
 
     "Timeout immediately with a request timeout of 0 seconds" in {
-      val tail = new Http1ClientStage(FooRequestKey, None, ec)
+      val tail = new Http1Connection(FooRequestKey, None, ec)
       val h = new SlowTestHead(List(mkBuffer(resp)), 0.seconds)
       val c = mkClient(h, tail)(Duration.Inf, 0.milli)
 
@@ -50,7 +50,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     }
 
     "Idle timeout on slow response" in {
-      val tail = new Http1ClientStage(FooRequestKey, None, ec)
+      val tail = new Http1Connection(FooRequestKey, None, ec)
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
       val c = mkClient(h, tail)(1.second, Duration.Inf)
 
@@ -58,7 +58,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     }
 
     "Request timeout on slow response" in {
-      val tail = new Http1ClientStage(FooRequestKey, None, ec)
+      val tail = new Http1Connection(FooRequestKey, None, ec)
       val h = new SlowTestHead(List(mkBuffer(resp)), 10.seconds)
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
 
@@ -77,7 +77,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1ClientStage(RequestKey.fromRequest(req), None, ec)
+      val tail = new Http1Connection(RequestKey.fromRequest(req), None, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
@@ -97,7 +97,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1ClientStage(RequestKey.fromRequest(req), None, ec)
+      val tail = new Http1Connection(RequestKey.fromRequest(req), None, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(1.second, Duration.Inf)
@@ -117,7 +117,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1ClientStage(RequestKey.fromRequest(req), None, ec)
+      val tail = new Http1Connection(RequestKey.fromRequest(req), None, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(10.second, 30.seconds)
@@ -126,7 +126,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     }
 
     "Request timeout on slow response body" in {
-      val tail = new Http1ClientStage(FooRequestKey, None, ec)
+      val tail = new Http1Connection(FooRequestKey, None, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
@@ -137,7 +137,7 @@ class ClientTimeoutSpec extends Http4sSpec {
     }
 
     "Idle timeout on slow response body" in {
-      val tail = new Http1ClientStage(FooRequestKey, None, ec)
+      val tail = new Http1Connection(FooRequestKey, None, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SlowTestHead(Seq(f,b).map(mkBuffer), 1500.millis)
       val c = mkClient(h, tail)(1.second, Duration.Inf)

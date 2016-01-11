@@ -1,11 +1,12 @@
-package org.http4s.client.blaze
+package org.http4s
+package client
+package blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.TimeoutException
 import java.util.concurrent.atomic.AtomicReference
 
-import org.http4s._
 import org.http4s.Uri.{Authority, RegName}
 import org.http4s.{headers => H}
 import org.http4s.blaze.Http1Stage
@@ -14,7 +15,6 @@ import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.ProcessWriter
 import org.http4s.headers.{Host, `Content-Length`, `User-Agent`, Connection}
 import org.http4s.util.{Writer, StringWriter}
-import org.http4s.util.task.futureToTask
 
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
@@ -27,12 +27,12 @@ import scalaz.stream.Process.{Halt, halt}
 import scalaz.{\/, -\/, \/-}
 
 
-final class Http1ClientStage(val requestKey: RequestKey,
-                             userAgent: Option[`User-Agent`],
-                             protected val ec: ExecutionContext)
-  extends Http1Stage with BlazeClientStage
+final class Http1Connection(val requestKey: RequestKey,
+                            userAgent: Option[`User-Agent`],
+                            protected val ec: ExecutionContext)
+  extends Http1Stage with BlazeConnection
 {
-  import org.http4s.client.blaze.Http1ClientStage._
+  import org.http4s.client.blaze.Http1Connection._
 
   override def name: String = getClass.getName
   private val parser = new BlazeHttp1ClientParser
@@ -259,7 +259,7 @@ final class Http1ClientStage(val requestKey: RequestKey,
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
 }
 
-object Http1ClientStage {
+object Http1Connection {
   private type Callback = Throwable\/Response => Unit
 
   case object InProgressException extends Exception("Stage has request in progress")
