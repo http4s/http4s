@@ -17,15 +17,19 @@ trait ConnectionManager {
   def shutdown(): Task[Unit]
 
   /** Get a connection for the provided request key. */
-  def getClient(requestKey: RequestKey): Task[BlazeClientStage]
-  
-  /** Release the connection with the given request key.
-    *
-    * @param keepAlive true if the connection may be kept alive to serve subsequent requests.
-    *                  Implementations must close the connection if this is false, but may
-    *                  keep it open if it is true.
+  def borrow(requestKey: RequestKey): Task[BlazeClientStage]
+
+  /**
+    * Release a connection.  The connection manager may choose to keep the connection for
+    * subsequent calls to [[borrow]], or dispose of the connection.
     */
-  def releaseClient(requestKey: RequestKey, stage: BlazeClientStage, keepAlive: Boolean): Unit
+  def release(connection: BlazeClientStage): Task[Unit]
+
+  /**
+    * Dispose of a connection, ensuring that its resources are freed.  The connection manager may
+    * not return this connection on another borrow.
+    */
+  def dispose(connection: BlazeClientStage): Task[Unit]
 }
 
 object ConnectionManager {

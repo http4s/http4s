@@ -15,9 +15,6 @@ trait BlazeClientStage extends TailStage[ByteBuffer] {
   /** Determine if the stage is closed and resources have been freed */
   def isClosed: Boolean
 
-  /** Determine if the connection can be recycled */
-  def isRecyclable: Boolean
-
   /** Close down the stage
    *  Freeing resources and potentially aborting a [[Response]]
    */

@@ -47,7 +47,7 @@ private final class PoolManager(builder: ConnectionBuilder,
     }
   }
 
-  def getClient(key: RequestKey): Task[BlazeClientStage] = Task.async { callback =>
+  def borrow(key: RequestKey): Task[BlazeClientStage] = Task.async { callback =>
     logger.debug(s"Requesting connection: ${stats}")
     synchronized {
       if (!isClosed) {
@@ -85,10 +85,11 @@ private final class PoolManager(builder: ConnectionBuilder,
     }
   }
 
-  private def returnConnection(key: RequestKey, stage: BlazeClientStage) =
+  def release(stage: BlazeClientStage) = Task.delay {
     synchronized {
-      logger.debug(s"Reallocating connection: ${stats}")
       if (!isClosed) {
+        logger.debug(s"Recycling connection: ${stats}")
+        val key = stage.requestKey
         if (!stage.isClosed) {
           waitQueue.dequeueFirst(_.key == key) match {
             case Some(Waiting(_, callback)) =>
@@ -107,7 +108,8 @@ private final class PoolManager(builder: ConnectionBuilder,
               createConnection(key, callback)
           }
         }
-        else { // stage was closed
+        else {
+          // stage was closed
           allocated -= 1
 
           if (waitQueue.nonEmpty) {
@@ -124,6 +126,10 @@ private final class PoolManager(builder: ConnectionBuilder,
         allocated -= 1
       }
     }
+  }
+
+  override def dispose(stage: BlazeClientStage): Task[Unit] =
+    Task.delay(disposeConnection(stage.requestKey, Some(stage)))
 
   private def disposeConnection(key: RequestKey, stage: Option[BlazeClientStage]) = {
     logger.debug(s"Disposing of connection: ${stats}")
@@ -142,12 +148,5 @@ private final class PoolManager(builder: ConnectionBuilder,
         allocated = 0
       }
     }
-  }
-
-  override def releaseClient(requestKey: RequestKey, stage: BlazeClientStage, keepAlive: Boolean): Unit = {
-    if (keepAlive)
-      returnConnection(requestKey, stage)
-    else
-      disposeConnection(requestKey, Some(stage))
   }
 }

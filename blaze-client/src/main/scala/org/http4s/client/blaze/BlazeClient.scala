@@ -21,28 +21,21 @@ object BlazeClient {
 
         client.runRequest(req, flushPrelude).attempt.flatMap {
           case \/-(r)  =>
-            val dispose = Task.delay {
-              if (client.isRecyclable) {
-                ts.removeStage
-                manager.releaseClient(key, client, true)
-              }
-              else {
-                manager.releaseClient(key, client, false)
-              }
-            }
+            val dispose = Task.delay(ts.removeStage)
+              .flatMap { _ => manager.release(client) }
             Task.now(DisposableResponse(r, dispose))
 
           case -\/(Command.EOF) =>
-            manager.releaseClient(key, client, false)
-            manager.getClient(key).flatMap(tryClient(_, flushPrelude))
+            manager.dispose(client)
+            manager.borrow(key).flatMap(tryClient(_, flushPrelude))
 
           case -\/(e) =>
-            manager.releaseClient(key, client, false)
+            manager.dispose(client)
             Task.fail(e)
         }
       }
       val flushPrelude = !req.body.isHalt
-      manager.getClient(key).flatMap(tryClient(_, flushPrelude))
+      manager.borrow(key).flatMap(tryClient(_, flushPrelude))
     }, manager.shutdown())
   }
 }
