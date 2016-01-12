@@ -1,4 +1,6 @@
-package org.http4s.client.blaze
+package org.http4s
+package client
+package blaze
 
 import java.nio.ByteBuffer
 
@@ -7,7 +9,7 @@ import org.http4s.blaze.pipeline.{LeafBuilder, HeadStage}
 import scalaz.concurrent.Task
 
 object MockClientBuilder {
-  def builder(head: => HeadStage[ByteBuffer], tail: => BlazeClientStage): ConnectionBuilder = {
+  def builder(head: => HeadStage[ByteBuffer], tail: => BlazeConnection): ConnectionBuilder[BlazeConnection] = {
     req => Task.delay {
       val t = tail
       LeafBuilder(t).base(head)
@@ -15,7 +17,7 @@ object MockClientBuilder {
     }
   }
 
-  def manager(head: => HeadStage[ByteBuffer], tail: => BlazeClientStage): ConnectionManager = {
+  def manager(head: => HeadStage[ByteBuffer], tail: => BlazeConnection): ConnectionManager[BlazeConnection] = {
     ConnectionManager.basic(builder(head, tail))
   }
 }
