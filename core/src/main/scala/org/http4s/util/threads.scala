@@ -36,7 +36,6 @@ object threads {
                 .uncaughtException(t, e)
           }
         })
-        println(s"Created thread with name ${thread.getName}")
         thread
       }
     }
