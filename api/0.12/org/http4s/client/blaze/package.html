@@ -88,77 +88,36 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.client.blaze.BlazeClientStage" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="BlazeClientStageextendsTailStage[java.nio.ByteBuffer]"></a>
-      <a id="BlazeClientStage:BlazeClientStage"></a>
+              <ol><li name="org.http4s.client.blaze.BlazeConnection" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="BlazeConnectionextendsTailStage[java.nio.ByteBuffer]withConnection"></a>
+      <a id="BlazeConnection:BlazeConnection"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <a href="BlazeClientStage.html"><span class="name">BlazeClientStage</span></a><span class="result"> extends <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>]</span>
+        <a href="BlazeConnection.html"><span class="name">BlazeConnection</span></a><span class="result"> extends <span class="extype" name="org.http4s.blaze.pipeline.TailStage">TailStage</span>[<span class="extype" name="java.nio.ByteBuffer">ByteBuffer</span>] with <a href="../Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@BlazeClientStageextendsTailStage[java.nio.ByteBuffer]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@BlazeConnectionextendsTailStage[java.nio.ByteBuffer]withConnection" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
-    </li><li name="org.http4s.client.blaze.ConnectionBuilder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]"></a>
-      <a id="ConnectionBuilder:ConnectionBuilder"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">ConnectionBuilder</span><span class="result"> = (<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Factory function for new client connections.</p><div class="fullcomment"><div class="comment cmt"><p>Factory function for new client connections.</p><p>The connections must be 'fresh' in the sense that they are newly created
-and failure of the resulting client stage is a sign of connection trouble
-not due to typical timeouts etc.
-</p></div></div>
-    </li><li name="org.http4s.client.blaze.ConnectionManager" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="ConnectionManagerextendsAnyRef"></a>
-      <a id="ConnectionManager:ConnectionManager"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="ConnectionManager.html"><span class="name">ConnectionManager</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@ConnectionManagerextendsAnyRef" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">type that is responsible for the client lifecycle</p><div class="fullcomment"><div class="comment cmt"><p>type that is responsible for the client lifecycle</p><p>The <a href="ConnectionManager.html" class="extype" name="org.http4s.client.blaze.ConnectionManager">ConnectionManager</a> is a general wrapper around a <a href="#ConnectionBuilder=org.http4s.Request=&gt;scalaz.concurrent.Task[org.http4s.client.blaze.BlazeClientStage]" class="extmbr" name="org.http4s.client.blaze.ConnectionBuilder">ConnectionBuilder</a>
-that can pool resources in order to conserve resources such as socket connections,
-CPU time, SSL handshakes, etc. Because It can contain significant resources it
-must have a mechanism to free resources associated with it.
-</p></div></div>
-    </li><li name="org.http4s.client.blaze.Http1ClientStage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http1ClientStageextendsHttp1StagewithBlazeClientStage"></a>
-      <a id="Http1ClientStage:Http1ClientStage"></a>
+    </li><li name="org.http4s.client.blaze.Http1Connection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http1ConnectionextendsHttp1StagewithBlazeConnection"></a>
+      <a id="Http1Connection:Http1Connection"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">final </span>
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="Http1ClientStage.html"><span class="name">Http1ClientStage</span></a><span class="result"> extends <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a> with <a href="BlazeClientStage.html" class="extype" name="org.http4s.client.blaze.BlazeClientStage">BlazeClientStage</a></span>
+        <a href="Http1Connection.html"><span class="name">Http1Connection</span></a><span class="result"> extends <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a> with <a href="BlazeConnection.html" class="extype" name="org.http4s.client.blaze.BlazeConnection">BlazeConnection</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientStageextendsHttp1StagewithBlazeClientStage" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ConnectionextendsHttp1StagewithBlazeConnection" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -204,36 +163,19 @@ must have a mechanism to free resources associated with it.
       </a>
     </span>
       
-    </li><li name="org.http4s.client.blaze.ConnectionManager" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ConnectionManager"></a>
-      <a id="ConnectionManager:ConnectionManager"></a>
+    </li><li name="org.http4s.client.blaze.Http1Connection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Http1Connection"></a>
+      <a id="Http1Connection:Http1Connection"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="ConnectionManager$.html"><span class="name">ConnectionManager</span></a>
+        <a href="Http1Connection$.html"><span class="name">Http1Connection</span></a>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@ConnectionManager" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.client.blaze.Http1ClientStage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http1ClientStage"></a>
-      <a id="Http1ClientStage:Http1ClientStage"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">object</span>
-      </span>
-      <span class="symbol">
-        <a href="Http1ClientStage$.html"><span class="name">Http1ClientStage</span></a>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ClientStage" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1Connection" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

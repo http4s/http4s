@@ -122,6 +122,61 @@
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
             implementations and middlewares.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
                 open connections and freeing resources</p></dd></dl></div>
+    </li><li name="org.http4s.client.Connection" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="ConnectionextendsAnyRef"></a>
+      <a id="Connection:Connection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Connection.html"><span class="name">Connection</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.package@ConnectionextendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.ConnectionBuilder" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionBuilder[A&lt;:org.http4s.client.Connection]=org.http4s.client.RequestKey=&gt;scalaz.concurrent.Task[A]"></a>
+      <a id="ConnectionBuilder[A&lt;:Connection]:ConnectionBuilder[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">ConnectionBuilder</span><span class="tparams">[<span name="A">A &lt;: <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></span>]</span><span class="result"> = (<a href="RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.ConnectionBuilder.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.package@ConnectionBuilder[A&lt;:org.http4s.client.Connection]=org.http4s.client.RequestKey=&gt;scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.ConnectionManager" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="ConnectionManager[A&lt;:org.http4s.client.Connection]extendsAnyRef"></a>
+      <a id="ConnectionManager[A&lt;:Connection]:ConnectionManager[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionManager.html"><span class="name">ConnectionManager</span></a><span class="tparams">[<span name="A">A &lt;: <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></span>]</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.package@ConnectionManager[A&lt;:org.http4s.client.Connection]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Type that is responsible for the client lifecycle</p><div class="fullcomment"><div class="comment cmt"><p>Type that is responsible for the client lifecycle</p><p>The <a href="ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a> is a general wrapper around a <a href="#ConnectionBuilder[A&lt;:org.http4s.client.Connection]=org.http4s.client.RequestKey=&gt;scalaz.concurrent.Task[A]" class="extmbr" name="org.http4s.client.ConnectionBuilder">ConnectionBuilder</a>
+that can pool resources in order to conserve resources such as socket connections,
+CPU time, SSL handshakes, etc. Because it can contain significant resources it
+must have a mechanism to free resources associated with it.
+</p></div></div>
     </li><li name="org.http4s.client.DisposableResponse" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="DisposableResponseextendsProductwithSerializable"></a>
       <a id="DisposableResponse:DisposableResponse"></a>
@@ -174,6 +229,23 @@ HTTP connection.</p>
       </a>
     </span>
       
+    </li><li name="org.http4s.client.RequestKey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestKeyextendsProductwithSerializable"></a>
+      <a id="RequestKey:RequestKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestKey.html"><span class="name">RequestKey</span></a><span class="params">(<span name="scheme">scheme: <a href="../Uri$.html#Scheme=org.http4s.util.CaseInsensitiveString" class="extmbr" name="org.http4s.Uri.Scheme">Scheme</a></span>, <span name="authority">authority: <a href="../Uri$$Authority.html" class="extype" name="org.http4s.Uri.Authority">Authority</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.package@RequestKeyextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Represents a key for requests that can conceivably share a <a href="Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a>.</p>
     </li><li name="org.http4s.client.WithBodySyntax" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="WithBodySyntaxextendsAnyValwithEntityRequestGenerator"></a>
       <a id="WithBodySyntax:WithBodySyntax"></a>
@@ -198,7 +270,41 @@ HTTP connection.</p>
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.client.blaze" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.client.ConnectionManager" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ConnectionManager"></a>
+      <a id="ConnectionManager:ConnectionManager"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionManager$.html"><span class="name">ConnectionManager</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.package@ConnectionManager" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.RequestKey" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="RequestKey"></a>
+      <a id="RequestKey:RequestKey"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestKey$.html"><span class="name">RequestKey</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.package@RequestKey" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.blaze" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="blaze"></a>
       <a id="blaze:blaze"></a>
       <h4 class="signature">
