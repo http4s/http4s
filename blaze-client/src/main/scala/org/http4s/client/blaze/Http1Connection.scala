@@ -43,6 +43,9 @@ final class Http1Connection(val requestKey: RequestKey,
     case _        => false
   }
 
+  override def isRecyclable: Boolean =
+    stageState.get == Idle
+
   override def shutdown(): Unit = stageShutdown()
 
   override def stageShutdown() = shutdownWithError(EOF)

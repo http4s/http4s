@@ -89,7 +89,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
       if (!isClosed) {
         logger.debug(s"Recycling connection: ${stats}")
         val key = connection.requestKey
-        if (!connection.isClosed) {
+        if (connection.isRecyclable) {
           waitQueue.dequeueFirst(_.key == key) match {
             case Some(Waiting(_, callback)) =>
               logger.debug(s"Fulfilling waiting connection request: ${stats}")
@@ -108,15 +108,19 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
           }
         }
         else {
-          // connection was closed
           allocated -= 1
 
+          if (!connection.isClosed) {
+            logger.debug(s"Connection returned was busy.  Shutting down: ${stats}")
+            connection.shutdown()
+          }
+
           if (waitQueue.nonEmpty) {
-            logger.debug(s"Connection returned in the close state, new connection needed: ${stats}")
+            logger.debug(s"Connection returned could not be recycled, new connection needed: ${stats}")
             val Waiting(key, callback) = waitQueue.dequeue()
             createConnection(key, callback)
           }
-          else logger.debug(s"Connection is closed; no pending requests. Shrinking pool: ${stats}")
+          else logger.debug(s"Connection could not be recycled, no pending requests. Shrinking pool: ${stats}")
         }
       }
       else if (!connection.isClosed) {
