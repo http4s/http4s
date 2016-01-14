@@ -19,8 +19,6 @@ import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AsyncHttpClient {
-  val EOF = ByteVector.empty
-
   val defaultConfig = new AsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
@@ -40,16 +38,15 @@ object AsyncHttpClient {
     new AsyncHandler[Unit] {
       var state: AsyncHandler.STATE = STATE.CONTINUE
       val queue = async.unboundedQueue[ByteVector]
-      val body: EntityBody = queue.dequeue.takeWhile(_ != EOF)
+      val body: EntityBody = queue.dequeue
 
       var disposableResponse = DisposableResponse(Response(body = body), Task {
         state = STATE.ABORT
-        close()
+        queue.close.run
       })
 
       override def onBodyPartReceived(httpResponseBodyPart: HttpResponseBodyPart): STATE = {
-        val body = httpResponseBodyPart.getBodyPartBytes
-        if (body.nonEmpty) queue.enqueueOne(ByteVector(body)).run
+        queue.enqueueOne(ByteVector(httpResponseBodyPart.getBodyPartBytes)).run
         state
       }
 
@@ -66,16 +63,11 @@ object AsyncHttpClient {
 
       override def onThrowable(throwable: Throwable): Unit = {
         promise.failure(throwable)
-        close()
+        queue.close.run
       }
 
       override def onCompleted() {
-        close()
-      }
-
-      private def close() {
-        queue.enqueueOne(EOF).run
-        queue.close
+        queue.close.run
       }
     }
 
