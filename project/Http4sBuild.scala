@@ -18,7 +18,7 @@ object Http4sBuild extends Build {
   lazy val sonatypeEnvCredentials = (for {
     user <- envOrNone("SONATYPE_USER")
     pass <- envOrNone("SONATYPE_PASS")
-  } yield Credentials("Nexus Repository Manager", "oss.sonatype.org", user, pass)).toSeq
+  } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)).toSeq
 
   def nexusRepoFor(version: String): Resolver = {
     val nexus = "https://oss.sonatype.org/"
