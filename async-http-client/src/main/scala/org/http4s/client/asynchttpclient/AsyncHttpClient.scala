@@ -19,7 +19,7 @@ import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 
 object AsyncHttpClient {
-  val EOF = ByteVector(-1)
+  val EOF = ByteVector.empty
 
   val defaultConfig = new AsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
@@ -48,7 +48,8 @@ object AsyncHttpClient {
       })
 
       override def onBodyPartReceived(httpResponseBodyPart: HttpResponseBodyPart): STATE = {
-        queue.enqueueOne(ByteVector(httpResponseBodyPart.getBodyPartBytes)).run
+        val body = httpResponseBodyPart.getBodyPartBytes
+        if (body.nonEmpty) queue.enqueueOne(ByteVector(body)).run
         state
       }
 
