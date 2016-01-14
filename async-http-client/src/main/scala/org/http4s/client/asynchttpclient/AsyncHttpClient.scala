@@ -1,4 +1,4 @@
-package org.htt4s.client.asynchttpclient
+package org.http4s.client.asynchttpclient
 
 import com.ning.http.client.AsyncHandler.STATE
 import com.ning.http.client.generators.InputStreamBodyGenerator
