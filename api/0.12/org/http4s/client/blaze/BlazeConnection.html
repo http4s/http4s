@@ -116,7 +116,24 @@
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Determine if the stage is closed and resources have been freed</p><div class="fullcomment"><div class="comment cmt"><p>Determine if the stage is closed and resources have been freed</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></dd></dl></div>
+      <p class="shortcomment cmt">Determine if the connection is closed and resources have been freed</p><div class="fullcomment"><div class="comment cmt"><p>Determine if the connection is closed and resources have been freed</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></dd></dl></div>
+    </li><li name="org.http4s.client.Connection#isRecyclable" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="isRecyclable:Boolean"></a>
+      <a id="isRecyclable:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isRecyclable</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.BlazeConnection@isRecyclable:Boolean" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Determine if the connection is in a state that it can be recycled for another request.</p><div class="fullcomment"><div class="comment cmt"><p>Determine if the connection is in a state that it can be recycled for another request.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></dd></dl></div>
     </li><li name="org.http4s.blaze.pipeline.Stage#name" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="name:String"></a>
       <a id="name:String"></a>
@@ -186,11 +203,7 @@ of the body.  This gives us a better retry story.</p></div></div>
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Close down the stage
- Freeing resources and potentially aborting a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>
-</p><div class="fullcomment"><div class="comment cmt"><p>Close down the stage
- Freeing resources and potentially aborting a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>
-</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></dd></dl></div>
+      <p class="shortcomment cmt">Close down the connection, freeing resources and potentially aborting a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a></p><div class="fullcomment"><div class="comment cmt"><p>Close down the connection, freeing resources and potentially aborting a <a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a></p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Connection.html" class="extype" name="org.http4s.client.Connection">Connection</a></dd></dl></div>
     </li></ol>
             </div>
 
