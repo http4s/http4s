@@ -83,6 +83,13 @@ lazy val blazeClient = libraryProject("blaze-client")
   )
   .dependsOn(blazeCore % "compile;test->test", client % "compile;test->test")
 
+lazy val dispatchClient = libraryProject("dispatch-client")
+  .settings(
+    description := "dispatch implementation for http4s clients",
+    libraryDependencies += dispatch
+  )
+  .dependsOn(core % "compile;test->test", client % "compile;test->test")
+
 lazy val servlet = libraryProject("servlet")
   .settings(
     description := "Portable servlet implementation for http4s servers",
