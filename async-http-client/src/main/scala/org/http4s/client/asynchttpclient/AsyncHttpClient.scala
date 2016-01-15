@@ -52,7 +52,7 @@ object AsyncHttpClient {
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
         publisher.subscribe(new Subscriber[HttpResponseBodyPart] {
-          var subscription: Option[Subscription] = _
+          var subscription: Option[Subscription] = None
 
           override def onError(t: Throwable): Unit = {
             subscription = None
@@ -70,7 +70,6 @@ object AsyncHttpClient {
           }
 
           override def onNext(t: HttpResponseBodyPart): Unit = {
-            println("ON NEXT")
             subscription foreach { s =>
               state match {
                 case State.CONTINUE =>
