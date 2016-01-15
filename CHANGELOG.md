@@ -1,3 +1,20 @@
+# v0.12.0 (2016-01-15)
+* Refactor the client API for resource safety when not reading the entire body.
+* Rewrite client connection pool to support  maximum concurrent connections instead of maximum idle connections.
+* Optimize body collection for better connection keep-alive rate.
+* Move `Service` and `HttpService`, because a `Client` can be viewed as a `Service`.
+* Remove custom `DateTime` in favor of `java.time.Instant`.
+* Support status 451 Unavailable For Legal Reasons.
+* Various blaze-client optimizations.
+* Don't let Blaze `IdentityWriter` write more than Content-Length bytes.
+* Remove `identity` `Transfer-Encoding`, which was removed in HTTP RFC errata.
+* In blaze, `requireClose` is now the return value of `writeEnd`.
+* Remove body from `Request.toString` and `Response.toString`.
+* Move blaze parser into its own class.
+* Trigger a disconnect if an ignored body is too long.
+* Configurable thread factories for happier profiling.
+* Fix possible deadlock in default client execution context.
+
 # v0.11.3 (2015-12-28)
 * Blaze upgrade to fix parsing HTTP responses without a reason phrase.
 * Don't write more than Content-Length bytes in blaze.
