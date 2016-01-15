@@ -1,12 +1,14 @@
-package org.http4s.client.asynchttpclient
+package org.http4s
+package client
+package asynchttpclient
 
-import com.ning.http.client.AsyncHandler.STATE
-import com.ning.http.client.generators.InputStreamBodyGenerator
-import com.ning.http.client.{Request => AsyncRequest, Response => AsyncResponse, _}
+import org.asynchttpclient.AsyncHandler.State
+import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, BodyGenerator}
+import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
+import org.asynchttpclient.handler.StreamedAsyncHandler
 
-import org.http4s._
-import org.http4s.client._
 import org.http4s.util.task
+import org.reactivestreams.{Subscription, Subscriber, Publisher}
 import scodec.bits.ByteVector
 
 import scala.collection.JavaConverters._
@@ -18,15 +20,19 @@ import scalaz.concurrent.Task
 import scala.concurrent.Promise
 import scala.concurrent.ExecutionContext.Implicits.global
 
+import org.log4s.getLogger
+
 object AsyncHttpClient {
-  val defaultConfig = new AsyncHttpClientConfig.Builder()
+  private[this] val log = getLogger
+
+  val defaultConfig = new DefaultAsyncHttpClientConfig.Builder()
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
     .setRequestTimeout(30000)
     .build()
 
   def apply(config: AsyncHttpClientConfig = defaultConfig): Client = {
-    val client = new AsyncHttpClient(config)
+    val client = new DefaultAsyncHttpClient(config)
     Client(Service.lift { req =>
       val p = Promise[DisposableResponse]
       client.executeRequest(toAsyncRequest(req), asyncHandler(p))
@@ -35,39 +41,73 @@ object AsyncHttpClient {
   }
 
   private def asyncHandler(promise: Promise[DisposableResponse]): AsyncHandler[Unit] =
-    new AsyncHandler[Unit] {
-      var state: AsyncHandler.STATE = STATE.CONTINUE
-      val queue = async.unboundedQueue[ByteVector]
-      val body: EntityBody = queue.dequeue
+    new StreamedAsyncHandler[Unit] {
+      var state: State = State.CONTINUE
+      val queue = async.boundedQueue[ByteVector](1)
 
-      var disposableResponse = DisposableResponse(Response(body = body), Task {
-        state = STATE.ABORT
+      var disposableResponse = DisposableResponse(Response(body = queue.dequeue), Task {
+        state = State.ABORT
         queue.close.run
       })
 
-      override def onBodyPartReceived(httpResponseBodyPart: HttpResponseBodyPart): STATE = {
-        queue.enqueueOne(ByteVector(httpResponseBodyPart.getBodyPartBytes)).run
+      override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
+        publisher.subscribe(new Subscriber[HttpResponseBodyPart] {
+          var subscription: Option[Subscription] = _
+
+          override def onError(t: Throwable): Unit = {
+            subscription = None
+            queue.fail(t).run
+          }
+
+          override def onSubscribe(s: Subscription): Unit = {
+            subscription = Some(s)
+            s.request(1)
+          }
+
+          override def onComplete(): Unit = {
+            subscription = None
+            queue.close.run
+          }
+
+          override def onNext(t: HttpResponseBodyPart): Unit = {
+            println("ON NEXT")
+            subscription foreach { s =>
+              state match {
+                case State.CONTINUE =>
+                  queue.enqueueOne(ByteVector(t.getBodyPartBytes)).run
+                  s.request(1)
+                case State.ABORT =>
+                  s.cancel()
+                  subscription = None
+                case State.UPGRADE =>
+                  queue.fail(new IllegalStateException("UPGRADE not implemented")).run
+                  subscription = None
+              }
+            }
+          }
+        })
         state
       }
 
-      override def onStatusReceived(status: HttpResponseStatus): STATE = {
+      override def onBodyPartReceived(httpResponseBodyPart: HttpResponseBodyPart): State =
+        throw org.http4s.util.bug("Expected it to call onStream instead.")
+
+      override def onStatusReceived(status: HttpResponseStatus): State = {
         disposableResponse = disposableResponse.copy(response = disposableResponse.response.copy(status = getStatus(status)))
         state
       }
 
-      override def onHeadersReceived(headers: HttpResponseHeaders): STATE = {
+      override def onHeadersReceived(headers: HttpResponseHeaders): State = {
         disposableResponse = disposableResponse.copy(response = disposableResponse.response.copy(headers = getHeaders(headers)))
-        promise.success(disposableResponse)
         state
       }
 
       override def onThrowable(throwable: Throwable): Unit = {
         promise.failure(throwable)
-        queue.close.run
       }
 
-      override def onCompleted() {
-        queue.close.run
+      override def onCompleted(): Unit = {
+        promise.success(disposableResponse)
       }
     }
 
@@ -88,8 +128,8 @@ object AsyncHttpClient {
     Status.fromInt(status.getStatusCode).valueOr(e => throw new ParseException(e))
 
   private def getHeaders(headers: HttpResponseHeaders): Headers = {
-    Headers(headers.getHeaders.entrySet().asScala.flatMap(entry => {
-      entry.getValue.asScala.map(v => Header(entry.getKey, v)).toList
-    }).toList)
+    Headers(headers.getHeaders.iterator.asScala.map { header =>
+      Header(header.getKey, header.getValue)
+    }.toList)
   }
 }
