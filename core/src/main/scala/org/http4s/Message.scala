@@ -237,6 +237,9 @@ case class Request(
     */
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
+
+  override def toString: String =
+    s"""Request(method=$method, uri=$uri, headers=${headers}"""
 }
 
 object Request {
@@ -272,6 +275,9 @@ case class Response(
 
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
+
+  override def toString: String =
+    s"""Response(status=${status.code}, headers=$headers)"""
 }
 
 object Response {
