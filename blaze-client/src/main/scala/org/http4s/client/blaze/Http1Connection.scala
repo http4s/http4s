@@ -94,8 +94,23 @@ final class Http1Connection(val requestKey: RequestKey,
   }
 
   def runRequest(req: Request, flushPrelude: Boolean): Task[Response] = Task.suspend[Response] {
-    if (!stageState.compareAndSet(Idle, Running)) Task.fail(InProgressException)
-    else executeRequest(req, flushPrelude)
+    stageState.get match {
+      case Idle =>
+        if (stageState.compareAndSet(Idle, Running)) {
+          logger.debug(s"Connection was idle. Running.")
+          executeRequest(req, flushPrelude)
+        }
+        else {
+          logger.debug(s"Connection changed state since checking it was idle. Looping.")
+          runRequest(req, flushPrelude)
+        }
+      case Running =>
+        logger.error(s"Tried to run a request already in running state.")
+        Task.fail(InProgressException)
+      case Error(e) =>
+        logger.debug(s"Tried to run a request in closed/error state: ${e}")
+        Task.fail(e)
+    }
   }
 
   override protected def doParseContent(buffer: ByteBuffer): Option[ByteBuffer] = parser.doParseContent(buffer)

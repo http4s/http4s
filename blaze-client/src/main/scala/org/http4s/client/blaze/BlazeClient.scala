@@ -38,7 +38,9 @@ object BlazeClient {
 
           case -\/(Command.EOF) =>
             invalidate(connection).flatMap { _ =>
-              loop(connection, flushPrelude)
+              manager.borrow(key).flatMap { newConn =>
+                loop(newConn, flushPrelude)
+              }
             }
 
           case -\/(e) =>
