@@ -159,7 +159,7 @@ object /: {
   }
 }
 
-// Base class for Integer and LongParam extractors.
+// Base class for Integer and Long path variable extractors.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] = {
     if (!str.isEmpty && str.forall(Character.isDigit))
@@ -178,7 +178,7 @@ protected class NumericPathVar[A <: AnyVal](cast: String => A) {
  * Integer extractor of a path variable:
  * {{{
  *   Path("/user/123") match {
- *      case Root / "user" / IntParam(userId) => ...
+ *      case Root / "user" / IntVar(userId) => ...
  * }}}
  */
 object IntVar extends NumericPathVar(_.toInt)
@@ -187,7 +187,7 @@ object IntVar extends NumericPathVar(_.toInt)
  * Long extractor of a path variable:
  * {{{
  *   Path("/user/123") match {
- *      case Root / "user" / LongParam(userId) => ...
+ *      case Root / "user" / LongVar(userId) => ...
  * }}}
  */
 object LongVar extends NumericPathVar(_.toLong)
