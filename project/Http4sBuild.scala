@@ -69,6 +69,7 @@ object Http4sBuild extends Build {
   lazy val metricsServlets     = "io.dropwizard.metrics"     % "metrics-servlets"        % metricsCore.revision
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.0"
+  lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.6"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
