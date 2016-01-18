@@ -177,6 +177,13 @@ lazy val scalaXml = libraryProject("scala-xml")
   )
   .dependsOn(core % "compile;test->test")
 
+lazy val scalesXml = libraryProject("scales-xml")
+  .settings(
+    description := "Provides scales-xml codecs for http4s",
+    libraryDependencies += Http4sBuild.scalesXml
+  )
+  .dependsOn(core % "compile;test->test")
+
 lazy val twirl = http4sProject("twirl")
   .settings(
     description := "Twirl template support for http4s",
