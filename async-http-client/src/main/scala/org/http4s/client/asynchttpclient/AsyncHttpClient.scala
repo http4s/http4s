@@ -31,60 +31,59 @@ object AsyncHttpClient {
     .setRequestTimeout(30000)
     .build()
 
-  def apply(config: AsyncHttpClientConfig = defaultConfig): Client = {
+  /**
+    * Create an HTTP client based on the AsyncHttpClient library
+    *
+    * @param config configuration for the client
+    * @param bufferSize body chunks to buffer when reading the body; defaults to 8
+    */
+  def apply(config: AsyncHttpClientConfig = defaultConfig,
+            bufferSize: Int = 8): Client = {
     val client = new DefaultAsyncHttpClient(config)
     Client(Service.lift { req =>
       val p = Promise[DisposableResponse]
-      client.executeRequest(toAsyncRequest(req), asyncHandler(p))
+      client.executeRequest(toAsyncRequest(req), asyncHandler(p, 8))
       task.futureToTask(p.future)
     }, Task(client.close()))
   }
 
-  private def asyncHandler(promise: Promise[DisposableResponse]): AsyncHandler[Unit] =
+  private def asyncHandler(promise: Promise[DisposableResponse], bufferSize: Int): AsyncHandler[Unit] =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
-      val queue = async.boundedQueue[ByteVector](1)
-
-      var disposableResponse = DisposableResponse(Response(body = queue.dequeue), Task {
-        state = State.ABORT
-        queue.close.run
-      })
+      var disposableResponse = DisposableResponse(Response(), Task.delay { state = State.ABORT })
 
       override def onStream(publisher: Publisher[HttpResponseBodyPart]): State = {
-        publisher.subscribe(new Subscriber[HttpResponseBodyPart] {
-          var subscription: Option[Subscription] = None
-
-          override def onError(t: Throwable): Unit = {
-            subscription = None
-            queue.fail(t).run
-          }
-
-          override def onSubscribe(s: Subscription): Unit = {
-            subscription = Some(s)
-            s.request(1)
-          }
-
-          override def onComplete(): Unit = {
-            subscription = None
-            queue.close.run
-          }
-
-          override def onNext(t: HttpResponseBodyPart): Unit = {
-            subscription foreach { s =>
-              state match {
-                case State.CONTINUE =>
-                  queue.enqueueOne(ByteVector(t.getBodyPartBytes)).run
-                  s.request(1)
-                case State.ABORT =>
-                  s.cancel()
-                  subscription = None
-                case State.UPGRADE =>
-                  queue.fail(new IllegalStateException("UPGRADE not implemented")).run
-                  subscription = None
-              }
+        val subscriber = new QueueSubscriber[HttpResponseBodyPart](bufferSize) {
+          override def whenNext(element: HttpResponseBodyPart): Boolean = {
+            state match {
+              case State.CONTINUE =>
+                super.whenNext(element)
+              case State.ABORT =>
+                super.whenNext(element)
+                closeQueue()
+                false
+              case State.UPGRADE =>
+                super.whenNext(element)
+                state = State.ABORT
+                throw new IllegalStateException("UPGRADE not implemented")
             }
           }
-        })
+
+          override protected def request(n: Int): Unit =
+            state match {
+              case State.CONTINUE =>
+                super.request(n)
+              case _ =>
+                // don't request what we're not going to process
+            }
+        }
+        val body = subscriber.process.map(part => ByteVector(part.getBodyPartBytes))
+        val response = disposableResponse.response.copy(body = body)
+        promise.success(DisposableResponse(response, Task.delay {
+          state = State.ABORT
+          subscriber.killQueue()
+        }))
+        publisher.subscribe(subscriber)
         state
       }
 
@@ -105,9 +104,7 @@ object AsyncHttpClient {
         promise.failure(throwable)
       }
 
-      override def onCompleted(): Unit = {
-        promise.success(disposableResponse)
-      }
+      override def onCompleted(): Unit = {}
     }
 
   private def toAsyncRequest(request: Request): AsyncRequest =
