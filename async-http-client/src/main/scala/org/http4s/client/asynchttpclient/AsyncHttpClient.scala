@@ -7,6 +7,8 @@ import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, Bod
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.handler.StreamedAsyncHandler
 
+import org.http4s.util.threads.threadFactory
+
 import org.reactivestreams.Publisher
 import scodec.bits.ByteVector
 
@@ -25,6 +27,7 @@ object AsyncHttpClient {
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
     .setRequestTimeout(30000)
+    .setThreadFactory(threadFactory(name = { i => s"http4s-async-http-client-${i}" }))
     .build()
 
   /**
