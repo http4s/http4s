@@ -7,18 +7,14 @@ import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, Bod
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.handler.StreamedAsyncHandler
 
-import org.http4s.util.task
-import org.reactivestreams.{Subscription, Subscriber, Publisher}
+import org.reactivestreams.Publisher
 import scodec.bits.ByteVector
 
 import scala.collection.JavaConverters._
 
+import scalaz.{-\/, \/-}
 import scalaz.stream.io._
-import scalaz.stream.async
 import scalaz.concurrent.Task
-
-import scala.concurrent.Promise
-import scala.concurrent.ExecutionContext.Implicits.global
 
 import org.log4s.getLogger
 
@@ -41,15 +37,13 @@ object AsyncHttpClient {
             bufferSize: Int = 8): Client = {
     val client = new DefaultAsyncHttpClient(config)
     Client(Service.lift { req =>
-      task.futureToTask {
-        val p = Promise[DisposableResponse]
-        client.executeRequest(toAsyncRequest(req), asyncHandler(p, 8))
-        p.future
+      Task.async[DisposableResponse] { cb =>
+        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, 8))
       }
     }, Task(client.close()))
   }
 
-  private def asyncHandler(promise: Promise[DisposableResponse], bufferSize: Int): AsyncHandler[Unit] =
+  private def asyncHandler(callback: Callback[DisposableResponse], bufferSize: Int): AsyncHandler[Unit] =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var disposableResponse = DisposableResponse(Response(), Task.delay { state = State.ABORT })
@@ -81,10 +75,10 @@ object AsyncHttpClient {
         }
         val body = subscriber.process.map(part => ByteVector(part.getBodyPartBytes))
         val response = disposableResponse.response.copy(body = body)
-        promise.success(DisposableResponse(response, Task.delay {
+        callback(\/-(DisposableResponse(response, Task.delay {
           state = State.ABORT
           subscriber.killQueue()
-        }))
+        })))
         publisher.subscribe(subscriber)
         state
       }
@@ -102,9 +96,8 @@ object AsyncHttpClient {
         state
       }
 
-      override def onThrowable(throwable: Throwable): Unit = {
-        promise.failure(throwable)
-      }
+      override def onThrowable(throwable: Throwable): Unit =
+        callback(-\/(throwable))
 
       override def onCompleted(): Unit = {}
     }
