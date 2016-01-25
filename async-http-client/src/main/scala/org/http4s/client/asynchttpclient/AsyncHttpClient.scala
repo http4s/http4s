@@ -38,7 +38,7 @@ object AsyncHttpClient {
     val client = new DefaultAsyncHttpClient(config)
     Client(Service.lift { req =>
       Task.async[DisposableResponse] { cb =>
-        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, 8))
+        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize))
       }
     }, Task(client.close()))
   }
