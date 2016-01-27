@@ -38,7 +38,8 @@ lazy val core = libraryProject("core")
       scalaReflect(v) % "provided",
       scalazCore,
       scalazStream,
-      scodecBits
+      scodecBits,
+      shapeless
     ) },
     libraryDependencies <++= scalaVersion (
       VersionNumber(_).numbers match {
