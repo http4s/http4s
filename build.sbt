@@ -31,7 +31,8 @@ lazy val core = libraryProject("core")
       parboiled,
       scalaReflect(v) % "provided",
       scalazCore,
-      scalazStream
+      scalazStream,
+      shapeless
     ) },
     libraryDependencies <++= scalaVersion (
       VersionNumber(_).numbers match {
