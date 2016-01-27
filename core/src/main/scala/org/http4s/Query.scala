@@ -47,18 +47,20 @@ final class Query private(pairs: Vector[KeyValue])
     */
   override def render(writer: Writer): writer.type = {
     var first = true
+    def encode(s: String) =
+      UrlCodingUtils.urlEncode(s, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved)
     pairs.foreach {
       case (n, None) =>
         if (!first) writer.append('&')
         else first = false
-        writer.append(n)
+        writer.append(encode(n))
 
       case (n, Some(v)) =>
         if (!first) writer.append('&')
         else first = false
-        writer.append(n)
+        writer.append(encode(n))
           .append("=")
-          .append(UrlCodingUtils.urlEncode(v, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved))
+          .append(encode(v))
     }
     writer
   }
