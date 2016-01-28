@@ -1,8 +1,6 @@
 package org.http4s
 
 import org.scalacheck.Prop._
-import org.scalacheck.Properties
-
 
 class QuerySpec extends Http4sSpec {
 
@@ -93,11 +91,14 @@ class QuerySpec extends Http4sSpec {
       (q.nonEmpty) ==> (q.tail.toList == q.toList.tail)
     }
 
-    "Encode special chars in the query" in {
+    "Encode special chars in the value" in {
       val u = Query("foo" -> Some(" !$&'()*+,;=:/?@~"), "bar" -> Some("biz"))
-      u.renderString must_== "foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A%2F%3F%40~&bar=biz"
-      Query.fromString(u.renderString) must_== u
+      u.renderString must_== "foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~&bar=biz"
+    }
+
+    "Encode special chars in the key" in {
+      val u = Query(" !$&'()*+,;=:/?@~" -> Some("foo"), "!" -> None)
+      u.renderString must_== "%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~=foo&%21"
     }
   }
-
 }

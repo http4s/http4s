@@ -5,7 +5,7 @@ import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlFormCodec, UrlCodingUtils, Writer, Renderable}
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.IndexedSeq
+import scala.collection.immutable.{BitSet, IndexedSeq}
 import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
 
@@ -47,18 +47,20 @@ final class Query private(pairs: Vector[KeyValue])
     */
   override def render(writer: Writer): writer.type = {
     var first = true
+    def encode(s: String) =
+      UrlCodingUtils.urlEncode(s, spaceIsPlus = false, toSkip = NoEncode)
     pairs.foreach {
       case (n, None) =>
         if (!first) writer.append('&')
         else first = false
-        writer.append(n)
+        writer.append(encode(n))
 
       case (n, Some(v)) =>
         if (!first) writer.append('&')
         else first = false
-        writer.append(n)
+        writer.append(encode(n))
           .append("=")
-          .append(UrlCodingUtils.urlEncode(v, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved))
+          .append(encode(v))
     }
     writer
   }
@@ -101,6 +103,15 @@ object Query {
   type KeyValue = (String, Option[String])
 
   val empty: Query = new Query(Vector.empty)
+
+  /*
+   * "The characters slash ("/") and question mark ("?") may represent data
+   * within the query component... it is sometimes better for usability to
+   * avoid percent-encoding those characters."
+   *   -- http://tools.ietf.org/html/rfc3986#section-3.4
+   */
+  private val NoEncode: BitSet =
+    UrlFormCodec.urlUnreserved ++ Set('?', '/').map(_.toInt)
 
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)
