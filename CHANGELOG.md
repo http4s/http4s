@@ -1,3 +1,7 @@
+# v0.12.1 (2016-01-30)
+* Encode keys as well as values when rendering a query.
+* Don't encode '?' or '/' when encoding a query.
+
 # v0.12.0 (2016-01-15)
 * Refactor the client API for resource safety when not reading the entire body.
 * Rewrite client connection pool to support  maximum concurrent connections instead of maximum idle connections.
