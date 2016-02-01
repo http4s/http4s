@@ -2,6 +2,8 @@ package org.http4s
 package client
 package asynchttpclient
 
+import java.util.concurrent.{Callable, Executors, ExecutorService}
+
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, BodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
@@ -27,7 +29,7 @@ object AsyncHttpClient {
     .setMaxConnectionsPerHost(200)
     .setMaxConnections(400)
     .setRequestTimeout(30000)
-    .setThreadFactory(threadFactory(name = { i => s"http4s-async-http-client-${i}" }))
+    .setThreadFactory(threadFactory(name = { i => s"http4s-async-http-client-worker-${i}" }))
     .build()
 
   /**
@@ -35,18 +37,37 @@ object AsyncHttpClient {
     *
     * @param config configuration for the client
     * @param bufferSize body chunks to buffer when reading the body; defaults to 8
+    * @param executorService the executor on which response tasks are run
     */
   def apply(config: AsyncHttpClientConfig = defaultConfig,
-            bufferSize: Int = 8): Client = {
+            bufferSize: Int = 8,
+            executorService: ExecutorService = null): Client = {
     val client = new DefaultAsyncHttpClient(config)
+    val (es, close) = executorService match {
+      case es: ExecutorService =>
+        (es, Task.delay(client.close()))
+      case null =>
+        val es = newDefaultExecutorService
+        (es, Task.delay {
+          client.close()
+          es.shutdown()
+        })
+    }
     Client(Service.lift { req =>
       Task.async[DisposableResponse] { cb =>
-        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize))
+        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, es))
       }
-    }, Task(client.close()))
+    }, close)
   }
 
-  private def asyncHandler(callback: Callback[DisposableResponse], bufferSize: Int): AsyncHandler[Unit] =
+  private def newDefaultExecutorService =
+    Executors.newFixedThreadPool(
+      (Runtime.getRuntime.availableProcessors * 1.5).ceil.toInt,
+      threadFactory(i => s"http4s-async-http-client-response-$i"))
+
+  private def asyncHandler(callback: Callback[DisposableResponse],
+                           bufferSize: Int,
+                           executorService: ExecutorService): AsyncHandler[Unit] =
     new StreamedAsyncHandler[Unit] {
       var state: State = State.CONTINUE
       var disposableResponse = DisposableResponse(Response(), Task.delay { state = State.ABORT })
@@ -78,10 +99,10 @@ object AsyncHttpClient {
         }
         val body = subscriber.process.map(part => ByteVector(part.getBodyPartBytes))
         val response = disposableResponse.response.copy(body = body)
-        callback(\/-(DisposableResponse(response, Task.delay {
+        execute(callback(\/-(DisposableResponse(response, Task.delay {
           state = State.ABORT
           subscriber.killQueue()
-        })))
+        }))))
         publisher.subscribe(subscriber)
         state
       }
@@ -100,9 +121,14 @@ object AsyncHttpClient {
       }
 
       override def onThrowable(throwable: Throwable): Unit =
-        callback(-\/(throwable))
+        execute(callback(-\/(throwable)))
 
       override def onCompleted(): Unit = {}
+
+      private def execute(f: => Unit) =
+        executorService.execute(new Runnable {
+          override def run(): Unit = f
+        })
     }
 
   private def toAsyncRequest(request: Request): AsyncRequest =
