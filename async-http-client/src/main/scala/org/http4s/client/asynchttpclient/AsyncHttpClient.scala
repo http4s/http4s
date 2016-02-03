@@ -9,7 +9,7 @@ import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, Bod
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.handler.StreamedAsyncHandler
 
-import org.http4s.util.threads.threadFactory
+import org.http4s.util.threads._
 
 import org.reactivestreams.Publisher
 import scodec.bits.ByteVector
@@ -41,27 +41,26 @@ object AsyncHttpClient {
     */
   def apply(config: AsyncHttpClientConfig = defaultConfig,
             bufferSize: Int = 8,
-            executorService: ExecutorService = null): Client = {
+            executorService: ExecutorService = newDefaultExecutorService): Client = {
     val client = new DefaultAsyncHttpClient(config)
-    val (es, close) = executorService match {
-      case es: ExecutorService =>
-        (es, Task.delay(client.close()))
-      case null =>
-        val es = newDefaultExecutorService
-        (es, Task.delay {
+    val close = executorService match {
+      case es: DefaultExecutorService =>
+        Task.delay {
           client.close()
           es.shutdown()
-        })
+        }
+      case _ =>
+        Task.delay { client.close() }
     }
     Client(Service.lift { req =>
       Task.async[DisposableResponse] { cb =>
-        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, es))
+        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, executorService))
       }
     }, close)
   }
 
   private def newDefaultExecutorService =
-    Executors.newFixedThreadPool(
+    newDefaultFixedThreadPool(
       (Runtime.getRuntime.availableProcessors * 1.5).ceil.toInt,
       threadFactory(i => s"http4s-async-http-client-response-$i"))
 

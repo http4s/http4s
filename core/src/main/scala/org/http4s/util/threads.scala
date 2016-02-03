@@ -2,7 +2,7 @@ package org.http4s.util
 
 import java.lang.Thread.UncaughtExceptionHandler
 import java.util.concurrent.atomic.AtomicLong
-import java.util.concurrent.{Executors, ThreadFactory}
+import java.util.concurrent._
 
 object threads {
   final case class ThreadPriority(toInt: Int)
@@ -39,4 +39,14 @@ object threads {
         thread
       }
     }
+
+  /** Marker trait for thread factories we create ourselves, and thus we need to close ourselves. */
+  private[http4s] trait DefaultExecutorService { self: ExecutorService => }
+
+  /** Creates a thread pool marked with the DefaultExecutorService trait, so we know to shut it down. */
+  private[http4s] def newDefaultFixedThreadPool(n: Int, threadFactory: ThreadFactory): ExecutorService with DefaultExecutorService =
+    new ThreadPoolExecutor(n, n,
+      0L, TimeUnit.MILLISECONDS,
+      new LinkedBlockingQueue[Runnable],
+      threadFactory) with DefaultExecutorService
 }
