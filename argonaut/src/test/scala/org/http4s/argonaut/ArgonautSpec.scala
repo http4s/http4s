@@ -4,6 +4,7 @@ package argonaut
 import java.nio.charset.StandardCharsets
 
 import _root_.argonaut._
+import org.http4s.MediaType._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.EntityEncoderSpec.writeToString
@@ -53,6 +54,16 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
     "decode JSON from an Argonaut decoder" in {
       val result = jsonOf[Foo].decode(Request().withBody(jObjectFields("bar" -> jNumberOrNull(42))).run, strict = true)
       result.run.run must be_\/-(Foo(42))
+    }
+
+    "handle umlauts" in {
+      // https://github.com/http4s/http4s/issues/514
+      case class Umlaut(wort: String)
+      implicit val codec = CodecJson.derive[Umlaut]
+      val decoder = jsonOf[Umlaut]
+      val json = Json("wort" -> jString("ärgerlich"))
+      Request().withBody(json).map(x => decoder.decode(x.withContentType(Some(`application/json`)), true))
+        .run.run.run must be_\/-(Umlaut("ärgerlich"))
     }
   }
 }
