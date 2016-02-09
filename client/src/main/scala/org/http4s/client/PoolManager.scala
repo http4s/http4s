@@ -10,7 +10,6 @@ import scalaz.syntax.either._
 import scalaz.concurrent.Task
 
 private object PoolManager {
-  type Callback[A] = Throwable \/ A => Unit
   case class Waiting[A <: Connection](key: RequestKey, callback: Callback[A])
 }
 import PoolManager._
