@@ -7,10 +7,12 @@ import org.http4s.jawn.JawnDecodeSupportSpec
 import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
 import org.json4s.JValue
-import org.json4s.JsonAST.{JField, JString, JObject}
+import org.json4s.JsonAST.{JInt, JField, JString, JObject}
 import scalaz.syntax.std.option._
 
 trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstances[J] =>
+  import Json4sSpec._
+
   testJsonDecoder(json)
 
   "json encoder" should {
@@ -48,4 +50,24 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
       }
     }
   }
+
+  "jsonExtract" should {
+    implicit val formats = org.json4s.DefaultFormats
+
+    "extract JSON from formats" in {
+      val result = jsonExtract[Foo].decode(Request().withBody(JObject("bar" -> JInt(42))).run, strict = false)
+      result.run.run must be_\/-(Foo(42))
+    }
+
+    "handle extract failures" in {
+      val result = jsonExtract[Foo].decode(Request().withBody(""""oops"""").run, strict = false)
+      result.run.run must be_-\/.like {
+        case ParseFailure("Could not extract JSON", _) => ok
+      }
+    }
+  }
+}
+
+object Json4sSpec {
+  case class Foo(bar: Int)
 }
