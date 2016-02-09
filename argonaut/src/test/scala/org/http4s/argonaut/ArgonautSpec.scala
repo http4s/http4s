@@ -8,6 +8,7 @@ import org.http4s.MediaType._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.EntityEncoderSpec.writeToString
+import org.specs2.specification.core.Fragment
 import Status.Ok
 
 class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
@@ -56,14 +57,16 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       result.run.run must be_\/-(Foo(42))
     }
 
-    "handle umlauts" in {
-      // https://github.com/http4s/http4s/issues/514
+    // https://github.com/http4s/http4s/issues/514
+    Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
       case class Umlaut(wort: String)
       implicit val codec = CodecJson.derive[Umlaut]
-      val decoder = jsonOf[Umlaut]
-      val json = Json("wort" -> jString("ärgerlich"))
-      Request().withBody(json).map(x => decoder.decode(x.withContentType(Some(`application/json`)), true))
-        .run.run.run must be_\/-(Umlaut("ärgerlich"))
+      val umlautDecoder = jsonOf[Umlaut]
+      s"handle JSON with umlauts: $wort" >> {
+        val json = Json("wort" -> jString(wort))
+        val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
+        result.run.run must be_\/-(Umlaut(wort))
+      }
     }
   }
 }
