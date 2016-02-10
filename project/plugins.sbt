@@ -11,4 +11,4 @@ addSbtPlugin("com.typesafe.sbt" % "sbt-twirl" % "1.1.1")
 addSbtPlugin("io.gatling" % "gatling-sbt" % "2.1.5")
 addSbtPlugin("io.spray" % "sbt-revolver" % "0.8.0")
 addSbtPlugin("pl.project13.scala" % "sbt-jmh" % "0.2.6")
-
+addSbtPlugin("com.jsuereth" % "sbt-pgp" % "1.0.0")
