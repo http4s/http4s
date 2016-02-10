@@ -46,7 +46,8 @@ object Http4sBuild extends Build {
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.4.v20150727"
   lazy val asyncHttp           = "org.asynchttpclient"       % "async-http-client"       % "2.0.0-RC7"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.11.0"
-  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.2.0"
+  lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
+  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.2.1"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.1.6"
   lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.3"
@@ -75,9 +76,9 @@ object Http4sBuild extends Build {
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
   lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.2.0"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % scalazCore.revision
-  lazy val specs2              = "org.specs2"               %% "specs2-core"             % "3.7"
-  lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2.revision
-  lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2.revision
+  def specs2(cv: String)             = "org.specs2"         %% "specs2-core"             % "3.7" exclude("org.scalaz.stream", s"scalaz-stream_$cv")
+  def specs2MatcherExtra(cv: String) = "org.specs2"         %% "specs2-matcher-extra"    % specs2(cv).revision exclude("org.scalaz.stream", s"scalaz-stream_$cv")
+  def specs2Scalacheck(cv: String)   = "org.specs2"         %% "specs2-scalacheck"       % specs2(cv).revision exclude("org.scalaz.stream", s"scalaz-stream_$cv")
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.8a" force()
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.24"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision

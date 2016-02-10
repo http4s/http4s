@@ -138,12 +138,14 @@ lazy val jawn = libraryProject("jawn")
   )
   .dependsOn(core % "compile;test->test")
 
+/*
 lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies += jawnArgonaut
   )
   .dependsOn(core % "compile;test->test", jawn % "compile;test->test")
+*/
 
 lazy val circe = libraryProject("circe")
   .settings(
@@ -260,11 +262,12 @@ lazy val examples = http4sProject("examples")
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
+      circeGeneric,
       logbackClassic % "runtime",
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
   )
-  .dependsOn(server, theDsl, argonaut, scalaXml, twirl)
+  .dependsOn(server, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -418,9 +421,9 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalameter,
     scalazScalacheckBinding,
-    specs2,
-    specs2MatcherExtra,
-    specs2Scalacheck
+    specs2(scalaBinaryVersion.value),
+    specs2MatcherExtra(scalaBinaryVersion.value),
+    specs2Scalacheck(scalaBinaryVersion.value)
   ).map(_ % "test")
 )
 
