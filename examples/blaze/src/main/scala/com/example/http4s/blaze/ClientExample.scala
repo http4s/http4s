@@ -19,6 +19,7 @@ object ClientExample {
     // after matching based on the response status code?
     import org.http4s.Status.NotFound
     import org.http4s.Status.ResponseClass.Successful
+    import io.circe._
     import io.circe.generic.auto._
     import org.http4s.circe.jsonOf
 

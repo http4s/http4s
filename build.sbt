@@ -40,15 +40,8 @@ lazy val core = libraryProject("core")
       scalazStream,
       shapeless
     ) },
-    libraryDependencies <++= scalaVersion (
-      VersionNumber(_).numbers match {
-        case Seq(2, 10, _*) => Seq(
-          compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-          "org.scalamacros" %% "quasiquotes" % "2.1.0" cross CrossVersion.binary
-        )
-        case _ => Seq.empty
-      })
-)
+    macroParadiseSetting
+  )
 
 lazy val server = libraryProject("server")
   .settings(
@@ -277,6 +270,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     description := "Examples of http4s server and clients on blaze",
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
+    macroParadiseSetting,
     javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
       for {
         file <- attList.map(_.data)

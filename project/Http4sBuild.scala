@@ -43,6 +43,16 @@ object Http4sBuild extends Build {
       None
   }
 
+  val macroParadiseSetting =
+    libraryDependencies <++= scalaVersion (
+      VersionNumber(_).numbers match {
+        case Seq(2, 10, _*) => Seq(
+          compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+          "org.scalamacros" %% "quasiquotes" % "2.1.0" cross CrossVersion.binary
+        )
+        case _ => Seq.empty
+      })
+
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.4.v20150727"
   lazy val asyncHttp           = "org.asynchttpclient"       % "async-http-client"       % "2.0.0-RC7"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.11.0"
