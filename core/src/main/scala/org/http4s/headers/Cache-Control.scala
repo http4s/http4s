@@ -1,7 +1,7 @@
 package org.http4s
 package headers
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKey.Recurring
 

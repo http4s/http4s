@@ -25,7 +25,7 @@ import org.http4s.headers.ETag.EntityTag
 import org.http4s.util.CaseInsensitiveString._
 import org.parboiled2.Rule1
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 /**
  * parser rules for all headers that can be parsed with one simple rule

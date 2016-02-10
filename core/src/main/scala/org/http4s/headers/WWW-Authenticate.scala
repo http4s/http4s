@@ -1,7 +1,7 @@
 package org.http4s
 package headers
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with HeaderKey.Recurring
 

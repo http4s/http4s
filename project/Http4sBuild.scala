@@ -54,7 +54,7 @@ object Http4sBuild extends Build {
   lazy val jawnArgonaut        = "org.spire-math"           %% "jawn-argonaut"           % jawnParser.revision
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.3"
-  lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.7.0"
+  lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.8.0"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.2.v20150730"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.2.11"
@@ -73,14 +73,12 @@ object Http4sBuild extends Build {
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.6"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
-  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.1.3"
+  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.2.0"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % scalazCore.revision
-  lazy val scalaCheck          = "org.scalacheck"           %% "scalacheck"              % "1.12.4"
-  lazy val specs2              = "org.specs2"               %% "specs2-core"             % "3.6.5"
+  lazy val specs2              = "org.specs2"               %% "specs2-core"             % "3.6.6-scalaz-7.2.0"
   lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2.revision
   lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2.revision
-  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.8"
-  lazy val scodecBits          = "org.scodec"               %% "scodec-bits"             % "1.0.9"
+  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.8a"
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.24"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.1.1"

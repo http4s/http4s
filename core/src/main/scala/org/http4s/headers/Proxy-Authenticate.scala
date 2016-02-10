@@ -1,7 +1,7 @@
 package org.http4s
 package headers
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object `Proxy-Authenticate` extends HeaderKey.Internal[`Proxy-Authenticate`] with HeaderKey.Recurring
 

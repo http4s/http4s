@@ -1,6 +1,6 @@
 package org.http4s
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import org.http4s.util.CaseInsensitiveString

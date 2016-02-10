@@ -1,7 +1,7 @@
 package org.http4s
 package headers
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring
 
@@ -10,8 +10,8 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends He
   type Value = CharsetRange
 
   def qValue(charset: Charset): QValue = {
-    def specific = values.list.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
-    def splatted = values.list.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
+    def specific = values.collectFirst { case cs: CharsetRange.Atom => cs.qValue }
+    def splatted = values.collectFirst { case cs: CharsetRange.`*` => cs.qValue }
     specific orElse splatted getOrElse QValue.Zero
   }
 

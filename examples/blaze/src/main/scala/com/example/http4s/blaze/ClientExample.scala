@@ -14,7 +14,7 @@ object ClientExample {
     val page: Task[String] = client.getAs[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
-      println(page.run.take(72))   // each execution of the Task will refetch the page!
+      println(page.map(_.take(72)).unsafePerformSync)   // each execution of the Task will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
@@ -39,7 +39,7 @@ object ClientExample {
       case resp             => Task.now("Failed: " + resp.status)
     }
 
-    println(page2.run)
+    println(page2.unsafePerformSync)
 /// end_code_ref
   }
 

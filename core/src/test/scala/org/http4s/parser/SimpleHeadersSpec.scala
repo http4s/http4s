@@ -6,7 +6,8 @@ import java.time.Instant
 import Http4s._
 import headers._
 import org.http4s.headers.ETag.EntityTag
-import scalaz.{\/-, NonEmptyList, Success}
+import scalaz.{\/-, Success}
+import org.http4s.util.NonEmptyList
 import java.net.InetAddress
 
 class SimpleHeadersSpec extends Http4sSpec {

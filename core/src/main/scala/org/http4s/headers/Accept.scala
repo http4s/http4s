@@ -1,7 +1,7 @@
 package org.http4s
 package headers
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring
 

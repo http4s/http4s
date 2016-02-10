@@ -10,7 +10,7 @@ import org.scalacheck.{Arbitrary, Gen}
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 import scalaz.scalacheck.ScalazArbitrary._
 
 trait TestInstances {
@@ -84,6 +84,9 @@ trait TestInstances {
 
   implicit val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
     Arbitrary { arbitrary[NonEmptyList[CharsetRange.`*`]].map(`Accept-Charset`(_)) }
+
+  implicit def arbNonEmptyList[A](implicit A: Arbitrary[A]): Arbitrary[NonEmptyList[A]] =
+    Arbitrary { arbitrary[scalaz.NonEmptyList[A]].map(nel => NonEmptyList.nel(nel.head, nel.tail.toList)) }
 
   implicit val urlFormArb: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".

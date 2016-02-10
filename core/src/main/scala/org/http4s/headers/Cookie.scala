@@ -3,7 +3,7 @@ package headers
 
 import org.http4s.util.Writer
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring
 

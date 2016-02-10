@@ -1,10 +1,10 @@
 package org.http4s
 
-import org.scalacheck.Arbitrary
 import org.specs2.ScalaCheck
 import org.specs2.scalacheck.Parameters
 
-import scalaz.{NonEmptyList, \/-}
+import scalaz.\/-
+import org.http4s.util.NonEmptyList
 
 class UrlFormSpec extends Http4sSpec with ScalaCheck {
   // These tests are slow.  Let's lower the bar.
@@ -68,8 +68,6 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
       UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
     }
 
-    // Not quite sure why this is necessary, but the compiler gives us a diverging implicit if not present
-    implicit val chooseArb: Arbitrary[NonEmptyList[String]] = scalaz.scalacheck.ScalazArbitrary.NonEmptyListArbitrary
     "construct consistently from kv-pairs or and Map[String, Seq[String]]" in prop {
       map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {

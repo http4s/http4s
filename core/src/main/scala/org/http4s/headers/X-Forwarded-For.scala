@@ -5,7 +5,7 @@ import java.net.InetAddress
 
 import org.http4s.util.Writer
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring
 

@@ -199,12 +199,12 @@ class Http2NodeStage(streamId: Int,
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      Task.fork(service(req)).runAsync {
+      Task.fork(service(req)).unsafePerformAsync {
         case \/-(resp) => renderResponse(req, resp)
         case -\/(t) =>
           val resp = Response(InternalServerError)
                        .withBody("500 Internal Service Error\n" + t.getMessage)
-                       .run
+                       .unsafePerformSync
 
           renderResponse(req, resp)
       }

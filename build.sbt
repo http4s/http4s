@@ -37,14 +37,13 @@ lazy val core = libraryProject("core")
       parboiled,
       scalaReflect(v) % "provided",
       scalazCore,
-      scalazStream,
-      scodecBits
+      scalazStream
     ) },
     libraryDependencies <++= scalaVersion (
       VersionNumber(_).numbers match {
         case Seq(2, 10, _*) => Seq(
-          compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
-          "org.scalamacros" %% "quasiquotes" % "2.0.1" cross CrossVersion.binary
+          compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
+          "org.scalamacros" %% "quasiquotes" % "2.1.0" cross CrossVersion.binary
         )
         case _ => Seq.empty
       })
@@ -419,7 +418,6 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalameter,
     scalazScalacheckBinding,
-    scalaCheck,
     specs2,
     specs2MatcherExtra,
     specs2Scalacheck
