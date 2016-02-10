@@ -75,10 +75,10 @@ object Http4sBuild extends Build {
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
   lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.2.0"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % scalazCore.revision
-  lazy val specs2              = "org.specs2"               %% "specs2-core"             % "3.6.6-scalaz-7.2.0"
+  lazy val specs2              = "org.specs2"               %% "specs2-core"             % "3.7"
   lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2.revision
   lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2.revision
-  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.8a"
+  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % "0.8a" force()
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.24"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.1.1"
