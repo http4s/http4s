@@ -469,18 +469,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
     </li><li name="org.http4s.json4s.Json4sInstances#jsonEncoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="jsonEncoder:org.http4s.EntityEncoder[org.json4s.JsonAST.JValue]"></a>
-      <a id="jsonEncoder:EntityEncoder[JValue]"></a>
+      <a id="jsonEncoder[A&lt;:org.json4s.JsonAST.JValue]:org.http4s.EntityEncoder[A]"></a>
+      <a id="jsonEncoder[A&lt;:JValue]:EntityEncoder[A]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">lazy val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">jsonEncoder</span><span class="result">: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.json4s.JsonAST.JValue">JValue</span>]</span>
+        <span class="name">jsonEncoder</span><span class="tparams">[<span name="A">A &lt;: <span class="extype" name="org.json4s.JsonAST.JValue">JValue</span></span>]</span><span class="result">: <a href="../../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonEncoder.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.json4s.jackson.Json4sJacksonInstances@jsonEncoder:org.http4s.EntityEncoder[org.json4s.JsonAST.JValue]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.json4s.jackson.Json4sJacksonInstances@jsonEncoder[A&lt;:org.json4s.JsonAST.JValue]:org.http4s.EntityEncoder[A]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -502,6 +502,25 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
+    </li><li name="org.http4s.json4s.Json4sInstances#jsonExtract" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="jsonExtract[A](implicitformats:org.json4s.Formats,implicitmanifest:Manifest[A]):org.http4s.EntityDecoder[A]"></a>
+      <a id="jsonExtract[A](Formats,Manifest[A]):EntityDecoder[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonExtract</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="formats">formats: <span class="extype" name="org.json4s.Formats">Formats</span></span>, <span name="manifest">manifest: <span class="extype" name="scala.Predef.Manifest">Manifest</span>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.A">A</span>]</span>)</span><span class="result">: <a href="../../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.json4s.Json4sInstances.jsonExtract.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.json4s.jackson.Json4sJacksonInstances@jsonExtract[A](implicitformats:org.json4s.Formats,implicitmanifest:Manifest[A]):org.http4s.EntityDecoder[A]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Uses formats to extract a value from JSON.</p><div class="fullcomment"><div class="comment cmt"><p>Uses formats to extract a value from JSON.</p><p>Editorial: This is heavily dependent on reflection. This is more idiomatic json4s, but less
+idiomatic http4s, than <a href="../Json4sInstances.html#jsonOf[A](implicitreader:org.json4s.Reader[A]):org.http4s.EntityDecoder[A]" class="extmbr" name="org.http4s.json4s.Json4sInstances#jsonOf">jsonOf</a>.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Json4sInstances.html" class="extype" name="org.http4s.json4s.Json4sInstances">Json4sInstances</a></dd></dl></div>
     </li><li name="org.http4s.json4s.jackson.Json4sJacksonInstances#jsonMethods" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="jsonMethods:org.json4s.JsonMethods[org.json4s.JsonAST.JValue]"></a>
       <a id="jsonMethods:JsonMethods[JValue]"></a>
