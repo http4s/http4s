@@ -10,14 +10,17 @@
 package org.http4s
 
 import org.specs2.ScalaCheck
+import org.specs2.execute.AsResult
 import org.specs2.scalacheck.Parameters
-import org.specs2.matcher.{TaskMatchers, AnyMatchers, OptionMatchers, DisjunctionMatchers}
+import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.specification.dsl.FragmentsDsl
 import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
 import org.specs2.specification.core.Fragments
 import org.scalacheck.util.{FreqMap, Pretty}
 
+import scalaz.{-\/, \/-}
+import scalaz.concurrent.Task
 import scalaz.std.AllInstances
 import org.scalacheck._
 
@@ -55,5 +58,29 @@ trait Http4sSpec extends Specification
         property(propName) = prop
     }
   }
+
+  def beStatus(status: Status): Matcher[Response] = { resp: Response =>
+    (resp.status == status) -> s" doesn't have status ${status}"
+  }
+
+  implicit class TaskMatchable[T](m: Matcher[T]) {
+    def unsafePerformSync: Matcher[Task[T]] =
+      unsafePerformSyncMatcher(m)
+
+    private def unsafePerformSyncMatcher[T](m: Matcher[T]): Matcher[Task[T]] =
+      new Matcher[Task[T]] {
+        def apply[S <: Task[T]](a: Expectable[S]) = {
+          a.value.unsafePerformSyncAttempt match {
+            case \/-(v) =>
+              val r = AsResult(createExpectable(v).applyMatcher(m))
+              result(r.isSuccess, r.message, r.message, a)
+            case -\/(t) =>
+              val r = createExpectable(throw t).applyMatcher(m).toResult
+              result(r.isSuccess, r.message, r.message, a)
+          }
+        }
+      }
+  }
 }
+
 

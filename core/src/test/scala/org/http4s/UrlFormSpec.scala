@@ -23,11 +23,10 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
   "UrlForm" should {
     val charset = Charset.`UTF-8`
 
-    "entityDecoder . entityEncoder == right" in prop{ (urlForm: UrlForm) =>
-      UrlForm.entityDecoder.decode(
-        Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).run,
-        strict = false
-      ).run.run must_== \/-(urlForm)
+    "entityDecoder . entityEncoder == right" in prop { (urlForm: UrlForm) =>
+      Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).flatMap { req =>
+        UrlForm.entityDecoder.decode(req, strict = false).run
+      } must returnValue(\/-(urlForm))
     }
 
     "decodeString . encodeString == right" in prop{ (urlForm: UrlForm) =>
