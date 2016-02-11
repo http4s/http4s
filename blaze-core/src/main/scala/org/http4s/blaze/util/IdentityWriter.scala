@@ -8,7 +8,7 @@ import scodec.bits.ByteVector
 
 import scala.concurrent.{ExecutionContext, Future}
 
-class IdentityWriter(private var headers: ByteBuffer, size: Int, out: TailStage[ByteBuffer])
+class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage[ByteBuffer])
                     (implicit val ec: ExecutionContext)
     extends ProcessWriter {
 
@@ -26,7 +26,7 @@ class IdentityWriter(private var headers: ByteBuffer, size: Int, out: TailStage[
 
       logger.warn(msg)
 
-      writeBodyChunk(chunk.take(size - bodyBytesWritten), true) flatMap {_ =>
+      writeBodyChunk(chunk.take((size - bodyBytesWritten).toInt), true) flatMap {_ =>
         Future.failed(new IllegalArgumentException(msg))
       }
 
