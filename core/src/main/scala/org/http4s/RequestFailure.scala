@@ -5,7 +5,7 @@ import scalaz.concurrent.Task
 import scalaz.{\/-, -\/, Equal}
 
 /** Indicates a failure to handle a request. */
-sealed abstract class RequestFailure extends RuntimeException with NoStackTrace {
+sealed abstract class RequestFailure extends RuntimeException {
   /** Provides a message appropriate for logging. */
   def message: String
 
@@ -25,7 +25,7 @@ sealed abstract class RequestFailure extends RuntimeException with NoStackTrace 
   * @param details Contains any relevant details omitted from the sanitized
   *                version of the error.  This may freely echo a Request.
   */
-final case class ParseFailure(sanitized: String, details: String) extends RequestFailure {
+final case class ParseFailure(sanitized: String, details: String) extends RequestFailure with NoStackTrace {
   override def message: String =
     if (sanitized.isEmpty) details
     else if (details.isEmpty) sanitized
@@ -50,9 +50,11 @@ object ParseResult {
     }
 }
 
-/** Indicates a problem decoding a message body */
-sealed trait DecodeFailure extends RequestFailure
+/** Indicates a problem decoding a message.  This may either be a problem with
+  * the entity headers or with the entity itself.   */
+sealed abstract class DecodeFailure extends RequestFailure
 
+/** Indicates a problem decoding a message body. */
 sealed abstract class RequestBodyFailure extends DecodeFailure {
   def cause: Option[Throwable] = None
 
@@ -69,7 +71,7 @@ sealed case class MalformedRequestBodyFailure(details: String, override val caus
     Response(Status.BadRequest, httpVersion).withBody(s"The request body was malformed.")
 }
 
-/** Indicates an semantic error decoding the body of an HTTP message. */
+/** Indicates a semantic error decoding the body of an HTTP message. */
 sealed case class InvalidRequestBodyFailure(details: String, override val cause: Option[Throwable] = None) extends RequestBodyFailure {
   override def message: String =
     s"Invalid request body: $details"
@@ -78,7 +80,7 @@ sealed case class InvalidRequestBodyFailure(details: String, override val cause:
     Response(Status.BadRequest, httpVersion).withBody(s"The request body was invalid.")
 }
 
-sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) extends DecodeFailure {
+sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) extends DecodeFailure with NoStackTrace {
   override def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
     Response(Status.UnsupportedMediaType, httpVersion)
       .withBody(s"""Please specify a media type in the following ranges: ${expected.mkString(",")}""")
