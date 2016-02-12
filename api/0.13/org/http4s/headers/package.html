@@ -304,7 +304,7 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.headers.Content-Length" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.headers.Content-Length" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="Content-LengthextendsHeader.ParsedwithProductwithSerializable"></a>
       <a id="Content-Length:Content-Length"></a>
       <h4 class="signature">
@@ -313,14 +313,16 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Content$minusLength.html"><span title="gt4s: Content$minusLength" class="name">Content-Length</span></a><span class="params">(<span name="length">length: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Content$minusLength.html"><span title="gt4s: Content$minusLength" class="name">Content-Length</span></a><span class="params">(<span name="length">length: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.headers.package@Content-LengthextendsHeader.ParsedwithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Constructs a <code>Content-Length</code> header.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs a <code>Content-Length</code> header.</p><p>The HTTP RFCs do not specify a maximum length.  We have decided that <span class="extype" name="Long.MaxValue">Long.MaxValue</span>
+bytes ought to be good enough for anybody in order to avoid the irritations of <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.math.BigInt" class="extype" target="_top">scala.math.BigInt</a>.
+</p></div><dl class="paramcmts block"><dt class="param">length</dt><dd class="cmt"><p>the length; throws an <span class="extype" name="IllegalArgumentException">IllegalArgumentException</span> if negative</p></dd></dl></div>
     </li><li name="org.http4s.headers.Content-Range" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Content-RangeextendsHeader.ParsedwithProductwithSerializable"></a>
       <a id="Content-Range:Content-Range"></a>
