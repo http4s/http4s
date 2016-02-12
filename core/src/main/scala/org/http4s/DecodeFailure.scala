@@ -1,5 +1,6 @@
 package org.http4s
 
+import scala.util.control.NonFatal
 import scalaz.{\/-, -\/, Equal}
 
 sealed trait DecodeFailure {
@@ -22,7 +23,6 @@ final case class DecodeFailureException(failure: DecodeFailure) extends RuntimeE
   *
   * @param sanitized May safely be displayed to a client to describe an error
   *                  condition.  Should not echo any part of a Request.
-  *
   * @param details Contains any relevant details omitted from the sanitized
   *                version of the error.  This may freely echo a Request.
   */
@@ -39,6 +39,12 @@ object ParseFailure {
 object ParseResult {
   def fail(sanitized: String, details: String) = -\/(ParseFailure(sanitized, details))
   def success[A](a: A) = \/-(a)
+
+  def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
+    try ParseResult.success(f)
+    catch {
+      case NonFatal(e) => -\/(ParseFailure(sanitized, e.getMessage))
+    }
 }
 
 /** Indicates that a Message attempting to be decoded has no [[MediaType]] and no

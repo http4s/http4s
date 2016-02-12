@@ -66,7 +66,6 @@ object HttpHeaderParser extends SimpleHeaders
   def dropParser(key: CaseInsensitiveString): Option[HeaderParser] =
     Option(allParsers.remove(key))
 
-
   def parseHeader(header: Header.Raw): ParseResult[Header] = {
     allParsers.get(header.name) match {
       case null =>  ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
