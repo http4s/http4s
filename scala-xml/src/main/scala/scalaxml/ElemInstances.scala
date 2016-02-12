@@ -30,7 +30,7 @@ trait ElemInstances {
         try DecodeResult.success(Task.now(XML.loadXML(source, parser)))
         catch {
           case e: SAXParseException =>
-            DecodeResult.failure(MalformedRequestBodyFailure("Invalid XML", Some(e)))
+            DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
           case NonFatal(e) => DecodeResult(Task.fail(e))
         }
       }

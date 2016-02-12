@@ -33,14 +33,14 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     "flatMapR with failure" in {
       EntityDecoder.text
-        .flatMapR(s => DecodeResult.failure[String](MalformedRequestBodyFailure("bummer, real bummer")))
+        .flatMapR(s => DecodeResult.failure[String](MalformedMessageBodyFailure("bummer, real bummer")))
         .decode(req, strict = false)
         .run
-        .run must be_-\/(MalformedRequestBodyFailure("bummer, real bummer"))
+        .run must be_-\/(MalformedMessageBodyFailure("bummer, real bummer"))
     }
 
     val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
-      DecodeResult.failure(MalformedRequestBodyFailure("Nope."))
+      DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
     }
 
     val decoder1 = EntityDecoder.decodeBy(MediaType.`application/gnutar`) { msg =>
@@ -52,7 +52,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     val failDecoder = EntityDecoder.decodeBy[Int](MediaType.`application/soap+xml`) { msg =>
-      DecodeResult.failure(MalformedRequestBodyFailure("Nope."))
+      DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
     }
 
     "Not match invalid media type" in {
@@ -111,7 +111,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
-      val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(MalformedRequestBodyFailure("Bah!"))))
+      val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(MalformedMessageBodyFailure("Bah!"))))
       val resp = request.decodeWith(grumpyDecoder, strict = false) { _ => Task.now(Response())}.run
       resp.status must_== (Status.BadRequest)
     }

@@ -94,7 +94,7 @@ object EntityDecoder extends EntityDecoderInstances {
         else f(msg)
       }
       catch {
-        case NonFatal(e) => DecodeResult.failure(MalformedRequestBodyFailure("Error decoding body", Some(e)))
+        case NonFatal(e) => DecodeResult.failure(MalformedMessageBodyFailure("Error decoding body", Some(e)))
       }
     }
 

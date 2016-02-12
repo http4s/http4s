@@ -56,10 +56,10 @@ object UrlForm {
     }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(urlForm: String): MalformedRequestBodyFailure \/ UrlForm =
+  def decodeString(charset: Charset)(urlForm: String): MalformedMessageBodyFailure \/ UrlForm =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(q.multiParams))
-      .leftMap { parseFailure => MalformedRequestBodyFailure(parseFailure.message, None) }
+      .leftMap { parseFailure => MalformedMessageBodyFailure(parseFailure.message, None) }
 
   /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
   def encodeString(charset: Charset)(urlForm: UrlForm): String = {

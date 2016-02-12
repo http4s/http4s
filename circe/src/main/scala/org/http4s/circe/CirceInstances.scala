@@ -13,7 +13,7 @@ trait CirceInstances {
     json.flatMapR { json =>
       decoder.decodeJson(json).fold(
         failure =>
-          DecodeResult.failure(InvalidRequestBodyFailure(s"Could not decode JSON: $json", Some(failure))),
+          DecodeResult.failure(InvalidMessageBodyFailure(s"Could not decode JSON: $json", Some(failure))),
         DecodeResult.success(_)
       )
     }
