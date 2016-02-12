@@ -13,8 +13,8 @@ trait JawnInstances {
       DecodeResult {
         msg.body.parseJson(AsyncParser.SingleValue).partialAttempt {
           case pe: ParseException =>
-            emit(ParseFailure("Invalid JSON", pe.getMessage))
-        }.runLastOr(-\/(ParseFailure("Invalid JSON", "Empty JSON text is not allowed.")))
+            emit(MalformedRequestBodyFailure("Invalid JSON", Some(pe)))
+        }.runLastOr(-\/(MalformedRequestBodyFailure("Invalid JSON: empty JSON text is not allowed.")))
       }
     }
 }

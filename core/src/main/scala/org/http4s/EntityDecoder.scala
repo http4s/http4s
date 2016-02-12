@@ -94,7 +94,7 @@ object EntityDecoder extends EntityDecoderInstances {
         else f(msg)
       }
       catch {
-        case NonFatal(e) => DecodeResult[T](Task.fail(e))
+        case NonFatal(e) => DecodeResult.failure(MalformedRequestBodyFailure("Error decoding body", Some(e)))
       }
     }
 
@@ -164,11 +164,11 @@ trait EntityDecoderInstances {
 }
 
 object DecodeResult {
-  def apply[A](task: Task[ParseResult[A]]): DecodeResult[A] = EitherT[Task, DecodeFailure, A](task)
+  def apply[A](task: Task[DecodeFailure \/ A]): DecodeResult[A] = EitherT(task)
 
   def success[A](a: Task[A]): DecodeResult[A] = EitherT.right(a)
 
-  def success[A](a: A): DecodeResult[A] = EitherT(Task.now(\/-(a): ParseFailure\/A))
+  def success[A](a: A): DecodeResult[A] = EitherT(Task.now(\/.right[DecodeFailure, A](a)))
 
   def failure[A](e: Task[DecodeFailure]): DecodeResult[A] = EitherT.left(e)
 

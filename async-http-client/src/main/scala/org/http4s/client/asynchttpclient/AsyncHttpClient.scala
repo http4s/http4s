@@ -144,7 +144,7 @@ object AsyncHttpClient {
     new InputStreamBodyGenerator(toInputStream(body))
 
   private def getStatus(status: HttpResponseStatus): Status =
-    Status.fromInt(status.getStatusCode).valueOr(e => throw new ParseException(e))
+    Status.fromInt(status.getStatusCode).valueOr(throw _)
 
   private def getHeaders(headers: HttpResponseHeaders): Headers = {
     Headers(headers.getHeaders.iterator.asScala.map { header =>

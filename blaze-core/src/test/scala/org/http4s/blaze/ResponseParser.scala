@@ -44,7 +44,7 @@ class ResponseParser extends Http1ClientParser {
 
     val headers = this.headers.result.map{ case (k,v) => Header(k,v): Header }.toSet
 
-    val status = Status.fromIntAndReason(this.code, reason).valueOr(e => throw new ParseException(e))
+    val status = Status.fromIntAndReason(this.code, reason).valueOr(throw _)
 
     (status, headers, bp)
   }

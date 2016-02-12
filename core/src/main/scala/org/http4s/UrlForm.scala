@@ -6,6 +6,7 @@ import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
 
 import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
+import scalaz.\/
 
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
@@ -55,9 +56,10 @@ object UrlForm {
     }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(urlForm: String): ParseResult[UrlForm] =
+  def decodeString(charset: Charset)(urlForm: String): MalformedRequestBodyFailure \/ UrlForm =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(q.multiParams))
+      .leftMap { parseFailure => MalformedRequestBodyFailure(parseFailure.message, None) }
 
   /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
   def encodeString(charset: Charset)(urlForm: UrlForm): String = {
