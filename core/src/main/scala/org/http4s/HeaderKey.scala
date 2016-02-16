@@ -1,5 +1,7 @@
 package org.http4s
 
+import org.http4s.parser.HttpHeaderParser
+
 import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
@@ -15,6 +17,8 @@ sealed trait HeaderKey {
   final def unapply(header: Header): Option[HeaderT] = matchHeader(header)
 
   override def toString: String = s"HeaderKey($name})"
+
+  def fromString(s: String): ParseResult[HeaderT]
 }
 
 object HeaderKey {
@@ -79,6 +83,9 @@ object HeaderKey {
 
   private[http4s] trait Default extends Internal[Header] with StringKey {
     override type HeaderT = Header
+
+    override def fromString(s: String): ParseResult[Header] =
+      ParseResult.success(Header.Raw(name, s))
   }
 }
 

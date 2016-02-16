@@ -409,6 +409,7 @@ lazy val commonSettings = Seq(
     else Seq.empty
   ),
   libraryDependencies  ++= Seq(
+    discipline,
     logbackClassic,
     scalameter,
     scalazScalacheckBinding,

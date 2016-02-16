@@ -1,10 +1,12 @@
 package org.http4s.headers
 
-import org.http4s.Http4sSpec
+import org.http4s.{HeaderLaws, Http4sSpec}
 
 import scalaz.{\/, -\/}
 
-class ContentLengthSpec extends Http4sSpec {
+class ContentLengthSpec extends Http4sSpec with HeaderLaws[`Content-Length`] {
+  checkHeaderLaws
+
   "apply" should {
     "reject negative lengths" in prop { length: Long => length < 0 ==> {
       `Content-Length`(length) must throwA[IllegalArgumentException]

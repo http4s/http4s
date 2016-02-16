@@ -1,6 +1,11 @@
 package org.http4s
 
-import org.http4s.headers.`Accept-Charset`
+import java.time.{ZonedDateTime, ZoneId, Instant}
+import java.time.temporal.{ChronoUnit, TemporalField}
+import java.util.concurrent.TimeUnit
+import java.util.{Calendar, GregorianCalendar}
+
+import org.http4s.headers.{`Content-Length`, `Accept-Charset`}
 
 import java.nio.charset.{Charset => NioCharset}
 
@@ -95,6 +100,20 @@ trait TestInstances {
   implicit val bitSetArb: Arbitrary[BitSet] = Arbitrary(
     Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
   )
+
+  implicit val arbitararyContentLength: Arbitrary[`Content-Length`] =
+    Arbitrary { for {
+      long <- arbitrary[Long] if long > 0L
+    } yield `Content-Length`(long) }
+
+  private val MIN_DATE = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
+  private val MAX_DATE = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
+
+  implicit val arbitraryDateHeader: Arbitrary[headers.Date] =
+    Arbitrary { for {
+      millis <- Gen.choose[Long](MIN_DATE, MAX_DATE)
+      instant = Instant.ofEpochMilli(millis).truncatedTo(ChronoUnit.SECONDS)
+    } yield headers.Date(instant) }
 }
 
 

@@ -17,6 +17,7 @@ import org.specs2.specification.dsl.FragmentsDsl
 import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
 import org.specs2.specification.core.Fragments
 import org.scalacheck.util.{FreqMap, Pretty}
+import org.typelevel.discipline.Laws
 
 import scalaz.std.AllInstances
 import org.scalacheck._
@@ -53,6 +54,13 @@ trait Http4sSpec extends Specification
     def withProp(propName: String, prop: Prop) = new Properties(props.name) {
       for {(name, p) <- props.properties} property(name) = p
         property(propName) = prop
+    }
+  }
+
+  def checkAll(name: String, ruleSet: Laws#RuleSet)(implicit p: Parameters) = {
+    s"""${ruleSet.name} laws must hold for ${name}""" ^ br ^
+    Fragments.foreach(ruleSet.all.properties) { case (id, prop) =>
+       id ! check(prop, p, defaultFreqMapPretty) ^ br
     }
   }
 }

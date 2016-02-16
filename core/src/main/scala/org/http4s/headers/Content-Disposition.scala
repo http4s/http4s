@@ -1,9 +1,13 @@
 package org.http4s
 package headers
 
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
-object `Content-Disposition` extends HeaderKey.Internal[`Content-Disposition`] with HeaderKey.Singleton
+object `Content-Disposition` extends HeaderKey.Internal[`Content-Disposition`] with HeaderKey.Singleton {
+  override def fromString(s: String): ParseResult[`Content-Disposition`] =
+    HttpHeaderParser.CONTENT_DISPOSITION(s)
+}
 
 // see http://tools.ietf.org/html/rfc2183
 final case class `Content-Disposition`(dispositionType: String, parameters: Map[String, String]) extends Header.Parsed {
