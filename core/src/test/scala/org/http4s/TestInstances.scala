@@ -1,11 +1,10 @@
 package org.http4s
 
 import java.time.{ZonedDateTime, ZoneId, Instant}
-import java.time.temporal.{ChronoUnit, TemporalField}
-import java.util.concurrent.TimeUnit
-import java.util.{Calendar, GregorianCalendar}
+import java.time.temporal.ChronoUnit
 
-import org.http4s.headers.{`Content-Length`, `Accept-Charset`}
+import org.http4s.headers.{Allow, Date, `Content-Length`, `Accept-Charset`}
+import org.http4s.util.string._
 
 import java.nio.charset.{Charset => NioCharset}
 
@@ -101,19 +100,44 @@ trait TestInstances {
     Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
   )
 
+  implicit val arbitararyAllow: Arbitrary[Allow] =
+    Arbitrary { for {
+      methods <- arbitrary[NonEmptyList[Method]]
+    } yield Allow(methods) }
+
   implicit val arbitararyContentLength: Arbitrary[`Content-Length`] =
     Arbitrary { for {
       long <- arbitrary[Long] if long > 0L
     } yield `Content-Length`(long) }
 
-  private val MIN_DATE = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
-  private val MAX_DATE = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
+  val genHttpDate: Gen[Instant] = {
+    val min = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
+    val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
+    Gen.choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
+  }
 
   implicit val arbitraryDateHeader: Arbitrary[headers.Date] =
     Arbitrary { for {
-      millis <- Gen.choose[Long](MIN_DATE, MAX_DATE)
-      instant = Instant.ofEpochMilli(millis).truncatedTo(ChronoUnit.SECONDS)
+      instant <- genHttpDate
     } yield headers.Date(instant) }
+
+  val genRawHeader: Gen[Header] = {
+    for {
+      key <- arbitrary[String]
+      value <- arbitrary[String]
+    } yield Header.Raw(key.ci, value)
+  }
+
+  implicit val arbitraryHeader: Arbitrary[Header] =
+    Arbitrary {
+      Gen.oneOf(
+        arbitrary[`Accept-Charset`],
+        arbitrary[Allow],
+        arbitrary[`Content-Length`],
+        arbitrary[Date],
+        genRawHeader
+      )
+    }
 }
 
 

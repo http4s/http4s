@@ -58,9 +58,10 @@ trait Http4sSpec extends Specification
   }
 
   def checkAll(name: String, ruleSet: Laws#RuleSet)(implicit p: Parameters) = {
-    s"""${ruleSet.name} laws must hold for ${name}""" ^ br ^
-    Fragments.foreach(ruleSet.all.properties) { case (id, prop) =>
-       id ! check(prop, p, defaultFreqMapPretty) ^ br
+    s"""${ruleSet.name} laws must hold for ${name}""" in {
+      Fragments.foreach(ruleSet.all.properties) { case (id, prop) =>
+        id ! check(prop, p, defaultFreqMapPretty) ^ br
+      }
     }
   }
 }
