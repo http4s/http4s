@@ -26,7 +26,31 @@ trait TestInstances {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++
       ('0' to '9') ++ ('A' to 'Z') ++ ('a' to 'z')
   }
-  val tokens: Gen[String] = nonEmptyListOf(tchars).map(_.mkString)
+  val tokens: Gen[String] =
+    nonEmptyListOf(tchars).map(_.mkString)
+
+  lazy val fieldValues: Gen[String] =
+    fieldContents
+
+  lazy val fieldContents: Gen[String] =
+    for {
+      head <- fieldVchars
+      tail <- containerOf[Vector, Vector[Char]](
+        frequency(
+          9 -> fieldVchars.map(Vector(_)),
+          1 -> (for {
+            spaces <- nonEmptyContainerOf[Vector, Char](oneOf(' ', '\t'))
+            fieldVchar <- fieldVchars
+          } yield spaces :+ fieldVchar)
+        )
+      ).map(_.flatten)
+    } yield (head +: tail).mkString
+
+  lazy val fieldVchars: Gen[Char] =
+    vchars
+
+  lazy val vchars: Gen[Char] =
+    Gen.oneOf('\u0021' to '\u007e')
 
   val standardMethods: Gen[Method] = Gen.oneOf(Method.registered.toSeq)
   implicit val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
@@ -102,8 +126,8 @@ trait TestInstances {
 
   implicit val arbitararyAllow: Arbitrary[Allow] =
     Arbitrary { for {
-      methods <- arbitrary[NonEmptyList[Method]]
-    } yield Allow(methods) }
+      methods <- nonEmptyContainerOf[Set, Method](arbitrary[Method]).map(_.toList)
+    } yield Allow(methods.head, methods.tail:_*) }
 
   implicit val arbitararyContentLength: Arbitrary[`Content-Length`] =
     Arbitrary { for {
@@ -123,9 +147,9 @@ trait TestInstances {
 
   val genRawHeader: Gen[Header] = {
     for {
-      key <- arbitrary[String]
-      value <- arbitrary[String]
-    } yield Header.Raw(key.ci, value)
+      token <- tokens
+      value <- fieldValues
+    } yield Header.Raw(token.ci, value)
   }
 
   implicit val arbitraryHeader: Arbitrary[Header] =
