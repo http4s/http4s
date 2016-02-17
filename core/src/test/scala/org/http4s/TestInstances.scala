@@ -100,18 +100,35 @@ trait TestInstances {
   implicit val qValues: Arbitrary[QValue] =
     Arbitrary { Gen.oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).yolo) }
 
+
   implicit val arbitraryCharsetRange: Arbitrary[CharsetRange] =
-    Arbitrary { frequency((10, arbitrary[CharsetRange.Atom]), (1, arbitrary[CharsetRange.`*`])) }
+    Arbitrary { for {
+      charsetRange <- charsetRangesNoQuality
+      q <- arbitrary[QValue]
+    } yield charsetRange.withQValue(q) }
+
   implicit val arbitraryCharsetAtomRange: Arbitrary[CharsetRange.Atom] =
     Arbitrary { for {
       charset <- arbitrary[Charset]
       q <- arbitrary[QValue]
     } yield charset.withQuality(q) }
+
   implicit val arbitraryCharsetSplatRange: Arbitrary[CharsetRange.`*`] =
     Arbitrary { arbitrary[QValue].map(CharsetRange.`*`.withQValue(_)) }
 
+  lazy val charsetRangesNoQuality: Gen[CharsetRange] =
+    frequency(
+      3 -> arbitrary[Charset].map(CharsetRange.fromCharset),
+      1 -> const(CharsetRange.`*`)
+    )
+
   implicit val arbitraryAcceptCharset: Arbitrary[`Accept-Charset`] =
-    Arbitrary { arbitrary[NonEmptyList[CharsetRange.`*`]].map(`Accept-Charset`(_)) }
+    Arbitrary { for {
+      // make a set first so we don't have contradictory q-values
+      charsetRanges <- nonEmptyContainerOf[Set, CharsetRange](charsetRangesNoQuality).map(_.toVector)
+      qValues <- containerOfN[Vector, QValue](charsetRanges.size, qValues.arbitrary)
+      charsetRangesWithQ = charsetRanges.zip(qValues).map { case (range, q) => range.withQValue(q) }
+    } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail:_*) }
 
   implicit val urlFormArb: Arbitrary[UrlForm] = Arbitrary {
     // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
@@ -135,7 +152,8 @@ trait TestInstances {
     } yield `Content-Length`(long) }
 
   val genHttpDate: Gen[Instant] = {
-    val min = ZonedDateTime.of(1, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
+    // RFC 5322 says 1900 is the minimum year
+    val min = ZonedDateTime.of(1900, 1, 1, 0, 0, 0, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
     val max = ZonedDateTime.of(9999, 12, 31, 23, 59, 59, 0, ZoneId.of("UTC")).toInstant.toEpochMilli
     Gen.choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
   }
