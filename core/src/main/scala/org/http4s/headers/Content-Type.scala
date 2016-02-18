@@ -8,7 +8,7 @@ object `Content-Type` extends HeaderKey.Internal[`Content-Type`] with HeaderKey.
   def apply(mediaType: MediaType, charset: Charset): `Content-Type` = apply(mediaType, Some(charset))
   implicit def apply(mediaType: MediaType): `Content-Type` = apply(mediaType, None)
 
-  override def fromString(s: String): ParseResult[`Content-Type`] =
+  override def parse(s: String): ParseResult[`Content-Type`] =
     HttpHeaderParser.CONTENT_TYPE(s)
 }
 

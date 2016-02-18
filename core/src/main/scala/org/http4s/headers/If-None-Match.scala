@@ -15,7 +15,7 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
     `If-None-Match`(Some(NonEmptyList(first, rest:_*)))
   }
 
-  override def fromString(s: String): ParseResult[`If-None-Match`] =
+  override def parse(s: String): ParseResult[`If-None-Match`] =
     HttpHeaderParser.IF_NONE_MATCH(s)
 }
 

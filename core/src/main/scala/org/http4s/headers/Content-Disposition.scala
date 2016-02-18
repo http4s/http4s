@@ -5,7 +5,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object `Content-Disposition` extends HeaderKey.Internal[`Content-Disposition`] with HeaderKey.Singleton {
-  override def fromString(s: String): ParseResult[`Content-Disposition`] =
+  override def parse(s: String): ParseResult[`Content-Disposition`] =
     HttpHeaderParser.CONTENT_DISPOSITION(s)
 }
 

@@ -6,7 +6,7 @@ import org.http4s.parser.HttpHeaderParser
 import scalaz.NonEmptyList
 
 object `Accept-Encoding` extends HeaderKey.Internal[`Accept-Encoding`] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[`Accept-Encoding`] =
+  override def parse(s: String): ParseResult[`Accept-Encoding`] =
     HttpHeaderParser.ACCEPT_ENCODING(s)
 }
 

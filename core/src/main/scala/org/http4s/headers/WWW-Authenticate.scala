@@ -6,7 +6,7 @@ import org.http4s.parser.HttpHeaderParser
 import scalaz.NonEmptyList
 
 object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[`WWW-Authenticate`] =
+  override def parse(s: String): ParseResult[`WWW-Authenticate`] =
     HttpHeaderParser.WWW_AUTHENTICATE(s)
 }
 

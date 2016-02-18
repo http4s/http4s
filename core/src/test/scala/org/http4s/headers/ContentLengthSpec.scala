@@ -29,15 +29,15 @@ class ContentLengthSpec extends HeaderLaws {
 
   "fromString" should {
     "reject negative lengths" in prop { length: Long => length < 0 ==> {
-      `Content-Length`.fromString(length.toString) must be_-\/
+      `Content-Length`.parse(length.toString) must be_-\/
     }}
 
     "reject non-numeric strings" in prop { s: String => !s.matches("[0-9]+") ==> {
-      `Content-Length`.fromString(s) must be_-\/
+      `Content-Length`.parse(s) must be_-\/
     }}
 
     "be consistent with apply" in prop { length: Long => length >= 0 ==> {
-      `Content-Length`.fromString(length.toString) must be_\/-(`Content-Length`(length))
+      `Content-Length`.parse(length.toString) must be_\/-(`Content-Length`(length))
     }}
   }
 }

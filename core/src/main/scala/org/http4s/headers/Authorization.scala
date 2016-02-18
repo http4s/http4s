@@ -5,7 +5,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Singleton {
-  override def fromString(s: String): ParseResult[Authorization] =
+  override def parse(s: String): ParseResult[Authorization] =
     HttpHeaderParser.AUTHORIZATION(s)
 }
 

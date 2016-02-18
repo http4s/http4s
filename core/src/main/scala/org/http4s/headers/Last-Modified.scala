@@ -7,7 +7,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderer, Writer}
 
 object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKey.Singleton {
-  override def fromString(s: String): ParseResult[`Last-Modified`] =
+  override def parse(s: String): ParseResult[`Last-Modified`] =
     HttpHeaderParser.LAST_MODIFIED(s)
 }
 

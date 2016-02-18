@@ -6,7 +6,7 @@ import org.http4s.parser.HttpHeaderParser
 import scalaz.NonEmptyList
 
 object `Transfer-Encoding` extends HeaderKey.Internal[`Transfer-Encoding`] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[`Transfer-Encoding`] =
+  override def parse(s: String): ParseResult[`Transfer-Encoding`] =
     HttpHeaderParser.TRANSFER_ENCODING(s)
 }
 

@@ -9,7 +9,7 @@ import org.http4s.util.Writer
 import scalaz.NonEmptyList
 
 object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[`X-Forwarded-For`] =
+  override def parse(s: String): ParseResult[`X-Forwarded-For`] =
     HttpHeaderParser.X_FORWARDED_FOR(s)
 }
 

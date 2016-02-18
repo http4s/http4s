@@ -6,7 +6,7 @@ import org.http4s.parser.HttpHeaderParser
 import scalaz.NonEmptyList
 
 object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[`Cache-Control`] =
+  override def parse(s: String): ParseResult[`Cache-Control`] =
     HttpHeaderParser.CACHE_CONTROL(s)
 }
 

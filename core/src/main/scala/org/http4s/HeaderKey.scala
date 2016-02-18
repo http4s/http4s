@@ -18,7 +18,7 @@ sealed trait HeaderKey {
 
   override def toString: String = s"HeaderKey($name})"
 
-  def fromString(s: String): ParseResult[HeaderT]
+def parse(s: String): ParseResult[HeaderT]
 }
 
 object HeaderKey {
@@ -84,7 +84,7 @@ object HeaderKey {
   private[http4s] trait Default extends Internal[Header] with StringKey {
     override type HeaderT = Header
 
-    override def fromString(s: String): ParseResult[Header] =
+    override def parse(s: String): ParseResult[Header] =
       ParseResult.success(Header.Raw(name, s))
   }
 }

@@ -9,7 +9,7 @@ object `Accept-Ranges` extends HeaderKey.Internal[`Accept-Ranges`] with HeaderKe
   def bytes = apply(RangeUnit.Bytes)
   def none = apply(Nil)
 
-  override def fromString(s: String): ParseResult[`Accept-Ranges`] =
+  override def parse(s: String): ParseResult[`Accept-Ranges`] =
     HttpHeaderParser.ACCEPT_RANGES(s)
 }
 

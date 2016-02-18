@@ -6,7 +6,7 @@ import org.http4s.parser.HttpHeaderParser
 import scalaz.NonEmptyList
 
 object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[`Accept-Charset`] =
+  override def parse(s: String): ParseResult[`Accept-Charset`] =
     HttpHeaderParser.ACCEPT_CHARSET(s)
 }
 

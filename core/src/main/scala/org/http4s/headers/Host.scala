@@ -7,7 +7,7 @@ import org.http4s.util.Writer
 object Host extends HeaderKey.Internal[Host] with HeaderKey.Singleton {
   def apply(host: String, port: Int): Host = apply(host, Some(port))
 
-  override def fromString(s: String): ParseResult[Host] =
+  override def parse(s: String): ParseResult[Host] =
     HttpHeaderParser.HOST(s)
 }
 

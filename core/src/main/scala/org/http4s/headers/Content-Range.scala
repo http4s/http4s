@@ -15,7 +15,7 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
 
   def apply(start: Long): `Content-Range` = apply(Range.SubRange(start, None), None)
 
-  override def fromString(s: String): ParseResult[`Content-Range`] =
+  override def parse(s: String): ParseResult[`Content-Range`] =
     HttpHeaderParser.CONTENT_RANGE(s)
 }
 

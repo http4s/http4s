@@ -33,7 +33,7 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     }
   }
 
-  override def fromString(s: String): ParseResult[Range] =
+  override def parse(s: String): ParseResult[Range] =
     HttpHeaderParser.RANGE(s)
 }
 

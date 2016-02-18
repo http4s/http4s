@@ -5,7 +5,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] with HeaderKey.Singleton {
-  override def fromString(s: String): ParseResult[`Set-Cookie`] =
+  override def parse(s: String): ParseResult[`Set-Cookie`] =
     HttpHeaderParser.SET_COOKIE(s)
 }
 

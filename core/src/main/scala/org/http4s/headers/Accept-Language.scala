@@ -6,7 +6,7 @@ import org.http4s.parser.HttpHeaderParser
 import scalaz.NonEmptyList
 
 object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[`Accept-Language`] =
+  override def parse(s: String): ParseResult[`Accept-Language`] =
     HttpHeaderParser.ACCEPT_LANGUAGE(s)
 }
 

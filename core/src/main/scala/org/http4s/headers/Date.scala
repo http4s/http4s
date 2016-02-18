@@ -8,7 +8,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderer, Writer}
 
 object Date extends HeaderKey.Internal[Date] with HeaderKey.Singleton {
-  override def fromString(s: String): ParseResult[Date] =
+  override def parse(s: String): ParseResult[Date] =
     HttpHeaderParser.DATE(s)
 }
 

@@ -5,7 +5,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object Location extends HeaderKey.Internal[Location] with HeaderKey.Singleton {
-  override def fromString(s: String): ParseResult[Location] =
+  override def parse(s: String): ParseResult[Location] =
     HttpHeaderParser.LOCATION(s)
 }
 

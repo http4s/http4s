@@ -7,7 +7,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderer, Writer}
 
 object `If-Modified-Since` extends HeaderKey.Internal[`If-Modified-Since`] with HeaderKey.Singleton {
-  override def fromString(s: String): ParseResult[`If-Modified-Since`] =
+  override def parse(s: String): ParseResult[`If-Modified-Since`] =
     HttpHeaderParser.IF_MODIFIED_SINCE(s)
 }
 

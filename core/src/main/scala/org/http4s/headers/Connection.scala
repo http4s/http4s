@@ -10,7 +10,7 @@ import scalaz.NonEmptyList
 // values should be case insensitive
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
 object Connection extends HeaderKey.Internal[Connection] with HeaderKey.Recurring {
-  override def fromString(s: String): ParseResult[Connection] =
+  override def parse(s: String): ParseResult[Connection] =
     HttpHeaderParser.CONNECTION(s)
 }
 
