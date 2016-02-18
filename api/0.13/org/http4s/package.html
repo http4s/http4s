@@ -330,40 +330,24 @@ for keys with the same label and same types.</p></div></div>
       </a>
     </span>
       
-    </li><li name="org.http4s.DecodeFailure" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="DecodeFailureextendsAnyRef"></a>
+    </li><li name="org.http4s.DecodeFailure" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="DecodeFailureextendsMessageFailure"></a>
       <a id="DecodeFailure:DecodeFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed </span>
-        <span class="kind">trait</span>
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="DecodeFailure.html"><span class="name">DecodeFailure</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <a href="DecodeFailure.html"><span class="name">DecodeFailure</span></a><span class="result"> extends <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@DecodeFailureextendsAnyRef" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@DecodeFailureextendsMessageFailure" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
-    </li><li name="org.http4s.DecodeFailureException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="DecodeFailureExceptionextendsRuntimeExceptionwithProductwithSerializable"></a>
-      <a id="DecodeFailureException:DecodeFailureException"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="DecodeFailureException.html"><span class="name">DecodeFailureException</span></a><span class="params">(<span name="failure">failure: <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@DecodeFailureExceptionextendsRuntimeExceptionwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
+      <p class="shortcomment cmt">Indicates a problem decoding a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Indicates a problem decoding a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.  This may either be a problem with
+the entity headers or with the entity itself.</p></div></div>
     </li><li name="org.http4s.DecodeResult" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="DecodeResult[T]=scalaz.EitherT[scalaz.concurrent.Task,org.http4s.DecodeFailure,T]"></a>
       <a id="DecodeResult[T]:DecodeResult[T]"></a>
@@ -751,6 +735,23 @@ server backend, such as Blaze, Jetty, or Tomcat.
       </a>
     </span>
       <p class="shortcomment cmt">Exception dealing with invalid body</p><div class="fullcomment"><div class="comment cmt"><p>Exception dealing with invalid body</p></div><dl class="paramcmts block"><dt class="param">msg</dt><dd class="cmt"><p>description if what makes the body invalid</p></dd></dl></div>
+    </li><li name="org.http4s.InvalidMessageBodyFailure" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="InvalidMessageBodyFailureextendsMessageBodyFailurewithProductwithSerializable"></a>
+      <a id="InvalidMessageBodyFailure:InvalidMessageBodyFailure"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="InvalidMessageBodyFailure.html"><span class="name">InvalidMessageBodyFailure</span></a><span class="params">(<span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="cause">cause: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Throwable">Throwable</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="MessageBodyFailure.html" class="extype" name="org.http4s.MessageBodyFailure">MessageBodyFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@InvalidMessageBodyFailureextendsMessageBodyFailurewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Indicates a semantic error decoding the body of an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p>
     </li><li name="org.http4s.InvalidResponseException" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="InvalidResponseExceptionextendsExceptionwithNoStackTracewithProductwithSerializable"></a>
       <a id="InvalidResponseException:InvalidResponseException"></a>
@@ -785,6 +786,23 @@ server backend, such as Blaze, Jetty, or Tomcat.
       </a>
     </span>
       
+    </li><li name="org.http4s.MalformedMessageBodyFailure" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="MalformedMessageBodyFailureextendsMessageBodyFailurewithProductwithSerializable"></a>
+      <a id="MalformedMessageBodyFailure:MalformedMessageBodyFailure"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="MalformedMessageBodyFailure.html"><span class="name">MalformedMessageBodyFailure</span></a><span class="params">(<span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="cause">cause: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Throwable">Throwable</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="MessageBodyFailure.html" class="extype" name="org.http4s.MessageBodyFailure">MessageBodyFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@MalformedMessageBodyFailureextendsMessageBodyFailurewithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Indicates an syntactic error decoding the body of an HTTP <span class="extype" name="Message]."></span></p>
     </li><li name="org.http4s.MediaRange" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="MediaRangeextendsHasQValuewithRenderable"></a>
       <a id="MediaRange:MediaRange"></a>
@@ -820,39 +838,39 @@ server backend, such as Blaze, Jetty, or Tomcat.
     </span>
       
     </li><li name="org.http4s.MediaTypeMismatch" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MediaTypeMismatchextendsDecodeFailurewithProductwithSerializable"></a>
+      <a id="MediaTypeMismatchextendsUnsupportedMediaTypeFailurewithProductwithSerializable"></a>
       <a id="MediaTypeMismatch:MediaTypeMismatch"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="MediaTypeMismatch.html"><span class="name">MediaTypeMismatch</span></a><span class="params">(<span name="messageType">messageType: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>, <span name="expected">expected: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="MediaTypeMismatch.html"><span class="name">MediaTypeMismatch</span></a><span class="params">(<span name="messageType">messageType: <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a></span>, <span name="expected">expected: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span><span class="result"> extends <a href="UnsupportedMediaTypeFailure.html" class="extype" name="org.http4s.UnsupportedMediaTypeFailure">UnsupportedMediaTypeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@MediaTypeMismatchextendsDecodeFailurewithProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@MediaTypeMismatchextendsUnsupportedMediaTypeFailurewithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Indicates that no <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> matches the <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> of the message being decoded</p>
+      <p class="shortcomment cmt">Indicates that no <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> matches the <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> of the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> being decoded</p>
     </li><li name="org.http4s.MediaTypeMissing" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="MediaTypeMissingextendsDecodeFailurewithProductwithSerializable"></a>
+      <a id="MediaTypeMissingextendsUnsupportedMediaTypeFailurewithProductwithSerializable"></a>
       <a id="MediaTypeMissing:MediaTypeMissing"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="MediaTypeMissing.html"><span class="name">MediaTypeMissing</span></a><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="MediaTypeMissing.html"><span class="name">MediaTypeMissing</span></a><span class="params">(<span name="expected">expected: <span class="extype" name="scala.Predef.Set">Set</span>[<a href="MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span><span class="result"> extends <a href="UnsupportedMediaTypeFailure.html" class="extype" name="org.http4s.UnsupportedMediaTypeFailure">UnsupportedMediaTypeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@MediaTypeMissingextendsDecodeFailurewithProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@MediaTypeMissingextendsUnsupportedMediaTypeFailurewithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Indicates that a Message attempting to be decoded has no <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> and no
+      <p class="shortcomment cmt">Indicates that a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> attempting to be decoded has no <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a> and no
 <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> was lenient enough to accept it.</p>
     </li><li name="org.http4s.Message" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="MessageextendsMessageOps"></a>
@@ -872,6 +890,40 @@ server backend, such as Blaze, Jetty, or Tomcat.
     </span>
       <p class="shortcomment cmt">Represents a HTTP Message.</p><div class="fullcomment"><div class="comment cmt"><p>Represents a HTTP Message. The interesting subclasses are Request and Response
 while most of the functionality is found in <a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a> and <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></div><dl class="attributes block"> <dt>See also</dt><dd><span class="cmt"><p><a href="MessageSyntax.html" class="extype" name="org.http4s.MessageSyntax">MessageSyntax</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a></p></span></dd></dl></div>
+    </li><li name="org.http4s.MessageBodyFailure" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MessageBodyFailureextendsDecodeFailure"></a>
+      <a id="MessageBodyFailure:MessageBodyFailure"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MessageBodyFailure.html"><span class="name">MessageBodyFailure</span></a><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@MessageBodyFailureextendsDecodeFailure" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Indicates a problem decoding a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> body.</p>
+    </li><li name="org.http4s.MessageFailure" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="MessageFailureextendsRuntimeException"></a>
+      <a id="MessageFailure:MessageFailure"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="MessageFailure.html"><span class="name">MessageFailure</span></a><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@MessageFailureextendsRuntimeException" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Indicates a failure to handle an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p>
     </li><li name="org.http4s.MessageOps" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="MessageOpsextendsAny"></a>
       <a id="MessageOps:MessageOps"></a>
@@ -958,25 +1010,8 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       </a>
     </span>
       
-    </li><li name="org.http4s.ParseException" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="ParseExceptionextendsRuntimeExceptionwithProductwithSerializable"></a>
-      <a id="ParseException:ParseException"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="ParseException.html"><span class="name">ParseException</span></a><span class="params">(<span name="failure">failure: <a href="ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a></span>)</span><span class="result"> extends <span class="extype" name="scala.RuntimeException">RuntimeException</span> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@ParseExceptionextendsRuntimeExceptionwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="org.http4s.ParseFailure" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="ParseFailureextendsDecodeFailurewithProductwithSerializable"></a>
+      <a id="ParseFailureextendsMessageFailurewithNoStackTracewithProductwithSerializable"></a>
       <a id="ParseFailure:ParseFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -984,14 +1019,14 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="ParseFailure.html"><span class="name">ParseFailure</span></a><span class="params">(<span name="sanitized">sanitized: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="ParseFailure.html"><span class="name">ParseFailure</span></a><span class="params">(<span name="sanitized">sanitized: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="details">details: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.util.control.NoStackTrace" class="extype" target="_top">NoStackTrace</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@ParseFailureextendsDecodeFailurewithProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@ParseFailureextendsMessageFailurewithNoStackTracewithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Indicates an error parsing an HTTP message.</p><div class="fullcomment"><div class="comment cmt"><p>Indicates an error parsing an HTTP message.
+      <p class="shortcomment cmt">Indicates an error parsing an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Indicates an error parsing an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.
 </p></div><dl class="paramcmts block"><dt class="param">sanitized</dt><dd class="cmt"><p>May safely be displayed to a client to describe an error
                  condition.  Should not echo any part of a Request.</p></dd><dt class="param">details</dt><dd class="cmt"><p>Contains any relevant details omitted from the sanitized
                version of the error.  This may freely echo a Request.</p></dd></dl></div>
@@ -1420,6 +1455,23 @@ using Kleisli operations.
       </a>
     </span>
       
+    </li><li name="org.http4s.UnsupportedMediaTypeFailure" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="UnsupportedMediaTypeFailureextendsDecodeFailurewithNoStackTrace"></a>
+      <a id="UnsupportedMediaTypeFailure:UnsupportedMediaTypeFailure"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">sealed abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="UnsupportedMediaTypeFailure.html"><span class="name">UnsupportedMediaTypeFailure</span></a><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.util.control.NoStackTrace" class="extype" target="_top">NoStackTrace</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@UnsupportedMediaTypeFailureextendsDecodeFailurewithNoStackTrace" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Indicates that a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> came with no supported <a href="MediaType.html" class="extype" name="org.http4s.MediaType">MediaType</a>.</p>
     </li><li name="org.http4s.Uri" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="UriextendsQueryOpswithRenderablewithProductwithSerializable"></a>
       <a id="Uri:Uri"></a>
