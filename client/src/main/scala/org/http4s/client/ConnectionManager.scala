@@ -1,6 +1,8 @@
 package org.http4s
 package client
 
+import java.util.concurrent.ExecutorService
+
 import scalaz.concurrent.Task
 
 /** Type that is responsible for the client lifecycle
@@ -42,8 +44,9 @@ object ConnectionManager {
     *
     * @param builder generator of new connections
     * @param maxTotal max total connections
+    * @param es `ExecutorService` where async operations will execute
     */
-  def pool[A <: Connection](builder: ConnectionBuilder[A], maxTotal: Int): ConnectionManager[A] =
-    new PoolManager[A](builder, maxTotal)
+  def pool[A <: Connection](builder: ConnectionBuilder[A], maxTotal: Int, es: ExecutorService): ConnectionManager[A] =
+    new PoolManager[A](builder, maxTotal, es)
 }
 
