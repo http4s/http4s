@@ -14,7 +14,7 @@ import scala.concurrent.Future
 import scala.concurrent.Await
 import scala.concurrent.duration.Duration
 import scala.concurrent.ExecutionContext.Implicits.global
-import scalaz.\/-
+import scalaz.{-\/, \/-}
 
 import scalaz.concurrent.Task
 import scalaz.stream.{Cause, Process}
@@ -188,6 +188,14 @@ class ProcessWriterSpec extends Specification {
         "0\r\n" +
         "\r\n"
       clean must_== true
+
+      clean = false
+      val p2 = Process.await(Task.fail(new Exception("Failed")))(identity).onComplete(Process.eval_(Task.delay{
+        clean = true
+      }))
+
+      writeProcess(p)(builder)
+      clean must_== true
     }
 
     // Some tests for the raw unwinding process without HTTP encoding.
@@ -222,6 +230,29 @@ class ProcessWriterSpec extends Specification {
 
       // The dumping writer is stack safe when using a trampolining EC
       DumpingWriter.dump(p) must_== ByteVector.empty
+    }
+
+    "Execute cleanup on a failing ProcessWriter" in {
+      {
+        var clean = false
+        val p = Process.emit(messageBuffer).onComplete(Process.eval_(Task {
+          clean = true
+        }))
+
+        (new FailingWriter().writeProcess(p).attempt.run).isLeft must_== true
+        clean must_== true
+      }
+
+      {
+        var clean = false
+        val p = Process.await(Task.fail(new Exception("Failed")))(identity).onComplete(Process.eval_(Task.delay{
+          clean = true
+        }))
+
+        (new FailingWriter().writeProcess(p).attempt.run).isLeft must_== true
+        clean must_== true
+      }
+
     }
   }
 }

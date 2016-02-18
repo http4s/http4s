@@ -37,11 +37,8 @@ object ProtocolSelector {
   private def http2Stage(service: HttpService, maxHeadersLength: Int,
                          requestAttributes: AttributeMap, es: ExecutorService): TailStage[ByteBuffer] = {
 
-    // Make the objects that will be used for the whole connection
-    val ec = ExecutionContext.fromExecutorService(es)
-
     def newNode(streamId: Int): LeafBuilder[Http2Msg] = {
-      LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, ec, requestAttributes, service))
+      LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, es, requestAttributes, service))
     }
 
     new Http2Stage(
@@ -49,7 +46,7 @@ object ProtocolSelector {
       node_builder = newNode,
       timeout = Duration.Inf,
       maxInboundStreams = 300,
-      ec = ec
+      ec = ExecutionContext.fromExecutor(es)
     )
   }
 }
