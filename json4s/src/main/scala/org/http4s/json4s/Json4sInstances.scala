@@ -16,7 +16,7 @@ trait Json4sInstances[J] {
     json.flatMapR { json =>
       try DecodeResult.success(reader.read(json))
       catch {
-        case e: MappingException => DecodeResult.failure(ParseFailure("Could not map JSON", e.msg))
+        case e: MappingException => DecodeResult.failure(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
       }
     }
 
@@ -30,7 +30,7 @@ trait Json4sInstances[J] {
     json.flatMapR { json =>
       try DecodeResult.success(json.extract[A])
       catch {
-        case NonFatal(e) => DecodeResult.failure(ParseFailure("Could not extract JSON", e.getMessage))
+        case NonFatal(e) => DecodeResult.failure(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
       }
     }
 

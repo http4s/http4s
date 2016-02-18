@@ -37,7 +37,7 @@ private[parser] trait AcceptCharsetHeader {
       ("*" ~ CharsetQuality) ~> { q => if (q != org.http4s.QValue.One) `*`.withQValue(q) else `*` } |
       ((Token ~ CharsetQuality) ~> { (s: String, q: QValue) =>
         // TODO handle tokens that aren't charsets
-        val c = Charset.fromString(s).valueOr(e => throw new ParseException(e))
+        val c = Charset.fromString(s).valueOr(throw _)
         if (q != org.http4s.QValue.One) c.withQuality(q) else c.toRange
       })
     }

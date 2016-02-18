@@ -92,7 +92,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
       req.putHeaders(Accept(m.head, m.tail:_*))
     } else req
     fetch(r) { resp =>
-      d.decode(resp, strict = false).fold(e => throw DecodeFailureException(e), identity)
+      d.decode(resp, strict = false).fold(throw _, identity)
     }
   }
 
