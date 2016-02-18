@@ -44,7 +44,6 @@ These venues include, but are not necessarily limited to:
 
 - All GitHub repositories and comments under the [http4s organization](https://github.com/http4s)
 - The [http4s gitter channel](https://gitter.com/http4s/http4s)
-- The #typelevel IRC channel on Freenode,
 
 ## Community Staff
 
