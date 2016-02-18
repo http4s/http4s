@@ -1,7 +1,3 @@
-import scala.math.Ordering.Implicits._
-import scala.util.Properties
-
-import com.earldouglas.xwp.XwpPlugin
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
@@ -10,7 +6,6 @@ import com.typesafe.sbt.site.JekyllSupport
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtunidoc.Plugin.UnidocKeys._
-import pl.project13.scala.sbt.SbtJmh.jmhSettings
 
 // Global settings
 organization in ThisBuild := "org.http4s"
@@ -25,10 +20,9 @@ description := "A minimal, Scala-idiomatic library for HTTP"
 noPublishSettings
 
 lazy val core = libraryProject("core")
-  .settings(buildInfoSettings)
+  .enablePlugins(BuildInfoPlugin)
   .settings(
     description := "Core http4s library for servers and clients",
-    sourceGenerators in Compile <+= buildInfo,
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage <<= organization,
     libraryDependencies <++= scalaVersion { v => Seq(
@@ -191,7 +185,7 @@ lazy val twirl = http4sProject("twirl")
   .dependsOn(core % "compile;test->test")
 
 lazy val bench = http4sProject("bench")
-  .settings(jmhSettings)
+  .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
   .settings(
     description := "Benchmarks for http4s"
@@ -286,7 +280,7 @@ lazy val examplesJetty = exampleProject("examples-jetty")
     description := "Example of http4s server on Jetty",
     fork := true,
     libraryDependencies += metricsServlets,
-    mainClass in Revolver.reStart := Some("com.example.http4s.jetty.JettyExample")
+    mainClass in reStart := Some("com.example.http4s.jetty.JettyExample")
   )
   .dependsOn(jetty)
 
@@ -296,20 +290,20 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
     description := "Example of http4s server on Tomcat",
     fork := true,
     libraryDependencies += metricsServlets,
-    mainClass in Revolver.reStart := Some("com.example.http4s.tomcat.TomcatExample")
+    mainClass in reStart := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)
 
+// Run this with jetty:start
 lazy val examplesWar = exampleProject("examples-war")
-  .settings(XwpPlugin.jetty())
+  .enablePlugins(JettyPlugin)
   .settings(
     description := "Example of a WAR deployment of an http4s service",
     fork := true,
     libraryDependencies ++= Seq(
       javaxServletApi % "provided",
       logbackClassic % "runtime"
-    ),
-    mainClass in Revolver.reStart := Some("com.example.http4s.jetty.JettyExample")
+    )
   )
   .dependsOn(servlet)
 

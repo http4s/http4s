@@ -1,22 +1,24 @@
 package org.http4s
 package client
 
+import java.util.concurrent.ExecutorService
+
 import org.log4s.getLogger
 
 import scala.annotation.tailrec
 import scala.collection.mutable
-import scalaz.{-\/, \/-, \/}
+import scalaz.{-\/, \/-}
 import scalaz.syntax.either._
 import scalaz.concurrent.Task
 
 private object PoolManager {
-  type Callback[A] = Throwable \/ A => Unit
   case class Waiting[A <: Connection](key: RequestKey, callback: Callback[A])
 }
 import PoolManager._
 
 private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
-                                                 maxTotal: Int)
+                                                 maxTotal: Int,
+                                                 es: ExecutorService)
   extends ConnectionManager[A] {
 
   private[this] val logger = getLogger
@@ -31,7 +33,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
   private def createConnection(key: RequestKey, callback: Callback[A]): Unit = {
     if (allocated < maxTotal) {
       allocated += 1
-      Task.fork(builder(key)).runAsync {
+      Task.fork(builder(key))(es).runAsync {
         case s@ \/-(_) =>
           logger.debug(s"Received complete connection from pool: ${stats}")
           callback(s)

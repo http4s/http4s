@@ -3,6 +3,7 @@ package server
 package blaze
 
 import java.util.Locale
+import java.util.concurrent.ExecutorService
 
 import org.http4s.Header.Raw
 import org.http4s.Status._
@@ -30,16 +31,16 @@ import scala.util.{Success, Failure}
 import org.http4s.util.CaseInsensitiveString._
 
 class Http2NodeStage(streamId: Int,
-                      timeout: Duration,
-                           ec: ExecutionContext,
-                   attributes: AttributeMap,
-                      service: HttpService) extends TailStage[NodeMsg.Http2Msg]
+                     timeout: Duration,
+                     executor: ExecutorService,
+                     attributes: AttributeMap,
+                     service: HttpService) extends TailStage[NodeMsg.Http2Msg]
 {
 
   import Http2StageTools._
   import NodeMsg.{ DataFrame, HeadersFrame }
 
-  private implicit def _ec = ec   // for all the onComplete calls
+  private implicit def ec = ExecutionContext.fromExecutor(executor)   // for all the onComplete calls
 
   override def name = "Http2NodeStage"
 
@@ -199,7 +200,7 @@ class Http2NodeStage(streamId: Int,
       val hs = HHeaders(headers.result())
       val req = Request(method, path, HttpVersion.`HTTP/2.0`, hs, body, attributes)
 
-      Task.fork(service(req)).unsafePerformAsync {
+      Task.fork(service(req))(executor).unsafePerformAsync {
         case \/-(resp) => renderResponse(req, resp)
         case -\/(t) =>
           val resp = Response(InternalServerError)
@@ -215,7 +216,7 @@ class Http2NodeStage(streamId: Int,
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))
     resp.headers.foreach{ h => hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value)) }
-    
+
     new Http2Writer(this, hs, ec).writeProcess(resp.body).runAsync {
       case \/-(_)       => shutdownWithCommand(Cmd.Disconnect)
       case -\/(Cmd.EOF) => stageShutdown()

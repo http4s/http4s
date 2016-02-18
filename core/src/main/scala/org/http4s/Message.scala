@@ -81,7 +81,7 @@ sealed trait Message extends MessageOps { self =>
     }
   }
 
-  def contentLength: Option[Int] = headers.get(`Content-Length`).map(_.length)
+  def contentLength: Option[Long] = headers.get(`Content-Length`).map(_.length)
 
   def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 

@@ -36,4 +36,6 @@ package object http4s {
     * server backend, such as Blaze, Jetty, or Tomcat.
     */
   type HttpService = Service[Request, Response]
+
+  type Callback[A] = Throwable \/ A => Unit
 }
