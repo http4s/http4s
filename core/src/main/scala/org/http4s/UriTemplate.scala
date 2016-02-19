@@ -278,8 +278,8 @@ object UriTemplate {
     else elements.mkString(",")
   }
 
-  protected def buildQuery(q: Query): org.http4s.Query = {
-    val elements = Query.newBuilder
+  protected def buildQuery(q: Query): org.http4s.FormQuery = {
+    val elements = FormQuery.newBuilder
     q map {
       case ParamElm(n, Nil) => elements += ((n, None))
       case ParamElm(n, List(v)) => elements += ((n, Some(v)))

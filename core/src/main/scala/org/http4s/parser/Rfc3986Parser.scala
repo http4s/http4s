@@ -1,6 +1,7 @@
 package org.http4s
 package parser
 
+import org.http4s.util.encoding.UriCodingUtils
 import org.parboiled2._
 import java.nio.charset.Charset
 import java.net.URLDecoder
@@ -9,10 +10,8 @@ import scalaz.syntax.std.option._
 import org.http4s.util.CaseInsensitiveString._
 import org.http4s.{ Query => Q }
 
-private[parser] trait Rfc3986Parser { this: Parser =>
+private[http4s] trait Rfc3986Parser { this: Parser =>
   import CharPredicate.{Alpha, Digit, HexDigit}
-
-  def charset: Charset
 
   def Uri: Rule1[org.http4s.Uri] = rule { AbsoluteUri | RelativeRef }
 
@@ -48,7 +47,7 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def Authority: Rule1[org.http4s.Uri.Authority] = rule { optional(UserInfo ~ "@") ~ Host ~ Port ~> (org.http4s.Uri.Authority.apply _) }
 
-  def UserInfo = rule { capture(zeroOrMore(Unreserved | PctEncoded | SubDelims | ":")) ~> (decode _) }
+  def UserInfo = rule { capture(zeroOrMore(PctEncoded | Rfc3986CharPredicate.UserInfo)) ~> (decode _) }
 
   def Host: Rule1[org.http4s.Uri.Host] = rule {
     capture(IpV4Address) ~> { s: String => org.http4s.Uri.IPv4(s.ci) } |
@@ -89,7 +88,7 @@ private[parser] trait Rfc3986Parser { this: Parser =>
     Digit
   }
 
-  def RegName: Rule0 = rule { zeroOrMore(Unreserved | PctEncoded | SubDelims) }
+  def RegName: Rule0 = rule { zeroOrMore(PctEncoded | Rfc3986CharPredicate.RegName) }
 
   def Path: Rule1[String] = rule { (PathAbempty | PathAbsolute | PathNoscheme | PathRootless | PathEmpty) ~> { s: String => decode(s)} }
 
@@ -107,25 +106,39 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def SegmentNz = rule { oneOrMore(Pchar) }
 
-  def SegmentNzNc = rule { oneOrMore(Unreserved | PctEncoded | SubDelims | "@") }
+  def SegmentNzNc = rule { oneOrMore(PctEncoded | Rfc3986CharPredicate.SegmentNzNc) }
 
-  def Pchar = rule { Unreserved | PctEncoded | SubDelims | ":" | "@" }
+  def Pchar = rule { PctEncoded | Rfc3986CharPredicate.Pchar }
 
   // NOTE: The Query is NOT url decoded.
-  def Query = rule { capture(zeroOrMore(Pchar | "/" | "?")) }
+  def Query = rule { capture(zeroOrMore(PctEncoded | Rfc3986CharPredicate.Query)) }
 
   // NOTE: The Fragment is NOT url decoded.
-  def Fragment = rule { capture(zeroOrMore(Pchar | "/" | "?")) }
+  def Fragment = rule { capture(zeroOrMore(PctEncoded | Rfc3986CharPredicate.Fragment)) }
 
   def PctEncoded = rule { "%" ~ 2.times(HexDigit) }
 
-  def Unreserved = rule { Alpha | Digit | "-" | "." | "_" | "~" }
+  def Unreserved = rule { Rfc3986CharPredicate.Unreserved }
 
-  def Reserved = rule { GenDelims | SubDelims }
+  def Reserved = rule { Rfc3986CharPredicate.Reserved }
 
-  def GenDelims = rule { ":" | "/" | "?" | "#" | "[" | "]" | "@" }
+  def GenDelims = rule { Rfc3986CharPredicate.GenDelims }
 
-  def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
+  def SubDelims = rule { Rfc3986CharPredicate.SubDelims }
 
-  private[this] def decode(s: String) = URLDecoder.decode(s, charset.name)
+  private[this] def decode(s: String) = UriCodingUtils.unsafePercentDecode(s)
+}
+
+object Rfc3986CharPredicate {
+  import CharPredicate.{Alpha, Digit}
+  def UserInfo    = CharPredicate(Unreserved, SubDelims, ':')
+  def RegName     = CharPredicate(Unreserved, SubDelims)
+  def Pchar       = CharPredicate(Unreserved, SubDelims, '@', ':')
+  def SegmentNzNc = CharPredicate(Unreserved, SubDelims, '@')
+  def Query       = CharPredicate(Pchar, '/', '?')
+  def Fragment    = CharPredicate(Pchar, '/', '?')
+  def Unreserved  = CharPredicate(Alpha, Digit, '-', '.', '_', '~')
+  def Reserved    = CharPredicate(GenDelims, SubDelims)
+  def GenDelims   = CharPredicate(':', '/', '?', '#', '[', ']', '@')
+  def SubDelims   = CharPredicate('!', '$', '&', ''', '(', ')', '*', '+', ',', ';', '=')
 }

@@ -2,7 +2,6 @@ package org.http4s
 
 import org.specs2.matcher.MustThrownMatchers
 import org.http4s.Uri._
-import org.specs2.specification.core.Fragments
 
 import scalaz.Maybe
 
@@ -587,9 +586,9 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   }
 
   "Uri.renderString" should {
-    "Encode special chars in the query" in {
+    "Encode special chars in the form query" in {
       val u = Uri(path = "/").withQueryParam("foo", " !$&'()*+,;=:/?@~")
-      u.renderString must_== "/?foo=%20%21%24%26%27%28%29%2A%2B%2C%3B%3D%3A/?%40~"
+      u.renderString must_== "/?foo=+%21%24%26%27%28%29*%2B%2C%3B%3D%3A%2F%3F%40%7E"
     }
     "Encode special chars in the fragment" in {
       val u = Uri(path = "/", fragment = Some(" !$&'()*+,;=:/?@~"))

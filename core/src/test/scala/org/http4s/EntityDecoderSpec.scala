@@ -135,11 +135,10 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       UrlForm.entityDecoder.decode(resp, strict = true).run.run must_== \/-(urlForm)
     }
 
-    // TODO: need to make urlDecode strict
     "handle a parse failure" in {
       val resp = server(Request(body = strBody("%C"))).run
       resp.status must_== Status.BadRequest
-    }.pendingUntilFixed
+    }
   }
 
   "A File EntityDecoder" should {

@@ -5,8 +5,9 @@ import java.nio.charset.StandardCharsets
 import javax.crypto
 
 import org.http4s.headers.Authorization
+import org.http4s.parser.Rfc3986CharPredicate
+import org.http4s.util.encoding.UriCodingUtils
 import org.http4s.util.string._
-import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
 
 import scala.collection.mutable.ListBuffer
 import scalaz.concurrent.Task
@@ -78,10 +79,10 @@ package object oauth1 {
   }
 
   private[oauth1] def encode(str: String): String =
-    UrlCodingUtils.urlEncode(str, spaceIsPlus = false, toSkip = UrlFormCodec.urlUnreserved)
+    UriCodingUtils.percentEncode(str, Rfc3986CharPredicate.Unreserved)
 
   private[oauth1] def getUserParams(req: Request): Task[(Request,Seq[(String, String)])] = {
-    val qparams = req.uri.query.map{ case (k,ov) => (k, ov.getOrElse("")) }
+    val qparams = req.uri.query.asForm.map{ case (k,ov) => (k, ov.getOrElse("")) }
 
     req.contentType match {
       case Some(t) if (req.method == Method.POST || req.method == Method.PUT) &&

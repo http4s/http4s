@@ -1,6 +1,6 @@
 package org.http4s
 
-import java.nio.charset.StandardCharsets
+import org.http4s.util.encoding.UriCodingUtils
 
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
@@ -8,7 +8,7 @@ import scala.reflect.macros.Context
 import org.http4s.Uri._
 
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
-import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
+import org.http4s.util._
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
 
@@ -64,7 +64,7 @@ case class Uri(
    * The query string is lazily parsed. If an error occurs during parsing
    * an empty `Map` is returned.
    */
-  def multiParams: Map[String, Seq[String]] = query.multiParams
+  def multiParams: Map[String, Seq[String]] = query.asForm.multiParams
 
   /**
    * View of the head elements of the URI parameters in query string.
@@ -73,7 +73,7 @@ case class Uri(
    *
    * @see multiParams
    */
-  def params: Map[String, String] = query.params
+  def params: Map[String, String] = query.asForm.params
 
   override lazy val renderString: String =
     super.renderString
@@ -103,10 +103,9 @@ case class Uri(
 
   /////////// Query Operations ///////////////
   override protected type Self = Uri
-
   override protected def self: Self = this
-
-  override protected def replaceQuery(query: Query): Self = copy(query = query)
+  override protected lazy val formQuery: FormQuery = query.asForm
+  override protected def replaceQuery(query: FormQuery): Self = copy(query = query)
 }
 
 object Uri extends UriFunctions {
@@ -127,11 +126,11 @@ object Uri extends UriFunctions {
   }
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
-  def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).Uri
+  def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s).Uri
     .run()(ScalazDeliverySchemes.Disjunction)
 
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
-  def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
+  def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
 
   type Scheme = CaseInsensitiveString
@@ -186,8 +185,8 @@ object Uri extends UriFunctions {
 
 
   private def renderParamsAndFragment(writer: Writer, p: Query, f: Option[Fragment]): writer.type = {
-    if (p.nonEmpty) writer << '?' << p
-    if (f.isDefined) writer << '#' << UrlCodingUtils.urlEncode(f.get, spaceIsPlus = false)
+    if (!p.isEmpty) writer << '?' << p
+    if (f.isDefined) writer << '#' <<  UriCodingUtils.encodeFragment(f.get).encoded
     writer
   }
 }

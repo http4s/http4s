@@ -1,13 +1,81 @@
 package org.http4s
 
-import org.http4s.Query._
-import org.http4s.parser.QueryParser
-import org.http4s.util.{UrlFormCodec, UrlCodingUtils, Writer, Renderable}
+import org.http4s.FormQuery._
+import org.http4s.util._
+import org.http4s.util.encoding.UriCodingUtils
 
 import scala.collection.generic.CanBuildFrom
-import scala.collection.immutable.{BitSet, IndexedSeq}
+import scala.collection.immutable.IndexedSeq
 import scala.collection.mutable.ListBuffer
-import scala.collection.{ IndexedSeqOptimized, mutable }
+import scala.collection.{IndexedSeqOptimized, mutable}
+
+
+sealed trait Query extends QueryOps with Renderable {
+  def asForm: FormQuery
+  def isEmpty: Boolean
+  def encoded: String
+}
+
+/** Represents the absence of a query component */
+object EmptyQuery extends Query {
+  override def asForm: FormQuery = FormQuery()
+  override def encoded: String = "<please check isEmpty before using this value>"
+  override def isEmpty: Boolean = true
+
+  /////////////////////// QueryOps methods and types /////////////////////////
+  override protected type Self = FormQuery
+  override protected def self: Self = formQuery
+  override protected def replaceQuery(query: FormQuery): Self = query
+  override protected val formQuery: FormQuery = asForm
+  ////////////////////////////////////////////////////////////////////////////
+
+  /** Base method for rendering this object efficiently */
+  override def render(writer: Writer): writer.type = writer << "EmptyQuery"
+}
+
+object Query {
+  def apply(s: String): PlainQuery = new PlainQuery(s)
+  def apply(xs: (String, Option[String])*): FormQuery = FormQuery(xs: _*)
+
+  val empty: Query = EmptyQuery
+
+  def fromString(s: String): PlainQuery = new PlainQuery(s)
+  def fromPairs(xs: (String, String)*): FormQuery = FormQuery.fromPairs(xs: _*)
+  def fromMap(map: Map[String, Seq[String]]): FormQuery = FormQuery.fromMap(map)
+
+  def equals(q1: Query, q2: Query): Boolean =
+    (q1.isEmpty && q2.isEmpty) || (!q1.isEmpty && !q2.isEmpty && q1.encoded == q2.encoded)
+
+}
+
+final case class PlainQuery(plain: String) extends Query with QueryOps with Renderable {
+  def asForm: FormQuery = FormQuery.fromString(plain)
+  def isEmpty: Boolean = false
+
+  /** Base method for rendering this object efficiently */
+  override def render(writer: Writer): writer.type =
+    writer << encoded
+
+  def encoded = UriCodingUtils.encodePlainQueryString(plain).encoded
+
+  /////////////////////// QueryOps methods and types /////////////////////////
+  override protected type Self = FormQuery
+  override protected def self: Self = formQuery
+  override protected def replaceQuery(query: FormQuery): Self = query
+  override protected lazy val formQuery: FormQuery = asForm
+  ////////////////////////////////////////////////////////////////////////////
+
+  override def equals(obj: Any): Boolean = obj match {
+    case null => false
+    case that: Query => Query.equals(this, that)
+    case _ => false
+  }
+}
+
+object PlainQuery {
+  def empty: PlainQuery = new PlainQuery("")
+//  def apply(s: String): PlainQuery =
+}
 
 /** Collection representation of a query string
   *
@@ -17,62 +85,51 @@ import scala.collection.{ IndexedSeqOptimized, mutable }
   * When rendered, the resulting `String` will have the pairs separated
   * by '&' while the key is separated from the value with '='
   */
-final class Query private(pairs: Vector[KeyValue])
-  extends IndexedSeq[KeyValue]
-  with IndexedSeqOptimized[KeyValue, Query]
+final case class FormQuery(pairs: Vector[KeyValue])
+  extends Query
+  with IndexedSeq[KeyValue]
+  with IndexedSeqOptimized[KeyValue, FormQuery]
   with QueryOps
-  with Renderable 
+  with Renderable
 {
+  override def asForm: FormQuery = this
+
   override def apply(idx: Int): KeyValue = pairs(idx)
 
   override def length: Int = pairs.length
 
-  override def slice(from: Int, until: Int): Query = new Query(pairs.slice(from, until))
+  override def slice(from: Int, until: Int): FormQuery = new FormQuery(pairs.slice(from, until))
 
-  override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) new Query((elem +: pairs).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+  override def +:[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[FormQuery, B, That]): That = {
+    if (bf eq FormQuery.cbf) new FormQuery((elem +: pairs).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.+:(elem)
   }
 
-  override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[Query, B, That]): That = {
-    if (bf eq Query.cbf) new Query((pairs :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
+  override def :+[B >: KeyValue, That](elem: B)(implicit bf: CanBuildFrom[FormQuery, B, That]): That = {
+    if (bf eq FormQuery.cbf) new FormQuery((pairs :+ elem).asInstanceOf[Vector[KeyValue]]).asInstanceOf[That]
     else super.:+(elem)
   }
 
   override def toVector: Vector[(String, Option[String])] = pairs
 
-  /** Render the Query as a `String`.
+  /** Render the FormQuery as a `String`.
     *
     * Pairs are separated by '&' and keys are separated from values by '='
     */
-  override def render(writer: Writer): writer.type = {
-    var first = true
-    def encode(s: String) =
-      UrlCodingUtils.urlEncode(s, spaceIsPlus = false, toSkip = NoEncode)
-    pairs.foreach {
-      case (n, None) =>
-        if (!first) writer.append('&')
-        else first = false
-        writer.append(encode(n))
+  override def render(writer: Writer): writer.type =
+    writer << encoded
 
-      case (n, Some(v)) =>
-        if (!first) writer.append('&')
-        else first = false
-        writer.append(encode(n))
-          .append("=")
-          .append(encode(v))
-    }
-    writer
-  }
+  def encoded: String = UriCodingUtils.encodeQueryVector(pairs).encoded
+  override def toString = super[Renderable].toString
 
-  /** Map[String, String] representation of the [[Query]]
+  /** Map[String, String] representation of the [[FormQuery]]
     *
     * If multiple values exist for a key, the first is returned. If
     * none exist, the empty `String` "" is returned.
     */
   def params: Map[String, String] = new ParamsView(multiParams)
 
-  /** Map[String, Seq[String] ] representation of the [[Query]]
+  /** Map[String, Seq[String] ] representation of the [[FormQuery]]
     *
     * Params are represented as a `Seq[String]` and may be empty.
     */
@@ -89,50 +146,46 @@ final class Query private(pairs: Vector[KeyValue])
     }
   }
 
-  override protected[this] def newBuilder: mutable.Builder[KeyValue, Query] = Query.newBuilder
+  override protected[this] def newBuilder: mutable.Builder[KeyValue, FormQuery] = FormQuery.newBuilder
 
   /////////////////////// QueryOps methods and types /////////////////////////
-  override protected type Self = Query
-  override protected val query: Query = this
+  override protected type Self = FormQuery
+  override protected val formQuery: FormQuery = this
   override protected def self: Self = this
-  override protected def replaceQuery(query: Query): Self = query
+  override protected def replaceQuery(query: FormQuery): Self = query
   ////////////////////////////////////////////////////////////////////////////
+
+  override def equals(obj: Any): Boolean = obj match {
+    case null => false
+    case that: Query => Query.equals(this, that)
+    case _ => super.equals(obj) // delegate to IndexedSeq or whatever since we have tests that expect to be able to compare FormQuery to Seq
+  }
 }
 
-object Query {
+object FormQuery {
   type KeyValue = (String, Option[String])
 
-  val empty: Query = new Query(Vector.empty)
+  def apply(xs: (String, Option[String])*): FormQuery =
+    new FormQuery(xs.toVector)
 
-  /*
-   * "The characters slash ("/") and question mark ("?") may represent data
-   * within the query component... it is sometimes better for usability to
-   * avoid percent-encoding those characters."
-   *   -- http://tools.ietf.org/html/rfc3986#section-3.4
-   */
-  private val NoEncode: BitSet =
-    UrlFormCodec.urlUnreserved ++ Set('?', '/').map(_.toInt)
-
-  def apply(xs: (String, Option[String])*): Query =
-    new Query(xs.toVector)
-
-  def fromPairs(xs: (String, String)*): Query = {
+  def fromPairs(xs: (String, String)*): FormQuery = {
     val b = newBuilder
     xs.foreach{ case (k, v) => b += ((k, Some(v))) }
     b.result()
   }
 
-  /** Generate a [[Query]] from its `String` representation
+  /** Generate a [[FormQuery]] from its `String` representation
     *
-    * If parsing fails, the empty [[Query]] is returned
+    * If parsing fails, the empty [[FormQuery]] is returned
     */
-  def fromString(query: String): Query = {
-    if (query.isEmpty) new Query(Vector("" -> None))
-    else QueryParser.parseQueryString(query).getOrElse(Query.empty)
+  def fromString(formEncodedString: String): FormQuery = {
+    if (formEncodedString.isEmpty) new FormQuery(Vector("" -> None))
+    else FormQuery(UriCodingUtils.w3cHtml5FormUrlDecode(formEncodedString))
+      //QueryParser.parseQueryString(formQuery).getOrElse(FormQuery.empty)
   }
 
-  /** Build a [[Query]] from the `Map` structure */
-  def fromMap(map: Map[String, Seq[String]]): Query = {
+  /** Build a [[FormQuery]] from the `Map` structure */
+  def fromMap(map: Map[String, Seq[String]]): FormQuery = {
     val b = newBuilder
     map.foreach {
       case (k, Seq()) => b +=  ((k, None))
@@ -141,12 +194,12 @@ object Query {
     b.result()
   }
 
-  def newBuilder: mutable.Builder[KeyValue, Query] =
-    Vector.newBuilder[KeyValue].mapResult(v => new Query(v))
+  def newBuilder: mutable.Builder[KeyValue, FormQuery] =
+    Vector.newBuilder[KeyValue].mapResult(v => new FormQuery(v))
 
-  implicit val cbf: CanBuildFrom[Query, KeyValue, Query] = new CanBuildFrom[Query, KeyValue, Query] {
-    override def apply(from: Query): mutable.Builder[KeyValue, Query] = newBuilder
-    override def apply(): mutable.Builder[KeyValue, Query] = newBuilder
+  implicit val cbf: CanBuildFrom[FormQuery, KeyValue, FormQuery] = new CanBuildFrom[FormQuery, KeyValue, FormQuery] {
+    override def apply(from: FormQuery): mutable.Builder[KeyValue, FormQuery] = newBuilder
+    override def apply(): mutable.Builder[KeyValue, FormQuery] = newBuilder
   }
 
   ///////////////////////////////////////////////////////////////////////

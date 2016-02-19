@@ -7,11 +7,12 @@ trait QueryOps {
 
   protected type Self <: QueryOps
 
-  protected val query: Query
+  protected val formQuery: FormQuery
+  private def query = formQuery
 
   protected def self: Self
 
-  protected def replaceQuery(query: Query): Self
+  protected def replaceQuery(query: FormQuery): Self
 
   /** alias for containsQueryParam */
   def ?[K: QueryParamKeyLike](name: K): Boolean =
@@ -70,7 +71,7 @@ trait QueryOps {
     _removeQueryParam(QueryParamKeyLike[K].getKey(key))
 
   /**
-   * Checks if a specified parameter exists in the [[Query]]. A parameter
+   * Checks if a specified parameter exists in the [[FormQuery]]. A parameter
    * without a name can be checked with an empty string.
    */
   def containsQueryParam[T](implicit key: QueryParam[T]): Boolean =
@@ -102,12 +103,12 @@ trait QueryOps {
 
   /**
    * Creates maybe a new `Self` with the specified parameters. The entire
-   * [[Query]] will be replaced with the given one.
+   * [[FormQuery]] will be replaced with the given one.
    */
   def setQueryParams[K: QueryParamKeyLike, T: QueryParamEncoder](params: Map[K, Seq[T]]): Self = {
     val penc = QueryParamKeyLike[K]
     val venc = QueryParamEncoder[T]
-    val b = Query.newBuilder
+    val b = FormQuery.newBuilder
     params.foreach {
       case (k, Seq()) => b +=  ((penc.getKey(k).value, None))
       case (k, vs)    => vs.foreach(v => b += ((penc.getKey(k).value, Some(venc.encode(v).value))))
@@ -116,7 +117,7 @@ trait QueryOps {
   }
 
   /**
-   * Creates a new `Self` with the specified parameter in the [[Query]].
+   * Creates a new `Self` with the specified parameter in the [[FormQuery]].
    * If a parameter with the given `QueryParam.key` already exists the values will be
    * replaced with an empty list.
    */
@@ -124,7 +125,7 @@ trait QueryOps {
     _withQueryParam(QueryParam[T].key, Nil)
 
   /**
-   * Creates a new `Self` with the specified parameter in the [[Query]].
+   * Creates a new `Self` with the specified parameter in the [[FormQuery]].
    * If a parameter with the given `key` already exists the values will be
    * replaced with an empty list.
    */
@@ -132,7 +133,7 @@ trait QueryOps {
     _withQueryParam(QueryParamKeyLike[K].getKey(key), Nil)
 
   /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+   * Creates maybe a new `Self` with the specified parameter in the [[FormQuery]].
    * If a parameter with the given `key` already exists the values will be
    * replaced. If the parameter to be added equal the existing entry the same
    * instance of `Self` will be returned.
@@ -141,7 +142,7 @@ trait QueryOps {
     _withQueryParam(QueryParamKeyLike[K].getKey(key), QueryParamEncoder[T].encode(value)::Nil)
 
   /**
-   * Creates maybe a new `Self` with the specified parameters in the [[Query]].
+   * Creates maybe a new `Self` with the specified parameters in the [[FormQuery]].
    * If a parameter with the given `key` already exists the values will be
    * replaced.
    */
@@ -150,7 +151,7 @@ trait QueryOps {
 
 
   private def _withQueryParam(name: QueryParameterKey, values: Seq[QueryParameterValue]): Self = {
-    val b = Query.newBuilder
+    val b = FormQuery.newBuilder
     query.foreach { case kv@(k, _) => if (k != name.value) b += kv }
     if (values.isEmpty) b += ((name.value, None))
     else values.foreach { v => b += ((name.value, Some(v.value))) }
@@ -159,7 +160,7 @@ trait QueryOps {
   }
 
   /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+   * Creates maybe a new `Self` with the specified parameter in the [[FormQuery]].
    * If the value is empty the same instance of `Self` will be returned.
    * If a parameter with the given `key` already exists the values will be
    * replaced.
@@ -168,7 +169,7 @@ trait QueryOps {
     _withMaybeQueryParam(QueryParamKeyLike[K].getKey(key), value map QueryParamEncoder[T].encode)
 
   /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+   * Creates maybe a new `Self` with the specified parameter in the [[FormQuery]].
    * If the value is empty or if the parameter to be added equal the existing
    * entry the same instance of `Self` will be returned.
    * If a parameter with the given `name` already exists the values will be
@@ -178,7 +179,7 @@ trait QueryOps {
     _withMaybeQueryParam(QueryParam[T].key, value map QueryParamEncoder[T].encode)
 
   /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+   * Creates maybe a new `Self` with the specified parameter in the [[FormQuery]].
    * If the value is empty or if the parameter to be added equal the existing
    * entry the same instance of `Self` will be returned.
    * If a parameter with the given `key` already exists the values will be
@@ -188,7 +189,7 @@ trait QueryOps {
     _withMaybeQueryParam(QueryParamKeyLike[K].getKey(key), value.toMaybe map QueryParamEncoder[T].encode)
 
   /**
-   * Creates maybe a new `Self` with the specified parameter in the [[Query]].
+   * Creates maybe a new `Self` with the specified parameter in the [[FormQuery]].
    * If the value is empty or if the parameter to be added equal the existing
    * entry the same instance of `Self` will be returned.
    * If a parameter with the given `name` already exists the values will be

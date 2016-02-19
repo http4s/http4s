@@ -8,9 +8,10 @@ import org.http4s.util.string._
 
 import java.nio.charset.{Charset => NioCharset}
 
-import org.scalacheck.Arbitrary._
+import org.scalacheck.Arbitrary.{arbChar => _, arbString => _, _}
 import org.scalacheck.Gen._
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.util.Pretty
+import org.scalacheck.{Shrink, Arbitrary, Gen}
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
@@ -66,12 +67,30 @@ trait TestInstances {
 
   lazy val customStatuses = for {
     code <- validStatusCodes
-    reason <- arbString.arbitrary
+    reason <- safeString.arbitrary
   } yield Status.fromIntAndReason(code, reason).yolo
   implicit lazy val arbitraryStatus: Arbitrary[Status] = Arbitrary(frequency(
     10 -> standardStatuses,
     1 -> customStatuses
   ))
+
+  ////////////////////////
+  // until https://github.com/rickynils/scalacheck/pull/222 is incorporated
+  implicit lazy val safeChar: Arbitrary[Char] = Arbitrary {
+    // exclude 0xFFFE due to this bug: http://bit.ly/1QryQZy
+    val validRangesInclusive = List[(Char, Char)](
+      (0x0000, 0xD7FF),
+      (0xE000, 0xFFFD),
+      (0xFFFF, 0xFFFF)
+    )
+
+    Gen.frequency(validRangesInclusive.map {
+      case (first, last) => (last + 1 - first, Gen.choose[Char](first, last))
+    }: _*)
+  }
+
+  implicit lazy val safeString: Arbitrary[String] = Arbitrary(arbitrary[List[Char]] map (_.mkString))
+  ////////////////////////
 
   implicit lazy val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
     Arbitrary { frequency(
@@ -83,11 +102,11 @@ trait TestInstances {
       2 -> const(("foo" -> Some("bar")))  // Want some repeats
     ) }
 
-  implicit lazy val arbitraryQuery: Arbitrary[Query] =
+  implicit lazy val arbitraryFormQuery: Arbitrary[FormQuery] =
     Arbitrary { for {
       n <- size
       vs <- containerOfN[Vector, (String, Option[String])](n % 8, arbitraryQueryParam.arbitrary)
-    } yield Query(vs:_*) }
+    } yield FormQuery(vs:_*) }
 
   implicit lazy val arbitraryHttpVersion: Arbitrary[HttpVersion] =
     Arbitrary { for {
@@ -134,15 +153,37 @@ trait TestInstances {
     } yield `Accept-Charset`(charsetRangesWithQ.head, charsetRangesWithQ.tail:_*) }
 
   implicit lazy val arbitraryUrlForm: Arbitrary[UrlForm] = Arbitrary {
-    // new String("\ufffe".getBytes("UTF-16"), "UTF-16") != "\ufffe".
-    // Ain't nobody got time for that.
     arbitrary[Map[String, Seq[String]]].map(UrlForm.apply)
-      .suchThat(!_.toString.contains('\ufffe'))
   }
- 
+
   implicit lazy val arbitraryBitSet: Arbitrary[BitSet] = Arbitrary(
     Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
   )
+
+  // this doesn't seem to do anything, or do enough
+  implicit val urlFormShrink: Shrink[UrlForm] = Shrink.xmap(UrlForm.apply(_: Map[String, Seq[String]]), _.values)
+
+  implicit def optionPretty[A](implicit A: A => Pretty): Option[A] => Pretty = {
+    case None => Pretty { p => "None" }
+    case Some(a) => Pretty { p => s"Some(${A(a)(p)})" }
+  }
+
+  def containerTraversablePretty[C[_], A](constructor: String)(implicit A: A => Pretty, t: C[A] => Traversable[A]): C[A] => Pretty =
+    c => Pretty { p => s"$constructor(${c.map(A(_)(p)).mkString(", ")})" }
+
+  def container2TraversablePretty[C[_,_], A, B](constructor: String)
+                                               (implicit A: A => Pretty, B: B => Pretty, t: C[A,B] => Traversable[(A,B)]): C[A,B] => Pretty =
+    c => Pretty { p => s"$constructor(${c.map { case (a, b) => s"${A(a)(p)} -> ${B(b)(p)}"}.mkString(", ")})" }
+
+
+  implicit def queryPretty: Query => Pretty = {
+    case FormQuery(pairs) => Pretty { p => "FormQuery(" + containerTraversablePretty[Vector, (String, Option[String])]("Vector").apply(pairs)(p) + ")" }
+    case PlainQuery(plain) => Pretty { p => "PlainQuery( " + Pretty.prettyString(plain)(p) + " )" }
+    case EmptyQuery => Pretty { p => "EmptyQuery" }
+  }
+
+  implicit def formMultiMapPretty: Map[String, Seq[String]] => Pretty =
+    container2TraversablePretty[Map, String, Seq[String]]("Map")(implicitly, containerTraversablePretty[Seq,String]("Seq"), implicitly)
 
   implicit lazy val arbitararyAllow: Arbitrary[Allow] =
     Arbitrary { for {

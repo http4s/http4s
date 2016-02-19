@@ -2,14 +2,13 @@ package org.http4s
 
 import org.http4s.headers.`Content-Type`
 import org.http4s.parser.QueryParser
-import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
+import org.http4s.util.encoding.UriCodingUtils
 
-import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
 import scalaz.{ \/, Equal }
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
-  override def toString: String = values.toString()
+  override def toString: String = values.map { case (k, v) => (k, v.toVector) }.toString()
 
   def get(key: String): Seq[String] =
     this.getOrElse(key, Seq.empty[String])
@@ -108,30 +107,10 @@ object UrlForm {
   /** Attempt to decode the `String` to a [[UrlForm]] */
   def decodeString(charset: Charset)(urlForm: String): MalformedMessageBodyFailure \/ UrlForm =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
-      .map(q => UrlForm(q.multiParams))
+      .map(q => UrlForm(q.asForm.multiParams))
       .leftMap { parseFailure => MalformedMessageBodyFailure(parseFailure.message, None) }
 
   /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
-  def encodeString(charset: Charset)(urlForm: UrlForm): String = {
-    def encode(s: String): String =
-      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlFormCodec.urlUnreserved)
-
-    val sb = new StringBuilder(urlForm.values.size * 20)
-    urlForm.values.foreach { case (k, vs) =>
-      if (sb.nonEmpty) sb.append('&')
-      val encodedKey = encode(k)
-      if (vs.isEmpty) sb.append(encodedKey)
-      else {
-        var first = true
-        vs.foreach { v =>
-          if(!first) sb.append('&')
-          else first = false
-          sb.append(encodedKey)
-            .append('=')
-            .append(encode(v))
-        }
-      }
-    }
-    sb.result()
-  }
+  def encodeString(charset: Charset)(urlForm: UrlForm): String =
+    UriCodingUtils.encodeQueryMap(urlForm.values).encoded
 }

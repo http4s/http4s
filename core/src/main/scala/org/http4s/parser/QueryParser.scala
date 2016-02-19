@@ -1,9 +1,8 @@
 package org.http4s.parser
 
-import java.io.UnsupportedEncodingException
+import java.net.URLDecoder
 import java.nio.CharBuffer
 import org.http4s._
-import org.http4s.util.string._
 
 import scala.annotation.switch
 import scala.collection.immutable.BitSet
@@ -22,8 +21,8 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
 
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
-  def decode(input: CharBuffer, flush: Boolean): ParseResult[Query] = {
-    val acc = Query.newBuilder
+  def decode(input: CharBuffer, flush: Boolean): ParseResult[FormQuery] = {
+    val acc = FormQuery.newBuilder
     decodeBuffer(input, (k,v) => acc += ((k,v)), flush) match {
       case Some(e) => ParseResult.fail("Decoding of url encoded data failed.", e)
       case None    => ParseResult.success(acc.result)
@@ -93,11 +92,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
   }
 
   private def decodeParam(str: String): String =
-    try str.formDecode(codec)
-    catch {
-      case e: IllegalArgumentException     => ""
-      case e: UnsupportedEncodingException => ""
-    }
+    URLDecoder.decode(str, codec.charSet.name())
 }
 
 private[http4s] object QueryParser {

@@ -6,7 +6,7 @@ import org.http4s.{ Query => Q }
 import java.nio.charset.Charset
 import org.http4s.util.string._
 
-private[http4s] class RequestUriParser(val input: ParserInput, val charset: Charset)
+private[http4s] class RequestUriParser(val input: ParserInput)
   extends Parser with Rfc3986Parser
 {
   def RequestUri = rule {
