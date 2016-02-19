@@ -49,11 +49,6 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     withFormFields(key, values)
 }
 
-object UrlFormApp extends App {
-  val form = UrlForm.empty.withFormField("foo", 1).withFormField[Boolean]("bar", None).withFormFields("dummy", List("a", "b", "c"))
-  Console.println(implicitly[EntityEncoder[UrlForm]].toEntity(form).run.body.pipe(scalaz.stream.text.utf8Decode).runLog.run.reduceLeft(_ + _))
-}
-
 object UrlForm {
 
   val empty: UrlForm = new UrlForm(Map.empty)
