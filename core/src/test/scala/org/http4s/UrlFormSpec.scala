@@ -69,10 +69,10 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
     }
 
     "withFormField encodes T properly if QueryParamEncoder[T] can be resolved" in {
-      UrlForm.empty.withFormField("foo", 1).get("foo") must_== Seq( "1" )
-      UrlForm.empty.withFormField("bar", Some(true)).get("bar") must_== Seq( "true" )
-      UrlForm.empty.withFormField("bar", Option.empty[Boolean]).get("bar") must_== Seq()
-      UrlForm.empty.withFormFields("dummy", List("a", "b", "c")).get("dummy") must_== Seq( "a", "b", "c" )
+      UrlForm.empty.updateFormField("foo", 1).get("foo") must_== Seq( "1" )
+      UrlForm.empty.updateFormField("bar", Some(true)).get("bar") must_== Seq( "true" )
+      UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar") must_== Seq()
+      UrlForm.empty.updateFormFields("dummy", List("a", "b", "c")).get("dummy") must_== Seq( "a", "b", "c" )
     }
 
     "withFormField is effectively equal to factory constructor that takes a Map" in {

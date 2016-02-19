@@ -28,25 +28,46 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     UrlForm(values.updated(kv._1, newValues))
   }
 
-  def withFormField[T](key: String, value: T)(implicit ev: QueryParamEncoder[T]): UrlForm =
+  /**
+    * @param key name of the field
+    * @param value value of the field
+    * @param ev evidence of the existence of `QueryParamEncoder[T]`
+    * @return `UrlForm` updated with `key` and `value` pair if key does not exist in `values`. Otherwise `value` will be added to the existing entry.
+    */
+  def updateFormField[T](key: String, value: T)(implicit ev: QueryParamEncoder[T]): UrlForm =
     this + (key -> ev.encode(value).value)
 
-  def withFormField[T](key: String, value: Option[T])(implicit ev: QueryParamEncoder[T]): UrlForm = {
+  /**
+    * @param key name of the field
+    * @param value optional value of the field
+    * @param ev evidence of the existence of `QueryParamEncoder[T]`
+    * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
+    */
+  def updateFormField[T](key: String, value: Option[T])(implicit ev: QueryParamEncoder[T]): UrlForm = {
     import scalaz.syntax.std.option._
-    value.cata[UrlForm](withFormField(key, _)(ev), this)
+    value.cata[UrlForm](updateFormField(key, _)(ev), this)
   }
 
-  def withFormFields[T](key: String, values: Seq[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
-    values.foldLeft(this)(_.withFormField(key, _)(ev))
+  /**
+    * @param key name of the field
+    * @param vals a sequence of values for the field
+    * @param ev evidence of the existence of `QueryParamEncoder[T]`
+    * @return `UrlForm` updated with `key` and `vals` if key does not exist in `values`, otherwise `vals` will be appended to the existing entry. If `vals` is empty, `UrlForm` will remain as is
+    */
+  def updateFormFields[T](key: String, vals: Seq[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
+    vals.foldLeft(this)(_.updateFormField(key, _)(ev))
 
+  /* same as `updateFormField(key, value)` */
   def +?[T : QueryParamEncoder](key: String, value: T): UrlForm =
-    withFormField(key, value)
+    updateFormField(key, value)
 
+  /* same as `updateParamEncoder`(key, value) */
   def +?[T : QueryParamEncoder](key: String, value: Option[T]): UrlForm =
-    withFormField(key, value)
+    updateFormField(key, value)
 
-  def ++?[T : QueryParamEncoder](key: String, values: Seq[T]): UrlForm =
-    withFormFields(key, values)
+  /* same as `updatedParamEncoders`(key, vals) */
+  def ++?[T : QueryParamEncoder](key: String, vals: Seq[T]): UrlForm =
+    updateFormFields(key, vals)
 }
 
 object UrlForm {
