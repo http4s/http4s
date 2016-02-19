@@ -6,8 +6,7 @@ import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
 
 import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
-import scalaz.\/
-
+import scalaz.{ \/, Equal }
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -28,6 +27,31 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     val newValues = values.get(kv._1).fold(Seq(kv._2))(_ :+ kv._2)
     UrlForm(values.updated(kv._1, newValues))
   }
+
+  def withFormField[T](key: String, value: T)(implicit ev: QueryParamEncoder[T]): UrlForm =
+    this + (key -> ev.encode(value).value)
+
+  def withFormField[T](key: String, value: Option[T])(implicit ev: QueryParamEncoder[T]): UrlForm = {
+    import scalaz.syntax.std.option._
+    value.cata[UrlForm](withFormField(key, _)(ev), this)
+  }
+
+  def withFormFields[T](key: String, values: Seq[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
+    values.foldLeft(this)(_.withFormField(key, _)(ev))
+
+  def +?[T : QueryParamEncoder](key: String, value: T): UrlForm =
+    withFormField(key, value)
+
+  def +?[T : QueryParamEncoder](key: String, value: Option[T]): UrlForm =
+    withFormField(key, value)
+
+  def ++?[T : QueryParamEncoder](key: String, values: Seq[T]): UrlForm =
+    withFormFields(key, values)
+}
+
+object UrlFormApp extends App {
+  val form = UrlForm.empty.withFormField("foo", 1).withFormField[Boolean]("bar", None).withFormFields("dummy", List("a", "b", "c"))
+  Console.println(implicitly[EntityEncoder[UrlForm]].toEntity(form).run.body.pipe(scalaz.stream.text.utf8Decode).runLog.run.reduceLeft(_ + _))
 }
 
 object UrlForm {
@@ -54,6 +78,16 @@ object UrlForm {
           .map(decodeString(m.charset.getOrElse(defaultCharset)))
       )
     }
+
+  implicit val eqInstance: Equal[UrlForm] = new Equal[UrlForm] {
+    import scalaz.syntax.equal._
+    import scalaz.std.list._
+    import scalaz.std.string._
+    import scalaz.std.map._
+
+    def equal(x: UrlForm, y: UrlForm): Boolean =
+      x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
+  }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
   def decodeString(charset: Charset)(urlForm: String): MalformedMessageBodyFailure \/ UrlForm =
