@@ -68,6 +68,25 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
       UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
     }
 
+    "withFormField encodes T properly if QueryParamEncoder[T] can be resolved" in {
+      UrlForm.empty.updateFormField("foo", 1).get("foo") must_== Seq( "1" )
+      UrlForm.empty.updateFormField("bar", Some(true)).get("bar") must_== Seq( "true" )
+      UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar") must_== Seq()
+      UrlForm.empty.updateFormFields("dummy", List("a", "b", "c")).get("dummy") must_== Seq( "a", "b", "c" )
+    }
+
+    "withFormField is effectively equal to factory constructor that takes a Map" in {
+      import scalaz.syntax.equal._
+
+      (
+        UrlForm.empty +?("foo", 1) +? ("bar", Some(true)) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "bar" -> Seq("true"), "dummy" -> List("a", "b", "c")))
+      ) must_== (true)
+
+      (
+        UrlForm.empty +?("foo", 1) +? ("bar", Option.empty[Boolean]) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "dummy" -> List("a", "b", "c")))
+      ) must_== (true)
+    }
+
     // Not quite sure why this is necessary, but the compiler gives us a diverging implicit if not present
     implicit val chooseArb: Arbitrary[NonEmptyList[String]] = scalaz.scalacheck.ScalazArbitrary.NonEmptyListArbitrary
     "construct consistently from kv-pairs or and Map[String, Seq[String]]" in prop {
