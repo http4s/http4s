@@ -17,6 +17,9 @@ import scalaz.stream.Process
 abstract class ClientRouteTestBattery(name: String, client: Client)
   extends JettyScaffold(name) with GetRoutes
 {
+  // Travis has been timing out intermittently.  Let's see if having All The Threads helps.
+  sequential
+  isolated
 
   override def cleanup() = {
     client.shutdown.run
