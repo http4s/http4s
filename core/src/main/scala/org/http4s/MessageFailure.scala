@@ -84,7 +84,7 @@ sealed case class InvalidMessageBodyFailure(details: String, override val cause:
 sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) extends DecodeFailure with NoStackTrace {
   override def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
     Response(Status.UnsupportedMediaType, httpVersion)
-      .withBody(s"""Please specify a media type in the following ranges: ${expected.mkString(",")}""")
+      .withBody(message)
 }
 
 /** Indicates that a [[Message]] attempting to be decoded has no [[MediaType]] and no
@@ -92,12 +92,17 @@ sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) ext
 final case class MediaTypeMissing(expected: Set[MediaRange])
   extends UnsupportedMediaTypeFailure(expected)
 {
-  val message = s"Decoder is unable to decode a Message without a MediaType. Expected media ranges: $expected"
+  val expectedMsg = expected.map(_.renderString).mkString(", ")
+  val message = s"No media type specified in Content-Type header. Expected one of the following media ranges: $expectedMsg"
 }
 
 /** Indicates that no [[EntityDecoder]] matches the [[MediaType]] of the [[Message]] being decoded */
 final case class MediaTypeMismatch(messageType: MediaType, expected: Set[MediaRange])
   extends UnsupportedMediaTypeFailure(expected)
 {
-  def message = s"$messageType is not a supported media type. Decoder accepts one of the following media ranges: $expected"
+  def message = {
+    val actual = messageType.renderString
+    val expectedMsg = expected.map(_.renderString).mkString(", ")
+    s"$actual is not a supported media type. Expected one of the following media ranges: $expectedMsg"
+  }
 }
