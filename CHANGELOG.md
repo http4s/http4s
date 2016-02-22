@@ -6,6 +6,8 @@
 * Upgrade to circe-0.3, json4s-3.3, and other patches.
 * Fix deadlocks in blaze resulting from default executor on single-CPU machines.
 * Refactor `DecodeFailure` into a new `RequestFailure` hierarchy.
+* New methods for manipulating `UrlForm`.
+* All parsed headers get a `parse` method to construct them from their value.
 
 # v0.12.2 (2016-02-22)
 * Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.
