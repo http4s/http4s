@@ -7,6 +7,9 @@
 * Fix deadlocks in blaze resulting from default executor on single-CPU machines.
 * Refactor `DecodeFailure` into a new `RequestFailure` hierarchy.
 
+# v0.12.2 (2016-02-22)
+* Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.
+
 # v0.12.1 (2016-01-30)
 * Encode keys as well as values when rendering a query.
 * Don't encode '?' or '/' when encoding a query.
