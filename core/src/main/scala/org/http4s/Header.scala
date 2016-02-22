@@ -103,7 +103,6 @@ object Header {
    */
   trait Recurring extends Parsed {
     type Value
-    def key: HeaderKey.Recurring
     def values: NonEmptyList[Value]
   }
 

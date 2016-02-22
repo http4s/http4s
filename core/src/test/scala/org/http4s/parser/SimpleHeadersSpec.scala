@@ -14,11 +14,6 @@ class SimpleHeadersSpec extends Http4sSpec {
 
   "SimpleHeaders" should {
 
-    "parse Allow" in {
-      val header = Allow(Method.GET, Method.POST)
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
-    }
-
     "parse Connection" in {
       val header = Connection("closed".ci)
       HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)

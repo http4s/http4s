@@ -1,6 +1,7 @@
 package org.http4s
 package headers
 
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 import org.http4s.util.NonEmptyList
@@ -13,6 +14,9 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
   def apply(first: ETag.EntityTag, rest: ETag.EntityTag*): `If-None-Match` = {
     `If-None-Match`(Some(NonEmptyList(first, rest:_*)))
   }
+
+  override def parse(s: String): ParseResult[`If-None-Match`] =
+    HttpHeaderParser.IF_NONE_MATCH(s)
 }
 
 case class `If-None-Match`(tags: Option[NonEmptyList[ETag.EntityTag]]) extends Header.Parsed {

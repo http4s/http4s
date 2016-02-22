@@ -1,5 +1,6 @@
 package org.http4s
 
+import org.scalacheck.Arbitrary
 import org.specs2.ScalaCheck
 import org.specs2.scalacheck.Parameters
 
@@ -7,9 +8,6 @@ import scalaz.\/-
 import org.http4s.util.NonEmptyList
 
 class UrlFormSpec extends Http4sSpec with ScalaCheck {
-  // These tests are slow.  Let's lower the bar.
-  implicit val params = Parameters(maxSize = 40)
-
 //  // TODO: arbitrary charsets would be nice
 //  /*
 //   * Generating arbitrary Strings valid in an arbitrary Charset is an expensive operation.
@@ -67,6 +65,25 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
       UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
     }
 
+    "withFormField encodes T properly if QueryParamEncoder[T] can be resolved" in {
+      UrlForm.empty.updateFormField("foo", 1).get("foo") must_== Seq( "1" )
+      UrlForm.empty.updateFormField("bar", Some(true)).get("bar") must_== Seq( "true" )
+      UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar") must_== Seq()
+      UrlForm.empty.updateFormFields("dummy", List("a", "b", "c")).get("dummy") must_== Seq( "a", "b", "c" )
+    }
+
+    "withFormField is effectively equal to factory constructor that takes a Map" in {
+      import scalaz.syntax.equal._
+
+      (
+        UrlForm.empty +?("foo", 1) +? ("bar", Some(true)) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "bar" -> Seq("true"), "dummy" -> List("a", "b", "c")))
+      ) must_== (true)
+
+      (
+        UrlForm.empty +?("foo", 1) +? ("bar", Option.empty[Boolean]) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "dummy" -> List("a", "b", "c")))
+      ) must_== (true)
+    }
+
     "construct consistently from kv-pairs or and Map[String, Seq[String]]" in prop {
       map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
@@ -76,5 +93,4 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
         UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.list))
     }
   }
-
 }
