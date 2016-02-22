@@ -126,14 +126,15 @@ lazy val jawn = libraryProject("jawn")
   )
   .dependsOn(core % "compile;test->test")
 
-/*
 lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
-    libraryDependencies += jawnArgonaut
+    libraryDependencies ++= Seq(
+      Http4sBuild.argonaut,
+      jawnParser
+    )
   )
   .dependsOn(core % "compile;test->test", jawn % "compile;test->test")
-*/
 
 lazy val circe = libraryProject("circe")
   .settings(

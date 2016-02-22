@@ -54,6 +54,7 @@ object Http4sBuild extends Build {
       })
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.4.v20150727"
+  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.2-M1"
   lazy val asyncHttp           = "org.asynchttpclient"       % "async-http-client"       % "2.0.0-RC7"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.11.0"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
@@ -63,7 +64,6 @@ object Http4sBuild extends Build {
   lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.3"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
-  lazy val jawnArgonaut        = "org.spire-math"           %% "jawn-argonaut"           % jawnParser.revision
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.3"
   lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.8.0"
