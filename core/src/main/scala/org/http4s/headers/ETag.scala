@@ -1,6 +1,7 @@
 package org.http4s
 package headers
 
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
@@ -12,6 +13,9 @@ object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
   }
 
   def apply(tag: String, weak: Boolean = false): ETag = ETag(EntityTag(tag, weak))
+
+  override def parse(s: String): ParseResult[ETag] =
+    HttpHeaderParser.ETAG(s)
 }
 
 final case class ETag(tag: ETag.EntityTag) extends Header.Parsed {

@@ -3,11 +3,15 @@ package headers
 
 import java.net.InetAddress
 
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 import scalaz.NonEmptyList
 
-object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring
+object `X-Forwarded-For` extends HeaderKey.Internal[`X-Forwarded-For`] with HeaderKey.Recurring {
+  override def parse(s: String): ParseResult[`X-Forwarded-For`] =
+    HttpHeaderParser.X_FORWARDED_FOR(s)
+}
 
 final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) extends Header.Recurring {
   override def key = `X-Forwarded-For`

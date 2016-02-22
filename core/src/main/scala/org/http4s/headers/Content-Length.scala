@@ -24,7 +24,7 @@ object `Content-Length` extends HeaderKey.Internal[`Content-Length`] with Header
     if (length >= 0L) ParseResult.success(`Content-Length`(length))
     else ParseResult.fail("Invalid Content-Length", length.toString)
 
-  def fromString(s: String): ParseResult[`Content-Length`] =
+  def parse(s: String): ParseResult[`Content-Length`] =
     HttpHeaderParser.CONTENT_LENGTH(s)
 }
 

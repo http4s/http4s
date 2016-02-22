@@ -1,9 +1,14 @@
 package org.http4s
 package headers
 
+import org.http4s.parser.HttpHeaderParser
+
 import scalaz.NonEmptyList
 
-object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring
+object `Accept-Language` extends HeaderKey.Internal[`Accept-Language`] with HeaderKey.Recurring {
+  override def parse(s: String): ParseResult[`Accept-Language`] =
+    HttpHeaderParser.ACCEPT_LANGUAGE(s)
+}
 
 final case class `Accept-Language`(values: NonEmptyList[LanguageTag]) extends Header.RecurringRenderable {
   def key = `Accept-Language`

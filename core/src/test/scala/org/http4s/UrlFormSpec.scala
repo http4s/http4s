@@ -7,9 +7,6 @@ import org.specs2.scalacheck.Parameters
 import scalaz.{NonEmptyList, \/-}
 
 class UrlFormSpec extends Http4sSpec with ScalaCheck {
-  // These tests are slow.  Let's lower the bar.
-  implicit val params = Parameters(maxSize = 40)
-
 //  // TODO: arbitrary charsets would be nice
 //  /*
 //   * Generating arbitrary Strings valid in an arbitrary Charset is an expensive operation.
