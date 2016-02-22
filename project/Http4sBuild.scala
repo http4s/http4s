@@ -46,7 +46,7 @@ object Http4sBuild extends Build {
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.4.v20150727"
   lazy val asyncHttp           = "org.asynchttpclient"       % "async-http-client"       % "2.0.0-RC7"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.11.0"
-  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.2.0"
+  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.3.0"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.4"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.1.6"
   lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % gatlingTest.revision
@@ -69,13 +69,15 @@ object Http4sBuild extends Build {
   lazy val metricsServlet      = "io.dropwizard.metrics"     % "metrics-servlet"         % metricsCore.revision
   lazy val metricsServlets     = "io.dropwizard.metrics"     % "metrics-servlets"        % metricsCore.revision
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
-  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.0"
+  // Parboiled depends on an ancient Shapeless with _x.y.z compat on Scala 2.10, so we bundle a newer, compatible Shapeless.
+  lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.0" exclude ("com.chuusai", "shapeless_2.10.4")
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.7"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
   lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % "7.1.7"
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % scalazCore.revision
+  lazy val shapeless           = "com.chuusai"              %% "shapeless"               % "2.2.5"
   lazy val specs2              = "org.specs2"               %% "specs2-core"             % "3.6.6"
   lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2.revision
   lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2.revision

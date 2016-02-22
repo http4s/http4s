@@ -1,3 +1,15 @@
+# v0.13.0 (unreleased)
+* Add a client backed based on async-http-client.
+* Encode keys when rendering a query string.
+* New entity decoder based on json4s' extract.
+* Content-Length now accepts a Long.
+* Upgrade to circe-0.3, json4s-3.3, and other patches.
+* Fix deadlocks in blaze resulting from default executor on single-CPU machines.
+* Refactor `DecodeFailure` into a new `RequestFailure` hierarchy.
+
+# v0.12.2 (2016-02-22)
+* Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.
+
 # v0.12.1 (2016-01-30)
 * Encode keys as well as values when rendering a query.
 * Don't encode '?' or '/' when encoding a query.

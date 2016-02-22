@@ -6,7 +6,7 @@ import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
 
 import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
-
+import scalaz.{ \/, Equal }
 
 class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
   override def toString: String = values.toString()
@@ -27,6 +27,47 @@ class UrlForm private (val values: Map[String, Seq[String]]) extends AnyVal {
     val newValues = values.get(kv._1).fold(Seq(kv._2))(_ :+ kv._2)
     UrlForm(values.updated(kv._1, newValues))
   }
+
+  /**
+    * @param key name of the field
+    * @param value value of the field
+    * @param ev evidence of the existence of `QueryParamEncoder[T]`
+    * @return `UrlForm` updated with `key` and `value` pair if key does not exist in `values`. Otherwise `value` will be added to the existing entry.
+    */
+  def updateFormField[T](key: String, value: T)(implicit ev: QueryParamEncoder[T]): UrlForm =
+    this + (key -> ev.encode(value).value)
+
+  /**
+    * @param key name of the field
+    * @param value optional value of the field
+    * @param ev evidence of the existence of `QueryParamEncoder[T]`
+    * @return `UrlForm` updated as it is updated with `updateFormField(key, v)` if `value` is `Some(v)`, otherwise it is unaltered
+    */
+  def updateFormField[T](key: String, value: Option[T])(implicit ev: QueryParamEncoder[T]): UrlForm = {
+    import scalaz.syntax.std.option._
+    value.cata[UrlForm](updateFormField(key, _)(ev), this)
+  }
+
+  /**
+    * @param key name of the field
+    * @param vals a sequence of values for the field
+    * @param ev evidence of the existence of `QueryParamEncoder[T]`
+    * @return `UrlForm` updated with `key` and `vals` if key does not exist in `values`, otherwise `vals` will be appended to the existing entry. If `vals` is empty, `UrlForm` will remain as is
+    */
+  def updateFormFields[T](key: String, vals: Seq[T])(implicit ev: QueryParamEncoder[T]): UrlForm =
+    vals.foldLeft(this)(_.updateFormField(key, _)(ev))
+
+  /* same as `updateFormField(key, value)` */
+  def +?[T : QueryParamEncoder](key: String, value: T): UrlForm =
+    updateFormField(key, value)
+
+  /* same as `updateParamEncoder`(key, value) */
+  def +?[T : QueryParamEncoder](key: String, value: Option[T]): UrlForm =
+    updateFormField(key, value)
+
+  /* same as `updatedParamEncoders`(key, vals) */
+  def ++?[T : QueryParamEncoder](key: String, vals: Seq[T]): UrlForm =
+    updateFormFields(key, vals)
 }
 
 object UrlForm {
@@ -54,10 +95,21 @@ object UrlForm {
       )
     }
 
+  implicit val eqInstance: Equal[UrlForm] = new Equal[UrlForm] {
+    import scalaz.syntax.equal._
+    import scalaz.std.list._
+    import scalaz.std.string._
+    import scalaz.std.map._
+
+    def equal(x: UrlForm, y: UrlForm): Boolean =
+      x.values.mapValues(_.toList).view.force === y.values.mapValues(_.toList).view.force
+  }
+
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(urlForm: String): ParseResult[UrlForm] =
+  def decodeString(charset: Charset)(urlForm: String): MalformedMessageBodyFailure \/ UrlForm =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(q.multiParams))
+      .leftMap { parseFailure => MalformedMessageBodyFailure(parseFailure.message, None) }
 
   /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
   def encodeString(charset: Charset)(urlForm: UrlForm): String = {
