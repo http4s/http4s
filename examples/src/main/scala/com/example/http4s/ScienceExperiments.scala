@@ -66,7 +66,7 @@ object ScienceExperiments {
       Ok {
         body.step match {
           case Step(head, tail) =>
-            head.runLast.run.fold(tail.continue) { head =>
+            head.runLast.unsafePerformSync.fold(tail.continue) { head =>
               if (!head.startsWith("go")) notGo
               else emit(head) ++ tail.continue
             }
@@ -83,7 +83,7 @@ object ScienceExperiments {
         case _ =>
           BadRequest("no data")
       }
-      (req.bodyAsText |> parser).runLastOr(InternalServerError()).run
+      (req.bodyAsText |> parser).runLastOr(InternalServerError()).unsafePerformSync
 
     /*
       case req @ Post -> Root / "trailer" =>

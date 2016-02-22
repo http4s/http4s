@@ -4,7 +4,7 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderable, Writer}
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 // See https://tools.ietf.org/html/rfc7233
 

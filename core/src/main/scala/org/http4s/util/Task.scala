@@ -9,7 +9,7 @@ import scalaz.concurrent.Task
 trait TaskFunctions {
   def unsafeTaskToFuture[A](task: Task[A]): Future[A] = {
     val p = Promise[A]()
-    task.runAsync {
+    task.unsafePerformAsync {
       case \/-(a) => p.success(a)
       case -\/(t) => p.failure(t)
     }

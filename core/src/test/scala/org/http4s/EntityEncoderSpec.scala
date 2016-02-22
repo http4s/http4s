@@ -23,7 +23,7 @@ object EntityEncoderSpec {
       .fold1Monoid
       .pipe(utf8Decode)
       .runLastOr("")
-      .run
+      .unsafePerformSync
 
   def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): ByteVector =
     Process.eval(W.toEntity(a))
@@ -31,7 +31,7 @@ object EntityEncoderSpec {
       .flatMap(identity)
       .fold1Monoid
       .runLastOr(ByteVector.empty)
-      .run
+      .unsafePerformSync
 }
 
 class EntityEncoderSpec extends Http4sSpec {
@@ -47,7 +47,7 @@ class EntityEncoderSpec extends Http4sSpec {
     }
 
     "calculate the content length of strings" in {
-      implicitly[EntityEncoder[String]].toEntity("pong").run.length must_== Some(4)
+      implicitly[EntityEncoder[String]].toEntity("pong").map(_.length) must returnValue(Some(4))
     }
 
     "render byte arrays" in {

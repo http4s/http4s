@@ -5,7 +5,7 @@ import org.http4s.headers.{`Accept-Ranges`, `Content-Range`, Range}
 import org.http4s.headers.Range.SubRange
 import org.parboiled2._
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 
 private[parser] trait RangeParser {

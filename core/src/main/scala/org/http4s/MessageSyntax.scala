@@ -6,7 +6,7 @@ import scalaz.concurrent.Task
 object MessageSyntax extends MessageSyntax
 
 trait MessageSyntax {
-  implicit def requestSyntax(req: Task[Request]): TaskMessageOps[Request] = new TaskRequestOps(req)
+  implicit def requestSyntax(req: Task[Request]): TaskRequestOps = new TaskRequestOps(req)
 
   implicit def responseSyntax(resp: Task[Response]): TaskResponseOps = new TaskResponseOps(resp)
 }
@@ -53,7 +53,10 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
   })
 }
 
-final class TaskRequestOps(val self: Task[Request]) extends AnyVal with TaskMessageOps[Request]
+final class TaskRequestOps(val self: Task[Request]) extends AnyVal with TaskMessageOps[Request] {
+  def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
+    self.flatMap(_.decodeWith(decoder, strict)(f))
+}
 
 final class TaskResponseOps(val self: Task[Response]) extends AnyVal with TaskMessageOps[Response] with ResponseOps {
   /** Response specific extension methods */

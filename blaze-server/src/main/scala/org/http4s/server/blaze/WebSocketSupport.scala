@@ -30,7 +30,7 @@ trait WebSocketSupport extends Http1ServerStage {
               .map(_.replaceAllHeaders(
                  Connection("close".ci),
                  Header.Raw(headers.`Sec-WebSocket-Version`.name, "13")
-              )).run
+              )).unsafePerformSync
 
             super.renderResponse(req, resp, cleanup)
 
