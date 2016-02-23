@@ -27,15 +27,15 @@ import scalaz.stream.Process.{Halt, halt}
 import scalaz.{\/, -\/, \/-}
 
 
-final class Http1Connection(val requestKey: RequestKey,
-                            userAgent: Option[`User-Agent`],
+private final class Http1Connection(val requestKey: RequestKey,
+                            config: BlazeClientConfig,
                             protected val ec: ExecutionContext)
   extends Http1Stage with BlazeConnection
 {
   import org.http4s.client.blaze.Http1Connection._
 
   override def name: String = getClass.getName
-  private val parser = new BlazeHttp1ClientParser
+  private val parser = new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength, config.maxChunkSize)
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed: Boolean = stageState.get match {
@@ -126,8 +126,8 @@ final class Http1Connection(val requestKey: RequestKey,
         encodeRequestLine(req, rr)
         Http1Stage.encodeHeaders(req.headers, rr, false)
 
-        if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
-          rr << userAgent.get << "\r\n"
+        if (config.userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
+          rr << config.userAgent.get << "\r\n"
         }
 
         val mustClose = H.Connection.from(req.headers) match {

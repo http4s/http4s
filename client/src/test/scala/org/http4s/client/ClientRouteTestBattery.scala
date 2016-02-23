@@ -22,8 +22,8 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   isolated
 
   override def cleanup() = {
+    super.cleanup() // shuts down the jetty server
     client.shutdown.run
-    super.cleanup()
   }
 
   override def runAllTests(): Fragments = {
