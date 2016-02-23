@@ -89,7 +89,7 @@ final case class Request(
     copy(body = body, headers = headers, attributes = attributes)
 
   override def transformUri(f: Uri => Uri): Request =
-    copy(uri = uri)
+    copy(uri = f(uri))
 
   lazy val (scriptName, pathInfo) = {
     val caret = attributes.get(Request.Keys.PathInfoCaret).getOrElse(0)
