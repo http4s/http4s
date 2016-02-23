@@ -88,7 +88,26 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.client.blaze.BlazeConnection" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.client.blaze.BlazeClientConfig" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="BlazeClientConfigextendsProductwithSerializable"></a>
+      <a id="BlazeClientConfig:BlazeClientConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="BlazeClientConfig.html"><span class="name">BlazeClientConfig</span></a><span class="params">(<span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="endpointAuthentication">endpointAuthentication: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="executor">executor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@BlazeClientConfigextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Config object for the blaze clients
+</p><div class="fullcomment"><div class="comment cmt"><p>Config object for the blaze clients
+</p></div><dl class="paramcmts block"><dt class="param">idleTimeout</dt><dd class="cmt"><p>duration that a connection can wait without traffic before timeout</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>maximum duration for a request to complete before a timeout</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace the default</p></dd><dt class="param">endpointAuthentication</dt><dd class="cmt"><p>require endpoint authentication for encrypted connections</p></dd><dt class="param">maxResponseLineSize</dt><dd class="cmt"><p>maximum length of the request line</p></dd><dt class="param">maxHeaderLength</dt><dd class="cmt"><p>maximum length of headers</p></dd><dt class="param">maxChunkSize</dt><dd class="cmt"><p>maximum size of chunked content chunks</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>internal buffer size of the blaze client</p></dd><dt class="param">executor</dt><dd class="cmt"><p>thread pool where asynchronous computations will be performed</p></dd><dt class="param">group</dt><dd class="cmt"><p>custom <code>AsynchronousChannelGroup</code> to use other than the system default</p></dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeConnection" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="BlazeConnectionextendsTailStage[java.nio.ByteBuffer]withConnection"></a>
       <a id="BlazeConnection:BlazeConnection"></a>
       <h4 class="signature">
@@ -101,23 +120,6 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.package@BlazeConnectionextendsTailStage[java.nio.ByteBuffer]withConnection" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.client.blaze.Http1Connection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="Http1ConnectionextendsHttp1StagewithBlazeConnection"></a>
-      <a id="Http1Connection:Http1Connection"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="Http1Connection.html"><span class="name">Http1Connection</span></a><span class="result"> extends <a href="../../blaze/Http1Stage.html" class="extype" name="org.http4s.blaze.Http1Stage">Http1Stage</a> with <a href="BlazeConnection.html" class="extype" name="org.http4s.client.blaze.BlazeConnection">BlazeConnection</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.package@Http1ConnectionextendsHttp1StagewithBlazeConnection" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -146,6 +148,23 @@
       </a>
     </span>
       <p class="shortcomment cmt">Blaze client implementation</p>
+    </li><li name="org.http4s.client.blaze.BlazeClientConfig" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BlazeClientConfig"></a>
+      <a id="BlazeClientConfig:BlazeClientConfig"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="BlazeClientConfig$.html"><span class="name">BlazeClientConfig</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.package@BlazeClientConfig" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.client.blaze.ClientTimeoutStage" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="ClientTimeoutStage"></a>
       <a id="ClientTimeoutStage:ClientTimeoutStage"></a>
@@ -237,7 +256,7 @@
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">lazy val</span>
       </span>
       <span class="symbol">
         <span class="name">defaultClient</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
