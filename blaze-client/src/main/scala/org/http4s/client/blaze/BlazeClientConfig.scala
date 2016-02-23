@@ -12,21 +12,33 @@ import scala.concurrent.duration.Duration
   *
   * @param idleTimeout duration that a connection can wait without traffic before timeout
   * @param requestTimeout maximum duration for a request to complete before a timeout
-  * @param bufferSize internal buffer size of the blaze client
   * @param userAgent optional custom user agent header
-  * @param executor thread pool where asynchronous computations will be performed
   * @param sslContext optional custom `SSLContext` to use to replace the default
   * @param endpointAuthentication require endpoint authentication for encrypted connections
+  * @param maxResponseLineSize maximum length of the request line
+  * @param maxHeaderLength maximum length of headers
+  * @param maxChunkSize maximum size of chunked content chunks
+  * @param bufferSize internal buffer size of the blaze client
+  * @param executor thread pool where asynchronous computations will be performed
   * @param group custom `AsynchronousChannelGroup` to use other than the system default
   */
-case class BlazeClientConfig(
+case class BlazeClientConfig( //
                               idleTimeout: Duration,
                               requestTimeout: Duration,
-                              bufferSize: Int,
                               userAgent: Option[`User-Agent`],
-                              executor: ExecutorService,
+
+                              // security options
                               sslContext: Option[SSLContext],
                               endpointAuthentication: Boolean,
+
+                              // parser options
+                              maxResponseLineSize: Int,
+                              maxHeaderLength: Int,
+                              maxChunkSize: Int,
+
+                              // pipeline management
+                              bufferSize: Int,
+                              executor: ExecutorService,
                               group: Option[AsynchronousChannelGroup]
                             )
 
@@ -35,11 +47,17 @@ object BlazeClientConfig {
   val defaultConfig = BlazeClientConfig(
     idleTimeout = bits.DefaultTimeout,
     requestTimeout = Duration.Inf,
-    bufferSize = bits.DefaultBufferSize,
     userAgent = bits.DefaultUserAgent,
-    executor = bits.ClientDefaultEC,
+
     sslContext = None,
     endpointAuthentication = true,
+
+    maxResponseLineSize = 4*1024,
+    maxHeaderLength = 40*1024,
+    maxChunkSize = Integer.MAX_VALUE,
+
+    bufferSize = bits.DefaultBufferSize,
+    executor = bits.ClientDefaultEC,
     group = None
   )
 }

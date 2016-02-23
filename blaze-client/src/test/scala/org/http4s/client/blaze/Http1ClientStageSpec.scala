@@ -33,10 +33,12 @@ class Http1ClientStageSpec extends Specification {
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
+  private def mkConnection(key: RequestKey) = new Http1Connection(key, BlazeClientConfig.defaultConfig, ec)
+
   def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
 
-  def getSubmission(req: Request, resp: String, stage: Http1Connection, flushPrelude: Boolean): (String, String) = {
+  private def getSubmission(req: Request, resp: String, stage: Http1Connection, flushPrelude: Boolean): (String, String) = {
     val h = new SeqTestHead(resp.toSeq.map{ chr =>
       val b = ByteBuffer.allocate(1)
       b.put(chr.toByte).flip()
@@ -58,9 +60,9 @@ class Http1ClientStageSpec extends Specification {
     (request, result)
   }
 
-  def getSubmission(req: Request, resp: String, flushPrelude: Boolean = false): (String, String) = {
+  private def getSubmission(req: Request, resp: String, flushPrelude: Boolean = false): (String, String) = {
     val key = RequestKey.fromRequest(req)
-    val tail = new Http1Connection(key, DefaultUserAgent, ec)
+    val tail = mkConnection(key)
     try getSubmission(req, resp, tail, flushPrelude)
     finally { tail.shutdown() }
   }
@@ -88,7 +90,7 @@ class Http1ClientStageSpec extends Specification {
     }
 
     "Fail when attempting to get a second request with one in progress" in {
-      val tail = new Http1Connection(FooRequestKey, DefaultUserAgent, ec)
+      val tail = mkConnection(FooRequestKey)
       val (frag1,frag2) = resp.splitAt(resp.length-1)
       val h = new SeqTestHead(List(mkBuffer(frag1), mkBuffer(frag2), mkBuffer(resp)))
       LeafBuilder(tail).base(h)
@@ -103,7 +105,7 @@ class Http1ClientStageSpec extends Specification {
     }
 
     "Reset correctly" in {
-      val tail = new Http1Connection(FooRequestKey, DefaultUserAgent, ec)
+      val tail = mkConnection(FooRequestKey)
       try {
         val h = new SeqTestHead(List(mkBuffer(resp), mkBuffer(resp)))
         LeafBuilder(tail).base(h)
@@ -123,7 +125,7 @@ class Http1ClientStageSpec extends Specification {
 
     "Alert the user if the body is to short" in {
       val resp = "HTTP/1.1 200 OK\r\nContent-Length: 5\r\n\r\ndone"
-      val tail = new Http1Connection(FooRequestKey, DefaultUserAgent, ec)
+      val tail = mkConnection(FooRequestKey)
 
       try {
         val h = new SeqTestHead(List(mkBuffer(resp)))
@@ -185,7 +187,7 @@ class Http1ClientStageSpec extends Specification {
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val tail = new Http1Connection(FooRequestKey, None, ec)
+      val tail = new Http1Connection(FooRequestKey, BlazeClientConfig.defaultConfig.copy(userAgent = None), ec)
 
       try {
         val (request, response) = getSubmission(FooRequest, resp, tail, false)
