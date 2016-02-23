@@ -106,11 +106,19 @@ object EntityDecoder extends EntityDecoderInstances {
       msg.headers.get(`Content-Type`) match {
         case Some(contentType) =>
           if (a.matchesMediaType(contentType.mediaType)) a.decode(msg, strict)
-          else b.decode(msg, strict)
+          else b.decode(msg, strict).leftMap{
+            case MediaTypeMismatch(actual, expected) =>
+              MediaTypeMismatch(actual, expected ++ a.consumes)
+            case other => other
+          }
 
         case None =>
           if (a.matchesMediaType(UndefinedMediaType)) a.decode(msg, strict)
-          else b.decode(msg, strict)
+          else b.decode(msg, strict).leftMap{
+            case MediaTypeMissing(expected) =>
+              MediaTypeMissing(expected ++ a.consumes)
+            case other => other
+          }
       }
     }
 
