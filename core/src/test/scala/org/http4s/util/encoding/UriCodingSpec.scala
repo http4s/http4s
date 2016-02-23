@@ -1,7 +1,8 @@
 package org.http4s.util.encoding
 
 import org.http4s.Http4sSpec
-import org.specs2.{ScalaCheck, Specification}
+import org.specs2.ScalaCheck
+import org.specs2.matcher.DisjunctionMatchers.be_\/-
 
 class UriCodingSpec extends Http4sSpec with ScalaCheck {
   import UriCodingUtils._
@@ -19,31 +20,31 @@ class UriCodingSpec extends Http4sSpec with ScalaCheck {
 //  }
 
   "verifyUserInfo . encodeUserInfo is right" in prop {
-    s: String => verifyUserInfo(encodeUserInfo(s).encoded) must beSuccessfulTry
+    s: String => verifyUserInfo(encodeUserInfo(s).encoded) must be_\/-
   }
 
   "verifyRegName . encodeRegName is right" in prop {
-    s: String => verifyRegName(encodeRegName(s).encoded) must beSuccessfulTry
+    s: String => verifyRegName(encodeRegName(s).encoded) must be_\/-
   }
 
   "verifyFragment . encodeFragment is right" in prop {
-    s: String => verifyFragment(encodeFragment(s).encoded) must beSuccessfulTry
+    s: String => verifyFragment(encodeFragment(s).encoded) must be_\/-
   }
 
   "verifyPath . encodePath is right" in prop {
-    p: Seq[String] => verifyPath(encodePath(p).encoded) must beSuccessfulTry
+    p: Seq[String] => verifyPath(encodePath(p).encoded) must be_\/-
   }
 
   "verifyQuery . encodeQueryMapOrdered is right" in prop {
-    q: Map[String, Seq[String]] => verifyQuery(encodeQueryMap(q).encoded) must beSuccessfulTry
+    q: Map[String, Seq[String]] => verifyQuery(encodeQueryMap(q).encoded) must be_\/-
   }
 
   "verifyQuery . encodeFormQueryVector is right" in prop {
-    q: Vector[(String, Option[String])] => verifyQuery(encodeQueryVector(q).encoded) must beSuccessfulTry
+    q: Vector[(String, Option[String])] => verifyQuery(encodeQueryVector(q).encoded) must be_\/-
   }
 
   "verifyQuery . encodePlainQueryString is right" in prop {
-    s: String => verifyQuery(encodePlainQueryString(s).encoded) must beSuccessfulTry
+    s: String => verifyQuery(encodePlainQueryString(s).encoded) must be_\/-
   }
 
   "decodePlainQueryString . encodePlainQueryString is right" in prop {

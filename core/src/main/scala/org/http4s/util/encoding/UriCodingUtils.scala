@@ -3,14 +3,15 @@ package org.http4s.util.encoding
 import java.nio.charset.Charset
 import java.nio.{ByteBuffer, CharBuffer}
 
-import org.http4s.Uri
-import org.http4s.parser.RequestUriParser
+import org.http4s.{ParseFailure, Uri}
+import org.http4s.parser.{ScalazDeliverySchemes, RequestUriParser}
 import org.http4s.util.encoding.tags._
 import org.parboiled2.CharPredicate
 
 import scala.annotation.tailrec
 import scala.collection.SeqLike
 import scala.util.Try
+import scalaz.\/
 
 
 /** Goodies for URI encoding */
@@ -21,13 +22,26 @@ object UriCodingUtils {
   private val Utf8 = Charset.forName("UTF-8")
   private val HexUpperCaseChars = (0 until 16) map { i ⇒ Character.toUpperCase(Character.forDigit(i, 16)) }
 
-  def verifyAuthority(authority: String): Try[Uri.Authority] = new RequestUriParser(authority).Authority.run()
-  def verifyHost(          host: String): Try[Uri.Host]      = new RequestUriParser(host).Host.run()
-  def verifyUserInfo(  userInfo: String): Try[Uri.UserInfo]  = new RequestUriParser(userInfo).UserInfo.run()
-  def verifyRegName(    regName: String): Try[Unit]          = new RequestUriParser(regName).RegName.run()
-  def verifyPath(          path: String): Try[Uri.Path]      = new RequestUriParser(path).Path.run()
-  def verifyQuery(        query: String): Try[String]        = new RequestUriParser(query).Query.run()
-  def verifyFragment(  fragment: String): Try[String]        = new RequestUriParser(fragment).Fragment.run()
+  def verifyAuthority(authority: String): ParseFailure \/ Uri.Authority =
+    new RequestUriParser(authority).Authority.run()(ScalazDeliverySchemes.Disjunction)
+
+  def verifyHost(host: String): ParseFailure \/ Uri.Host =
+    new RequestUriParser(host).Host.run()(ScalazDeliverySchemes.Disjunction)
+
+  def verifyUserInfo(userInfo: String): ParseFailure \/ Uri.UserInfo =
+    new RequestUriParser(userInfo).UserInfo.run()(ScalazDeliverySchemes.Disjunction)
+
+  def verifyRegName(regName: String): ParseFailure \/ Unit =
+    new RequestUriParser(regName).RegName.run()(ScalazDeliverySchemes.Disjunction)
+
+  def verifyPath(path: String): ParseFailure \/ Uri.Path =
+    new RequestUriParser(path).Path.run()(ScalazDeliverySchemes.Disjunction)
+
+  def verifyQuery(query: String): ParseFailure \/ String =
+    new RequestUriParser(query).Query.run()(ScalazDeliverySchemes.Disjunction)
+
+  def verifyFragment(fragment: String): ParseFailure \/ String =
+    new RequestUriParser(fragment).Fragment.run()(ScalazDeliverySchemes.Disjunction)
 
   def encodeUserInfo(userInfo: String): EncodedString[UserInfo] = percentEncode(userInfo)
   def encodeRegName(regName: String): EncodedString[RegName] = percentEncode(regName)
