@@ -156,7 +156,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render an URL with username and password" in {
-      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/", Query.empty, None).toString must_==("http://username:password@some.example.com")
+      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/", Query.none, None).toString must_==("http://username:password@some.example.com")
     }
 
     "render an URL with username and password, path and params" in {
@@ -172,7 +172,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
 
     "render relative URI with empty fragment" in {
-      Uri(path = "/", query = Query.empty, fragment = Some("")).toString must_== ("/#")
+      Uri(path = "/", query = Query.none, fragment = Some("")).toString must_== ("/#")
     }
 
     "render relative path with fragment" in {
@@ -281,7 +281,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.params.+" should {
     "add parameter to empty query" in {
-      val i = Uri(query = Query.empty).params + (("param", Seq("value")))
+      val i = Uri(query = Query.none).params + (("param", Seq("value")))
       i must be_==(Map("param" -> Seq("value")))
     }
     "add parameter" in {
@@ -300,7 +300,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.params.-" should {
     "not do anything on an URI without a query" in {
-      val i = Uri(query = Query.empty).params - "param"
+      val i = Uri(query = Query.none).params - "param"
       i must be_==(Map())
     }
     "not reduce a map if parameter does not match" in {
@@ -315,7 +315,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
 
   "Uri.params.iterate" should {
     "work on an URI without a query" in {
-      foreach (Uri(query = Query.empty).params.iterator) { i =>
+      foreach (Uri(query = Query.none).params.iterator) { i =>
         throw new Error(s"should not have $i") // should not happen
       }
     }
@@ -427,13 +427,13 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       Uri(query = Query.fromString("param1&param2&param3")).params.get("param4") must be_==(None)
     }
     "not find anything if query string is empty" in {
-      Uri(query = Query.empty).params.get("param1") must be_==(None)
+      Uri(query = Query.none).params.get("param1") must be_==(None)
     }
   }
 
   "Uri parameter convenience methods" should {
     "add a parameter if no query is available" in {
-      val u = Uri(query = Query.empty) +? ("param1", "value")
+      val u = Uri(query = Query.none) +? ("param1", "value")
       u must be_==(Uri(query = Query.fromString("param1=value")))
     }
     "add a parameter" in {
@@ -474,10 +474,10 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
     "add an optional query parameter (Empty)" in {
       val u = Uri() +?? ("param1", Maybe.empty[Int])
-      u must be_==(Uri(query = Query.empty))
+      u must be_==(Uri(query = Query.none))
     }
     "contains not a parameter" in {
-      Uri(query = Query.empty) ? "param1" must be_==(false)
+      Uri(query = Query.none) ? "param1" must be_==(false)
     }
     "contains an empty parameter" in {
       Uri(query = Query.fromString("")) ? "" must be_==(true)
@@ -508,7 +508,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     }
     "remove an empty parameter from an empty query string" in {
       val u = Uri(query = Query.fromString("")) -? ("")
-      u must be_==(Uri(query = Query.empty))
+      u must be_==(Uri(query = Query.none))
     }
     "remove nothing if parameter is not present" in {
       val u = Uri(query = Query.fromString("param1=value&param2=value"))

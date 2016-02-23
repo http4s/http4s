@@ -17,7 +17,7 @@ sealed trait Query extends QueryOps with Renderable {
 }
 
 /** Represents the absence of a query component */
-object EmptyQuery extends Query {
+object NoQuery extends Query {
   override def asForm: FormQuery = FormQuery()
   override def encoded: String = "<please check isEmpty before using this value>"
   override def isEmpty: Boolean = true
@@ -31,13 +31,19 @@ object EmptyQuery extends Query {
 
   /** Base method for rendering this object efficiently */
   override def render(writer: Writer): writer.type = writer << "EmptyQuery"
+
+  override def equals(obj: Any): Boolean = obj match {
+    case null => false
+    case that: Query => Query.equals(this, that)
+    case _ => false
+  }
 }
 
 object Query {
   def apply(s: String): PlainQuery = new PlainQuery(s)
   def apply(xs: (String, Option[String])*): FormQuery = FormQuery(xs: _*)
 
-  val empty: Query = EmptyQuery
+  val none: Query = NoQuery
 
   def fromString(s: String): PlainQuery = new PlainQuery(s)
   def fromPairs(xs: (String, String)*): FormQuery = FormQuery.fromPairs(xs: _*)
@@ -49,7 +55,7 @@ object Query {
 }
 
 final case class PlainQuery(plain: String) extends Query with QueryOps with Renderable {
-  def asForm: FormQuery = FormQuery.fromString(plain)
+  lazy val asForm: FormQuery = FormQuery.fromString(plain)
   def isEmpty: Boolean = false
 
   /** Base method for rendering this object efficiently */

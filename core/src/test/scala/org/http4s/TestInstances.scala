@@ -161,29 +161,40 @@ trait TestInstances {
   )
 
   // this doesn't seem to do anything, or do enough
-  implicit val urlFormShrink: Shrink[UrlForm] = Shrink.xmap(UrlForm.apply(_: Map[String, Seq[String]]), _.values)
+  implicit val urlFormShrink: Shrink[UrlForm] =
+    Shrink.xmap(UrlForm.apply(_: Map[String, Seq[String]]), _.values)
 
   implicit def optionPretty[A](implicit A: A => Pretty): Option[A] => Pretty = {
     case None => Pretty { p => "None" }
     case Some(a) => Pretty { p => s"Some(${A(a)(p)})" }
   }
 
-  def containerTraversablePretty[C[_], A](constructor: String)(implicit A: A => Pretty, t: C[A] => Traversable[A]): C[A] => Pretty =
+  def containerTraversablePretty[C[_], A](constructor: String)
+                                         (implicit A: A => Pretty,
+                                                   t: C[A] => Traversable[A]): C[A] => Pretty =
     c => Pretty { p => s"$constructor(${c.map(A(_)(p)).mkString(", ")})" }
 
   def container2TraversablePretty[C[_,_], A, B](constructor: String)
-                                               (implicit A: A => Pretty, B: B => Pretty, t: C[A,B] => Traversable[(A,B)]): C[A,B] => Pretty =
+                                               (implicit A: A => Pretty,
+                                                         B: B => Pretty,
+                                                         t: C[A,B] => Traversable[(A,B)]): C[A,B] => Pretty =
     c => Pretty { p => s"$constructor(${c.map { case (a, b) => s"${A(a)(p)} -> ${B(b)(p)}"}.mkString(", ")})" }
 
 
   implicit def queryPretty: Query => Pretty = {
-    case FormQuery(pairs) => Pretty { p => "FormQuery(" + containerTraversablePretty[Vector, (String, Option[String])]("Vector").apply(pairs)(p) + ")" }
+    case FormQuery(pairs) => Pretty { p =>
+      "FormQuery(" + containerTraversablePretty[Vector, (String, Option[String])]("Vector").apply(pairs)(p) + ")"
+    }
     case PlainQuery(plain) => Pretty { p => "PlainQuery( " + Pretty.prettyString(plain)(p) + " )" }
-    case EmptyQuery => Pretty { p => "EmptyQuery" }
+    case NoQuery => Pretty { p => "EmptyQuery" }
   }
 
   implicit def formMultiMapPretty: Map[String, Seq[String]] => Pretty =
-    container2TraversablePretty[Map, String, Seq[String]]("Map")(implicitly, containerTraversablePretty[Seq,String]("Seq"), implicitly)
+    container2TraversablePretty[Map, String, Seq[String]]("Map")(
+      implicitly, // String => Pretty
+      containerTraversablePretty[Seq,String]("Seq"), // Seq[String] => Pretty
+      implicitly // MapIsTraversable
+    )
 
   implicit lazy val arbitararyAllow: Arbitrary[Allow] =
     Arbitrary { for {

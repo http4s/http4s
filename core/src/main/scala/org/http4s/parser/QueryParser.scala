@@ -97,7 +97,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
 
 private[http4s] object QueryParser {
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] = {
-    if (queryString.isEmpty) \/-(Query.empty)
+    if (queryString.isEmpty) \/-(Query.none)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
   }
 

@@ -82,8 +82,8 @@ object UriCodingUtils {
       }.mkString("&")
     }
 
-  private[encoding] def encodeQueryParam(queryParam: String): EncodedFormQueryParam =
-    new EncodedFormQueryParam(percentEncode(queryParam))
+  def encodeQueryParam(queryParam: String): EncodedFormQueryParam =
+    EncodedFormQueryParam(percentEncode(queryParam))
 
   private[encoding] def decodeQueryParam(encoded: EncodedString[FormQueryParam]): String =
     percentDecode(PctEncoded(encoded.encoded.replace('+',' ')))

@@ -12,9 +12,9 @@ import org.openjdk.jmh.annotations._
 class QueryParamBench {
 
   @Benchmark def withQueryParam(in: QueryParamInput): QueryOps =
-    in.queryParams.foldLeft[QueryOps](Query.empty){ case (query, (key, value)) => query.withQueryParam(key, value) }
+    in.queryParams.foldLeft[QueryOps](Query.none){ case (query, (key, value)) => query.withQueryParam(key, value) }
 
   @Benchmark def setQueryParams(in: QueryParamInput): QueryOps =
-    Query.empty.setQueryParams(in.queryParams.mapValues(Seq(_)))
+    Query.none.setQueryParams(in.queryParams.mapValues(Seq(_)))
 
 }

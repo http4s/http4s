@@ -17,13 +17,13 @@ private[http4s] trait Rfc3986Parser { this: Parser =>
 
   def AbsoluteUri = rule {
     Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (scheme, auth, path, query, fragment) =>
-      org.http4s.Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+      org.http4s.Uri(Some(scheme), auth, path, query.map(Q.fromString).getOrElse(Q.none), fragment)
     }
   }
 
   def RelativeRef = rule {
     RelativePart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (auth, path, query, fragment) =>
-    org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.empty), fragment)
+    org.http4s.Uri(None, auth, path, query.map(Q.fromString).getOrElse(Q.none), fragment)
     }
   }
 

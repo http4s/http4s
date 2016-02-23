@@ -90,7 +90,7 @@ class UriParserSpec extends Http4sSpec {
 
     "parse absolute URI with fragment" in {
       val u = Uri.requestTarget("http://foo.bar/foo#Examples")
-      u must be_\/-(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.empty, Some("Examples")))
+      u must be_\/-(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.none, Some("Examples")))
     }
 
     "parse absolute URI with parameters and fragment" in {
