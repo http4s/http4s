@@ -1,3 +1,6 @@
+# v0.14.0 (unreleased)
+* Upgrade to scalaz-7.2.x.
+
 # v0.13.0 (unreleased)
 * Add a client backed based on async-http-client.
 * Encode keys when rendering a query string.
