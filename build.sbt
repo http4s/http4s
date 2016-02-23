@@ -42,7 +42,7 @@ lazy val server = libraryProject("server")
     description := "Base library for building http4s servers",
     libraryDependencies += metricsCore
   )
-  .dependsOn(core % "compile;test->test")
+  .dependsOn(core % "compile;test->test", theDsl % "test->compile")
 
 lazy val client = libraryProject("client")
   .settings(
@@ -117,7 +117,7 @@ lazy val theDsl = libraryProject("dsl")
   .settings(
     description := "Simple DSL for writing http4s services"
   )
-  .dependsOn(core % "compile;test->test", server % "test->compile")
+  .dependsOn(core % "compile;test->test")
 
 lazy val jawn = libraryProject("jawn")
   .settings(

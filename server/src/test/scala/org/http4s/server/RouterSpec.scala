@@ -1,31 +1,30 @@
 package org.http4s
 package server
 
-import org.http4s.Method._
-import org.http4s.Status._
+import org.http4s.dsl._
 
 class RouterSpec extends Http4sSpec {
   val numbers: HttpService = HttpService {
-    case req if req.pathInfo == "/1" =>
-      Response(Ok).withBody("one")
+    case GET -> Root / "1" =>
+      Ok("one")
   }
   val letters: HttpService = HttpService {
-    case req if req.pathInfo == "/b" =>
-      Response(Ok).withBody("bee")
+    case GET -> Root / "/b" =>
+      Ok("bee")
   }
   val shadow: HttpService = HttpService {
-    case req if req.pathInfo == "/shadowed" =>
-      Response(Ok).withBody("visible")
+    case GET -> Root / "shadowed" =>
+      Ok("visible")
   }
   val root: HttpService  = HttpService {
-    case req if req.pathInfo == "/about" =>
-      Response(Ok).withBody("about")
-    case req if req.pathInfo == "/shadow/shadowed" =>
-      Response(Ok).withBody("invisible")
+    case GET -> Root / "about" =>
+      Ok("about")
+    case GET -> Root / "shadow" / "shadowed" =>
+      Ok("invisible")
   }
 
   val notFound: HttpService = HttpService {
-    case _ => Response(NotFound).withBody("Custom NotFound")
+    case _ => NotFound("Custom NotFound")
   }
 
   val service = Router(

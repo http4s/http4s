@@ -29,7 +29,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   
   def EOL: Rule0 = rule { OptWS ~ EOI }  // Strip trailing whitespace
 
-  def Digits: Rule1[String] = rule { capture(zeroOrMore( Digit )) }
+  def Digits: Rule1[String] = rule { capture(oneOrMore( Digit )) }
 
   def Value = rule { Token | QuotedString }
 

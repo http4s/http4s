@@ -19,11 +19,6 @@ private[blaze] object bits {
   val DefaultTimeout: Duration = 60.seconds
   val DefaultBufferSize: Int = 8*1024
   val DefaultUserAgent = Some(`User-Agent`(AgentProduct("http4s-blaze", Some(BuildInfo.version))))
-  val ClientDefaultEC = {
-    val maxThreads = max(4, (Runtime.getRuntime.availableProcessors * 1.5).ceil.toInt)
-    val threadFactory = threads.threadFactory(name = (i => s"http4s-blaze-client-$i"), daemon = true)
-    Executors.newFixedThreadPool(maxThreads, threadFactory)
-  }
 
   val ClientTickWheel = new TickWheelExecutor()
 
