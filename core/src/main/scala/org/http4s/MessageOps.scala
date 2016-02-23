@@ -262,10 +262,9 @@ trait ResponseOps[F[_]] extends Any with MessageOps[F] {
   /** Change the status of this response object
     *
     * @param status value to replace on the response object
-    * @tparam S type that can be converted to a [[Status]]
     * @return a new response object with the new status code
     */
-  def withStatus[S <% Status](status: S): F[Self]
+  def withStatus(status: Status): F[Self]
 
   /** Add a Set-Cookie header for the provided [[Cookie]] */
   def addCookie(cookie: Cookie): F[Self] =

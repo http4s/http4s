@@ -143,8 +143,7 @@ case class Response(
   attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseOps[Id] {
   type Self = Response
 
-  /** Response specific extension methods */
-  override def withStatus[S <% Status](status: S): Self = copy(status = status)
+  override def withStatus(status: Status): Self = copy(status = status)
 
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)

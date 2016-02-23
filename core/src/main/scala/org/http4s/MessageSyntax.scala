@@ -80,12 +80,6 @@ final class TaskRequestOps(val self: Task[Request])
 final class TaskResponseOps(val self: Task[Response])
   extends AnyVal with TaskMessageOps[Response] with ResponseOps[Task]
 {
-  /** Change the status of this response object
-    *
-    * @param status value to replace on the response object
-    * @tparam S type that can be converted to a [[Status]]
-    * @return a new response object with the new status code
-    */
-  override def withStatus[S <% Status](status: S): Task[Response] =
+  override def withStatus(status: Status): Task[Response] =
     self.map(_.withStatus(status))
 }
