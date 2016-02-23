@@ -17,7 +17,7 @@ private[http4s] class RequestUriParser(val input: ParserInput)
   }
 
   def OriginForm = rule { PathAbsolute ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (path, query, fragment) =>
-    val q = query.map(Q.fromString).getOrElse(Q.none)
+    val q = query.map(Q.fromString).getOrElse(Q.noQuery)
     org.http4s.Uri(path = path, query = q, fragment = fragment)
   } }
 

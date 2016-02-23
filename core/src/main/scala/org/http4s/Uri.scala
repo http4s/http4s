@@ -24,11 +24,11 @@ import org.http4s.util.option.ToOptionOps
   */
 // TODO fix Location header, add unit tests
 case class Uri(
-  scheme: Option[CaseInsensitiveString] = None,
-  authority: Option[Authority] = None,
-  path: Path = "",
-  query: Query = Query.none,
-  fragment: Option[Fragment] = None)
+                scheme: Option[CaseInsensitiveString] = None,
+                authority: Option[Authority] = None,
+                path: Path = "",
+                query: Query = Query.noQuery,
+                fragment: Option[Fragment] = None)
   extends QueryOps with Renderable
 {
   def withPath(path: Path): Uri = copy(path = path)
@@ -210,7 +210,7 @@ trait UriFunctions {
     val target = (base,reference) match {
       case (_,               Uri(Some(_),_,_,_,_))      => reference
       case (Uri(s,_,_,_,_),  Uri(_,a@Some(_),p,q,f))    => Uri(s,a,p,q,f)
-      case (Uri(s,a,p,q,_),  Uri(_,_,"",Query.none,f)) => Uri(s,a,p,q,f)
+      case (Uri(s,a,p,q,_),  Uri(_,_,"",Query.`noQuery`,f)) => Uri(s,a,p,q,f)
       case (Uri(s,a,p,_,_),  Uri(_,_,"",q,f))           => Uri(s,a,p,q,f)
       case (Uri(s,a,bp,_,_), Uri(_,_,p,q,f)) =>
         if (p.headOption.contains('/')) Uri(s,a,p,q,f)

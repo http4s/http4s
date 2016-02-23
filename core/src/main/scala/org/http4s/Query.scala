@@ -19,7 +19,7 @@ sealed trait Query extends QueryOps with Renderable {
 /** Represents the absence of a query component */
 object NoQuery extends Query {
   override def asForm: FormQuery = FormQuery()
-  override def encoded: String = "<please check isEmpty before using this value>"
+  override def encoded: String = throw org.http4s.util.bug("Check query.isEmpty before calling query.encoded")
   override def isEmpty: Boolean = true
 
   /////////////////////// QueryOps methods and types /////////////////////////
@@ -40,12 +40,13 @@ object NoQuery extends Query {
 }
 
 object Query {
-  def apply(s: String): PlainQuery = new PlainQuery(s)
+  def apply(s: String): StringQuery = StringQuery(s)
   def apply(xs: (String, Option[String])*): FormQuery = FormQuery(xs: _*)
 
-  val none: Query = NoQuery
+  val emptyString: Query = StringQuery("")
+  val noQuery: Query = NoQuery
 
-  def fromString(s: String): PlainQuery = new PlainQuery(s)
+  def fromString(s: String): StringQuery = new StringQuery(s)
   def fromPairs(xs: (String, String)*): FormQuery = FormQuery.fromPairs(xs: _*)
   def fromMap(map: Map[String, Seq[String]]): FormQuery = FormQuery.fromMap(map)
 
@@ -54,7 +55,7 @@ object Query {
 
 }
 
-final case class PlainQuery(plain: String) extends Query with QueryOps with Renderable {
+final case class StringQuery(plain: String) extends Query with QueryOps with Renderable {
   lazy val asForm: FormQuery = FormQuery.fromString(plain)
   def isEmpty: Boolean = false
 
@@ -78,8 +79,8 @@ final case class PlainQuery(plain: String) extends Query with QueryOps with Rend
   }
 }
 
-object PlainQuery {
-  def empty: PlainQuery = new PlainQuery("")
+object StringQuery {
+  def empty: StringQuery = new StringQuery("")
 //  def apply(s: String): PlainQuery =
 }
 

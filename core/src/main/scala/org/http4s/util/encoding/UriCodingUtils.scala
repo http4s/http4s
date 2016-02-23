@@ -78,7 +78,7 @@ object UriCodingUtils {
       query.map {
         case (k, ov) =>
           val kEncoded = encodeQueryParam(k).asKey
-          ov.fold(kEncoded.asKV)(encodeQueryValue(kEncoded)).encoded
+          ov.fold[EncodedString[FormQueryKV]](kEncoded.asKV)(encodeQueryValue(kEncoded)).encoded
       }.mkString("&")
     }
 

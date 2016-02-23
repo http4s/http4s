@@ -73,7 +73,7 @@ package object oauth1 {
     val paramsStr = params.map{ case (k,v) => k + "=" + v }.sorted.mkString("&")
 
     Seq(method.name,
-      encode(uri.copy(query = Query.none, fragment = None).renderString),
+      encode(uri.copy(query = Query.emptyString, fragment = None).renderString),
       encode(paramsStr)
     ).mkString("&")
   }

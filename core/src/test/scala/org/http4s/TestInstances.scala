@@ -185,7 +185,7 @@ trait TestInstances {
     case FormQuery(pairs) => Pretty { p =>
       "FormQuery(" + containerTraversablePretty[Vector, (String, Option[String])]("Vector").apply(pairs)(p) + ")"
     }
-    case PlainQuery(plain) => Pretty { p => "PlainQuery( " + Pretty.prettyString(plain)(p) + " )" }
+    case StringQuery(plain) => Pretty { p => "PlainQuery( " + Pretty.prettyString(plain)(p) + " )" }
     case NoQuery => Pretty { p => "EmptyQuery" }
   }
 

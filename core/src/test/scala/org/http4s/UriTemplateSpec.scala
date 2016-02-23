@@ -483,7 +483,7 @@ object UriTemplateSpec extends Specification {
       val authority = Some(Authority(host = host, port = Some(8080)))
       val query = List(ParamElm("", Nil))
       UriTemplate(scheme, authority, Nil, query).toUriIfPossible.get must equalTo(Uri(scheme, authority, "", Query.fromString("")))
-      UriTemplate(scheme, authority, Nil, Nil).toUriIfPossible.get must equalTo(Uri(scheme, authority, "", Query.none))
+      UriTemplate(scheme, authority, Nil, Nil).toUriIfPossible.get must equalTo(Uri(scheme, authority, "", Query.noQuery))
     }
     "convert http://192.168.1.1:80/c?GB=object&Class=one to Uri" in {
       val scheme = Some("http".ci)

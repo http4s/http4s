@@ -25,7 +25,7 @@ class QueryParserSpec extends Http4sSpec {
     }
 
     "return an empty Map for an empty query string" in {
-      parseQueryString("") must be_\/-(Query.none)
+      parseQueryString("") must be_\/-(Query.emptyString)
     }
 
     "return an empty value for keys without a value following the '=' and keys without following '='" in {
