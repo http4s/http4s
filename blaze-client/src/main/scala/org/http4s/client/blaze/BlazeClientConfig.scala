@@ -1,9 +1,11 @@
-package org.http4s.client.blaze
+package org.http4s.client
+package blaze
 
 import java.nio.channels.AsynchronousChannelGroup
 import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLContext
 
+import org.http4s.client.impl.DefaultExecutor
 import org.http4s.headers.`User-Agent`
 
 import scala.concurrent.duration.Duration
@@ -43,21 +45,26 @@ case class BlazeClientConfig( //
                             )
 
 object BlazeClientConfig {
-  /** Default user configuration */
-  val defaultConfig = BlazeClientConfig(
-    idleTimeout = bits.DefaultTimeout,
-    requestTimeout = Duration.Inf,
-    userAgent = bits.DefaultUserAgent,
+  /** Default user configuration
+    *
+    * @param executor executor on which to run computations.
+    *                 If the default `ExecutorService` is used it will be shutdown with the client
+    */
+  def defaultConfig(executor: ExecutorService = DefaultExecutor.newClientDefaultExecutorService("blaze-client")) =
+    BlazeClientConfig(
+      idleTimeout = bits.DefaultTimeout,
+      requestTimeout = Duration.Inf,
+      userAgent = bits.DefaultUserAgent,
 
-    sslContext = None,
-    endpointAuthentication = true,
+      sslContext = None,
+      endpointAuthentication = true,
 
-    maxResponseLineSize = 4*1024,
-    maxHeaderLength = 40*1024,
-    maxChunkSize = Integer.MAX_VALUE,
+      maxResponseLineSize = 4*1024,
+      maxHeaderLength = 40*1024,
+      maxChunkSize = Integer.MAX_VALUE,
 
-    bufferSize = bits.DefaultBufferSize,
-    executor = bits.ClientDefaultEC,
-    group = None
-  )
+      bufferSize = bits.DefaultBufferSize,
+      executor = executor,
+      group = None
+    )
 }

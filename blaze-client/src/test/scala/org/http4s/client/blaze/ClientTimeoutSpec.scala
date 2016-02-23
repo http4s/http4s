@@ -6,7 +6,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 
 import org.http4s.blaze.{SeqTestHead, SlowTestHead}
-import org.http4s.blaze.pipeline.{HeadStage, LeafBuilder}
+import org.http4s.blaze.pipeline.HeadStage
 import scodec.bits.ByteVector
 
 import scala.concurrent.TimeoutException
@@ -24,7 +24,10 @@ class ClientTimeoutSpec extends Http4sSpec {
   val FooRequestKey = RequestKey.fromRequest(FooRequest)
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
-  private def mkConnection() = new Http1Connection(FooRequestKey, BlazeClientConfig.defaultConfig, ec)
+  // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
+  private val defaultConfig = BlazeClientConfig.defaultConfig()
+
+  private def mkConnection() = new Http1Connection(FooRequestKey, defaultConfig, ec)
 
   def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
@@ -32,7 +35,7 @@ class ClientTimeoutSpec extends Http4sSpec {
   def mkClient(head: => HeadStage[ByteBuffer], tail: => BlazeConnection)
               (idleTimeout: Duration, requestTimeout: Duration): Client = {
     val manager = MockClientBuilder.manager(head, tail)
-    BlazeClient(manager, idleTimeout, requestTimeout)
+    BlazeClient(manager, defaultConfig.copy(idleTimeout = idleTimeout, requestTimeout = requestTimeout))
   }
 
   "Http1ClientStage responses" should {
@@ -79,7 +82,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1Connection(RequestKey.fromRequest(req), BlazeClientConfig.defaultConfig, ec)
+      val tail = new Http1Connection(RequestKey.fromRequest(req), defaultConfig, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(Duration.Inf, 1.second)
@@ -99,7 +102,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1Connection(RequestKey.fromRequest(req), BlazeClientConfig.defaultConfig, ec)
+      val tail = new Http1Connection(RequestKey.fromRequest(req), defaultConfig, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(1.second, Duration.Inf)
@@ -119,7 +122,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       val req = Request(method = Method.POST, uri = www_foo_com, body = dataStream(4))
 
-      val tail = new Http1Connection(RequestKey.fromRequest(req), BlazeClientConfig.defaultConfig, ec)
+      val tail = new Http1Connection(RequestKey.fromRequest(req), defaultConfig, ec)
       val (f,b) = resp.splitAt(resp.length - 1)
       val h = new SeqTestHead(Seq(f,b).map(mkBuffer))
       val c = mkClient(h, tail)(10.second, 30.seconds)
@@ -148,5 +151,10 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
     }
+  }
+
+  // shutdown the executor we created
+  step {
+    defaultConfig.executor.shutdown()
   }
 }

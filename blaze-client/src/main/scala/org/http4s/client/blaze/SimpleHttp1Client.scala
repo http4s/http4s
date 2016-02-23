@@ -15,8 +15,8 @@ object SimpleHttp1Client {
     *
     * @param config blaze configuration object
     */
-  def apply(config: BlazeClientConfig = BlazeClientConfig.defaultConfig) = {
+  def apply(config: BlazeClientConfig = BlazeClientConfig.defaultConfig()) = {
     val manager = ConnectionManager.basic(Http1Support(config))
-    BlazeClient(manager, config.idleTimeout, config.requestTimeout)
+    BlazeClient(manager, config)
   }
 }

@@ -12,9 +12,9 @@ object PooledHttp1Client {
     * @param config blaze client configuration options
     */
   def apply( maxTotalConnections: Int = 10,
-                          config: BlazeClientConfig = BlazeClientConfig.defaultConfig) = {
+                          config: BlazeClientConfig = BlazeClientConfig.defaultConfig()) = {
     val http1 = Http1Support(config)
     val pool = ConnectionManager.pool(http1, maxTotalConnections, config.executor)
-    BlazeClient(pool, config.idleTimeout, config.requestTimeout)
+    BlazeClient(pool, config)
   }
 }

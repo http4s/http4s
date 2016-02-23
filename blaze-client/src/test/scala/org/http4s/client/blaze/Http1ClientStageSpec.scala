@@ -33,7 +33,10 @@ class Http1ClientStageSpec extends Specification {
   // Common throw away response
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
-  private def mkConnection(key: RequestKey) = new Http1Connection(key, BlazeClientConfig.defaultConfig, ec)
+  // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
+  private val defaultConfig = BlazeClientConfig.defaultConfig()
+
+  private def mkConnection(key: RequestKey) = new Http1Connection(key, defaultConfig, ec)
 
   def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
@@ -187,7 +190,7 @@ class Http1ClientStageSpec extends Specification {
 
     "Not add a User-Agent header when configured with None" in {
       val resp = "HTTP/1.1 200 OK\r\n\r\ndone"
-      val tail = new Http1Connection(FooRequestKey, BlazeClientConfig.defaultConfig.copy(userAgent = None), ec)
+      val tail = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), ec)
 
       try {
         val (request, response) = getSubmission(FooRequest, resp, tail, false)
@@ -224,6 +227,11 @@ class Http1ClientStageSpec extends Specification {
       val (request, response) = getSubmission(req, resp, true)
       response must_==("done")
     }
+  }
+
+  // shutdown the executor we created
+  step {
+    defaultConfig.executor.shutdown()
   }
 }
 
