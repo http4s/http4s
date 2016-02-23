@@ -7,7 +7,7 @@ class QuerySpec extends Http4sSpec {
   import FormQuery.KeyValue
 
   "fromString(query.toString) == query if query.nonEmpty" >> forAll { query: FormQuery =>
-    (query.nonEmpty) ==> (FormQuery.fromString(query.toString) == query)
+    (query.nonEmpty) ==> (FormQuery.fromString(query.encoded) == query)
   }
 
   "Query Builder" can {
@@ -93,12 +93,12 @@ class QuerySpec extends Http4sSpec {
 
     "Encode special chars in the value" in {
       val u = FormQuery("foo" -> Some(" !$&'()*+,;=:/?@~"), "bar" -> Some("biz"))
-      u.renderString must_== "foo=+%21%24%26%27%28%29*%2B%2C%3B%3D%3A%2F%3F%40%7E&bar=biz"
+      u.encoded must_== "foo=+%21%24%26%27%28%29*%2B%2C%3B%3D%3A%2F%3F%40%7E&bar=biz"
     }
 
     "Encode special chars in the key" in {
       val u = FormQuery(" !$&'()*+,;=:/?@~" -> Some("foo"), "!" -> None)
-      u.renderString must_== "+%21%24%26%27%28%29*%2B%2C%3B%3D%3A%2F%3F%40%7E=foo&%21"
+      u.encoded must_== "+%21%24%26%27%28%29*%2B%2C%3B%3D%3A%2F%3F%40%7E=foo&%21"
     }
   }
 }

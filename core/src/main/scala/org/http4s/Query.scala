@@ -30,7 +30,7 @@ object NoQuery extends Query {
   ////////////////////////////////////////////////////////////////////////////
 
   /** Base method for rendering this object efficiently */
-  override def render(writer: Writer): writer.type = writer << "EmptyQuery"
+  override def render(writer: Writer): writer.type = writer
 
   override def equals(obj: Any): Boolean = obj match {
     case null => false
@@ -61,7 +61,7 @@ final case class StringQuery(plain: String) extends Query with QueryOps with Ren
 
   /** Base method for rendering this object efficiently */
   override def render(writer: Writer): writer.type =
-    writer << encoded
+    writer << '?' << encoded
 
   def encoded = UriCodingUtils.encodePlainQueryString(plain).encoded
 
@@ -124,7 +124,7 @@ final case class FormQuery(pairs: Vector[KeyValue])
     * Pairs are separated by '&' and keys are separated from values by '='
     */
   override def render(writer: Writer): writer.type =
-    writer << encoded
+    writer << '?' << encoded
 
   def encoded: String = UriCodingUtils.encodeQueryVector(pairs).encoded
   override def toString = super[Renderable].toString
