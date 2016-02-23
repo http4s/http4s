@@ -27,7 +27,7 @@ import scalaz.stream.Process.{Halt, halt}
 import scalaz.{\/, -\/, \/-}
 
 
-final class Http1Connection(val requestKey: RequestKey,
+private final class Http1Connection(val requestKey: RequestKey,
                             userAgent: Option[`User-Agent`],
                             protected val ec: ExecutionContext)
   extends Http1Stage with BlazeConnection
