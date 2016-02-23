@@ -1,0 +1,235 @@
+<!DOCTYPE html >
+<html>
+        <head>
+          <title>authentication - org.http4s.server.middleware.authentication</title>
+          <meta name="description" content="authentication - org.http4s.server.middleware.authentication" />
+          <meta name="keywords" content="authentication org.http4s.server.middleware.authentication" />
+          <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
+          
+      <link href="../../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
+      <link href="../../../../../lib/diagrams.css" media="screen" type="text/css" rel="stylesheet" id="diagrams-css" />
+      <script type="text/javascript" src="../../../../../lib/jquery.js" id="jquery-js"></script>
+      <script type="text/javascript" src="../../../../../lib/jquery-ui.js"></script>
+      <script type="text/javascript" src="../../../../../lib/template.js"></script>
+      <script type="text/javascript" src="../../../../../lib/tools.tooltip.js"></script>
+      
+      <script type="text/javascript">
+         if(top === self) {
+            var url = '../../../../../index.html';
+            var hash = 'org.http4s.server.middleware.authentication.package';
+            var anchor = window.location.hash;
+            var anchor_opt = '';
+            if (anchor.length >= 1)
+              anchor_opt = '@' + anchor.substring(1);
+            window.location.href = url + '#' + hash + anchor_opt;
+         }
+   	  </script>
+    
+        </head>
+        <body class="value">
+      <div id="definition">
+        <img alt="Package" src="../../../../../lib/package_big.png" />
+        <p id="owner"><a href="../../../../package.html" class="extype" name="org">org</a>.<a href="../../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../../package.html" class="extype" name="org.http4s.server">server</a>.<a href="../package.html" class="extype" name="org.http4s.server.middleware">middleware</a></p>
+        <h1>authentication</h1><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      </div>
+
+      <h4 id="signature" class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">package</span>
+      </span>
+      <span class="symbol">
+        <span class="name">authentication</span>
+      </span>
+      </h4>
+      
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/authentication/package.scala" target="_blank">package.scala</a></dd></dl><div class="toggleContainer block">
+          <span class="toggle">Linear Supertypes</span>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div></div>
+        
+
+      <div id="mbrsel">
+        <div id="textfilter"><span class="pre"></span><span class="input"><input id="mbrsel-input" type="text" accesskey="/" /></span><span class="post"></span></div>
+        <div id="order">
+              <span class="filtertype">Ordering</span>
+              <ol>
+                
+                <li class="alpha in"><span>Alphabetic</span></li>
+                <li class="inherit out"><span>By inheritance</span></li>
+              </ol>
+            </div>
+        <div id="ancestors">
+                <span class="filtertype">Inherited<br />
+                </span>
+                <ol id="linearization">
+                  <li class="in" name="org.http4s.server.middleware.authentication"><span>authentication</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                </ol>
+              </div><div id="ancestors">
+            <span class="filtertype"></span>
+            <ol>
+              <li class="hideall out"><span>Hide All</span></li>
+              <li class="showall in"><span>Show all</span></li>
+            </ol>
+          </div>
+        <div id="visbl">
+            <span class="filtertype">Visibility</span>
+            <ol><li class="public in"><span>Public</span></li><li class="all out"><span>All</span></li></ol>
+          </div>
+      </div>
+
+      <div id="template">
+        <div id="allMembers">
+        
+
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.server.middleware.authentication.Authentication" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="Authenticationextendsorg.http4s.server.HttpMiddleware"></a>
+      <a id="Authentication:Authentication"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="Authentication.html"><span class="name">Authentication</span></a><span class="result"> extends <a href="../../package.html#HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpMiddleware">HttpMiddleware</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@Authenticationextendsorg.http4s.server.HttpMiddleware" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Authentication instances are middleware that provide a
+<code><a href="../../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></code> with HTTP authentication.</p>
+    </li><li name="org.http4s.server.middleware.authentication.AuthenticationStore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthenticationStore=(String,String)=&gt;scalaz.concurrent.Task[Option[String]]"></a>
+      <a id="AuthenticationStore:AuthenticationStore"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">AuthenticationStore</span><span class="result"> = (<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Predef.String">String</span>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@AuthenticationStore=(String,String)=&gt;scalaz.concurrent.Task[Option[String]]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.server.middleware.authentication.BasicAuthentication" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="BasicAuthenticationextendsAuthentication"></a>
+      <a id="BasicAuthentication:BasicAuthentication"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="BasicAuthentication.html"><span class="name">BasicAuthentication</span></a><span class="result"> extends <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@BasicAuthenticationextendsAuthentication" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides Basic Authentication from RFC 2617.</p>
+    </li><li name="org.http4s.server.middleware.authentication.DigestAuthentication" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DigestAuthenticationextendsAuthentication"></a>
+      <a id="DigestAuthentication:DigestAuthentication"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="DigestAuthentication.html"><span class="name">DigestAuthentication</span></a><span class="result"> extends <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@DigestAuthenticationextendsAuthentication" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides Digest Authentication from RFC 2617.</p><div class="fullcomment"><div class="comment cmt"><p>Provides Digest Authentication from RFC 2617. Note that this class creates a new thread
+on creation to clean up stale nonces. Please call <code><span class="extype" name="shutdown()">shutdown()</span></code> when the object is not
+used anymore to kill this thread.</p></div></div>
+    </li></ol>
+            </div>
+
+        
+
+        <div id="values" class="values members">
+              <h3>Value Members</h3>
+              <ol><li name="org.http4s.server.middleware.authentication#authenticatedRealm" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="authenticatedRealm:org.http4s.AttributeKey[String]"></a>
+      <a id="authenticatedRealm:AttributeKey[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">authenticatedRealm</span><span class="result">: <a href="../../../AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@authenticatedRealm:org.http4s.AttributeKey[String]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.server.middleware.authentication#authenticatedUser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="authenticatedUser:org.http4s.AttributeKey[String]"></a>
+      <a id="authenticatedUser:AttributeKey[String]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">authenticatedUser</span><span class="result">: <a href="../../../AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@authenticatedUser:org.http4s.AttributeKey[String]" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
+        
+
+        
+        </div>
+
+        <div id="inheritedMembers">
+        <div class="parent" name="scala.AnyRef">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+            </div><div class="parent" name="scala.Any">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+            </div>
+        
+        </div>
+
+        <div id="groupedMembers">
+        <div class="group" name="Ungrouped">
+              <h3>Ungrouped</h3>
+              
+            </div>
+        </div>
+
+      </div>
+
+      <div id="tooltip"></div>
+
+      <div id="footer">  </div>
+
+
+    </body>
+      </html>
