@@ -145,23 +145,25 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.SimpleHttp1Client#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply(idleTimeout:scala.concurrent.duration.Duration,requestTimeout:scala.concurrent.duration.Duration,bufferSize:Int,userAgent:Option[org.http4s.headers.User-Agent],executor:java.util.concurrent.ExecutorService,sslContext:Option[javax.net.ssl.SSLContext],endpointAuthentication:Boolean,group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.Client"></a>
-      <a id="apply(Duration,Duration,Int,Option[User-Agent],ExecutorService,Option[SSLContext],Boolean,Option[AsynchronousChannelGroup]):Client"></a>
+    </li><li name="org.http4s.client.blaze.SimpleHttp1Client#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(config:org.http4s.client.blaze.BlazeClientConfig):org.http4s.client.Client"></a>
+      <a id="apply(BlazeClientConfig):Client"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a> = <span class="symbol">bits.DefaultTimeout</span></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a> = <span class="symbol">Duration.Inf</span></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">bits.DefaultBufferSize</span></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>] = <span class="symbol">bits.DefaultUserAgent</span></span>, <span name="executor">executor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span> = <span class="symbol">bits.ClientDefaultEC</span></span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>] = <span class="symbol">None</span></span>, <span name="endpointAuthentication">endpointAuthentication: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a> = <span class="symbol">true</span></span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
+        <span class="name">apply</span><span class="params">(<span name="config">config: <a href="BlazeClientConfig.html" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a> = <span class="symbol"><span class="name"><a href="BlazeClientConfig$.html">BlazeClientConfig.defaultConfig()</a></span></span></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.SimpleHttp1Client$@apply(idleTimeout:scala.concurrent.duration.Duration,requestTimeout:scala.concurrent.duration.Duration,bufferSize:Int,userAgent:Option[org.http4s.headers.User-Agent],executor:java.util.concurrent.ExecutorService,sslContext:Option[javax.net.ssl.SSLContext],endpointAuthentication:Boolean,group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.Client" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.SimpleHttp1Client$@apply(config:org.http4s.client.blaze.BlazeClientConfig):org.http4s.client.Client" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">create a new simple client
+</p><div class="fullcomment"><div class="comment cmt"><p>create a new simple client
+</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>blaze configuration object</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
