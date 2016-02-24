@@ -1,11 +1,9 @@
 package org.http4s
 
-import java.io.{File, FileOutputStream, StringReader}
-import javax.xml.parsers.SAXParser
+import java.io.{FileOutputStream, File}
 
-import org.xml.sax.{InputSource, SAXParseException}
-import java.io.{File, FileOutputStream}
 import org.http4s.headers.`Content-Type`
+import org.http4s.util.byteVector._
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
@@ -13,12 +11,8 @@ import scala.util.control.NonFatal
 import scalaz.Liskov.{<~<, refl}
 import scalaz.concurrent.Task
 import scalaz.std.string._
-import scalaz.stream.{io, process1}
-import scalaz.syntax.monad._
-import scalaz.{-\/, EitherT, \/, \/-}
-
-import util.UrlFormCodec.{ decode => formDecode }
-import util.byteVector._
+import scalaz.stream.io
+import scalaz.{-\/, EitherT, \/}
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the

@@ -10,7 +10,6 @@ import org.parboiled2.CharPredicate
 
 import scala.annotation.tailrec
 import scala.collection.SeqLike
-import scala.util.Try
 import scalaz.\/
 
 
@@ -54,7 +53,9 @@ object UriCodingUtils {
         (encodePathSegmentNzNc(first) :: rest.map(encodePathSegment)).map(_.encoded).mkString("/")
       }
     }
+
   def encodePathSegment(s: String): EncodedString[PathSegment] = percentEncode(s)
+
   private def encodePathSegmentNzNc(pathSegmentNzNc: String): EncodedString[PathSegmentNzNc] = percentEncode(pathSegmentNzNc)
 
   private def encodeQueryValue(encodedKey: EncodedFormQueryKey)(value: String): EncodedString[FormQueryKV] = {
@@ -72,7 +73,7 @@ object UriCodingUtils {
       }.mkString("&")
     }
 
-  def decodeQueryMap(e: EncodedString[FormQuery]): Map[String, Seq[String]] = {
+  private[encoding] def decodeQueryMap(e: EncodedString[FormQuery]): Map[String, Seq[String]] = {
     def vecToMap(v: Vector[(String, Option[String])]): Map[String, Vector[String]] =
       v.foldLeft[Map[String, Vector[String]]](Map()) {
         case (m, (key, None))         => m.updated(key, m.getOrElse(key, Vector()))
@@ -82,10 +83,10 @@ object UriCodingUtils {
     vecToMap(w3cHtml5FormUrlDecode(e.encoded))
   }
 
-  def encodePlainQueryString(query: String): PctEncoded[UriQuery] =
+  private[http4s] def encodePlainQueryString(query: String): PctEncoded[UriQuery] =
     percentEncode[UriQuery](query)
 
-  def decodePlainQueryString(encoded: PctEncoded[UriQuery]): String = percentDecode(encoded)
+  private[encoding] def decodePlainQueryString(encoded: PctEncoded[UriQuery]): String = percentDecode(encoded)
 
   def encodeQueryVector(query: Vector[(String, Option[String])]): EncodedString[FormQuery] =
     EncodedString {
@@ -96,14 +97,16 @@ object UriCodingUtils {
       }.mkString("&")
     }
 
-  def encodeQueryParam(queryParam: String): EncodedFormQueryParam =
+  /** Encode a String as UTF-8 */
+  private[encoding] def encodeQueryParam(queryParam: String): EncodedFormQueryParam =
     EncodedFormQueryParam(percentEncode(queryParam))
 
   private[encoding] def decodeQueryParam(encoded: EncodedString[FormQueryParam]): String =
     percentDecode(PctEncoded(encoded.encoded.replace('+',' ')))
 
 
-  def percentEncode(s: String, isLegal: Char => Boolean): String = {
+  /** Percent-encode a normal UTF-16 String as UTF-8 */
+  private[http4s] def percentEncode(s: String, isLegal: Char => Boolean): String = {
     def percentEncodeByte(b: Byte): String = {
       val hex1 = HexUpperCaseChars((b & 0xFF) >> 4)
       val hex2 = HexUpperCaseChars(b & 0xF)
@@ -126,6 +129,7 @@ object UriCodingUtils {
     sb.result
   }
 
+  /** Percent-encode a String as UTF-8 (per Rfc3986) according to a [[PercentEncoding]], and tag it as such. */
   def percentEncode[T](s: String)(implicit encoding: PercentEncoding[T]): PctEncoded[T] =
     PctEncoded(percentEncode(s, encoding.isLegal))
 
