@@ -31,8 +31,7 @@ lazy val core = libraryProject("core")
       parboiled,
       scalaReflect(v) % "provided",
       scalazCore,
-      scalazStream,
-      shapeless
+      scalazStream
     ) },
     macroParadiseSetting
   )
