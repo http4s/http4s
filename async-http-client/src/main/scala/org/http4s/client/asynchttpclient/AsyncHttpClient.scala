@@ -8,6 +8,7 @@ import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, BodyGenerator}
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.handler.StreamedAsyncHandler
+import org.http4s.client.impl.DefaultExecutor
 
 import org.http4s.util.threads._
 
@@ -41,7 +42,7 @@ object AsyncHttpClient {
     */
   def apply(config: AsyncHttpClientConfig = defaultConfig,
             bufferSize: Int = 8,
-            executorService: ExecutorService = newDefaultExecutorService): Client = {
+            executorService: ExecutorService = DefaultExecutor.newClientDefaultExecutorService("async-http-client-response")): Client = {
     val client = new DefaultAsyncHttpClient(config)
     val close = executorService match {
       case es: DefaultExecutorService =>
@@ -58,11 +59,6 @@ object AsyncHttpClient {
       }
     }, close)
   }
-
-  private def newDefaultExecutorService =
-    newDefaultFixedThreadPool(
-      (Runtime.getRuntime.availableProcessors * 1.5).ceil.toInt,
-      threadFactory(i => s"http4s-async-http-client-response-$i"))
 
   private def asyncHandler(callback: Callback[DisposableResponse],
                            bufferSize: Int,

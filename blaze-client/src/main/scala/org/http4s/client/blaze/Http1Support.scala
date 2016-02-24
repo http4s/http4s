@@ -4,13 +4,9 @@ package blaze
 
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
-import java.nio.channels.AsynchronousChannelGroup
-import java.util.concurrent.ExecutorService
-import javax.net.ssl.SSLContext
 
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
-import org.http4s.headers.`User-Agent`
 import org.http4s.util.task
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.blaze.pipeline.stages.SSLStage
@@ -26,20 +22,10 @@ import scalaz.{\/, -\/, \/-}
 object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
-   * @param bufferSize buffer size of the socket stages
-   * @param userAgent User-Agent header information
-   * @param es `ExecutorService` on which computations should be run
-   * @param osslContext Optional `SSSContext` for secure requests
-   * @param group `AsynchronousChannelGroup` used to manage socket connections
-   * @return [[ConnectionBuilder]] for creating new requests
+   * @param config The client configuration object
    */
-  def apply(bufferSize: Int,
-             userAgent: Option[`User-Agent`],
-                    es: ExecutorService,
-           osslContext: Option[SSLContext],
-       endpointAuthentication: Boolean,
-                 group: Option[AsynchronousChannelGroup]): ConnectionBuilder[BlazeConnection] = {
-    val builder = new Http1Support(bufferSize, userAgent, es, osslContext, endpointAuthentication, group)
+  def apply(config: BlazeClientConfig): ConnectionBuilder[BlazeConnection] = {
+    val builder = new Http1Support(config)
     builder.makeClient
   }
 
@@ -49,17 +35,12 @@ object Http1Support {
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support(bufferSize: Int,
-                          userAgent: Option[`User-Agent`],
-                                 es: ExecutorService,
-                        osslContext: Option[SSLContext],
-             endpointAuthentication: Boolean,
-                              group: Option[AsynchronousChannelGroup]) {
+final private class Http1Support(config: BlazeClientConfig) {
   import Http1Support._
 
-  private val ec = ExecutionContext.fromExecutorService(es)
-  private val sslContext = osslContext.getOrElse(bits.sslContext)
-  private val connectionManager = new ClientChannelFactory(bufferSize, group.orNull)
+  private val ec = ExecutionContext.fromExecutorService(config.executor)
+  private val sslContext = config.sslContext.getOrElse(bits.sslContext)
+  private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 
 ////////////////////////////////////////////////////
 
@@ -69,7 +50,7 @@ final private class Http1Support(bufferSize: Int,
   }
 
   private def buildPipeline(requestKey: RequestKey, addr: InetSocketAddress): Future[BlazeConnection] = {
-    connectionManager.connect(addr, bufferSize).map { head =>
+    connectionManager.connect(addr, config.bufferSize).map { head =>
       val (builder, t) = buildStages(requestKey)
       builder.base(head)
       t
@@ -77,10 +58,10 @@ final private class Http1Support(bufferSize: Int,
   }
 
   private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection) = {
-    val t = new Http1Connection(requestKey, userAgent, ec)
+    val t = new Http1Connection(requestKey, config, ec)
     val builder = LeafBuilder(t)
     requestKey match {
-      case RequestKey(Https, auth) if endpointAuthentication =>
+      case RequestKey(Https, auth) if config.endpointAuthentication =>
         val eng = sslContext.createSSLEngine(auth.host.value, auth.port getOrElse 443)
         eng.setUseClientMode(true)
 
