@@ -9,8 +9,11 @@
 * New methods for manipulating `UrlForm`.
 * All parsed headers get a `parse` method to construct them from their value.
 
-# v0.12.2 (2016-02-22)
+# v0.12.3 (2016-02-24)
 * Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.
+
+# v0.12.2 (2016-02-22)
+* ~~Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.~~ Oops.
 
 # v0.12.1 (2016-01-30)
 * Encode keys as well as values when rendering a query.

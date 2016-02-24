@@ -52,9 +52,8 @@ object Http4sBuild extends Build {
   lazy val gatlingHighCharts   = "io.gatling.highcharts"     % "gatling-charts-highcharts" % gatlingTest.revision
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.3"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
-  lazy val jawnArgonaut        = "org.spire-math"           %% "jawn-argonaut"           % jawnParser.revision
-  lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
-  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.3"
+  lazy val jawnArgonaut        = "org.spire-math"           %% "jawn-argonaut"           % "0.8.4"
+  lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnArgonaut.revision
   lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.7.1"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.7.v20160115"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
