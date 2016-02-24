@@ -6,6 +6,8 @@
 package org.http4s
 package circe
 
+import org.log4s.getLogger
+
 import cats.free.Trampoline
 import io.circe.Json._
 import io.circe._
@@ -16,10 +18,12 @@ import scodec.bits.ByteVector
 import scala.annotation.{switch, tailrec}
 import scalaz.concurrent.Task
 import scalaz.stream.Process
-import scalaz.stream.Process.{emit, halt}
+import scalaz.stream.Process._
 
 // Originally based on ArgonautInstances
 trait CirceInstances {
+  private[this] val log = getLogger
+
   implicit val json: EntityDecoder[Json] = org.http4s.jawn.jawnDecoder(facade)
 
   def jsonOf[A](implicit decoder: Decoder[A]): EntityDecoder[A] =
@@ -32,6 +36,8 @@ trait CirceInstances {
     }
 
   implicit val jsonEncoder: EntityEncoder[Json] = {
+    val ChunkSize = 1024
+
     EntityEncoder.encodeBy(`Content-Type`(MediaType.`application/json`)) { json: Json =>
       def contentLength(json: Json) = {
         def go(json: Json): Int =
@@ -51,18 +57,16 @@ trait CirceInstances {
 
       def body(json: Json): EntityBody = {
         val builder = new StringBuilder()
-        var bytes = 0
 
         def flush: EntityBody = {
-          val chunk = ByteVector.encodeUtf8(builder.toString).fold(throw _, identity)
-          bytes += chunk.size
+          val chunk = emit(ByteVector.encodeUtf8(builder.toString).fold(throw _, identity))
           builder.clear()
-          emit(chunk)
+          chunk
         }
 
         def write(s: String, p: => EntityBody) = {
           builder.append(s)
-          if (builder.size > 1024)
+          if (builder.size > ChunkSize)
             flush ++ p
           else
             p
@@ -126,8 +130,20 @@ trait CirceInstances {
       }
 
       Task.delay {
-        val cl = contentLength(json)
-        Entity(body(json), Some(cl))
+        body(json).step match {
+          case step@Step(head, cont) =>
+            head match {
+              case emit @ Emit(Seq(bv)) if bv.size < ChunkSize =>
+                log.debug("Emitted less than a full chunk.  No need to calculate content-length.")
+                Entity(emit, Some(bv.size))
+              case _ =>
+                log.debug("Multi-chunk JSON output.  Calculating Content-Length")
+                Entity(step.toProcess, Some(contentLength(json)))
+            }
+          case halt: Halt =>
+            log.debug("Empty body.  No need to calculate content-length")
+            Entity(halt, Some(0))
+        }
       }
     }
   }
