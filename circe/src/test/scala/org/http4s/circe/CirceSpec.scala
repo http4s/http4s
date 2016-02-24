@@ -8,6 +8,7 @@ import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.EntityEncoderSpec.writeToString
 import Status.Ok
+import org.specs2.specification.core.Fragment
 
 // Originally based on ArgonautSpec
 class CirceSpec extends JawnDecodeSupportSpec[Json] {
@@ -58,6 +59,17 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     "decode JSON from a Circe decoder" in {
       val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.numberOrNull(42))).run, strict = true)
       result.run.run must be_\/-(Foo(42))
+    }
+
+    // https://github.com/http4s/http4s/issues/514
+    Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
+      case class Umlaut(wort: String)
+      implicit val umlautDecoder = Decoder.instance(_.get("wort")(Decoder[String]).map(Umlaut))
+      s"handle JSON with umlauts: $wort" >> {
+        val json = Json.obj("wort" -> Json.string(wort))
+        val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
+        result.run.run must be_\/-(Umlaut(wort))
+      }
     }
   }
 }
