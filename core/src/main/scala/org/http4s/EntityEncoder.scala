@@ -51,14 +51,17 @@ trait EntityEncoder[A] { self =>
 }
 
 object EntityEncoder extends EntityEncoderInstances {
-  case class Entity(body: EntityBody, length: Option[Int] = None)
+  case class Entity(body: EntityBody, length: Option[Int] = None) {
+    def +(that: Entity): Entity =
+      Entity(this.body ++ that.body, (this.length |@| that.length){ _ + _})
+  }
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[A](implicit ev: EntityEncoder[A]): EntityEncoder[A] = ev
 
   object Entity {
     implicit val entityInstance: Monoid[Entity] = Monoid.instance(
-      (a, b) => Entity(a.body ++ b.body, (a.length |@| b.length) { _ + _ }),
+      (a, b) => a + b,
       empty
     )
 
