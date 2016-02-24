@@ -43,7 +43,7 @@ trait ArbitraryCirceInstances extends TestInstances {
 
   private[this] def arbitraryJsonAtDepth(depth: Int): Arbitrary[Json] = {
     val genJsons = List(genNumber, genString) ++ (
-      if (depth < maxDepth) List(genArray(depth), genObject(depth)) else Nil
+      if (depth < maxDepth) List(genArray(depth), genArray(depth)) else Nil
     )
 
     Arbitrary(Gen.oneOf(genNull, genBool, genJsons: _*))

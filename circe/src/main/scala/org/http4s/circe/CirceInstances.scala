@@ -6,6 +6,8 @@
 package org.http4s
 package circe
 
+import cats.free.Trampoline
+import io.circe.Json._
 import io.circe._
 import io.circe.jawn.CirceSupportParser.facade
 import org.http4s.EntityEncoder.Entity
@@ -30,17 +32,6 @@ trait CirceInstances {
     }
 
   implicit val jsonEncoder: EntityEncoder[Json] = {
-    def toStream(s: String): EntityBody = emit(ByteVector.encodeUtf8(s).fold(throw _, identity))
-    val Null = toStream("null")
-    val True = toStream(true.toString)
-    val False = toStream(false.toString)
-    val Comma = toStream(",")
-    val BeginArray = toStream("[")
-    val EndArray = toStream("]")
-    val EmptyArray = toStream("[]")
-    val EndObject = toStream("}")
-    val EmptyObject = toStream("{}")
-
     EntityEncoder.encodeBy(`Content-Type`(MediaType.`application/json`)) { json: Json =>
       def contentLength(json: Json) = {
         def go(json: Json): Int =
@@ -50,46 +41,97 @@ trait CirceInstances {
             n => n.toString.length,
             s => renderedLength(s),
             arr => if (arr.isEmpty) 2 else arr.foldLeft(1 + arr.size)(_ + go(_)),
-            obj => if (obj.isEmpty) 2 else obj.toList.foldLeft(1 + 2*obj.size) { case (acc, (k, v)) =>
+            obj => if (obj.isEmpty) 2
+            else obj.toList.foldLeft(1 + 2 * obj.size) { case (acc, (k, v)) =>
               acc + renderedLength(k) + go(v)
             }
           )
         go(json)
       }
 
-      def go(cursor: Cursor): EntityBody = Process.suspend {
-        cursor.focus.fold(
-          Null,
-          b => if (b) True else False,
-          n => toStream(n.toString),
-          s => toStream(renderJsonString(s)),
-          arr => {
-            def loop(cursor: Cursor): EntityBody =
-              go(cursor) ++ (cursor.right match {
-                case Some(cursor) => Comma ++ loop(cursor)
-                case None => EndArray
-              })
-            cursor.downArray match {
-              case Some(cursor) => BeginArray ++ loop(cursor)
-              case None => EmptyArray
-            }
-          },
-          obj => {
-            def emitField(field: String, start: String): EntityBody = {
-              toStream(s"${start}${renderJsonString(field)}:") ++ cursor.downField(field).fold[EntityBody](halt)(go)
-            }
-            cursor.fields.getOrElse(Nil) match {
-              case Nil => EmptyObject
-              case head :: tail => tail.foldLeft(emitField(head, "{")) {
-                _ ++ emitField(_, ",")
-              } ++ EndObject
-            }
-          }
-        )
+      def body(json: Json): EntityBody = {
+        val builder = new StringBuilder()
+        var bytes = 0
+
+        def flush: EntityBody = {
+          val chunk = ByteVector.encodeUtf8(builder.toString).fold(throw _, identity)
+          bytes += chunk.size
+          builder.clear()
+          emit(chunk)
+        }
+
+        def write(s: String, p: => EntityBody) = {
+          builder.append(s)
+          if (builder.size > 1024)
+            flush ++ p
+          else
+            p
+        }
+
+        def writeArray(array: List[Json], p: => EntityBody): EntityBody = array match {
+          case Nil =>
+            write("[]", p)
+          case arr =>
+            write("[", {
+              def loop(xs: List[Json]): EntityBody = {
+                writeJson(xs.head,
+                  if (xs.tail.nonEmpty) {
+                    builder.append(",")
+                    loop(xs.tail)
+                  }
+                  else {
+                    builder.append("]")
+                    p
+                  }
+                )
+              }
+              loop(arr)
+            })
+        }
+
+        def writeObject(fields: List[(String, Json)], p: => EntityBody): EntityBody = fields match {
+          case Nil =>
+            write("{}", p)
+          case fields =>
+            write(s"{", {
+              def loop(xs: List[(String, Json)]): EntityBody = {
+                write(s"${renderJsonString(xs.head._1)}:",
+                  writeJson(xs.head._2,
+                    if (xs.tail.nonEmpty) {
+                      builder.append(",")
+                      loop(xs.tail)
+                    }
+                    else {
+                      builder.append("}")
+                      p
+                    }
+                  )
+                )
+              }
+              loop(fields)
+            })
+        }
+
+        def writeJson(json: Json, p: => EntityBody): EntityBody = {
+          json.fold(
+            write("null", p),
+            b => write(if (b) "true" else "false", p),
+            n => write(n.toString, p),
+            s => write(renderJsonString(s), p),
+            arr => writeArray(arr, p),
+            obj => writeObject(obj.toList, p)
+          )
+        }
+        writeJson(json, flush)
       }
-      Task.delay(Entity(go(json.cursor), Some(contentLength(json))))
+
+      Task.delay {
+        val cl = contentLength(json)
+        Entity(body(json), Some(cl))
+      }
     }
   }
+
 
   def renderJsonString(string: String): String = {
     val builder = new StringBuilder("\"")
