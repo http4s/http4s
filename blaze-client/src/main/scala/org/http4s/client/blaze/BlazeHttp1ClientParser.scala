@@ -10,12 +10,16 @@ import scala.collection.mutable.ListBuffer
 private[blaze] object BlazeHttp1ClientParser {
   def apply(maxRequestLineSize: Int,
             maxHeaderLength: Int,
-            maxChunkSize: Int): BlazeHttp1ClientParser =
-    new BlazeHttp1ClientParser(maxRequestLineSize, maxHeaderLength, maxChunkSize)
+            maxChunkSize: Int,
+            isLenient: Boolean): BlazeHttp1ClientParser =
+    new BlazeHttp1ClientParser(maxRequestLineSize, maxHeaderLength, maxChunkSize, isLenient)
 }
 
-private[blaze] final class BlazeHttp1ClientParser(maxResponseLineSize: Int, maxHeaderLength: Int, maxChunkSize: Int)
-  extends Http1ClientParser(maxResponseLineSize, maxHeaderLength, 2*1024, maxChunkSize) {
+private[blaze] final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
+                                                  maxHeaderLength: Int,
+                                                  maxChunkSize: Int,
+                                                  isLenient: Boolean)
+  extends Http1ClientParser(maxResponseLineSize, maxHeaderLength, 2*1024, maxChunkSize, isLenient) {
   private val headers = new ListBuffer[Header]
   private var status: Status = _
   private var httpVersion: HttpVersion = _
