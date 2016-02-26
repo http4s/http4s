@@ -194,7 +194,7 @@ lazy val bench = http4sProject("bench")
   .settings(
     description := "Benchmarks for http4s"
   )
-  .dependsOn(core)
+  .dependsOn(core, circe)
 
 lazy val loadTest = http4sProject("load-test")
   .settings(noPublishSettings)

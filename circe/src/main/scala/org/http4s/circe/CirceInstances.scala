@@ -36,7 +36,7 @@ trait CirceInstances {
     }
 
   implicit val jsonEncoder: EntityEncoder[Json] = {
-    val ChunkSize = 1024
+    val ChunkSize = 50000
 
     EntityEncoder.encodeBy(`Content-Type`(MediaType.`application/json`)) { json: Json =>
       def contentLength(json: Json) = {
@@ -78,7 +78,7 @@ trait CirceInstances {
           case arr =>
             write("[", {
               def loop(xs: List[Json]): EntityBody = {
-                writeJson(xs.head,
+                writeJson(xs.head, Process.suspend {
                   if (xs.tail.nonEmpty) {
                     builder.append(",")
                     loop(xs.tail)
@@ -87,7 +87,7 @@ trait CirceInstances {
                     builder.append("]")
                     p
                   }
-                )
+                })
               }
               loop(arr)
             })
@@ -100,7 +100,7 @@ trait CirceInstances {
             write(s"{", {
               def loop(xs: List[(String, Json)]): EntityBody = {
                 write(s"${renderJsonString(xs.head._1)}:",
-                  writeJson(xs.head._2,
+                  writeJson(xs.head._2, Process.suspend {
                     if (xs.tail.nonEmpty) {
                       builder.append(",")
                       loop(xs.tail)
@@ -109,7 +109,7 @@ trait CirceInstances {
                       builder.append("}")
                       p
                     }
-                  )
+                  })
                 )
               }
               loop(fields)
