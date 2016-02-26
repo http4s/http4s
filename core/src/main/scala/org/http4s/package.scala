@@ -25,7 +25,7 @@ package object http4s {
 
   /**
    * A Service wraps a function of request type [[A]] to a Task that runs
-   * to esponse type [[B]].  By wrapping the `Service`, we can compose them
+   * to response type [[B]].  By wrapping the `Service`, we can compose them
    * using Kleisli operations.
    */
   type Service[A, B] = Kleisli[Task, A, B]
