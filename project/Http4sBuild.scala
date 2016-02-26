@@ -45,7 +45,7 @@ object Http4sBuild extends Build {
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.4.v20150727"
   lazy val asyncHttp           = "org.asynchttpclient"       % "async-http-client"       % "2.0.0-RC7"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.11.0"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.0-SNAPSHOT"
   lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.3.0"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.4"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.1.6"
