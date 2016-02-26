@@ -37,7 +37,7 @@ private final class Http1Connection(val requestKey: RequestKey,
   override def name: String = getClass.getName
   private val parser =
     new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
-                               config.maxChunkSize, config.isLenient)
+                               config.maxChunkSize, config.lenientParser)
 
   private val stageState = new AtomicReference[State](Idle)
 

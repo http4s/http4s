@@ -20,30 +20,30 @@ import scala.concurrent.duration.Duration
   * @param maxResponseLineSize maximum length of the request line
   * @param maxHeaderLength maximum length of headers
   * @param maxChunkSize maximum size of chunked content chunks
-  * @param isLenient a lenient parser will accept illegal chars but replaces them with � (0xFFFD)
+  * @param lenientParser a lenient parser will accept illegal chars but replaces them with � (0xFFFD)
   * @param bufferSize internal buffer size of the blaze client
   * @param executor thread pool where asynchronous computations will be performed
   * @param group custom `AsynchronousChannelGroup` to use other than the system default
   */
-case class BlazeClientConfig( //
-                              idleTimeout: Duration,
-                              requestTimeout: Duration,
-                              userAgent: Option[`User-Agent`],
+case class BlazeClientConfig(// HTTP properties
+                             idleTimeout: Duration,
+                             requestTimeout: Duration,
+                             userAgent: Option[`User-Agent`],
 
-                              // security options
-                              sslContext: Option[SSLContext],
-                              endpointAuthentication: Boolean,
+                             // security options
+                             sslContext: Option[SSLContext],
+                             endpointAuthentication: Boolean,
 
-                              // parser options
-                              maxResponseLineSize: Int,
-                              maxHeaderLength: Int,
-                              maxChunkSize: Int,
-                              isLenient: Boolean,
+                             // parser options
+                             maxResponseLineSize: Int,
+                             maxHeaderLength: Int,
+                             maxChunkSize: Int,
+                             lenientParser: Boolean,
 
-                              // pipeline management
-                              bufferSize: Int,
-                              executor: ExecutorService,
-                              group: Option[AsynchronousChannelGroup]
+                             // pipeline management
+                             bufferSize: Int,
+                             executor: ExecutorService,
+                             group: Option[AsynchronousChannelGroup]
                             )
 
 object BlazeClientConfig {
@@ -64,7 +64,7 @@ object BlazeClientConfig {
       maxResponseLineSize = 4*1024,
       maxHeaderLength = 40*1024,
       maxChunkSize = Integer.MAX_VALUE,
-      isLenient = false,
+      lenientParser = false,
 
       bufferSize = bits.DefaultBufferSize,
       executor = executor,
