@@ -34,6 +34,11 @@ title: Community
 
 </div>
 
+## Code of Conduct
+
+http4s is dedicated to providing a harassment-free community for everyone.
+Our community is governed by the [http4s Code of Conduct](conduct.html).
+
 ## Contributing
 
 http4s is an open source project, and depends on its users to continue
