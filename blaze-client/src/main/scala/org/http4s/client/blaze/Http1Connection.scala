@@ -35,7 +35,10 @@ private final class Http1Connection(val requestKey: RequestKey,
   import org.http4s.client.blaze.Http1Connection._
 
   override def name: String = getClass.getName
-  private val parser = new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength, config.maxChunkSize)
+  private val parser =
+    new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
+                               config.maxChunkSize, config.lenientParser)
+
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed: Boolean = stageState.get match {
