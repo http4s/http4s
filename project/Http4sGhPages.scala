@@ -13,6 +13,7 @@ object Http4sGhPages {
   def cleanSiteForRealz(dir: File, git: GitRunner, s: TaskStreams, apiVersion: (Int, Int)): Unit ={
     val toClean = IO.listFiles(dir).collect {
       case f if f.getName == "api" => new java.io.File(f, s"${apiVersion._1}.${apiVersion._2}")
+      case f if f.getName == "docs" => new java.io.File(f, s"${apiVersion._1}.${apiVersion._2}")
       case f if f.getName != ".git" => f
     }.map(_.getAbsolutePath).toList
     if (!toClean.isEmpty)
