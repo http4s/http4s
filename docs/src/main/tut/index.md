@@ -3,7 +3,7 @@ layout: default
 title: http4s
 ---
 
-```tut:silent
+```tut:invisible
 import org.http4s._
 import org.http4s.dsl._
 import org.http4s.server._
