@@ -239,7 +239,9 @@ lazy val docs = http4sProject("docs")
       case _ => Seq.empty
     },
     includeFilter in makeSite := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json" | "*.md" | "CNAME" | "_config.yml",
-    site.addMappingsToSiteDir(tut, ""),
+    siteMappings <++= (tut, apiVersion) map { case (t, (major, minor)) =>
+      for ((f, d) <- t) yield (f, s"docs/$major.$minor/$d")
+    },
     siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map {
       case (m, (major, minor)) => for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
     },

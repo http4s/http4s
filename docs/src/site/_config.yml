@@ -1,5 +1,5 @@
 name: http4s.org
 markdown: redcarpet
 highlighter: pygments
-baseurl: /http4s
-apidocs: /http4s/api
+baseurl: /
+apidocs: /api
