@@ -49,7 +49,7 @@ These venues include, but are not necessarily limited to:
 
 If you have any questions or concerns, please contact a member of the community staff, such as:
 
-- [Bryce Anderson](bryce.anderson22@gmail.com)
+- [Bryce Anderson](mailto:bryce.anderson22@gmail.com)
 - [Ross A. Baker](mailto:ross@rossabaker.com)
 
 ## Credits
