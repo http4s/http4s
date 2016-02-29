@@ -185,6 +185,7 @@ for embedded Tomcat and Jetty containers.</p>
     <span class="o">.</span><span class="n">withMetricRegistry</span><span class="o">(</span><span class="n">metrics</span><span class="o">)</span>
     <span class="o">.</span><span class="n">mountService</span><span class="o">(</span><span class="nc">ExampleService</span><span class="o">.</span><span class="n">service</span><span class="o">,</span> <span class="s">"/http4s"</span><span class="o">)</span>
     <span class="o">.</span><span class="n">mountServlet</span><span class="o">(</span><span class="k">new</span> <span class="nc">MetricsServlet</span><span class="o">(</span><span class="n">metrics</span><span class="o">),</span> <span class="s">"/metrics/*"</span><span class="o">)</span>
+    <span class="o">.</span><span class="n">mountFilter</span><span class="o">(</span><span class="nc">NoneShallPass</span><span class="o">,</span> <span class="s">"/http4s/science/black-knight/*"</span><span class="o">)</span>
     <span class="o">.</span><span class="n">run</span>
     <span class="o">.</span><span class="n">awaitShutdown</span><span class="o">()</span>
 <span class="o">}</span>
@@ -202,19 +203,22 @@ for embedded Tomcat and Jetty containers.</p>
 <span class="k">val</span> <span class="n">page</span><span class="k">:</span> <span class="kt">Task</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span> <span class="k">=</span> <span class="n">client</span><span class="o">.</span><span class="n">getAs</span><span class="o">[</span><span class="kt">String</span><span class="o">](</span><span class="n">uri</span><span class="o">(</span><span class="s">"https://www.google.com/"</span><span class="o">))</span>
 
 <span class="k">for</span> <span class="o">(</span><span class="k">_</span> <span class="k">&lt;-</span> <span class="mi">1</span> <span class="n">to</span> <span class="mi">2</span><span class="o">)</span>
-  <span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">map</span><span class="o">(</span><span class="k">_</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">72</span><span class="o">)).</span><span class="n">unsafePerformSync</span><span class="o">)</span>   <span class="c1">// each execution of the Task will refetch the page!
+  <span class="n">println</span><span class="o">(</span><span class="n">page</span><span class="o">.</span><span class="n">run</span><span class="o">.</span><span class="n">take</span><span class="o">(</span><span class="mi">72</span><span class="o">))</span>   <span class="c1">// each execution of the Task will refetch the page!
 </span>
 <span class="c1">// We can do much more: how about decoding some JSON to a scala object
 // after matching based on the response status code?
 </span><span class="k">import</span> <span class="nn">org.http4s.Status.NotFound</span>
 <span class="k">import</span> <span class="nn">org.http4s.Status.ResponseClass.Successful</span>
-<span class="k">import</span> <span class="nn">io.circe._</span>
-<span class="k">import</span> <span class="nn">io.circe.generic.auto._</span>
-<span class="k">import</span> <span class="nn">org.http4s.circe.jsonOf</span>
+<span class="k">import</span> <span class="nn">argonaut.DecodeJson</span>
+<span class="k">import</span> <span class="nn">org.http4s.argonaut.jsonOf</span>
 
 <span class="k">case</span> <span class="k">class</span> <span class="nc">Foo</span><span class="o">(</span><span class="n">bar</span><span class="k">:</span> <span class="kt">String</span><span class="o">)</span>
 
-<span class="c1">// jsonOf is defined for Json4s, Argonuat, and Circe, just need the right decoder!
+<span class="k">implicit</span> <span class="k">val</span> <span class="n">fooDecode</span> <span class="k">=</span> <span class="nc">DecodeJson</span><span class="o">(</span><span class="n">c</span> <span class="k">=&gt;</span> <span class="k">for</span> <span class="o">{</span> <span class="c1">// Argonaut decoder. Could also use json4s.
+</span>  <span class="n">bar</span> <span class="k">&lt;-</span> <span class="o">(</span><span class="n">c</span> <span class="o">--\</span> <span class="s">"bar"</span><span class="o">).</span><span class="n">as</span><span class="o">[</span><span class="kt">String</span><span class="o">]</span>
+<span class="o">}</span> <span class="k">yield</span> <span class="nc">Foo</span><span class="o">(</span><span class="n">bar</span><span class="o">))</span>
+
+<span class="c1">// jsonOf is defined for Json4s and Argonaut, just need the right decoder!
 </span><span class="k">implicit</span> <span class="k">val</span> <span class="n">fooDecoder</span> <span class="k">=</span> <span class="n">jsonOf</span><span class="o">[</span><span class="kt">Foo</span><span class="o">]</span>
 
 <span class="c1">// Match on response code!
@@ -224,7 +228,7 @@ for embedded Tomcat and Jetty containers.</p>
   <span class="k">case</span> <span class="n">resp</span>             <span class="k">=&gt;</span> <span class="nc">Task</span><span class="o">.</span><span class="n">now</span><span class="o">(</span><span class="s">"Failed: "</span> <span class="o">+</span> <span class="n">resp</span><span class="o">.</span><span class="n">status</span><span class="o">)</span>
 <span class="o">}</span>
 
-<span class="n">println</span><span class="o">(</span><span class="n">page2</span><span class="o">.</span><span class="n">unsafePerformSync</span><span class="o">)</span></code></code></pre>
+<span class="n">println</span><span class="o">(</span><span class="n">page2</span><span class="o">.</span><span class="n">run</span><span class="o">)</span></code></code></pre>
 
 <h2 id="other-features">Other features</h2>
 

@@ -544,6 +544,27 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.server.tomcat.TomcatBuilder#mountFilter" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="mountFilter(filter:javax.servlet.Filter,urlMapping:String,name:Option[String],dispatches:java.util.EnumSet[javax.servlet.DispatcherType]):org.http4s.server.tomcat.TomcatBuilder"></a>
+      <a id="mountFilter(Filter,String,Option[String],EnumSet[DispatcherType]):TomcatBuilder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mountFilter</span><span class="params">(<span name="filter">filter: <span class="extype" name="javax.servlet.Filter">Filter</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="dispatches">dispatches: <span class="extype" name="java.util.EnumSet">EnumSet</span>[<span class="extype" name="javax.servlet.DispatcherType">DispatcherType</span>]</span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.tomcat.TomcatBuilder@mountFilter(filter:javax.servlet.Filter,urlMapping:String,name:Option[String],dispatches:java.util.EnumSet[javax.servlet.DispatcherType]):org.http4s.server.tomcat.TomcatBuilder" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Mounts a filter to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a filter to the server.</p><p>The http4s way is to create a middleware around an  <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on
+servlet containers, but all supported backends.  This method is good for legacy scenarios,
+or for reusing parts of the servlet ecosystem for an app that is committed to running on
+a servlet container.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></dd></dl></div>
     </li><li name="org.http4s.server.tomcat.TomcatBuilder#mountService" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="mountService(service:org.http4s.HttpService,prefix:String):org.http4s.server.tomcat.TomcatBuilder"></a>
       <a id="mountService(HttpService,String):TomcatBuilder"></a>
@@ -577,7 +598,10 @@
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></dd></dl></div>
+      <p class="shortcomment cmt">Mounts a servlet to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a servlet to the server.</p><p>The http4s way is to create an <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on servlet containers,
+but all supported backends.  This method is good for legacy scenarios, or for reusing parts
+of the servlet ecosystem for an app that is committed to running on a servlet container.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a> → <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>

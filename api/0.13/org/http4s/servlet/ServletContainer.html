@@ -56,7 +56,7 @@
           <div class="superTypes hiddenContent"><a href="../server/AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a>, <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../server/jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="../server/tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
+            <div class="subClasses hiddenContent"><a href="../server/jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="../server/tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
           </div></div>
         
 
@@ -139,6 +139,27 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.servlet.ServletContainer#mountFilter" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="mountFilter(filter:javax.servlet.Filter,urlMapping:String,name:Option[String],dispatches:java.util.EnumSet[javax.servlet.DispatcherType]):ServletContainer.this.Self"></a>
+      <a id="mountFilter(Filter,String,Option[String],EnumSet[DispatcherType]):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mountFilter</span><span class="params">(<span name="filter">filter: <span class="extype" name="javax.servlet.Filter">Filter</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="dispatches">dispatches: <span class="extype" name="java.util.EnumSet">EnumSet</span>[<span class="extype" name="javax.servlet.DispatcherType">DispatcherType</span>] = <span class="defval" name="EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ASYNC)">...</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.servlet.ServletContainer@mountFilter(filter:javax.servlet.Filter,urlMapping:String,name:Option[String],dispatches:java.util.EnumSet[javax.servlet.DispatcherType]):ServletContainer.this.Self" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Mounts a filter to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a filter to the server.</p><p>The http4s way is to create a middleware around an  <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on
+servlet containers, but all supported backends.  This method is good for legacy scenarios,
+or for reusing parts of the servlet ecosystem for an app that is committed to running on
+a servlet container.
+</p></div></div>
     </li><li name="org.http4s.server.ServerBuilder#mountService" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="mountService(service:org.http4s.HttpService,prefix:String):ServerBuilder.this.Self"></a>
       <a id="mountService(HttpService,String):Self"></a>
@@ -156,7 +177,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
-    </li><li name="org.http4s.servlet.ServletContainer#mountServlet" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.servlet.ServletContainer#mountServlet" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String,name:Option[String]):ServletContainer.this.Self"></a>
       <a id="mountServlet(HttpServlet,String,Option[String]):Self"></a>
       <h4 class="signature">
@@ -172,7 +193,10 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Mounts a servlet to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a servlet to the server.</p><p>The http4s way is to create an <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on servlet containers,
+but all supported backends.  This method is good for legacy scenarios, or for reusing parts
+of the servlet ecosystem for an app that is committed to running on a servlet container.
+</p></div></div>
     </li><li name="org.http4s.server.ServerBuilder#start" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="start:scalaz.concurrent.Task[org.http4s.server.Server]"></a>
       <a id="start:Task[Server]"></a>
