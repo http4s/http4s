@@ -243,10 +243,10 @@ object Http1Stage {
     * `Date` header if one is missing and this is a server response.
     *
     * Note: this method is very niche but useful for both server and client. */
-  def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean) = {
+  def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
-    headers.filterNot(h => h.name == `Transfer-Encoding`.name ||
-                        h.name == `Content-Length`.name).
+    headers.view.filterNot(h => h.name == `Transfer-Encoding`.name ||
+                             h.name == `Content-Length`.name).
       foreach { header =>
         if (isServer && header.name == H.Date.name) dateEncoded = true
 
