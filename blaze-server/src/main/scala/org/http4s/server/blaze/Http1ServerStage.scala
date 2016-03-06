@@ -139,6 +139,7 @@ class Http1ServerStage(service: HttpService,
           (parser.minorVersion, respTransferCoding, lengthHeader) match {
             case (minor, Some(enc), _) if minor > 0 && enc.hasChunked => rr << "Transfer-Encoding: chunked\r\n"
             case (_, _, Some(len)) => rr << len << "\r\n"
+            case _ => // nop
           }
         }
 
