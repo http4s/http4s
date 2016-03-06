@@ -42,7 +42,7 @@ class CachingStaticWriter(writer: StringWriter, out: TailStage[ByteBuffer],
     if (innerWriter != null) innerWriter.writeEnd(chunk)
     else {  // We are finished! Write the length and the keep alive
       val c = addChunk(chunk)
-      writer << "Content-Length: " << c.length << "\r\nConnection:Keep-Alive\r\n\r\n"
+      writer << "Content-Length: " << c.length << "\r\nConnection: keep-alive\r\n\r\n"
 
       val b = ByteBuffer.wrap(writer.result().getBytes(StandardCharsets.ISO_8859_1))
 
