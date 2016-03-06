@@ -99,7 +99,7 @@ class Http1ServerStageSpec extends Specification {
       head.result
     }
 
-    "Do not send `Transfer-Coding: identity` response" in {
+    "Do not send `Transfer-Encoding: identity` response" in {
       val service = HttpService {
         case req =>
           val headers = Headers(H.`Transfer-Encoding`(TransferCoding.identity))
