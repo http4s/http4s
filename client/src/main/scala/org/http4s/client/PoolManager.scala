@@ -42,7 +42,10 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
       }
     }
     else {
-      logger.debug(s"Too many connections open.  Can't create a connection: ${stats}")
+      val message = s"Invariant broken in ${this.getClass.getSimpleName}! Tried to create more connections than allowed: ${stats}"
+      val error = new Exception(message)
+      logger.error(error)(message)
+      callback(-\/(error))
     }
   }
 
