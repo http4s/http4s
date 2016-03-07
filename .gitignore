@@ -17,3 +17,5 @@ atlassian-ide-plugin.xml
 .ensime_cache
 .ensime_lucene
 /TAGS
+
+.sbtopts

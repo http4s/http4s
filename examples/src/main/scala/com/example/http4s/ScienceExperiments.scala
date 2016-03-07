@@ -136,5 +136,9 @@ object ScienceExperiments {
       conn.fold(Ok("Couldn't find connection info!")){ case Request.Connection(loc,rem,secure) =>
         Ok(s"Local: $loc, Remote: $rem, secure: $secure")
       }
+
+    case req @ GET -> Root / "black-knight" / _ =>
+      // The servlet examples hide this.
+      InternalServerError("Tis but a scratch")
   }
 }
