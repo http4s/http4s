@@ -35,8 +35,9 @@ object HttpService {
   /** The default 'Not Found' response used when lifting a partial function
     * to a [[HttpService]] or general 'not handled' results.
     *
-    * This particular instance is tagged with an so that it interacts appropriately
-    * attribute to play well with the default [[Fallthrough]] behavior.
+    * This [[Response]] is tagged with the [[Fallthrough]] attribute so composed
+    * services will have the opportunity to handle the request.
+    * See [[Fallthrough]] for more details.
     */
   val notFound: Task[Response] = Task.now(Response(Status.NotFound)
                                              .withAttribute(Fallthrough.fallthroughKey, ())
