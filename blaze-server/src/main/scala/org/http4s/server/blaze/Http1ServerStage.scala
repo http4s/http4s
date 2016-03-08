@@ -13,7 +13,7 @@ import org.http4s.blaze.http.http_parser.BaseExceptions.{BadRequest, ParserExcep
 
 import org.http4s.util.StringWriter
 import org.http4s.util.CaseInsensitiveString._
-import org.http4s.headers.{Connection, `Content-Length`}
+import org.http4s.headers.{Connection, `Content-Length`, `Transfer-Encoding`}
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -118,36 +118,38 @@ class Http1ServerStage(service: HttpService,
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 
-    val respTransferCoding = Http1Stage.encodeHeaders(resp.headers, rr, true) // kind of tricky method returns Option[Transfer-Encoding]
+    Http1Stage.encodeHeaders(resp.headers, rr, true)
+
+    val respTransferCoding = `Transfer-Encoding`.from(resp.headers)
+    val lengthHeader = `Content-Length`.from(resp.headers)
     val respConn = Connection.from(resp.headers)
 
     // Need to decide which encoder and if to close on finish
     val closeOnFinish = respConn.map(_.hasClose).orElse {
                           Connection.from(req.headers).map(checkCloseConnection(_, rr))
-                        }.getOrElse(parser.minorVersion() == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
+                        }.getOrElse(parser.minorVersion == 0)   // Finally, if nobody specifies, http 1.0 defaults to close
 
     // choose a body encoder. Will add a Transfer-Encoding header if necessary
-    val lengthHeader = `Content-Length`.from(resp.headers)
-
     val bodyEncoder = {
-      if (req.method == Method.HEAD ||
-            (!resp.status.isEntityAllowed && lengthHeader.isEmpty && respTransferCoding.isEmpty)) {
+      if (req.method == Method.HEAD || !resp.status.isEntityAllowed) {
         // We don't have a body (or don't want to send it) so we just get the headers
 
         if (req.method == Method.HEAD) {
-          // write the explicitly set Transfer-Encoding header
-          respTransferCoding.filter(_.hasChunked).map(_ => "Transfer-Encoding: chunked\r\n" ).
-            foreach(rr << _)
+          // write message body header for HEAD response
+          (parser.minorVersion, respTransferCoding, lengthHeader) match {
+            case (minor, Some(enc), _) if minor > 0 && enc.hasChunked => rr << "Transfer-Encoding: chunked\r\n"
+            case (_, _, Some(len)) => rr << len << "\r\n"
+            case _ => // nop
+          }
         }
 
         // add KeepAlive to Http 1.0 responses if the header isn't already present
-        if (!closeOnFinish && parser.minorVersion() == 0 && respConn.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
-        else rr << "\r\n"
+        rr << (if (!closeOnFinish && parser.minorVersion == 0 && respConn.isEmpty) "Connection: keep-alive\r\n\r\n" else "\r\n")
 
         val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
         new BodylessWriter(b, this, closeOnFinish)(ec)
       }
-      else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion(), closeOnFinish)
+      else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion, closeOnFinish)
     }
 
     bodyEncoder.writeProcess(resp.body).runAsync {
