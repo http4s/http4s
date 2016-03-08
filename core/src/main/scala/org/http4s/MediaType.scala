@@ -20,23 +20,22 @@ package org.http4s
 
 import java.util.concurrent.atomic.AtomicReference
 import scala.annotation.tailrec
-import org.http4s.util.{Renderable, Registry, Writer}
+import org.http4s.headers.MediaRangeAndQValue
+import org.http4s.util.{Registry, Renderable, Writer}
 
 sealed class MediaRange private[http4s](val mainType: String,
-                                        val qValue: QValue = QValue.One,
                                         val extensions: Map[String, String] = Map.empty)
-                                        extends HasQValue with Renderable {
+                                        extends Renderable {
 
   override def render(writer: Writer): writer.type = {
-    writer << mainType << "/*" << qValue
+    writer << mainType << "/*"
     renderExtensions(writer)
     writer
   }
 
   /** Does that mediaRange satisfy this ranges requirements */
   def satisfiedBy(mediaType: MediaRange): Boolean = {
-    (mainType.charAt(0) == '*' || mainType == mediaType.mainType) &&
-    qualityMatches(mediaType)
+    (mainType.charAt(0) == '*' || mainType == mediaType.mainType)
   }
 
   final def satisfies(mediaRange: MediaRange) = mediaRange.satisfiedBy(this)
@@ -49,9 +48,9 @@ sealed class MediaRange private[http4s](val mainType: String,
   def isText        = mainType == "text"
   def isVideo       = mainType == "video"
 
-  def withQValue(q: QValue): MediaRange = new MediaRange(mainType, q, Map.empty)
+  def withQValue(q: QValue): MediaRangeAndQValue = MediaRangeAndQValue(this,q)
 
-  def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, qValue, ext)
+  def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, ext)
 
   override def toString = "MediaRange(" + renderString + ')'
 
@@ -60,7 +59,6 @@ sealed class MediaRange private[http4s](val mainType: String,
     case x: MediaRange =>
       (this eq x) ||
       mainType == x.mainType      &&
-      qValue == x.qValue                    &&
       extensions == x.extensions
     case _ =>
       false
@@ -68,12 +66,7 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   override def hashCode(): Int = renderString.##
 
-  @inline
-  final def qualityMatches(that: MediaRange): Boolean = {
-    qValue <= that.qValue && qValue.isAcceptable && that.qValue.isAcceptable
-  }
-
-  protected def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
+  private [http4s] def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
     extensions.foreach{ case (k,v) => sb << ';' << ' ' << k << '=' <<# v }
   }
 }
@@ -106,22 +99,17 @@ sealed class MediaType(mainType: String,
                        val compressible: Boolean = false,
                        val binary: Boolean = false,
                        val fileExtensions: Seq[String] = Nil,
-                       q: QValue = QValue.One,
                        extensions: Map[String, String] = Map.empty)
-             extends MediaRange(mainType, q, extensions) {
+             extends MediaRange(mainType, extensions) {
 
   override def render(writer: Writer): writer.type = {
-    writer << mainType << '/' << subType << q
+    writer << mainType << '/' << subType
     renderExtensions(writer)
     writer
   }
 
-  override def withQValue(q: QValue): MediaType = {
-    new MediaType(mainType, subType, compressible,binary, fileExtensions, q, Map.empty)
-  }
-
   override def withExtensions(ext: Map[String, String]): MediaType =
-    new MediaType(mainType, subType, compressible,binary, fileExtensions, q, ext)
+    new MediaType(mainType, subType, compressible,binary, fileExtensions, ext)
 
   final def satisfies(mediaType: MediaType) = mediaType.satisfiedBy(this)
 
@@ -129,7 +117,7 @@ sealed class MediaType(mainType: String,
     case mediaType: MediaType =>
       (this eq mediaType) ||
         mainType == mediaType.mainType &&
-          subType == mediaType.subType && qualityMatches(mediaType)
+          subType == mediaType.subType
 
     case _            => false
   }
@@ -138,7 +126,6 @@ sealed class MediaType(mainType: String,
     case x: MediaType => (this eq x) ||
                           mainType == x.mainType      &&
                           subType == x.subType        &&
-                          qValue == x.qValue  &&
                           extensions == x.extensions
     case _ => false
   }
