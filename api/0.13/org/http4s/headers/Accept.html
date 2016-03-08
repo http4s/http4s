@@ -47,7 +47,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">Accept</span><span class="params">(<span name="values">values: <span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span><span class="result"> extends <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">Accept</span><span class="params">(<span name="values">values: <span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<a href="MediaRangeAndQValue.html" class="extype" name="org.http4s.headers.MediaRangeAndQValue">MediaRangeAndQValue</a>]</span>)</span><span class="result"> extends <a href="../Header$$RecurringRenderable.html" class="extype" name="org.http4s.Header.RecurringRenderable">RecurringRenderable</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
@@ -96,7 +96,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.headers.Accept#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(values:scalaz.NonEmptyList[org.http4s.MediaRange]):org.http4s.headers.Accept"></a>
+      <a id="&lt;init&gt;(values:scalaz.NonEmptyList[org.http4s.headers.MediaRangeAndQValue]):org.http4s.headers.Accept"></a>
       <a id="&lt;init&gt;:Accept"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -104,10 +104,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">Accept</span><span class="params">(<span name="values">values: <span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>)</span>
+        <span class="name">Accept</span><span class="params">(<span name="values">values: <span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<a href="MediaRangeAndQValue.html" class="extype" name="org.http4s.headers.MediaRangeAndQValue">MediaRangeAndQValue</a>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.headers.Accept@&lt;init&gt;(values:scalaz.NonEmptyList[org.http4s.MediaRange]):org.http4s.headers.Accept" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.headers.Accept@&lt;init&gt;(values:scalaz.NonEmptyList[org.http4s.headers.MediaRangeAndQValue]):org.http4s.headers.Accept" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -118,7 +118,7 @@
         <div id="types" class="types members">
               <h3>Type Members</h3>
               <ol><li name="org.http4s.headers.Accept.Value" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="Value=org.http4s.MediaRange"></a>
+      <a id="Value=org.http4s.headers.MediaRangeAndQValue"></a>
       <a id="Value:Value"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -126,10 +126,10 @@
         <span class="kind">type</span>
       </span>
       <span class="symbol">
-        <span class="name">Value</span><span class="result"> = <a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a></span>
+        <span class="name">Value</span><span class="result"> = <a href="MediaRangeAndQValue.html" class="extype" name="org.http4s.headers.MediaRangeAndQValue">MediaRangeAndQValue</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.headers.Accept@Value=org.http4s.MediaRange" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.headers.Accept@Value=org.http4s.headers.MediaRangeAndQValue" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -532,7 +532,7 @@
       <a id="key:Accept.type"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">implicit </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -749,18 +749,18 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../Header.html" class="extype" name="org.http4s.Header">Header</a></dd></dl></div>
     </li><li name="org.http4s.headers.Accept#values" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="values:scalaz.NonEmptyList[org.http4s.MediaRange]"></a>
-      <a id="values:NonEmptyList[MediaRange]"></a>
+      <a id="values:scalaz.NonEmptyList[org.http4s.headers.MediaRangeAndQValue]"></a>
+      <a id="values:NonEmptyList[MediaRangeAndQValue]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">values</span><span class="result">: <span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<a href="../MediaRange.html" class="extype" name="org.http4s.MediaRange">MediaRange</a>]</span>
+        <span class="name">values</span><span class="result">: <span class="extype" name="scalaz.NonEmptyList">NonEmptyList</span>[<a href="MediaRangeAndQValue.html" class="extype" name="org.http4s.headers.MediaRangeAndQValue">MediaRangeAndQValue</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.headers.Accept@values:scalaz.NonEmptyList[org.http4s.MediaRange]" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.headers.Accept@values:scalaz.NonEmptyList[org.http4s.headers.MediaRangeAndQValue]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
