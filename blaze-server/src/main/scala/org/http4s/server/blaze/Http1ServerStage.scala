@@ -134,6 +134,11 @@ class Http1ServerStage(service: HttpService,
       if (req.method == Method.HEAD || !resp.status.isEntityAllowed) {
         // We don't have a body (or don't want to send it) so we just get the headers
 
+        if (!resp.status.isEntityAllowed &&
+          (lengthHeader.isDefined || respTransferCoding.isDefined)) {
+          logger.warn(s"Body detected for response code ${resp.status.code} which doesn't permit an entity. Dropping.")
+        }
+
         if (req.method == Method.HEAD) {
           // write message body header for HEAD response
           (parser.minorVersion, respTransferCoding, lengthHeader) match {

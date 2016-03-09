@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 
-import org.http4s.headers.{`Transfer-Encoding`, Date}
+import org.http4s.headers.{`Transfer-Encoding`, Date, `Content-Length`}
 import org.http4s.{headers => H, _}
 import org.http4s.Status._
 import org.http4s.blaze._
@@ -118,6 +118,25 @@ class Http1ServerStageSpec extends Specification {
 
       val (_, hdrs, _) = ResponseParser.apply(buff)
       hdrs.find(_.name == `Transfer-Encoding`.name) must_== None
+    }
+
+    "Do not send an entity or entity-headers for a status that doesn't permit it" in {
+      val service: HttpService = HttpService {
+        case req =>
+          Response(status = Status.NotModified)
+            .putHeaders(`Transfer-Encoding`(TransferCoding.chunked))
+            .withBody("Foo!")
+      }
+
+      val req = "GET /foo HTTP/1.1\r\n\r\n"
+
+      val buf = Await.result(httpStage(service, Seq(req)), 5.seconds)
+      val (status, hs, body) = ResponseParser.parseBuffer(buf)
+
+      val hss = Headers(hs.toList)
+      `Content-Length`.from(hss).isDefined must_== false
+      body must_== ""
+      status must_== Status.NotModified
     }
 
     "Add a date header" in {

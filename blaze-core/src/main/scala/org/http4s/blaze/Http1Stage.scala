@@ -106,9 +106,13 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       }
       else bodyEncoding match { // HTTP >= 1.1 request without length and/or with chunked encoder
         case Some(enc) => // Signaling chunked means flush every chunk
-          bodyEncoding.filter(_.hasChunked).foreach(enc => logger.warn(s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
+          if (!enc.hasChunked) {
+             logger.warn(s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
+          }
 
-          lengthHeader.foreach(_ => logger.warn(s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length."))
+          if (lengthHeader.isDefined) {
+            logger.warn(s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
+          }
 
           new ChunkProcessWriter(rr, this, trailer)
 
@@ -245,12 +249,12 @@ object Http1Stage {
     * Note: this method is very niche but useful for both server and client. */
   def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
-    headers.view.filterNot(h => h.name == `Transfer-Encoding`.name ||
-                             h.name == `Content-Length`.name).
-      foreach { header =>
-        if (isServer && header.name == H.Date.name) dateEncoded = true
+    headers.foreach { h =>
+        if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
+          if (isServer && h.name == H.Date.name) dateEncoded = true
+          rr << h << "\r\n"
+        }
 
-        rr << header << "\r\n"
       }
 
     if (isServer && !dateEncoded) {
