@@ -145,6 +145,14 @@ class UriParserSpec extends Http4sSpec {
       }
     }
 
+    "fail on invalid uri" in {
+      val invalid = Seq("^", "]")
+      forall(invalid) { i =>
+        Uri.fromString("^") must be_-\/
+      }
+    }
+
+    // TODO: why are we allowing invalid Uri's to produce a "valid" result?
     "deal with an invalid Query" in {
       Uri.requestTarget("/hello/world?bad=enc%ode") must be_\/-.like { case u =>
         u.params must be_==(Map("bad" -> "enc"))
@@ -158,7 +166,6 @@ class UriParserSpec extends Http4sSpec {
         u.path must be_==("/hello/wo")
       }
     }
-
   }
 
   "Uri.fromString" should {
