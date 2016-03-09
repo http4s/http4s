@@ -14,13 +14,11 @@ import org.http4s.util.option.ToOptionOps
 
 
 /** Representation of the [[Request]] URI
-  * Structure containing information related to a Uri. All fields except the
-  * query are expected to be url decoded.
   * @param scheme     optional Uri Scheme. eg, http, https
   * @param authority  optional Uri Authority. eg, localhost:8080, www.foo.bar
-  * @param path       the Uri path
-  * @param query      optional Query. Note that the query should _NOT_ be url decoded
-  * @param fragment   optional Uri Fragment. Note that the fragment should _NOT_ be url decoded
+  * @param path       url-encoded string representation of the path component of the Uri.
+  * @param query      optional Query. url-encoded.
+  * @param fragment   optional Uri Fragment. url-encoded.
   */
 // TODO fix Location header, add unit tests
 case class Uri(
