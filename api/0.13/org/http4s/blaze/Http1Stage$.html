@@ -187,24 +187,25 @@
     </span>)</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.blaze.Http1Stage#encodeHeaders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="encodeHeaders(headers:org.http4s.Headers,rr:org.http4s.util.Writer,isServer:Boolean):Option[org.http4s.headers.Transfer-Encoding]"></a>
-      <a id="encodeHeaders(Headers,Writer,Boolean):Option[Transfer-Encoding]"></a>
+    </li><li name="org.http4s.blaze.Http1Stage#encodeHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="encodeHeaders(headers:Iterable[org.http4s.Header],rr:org.http4s.util.Writer,isServer:Boolean):Unit"></a>
+      <a id="encodeHeaders(Iterable[Header],Writer,Boolean):Unit"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">encodeHeaders</span><span class="params">(<span name="headers">headers: <a href="../Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>, <span name="rr">rr: <a href="../util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>, <span name="isServer">isServer: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../headers/Transfer$minusEncoding.html" class="extype" name="org.http4s.headers.Transfer-Encoding">Transfer-Encoding</a>]</span>
+        <span class="name">encodeHeaders</span><span class="params">(<span name="headers">headers: <span class="extype" name="scala.Iterable">Iterable</span>[<a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>]</span>, <span name="rr">rr: <a href="../util/Writer.html" class="extype" name="org.http4s.util.Writer">Writer</a></span>, <span name="isServer">isServer: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.blaze.Http1Stage$@encodeHeaders(headers:org.http4s.Headers,rr:org.http4s.util.Writer,isServer:Boolean):Option[org.http4s.headers.Transfer-Encoding]" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.blaze.Http1Stage$@encodeHeaders(headers:Iterable[org.http4s.Header],rr:org.http4s.util.Writer,isServer:Boolean):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Encodes the headers into the Writer, except the Transfer-Encoding header which may be returned
-Note: this method is very niche but useful for both server and client.</p>
+      <p class="shortcomment cmt">Encodes the headers into the Writer.</p><div class="fullcomment"><div class="comment cmt"><p>Encodes the headers into the Writer. Does not encode <code>Transfer-Encoding</code> or
+<code>Content-Length</code> headers, which are left for the body encoder. Adds
+<code>Date</code> header if one is missing and this is a server response.</p><p>Note: this method is very niche but useful for both server and client.</p></div></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="eq(x$1:AnyRef):Boolean"></a>
       <a id="eq(AnyRef):Boolean"></a>
