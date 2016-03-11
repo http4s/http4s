@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import collection.{TraversableOnce, mutable, IterableLike}
+import scala.collection.{TraversableOnce, mutable, IterableLike}
 import collection.generic.CanBuildFrom
 import org.http4s.util.{Renderable, Writer}
 
@@ -98,6 +98,7 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
   def valuesIterator: Iterator[Any] = values.iterator
 
   /** Filters this map by retaining only keys satisfying a predicate.
+   *
    *  @param  p   the predicate used to test keys
    *  @return an immutable map consisting only of those key value pairs of this map where the key satisfies
    *          the predicate `p`. The resulting map wraps the original map without copying any elements.
@@ -134,7 +135,7 @@ case class Cookie(
   override lazy val renderString: String = super.renderString
 
   override def render(writer: Writer): writer.type = {
-    writer.append(name).append("=\"").append(content).append('"')
+    writer.append(name).append('=').append(content)
     expires.foreach{ e => writer.append("; Expires=").append(e) }
     maxAge.foreach(writer.append("; Max-Age=").append(_))
     domain.foreach(writer.append("; Domain=").append(_))

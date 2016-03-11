@@ -5,7 +5,7 @@ import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
 import java.time.Instant
 
-import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.headers.{`Transfer-Encoding`, `Content-Length`}
 import org.http4s.{headers => H}
 import org.http4s.blaze.util.BufferTools.{concatBuffers, emptyBuffer}
 import org.http4s.blaze.http.http_parser.BaseExceptions.ParserException
@@ -75,17 +75,23 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
                                                rr: StringWriter,
                                             minor: Int,
                                     closeOnFinish: Boolean): ProcessWriter = lengthHeader match {
-    case Some(h) if bodyEncoding.isEmpty =>
+    case Some(h) if bodyEncoding.map(!_.hasChunked).getOrElse(true) || minor == 0 =>
+      // HTTP 1.1: we have a length and no chunked encoding
+      // HTTP 1.0: we have a length
+
+      bodyEncoding.foreach(enc => logger.warn(s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header."))
+
       logger.trace("Using static encoder")
 
+      rr << h << "\r\n" // write Content-Length
+
       // add KeepAlive to Http 1.0 responses if the header isn't already present
-      if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) rr << "Connection:keep-alive\r\n\r\n"
-      else rr << "\r\n"
+      rr << (if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) "Connection: keep-alive\r\n\r\n" else "\r\n")
 
       val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
       new IdentityWriter(b, h.length, this)
 
-    case _ =>  // No Length designated for body or Transfer-Encoding included
+    case _ =>  // No Length designated for body or Transfer-Encoding included for HTTP 1.1
       if (minor == 0) { // we are replying to a HTTP 1.0 request see if the length is reasonable
         if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
           logger.trace("Using static encoder")
@@ -98,15 +104,17 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
           new CachingStaticWriter(rr, this) // will cache for a bit, then signal close if the body is long
         }
       }
-      else bodyEncoding match { // HTTP >= 1.1 request without length. Will use a chunked encoder
+      else bodyEncoding match { // HTTP >= 1.1 request without length and/or with chunked encoder
         case Some(enc) => // Signaling chunked means flush every chunk
-          if (enc.hasChunked) new ChunkProcessWriter(rr, this, trailer)
-          else  {   // going to do identity
-            logger.warn(s"Unknown transfer encoding: '${enc.value}'. Stripping header.")
-            rr << "\r\n"
-            val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
-            new IdentityWriter(b, -1, this)
+          if (!enc.hasChunked) {
+             logger.warn(s"Unsupported transfer encoding: '${enc.value}' for HTTP 1.$minor. Stripping header.")
           }
+
+          if (lengthHeader.isDefined) {
+            logger.warn(s"Both Content-Length and Transfer-Encoding headers defined. Stripping Content-Length.")
+          }
+
+          new ChunkProcessWriter(rr, this, trailer)
 
         case None =>     // use a cached chunk encoder for HTTP/1.1 without length of transfer encoding
           logger.trace("Using Caching Chunk Encoder")
@@ -234,22 +242,23 @@ object Http1Stage {
     else CachedEmptyBufferThunk
   }
 
-  /** Encodes the headers into the Writer, except the Transfer-Encoding header which may be returned
+  /** Encodes the headers into the Writer. Does not encode `Transfer-Encoding` or
+    * `Content-Length` headers, which are left for the body encoder. Adds
+    * `Date` header if one is missing and this is a server response.
+    *
     * Note: this method is very niche but useful for both server and client. */
-  def encodeHeaders(headers: Headers, rr: Writer, isServer: Boolean): Option[`Transfer-Encoding`] = {
-    var encoding: Option[`Transfer-Encoding`] = None
+  def encodeHeaders(headers: Iterable[Header], rr: Writer, isServer: Boolean): Unit = {
     var dateEncoded = false
-    headers.foreach { header =>
-      if (isServer && header.name == H.Date.name) dateEncoded = true
+    headers.foreach { h =>
+        if (h.name != `Transfer-Encoding`.name && h.name != `Content-Length`.name) {
+          if (isServer && h.name == H.Date.name) dateEncoded = true
+          rr << h << "\r\n"
+        }
 
-      if (header.name != `Transfer-Encoding`.name) rr << header << "\r\n"
-      else encoding = `Transfer-Encoding`.matchHeader(header)
-    }
+      }
 
     if (isServer && !dateEncoded) {
       rr << H.Date.name << ": " << Instant.now() << "\r\n"
     }
-
-    encoding
   }
 }

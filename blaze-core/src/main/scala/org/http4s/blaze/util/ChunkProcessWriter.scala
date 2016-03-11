@@ -79,9 +79,8 @@ class ChunkProcessWriter(private var headers: StringWriter,
   private def encodeChunk(chunk: ByteVector, last: List[ByteBuffer]): List[ByteBuffer] = {
     val list = writeLength(chunk.length)::chunk.toByteBuffer::CRLF::last
     if (headers != null) {
-      val i = headers
-      i << "Transfer-Encoding: chunked\r\n\r\n"
-      val b = ByteBuffer.wrap(i.result().getBytes(ISO_8859_1))
+      headers << "Transfer-Encoding: chunked\r\n\r\n"
+      val b = ByteBuffer.wrap(headers.result().getBytes(ISO_8859_1))
       headers = null
       b::list
     } else list
