@@ -1,8 +1,7 @@
 package org.http4s
 
-import org.http4s.parser.HttpHeaderParser
+import org.http4s.util.NonEmptyList
 
-import scalaz.NonEmptyList
 import scala.annotation.tailrec
 import scala.reflect.ClassTag
 import org.http4s.util.CaseInsensitiveString

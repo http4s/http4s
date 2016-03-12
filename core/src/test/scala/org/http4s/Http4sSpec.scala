@@ -10,8 +10,9 @@
 package org.http4s
 
 import org.specs2.ScalaCheck
+import org.specs2.execute.AsResult
 import org.specs2.scalacheck.Parameters
-import org.specs2.matcher.{TaskMatchers, AnyMatchers, OptionMatchers, DisjunctionMatchers}
+import org.specs2.matcher._
 import org.specs2.mutable.Specification
 import org.specs2.specification.dsl.FragmentsDsl
 import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
@@ -19,6 +20,8 @@ import org.specs2.specification.core.Fragments
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.typelevel.discipline.Laws
 
+import scalaz.{-\/, \/-}
+import scalaz.concurrent.Task
 import scalaz.std.AllInstances
 import org.scalacheck._
 
@@ -59,6 +62,29 @@ trait Http4sSpec extends Specification
     }
   }
 
+  def beStatus(status: Status): Matcher[Response] = { resp: Response =>
+    (resp.status == status) -> s" doesn't have status ${status}"
+  }
+
+  implicit class TaskMatchable[T](m: Matcher[T]) {
+    def run: Matcher[Task[T]] =
+      runMatcher(m)
+
+    private def runMatcher[T](m: Matcher[T]): Matcher[Task[T]] =
+      new Matcher[Task[T]] {
+        def apply[S <: Task[T]](a: Expectable[S]) = {
+          a.value.attemptRun match {
+            case \/-(v) =>
+              val r = AsResult(createExpectable(v).applyMatcher(m))
+              result(r.isSuccess, r.message, r.message, a)
+            case -\/(t) =>
+              val r = createExpectable(throw t).applyMatcher(m).toResult
+              result(r.isSuccess, r.message, r.message, a)
+          }
+        }
+      }
+  }
+
   def checkAll(name: String, ruleSet: Laws#RuleSet)(implicit p: Parameters) = {
     s"""${ruleSet.name} laws must hold for ${name}""" in {
       Fragments.foreach(ruleSet.all.properties) { case (id, prop) =>
@@ -67,4 +93,5 @@ trait Http4sSpec extends Specification
     }
   }
 }
+
 
