@@ -4,46 +4,66 @@ title: http4s
 latest_release: 0.12.3
 ---
 
-http4s is a Scala library for building HTTP client and server
-applications in a manner that is:
+http4s is a typeful, purely functional HTTP library for client and
+server applications written in Scala.
 
-* functional
-* type safe
-* asynchronous
+## Principles
 
-The core is built on an immutable case class model of HTTP requests
-and responses.  Headers are lazily parsed to semantically meaningful
-types, and bodies are represented as [scalaz-streams](scalaz-stream).
+* *Typeful*: http4s uses Scala's type system to increase
+self-documentation and compile-time verification.  Standard headers
+are lazily parsed to semantically meaningful types, and typeclasses
+are provided to encode and decode bodies to several common formats.
 
-http4s server applications can be deployed on the native platform,
-[blaze], for maximum speed.  First-class support is also offered for
-WAR deployments or an embedded Jetty or Tomcat server.  On the client,
-applications can use either blaze or an async-http-client backend.
+* *Purely functional*: The pure functional side of Scala is favored to
+promote composability and easy reasoning about your code.  The core is
+built on an immutable case class model of HTTP requests and responses,
+shared by the client and the server.
 
-[scalaz-stream]: https://github.com/functional-streams-for-scala/fs2
-[blaze]: https://github.com/http4s/blaze
+* *Asynchronous*: Much of the API is built around a
+`scalaz.concurrent.Task`.  Bodies are modeled as
+[scalaz-streams](scalaz-stream) for performant chunking of large
+messages in constant memory.
+
+* *Modular*: http4s has a lightweight core with multiple deployment
+options.  Server applications can be deployed to [blaze], the native
+platform, or as a servlet application.  Client applications run on
+either blaze or an async-http-client backend.  Several libraries
+useful in everyday HTTP programming, such as [circe] and [argonaut],
+are integrated via optional modules.
+
+* *Community-oriented*: http4s is a community-driven project, and aims
+to provide a welcoming environment for all users.  Please see our
+[community] page to see our [code of conduct] and learn how you can
+participate.
 
 ## Getting started ##
 
-The current release is {{page.latest_release}}, which supports Scala
-2.10 and Scala 2.11 on scalaz-7.1.x.
+Please pick a version that suits your needs, and proceed to its tutorial:
 
-```scala
-val Http4sVersion = "{{page.latest_release}}"
+{:.table}
+| http4s Version   | Status      | Tutorial    | scala          | scalaz | scalaz-stream | java |
+| ---              | ---         | ----        | ---            | ---    | ---           | --   | 
+| 0.13.0a-SNAPSHOT | Development | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
+| 0.13.0-SNAPSHOT  | Development | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
+| 0.12.4           | Stable      |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
+| 0.11.3           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
+| 0.10.1           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.8+ |
+| 0.9.3            | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.8+ |
+| 0.8.6            | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.7+ |
 
-libraryDependencies ++= Seq(
-  // For server applications
-  "org.http4s" %% "http4s-blaze-server" % Http4sVersion,
-  // A simple DSL based on extractor patterns
-  "org.http4s" %% "http4s-dsl" % Http4sVersion,
-  // For client applications
-  "org.http4s" %% "http4s-blaze-client" % Http4sVersion,
-  // One of many integrated JSON libraries
-  "org.http4s" %% "http4s-circe" % Http4sVersion
-)  
-```
+* _Stable_ releases are recommended for production use, and receive
+backward, binary-compatible bugfixes from the http4s team.
 
-Users of scalaz-7.2.x can try out the 0.14.0-SNAPSHOT, which is
-published to the Sonatype Snapshots repo.
+* _Development_ releases are published as snapshots to Sonatype by CI.
 
-We invite you to proceed to the [http4s tutorial](docs/).
+* _EOL_ releases are not actively maintained by the http4s team, but
+patches will be considered.
+
+[scalaz-stream]: https://github.com/functional-streams-for-scala/fs2
+[blaze]: https://github.com/http4s/blaze
+[circe]: https://github.com/travisbrown/circe
+[argonaut]: https://github.com/argonaut.io/argonaut
+[community]: community
+[code of conduct]: conduct.md
+[docs/0.13]: docs/0.13
+[docs/0.14]: docs/0.13

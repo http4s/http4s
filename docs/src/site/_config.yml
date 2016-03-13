@@ -1,5 +1,5 @@
 name: http4s.org
-markdown: redcarpet
-highlighter: pygments
+markdown: kramdown
+highlighter: rouge
 baseurl: /
 apidocs: /api
