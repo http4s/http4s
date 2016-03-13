@@ -19,8 +19,7 @@ package org.http4s
 package parser
 
 import org.parboiled2._
-import scalaz.Validation
-import org.http4s.headers.Accept
+import org.http4s.headers.{Accept, MediaRangeAndQValue}
 
 private[parser] trait AcceptHeader {
 
@@ -29,17 +28,15 @@ private[parser] trait AcceptHeader {
   private class AcceptParser(value: String) extends Http4sHeaderParser[Accept](value) with MediaParser {
 
     def entry: Rule1[headers.Accept] = rule {
-      oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { xs: Seq[MediaRange] =>
+      oneOrMore(FullRange).separatedBy("," ~ OptWS) ~ EOL ~> { xs: Seq[MediaRangeAndQValue] =>
         Accept(xs.head, xs.tail: _*)}
     }
 
-    def FullRange: Rule1[MediaRange] = rule {
+    def FullRange: Rule1[MediaRangeAndQValue] = rule {
       (MediaRangeDef ~ optional( QAndExtensions )) ~> {
         (mr: MediaRange, params: Option[(QValue, Seq[(String, String)])]) =>
-          params.map{ case (q, extensions) =>
-            val m1 = if (q != org.http4s.QValue.One) mr.withQValue(q) else mr
-            if (extensions.isEmpty) m1 else m1.withExtensions(extensions.toMap)
-          }.getOrElse(mr)
+          val (qValue, extensions) = params.getOrElse((org.http4s.QValue.One, Seq.empty))
+          mr.withExtensions(extensions.toMap).withQValue(qValue)
       }
     }
 

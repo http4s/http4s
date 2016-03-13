@@ -12,7 +12,7 @@ object `Transfer-Encoding` extends HeaderKey.Internal[`Transfer-Encoding`] with 
 
 final case class `Transfer-Encoding`(values: NonEmptyList[TransferCoding]) extends Header.RecurringRenderable {
   override def key = `Transfer-Encoding`
-  def hasChunked = values.list.exists(_.renderString.equalsIgnoreCase("chunked"))
+  def hasChunked = values.list.exists(_ == TransferCoding.chunked)
   type Value = TransferCoding
 }
 

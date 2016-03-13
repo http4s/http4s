@@ -1,7 +1,7 @@
 package org.http4s
 package client
 
-import org.http4s.headers.Accept
+import org.http4s.headers.{Accept, MediaRangeAndQValue}
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -89,7 +89,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def fetchAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] = {
     val r = if (d.consumes.nonEmpty) {
       val m = d.consumes.toList
-      req.putHeaders(Accept(m.head, m.tail:_*))
+      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)):_*))
     } else req
     fetch(r) { resp =>
       d.decode(resp, strict = false).fold(throw _, identity)

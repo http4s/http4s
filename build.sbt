@@ -444,6 +444,7 @@ lazy val mimaSettings = mimaDefaultSettings ++ Seq(
     import com.typesafe.tools.mima.core._
     import com.typesafe.tools.mima.core.ProblemFilters._
     Seq(
+      exclude[IncompatibleMethTypeProblem]("org.http4s.blaze.Http1Stage.encodeHeaders")
     )
   }
 )
