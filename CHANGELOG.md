@@ -1,7 +1,5 @@
-# v0.14.0 (unreleased)
-* Upgrade to scalaz-7.2.x.
-
 # v0.13.0 (unreleased)
+* Add support for scalaz-7.2.x (use version 0.13.0a).
 * Add a client backed based on async-http-client.
 * Encode keys when rendering a query string.
 * New entity decoder based on json4s' extract.
