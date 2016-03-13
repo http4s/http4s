@@ -6,11 +6,17 @@
 * Encode keys when rendering a query string.
 * New entity decoder based on json4s' extract.
 * Content-Length now accepts a Long.
-* Upgrade to circe-0.3, json4s-3.3, and other patches.
+* Upgrade to circe-0.3, json4s-3.3, and other patch releases.
 * Fix deadlocks in blaze resulting from default executor on single-CPU machines.
 * Refactor `DecodeFailure` into a new `RequestFailure` hierarchy.
 * New methods for manipulating `UrlForm`.
 * All parsed headers get a `parse` method to construct them from their value.
+* Improve error message for unsupported media type decoding error.
+* Introduce `BlazeClientConfig` class to simplify client construction.
+* Unify client executor service semantics between blaze-client and async-http-client.
+* Update default response message for UnsupportedMediaType failures.
+* Add a `lenient` flag to blazee configuration to accept illegal characters in headers.
+* Remove q-value from `MediaRange` and `MediaType`, replaced by `MediaRangeAndQValue`.
 
 # v0.12.3 (2016-02-24)
 * Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.
