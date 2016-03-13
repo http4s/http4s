@@ -2,7 +2,7 @@
 
 set -e
 
-SBT_COMMAND="-Dscalaz.version=$SCALAZ_VERSION ;test"
+SBT_COMMAND=";test"
 
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]] && [[ $SCALAZ_VERSION = 7.1* ]]; then
   cd $TRAVIS_BUILD_DIR/docs/src/jekyll && bundle install && cd -
@@ -21,4 +21,4 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   fi
 fi
 
-sbt ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
+sbt -Dscalaz.version=$SCALAZ_VERSION ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
