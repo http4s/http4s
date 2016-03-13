@@ -70,7 +70,7 @@ trait Http4sSpec extends Specification
     def run: Matcher[Task[T]] =
       runMatcher(m)
 
-    private def runMatcher[T](m: Matcher[T]): Matcher[Task[T]] =
+    private def runMatcher(m: Matcher[T]): Matcher[Task[T]] =
       new Matcher[Task[T]] {
         def apply[S <: Task[T]](a: Expectable[S]) = {
           a.value.attemptRun match {
