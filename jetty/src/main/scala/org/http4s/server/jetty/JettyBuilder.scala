@@ -195,6 +195,12 @@ sealed class JettyBuilder private (
         }}
         this
       }
+
+      lazy val address: InetSocketAddress = {
+        val host = socketAddress.getHostString
+        val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
+        new InetSocketAddress(host, port)
+      }
     }
   }
 }

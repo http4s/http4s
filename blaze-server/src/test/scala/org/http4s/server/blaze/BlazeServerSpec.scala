@@ -1,8 +1,9 @@
-package org.http4s.server.blaze
+package org.http4s
+package server
+package blaze
 
-import org.specs2.mutable.Specification
-
-class BlazeServerSpec extends Specification {
+class BlazeServerSpec extends ServerAddressSpec {
+  def builder = BlazeBuilder
 
   "BlazeServer" should {
 
