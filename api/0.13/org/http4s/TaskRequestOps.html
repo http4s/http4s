@@ -288,6 +288,23 @@
       <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
 </p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
 </p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the <code>ParseFailure\/T</code></p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.TaskRequestOps#decodeWith" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="decodeWith[A](decoder:org.http4s.EntityDecoder[A],strict:Boolean)(f:A=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="decodeWith[A](EntityDecoder[A],Boolean)((A)⇒Task[Response]):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">decodeWith</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="decoder">decoder: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.TaskRequestOps.decodeWith.A">A</span>]</span>, <span name="strict">strict: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.TaskRequestOps.decodeWith.A">A</span>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.TaskRequestOps@decodeWith[A](decoder:org.http4s.EntityDecoder[A],strict:Boolean)(f:A=&gt;scalaz.concurrent.Task[org.http4s.Response]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a>
       <a id="ensuring((TaskRequestOps)⇒Boolean,⇒Any):TaskRequestOps"></a>
