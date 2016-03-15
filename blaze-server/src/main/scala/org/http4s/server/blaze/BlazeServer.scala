@@ -155,12 +155,12 @@ class BlazeBuilder(
       else
         NIO1SocketServerGroup.fixedGroup(connectorPoolSize, bufferSize)
 
-    var myAddress = socketAddress
-    if (myAddress.isUnresolved)
-      myAddress = new InetSocketAddress(myAddress.getHostString, myAddress.getPort)
+    var address = socketAddress
+    if (address.isUnresolved)
+      address = new InetSocketAddress(address.getHostString, address.getPort)
 
     // if we have a Failure, it will be caught by the Task
-    val serverChannel = factory.bind(myAddress, pipelineFactory).get
+    val serverChannel = factory.bind(address, pipelineFactory).get
 
     new Server {
       override def shutdown: Task[this.type] = Task.delay {
@@ -175,7 +175,7 @@ class BlazeBuilder(
       }
 
       def address: InetSocketAddress =
-        myAddress
+        serverChannel.socketAddress
     }
   }
 
