@@ -89,7 +89,7 @@ sealed trait Message extends MessageOps { self =>
     * Does not introspect the body for media types that define a charset internally. */
   def charset: Option[Charset] = contentType.flatMap(_.charset)
 
-  def isChunked: Boolean = headers.get(`Transfer-Encoding`).exists(_.values.list.contains(TransferCoding.chunked))
+  def isChunked: Boolean = headers.get(`Transfer-Encoding`).exists(_.values.contains(TransferCoding.chunked))
 
   /**
    * The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting

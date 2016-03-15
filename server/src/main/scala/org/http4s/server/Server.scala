@@ -9,7 +9,8 @@ import scalaz.concurrent.Task
 trait Server {
   def shutdown: Task[this.type]
 
-  def shutdownNow(): this.type = shutdown.run
+  def shutdownNow(): this.type =
+    shutdown.run
 
   def onShutdown(f: => Unit): this.type
 

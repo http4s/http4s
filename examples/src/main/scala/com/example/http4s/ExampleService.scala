@@ -1,5 +1,7 @@
 package com.example.http4s
 
+import io.circe.Json
+
 import scala.concurrent.duration._
 import scala.concurrent.{ExecutionContext, Future}
 
@@ -7,7 +9,7 @@ import org.http4s.headers.{`Content-Type`, `Content-Length`}
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
-import org.http4s.argonaut._
+import org.http4s.circe._
 import org.http4s.scalaxml._
 import org.http4s.server._
 import org.http4s.server.middleware.PushSupport._
@@ -18,9 +20,6 @@ import scalaz.stream.Process
 import scalaz.stream.time
 import scalaz.concurrent.Task
 import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
-
-import _root_.argonaut._
-import Argonaut._
 
 object ExampleService {
 
@@ -55,7 +54,7 @@ object ExampleService {
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
-      val json = jSingleObject("origin", jString(req.remoteAddr.getOrElse("unknown")))
+      val json = Json.obj("origin" -> Json.string(req.remoteAddr.getOrElse("unknown")))
       Ok(json)
 
     case req @ GET -> Root / "redirect" =>

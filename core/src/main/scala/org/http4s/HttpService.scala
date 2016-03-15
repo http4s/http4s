@@ -39,9 +39,10 @@ object HttpService {
     * services will have the opportunity to handle the request.
     * See [[Fallthrough]] for more details.
     */
-  val notFound: Task[Response] = Task.now(Response(Status.NotFound)
-                                             .withAttribute(Fallthrough.fallthroughKey, ())
-                                             .withBody("404 Not Found.").run)
+  val notFound: Task[Response] =
+    Response(Status.NotFound)
+      .withAttribute(Fallthrough.fallthroughKey, ())
+      .withBody("404 Not Found.")
 
   val empty   : HttpService    = Service.const(notFound)
 }

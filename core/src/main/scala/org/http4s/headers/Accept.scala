@@ -3,8 +3,7 @@ package headers
 
 import org.http4s.util.{Renderable, Writer}
 import org.http4s.parser.HttpHeaderParser
-
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Accept] =

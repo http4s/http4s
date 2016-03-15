@@ -18,7 +18,7 @@
  */
 package org.http4s
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 import org.http4s.util.{Writer, CaseInsensitiveString, Renderable, StringWriter}
 import org.http4s.util.string._
