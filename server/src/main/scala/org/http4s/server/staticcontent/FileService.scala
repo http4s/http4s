@@ -1,15 +1,15 @@
 package org.http4s
-package server.staticcontent
+package server
+package staticcontent
 
 import java.io.File
 import java.util.concurrent.ExecutorService
 
 import org.http4s.headers.{`Content-Range`, Range}
 import org.http4s.headers.Range.SubRange
-import org.http4s.server._
 
 import scalaz.concurrent.{Strategy, Task}
-import scalaz.{NonEmptyList}
+import org.http4s.util._
 
 
 object FileService {
@@ -31,7 +31,7 @@ object FileService {
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
 
-  /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
+  /** Make a new [[org.http4s.HttpService]] that serves static files. */
   private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))

@@ -99,6 +99,13 @@ trait Writer {
     append(end)
   }
 
+  def addStringNel(s: NonEmptyList[String], sep: String = "", start: String = "", end: String = ""): this.type = {
+    append(start)
+    append(s.head)
+    s.tail.foreach(s => append(sep).append(s))
+    append(end)
+  }
+
   def addSeq[T: Renderer](s: Seq[T], sep: String = "", start: String = "", end: String = ""): this.type = {
     append(start)
     if (s.nonEmpty) {

@@ -4,6 +4,7 @@ import java.time.{ZonedDateTime, ZoneId, Instant}
 import java.time.temporal.ChronoUnit
 
 import org.http4s.headers.{Allow, Date, `Content-Length`, `Accept-Charset`}
+import org.http4s.util.NonEmptyList
 import org.http4s.util.string._
 
 import java.nio.charset.{Charset => NioCharset}
@@ -19,6 +20,12 @@ trait TestInstances {
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
     def yolo: A = self.valueOr(e => sys.error(e.toString))
   }
+
+  implicit def NonEmptyListArbitrary[A: Arbitrary]: Arbitrary[NonEmptyList[A]] =
+    Arbitrary { for {
+      a <- arbitrary[A]
+      list <- arbitrary[List[A]]
+    } yield NonEmptyList.nel(a, list) }
 
   lazy val tchars: Gen[Char] = oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++

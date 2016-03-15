@@ -30,7 +30,8 @@ trait ServerBuilder {
 
   def start: Task[Server]
 
-  final def run: Server = start.run
+  final def run: Server =
+    start.run
 }
 
 object ServerBuilder {

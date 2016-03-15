@@ -8,7 +8,7 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := "0.13.0-SNAPSHOT"
+version      in ThisBuild := s"0.13.0${scalazCrossBuildSuffix}-SNAPSHOT"
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaVersion in ThisBuild := "2.10.6"
 crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.7"))
@@ -32,15 +32,8 @@ lazy val core = libraryProject("core")
       scalazCore,
       scalazStream
     ) },
-    libraryDependencies <++= scalaVersion (
-      VersionNumber(_).numbers match {
-        case Seq(2, 10, _*) => Seq(
-          compilerPlugin("org.scalamacros" % "paradise" % "2.0.1" cross CrossVersion.full),
-          "org.scalamacros" %% "quasiquotes" % "2.0.1" cross CrossVersion.binary
-        )
-        case _ => Seq.empty
-      })
-)
+    macroParadiseSetting
+  )
 
 lazy val server = libraryProject("server")
   .settings(
@@ -134,7 +127,10 @@ lazy val jawn = libraryProject("jawn")
 lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
-    libraryDependencies += jawnArgonaut
+    libraryDependencies ++= Seq(
+      Http4sBuild.argonaut,
+      jawnParser
+    )
   )
   .dependsOn(core % "compile;test->test", jawn % "compile;test->test")
 
@@ -256,11 +252,12 @@ lazy val examples = http4sProject("examples")
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
+      circeGeneric,
       logbackClassic % "runtime",
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
   )
-  .dependsOn(server, theDsl, argonaut, scalaXml, twirl)
+  .dependsOn(server, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -269,6 +266,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
     description := "Examples of http4s server and clients on blaze",
     fork := true,
     libraryDependencies ++= Seq(alpnBoot, metricsJson),
+    macroParadiseSetting,
     javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
       for {
         file <- attList.map(_.data)
@@ -415,7 +413,7 @@ lazy val commonSettings = Seq(
     logbackClassic,
     scalameter,
     scalazScalacheckBinding,
-    specs2,
+    specs2Core,
     specs2MatcherExtra,
     specs2Scalacheck
   ).map(_ % "test")

@@ -4,7 +4,7 @@ package headers
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 object Cookie extends HeaderKey.Internal[Cookie] with HeaderKey.Recurring {
   override def parse(s: String): ParseResult[Cookie] =

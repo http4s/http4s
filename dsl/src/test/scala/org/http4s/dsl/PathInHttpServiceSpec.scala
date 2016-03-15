@@ -48,12 +48,12 @@ object PathInHttpServiceSpec extends Http4sSpec {
       Ok(s"counter: $c")
     case GET -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
-        errors => BadRequest(errors.list.map(_.sanitized).mkString(",")),
+        errors => BadRequest(errors.list.toList.map(_.sanitized).mkString(",")),
         vc => Ok(s"counter: $vc")
       )
     case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
       c match {
-        case Some(Failure(errors)) => BadRequest(errors.list.map(_.sanitized).mkString(","))
+        case Some(Failure(errors)) => BadRequest(errors.list.toList.map(_.sanitized).mkString(","))
         case Some(Success(cv)) => Ok(s"counter: $cv")
         case None => Ok("no counter")
       }
