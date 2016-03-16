@@ -56,7 +56,7 @@
           <div class="superTypes hiddenContent"><a href="../server/AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a>, <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../server/jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="../server/tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
+            <div class="subClasses hiddenContent"><a href="../server/jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="../server/tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
           </div></div>
         
 
@@ -213,7 +213,9 @@ of the servlet ecosystem for an app that is committed to running on a servlet co
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      <p class="shortcomment cmt">Returns a task to start a server.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a task to start a server.  The task completes with a
+reference to the server when it has started.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.AsyncTimeoutSupport#withAsyncTimeout" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="withAsyncTimeout(asyncTimeout:scala.concurrent.duration.Duration):AsyncTimeoutSupport.this.Self"></a>
       <a id="withAsyncTimeout(Duration):Self"></a>
@@ -742,7 +744,9 @@ Not to be confused with the server connectors.
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      <p class="shortcomment cmt">Convenience method to run a server.</p><div class="fullcomment"><div class="comment cmt"><p>Convenience method to run a server.  The method blocks
+until the server is started.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>

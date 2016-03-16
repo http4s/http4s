@@ -488,6 +488,23 @@ is closed at the completion of the decoding.
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.client.Client#get" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="get[A](s:String)(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="get[A](String)((Response)⇒Task[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">get</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.get.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@get[A](s:String)(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.client.Client#get" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="get[A](uri:org.http4s.Uri)(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]"></a>
       <a id="get[A](Uri)((Response)⇒Task[A]):Task[A]"></a>
@@ -508,6 +525,23 @@ is closed at the completion of the decoding.
 </p></div><dl class="paramcmts block"><dt class="param">uri</dt><dd class="cmt"><p>The URI to GET</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to a GET on uri.  The underlying HTTP connection
          is disposed when the returned task completes.  Attempts to read the
          response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#getAs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="getAs[A](String)(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.client.Client#getAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
       <a id="getAs[A](Uri)(EntityDecoder[A]):Task[A]"></a>
@@ -650,6 +684,23 @@ is closed at the completion of the decoding.
     </span>
       <p class="shortcomment cmt">a Task to shut down this Shutdown this client, closing any
                 open connections and freeing resources</p>
+    </li><li name="org.http4s.client.Client#shutdownNow" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="shutdownNow():Unit"></a>
+      <a id="shutdownNow():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">shutdownNow</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@shutdownNow():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Shuts this client down, and blocks until complete.</p>
     </li><li name="org.http4s.client.Client#streaming" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="streaming[A](req:org.http4s.Request)(f:org.http4s.Response=&gt;scalaz.stream.Process[scalaz.concurrent.Task,A]):scalaz.stream.Process[scalaz.concurrent.Task,A]"></a>
       <a id="streaming[A](Request)((Response)⇒Process[Task,A]):Process[Task,A]"></a>

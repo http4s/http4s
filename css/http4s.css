@@ -7,3 +7,10 @@ i.fa-slack.irc {
   -webkit-transform: rotate(19deg);
   transform: rotate(19deg);
 }
+
+.stable {
+  background-color: #ffc;
+}
+.eol {
+  color: #666;
+}
