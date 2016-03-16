@@ -2,11 +2,12 @@
 
 set -e
 
-SBT_COMMAND=";test"
-
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]] && [[ $SCALAZ_VERSION = 7.1* ]]; then
   cd $TRAVIS_BUILD_DIR/docs/src/jekyll && bundle install && cd -
-  SBT_COMMAND="$SBT_COMMAND ;mimaReportBinaryIssues ;makeSite"
+  PRIMARY_BUILD="true"
+  SBT_COMMAND=";coverage ;clean ;test ;mimaReportBinaryIssues ;makeSite"
+else
+  SBT_COMMAND=";test"
 fi
 
 if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS_PULL_REQUEST = "false" ]]; then
@@ -22,3 +23,7 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
 fi
 
 sbt -Dscalaz.version=$SCALAZ_VERSION ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
+
+if [[ $SBT_COMMAND = *";coverage"* ]]; then
+   bash <(curl -s https://codecov.io/bash)
+fi
