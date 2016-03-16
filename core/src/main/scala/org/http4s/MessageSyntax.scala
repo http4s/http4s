@@ -16,6 +16,9 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
 
   def self: Task[M]
 
+  def transformHeaders(f: Headers => Headers): Self =
+    self.map(_.transformHeaders(f))
+
   /** Add a body to the message
     * @see [[Message]]
     */
@@ -30,18 +33,6 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
     */
   override def withAttribute[A](key: AttributeKey[A], value: A): Self = self.map(_.withAttribute(key, value))
 
-  /** Replaces the [[Header]]s of the incoming Request object
-    *
-    * @param headers [[Headers]] containing the desired headers
-    * @return a new Request object
-    */
-  override def replaceAllHeaders(headers: Headers): Self = self.map(_.replaceAllHeaders(headers))
-
-  /** Add the provided headers to the existing headers, replacing those of the same header name */
-  override def putHeaders(headers: Header*): Self = self.map(_.putHeaders(headers:_*))
-
-  override def filterHeaders(f: (Header) => Boolean): Self = self.map(_.filterHeaders(f))
-
   /** Decode the [[Message]] to the specified type
     *
     * @param decoder [[EntityDecoder]] used to decode the [[Message]]
@@ -53,12 +44,14 @@ trait TaskMessageOps[M <: Message] extends Any with MessageOps {
   })
 }
 
-final class TaskRequestOps(val self: Task[Request]) extends AnyVal with TaskMessageOps[Request] {
+final class TaskRequestOps(val self: Task[Request]) extends AnyVal with TaskMessageOps[Request] with RequestOps {
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
     self.flatMap(_.decodeWith(decoder, strict)(f))
+
+  def withPathInfo(pi: String): Task[Request] =
+    self.map(_.withPathInfo(pi))
 }
 
 final class TaskResponseOps(val self: Task[Response]) extends AnyVal with TaskMessageOps[Response] with ResponseOps {
-  /** Response specific extension methods */
-  override def withStatus[S <% Status](status: S): Self = self.map(_.withStatus(status))
+  override def withStatus(status: Status): Self = self.map(_.withStatus(status))
 }
