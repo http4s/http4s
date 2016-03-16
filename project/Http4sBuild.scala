@@ -33,10 +33,7 @@ object Http4sBuild extends Build {
   def compatibleVersion(version: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
-    val targetVersion = (targetMajor, targetMinor) match {
-      case (0, 11) => "0.11.1" // New line in the sand.  We fell down on the MiMa job.
-      case _ => s"${targetMajor}.${targetMinor}.0"
-    }
+    val targetVersion = s"${targetMajor}.${targetMinor}.0a"
     if (targetVersion != currentVersionWithoutSnapshot)
       Some(targetVersion)
     else
