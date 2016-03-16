@@ -15,6 +15,12 @@
 * Update default response message for UnsupportedMediaType failures.
 * Add a `lenient` flag to blazee configuration to accept illegal characters in headers.
 * Remove q-value from `MediaRange` and `MediaType`, replaced by `MediaRangeAndQValue`.
+* Add `address` to `Server` trait.
+
+# v0.12.4 (2016-03-10)
+* Fix bug on rejection of invalid URIs.
+* Do not send `Transfer-Encoding` or `Content-Length` headers for 304 and others.
+* Don't quote cookie values.
 
 # v0.12.3 (2016-02-24)
 * Upgrade to jawn-0.8.4 to fix decoding escaped characters in JSON.
