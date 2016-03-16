@@ -314,7 +314,7 @@ while most of the functionality is found in <a href="MessageSyntax.html" class="
       <a id="as[T](EntityDecoder[T]):Task[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -572,25 +572,25 @@ Does not introspect the body for media types that define a charset internally.</
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.Message#filterHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self"></a>
+    </li><li name="org.http4s.MessageOps#filterHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self"></a>
       <a id="filterHeaders((Header)⇒Boolean):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
         <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Message@filterHeaders(f:org.http4s.Header=&gt;Boolean):Message.this.Self" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Message@filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Remove headers that satisfy the predicate
 </p><div class="fullcomment"><div class="comment cmt"><p>Remove headers that satisfy the predicate
-</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -757,29 +757,32 @@ Does not introspect the body for media types that define a charset internally.</
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.Message#putHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="putHeaders(headers:org.http4s.Header*):Message.this.Self"></a>
+    </li><li name="org.http4s.MessageOps#putHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="putHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
       <a id="putHeaders(Header*):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
         <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Message@putHeaders(headers:org.http4s.Header*):Message.this.Self" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.Message@putHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name
+The passed headers are assumed to contain no duplicate Singleton headers.</p><div class="fullcomment"><div class="comment cmt"><p>Add the provided headers to the existing headers, replacing those of the same header name
+The passed headers are assumed to contain no duplicate Singleton headers.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#removeHeader" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeHeader(key:org.http4s.HeaderKey):MessageOps.this.Self"></a>
       <a id="removeHeader(HeaderKey):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -791,31 +794,12 @@ Does not introspect the body for media types that define a charset internally.</
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
-    </li><li name="org.http4s.Message#replaceAllHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="replaceAllHeaders(headers:org.http4s.Headers):Message.this.Self"></a>
-      <a id="replaceAllHeaders(Headers):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.Message@replaceAllHeaders(headers:org.http4s.Headers):Message.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="replaceAllHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
       <a id="replaceAllHeaders(Header*):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -827,6 +811,25 @@ Does not introspect the body for media types that define a charset internally.</
       </a>
     </span>
       <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
+    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self"></a>
+      <a id="replaceAllHeaders(Headers):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Message@replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -880,6 +883,23 @@ Does not introspect the body for media types that define a charset internally.</
       <p class="shortcomment cmt">The trailer headers, as specified in Section 3.6.1 of RFC 2616.</p><div class="fullcomment"><div class="comment cmt"><p>The trailer headers, as specified in Section 3.6.1 of RFC 2616.  The resulting
 task might not complete unless the entire body has been consumed.
 </p></div></div>
+    </li><li name="org.http4s.Message#transformHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):Message.this.Self"></a>
+      <a id="transformHeaders((Headers)⇒Headers):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">transformHeaders</span><span class="params">(<span name="f">f: (<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>) ⇒ <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Message@transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):Message.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Message">Message</a> → <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -1011,7 +1031,7 @@ task might not complete unless the entire body has been consumed.
       <a id="withContentType(Option[Content-Type]):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -1028,7 +1048,7 @@ task might not complete unless the entire body has been consumed.
       <a id="withTrailerHeaders(Task[Headers]):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -1045,7 +1065,7 @@ task might not complete unless the entire body has been consumed.
       <a id="withType(MediaType):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -1094,7 +1114,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders.">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
@@ -1104,7 +1124,7 @@ task might not complete unless the entire body has been consumed.
       <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders. Will be removed in 0.11.x</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders.</p></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withHeaders(headers:org.http4s.Headers):MessageOps.this.Self"></a>
       <a id="withHeaders(Headers):Self"></a>
@@ -1114,7 +1134,7 @@ task might not complete unless the entire body has been consumed.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders.">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.Message{typeSelf=Message.this.Self}" class="extmbr" name="org.http4s.Message.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Message@withHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">
@@ -1126,7 +1146,7 @@ task might not complete unless the entire body has been consumed.
 </p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></dd><dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders. Will be removed in 0.11.x</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders.</p></dd></dl></div>
     </li></ol>
             </div>
         </div>

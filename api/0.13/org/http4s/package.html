@@ -1259,7 +1259,7 @@ Usually used in conjunction with <a href="QueryParamEncoder.html" class="extype"
     </span>
       
     </li><li name="org.http4s.Request" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="RequestextendsMessagewithMessageOpswithProductwithSerializable"></a>
+      <a id="RequestextendsMessagewithRequestOpswithProductwithSerializable"></a>
       <a id="Request:Request"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1267,10 +1267,10 @@ Usually used in conjunction with <a href="QueryParamEncoder.html" class="extype"
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Request.html"><span class="name">Request</span></a><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="#EmptyBody:scalaz.stream.Process0[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Request.html"><span class="name">Request</span></a><span class="params">(<span name="method">method: <a href="Method.html" class="extype" name="org.http4s.Method">Method</a> = <span class="symbol"><span class="name"><a href="Method$.html">Method.GET</a></span></span></span>, <span name="uri">uri: <a href="Uri.html" class="extype" name="org.http4s.Uri">Uri</a> = <span class="symbol"><span class="name"><a href="Uri$.html">Uri(path = &quot;/&quot;)</a></span></span></span>, <span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a> = <span class="symbol"><span class="name"><a href="HttpVersion$.html">HttpVersion.`HTTP/1.1`</a></span></span></span>, <span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> = <span class="symbol"><span class="name"><a href="Headers$.html">Headers.empty</a></span></span></span>, <span name="body">body: <a href="#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> = <span class="symbol"><span class="name"><a href="#EmptyBody:scalaz.stream.Process0[Nothing]">EmptyBody</a></span></span></span>, <span name="attributes">attributes: <a href="AttributeMap.html" class="extype" name="org.http4s.AttributeMap">AttributeMap</a> = <span class="symbol"><span class="name"><a href="AttributeMap$.html">AttributeMap.empty</a></span></span></span>)</span><span class="result"> extends <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> with <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@RequestextendsMessagewithMessageOpswithProductwithSerializable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@RequestextendsMessagewithRequestOpswithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1290,6 +1290,23 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@RequestCookieJarextendsIterable[org.http4s.Cookie]withIterableLike[org.http4s.Cookie,org.http4s.RequestCookieJar]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.RequestOps" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="RequestOpsextendsAnywithMessageOps"></a>
+      <a id="RequestOps:RequestOps"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">trait</span>
+      </span>
+      <span class="symbol">
+        <a href="RequestOps.html"><span class="name">RequestOps</span></a><span class="result"> extends <a href="MessageOps.html" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@RequestOpsextendsAnywithMessageOps" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -1405,7 +1422,7 @@ using Kleisli operations.
     </span>
       
     </li><li name="org.http4s.TaskRequestOps" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="TaskRequestOpsextendsAnyValwithTaskMessageOps[org.http4s.Request]"></a>
+      <a id="TaskRequestOpsextendsAnyValwithTaskMessageOps[org.http4s.Request]withRequestOps"></a>
       <a id="TaskRequestOps:TaskRequestOps"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -1413,10 +1430,10 @@ using Kleisli operations.
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="TaskRequestOps.html"><span class="name">TaskRequestOps</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a> with <a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>
+        <a href="TaskRequestOps.html"><span class="name">TaskRequestOps</span></a><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyVal" class="extype" target="_top">AnyVal</a> with <a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>[<a href="Request.html" class="extype" name="org.http4s.Request">Request</a>] with <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.package@TaskRequestOpsextendsAnyValwithTaskMessageOps[org.http4s.Request]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.package@TaskRequestOpsextendsAnyValwithTaskMessageOps[org.http4s.Request]withRequestOps" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
