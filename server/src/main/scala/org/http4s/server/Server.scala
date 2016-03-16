@@ -7,9 +7,9 @@ import java.util.concurrent.{CountDownLatch, ExecutorService}
 import scalaz.concurrent.Task
 
 trait Server {
-  def shutdown: Task[this.type]
+  def shutdown: Task[Unit]
 
-  def shutdownNow(): this.type =
+  def shutdownNow(): Unit =
     shutdown.run
 
   def onShutdown(f: => Unit): this.type

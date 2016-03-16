@@ -189,10 +189,10 @@ sealed class TomcatBuilder private (
     tomcat.start()
 
     new Server {
-      override def shutdown: Task[this.type] = Task.delay {
-        tomcat.stop()
-        this
-      }
+      override def shutdown: Task[Unit] =
+        Task.delay {
+          tomcat.stop()
+        }
 
       override def onShutdown(f: => Unit): this.type = {
         tomcat.getServer.addLifecycleListener(new LifecycleListener {

@@ -163,10 +163,9 @@ class BlazeBuilder(
     val serverChannel = factory.bind(address, pipelineFactory).get
 
     new Server {
-      override def shutdown: Task[this.type] = Task.delay {
+      override def shutdown: Task[Unit] = Task.delay {
         serverChannel.close()
         factory.closeGroup()
-        this
       }
 
       override def onShutdown(f: => Unit): this.type = {
@@ -174,8 +173,11 @@ class BlazeBuilder(
         this
       }
 
-      def address: InetSocketAddress =
+      val address: InetSocketAddress =
         serverChannel.socketAddress
+
+      override def toString: String =
+        s"BlazeServer($address)"
     }
   }
 
