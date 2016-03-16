@@ -63,7 +63,7 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   private[this] val LeftEnd = Terminated(End).left
   private[this] val RightUnit = ().right
 
-  override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = {
+  override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = suspend {
     sealed trait State
     case object Init extends State
     case object Ready extends State
