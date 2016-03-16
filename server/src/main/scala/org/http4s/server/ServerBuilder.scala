@@ -28,8 +28,14 @@ trait ServerBuilder {
 
   def mountService(service: HttpService, prefix: String = ""): Self
 
+  /** Returns a task to start a server.  The task completes with a
+    * reference to the server when it has started.
+    */
   def start: Task[Server]
 
+  /** Convenience method to run a server.  The method blocks
+    * until the server is started.
+    */
   final def run: Server =
     start.run
 }

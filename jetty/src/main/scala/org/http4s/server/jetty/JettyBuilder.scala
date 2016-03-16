@@ -184,10 +184,10 @@ sealed class JettyBuilder private (
     jetty.start()
 
     new Server {
-      override def shutdown: Task[this.type] = Task.delay {
-        jetty.stop()
-        this
-      }
+      override def shutdown: Task[Unit] =
+        Task.delay {
+          jetty.stop()
+        }
 
       override def onShutdown(f: => Unit): this.type = {
         jetty.addLifeCycleListener { new AbstractLifeCycleListener {

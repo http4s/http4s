@@ -1,0 +1,9 @@
+markdown: kramdown
+highlighter: rouge
+kramdown:
+  input: GFM
+  hard_wrap: false
+name: http4s.org
+
+baseurl: /
+apidocs: /api

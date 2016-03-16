@@ -2,7 +2,6 @@ import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
-import com.typesafe.sbt.site.JekyllSupport
 import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
 import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtunidoc.Plugin.UnidocKeys._
@@ -207,8 +206,8 @@ lazy val docs = http4sProject("docs")
   .settings(noPublishSettings)
   .settings(unidocSettings)
   .settings(site.settings)
-  .settings(site.jekyllSupport())
   .settings(ghpages.settings)
+  .settings(tutSettings)
   .settings(
     description := "Documentation for http4s",
     autoAPIMappings := true,
@@ -235,7 +234,10 @@ lazy val docs = http4sProject("docs")
             "-sourcepath", b.getAbsolutePath)
       case _ => Seq.empty
     },
-    includeFilter in (JekyllSupport.Jekyll) := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json" | "CNAME",
+    includeFilter in makeSite := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json" | "*.md" | "CNAME" | "_config.yml",
+    siteMappings <++= (tut, apiVersion) map { case (t, (major, minor)) =>
+      for ((f, d) <- t) yield (f, s"docs/$major.$minor/$d")
+    },
     siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map {
       case (m, (major, minor)) => for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
     },
@@ -243,7 +245,7 @@ lazy val docs = http4sProject("docs")
     synchLocal <<= Http4sGhPages.synchLocal0,
     git.remoteRepo := "git@github.com:http4s/http4s.git"
   )
-  .dependsOn(client, core, theDsl, server)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, argonaut)
 
 lazy val examples = http4sProject("examples")
   .settings(noPublishSettings)
