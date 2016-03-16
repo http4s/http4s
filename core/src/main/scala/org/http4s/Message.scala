@@ -40,29 +40,11 @@ sealed trait Message extends MessageOps { self =>
                        headers: Headers = headers,
                        attributes: AttributeMap = attributes): Self
 
-  /** Generates a new message object with the specified key/value pair appended to the [[org.http4s.AttributeMap]]
-    *
-    * @param key [[AttributeKey]] with which to associate the value
-    * @param value value associated with the key
-    * @tparam A type of the value to store
-    * @return a new message object with the key/value pair appended
-    */
+  override def transformHeaders(f: Headers => Headers): Self =
+    change(headers = f(headers))
+
   override def withAttribute[A](key: AttributeKey[A], value: A): Self =
     change(attributes = attributes.put(key, value))
-
-  /** Replaces the [[Header]]s of the incoming Request object
-    *
-    * @param headers [[Headers]] containing the desired headers
-    * @return a new Request object
-    */
-  override def replaceAllHeaders(headers: Headers): Self = change(headers = headers)
-
-  /** Add the provided headers to the existing headers, replacing those of the same header name */
-  override def putHeaders(headers: Header*): Self =
-    change(headers = this.headers.put(headers:_*))
-
-  override def filterHeaders(f: (Header) => Boolean): Self =
-    change(headers = headers.filter(f))
 
   /** Replace the body of this message with a new body
     *
@@ -132,11 +114,10 @@ case class Request(
   headers: Headers = Headers.empty,
   body: EntityBody = EmptyBody,
   attributes: AttributeMap = AttributeMap.empty
-) extends Message with MessageOps {
+) extends Message with RequestOps {
   import Request._
 
   type Self = Request
-
 
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
@@ -148,7 +129,8 @@ case class Request(
     uri.path.splitAt(caret)
   }
 
-  def withPathInfo(pi: String) = copy(uri = uri.withPath(scriptName + pi))
+  def withPathInfo(pi: String): Request =
+    copy(uri = uri.withPath(scriptName + pi))
 
   lazy val pathTranslated: Option[File] = attributes.get(Keys.PathTranslated)
 
@@ -214,27 +196,6 @@ case class Request(
 
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
-  /** Helper method for decoding [[Request]]s
-    *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated.
-    */
-  def decode[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
-    decodeWith(decoder, strict = false)(f)
-
-  /** Helper method for decoding [[Request]]s
-    *
-    * Attempt to decode the [[Request]] and, if successful, execute the continuation to get a [[Response]].
-    * If decoding fails, a BadRequest [[Response]] is generated. If the decoder does not support the
-    * [[MediaType]] of the [[Request]], a `UnsupportedMediaType` [[Response]] is generated instead.
-    */
-  def decodeStrict[A](f: A => Task[Response])(implicit decoder: EntityDecoder[A]): Task[Response] =
-    decodeWith(decoder, true)(f)
-
-  /** Like [[decode]], but with an explicit decoder.
-    * @param strict If strict, will return a [[Status.UnsupportedMediaType]] http Response if this message's
-    *               [[MediaType]] is not supported by the provided decoder
-    */
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
     decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
 
@@ -270,8 +231,8 @@ case class Response(
   attributes: AttributeMap = AttributeMap.empty) extends Message with ResponseOps {
   type Self = Response
 
-  /** Response specific extension methods */
-  override def withStatus[S <% Status](status: S): Self = copy(status = status)
+  override def withStatus(status: Status): Self =
+    copy(status = status)
 
   override protected def change(body: EntityBody, headers: Headers, attributes: AttributeMap): Self =
     copy(body = body, headers = headers, attributes = attributes)
