@@ -7,7 +7,7 @@ import scalaz.stream.{Process, Process0}
 
 import scodec.bits.ByteVector
 
-object FormParserSpecs extends Specification {
+object MultipartParserSpec extends Specification {
   import Process._
 
   "form parsing" should {
@@ -50,7 +50,7 @@ object FormParserSpecs extends Specification {
         }
       }
 
-      val results: Process0[Map[String, String] \/ ByteVector] = unspool(input) pipe FormParser.parse
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe MultipartParser.parse
 
       val bytes = results.toVector collect {
         case \/-(bv) => bv
@@ -87,7 +87,7 @@ object FormParserSpecs extends Specification {
 
       def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
 
-      val results: Process0[Map[String, String] \/ ByteVector] = unspool(input) pipe FormParser.parse
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe MultipartParser.parse
 
       val bytes = results.toVector collect {
         case \/-(bv) => bv

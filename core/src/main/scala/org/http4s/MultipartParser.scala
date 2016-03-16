@@ -7,10 +7,12 @@ import scodec.bits.ByteVector
 import scalaz.{-\/, \/-, \/}
 import scalaz.stream.{process1, Process, Process1, Writer1}
 
-object FormParser {
+import org.http4s.util.string._
+
+object MultipartParser {
   import Process._
 
-  def parse: Writer1[Map[String, String], ByteVector, ByteVector] = {
+  def parse: Writer1[Headers, ByteVector, ByteVector] = {
     def receiveLine(leading: Option[ByteVector]): Writer1[ByteVector, ByteVector, (ByteVector, Option[ByteVector])] = {
       def handle(bv: ByteVector): Writer1[ByteVector, ByteVector, (ByteVector, Option[ByteVector])] = {
         val index = bv indexOfSlice ByteVector('\r', '\n')
@@ -36,7 +38,7 @@ object FormParser {
       }
     }
 
-    lazy val start: Writer1[Map[String, String], ByteVector, ByteVector] = {
+    lazy val start: Writer1[Headers, ByteVector, ByteVector] = {
       val receiveExpectInit = receiveCollapsedLine(None) collect {
         case (bv, tail) if bv startsWith ByteVector('-', '-') => (ByteVector('\r', '\n') ++ bv ++ ByteVector('-', '-'), tail)
       }
@@ -52,27 +54,27 @@ object FormParser {
       }
     }
 
-    def header(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, (Map[String, String], Option[ByteVector])] = {
-      def go(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, (Map[String, String], Option[ByteVector])] = {
+    def header(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, (Headers, Option[ByteVector])] = {
+      def go(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, (Headers, Option[ByteVector])] = {
         receiveCollapsedLine(leading) flatMap {
           case (bv, tail) => {
             if (bv == expected) {
               halt
             } else {
-              val pairM = for {
+              val headerM = for {
                 line <- bv.decodeAscii.right.toOption
                 idx <- Some(line indexOf ':')
                 if idx >= 0
                 if idx < line.length - 1
-              } yield (line.substring(0, idx), line.substring(idx + 1))
+              } yield Header.Raw(line.substring(0, idx).ci, line.substring(idx + 1))
 
-              pairM map { pair => (Map(pair), tail) } map emit map { _ ++ go(tail, expected) } getOrElse halt
+              headerM map { header => (Headers(header), tail) } map emit map { _ ++ go(tail, expected) } getOrElse halt
             }
           }
         }
       }
 
-      go(leading, expected).fold((Map[String, String](), None: Option[ByteVector])) {
+      go(leading, expected).fold((Headers.empty, None: Option[ByteVector])) {
         case ((acc, _), (more, tail)) => (acc ++ more, tail)
       }
     }
