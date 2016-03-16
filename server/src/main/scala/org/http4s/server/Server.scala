@@ -14,6 +14,8 @@ trait Server {
 
   def onShutdown(f: => Unit): this.type
 
+  def address: InetSocketAddress
+
   /**
    * Blocks until the server shuts down.
    */

@@ -61,7 +61,7 @@ lazy val blazeServer = libraryProject("blaze-server")
   .settings(
     description := "blaze implementation for http4s servers"
   )
-  .dependsOn(blazeCore % "compile;test->test", server)
+  .dependsOn(blazeCore % "compile;test->test", server % "compile;test->test")
 
 lazy val blazeClient = libraryProject("blaze-client")
   .settings(
@@ -98,7 +98,7 @@ lazy val jetty = libraryProject("jetty")
       jettyServlet
     )
   )
-  .dependsOn(servlet, theDsl % "test->test")
+  .dependsOn(servlet % "compile;test->test", theDsl % "test->test")
 
 lazy val tomcat = libraryProject("tomcat")
   .settings(
@@ -109,7 +109,7 @@ lazy val tomcat = libraryProject("tomcat")
       tomcatCoyote
     )
   )
-  .dependsOn(servlet)
+  .dependsOn(servlet % "compile;test->test")
 
 // `dsl` name conflicts with modern SBT
 lazy val theDsl = libraryProject("dsl")

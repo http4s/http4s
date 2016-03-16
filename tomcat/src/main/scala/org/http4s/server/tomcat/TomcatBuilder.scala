@@ -178,7 +178,7 @@ sealed class TomcatBuilder private (
     }
 
     conn.setAttribute("address", socketAddress.getHostString)
-    tomcat.setPort(socketAddress.getPort)
+    conn.setPort(socketAddress.getPort)
     conn.setAttribute("connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
@@ -203,6 +203,12 @@ sealed class TomcatBuilder private (
         })
         this
       }
+
+      lazy val address: InetSocketAddress = {
+        val host = socketAddress.getHostString
+        val port = tomcat.getConnector.getLocalPort
+        new InetSocketAddress(host, port)
+      }      
     }
   }
 }
