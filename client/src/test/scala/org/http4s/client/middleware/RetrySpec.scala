@@ -24,17 +24,17 @@ class RetrySpec extends Http4sSpec {
   "Retry Client" should {
     "Retry bad requests" in {
       val max = 2
-      var attempts = 1
-      val policy = (attmpts: Int) => {
+      var attemptsCounter = 1
+      val policy = (attempts: Int) => {
         if (attempts >= max) None
         else {
-          attempts = attempts + 1
+          attemptsCounter = attemptsCounter + 1
           Some(10.milliseconds)
         }
       }
       val client = Retry(policy)(defaultClient)
       val resp = client.getAs[String](uri("http://localhost/boom")).run
-      attempts must_== 2
+      attemptsCounter must_== 2
     }
 
     "Not retry successful responses" in {

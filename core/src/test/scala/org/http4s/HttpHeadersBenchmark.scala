@@ -1,8 +1,9 @@
 package org.http4s
 
 import org.scalameter.api._
+import org.scalameter.picklers.Implicits._
 
-object HttpHeadersBenchmark extends PerformanceTest.Quickbenchmark {
+object HttpHeadersBenchmark extends Bench.LocalTime {
   val sizes: Gen[Int] = Gen.enumeration("size")(2, 4, 8, 16, 32, 64)
 
   val headerses: Gen[Seq[Header]] = for {

@@ -1,6 +1,7 @@
 package org.http4s
 package headers
 
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 
@@ -13,6 +14,9 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
   def apply(start: Long, end: Long): `Content-Range` = apply(Range.SubRange(start, Some(end)), None)
 
   def apply(start: Long): `Content-Range` = apply(Range.SubRange(start, None), None)
+
+  override def parse(s: String): ParseResult[`Content-Range`] =
+    HttpHeaderParser.CONTENT_RANGE(s)
 }
 
 case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long]) extends Header.Parsed {

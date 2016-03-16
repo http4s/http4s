@@ -1,9 +1,10 @@
 package org.http4s
 package headers
 
+import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderable, Writer}
 
-import scalaz.NonEmptyList
+import org.http4s.util.NonEmptyList
 
 // See https://tools.ietf.org/html/rfc7233
 
@@ -32,7 +33,8 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     }
   }
 
-
+  override def parse(s: String): ParseResult[Range] =
+    HttpHeaderParser.RANGE(s)
 }
 
 case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {

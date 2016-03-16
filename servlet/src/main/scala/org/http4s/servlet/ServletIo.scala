@@ -64,20 +64,18 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   private[this] val RightUnit = ().right
 
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody = suspend {
-    type Callback = Throwable \/ ByteVector => Unit
-
     sealed trait State
     case object Init extends State
     case object Ready extends State
     case object Complete extends State
     case class Errored(t: Throwable) extends State
-    case class Blocked(cb: Callback) extends State
+    case class Blocked(cb: Callback[ByteVector]) extends State
 
     val in = servletRequest.getInputStream
 
     val state = new AtomicReference[State](Init)
 
-    def read(cb: Callback) = {
+    def read(cb: Callback[ByteVector]) = {
       val buff = new Array[Byte](chunkSize)
       val len = in.read(buff)
 

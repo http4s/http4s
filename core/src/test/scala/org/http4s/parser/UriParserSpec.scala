@@ -145,20 +145,13 @@ class UriParserSpec extends Http4sSpec {
       }
     }
 
-    "deal with an invalid Query" in {
-      Uri.requestTarget("/hello/world?bad=enc%ode") must be_\/-.like { case u =>
-        u.params must be_==(Map("bad" -> "enc"))
-        u.fragment must be_==(None)
-        u.path must be_==("/hello/world")
+    "fail on invalid uri" in {
+      val invalid = Seq("^", "]", "/hello/wo%2rld", "/hello/world?bad=enc%ode")
+      forall(invalid) { i =>
+        Uri.fromString("^") must be_-\/
+        Uri.requestTarget("^") must be_-\/
       }
     }
-
-    "deal with an invalid Uri" in {
-      Uri.requestTarget("/hello/wo%2rld") must be_\/-.like { case u =>
-        u.path must be_==("/hello/wo")
-      }
-    }
-
   }
 
   "Uri.fromString" should {

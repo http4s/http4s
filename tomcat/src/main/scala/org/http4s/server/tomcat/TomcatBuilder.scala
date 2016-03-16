@@ -3,8 +3,8 @@ package server
 package tomcat
 
 import java.net.InetSocketAddress
-import java.util
-import javax.servlet.{ServletContext, ServletContainerInitializer}
+import java.util.EnumSet
+import javax.servlet.{Filter, DispatcherType, ServletContext, ServletContainerInitializer}
 import javax.servlet.http.HttpServlet
 import java.util.concurrent.ExecutorService
 
@@ -15,10 +15,11 @@ import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
 import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
 import org.http4s.servlet.{ServletContainer, Http4sServlet}
 
+import scala.collection.JavaConverters._
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
 import org.apache.catalina.startup.Tomcat
-import org.apache.catalina.{Lifecycle, LifecycleEvent, LifecycleListener}
+import org.apache.catalina.{Context, Lifecycle, LifecycleEvent, LifecycleListener}
 
 
 sealed class TomcatBuilder private (
@@ -63,22 +64,41 @@ sealed class TomcatBuilder private (
     copy(serviceExecutor = serviceExecutor)
 
   override def mountServlet(servlet: HttpServlet, urlMapping: String, name: Option[String] = None): TomcatBuilder =
-    copy(mounts = mounts :+ Mount { (tomcat, index, _) =>
+    copy(mounts = mounts :+ Mount { (ctx, index, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
-      val wrapper = tomcat.addServlet("", servletName, servlet)
+      val wrapper = Tomcat.addServlet(ctx, servletName, servlet)
       wrapper.addMapping(urlMapping)
       wrapper.setAsyncSupported(true)
     })
 
+  override def mountFilter(filter: Filter, urlMapping: String, name: Option[String], dispatches: EnumSet[DispatcherType]): TomcatBuilder =
+    copy(mounts = mounts :+ Mount { (ctx, index, _) =>
+      val filterName = name.getOrElse(s"filter-$index")
+
+      val filterDef = new FilterDef
+      filterDef.setFilterName(filterName)
+      filterDef.setFilter(filter)
+      filterDef.setAsyncSupported(true.toString)
+      ctx.addFilterDef(filterDef)
+
+      val filterMap = new FilterMap
+      filterMap.setFilterName(filterName)
+      filterMap.addURLPattern(urlMapping)
+      dispatches.asScala.foreach { dispatcher =>
+        filterMap.setDispatcher(dispatcher.name)
+      }
+      ctx.addFilterMap(filterMap)
+    })
+
   override def mountService(service: HttpService, prefix: String): TomcatBuilder =
-    copy(mounts = mounts :+ Mount { (tomcat, index, builder) =>
+    copy(mounts = mounts :+ Mount { (ctx, index, builder) =>
       val servlet = new Http4sServlet(
         service = service,
         asyncTimeout = builder.asyncTimeout,
         servletIo = builder.servletIo,
         threadPool = builder.instrumentedServiceExecutor
       )
-      val wrapper = tomcat.addServlet("", s"servlet-$index", servlet)
+      val wrapper = Tomcat.addServlet(ctx, s"servlet-$index", servlet)
       wrapper.addMapping(ServletContainer.prefixMapping(prefix))
       wrapper.setAsyncSupported(true)
     })
@@ -158,12 +178,13 @@ sealed class TomcatBuilder private (
     }
 
     conn.setAttribute("address", socketAddress.getHostString)
-    tomcat.setPort(socketAddress.getPort)
+    conn.setPort(socketAddress.getPort)
     conn.setAttribute("connection_pool_timeout",
       if (idleTimeout.isFinite) idleTimeout.toSeconds.toInt else 0)
 
+    val rootContext = tomcat.getHost.findChild("").asInstanceOf[Context]
     for ((mount, i) <- mounts.zipWithIndex)
-      mount.f(tomcat, i, this)
+      mount.f(rootContext, i, this)
 
     tomcat.start()
 
@@ -182,6 +203,12 @@ sealed class TomcatBuilder private (
         })
         this
       }
+
+      lazy val address: InetSocketAddress = {
+        val host = socketAddress.getHostString
+        val port = tomcat.getConnector.getLocalPort
+        new InetSocketAddress(host, port)
+      }      
     }
   }
 }
@@ -198,5 +225,5 @@ object TomcatBuilder extends TomcatBuilder(
   metricPrefix = MetricsSupport.DefaultPrefix
 )
 
-private case class Mount(f: (Tomcat, Int, TomcatBuilder) => Unit)
+private case class Mount(f: (Context, Int, TomcatBuilder) => Unit)
 

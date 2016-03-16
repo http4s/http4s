@@ -27,15 +27,18 @@ import scalaz.stream.Process.{Halt, halt}
 import scalaz.{\/, -\/, \/-}
 
 
-final class Http1Connection(val requestKey: RequestKey,
-                            userAgent: Option[`User-Agent`],
+private final class Http1Connection(val requestKey: RequestKey,
+                            config: BlazeClientConfig,
                             protected val ec: ExecutionContext)
   extends Http1Stage with BlazeConnection
 {
   import org.http4s.client.blaze.Http1Connection._
 
   override def name: String = getClass.getName
-  private val parser = new BlazeHttp1ClientParser
+  private val parser =
+    new BlazeHttp1ClientParser(config.maxResponseLineSize, config.maxHeaderLength,
+                               config.maxChunkSize, config.lenientParser)
+
   private val stageState = new AtomicReference[State](Idle)
 
   override def isClosed: Boolean = stageState.get match {
@@ -126,8 +129,8 @@ final class Http1Connection(val requestKey: RequestKey,
         encodeRequestLine(req, rr)
         Http1Stage.encodeHeaders(req.headers, rr, false)
 
-        if (userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
-          rr << userAgent.get << "\r\n"
+        if (config.userAgent.nonEmpty && req.headers.get(`User-Agent`).isEmpty) {
+          rr << config.userAgent.get << "\r\n"
         }
 
         val mustClose = H.Connection.from(req.headers) match {
@@ -171,7 +174,7 @@ final class Http1Connection(val requestKey: RequestKey,
     Task.async[Response](cb => readAndParsePrelude(cb, close, "Initial Read"))
 
   // this method will get some data, and try to continue parsing using the implicit ec
-  private def readAndParsePrelude(cb: Callback,  closeOnFinish: Boolean, phase: String): Unit = {
+  private def readAndParsePrelude(cb: Callback[Response], closeOnFinish: Boolean, phase: String): Unit = {
     channelRead().onComplete {
       case Success(buff) => parsePrelude(buff, closeOnFinish, cb)
       case Failure(EOF)  => stageState.get match {
@@ -185,7 +188,7 @@ final class Http1Connection(val requestKey: RequestKey,
     }(ec)
   }
 
-  private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, cb: Callback): Unit = {
+  private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, cb: Callback[Response]): Unit = {
     try {
       if (!parser.finishedResponseLine(buffer)) readAndParsePrelude(cb, closeOnFinish, "Response Line Parsing")
       else if (!parser.finishedHeaders(buffer)) readAndParsePrelude(cb, closeOnFinish, "Header Parsing")
@@ -278,8 +281,6 @@ final class Http1Connection(val requestKey: RequestKey,
 }
 
 object Http1Connection {
-  private type Callback = Throwable\/Response => Unit
-
   case object InProgressException extends Exception("Stage has request in progress")
 
   // ADT representing the state that the ClientStage can be in

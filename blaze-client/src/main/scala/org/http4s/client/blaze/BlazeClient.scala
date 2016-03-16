@@ -3,9 +3,9 @@ package client
 package blaze
 
 import org.http4s.blaze.pipeline.Command
+import org.http4s.util.threads.DefaultExecutorService
 import org.log4s.getLogger
 
-import scala.concurrent.duration.Duration
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-}
 
@@ -13,7 +13,19 @@ import scalaz.{-\/, \/-}
 object BlazeClient {
   private[this] val logger = getLogger
 
-  def apply[A <: BlazeConnection](manager: ConnectionManager[A], idleTimeout: Duration, requestTimeout: Duration): Client = {
+  def apply[A <: BlazeConnection](manager: ConnectionManager[A], config: BlazeClientConfig): Client = {
+
+    val shutdownTask = manager.shutdown().flatMap(_ => Task.delay {
+      // shutdown executor services that have been implicitly created for us
+      config.executor match {
+        case es: DefaultExecutorService =>
+          logger.info(s"Shutting down default ExecutorService: $es")
+          es.shutdown()
+
+        case _ => /* NOOP */
+      }
+    })
+
     Client(Service.lift { req =>
       val key = RequestKey.fromRequest(req)
 
@@ -26,7 +38,7 @@ object BlazeClient {
 
       def loop(connection: A, flushPrelude: Boolean): Task[DisposableResponse] = {
         // Add the timeout stage to the pipeline
-        val ts = new ClientTimeoutStage(idleTimeout, requestTimeout, bits.ClientTickWheel)
+        val ts = new ClientTimeoutStage(config.idleTimeout, config.requestTimeout, bits.ClientTickWheel)
         connection.spliceBefore(ts)
         ts.initialize()
 
@@ -51,7 +63,7 @@ object BlazeClient {
       }
       val flushPrelude = !req.body.isHalt
       manager.borrow(key).flatMap(loop(_, flushPrelude))
-    }, manager.shutdown())
+    }, shutdownTask)
   }
 }
 

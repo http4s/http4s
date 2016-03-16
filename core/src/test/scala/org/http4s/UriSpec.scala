@@ -317,7 +317,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   "Uri.params.iterate" should {
     "work on an URI without a query" in {
       foreach (Uri(query = Query.empty).params.iterator) { i =>
-        throw new Error(s"should not have $i") // should not happen
+        ko(s"should not have $i") // should not happen
       }
     }
     "work on empty list" in {

@@ -4,12 +4,10 @@ import org.scalacheck.Arbitrary
 import org.specs2.ScalaCheck
 import org.specs2.scalacheck.Parameters
 
-import scalaz.{NonEmptyList, \/-}
+import scalaz.\/-
+import org.http4s.util.NonEmptyList
 
 class UrlFormSpec extends Http4sSpec with ScalaCheck {
-  // These tests are slow.  Let's lower the bar.
-  implicit val params = Parameters(maxSize = 40)
-
 //  // TODO: arbitrary charsets would be nice
 //  /*
 //   * Generating arbitrary Strings valid in an arbitrary Charset is an expensive operation.
@@ -23,11 +21,10 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
   "UrlForm" should {
     val charset = Charset.`UTF-8`
 
-    "entityDecoder . entityEncoder == right" in prop{ (urlForm: UrlForm) =>
-      UrlForm.entityDecoder.decode(
-        Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).run,
-        strict = false
-      ).run.run must_== \/-(urlForm)
+    "entityDecoder . entityEncoder == right" in prop { (urlForm: UrlForm) =>
+      Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).flatMap { req =>
+        UrlForm.entityDecoder.decode(req, strict = false).run
+      } must returnValue(\/-(urlForm))
     }
 
     "decodeString . encodeString == right" in prop{ (urlForm: UrlForm) =>
@@ -68,8 +65,25 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
       UrlForm(Map("key" -> Seq("a", "b", "c"))).getFirstOrElse("notFound", "d") must_== "d"
     }
 
-    // Not quite sure why this is necessary, but the compiler gives us a diverging implicit if not present
-    implicit val chooseArb: Arbitrary[NonEmptyList[String]] = scalaz.scalacheck.ScalazArbitrary.NonEmptyListArbitrary
+    "withFormField encodes T properly if QueryParamEncoder[T] can be resolved" in {
+      UrlForm.empty.updateFormField("foo", 1).get("foo") must_== Seq( "1" )
+      UrlForm.empty.updateFormField("bar", Some(true)).get("bar") must_== Seq( "true" )
+      UrlForm.empty.updateFormField("bar", Option.empty[Boolean]).get("bar") must_== Seq()
+      UrlForm.empty.updateFormFields("dummy", List("a", "b", "c")).get("dummy") must_== Seq( "a", "b", "c" )
+    }
+
+    "withFormField is effectively equal to factory constructor that takes a Map" in {
+      import scalaz.syntax.equal._
+
+      (
+        UrlForm.empty +?("foo", 1) +? ("bar", Some(true)) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "bar" -> Seq("true"), "dummy" -> List("a", "b", "c")))
+      ) must_== (true)
+
+      (
+        UrlForm.empty +?("foo", 1) +? ("bar", Option.empty[Boolean]) ++? ("dummy", List("a", "b", "c")) === UrlForm(Map("foo" -> Seq("1"), "dummy" -> List("a", "b", "c")))
+      ) must_== (true)
+    }
+
     "construct consistently from kv-pairs or and Map[String, Seq[String]]" in prop {
       map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
@@ -79,5 +93,4 @@ class UrlFormSpec extends Http4sSpec with ScalaCheck {
         UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.list))
     }
   }
-
 }

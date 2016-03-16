@@ -2,17 +2,16 @@ package org.http4s
 package argonaut
 
 import _root_.argonaut.{EncodeJson, DecodeJson, Argonaut, Json}
-import _root_.jawn.support.argonaut.Parser.facade
 import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
-  implicit val json: EntityDecoder[Json] = jawn.jawnDecoder(facade)
+  implicit val json: EntityDecoder[Json] = jawn.jawnDecoder(Parser.facade)
 
   def jsonOf[A](implicit decoder: DecodeJson[A]): EntityDecoder[A] =
     json.flatMapR { json =>
       decoder.decodeJson(json).fold(
         (message, history) =>
-          DecodeResult.failure(ParseFailure("Could not decode JSON", s"json: $json, error: $message, cursor: $history")),
+          DecodeResult.failure(InvalidMessageBodyFailure("Could not decode JSON: $json, error: $message, cursor: $history")),
         DecodeResult.success(_)
       )
     }

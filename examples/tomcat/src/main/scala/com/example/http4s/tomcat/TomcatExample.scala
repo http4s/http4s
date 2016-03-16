@@ -13,6 +13,7 @@ object TomcatExample extends App {
     .withMetricRegistry(metrics)
     .mountService(ExampleService.service, "/http4s")
     .mountServlet(new MetricsServlet(metrics), "/metrics/*")
+    .mountFilter(NoneShallPass, "/http4s/science/black-knight/*")
     .run
     .awaitShutdown()
 }

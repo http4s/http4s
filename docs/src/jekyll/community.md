@@ -18,10 +18,10 @@ title: Community
 
   <div class="col-md-4"> <h2><i class="fa fa-bug"></i><i class="fa fa-lightbulb-o"></i> Issues</h2>
   <p>http4s uses <a
-  href="http://github.com/http4s/issues/issues">GitHub issues</a>.  If
+  href="https://github.com/http4s/http4s/issues">GitHub issues</a>.  If
   you think you've hit a bug or have an idea of what we should do next,
   please don't hesitate to <a
-  href="http://github.com/http4s/issues/issues/new">submit an issue</a>.
+  href="https://github.com/http4s/http4s/issues/new">submit an issue</a>.
   Your bug reports and request make the project better for everyone.</p>
   </div>
 
@@ -33,6 +33,11 @@ title: Community
   </div>
 
 </div>
+
+## Code of Conduct
+
+http4s is dedicated to providing a harassment-free community for everyone.
+Our community is governed by the [http4s Code of Conduct](conduct.html).
 
 ## Contributing
 

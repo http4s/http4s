@@ -10,7 +10,7 @@ import org.http4s.util.{Renderable, Writer}
  * A Quality Value.  Represented as thousandths for an exact representation rounded to three
  * decimal places.
  *
- * @param thousandths betweeen 0 (for q=0) and 1000 (for q=1)
+ * @param thousandths between 0 (for q=0) and 1000 (for q=1)
  * @see [[http://www.w3.org/Protocols/rfc2616/rfc2616-sec3.html#sec3.9 RFC 2616, Section 3.9]]
  */
 final class QValue private[QValue] (val thousandths: Int) extends AnyVal with Ordered[QValue] with Renderable {

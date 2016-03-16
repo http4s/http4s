@@ -1,4 +1,6 @@
-package org.http4s.blaze.util
+package org.http4s
+package blaze
+package util
 
 import scodec.bits.ByteVector
 
@@ -14,7 +16,6 @@ import scalaz.{-\/, \/, \/-}
 
 trait ProcessWriter {
 
-  private type CBType = Throwable \/ Boolean => Unit
   private type StackElem = Cause => Trampoline[Process[Task,ByteVector]]
 
   /** The `ExecutionContext` on which to run computations, assumed to be stack safe. */
@@ -54,11 +55,11 @@ trait ProcessWriter {
 
   /** Helper to allow `go` to be tail recursive. Non recursive calls can 'bounce' through
     * this function but must be properly trampolined or we risk stack overflows */
-  final private def bounce(p: Process[Task, ByteVector], stack: List[StackElem], cb: CBType): Unit =
+  final private def bounce(p: Process[Task, ByteVector], stack: List[StackElem], cb: Callback[Boolean]): Unit =
     go(p, stack, cb)
 
   @tailrec
-  final private def go(p: Process[Task, ByteVector], stack: List[StackElem], cb: CBType): Unit = p match {
+  final private def go(p: Process[Task, ByteVector], stack: List[StackElem], cb: Callback[Boolean]): Unit = p match {
     case Emit(seq) if seq.isEmpty =>
       if (stack.isEmpty) writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
       else go(Try(stack.head.apply(End).run), stack.tail, cb)
@@ -105,7 +106,7 @@ trait ProcessWriter {
     }
   }
 
-  private def completionListener(t: Try[Boolean], cb: CBType): Unit = t match {
+  private def completionListener(t: Try[Boolean], cb: Callback[Boolean]): Unit = t match {
     case Success(requireClose) =>  cb(\/-(requireClose))
     case Failure(t) =>  cb(-\/(t))
   }

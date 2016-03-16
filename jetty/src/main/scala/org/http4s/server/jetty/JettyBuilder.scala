@@ -2,6 +2,9 @@ package org.http4s
 package server
 package jetty
 
+import java.util
+import javax.servlet.{DispatcherType, Filter}
+
 import com.codahale.metrics.{InstrumentedExecutorService, MetricRegistry}
 import com.codahale.metrics.jetty9.InstrumentedQueuedThreadPool
 import org.eclipse.jetty.util.ssl.SslContextFactory
@@ -20,7 +23,7 @@ import scalaz.concurrent.Task
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
 import org.eclipse.jetty.server.{Server => JServer, _}
-import org.eclipse.jetty.servlet.{ServletHolder, ServletContextHandler}
+import org.eclipse.jetty.servlet.{FilterHolder, ServletHolder, ServletContextHandler}
 
 sealed class JettyBuilder private (
   socketAddress: InetSocketAddress,
@@ -66,6 +69,14 @@ sealed class JettyBuilder private (
     copy(mounts = mounts :+ Mount { (context, index, _) =>
       val servletName = name.getOrElse(s"servlet-$index")
       context.addServlet(new ServletHolder(servletName, servlet), urlMapping)
+    })
+
+  override def mountFilter(filter: Filter, urlMapping: String, name: Option[String], dispatches: util.EnumSet[DispatcherType]): JettyBuilder =
+    copy(mounts = mounts :+ Mount { (context, index, _) =>
+      val filterName = name.getOrElse(s"filter-$index")
+      val filterHolder = new FilterHolder(filter)
+      filterHolder.setName(filterName)
+      context.addFilter(filterHolder, urlMapping, dispatches)
     })
 
   override def mountService(service: HttpService, prefix: String): JettyBuilder =
@@ -183,6 +194,12 @@ sealed class JettyBuilder private (
           override def lifeCycleStopped(event: LifeCycle): Unit = f
         }}
         this
+      }
+
+      lazy val address: InetSocketAddress = {
+        val host = socketAddress.getHostString
+        val port = jetty.getConnectors()(0).asInstanceOf[ServerConnector].getLocalPort
+        new InetSocketAddress(host, port)
       }
     }
   }

@@ -7,19 +7,25 @@ import org.http4s._
 import org.specs2.mutable.After
 
 // TODO: this should have a more comprehensive test suite
-class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
+class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
+
+  private val simpleClient = SimpleHttp1Client(BlazeClientConfig.defaultConfig())
 
   "Blaze Simple Http1 Client" should {
     "Make simple https requests" in {
-      val resp = defaultClient.getAs[String](uri("https://github.com/")).run
+      val resp = simpleClient.getAs[String](uri("https://github.com/")).run
       resp.length mustNotEqual 0
     }
   }
 
-  val client = PooledHttp1Client()
+  step {
+    simpleClient.shutdown.run
+  }
+
+  private val pooledClient = PooledHttp1Client()
 
   "RecyclingHttp1Client" should {
-    def fetchBody = client.toService(_.as[String]).local { uri: Uri => Request(uri = uri) }
+    def fetchBody = pooledClient.toService(_.as[String]).local { uri: Uri => Request(uri = uri) }
 
     "Make simple https requests" in {
       val resp = fetchBody.run(uri("https://github.com/")).run
@@ -38,5 +44,7 @@ class ExternalBlazeHttp1ClientSpec extends Http4sSpec with After {
     }
   }
 
-  override def after = client.shutdown
+  step {
+    pooledClient.shutdown.run
+  }
 }

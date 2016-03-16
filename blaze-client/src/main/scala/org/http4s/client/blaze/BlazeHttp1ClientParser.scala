@@ -6,7 +6,20 @@ import org.http4s._
 import org.http4s.blaze.http.http_parser.Http1ClientParser
 import scala.collection.mutable.ListBuffer
 
-final private class BlazeHttp1ClientParser extends Http1ClientParser {
+/** http/1.x parser for the blaze client */
+private[blaze] object BlazeHttp1ClientParser {
+  def apply(maxRequestLineSize: Int,
+            maxHeaderLength: Int,
+            maxChunkSize: Int,
+            isLenient: Boolean): BlazeHttp1ClientParser =
+    new BlazeHttp1ClientParser(maxRequestLineSize, maxHeaderLength, maxChunkSize, isLenient)
+}
+
+private[blaze] final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
+                                                  maxHeaderLength: Int,
+                                                  maxChunkSize: Int,
+                                                  isLenient: Boolean)
+  extends Http1ClientParser(maxResponseLineSize, maxHeaderLength, 2*1024, maxChunkSize, isLenient) {
   private val headers = new ListBuffer[Header]
   private var status: Status = _
   private var httpVersion: HttpVersion = _
@@ -46,7 +59,7 @@ final private class BlazeHttp1ClientParser extends Http1ClientParser {
                                             scheme: String,
                                             majorversion: Int,
                                             minorversion: Int): Unit = {
-    status = Status.fromIntAndReason(code, reason).valueOr(e => throw new ParseException(e))
+    status = Status.fromIntAndReason(code, reason).valueOr(throw _)
     httpVersion = {
       if (majorversion == 1 && minorversion == 1)  HttpVersion.`HTTP/1.1`
       else if (majorversion == 1 && minorversion == 0)  HttpVersion.`HTTP/1.0`

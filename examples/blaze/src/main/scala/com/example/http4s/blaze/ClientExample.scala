@@ -1,6 +1,5 @@
 package com.example.http4s.blaze
 
-
 object ClientExample {
 
   def getSite() = {
@@ -14,22 +13,19 @@ object ClientExample {
     val page: Task[String] = client.getAs[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
-      println(page.run.take(72))   // each execution of the Task will refetch the page!
+      println(page.map(_.take(72)).run)   // each execution of the Task will refetch the page!
 
     // We can do much more: how about decoding some JSON to a scala object
     // after matching based on the response status code?
     import org.http4s.Status.NotFound
     import org.http4s.Status.ResponseClass.Successful
-    import argonaut.DecodeJson
-    import org.http4s.argonaut.jsonOf
+    import io.circe._
+    import io.circe.generic.auto._
+    import org.http4s.circe.jsonOf
 
     case class Foo(bar: String)
 
-    implicit val fooDecode = DecodeJson(c => for { // Argonaut decoder. Could also use json4s.
-      bar <- (c --\ "bar").as[String]
-    } yield Foo(bar))
-
-    // jsonOf is defined for Json4s and Argonaut, just need the right decoder!
+    // jsonOf is defined for Json4s, Argonuat, and Circe, just need the right decoder!
     implicit val fooDecoder = jsonOf[Foo]
 
     // Match on response code!

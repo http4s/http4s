@@ -173,6 +173,9 @@ class BlazeBuilder(
         serverChannel.addShutdownHook(() => f)
         this
       }
+
+      def address: InetSocketAddress =
+        serverChannel.socketAddress
     }
   }
 

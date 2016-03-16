@@ -6,17 +6,13 @@ import java.time.Instant
 import Http4s._
 import headers._
 import org.http4s.headers.ETag.EntityTag
-import scalaz.{\/-, NonEmptyList, Success}
+import scalaz.{\/-, Success}
+import org.http4s.util.NonEmptyList
 import java.net.InetAddress
 
 class SimpleHeadersSpec extends Http4sSpec {
 
   "SimpleHeaders" should {
-
-    "parse Allow" in {
-      val header = Allow(Method.GET, Method.POST)
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
-    }
 
     "parse Connection" in {
       val header = Connection("closed".ci)

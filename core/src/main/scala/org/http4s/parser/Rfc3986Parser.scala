@@ -14,7 +14,7 @@ private[parser] trait Rfc3986Parser { this: Parser =>
 
   def charset: Charset
 
-  def Uri: Rule1[org.http4s.Uri] = rule { AbsoluteUri | RelativeRef }
+  def Uri: Rule1[org.http4s.Uri] = rule { (AbsoluteUri | RelativeRef) ~ EOI }
 
   def AbsoluteUri = rule {
     Scheme ~ ":" ~ HierPart ~ optional("?" ~ Query) ~ optional("#" ~ Fragment) ~> { (scheme, auth, path, query, fragment) =>
