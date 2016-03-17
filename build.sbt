@@ -186,6 +186,7 @@ lazy val twirl = http4sProject("twirl")
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
+  .settings(noCoverageSettings)
   .settings(
     description := "Benchmarks for http4s"
   )
@@ -193,6 +194,7 @@ lazy val bench = http4sProject("bench")
 
 lazy val loadTest = http4sProject("load-test")
   .settings(noPublishSettings)
+  .settings(noCoverageSettings)
   .settings(
     description := "Load tests for http4s servers",
     libraryDependencies ++= Seq(
@@ -204,6 +206,7 @@ lazy val loadTest = http4sProject("load-test")
 
 lazy val docs = http4sProject("docs")
   .settings(noPublishSettings)
+  .settings(noCoverageSettings)
   .settings(unidocSettings)
   .settings(site.settings)
   .settings(ghpages.settings)
@@ -249,6 +252,7 @@ lazy val docs = http4sProject("docs")
 
 lazy val examples = http4sProject("examples")
   .settings(noPublishSettings)
+  .settings(noCoverageSettings)
   .settings(
     description := "Common code for http4s examples",
     libraryDependencies ++= Seq(
@@ -324,6 +328,7 @@ def libraryProject(name: String) = http4sProject(name)
 def exampleProject(name: String) = http4sProject(name)
   .in(file(name.replace("examples-", "examples/")))
   .settings(noPublishSettings)
+  .settings(noCoverageSettings)
   .dependsOn(examples)
 
 lazy val projectMetadata = Seq(
@@ -431,6 +436,10 @@ lazy val noPublishSettings = Seq(
   publishSigned := (),
   publishLocal := (),
   publishArtifact := false
+)
+
+lazy val noCoverageSettings = Seq(
+  ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := ".*"
 )
 
 lazy val mimaSettings = mimaDefaultSettings ++ Seq(
