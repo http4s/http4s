@@ -1,0 +1,4 @@
+#!/bin/bash
+
+cd $(git rev-parse --show-toplevel)/docs/target/site
+jekyll serve --watch

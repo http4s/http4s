@@ -111,6 +111,9 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def get[A](uri: Uri)(f: Response => Task[A]): Task[A] =
     fetch(Request(Method.GET, uri))(f)
 
+  def get[A](s: String)(f: Response => Task[A]): Task[A] =
+    Uri.fromString(s).fold(Task.fail, uri => get(uri)(f))
+
   @deprecated("Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
   def prepare(uri: Uri): Task[Response] =
     toHttpService.run(Request(Method.GET, uri))
@@ -125,6 +128,9 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     */
   def getAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
     fetchAs(Request(Method.GET, uri))(d)
+
+  def getAs[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
+    Uri.fromString(s).fold(Task.fail, uri => getAs[A](uri))
 
   @deprecated("Use getAs", "0.12")
   def prepAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
@@ -159,4 +165,8 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   @deprecated("Use fetchAs", "0.12")
   def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
     fetchAs(req)(d)
+
+  /** Shuts this client down, and blocks until complete. */
+  def shutdownNow(): Unit =
+    shutdown.run
 }

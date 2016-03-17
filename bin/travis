@@ -3,8 +3,6 @@
 set -e
 
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
-  cd $TRAVIS_BUILD_DIR/docs/src/jekyll && bundle install && cd -
-  PRIMARY_BUILD="true"
   SBT_COMMAND=";coverage ;clean ;test ;mimaReportBinaryIssues ;makeSite"
 else
   SBT_COMMAND=";test"
