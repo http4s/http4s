@@ -89,6 +89,9 @@ final class Headers private (headers: List[Header])
     }
     else super.++(that)
   }
+
+  def toMap: Map[String, Vector[String]] =
+    groupBy(_.name).map { case (name, headers) => name.toString -> headers.toVector.map(_.value) }.toMap
 }
 
 object Headers {

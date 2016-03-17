@@ -183,6 +183,13 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core % "compile;test->test")
 
+lazy val oauth2 = http4sProject("oauth2")
+  .settings(
+    description := "Server-side support for OAuth 2.0",
+    libraryDependencies += scalaOauth2Core
+  )
+  .dependsOn(server % "compile;test->test", circe)
+
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
@@ -257,7 +264,7 @@ lazy val examples = http4sProject("examples")
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
   )
-  .dependsOn(server, theDsl, circe, scalaXml, twirl)
+  .dependsOn(server, theDsl, circe, scalaXml, twirl, oauth2)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")

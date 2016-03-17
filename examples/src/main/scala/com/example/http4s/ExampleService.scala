@@ -28,6 +28,7 @@ object ExampleService {
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = Router(
     "" -> rootService,
     "/auth" -> authService,
+    "/oauth2" -> oauth2.oauth2Example,
     "/science" -> ScienceExperiments.service
   )
 

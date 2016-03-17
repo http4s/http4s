@@ -21,17 +21,17 @@ package org.http4s
 import org.http4s.util.{Writer, Renderable}
 
 case class Challenge(scheme: String,
-                     realm: String,
                      params: Map[String, String] = Map.empty) extends Renderable {
 
   lazy val value = renderString
 
   override def render(writer: Writer): writer.type = {
     writer.append(scheme).append(' ')
-    writer.append("realm=\"").append(realm).append('"')
     params.foreach{ case (k, v) => addPair(writer, k, v )}
     writer
   }
+
+  def realm: Option[String] = params.get("realm")
 
   @inline
   private def addPair(b: Writer, k: String, v: String) {
@@ -39,4 +39,9 @@ case class Challenge(scheme: String,
   }
 
   override def toString = value
+}
+
+object Challenge {
+  def apply(scheme: String, realm: String, params: Map[String, String]): Challenge =
+    Challenge(scheme, params + ("realm" -> realm))
 }
