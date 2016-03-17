@@ -14,7 +14,7 @@ import org.http4s.util.CaseInsensitiveString._
 import scala.util.{Failure, Success}
 import scala.concurrent.Future
 
-trait WebSocketSupport extends Http1ServerStage {
+private trait WebSocketSupport extends Http1ServerStage {
   override protected def renderResponse(req: Request, resp: Response, cleanup: () => Future[ByteBuffer]): Unit = {
     val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey)
     logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
