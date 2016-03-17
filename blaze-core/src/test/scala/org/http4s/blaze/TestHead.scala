@@ -7,6 +7,7 @@ import java.nio.ByteBuffer
 
 import scala.concurrent.duration.Duration
 import scala.concurrent.{ Promise, Future }
+import scala.util.{Success, Failure, Try}
 
 
 abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
@@ -50,23 +51,28 @@ class SeqTestHead(body: Seq[ByteBuffer]) extends TestHead("SeqTestHead") {
   }
 }
 
-class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slow TestHead") { self =>
+final class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slow TestHead") { self =>
   import org.http4s.blaze.util.Execution.scheduler
 
-  // Will serve as our point of synchronization
   private val bodyIt = body.iterator
-
   private var currentRequest: Option[Promise[ByteBuffer]] = None
+
+  private def resolvePending(result: Try[ByteBuffer]): Unit = {
+    currentRequest.foreach(_.tryComplete(result))
+    currentRequest = None
+  }
 
   private def clear(): Unit = synchronized {
     while(bodyIt.hasNext) bodyIt.next()
-    currentRequest.foreach { req =>
-      req.tryFailure(EOF)
-      currentRequest = None
-    }
+    resolvePending(Failure(EOF))
   }
 
-  override def outboundCommand(cmd: OutboundCommand): Unit = {
+  override def stageShutdown(): Unit = synchronized {
+    clear()
+    super.stageShutdown()
+  }
+
+  override def outboundCommand(cmd: OutboundCommand): Unit = self.synchronized {
     cmd match {
       case Disconnect => clear()
       case _          => sys.error(s"TestHead received weird command: $cmd")
@@ -83,8 +89,10 @@ class SlowTestHead(body: Seq[ByteBuffer], pause: Duration) extends TestHead("Slo
 
         scheduler.schedule(new Runnable {
           override def run(): Unit = self.synchronized {
-            if (!closed && bodyIt.hasNext) p.trySuccess(bodyIt.next())
-            else p.tryFailure(EOF)
+            resolvePending {
+              if (!closed && bodyIt.hasNext) Success(bodyIt.next())
+              else Failure(EOF)
+            }
           }
         }, pause)
 
