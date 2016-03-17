@@ -9,7 +9,7 @@ import org.http4s.blaze.pipeline.TailStage
 import scala.util.control.NonFatal
 import scalaz.concurrent.Task
 
-trait BlazeConnection extends TailStage[ByteBuffer] with Connection {
+private trait BlazeConnection extends TailStage[ByteBuffer] with Connection {
   final def runRequest(req: Request): Task[Response] =
     runRequest(req, false)
 

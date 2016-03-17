@@ -26,7 +26,7 @@ import scalaz.{\/-, -\/}
 import java.util.concurrent.ExecutorService
 
 
-object Http1ServerStage {
+private object Http1ServerStage {
 
   def apply(service: HttpService,
             attributes: AttributeMap = AttributeMap.empty,
@@ -37,7 +37,7 @@ object Http1ServerStage {
   }
 }
 
-class Http1ServerStage(service: HttpService,
+private class Http1ServerStage(service: HttpService,
                        requestAttrs: AttributeMap,
                        pool: ExecutorService)
                   extends Http1Stage

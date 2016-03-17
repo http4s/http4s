@@ -15,7 +15,7 @@ import scala.concurrent.duration.Duration
 
 
 /** Facilitates the use of ALPN when using blaze http2 support */
-object ProtocolSelector {
+private object ProtocolSelector {
   def apply(engine: SSLEngine, service: HttpService,
             maxHeaderLen: Int, requestAttributes: AttributeMap, es: ExecutorService): ALPNSelector = {
 
@@ -37,10 +37,11 @@ object ProtocolSelector {
   private def http2Stage(service: HttpService, maxHeadersLength: Int,
                          requestAttributes: AttributeMap, es: ExecutorService): TailStage[ByteBuffer] = {
 
-    def newNode(streamId: Int): LeafBuilder[Http2Msg] = {
+    val newNode: Int => LeafBuilder[Http2Msg] = { streamId: Int =>
       LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, es, requestAttributes, service))
     }
 
+    // TODO: these parameters should come from a config object
     new Http2Stage(
       maxHeadersLength,
       node_builder = newNode,

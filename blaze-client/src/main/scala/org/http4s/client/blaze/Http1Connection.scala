@@ -280,7 +280,7 @@ private final class Http1Connection(val requestKey: RequestKey,
     getEncoder(req, rr, getHttpMinor(req), closeHeader)
 }
 
-object Http1Connection {
+private object Http1Connection {
   case object InProgressException extends Exception("Stage has request in progress")
 
   // ADT representing the state that the ClientStage can be in
