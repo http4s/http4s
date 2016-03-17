@@ -11,32 +11,29 @@ import scalaz.{-\/, \/-}
 import scalaz.syntax.either._
 import scalaz.concurrent.Task
 
-private object PoolManager {
-  case class Waiting[A <: Connection](key: RequestKey, callback: Callback[A])
-}
-import PoolManager._
-
 private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
                                                  maxTotal: Int,
                                                  es: ExecutorService)
   extends ConnectionManager[A] {
 
+  private case class Waiting(key: RequestKey, callback: Callback[NextConnection])
+
   private[this] val logger = getLogger
   private var isClosed = false
   private var allocated = 0
   private val idleQueue = new mutable.Queue[A]
-  private val waitQueue = new mutable.Queue[Waiting[A]]
+  private val waitQueue = new mutable.Queue[Waiting]
 
   private def stats =
     s"allocated=${allocated} idleQueue.size=${idleQueue.size} waitQueue.size=${waitQueue.size}"
 
-  private def createConnection(key: RequestKey, callback: Callback[A]): Unit = {
+  private def createConnection(key: RequestKey, callback: Callback[NextConnection]): Unit = {
     if (allocated < maxTotal) {
       allocated += 1
       Task.fork(builder(key))(es).runAsync {
-        case s@ \/-(_) =>
+        case \/-(fresh) =>
           logger.debug(s"Received complete connection from pool: ${stats}")
-          callback(s)
+          callback(NextConnection(fresh, true).right)
         case e@ -\/(t) =>
           logger.error(t)(s"Error establishing client connection for key $key")
           disposeConnection(key, None)
@@ -51,7 +48,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
     }
   }
 
-  def borrow(key: RequestKey): Task[A] = Task.async { callback =>
+  def borrow(key: RequestKey): Task[NextConnection] = Task.async { callback =>
     logger.debug(s"Requesting connection: ${stats}")
     synchronized {
       if (!isClosed) {
@@ -60,7 +57,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
           idleQueue.dequeueFirst(_.requestKey == key) match {
             case Some(conn) if !conn.isClosed =>
               logger.debug(s"Recycling connection: ${stats}")
-              callback(conn.right)
+              callback(NextConnection(conn, false).right)
 
             case Some(closedConn) =>
               logger.debug(s"Evicting closed connection: ${stats}")
@@ -98,7 +95,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
           waitQueue.dequeueFirst(_.key == key) match {
             case Some(Waiting(_, callback)) =>
               logger.debug(s"Fulfilling waiting connection request: ${stats}")
-              callback(connection.right)
+              callback(NextConnection(connection, false).right)
 
             case None if waitQueue.isEmpty =>
               logger.debug(s"Returning idle connection to pool: ${stats}")
