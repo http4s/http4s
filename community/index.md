@@ -29,41 +29,47 @@ title: Community
   <p>Follow important project announcements on Twitter at 
   <a href="http://twitter.com/http4s">@http4s</a>.  We appreciate your
   tweets and retweets, but encourage you to use Gitter or Issues to
-  discuss in depth.
+  discuss in depth.</p>
   </div>
 
 </div>
 
-## Code of Conduct
+<div class="row">
+<div class="col-md-4" markdown="1">
+<h2><i class="fa fa-gavel"></i> Code of Conduct</h2>
 
 http4s is dedicated to providing a harassment-free community for everyone.
 Our community is governed by the [http4s Code of Conduct](conduct.html).
+</div>
 
-## Contributing
-
+<div class="col-md-4" markdown="1">
+<h2><i class="fa fa-gift"></i> Contributing</h2>
+ 
 http4s is an open source project, and depends on its users to continue
 to improve.  Here's how you can help:
 
 * [Submit an issue](http://github.com/http4s/http4s/issues/new).  Bug
-  reports, feature requests, whatever.  No nit too small to pick.</li>
+  reports, feature requests, whatever.  No nit too small to pick.
 * Send us a pull request with your original work, compatible with the
   [project's Apache 2
   Licence](https://raw.githubusercontent.com/http4s/http4s/master/LICENSE).
   Before a major change, please file an issue or contact us first, so
   we're not duplicating effort.
 * If you found the project helpful, pay it forward with a contribution
-  to the docs. This site is a simple [Jekyll
-  project](http://github.com/http4s/http4s/tree/master/src/jekyll) in
+  to the docs. This site is a simple [Jekyll/tut
+  project](http://github.com/http4s/http4s/tree/master/src/docs) in
   our main repo.
+</div>
 
-## Credits
+<div class="col-md-4" markdown="1">
+<h2><i class="fa fa-thumbs-up"></i> Credits</h2>
 
-* [The
-  contributors](https://github.com/http4s/http4s/graphs/contributors), as calculated by GitHub.
-* The HTTP model was bootstrapped  from
+* [The contributors](https://github.com/http4s/http4s/graphs/contributors),
+  as calculated by GitHub.
+* The HTTP model was bootstrapped from
   [spray-http](http://spray.io/documentation/1.2.1/spray-http/), which
   itself derives from [Blueeyes](https://github.com/jdegoes/blueeyes).
-* The project is inspired by [Ruby
-  Rack](http://rack.github.io/), [Python
-  WSGI](https://www.python.org/dev/peps/pep-0333/), and [Haskell
-  WAI](http://www.yesodweb.com/book/web-application-interface).
+* The project is inspired by [Ruby Rack](http://rack.github.io/),
+  [Python WSGI](https://www.python.org/dev/peps/pep-0333/), and
+  [Haskell WAI](http://www.yesodweb.com/book/web-application-interface).
+</div>
