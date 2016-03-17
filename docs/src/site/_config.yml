@@ -3,6 +3,7 @@ highlighter: rouge
 kramdown:
   input: GFM
   hard_wrap: false
+  parse_block_html: true
 name: http4s.org
 
 baseurl: /
