@@ -8,7 +8,7 @@ import org.http4s.blaze.pipeline.{LeafBuilder, HeadStage}
 
 import scalaz.concurrent.Task
 
-object MockClientBuilder {
+private object MockClientBuilder {
   def builder(head: => HeadStage[ByteBuffer], tail: => BlazeConnection): ConnectionBuilder[BlazeConnection] = {
     req => Task.delay {
       val t = tail

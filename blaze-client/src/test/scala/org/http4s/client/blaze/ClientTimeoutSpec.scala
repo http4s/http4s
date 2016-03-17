@@ -29,10 +29,10 @@ class ClientTimeoutSpec extends Http4sSpec {
 
   private def mkConnection() = new Http1Connection(FooRequestKey, defaultConfig, ec)
 
-  def mkBuffer(s: String): ByteBuffer =
+  private def mkBuffer(s: String): ByteBuffer =
     ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
   
-  def mkClient(head: => HeadStage[ByteBuffer], tail: => BlazeConnection)
+  private def mkClient(head: => HeadStage[ByteBuffer], tail: => BlazeConnection)
               (idleTimeout: Duration, requestTimeout: Duration): Client = {
     val manager = MockClientBuilder.manager(head, tail)
     BlazeClient(manager, defaultConfig.copy(idleTimeout = idleTimeout, requestTimeout = requestTimeout))

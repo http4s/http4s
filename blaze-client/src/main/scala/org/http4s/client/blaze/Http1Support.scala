@@ -19,7 +19,7 @@ import scalaz.concurrent.Task
 
 import scalaz.{\/, -\/, \/-}
 
-object Http1Support {
+private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param config The client configuration object

@@ -150,7 +150,7 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
   private def cancelTimeout(): Unit = setAndCancel(null)
 }
 
-object ClientTimeoutStage {
+private object ClientTimeoutStage {
   // Make sure we have our own _stable_ copy for synchronization purposes
   private val Closed = new Cancellable {
     def cancel() = ()
