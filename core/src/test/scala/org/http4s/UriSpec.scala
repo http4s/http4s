@@ -2,9 +2,8 @@ package org.http4s
 
 import org.specs2.matcher.MustThrownMatchers
 import org.http4s.Uri._
-import org.specs2.specification.core.Fragments
 
-import scalaz.Maybe
+import scalaz.{-\/, Maybe}
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
@@ -21,40 +20,57 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     Uri.fromString(uri).fold(_ => sys.error(s"Failure on uri: $uri"), identity)
 
   "Uri" should {
-    "Not UrlDecode the query String" in {
-      getUri("http://localhost:8080/blah?x=abc&y=ijk").query must_== Query.fromPairs("x"->"abc", "y"->"ijk")
-    }
+    "fromString" in {
+      "Not UrlDecode the query String" in {
+        getUri("http://localhost:8080/blah?x=abc&y=ijk").query must_=== Query.fromPairs("x" -> "abc", "y" -> "ijk")
+      }
 
-    "Not UrlDecode the uri fragment" in {
-      getUri("http://localhost:8080/blah#x=abc&y=ijk").fragment must_== Some("x=abc&y=ijk")
-    }
+      "Not UrlDecode the uri fragment" in {
+        getUri("http://localhost:8080/blah#x=abc&y=ijk").fragment must_=== Some("x=abc&y=ijk")
+      }
 
-    "decode the scheme" in {
-      val uri = getUri("http://localhost/")
-      uri.scheme must_== Some("http".ci)
-    }
+      "parse scheme correctly" in {
+        val uri = getUri("http://localhost/")
+        uri.scheme must_=== Some("http".ci)
+      }
 
-    "decode the authority" in {
-      val uri1 = getUri("http://localhost/")
-      uri1.authority.get.host must_== RegName("localhost")
+      "parse the authority correctly" in {
+        "when uri has trailing slash" in {
+          val uri = getUri("http://localhost/")
+          uri.authority.get.host must_=== RegName("localhost")
+        }
 
-      val uri2 = getUri("http://localhost")
-      uri2.authority.get.host must_== RegName("localhost")
+        "when uri does not have trailing slash" in {
+          val uri = getUri("http://localhost")
+          uri.authority.get.host must_=== RegName("localhost")
+        }
 
-      val uri3 = getUri("/foo/bar")
-      uri3.authority must_== None
+        "if there is none" in {
+          val uri = getUri("/foo/bar")
+          uri.authority must_=== None
+        }
+      }
 
-      val auth = getUri("http://localhost:8080/").authority.get
-      auth.host must_== RegName("localhost")
-      auth.port must_== Some(8080)
-    }
+      "parse port correctly" >> {
+        "if there is one" in {
+          val uri = getUri("http://localhost:8080/")
+          uri.port must_=== Some(8080)
+        }
+        "if there is none" in {
+          val uri = getUri("http://localhost/")
+          uri.port must_=== None
+        }
+      }
 
-    "decode the port" in {
-      val uri1 = getUri("http://localhost:8080/")
-      uri1.port must_== Some(8080)
+      "both authority and port" in {
+        val auth = getUri("http://localhost:8080/").authority.get
+        auth.host must_=== RegName("localhost")
+        auth.port must_=== Some(8080)
+      }
 
-      val uri2 = getUri("http://localhost/")
-      uri2.port must_== None
+      "provide a useful error message if string argument is not url-encoded" in {
+        Uri.fromString("http://example.org/a file") must_=== -\/(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
+      }
     }
 
     "support a '/' operator when original uri has trailing slash" in {
