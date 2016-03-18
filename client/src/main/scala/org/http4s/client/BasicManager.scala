@@ -4,8 +4,8 @@ package client
 import scalaz.concurrent.Task
 
 private final class BasicManager[A <: Connection](builder: ConnectionBuilder[A]) extends ConnectionManager[A] {
-  override def borrow(requestKey: RequestKey): Task[A] =
-    builder(requestKey)
+  override def borrow(requestKey: RequestKey): Task[NextConnection] =
+    builder(requestKey).map(NextConnection(_, true))
 
   override def shutdown(): Task[Unit] =
     Task.now(())

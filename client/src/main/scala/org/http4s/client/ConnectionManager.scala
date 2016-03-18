@@ -13,11 +13,15 @@ import scalaz.concurrent.Task
   * must have a mechanism to free resources associated with it.
   */
 trait ConnectionManager[A <: Connection] {
+
+  /** Bundle of the connection and wheither its new or not */
+  final case class NextConnection(connection: A, fresh: Boolean)
+
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
 
   /** Get a connection for the provided request key. */
-  def borrow(requestKey: RequestKey): Task[A]
+  def borrow(requestKey: RequestKey): Task[NextConnection]
 
   /**
     * Release a connection.  The connection manager may choose to keep the connection for
