@@ -51,9 +51,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> URI
-Structure containing information related to a Uri. All fields except the
-query are expected to be url decoded.</p></div><dl class="paramcmts block"><dt class="param">scheme</dt><dd class="cmt"><p>optional Uri Scheme. eg, http, https</p></dd><dt class="param">authority</dt><dd class="cmt"><p>optional Uri Authority. eg, localhost:8080, www.foo.bar</p></dd><dt class="param">path</dt><dd class="cmt"><p>the Uri path</p></dd><dt class="param">query</dt><dd class="cmt"><p>optional Query. Note that the query should _NOT_ be url decoded</p></dd><dt class="param">fragment</dt><dd class="cmt"><p>optional Uri Fragment. Note that the fragment should _NOT_ be url decoded</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Representation of the <a href="Request.html" class="extype" name="org.http4s.Request">Request</a> URI</p></div><dl class="paramcmts block"><dt class="param">scheme</dt><dd class="cmt"><p>optional Uri Scheme. eg, http, https</p></dd><dt class="param">authority</dt><dd class="cmt"><p>optional Uri Authority. eg, localhost:8080, www.foo.bar</p></dd><dt class="param">path</dt><dd class="cmt"><p>url-encoded string representation of the path component of the Uri.</p></dd><dt class="param">query</dt><dd class="cmt"><p>optional Query. url-encoded.</p></dd><dt class="param">fragment</dt><dd class="cmt"><p>optional Uri Fragment. url-encoded.</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/Uri.scala" target="_blank">Uri.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a>, <a href="QueryOps.html" class="extype" name="org.http4s.QueryOps">QueryOps</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
@@ -113,7 +111,7 @@ query are expected to be url decoded.</p></div><dl class="paramcmts block"><dt c
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">scheme</dt><dd class="cmt"><p>optional Uri Scheme. eg, http, https</p></dd><dt class="param">authority</dt><dd class="cmt"><p>optional Uri Authority. eg, localhost:8080, www.foo.bar</p></dd><dt class="param">path</dt><dd class="cmt"><p>the Uri path</p></dd><dt class="param">query</dt><dd class="cmt"><p>optional Query. Note that the query should _NOT_ be url decoded</p></dd><dt class="param">fragment</dt><dd class="cmt"><p>optional Uri Fragment. Note that the fragment should _NOT_ be url decoded</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">scheme</dt><dd class="cmt"><p>optional Uri Scheme. eg, http, https</p></dd><dt class="param">authority</dt><dd class="cmt"><p>optional Uri Authority. eg, localhost:8080, www.foo.bar</p></dd><dt class="param">path</dt><dd class="cmt"><p>url-encoded string representation of the path component of the Uri.</p></dd><dt class="param">query</dt><dd class="cmt"><p>optional Query. url-encoded.</p></dd><dt class="param">fragment</dt><dd class="cmt"><p>optional Uri Fragment. url-encoded.</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -751,7 +749,7 @@ without a name can be checked with an empty string.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">optional Uri Fragment.</p><div class="fullcomment"><div class="comment cmt"><p>optional Uri Fragment. Note that the fragment should _NOT_ be url decoded</p></div></div>
+      <p class="shortcomment cmt">optional Uri Fragment.</p><div class="fullcomment"><div class="comment cmt"><p>optional Uri Fragment. url-encoded.</p></div></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -916,7 +914,7 @@ an empty <code>Map</code> is returned.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">the Uri path</p>
+      <p class="shortcomment cmt">url-encoded string representation of the path component of the Uri.</p>
     </li><li name="org.http4s.Uri#port" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="port:Option[Int]"></a>
       <a id="port:Option[Int]"></a>
@@ -950,7 +948,7 @@ an empty <code>Map</code> is returned.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">optional Query.</p><div class="fullcomment"><div class="comment cmt"><p>optional Query. Note that the query should _NOT_ be url decoded</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Uri">Uri</a> → <a href="QueryOps.html" class="extype" name="org.http4s.QueryOps">QueryOps</a></dd></dl></div>
+      <p class="shortcomment cmt">optional Query.</p><div class="fullcomment"><div class="comment cmt"><p>optional Query. url-encoded.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Uri">Uri</a> → <a href="QueryOps.html" class="extype" name="org.http4s.QueryOps">QueryOps</a></dd></dl></div>
     </li><li name="org.http4s.QueryOps#removeQueryParam" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="removeQueryParam[K](key:K)(implicitevidence$23:org.http4s.QueryParamKeyLike[K]):QueryOps.this.Self"></a>
       <a id="removeQueryParam[K](K)(QueryParamKeyLike[K]):Self"></a>
