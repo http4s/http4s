@@ -29,23 +29,27 @@ import java.util.concurrent.ExecutorService
 private object Http1ServerStage {
 
   def apply(service: HttpService,
-            attributes: AttributeMap = AttributeMap.empty,
-            pool: ExecutorService = Strategy.DefaultExecutorService,
-            enableWebSockets: Boolean = false ): Http1ServerStage = {
-    if (enableWebSockets) new Http1ServerStage(service, attributes, pool) with WebSocketSupport
-    else                  new Http1ServerStage(service, attributes, pool)
+            attributes: AttributeMap,
+            pool: ExecutorService,
+            enableWebSockets: Boolean,
+            maxRequestLineLen: Int,
+            maxHeadersLen: Int): Http1ServerStage = {
+    if (enableWebSockets) new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen) with WebSocketSupport
+    else                  new Http1ServerStage(service, attributes, pool, maxRequestLineLen, maxHeadersLen)
   }
 }
 
 private class Http1ServerStage(service: HttpService,
                        requestAttrs: AttributeMap,
-                       pool: ExecutorService)
+                       pool: ExecutorService,
+                       maxRequestLineLen: Int,
+                       maxHeadersLen: Int)
                   extends Http1Stage
                   with TailStage[ByteBuffer]
 {
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
-  private[this] val parser = new Http1ServerParser(logger)
+  private[this] val parser = new Http1ServerParser(logger, maxRequestLineLen, maxHeadersLen)
 
   protected val ec = ExecutionContext.fromExecutorService(pool)
 

@@ -7,7 +7,6 @@ import java.util.concurrent.ExecutorService
 import javax.net.ssl.SSLEngine
 
 import org.http4s.blaze.http.http20._
-import org.http4s.blaze.http.http20.NodeMsg.Http2Msg
 import org.http4s.blaze.pipeline.{TailStage, LeafBuilder}
 
 import scala.concurrent.ExecutionContext
@@ -16,8 +15,32 @@ import scala.concurrent.duration.Duration
 
 /** Facilitates the use of ALPN when using blaze http2 support */
 private object ProtocolSelector {
-  def apply(engine: SSLEngine, service: HttpService,
-            maxHeaderLen: Int, requestAttributes: AttributeMap, es: ExecutorService): ALPNSelector = {
+  def apply(engine: SSLEngine,
+            service: HttpService,
+            maxRequestLineLen: Int,
+            maxHeadersLen: Int,
+            requestAttributes: AttributeMap,
+            es: ExecutorService): ALPNSelector = {
+
+    def http2Stage(): TailStage[ByteBuffer] = {
+
+      val newNode = { streamId: Int =>
+        LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, es, requestAttributes, service))
+      }
+
+      new Http2Stage(
+        // maxRequestLineLen, // TODO: why don't we limit the size of a request prelude?
+        maxHeadersLength = maxHeadersLen,
+        node_builder = newNode,
+        timeout = Duration.Inf,
+        maxInboundStreams = 300, // TODO: this is arbitrary...
+        ec = ExecutionContext.fromExecutor(es)
+      )
+    }
+
+    def http1Stage(): TailStage[ByteBuffer] = {
+      Http1ServerStage(service, requestAttributes, es, false, maxRequestLineLen, maxHeadersLen)
+    }
 
     def preference(protos: Seq[String]): String = {
       protos.find {
@@ -26,28 +49,11 @@ private object ProtocolSelector {
       }.getOrElse("http1.1")
     }
 
-    def select(s: String): LeafBuilder[ByteBuffer] = s match {
-      case "h2" | "h2-14" | "h2-15" => LeafBuilder(http2Stage(service, maxHeaderLen, requestAttributes, es))
-      case _                        => LeafBuilder(Http1ServerStage(service, requestAttributes, es))
-    }
+    def select(s: String): LeafBuilder[ByteBuffer] = LeafBuilder(s match {
+      case "h2" | "h2-14" | "h2-15" => http2Stage()
+      case _                        => http1Stage()
+    })
 
     new ALPNSelector(engine, preference, select)
-  }
-
-  private def http2Stage(service: HttpService, maxHeadersLength: Int,
-                         requestAttributes: AttributeMap, es: ExecutorService): TailStage[ByteBuffer] = {
-
-    val newNode: Int => LeafBuilder[Http2Msg] = { streamId: Int =>
-      LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, es, requestAttributes, service))
-    }
-
-    // TODO: these parameters should come from a config object
-    new Http2Stage(
-      maxHeadersLength,
-      node_builder = newNode,
-      timeout = Duration.Inf,
-      maxInboundStreams = 300,
-      ec = ExecutionContext.fromExecutor(es)
-    )
   }
 }

@@ -9,7 +9,10 @@ import scala.collection.mutable.ListBuffer
 import scalaz.\/
 
 
-private final class Http1ServerParser(logger: Logger) extends blaze.http.http_parser.Http1ServerParser {
+private final class Http1ServerParser(logger: Logger,
+                                      maxRequestLine: Int,
+                                      maxHeadersLen: Int)
+  extends blaze.http.http_parser.Http1ServerParser(maxRequestLine, maxHeadersLen, 2*1024) {
 
   private var uri: String = null
   private var method: String = null

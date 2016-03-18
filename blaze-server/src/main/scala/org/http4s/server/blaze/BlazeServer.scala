@@ -33,6 +33,8 @@ class BlazeBuilder(
   enableWebSockets: Boolean,
   sslBits: Option[SSLBits],
   isHttp2Enabled: Boolean,
+  maxRequestLineLen: Int,
+  maxHeadersLen: Int,
   serviceMounts: Vector[ServiceMount]
 )
   extends ServerBuilder
@@ -53,9 +55,24 @@ class BlazeBuilder(
                 enableWebSockets: Boolean = enableWebSockets,
                          sslBits: Option[SSLBits] = sslBits,
                     http2Support: Boolean = isHttp2Enabled,
+               maxRequestLineLen: Int = maxRequestLineLen,
+                   maxHeadersLen: Int = maxHeadersLen,
                    serviceMounts: Vector[ServiceMount] = serviceMounts): BlazeBuilder =
-    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, serviceMounts)
+    new BlazeBuilder(socketAddress, serviceExecutor, idleTimeout, isNio2, connectorPoolSize, bufferSize, enableWebSockets, sslBits, http2Support, maxRequestLineLen, maxHeadersLen, serviceMounts)
 
+  /** Configure HTTP parser length limits
+    *
+    * These are to avoid denial of service attacks due to,
+    * for example, an infinite request line.
+    *
+    * @param maxRequestLineLen maximum request line to parse
+    * @param maxHeadersLen maximum data that compose headers
+    */
+  def withLengthLimits(maxRequestLineLen: Int = maxRequestLineLen,
+                       maxHeadersLen: Int = maxHeadersLen): BlazeBuilder = {
+    copy(maxRequestLineLen = maxRequestLineLen,
+         maxHeadersLen = maxHeadersLen)
+  }
 
   override def withSSL(keyStore: StoreInfo, keyManagerPassword: String, protocol: String, trustStore: Option[StoreInfo], clientAuth: Boolean): Self = {
     val bits = SSLBits(keyStore, keyManagerPassword, protocol, trustStore, clientAuth)
@@ -118,8 +135,8 @@ class BlazeBuilder(
           }
 
           val l1 =
-            if (isHttp2Enabled) LeafBuilder(ProtocolSelector(eng, aggregateService, 4*1024, requestAttrs, serviceExecutor))
-            else LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets))
+            if (isHttp2Enabled) LeafBuilder(ProtocolSelector(eng, aggregateService, maxRequestLineLen, maxHeadersLen, requestAttrs, serviceExecutor))
+            else LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen))
 
           val l2 = if (idleTimeout.isFinite) l1.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
                    else l1
@@ -143,7 +160,7 @@ class BlazeBuilder(
             }
             requestAttrs
           }
-          val leaf = LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets))
+          val leaf = LeafBuilder(Http1ServerStage(aggregateService, requestAttrs, serviceExecutor, enableWebSockets, maxRequestLineLen, maxHeadersLen))
           if (idleTimeout.isFinite) leaf.prepend(new QuietTimeoutStage[ByteBuffer](idleTimeout))
           else leaf
         }
@@ -224,6 +241,8 @@ object BlazeBuilder extends BlazeBuilder(
   enableWebSockets = true,
   sslBits = None,
   isHttp2Enabled = false,
+  maxRequestLineLen = 4*1024,
+  maxHeadersLen = 40*1024,
   serviceMounts = Vector.empty
 )
 
