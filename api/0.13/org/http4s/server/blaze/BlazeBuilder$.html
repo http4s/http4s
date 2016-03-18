@@ -660,6 +660,25 @@ reference to the server when it has started.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="BlazeBuilder.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a></dd></dl></div>
+    </li><li name="org.http4s.server.blaze.BlazeBuilder#withLengthLimits" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withLengthLimits(maxRequestLineLen:Int,maxHeadersLen:Int):org.http4s.server.blaze.BlazeBuilder"></a>
+      <a id="withLengthLimits(Int,Int):BlazeBuilder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withLengthLimits</span><span class="params">(<span name="maxRequestLineLen">maxRequestLineLen: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">maxRequestLineLen</span></span>, <span name="maxHeadersLen">maxHeadersLen: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">maxHeadersLen</span></span>)</span><span class="result">: <a href="BlazeBuilder.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.blaze.BlazeBuilder$@withLengthLimits(maxRequestLineLen:Int,maxHeadersLen:Int):org.http4s.server.blaze.BlazeBuilder" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configure HTTP parser length limits</p><div class="fullcomment"><div class="comment cmt"><p>Configure HTTP parser length limits</p><p>These are to avoid denial of service attacks due to,
+for example, an infinite request line.
+</p></div><dl class="paramcmts block"><dt class="param">maxRequestLineLen</dt><dd class="cmt"><p>maximum request line to parse</p></dd><dt class="param">maxHeadersLen</dt><dd class="cmt"><p>maximum data that compose headers</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="BlazeBuilder.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.blaze.BlazeBuilder#withNio2" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withNio2(isNio2:Boolean):org.http4s.server.blaze.BlazeBuilder"></a>
       <a id="withNio2(Boolean):BlazeBuilder"></a>

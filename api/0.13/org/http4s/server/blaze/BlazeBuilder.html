@@ -99,7 +99,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.server.blaze.BlazeBuilder#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder"></a>
+      <a id="&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder"></a>
       <a id="&lt;init&gt;:BlazeBuilder"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -107,10 +107,10 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="serviceExecutor">serviceExecutor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="isNio2">isNio2: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="connectorPoolSize">connectorPoolSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="enableWebSockets">enableWebSockets: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="sslBits">sslBits: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../SSLSupport$$SSLBits.html" class="extype" name="org.http4s.server.SSLSupport.SSLBits">SSLBits</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="serviceMounts">serviceMounts: <span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="org.http4s.server.blaze.ServiceMount">ServiceMount</span>]</span>)</span>
+        <span class="name">BlazeBuilder</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>, <span name="serviceExecutor">serviceExecutor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="isNio2">isNio2: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="connectorPoolSize">connectorPoolSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="enableWebSockets">enableWebSockets: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="sslBits">sslBits: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../SSLSupport$$SSLBits.html" class="extype" name="org.http4s.server.SSLSupport.SSLBits">SSLBits</a>]</span>, <span name="isHttp2Enabled">isHttp2Enabled: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="maxRequestLineLen">maxRequestLineLen: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxHeadersLen">maxHeadersLen: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="serviceMounts">serviceMounts: <span class="extype" name="scala.Vector">Vector</span>[<span class="extype" name="org.http4s.server.blaze.ServiceMount">ServiceMount</span>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.blaze.BlazeBuilder@&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.blaze.BlazeBuilder@&lt;init&gt;(socketAddress:java.net.InetSocketAddress,serviceExecutor:java.util.concurrent.ExecutorService,idleTimeout:scala.concurrent.duration.Duration,isNio2:Boolean,connectorPoolSize:Int,bufferSize:Int,enableWebSockets:Boolean,sslBits:Option[org.http4s.server.SSLSupport.SSLBits],isHttp2Enabled:Boolean,maxRequestLineLen:Int,maxHeadersLen:Int,serviceMounts:Vector[org.http4s.server.blaze.ServiceMount]):org.http4s.server.blaze.BlazeBuilder" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -841,6 +841,25 @@ reference to the server when it has started.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a> → <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a></dd></dl></div>
+    </li><li name="org.http4s.server.blaze.BlazeBuilder#withLengthLimits" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="withLengthLimits(maxRequestLineLen:Int,maxHeadersLen:Int):org.http4s.server.blaze.BlazeBuilder"></a>
+      <a id="withLengthLimits(Int,Int):BlazeBuilder"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">withLengthLimits</span><span class="params">(<span name="maxRequestLineLen">maxRequestLineLen: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">maxRequestLineLen</span></span>, <span name="maxHeadersLen">maxHeadersLen: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">maxHeadersLen</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.blaze.BlazeBuilder@withLengthLimits(maxRequestLineLen:Int,maxHeadersLen:Int):org.http4s.server.blaze.BlazeBuilder" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Configure HTTP parser length limits</p><div class="fullcomment"><div class="comment cmt"><p>Configure HTTP parser length limits</p><p>These are to avoid denial of service attacks due to,
+for example, an infinite request line.
+</p></div><dl class="paramcmts block"><dt class="param">maxRequestLineLen</dt><dd class="cmt"><p>maximum request line to parse</p></dd><dt class="param">maxHeadersLen</dt><dd class="cmt"><p>maximum data that compose headers</p></dd></dl></div>
     </li><li name="org.http4s.server.blaze.BlazeBuilder#withNio2" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="withNio2(isNio2:Boolean):org.http4s.server.blaze.BlazeBuilder"></a>
       <a id="withNio2(Boolean):BlazeBuilder"></a>
