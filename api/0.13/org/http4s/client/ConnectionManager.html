@@ -99,23 +99,43 @@ must have a mechanism to free resources associated with it.
         <div id="allMembers">
         
 
-        
+        <div id="types" class="types members">
+              <h3>Type Members</h3>
+              <ol><li name="org.http4s.client.ConnectionManager.NextConnection" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="NextConnectionextendsProductwithSerializable"></a>
+      <a id="NextConnection:NextConnection"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ConnectionManager$NextConnection.html"><span class="name">NextConnection</span></a><span class="params">(<span name="connection">connection: <span class="extype" name="org.http4s.client.ConnectionManager.A">A</span></span>, <span name="fresh">fresh: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.ConnectionManager@NextConnectionextendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Bundle of the connection and wheither its new or not</p>
+    </li></ol>
+            </div>
 
         <div id="values" class="values members">
               <h3>Abstract Value Members</h3>
               <ol><li name="org.http4s.client.ConnectionManager#borrow" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="borrow(requestKey:org.http4s.client.RequestKey):scalaz.concurrent.Task[A]"></a>
-      <a id="borrow(RequestKey):Task[A]"></a>
+      <a id="borrow(requestKey:org.http4s.client.RequestKey):scalaz.concurrent.Task[ConnectionManager.this.NextConnection]"></a>
+      <a id="borrow(RequestKey):Task[NextConnection]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">borrow</span><span class="params">(<span name="requestKey">requestKey: <a href="RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.ConnectionManager.A">A</span>]</span>
+        <span class="name">borrow</span><span class="params">(<span name="requestKey">requestKey: <a href="RequestKey.html" class="extype" name="org.http4s.client.RequestKey">RequestKey</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="ConnectionManager$NextConnection.html" class="extype" name="org.http4s.client.ConnectionManager.NextConnection">NextConnection</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.ConnectionManager@borrow(requestKey:org.http4s.client.RequestKey):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.client.ConnectionManager@borrow(requestKey:org.http4s.client.RequestKey):scalaz.concurrent.Task[ConnectionManager.this.NextConnection]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -156,7 +176,7 @@ manager may not return this connection on another borrow.
       </a>
     </span>
       <p class="shortcomment cmt">Release a connection.</p><div class="fullcomment"><div class="comment cmt"><p>Release a connection.  The connection manager may choose to keep the connection for
-subsequent calls to <a href="#borrow(requestKey:org.http4s.client.RequestKey):scalaz.concurrent.Task[A]" class="extmbr" name="org.http4s.client.ConnectionManager#borrow">borrow</a>, or dispose of the connection.
+subsequent calls to <a href="#borrow(requestKey:org.http4s.client.RequestKey):scalaz.concurrent.Task[ConnectionManager.this.NextConnection]" class="extmbr" name="org.http4s.client.ConnectionManager#borrow">borrow</a>, or dispose of the connection.
 </p></div></div>
     </li><li name="org.http4s.client.ConnectionManager#shutdown" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="shutdown():scalaz.concurrent.Task[Unit]"></a>
