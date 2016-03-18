@@ -21,7 +21,12 @@ object FormParser {
           val tailM = Some(tail) filter { !_.isEmpty }
 
           emit(\/-((head, tailM)))
-        } else {
+        }
+        else if (bv.nonEmpty && bv.get(bv.length - 1) == '\r') {
+          val (head, cr) = bv.splitAt(bv.length - 1)
+          emit(-\/(head)) ++ receive1(next => handle(cr ++ next))
+        }
+        else {
           emit(-\/(bv)) ++ receiveLine(None)
         }
       }
@@ -44,8 +49,10 @@ object FormParser {
       receiveExpectInit flatMap {
         case (expected, leading) => {
           for {
-            (params, leading2) <- header(leading, expected)
-            (_, leading3) <- receiveCollapsedLine(leading2)   // eat the space between header and content
+            headerPair <- header(leading, expected)
+            (params, leading2) = headerPair
+            leading3Pair <- receiveCollapsedLine(leading2)
+            (_, leading3) = leading3Pair // eat the space between header and content
             chunk <- emit(-\/(params)) ++ (body(leading3, expected) map { \/-(_) })
           } yield chunk
         }
@@ -64,7 +71,7 @@ object FormParser {
                 idx <- Some(line indexOf ':')
                 if idx >= 0
                 if idx < line.length - 1
-              } yield (line.substring(0, idx), line.substring(idx + 1))
+              } yield (line.substring(0, idx), line.substring(idx + 1).trim)
 
               pairM map { pair => (Map(pair), tail) } map emit map { _ ++ go(tail, expected) } getOrElse halt
             }

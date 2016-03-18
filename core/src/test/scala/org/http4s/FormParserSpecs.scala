@@ -32,6 +32,12 @@ object FormParserSpecs extends Specification {
 
       val input = ruinDelims(unprocessedInput)
 
+      val expectedHeaders = Map(
+        "Content-Disposition" -> """form-data; name="upload"; filename="integration.txt"""",
+        "Content-Type" -> "application/octet-stream",
+        "Content-Transfer-Encoding" -> "binary"
+      )
+
       val expected = ruinDelims("""this is a test
               |here's another test
               |catch me if you can!
@@ -52,12 +58,12 @@ object FormParserSpecs extends Specification {
 
       val results: Process0[Map[String, String] \/ ByteVector] = unspool(input) pipe FormParser.parse
 
-      val bytes = results.toVector collect {
-        case \/-(bv) => bv
+      val (headers, bv) = results.toVector.foldLeft((Map.empty[String, String], ByteVector.empty)) {
+        case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
+        case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, bvAcc)
       }
 
-      val bv = bytes reduce { _ ++ _ }
-
+      headers mustEqual (expectedHeaders)
       bv.decodeAscii mustEqual Right(expected)
     }
 
@@ -80,6 +86,12 @@ object FormParserSpecs extends Specification {
 
       val input = ruinDelims(unprocessedInput)
 
+      val expectedHeaders = Map(
+        "Content-Disposition" -> """form-data; name="upload"; filename="integration.txt"""",
+        "Content-Type" -> "application/octet-stream",
+        "Content-Transfer-Encoding" -> "binary"
+      )
+
       val expected = ruinDelims("""this is a test
               |here's another test
               |catch me if you can!
@@ -93,8 +105,12 @@ object FormParserSpecs extends Specification {
         case \/-(bv) => bv
       }
 
-      val bv = bytes reduce { _ ++ _ }
+      val (headers, bv) = results.toVector.foldLeft((Map.empty[String, String], ByteVector.empty)) {
+        case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
+        case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, bvAcc)
+      }
 
+      headers mustEqual (expectedHeaders)
       bv.decodeAscii mustEqual Right(expected)
     }
   }
