@@ -310,5 +310,45 @@ class Http1ServerStageSpec extends Specification {
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(4)), "done"))
       dropDate(ResponseParser.parseBuffer(buff)) must_== ((Ok, Set(H.`Content-Length`(5)), "total"))
     }
+
+    {
+      def req(path: String) = s"GET /$path HTTP/1.1\r\nTransfer-Encoding: chunked\r\n\r\n" +
+        "3\r\n" +
+        "foo\r\n" +
+        "0\r\n" +
+        "Foo:Bar\r\n\r\n"
+
+      val service = HttpService {
+        case req if req.pathInfo == "/foo" =>
+          for {
+            _ <- req.body.run
+            hs <- req.trailerHeaders
+            resp <- Response().withBody(hs.mkString)
+          } yield resp
+
+        case req if req.pathInfo == "/bar" =>
+          for {
+          // Don't run the body
+            hs <- req.trailerHeaders
+            resp <- Response().withBody(hs.mkString)
+          } yield resp
+
+      }
+
+      "Handle trailing headers" in {
+        val buff = Await.result(runRequest(Seq(req("foo")), service), 5.seconds)
+
+        val results = dropDate(ResponseParser.parseBuffer(buff))
+        results._1 must_== Ok
+        results._3 must_== "Foo: Bar"
+      }
+
+      "Fail if you use the trailers before they have resolved" in {
+        val buff = Await.result(runRequest(Seq(req("bar")), service), 5.seconds)
+
+        val results = dropDate(ResponseParser.parseBuffer(buff))
+        results._1 must_== InternalServerError
+      }
+    }
   }
 }
