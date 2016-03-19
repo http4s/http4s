@@ -274,7 +274,7 @@ class Http1ClientStageSpec extends Specification {
           } yield hs
         }
 
-        hs.run must throwA[java.io.IOException]
+        hs.run must throwA[IllegalStateException]
       }
     }
   }

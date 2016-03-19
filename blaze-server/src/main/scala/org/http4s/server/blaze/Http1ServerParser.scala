@@ -38,8 +38,7 @@ private final class Http1ServerParser(logger: Logger,
       if (minorVersion() == 1 && isChunked) {
         attrs.put(Message.Keys.TrailerHeaders, Task.suspend {
           if (!contentComplete()) {
-            val msg = "Attempted to get trailers before the body is complete! "
-            Task.fail(new java.io.IOException(msg))
+            Task.fail(new IllegalStateException("Attempted to collect trailers before the body was complete."))
           }
           else Task.now(Headers(headers.result()))
         })

@@ -227,7 +227,7 @@ private final class Http1Connection(val requestKey: RequestKey,
 
             val attrs = AttributeMap.empty.put(Message.Keys.TrailerHeaders, Task.suspend {
               if (parser.contentComplete()) Task.now(trailers.get())
-              else Task.fail(new java.io.IOException("Attempted to collect trailers before the body was complete."))
+              else Task.fail(new IllegalStateException("Attempted to collect trailers before the body was complete."))
             })
 
             ({ () => trailers.set(parser.getHeaders()) }, attrs)
