@@ -28,13 +28,13 @@ private object ProtocolSelector {
         LeafBuilder(new Http2NodeStage(streamId, Duration.Inf, es, requestAttributes, service))
       }
 
-      new Http2Stage(
-        // maxRequestLineLen, // TODO: why don't we limit the size of a request prelude?
-        maxHeadersLength = maxHeadersLen,
-        node_builder = newNode,
+      Http2Stage(
+        nodeBuilder = newNode,
         timeout = Duration.Inf,
-        maxInboundStreams = 300, // TODO: this is arbitrary...
-        ec = ExecutionContext.fromExecutor(es)
+        ec = ExecutionContext.fromExecutor(es),
+        // since the request line is a header, the limits are bundled in the header limits
+        maxHeadersLength = maxHeadersLen,
+        maxInboundStreams = 256 // TODO: this is arbitrary...
       )
     }
 
