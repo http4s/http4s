@@ -40,7 +40,11 @@ private final class BlazeHttp1ClientParser(maxResponseLineSize: Int,
 
   def getHeaders(): Headers = {
     if (headers.isEmpty) Headers.empty
-    else Headers(headers.result())
+    else {
+      val hs = Headers(headers.result())
+      headers.clear() // clear so we can accumulate trailing headers
+      hs
+    }
   }
 
   def getStatus(): Status = {
