@@ -32,7 +32,7 @@ class Http1ClientStageSpec extends Specification {
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
   // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
-  private val defaultConfig = BlazeClientConfig.defaultConfig()
+  private val defaultConfig = BlazeClientConfig.defaultConfig
 
   private def mkConnection(key: RequestKey) = new Http1Connection(key, defaultConfig, ec)
 
@@ -277,11 +277,6 @@ class Http1ClientStageSpec extends Specification {
         hs.run must throwA[IllegalStateException]
       }
     }
-  }
-
-  // shutdown the executor we created
-  step {
-    defaultConfig.executor.shutdown()
   }
 }
 

@@ -8,7 +8,7 @@ object ClientExample {
     import org.http4s.Http4s._
     import scalaz.concurrent.Task
 
-    val client = org.http4s.client.blaze.defaultClient
+    val client = org.http4s.client.blaze.SimpleHttp1Client()
 
     val page: Task[String] = client.getAs[String](uri("https://www.google.com/"))
 
@@ -36,6 +36,8 @@ object ClientExample {
     }
 
     println(page2.run)
+
+    client.shutdownNow()
 /// end_code_ref
   }
 

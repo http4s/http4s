@@ -7,7 +7,7 @@ import org.http4s.util.threads._
 
 private[client] object DefaultExecutor {
   /** create a new default executor */
-  def newClientDefaultExecutorService(name: String): ExecutorService with DefaultExecutorService =
+  def newClientDefaultExecutorService(name: String): ExecutorService =
     newDefaultFixedThreadPool(
       (Runtime.getRuntime.availableProcessors * 1.5).ceil.toInt,
       threadFactory(i => s"http4s-$name-$i"))

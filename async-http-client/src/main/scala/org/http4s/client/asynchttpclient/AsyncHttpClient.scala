@@ -38,7 +38,7 @@ object AsyncHttpClient {
     *
     * @param config configuration for the client
     * @param bufferSize body chunks to buffer when reading the body; defaults to 8
-    * @param executorService the executor on which response tasks are run
+    * @param customExecutor custom executor which must be managed externally.
     */
   def apply(config: AsyncHttpClientConfig = defaultConfig,
             bufferSize: Int = 8,

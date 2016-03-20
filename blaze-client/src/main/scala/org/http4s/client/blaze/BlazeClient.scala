@@ -2,8 +2,10 @@ package org.http4s
 package client
 package blaze
 
+import java.util.concurrent.ExecutorService
+
 import org.http4s.blaze.pipeline.Command
-import org.http4s.util.threads.DefaultExecutorService
+import org.http4s.client.impl.DefaultExecutor
 import org.log4s.getLogger
 
 import scalaz.concurrent.Task
@@ -13,18 +15,11 @@ import scalaz.{-\/, \/-}
 object BlazeClient {
   private[this] val logger = getLogger
 
-  def apply[A <: BlazeConnection](manager: ConnectionManager[A], config: BlazeClientConfig): Client = {
+  def apply[A <: BlazeConnection](manager: ConnectionManager[A],
+                                  config: BlazeClientConfig,
+                                  shutdown: Task[Unit]): Client = {
 
-    val shutdownTask = manager.shutdown().flatMap(_ => Task.delay {
-      // shutdown executor services that have been implicitly created for us
-      config.executor match {
-        case es: DefaultExecutorService =>
-          logger.info(s"Shutting down default ExecutorService: $es")
-          es.shutdown()
-
-        case _ => /* NOOP */
-      }
-    })
+    val shutdownTask = manager.shutdown().flatMap(_ => shutdown)
 
     Client(Service.lift { req =>
       val key = RequestKey.fromRequest(req)

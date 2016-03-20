@@ -4,6 +4,7 @@ package blaze
 
 import java.net.InetSocketAddress
 import java.nio.ByteBuffer
+import java.util.concurrent.ExecutorService
 
 import org.http4s.Uri.Scheme
 import org.http4s.blaze.channel.nio2.ClientChannelFactory
@@ -14,18 +15,16 @@ import org.http4s.util.CaseInsensitiveString._
 
 import scala.concurrent.ExecutionContext
 import scala.concurrent.Future
-
 import scalaz.concurrent.Task
-
-import scalaz.{\/, -\/, \/-}
+import scalaz.{-\/, \/, \/-}
 
 private object Http1Support {
   /** Create a new [[ConnectionBuilder]]
    *
    * @param config The client configuration object
    */
-  def apply(config: BlazeClientConfig): ConnectionBuilder[BlazeConnection] = {
-    val builder = new Http1Support(config)
+  def apply(config: BlazeClientConfig, executor: ExecutorService): ConnectionBuilder[BlazeConnection] = {
+    val builder = new Http1Support(config, executor)
     builder.makeClient
   }
 
@@ -35,10 +34,10 @@ private object Http1Support {
 
 /** Provides basic HTTP1 pipeline building
   */
-final private class Http1Support(config: BlazeClientConfig) {
+final private class Http1Support(config: BlazeClientConfig, executor: ExecutorService) {
   import Http1Support._
 
-  private val ec = ExecutionContext.fromExecutorService(config.executor)
+  private val ec = ExecutionContext.fromExecutorService(executor)
   private val sslContext = config.sslContext.getOrElse(bits.sslContext)
   private val connectionManager = new ClientChannelFactory(config.bufferSize, config.group.orNull)
 

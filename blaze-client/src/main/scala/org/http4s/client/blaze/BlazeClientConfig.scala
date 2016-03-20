@@ -22,7 +22,7 @@ import scala.concurrent.duration.Duration
   * @param maxChunkSize maximum size of chunked content chunks
   * @param lenientParser a lenient parser will accept illegal chars but replaces them with � (0xFFFD)
   * @param bufferSize internal buffer size of the blaze client
-  * @param executor thread pool where asynchronous computations will be performed
+  * @param customExecutor custom executor to run async computations. Will not be shutdown with client.
   * @param group custom `AsynchronousChannelGroup` to use other than the system default
   */
 case class BlazeClientConfig(// HTTP properties
@@ -42,17 +42,14 @@ case class BlazeClientConfig(// HTTP properties
 
                              // pipeline management
                              bufferSize: Int,
-                             executor: ExecutorService,
+                             customExecutor: Option[ExecutorService],
                              group: Option[AsynchronousChannelGroup]
                             )
 
 object BlazeClientConfig {
   /** Default user configuration
-    *
-    * @param executor executor on which to run computations.
-    *                 If the default `ExecutorService` is used it will be shutdown with the client
     */
-  def defaultConfig(executor: ExecutorService = DefaultExecutor.newClientDefaultExecutorService("blaze-client")) =
+  val defaultConfig =
     BlazeClientConfig(
       idleTimeout = bits.DefaultTimeout,
       requestTimeout = Duration.Inf,
@@ -67,7 +64,7 @@ object BlazeClientConfig {
       lenientParser = false,
 
       bufferSize = bits.DefaultBufferSize,
-      executor = executor,
+      customExecutor = None,
       group = None
     )
 }

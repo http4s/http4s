@@ -7,6 +7,7 @@ package object blaze {
 
   /** Default blaze client
     *
-    * This client will create a new connection for every request. */
-  lazy val defaultClient: Client = SimpleHttp1Client(BlazeClientConfig.defaultConfig())
+    * This client will create a new connection for every request.
+    */
+  lazy val defaultClient: Client = SimpleHttp1Client(BlazeClientConfig.defaultConfig)
 }
