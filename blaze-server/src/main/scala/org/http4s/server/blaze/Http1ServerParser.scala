@@ -7,6 +7,7 @@ import org.log4s.Logger
 
 import scala.collection.mutable.ListBuffer
 import scalaz.\/
+import scalaz.concurrent.Task
 
 
 private final class Http1ServerParser(logger: Logger,
@@ -33,10 +34,20 @@ private final class Http1ServerParser(logger: Logger,
     headers.clear()
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
 
+    val attrsWithTrailers =
+      if (minorVersion() == 1 && isChunked) {
+        attrs.put(Message.Keys.TrailerHeaders, Task.suspend {
+          if (!contentComplete()) {
+            Task.fail(new IllegalStateException("Attempted to collect trailers before the body was complete."))
+          }
+          else Task.now(Headers(headers.result()))
+        })
+      } else attrs // Won't have trailers without a chunked body
+
     (for {
       method <- Method.fromString(this.method)
       uri <- Uri.requestTarget(this.uri)
-    } yield Request(method, uri, protocol, h, body, attrs)
+    } yield Request(method, uri, protocol, h, body, attrsWithTrailers)
     ).leftMap(_ -> protocol)
   }
 

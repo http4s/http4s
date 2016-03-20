@@ -8,16 +8,14 @@ import java.nio.ByteBuffer
 import org.http4s.blaze.SeqTestHead
 import org.http4s.blaze.pipeline.LeafBuilder
 import org.http4s.util.CaseInsensitiveString._
-
 import bits.DefaultUserAgent
-
 import org.specs2.mutable.Specification
 import scodec.bits.ByteVector
 
 import scala.concurrent.Await
 import scala.concurrent.duration._
-
 import scalaz.\/-
+import scalaz.concurrent.Task
 
 // TODO: this needs more tests
 class Http1ClientStageSpec extends Specification {
@@ -38,8 +36,26 @@ class Http1ClientStageSpec extends Specification {
 
   private def mkConnection(key: RequestKey) = new Http1Connection(key, defaultConfig, ec)
 
-  def mkBuffer(s: String): ByteBuffer =
-    ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
+  private def mkBuffer(s: String): ByteBuffer = ByteBuffer.wrap(s.getBytes(StandardCharsets.ISO_8859_1))
+
+  private def bracketResponse[T](req: Request, resp: String, flushPrelude: Boolean)(f: Response => Task[T]): Task[T] = {
+    val stage = new Http1Connection(FooRequestKey, defaultConfig.copy(userAgent = None), ec)
+    Task.suspend {
+      val h = new SeqTestHead(resp.toSeq.map{ chr =>
+        val b = ByteBuffer.allocate(1)
+        b.put(chr.toByte).flip()
+        b
+      })
+      LeafBuilder(stage).base(h)
+
+      for {
+        resp <- stage.runRequest(req, flushPrelude)
+        t    <- f(resp)
+        _    <- Task { stage.shutdown() }
+      } yield t
+    }
+
+  }
 
   private def getSubmission(req: Request, resp: String, stage: Http1Connection, flushPrelude: Boolean): (String, String) = {
     val h = new SeqTestHead(resp.toSeq.map{ chr =>
@@ -226,6 +242,40 @@ class Http1ClientStageSpec extends Specification {
        */
       val (request, response) = getSubmission(req, resp, true)
       response must_==("done")
+    }
+
+    {
+      val resp = "HTTP/1.1 200 OK\r\n" +
+        "Transfer-Encoding: chunked\r\n\r\n" +
+        "3\r\n" +
+        "foo\r\n" +
+        "0\r\n" +
+        "Foo:Bar\r\n" +
+        "\r\n"
+
+      val req = Request(uri = www_foo_test, httpVersion = HttpVersion.`HTTP/1.1`)
+
+      "Support trailer headers" in {
+        val hs: Task[Headers] = bracketResponse(req, resp, false){ response: Response =>
+          for {
+            body  <- response.as[String]
+            hs <- response.trailerHeaders
+          } yield hs
+        }
+
+        hs.run.mkString must_== "Foo: Bar"
+      }
+
+      "Fail to get trailers before they are complete" in {
+        val hs: Task[Headers] = bracketResponse(req, resp, false){ response: Response =>
+          for {
+            //body  <- response.as[String]
+            hs <- response.trailerHeaders
+          } yield hs
+        }
+
+        hs.run must throwA[IllegalStateException]
+      }
     }
   }
 

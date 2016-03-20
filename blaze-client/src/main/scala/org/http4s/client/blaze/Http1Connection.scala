@@ -220,13 +220,33 @@ private final class Http1Connection(val requestKey: RequestKey,
         // We are to the point of parsing the body and then cleaning up
         val (rawBody,_) = collectBodyFromParser(buffer, terminationCondition)
 
+        // to collect the trailers we need a cleanup helper and a Task in the attribute map
+        val (trailerCleanup, attributes) =
+          if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
+            val trailers = new AtomicReference(Headers.empty)
+
+            val attrs = AttributeMap.empty.put(Message.Keys.TrailerHeaders, Task.suspend {
+              if (parser.contentComplete()) Task.now(trailers.get())
+              else Task.fail(new IllegalStateException("Attempted to collect trailers before the body was complete."))
+            })
+
+            ({ () => trailers.set(parser.getHeaders()) }, attrs)
+          }
+          else ({ () => () }, AttributeMap.empty)
+
         if (parser.contentComplete()) {
-          cleanup()
-          cb(\/-(Response(status, httpVersion, headers, rawBody)))
+          trailerCleanup(); cleanup();
+          cb(\/-(
+            Response(status = status,
+            httpVersion = httpVersion,
+            headers = headers,
+            body = rawBody,
+            attributes = attributes)
+          ))
         }
         else {
           val body = rawBody.onHalt {
-            case End => Process.eval_(Task { cleanup() })
+            case End => Process.eval_(Task { trailerCleanup(); cleanup(); })
 
             case c => Process.await(Task {
               logger.debug(c.asThrowable)("Response body halted. Closing connection.")
@@ -234,7 +254,13 @@ private final class Http1Connection(val requestKey: RequestKey,
             })(_ => Halt(c))
           }
 
-          cb(\/-(Response(status, httpVersion, headers, body)))
+          cb(\/-(
+            Response(status = status,
+              httpVersion = httpVersion,
+              headers = headers,
+              body = body,
+              attributes = attributes)
+          ))
         }
       }
     } catch {
