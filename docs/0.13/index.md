@@ -64,7 +64,7 @@ val service = HttpService {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6243/95079535@7f21f027)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6199/441673809@5f6c118d)
 ```
 
 ### Running your service
@@ -81,7 +81,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.mountService(service)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7f6eba17
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@4cc6e40c
 ```
 
 A builder can be `run` to start the server.  By default, http4s
@@ -108,7 +108,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val client = PooledHttp1Client()
-// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6256/651261838@60ea0ca1),scalaz.concurrent.Task@9005c14)
+// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6213/1872791313@2ccced44),scalaz.concurrent.Task@7a94e87f)
 ```
 
 ### Describing a call
@@ -118,7 +118,7 @@ and the URI we want:
 
 ```scala
 val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@1412e19a
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@1edf98b
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -149,7 +149,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@401e4485
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@58cfed68
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -172,9 +172,9 @@ greetingList.run.mkString("\n")
 //                     ^
 // res0: String =
 // Hello, Ashley.
+// Hello, Christopher.
 // Hello, Michael.
 // Hello, Jessica.
-// Hello, Christopher.
 ```
 
 ## Cleaning up

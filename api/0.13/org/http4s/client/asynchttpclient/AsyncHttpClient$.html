@@ -146,24 +146,24 @@
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="org.http4s.client.asynchttpclient.AsyncHttpClient#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(config:org.asynchttpclient.AsyncHttpClientConfig,bufferSize:Int,executorService:java.util.concurrent.ExecutorService):org.http4s.client.Client"></a>
-      <a id="apply(AsyncHttpClientConfig,Int,ExecutorService):Client"></a>
+      <a id="apply(config:org.asynchttpclient.AsyncHttpClientConfig,bufferSize:Int,customExecutor:Option[java.util.concurrent.ExecutorService]):org.http4s.client.Client"></a>
+      <a id="apply(AsyncHttpClientConfig,Int,Option[ExecutorService]):Client"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="config">config: <span class="extype" name="org.asynchttpclient.AsyncHttpClientConfig">AsyncHttpClientConfig</span> = <span class="symbol"><span class="name"><a href="#defaultConfig:org.asynchttpclient.DefaultAsyncHttpClientConfig">defaultConfig</a></span></span></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">8</span></span>, <span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span> = <span class="defval" name='<span class="name"><a href="../../../package.html">DefaultExecutor.newClientDefaultExecutorService(&quot;async-http-client-response&quot;)</a></span>'>...</span></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
+        <span class="name">apply</span><span class="params">(<span name="config">config: <span class="extype" name="org.asynchttpclient.AsyncHttpClientConfig">AsyncHttpClientConfig</span> = <span class="symbol"><span class="name"><a href="#defaultConfig:org.asynchttpclient.DefaultAsyncHttpClientConfig">defaultConfig</a></span></span></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">8</span></span>, <span name="customExecutor">customExecutor: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.asynchttpclient.AsyncHttpClient$@apply(config:org.asynchttpclient.AsyncHttpClientConfig,bufferSize:Int,executorService:java.util.concurrent.ExecutorService):org.http4s.client.Client" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.asynchttpclient.AsyncHttpClient$@apply(config:org.asynchttpclient.AsyncHttpClientConfig,bufferSize:Int,customExecutor:Option[java.util.concurrent.ExecutorService]):org.http4s.client.Client" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Create an HTTP client based on the AsyncHttpClient library
 </p><div class="fullcomment"><div class="comment cmt"><p>Create an HTTP client based on the AsyncHttpClient library
-</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>configuration for the client</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>body chunks to buffer when reading the body; defaults to 8</p></dd><dt class="param">executorService</dt><dd class="cmt"><p>the executor on which response tasks are run</p></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">config</dt><dd class="cmt"><p>configuration for the client</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>body chunks to buffer when reading the body; defaults to 8</p></dd><dt class="param">customExecutor</dt><dd class="cmt"><p>custom executor which must be managed externally.</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>

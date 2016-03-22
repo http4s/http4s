@@ -145,23 +145,25 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.BlazeClient#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="apply[A&lt;:org.http4s.client.blaze.BlazeConnection](manager:org.http4s.client.ConnectionManager[A],config:org.http4s.client.blaze.BlazeClientConfig):org.http4s.client.Client"></a>
-      <a id="apply[A&lt;:BlazeConnection](ConnectionManager[A],BlazeClientConfig):Client"></a>
+    </li><li name="org.http4s.client.blaze.BlazeClient#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply[A&lt;:org.http4s.client.blaze.BlazeConnection](manager:org.http4s.client.ConnectionManager[A],config:org.http4s.client.blaze.BlazeClientConfig,onShutdown:scalaz.concurrent.Task[Unit]):org.http4s.client.Client"></a>
+      <a id="apply[A&lt;:BlazeConnection](ConnectionManager[A],BlazeClientConfig,Task[Unit]):Client"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="tparams">[<span name="A">A &lt;: <span class="extype" name="org.http4s.client.blaze.BlazeConnection">BlazeConnection</span></span>]</span><span class="params">(<span name="manager">manager: <a href="../ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.A">A</span>]</span>, <span name="config">config: <a href="BlazeClientConfig.html" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
+        <span class="name">apply</span><span class="tparams">[<span name="A">A &lt;: <span class="extype" name="org.http4s.client.blaze.BlazeConnection">BlazeConnection</span></span>]</span><span class="params">(<span name="manager">manager: <a href="../ConnectionManager.html" class="extype" name="org.http4s.client.ConnectionManager">ConnectionManager</a>[<span class="extype" name="org.http4s.client.blaze.BlazeClient.apply.A">A</span>]</span>, <span name="config">config: <a href="BlazeClientConfig.html" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>, <span name="onShutdown">onShutdown: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a>]</span>)</span><span class="result">: <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClient$@apply[A&lt;:org.http4s.client.blaze.BlazeConnection](manager:org.http4s.client.ConnectionManager[A],config:org.http4s.client.blaze.BlazeClientConfig):org.http4s.client.Client" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClient$@apply[A&lt;:org.http4s.client.blaze.BlazeConnection](manager:org.http4s.client.ConnectionManager[A],config:org.http4s.client.blaze.BlazeClientConfig,onShutdown:scalaz.concurrent.Task[Unit]):org.http4s.client.Client" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Construct a new <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a> using blaze components
+</p><div class="fullcomment"><div class="comment cmt"><p>Construct a new <a href="../Client.html" class="extype" name="org.http4s.client.Client">Client</a> using blaze components
+</p></div><dl class="paramcmts block"><dt class="param">manager</dt><dd class="cmt"><p>source for acquiring and releasing connections. Not owned by the returned client.</p></dd><dt class="param">config</dt><dd class="cmt"><p>blaze client configuration.</p></dd><dt class="param">onShutdown</dt><dd class="cmt"><p>arbitrary tasks that will be executed when this client is shutdown</p></dd></dl></div>
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
