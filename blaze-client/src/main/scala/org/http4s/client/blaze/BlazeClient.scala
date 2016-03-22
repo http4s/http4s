@@ -2,8 +2,8 @@ package org.http4s
 package client
 package blaze
 
+
 import org.http4s.blaze.pipeline.Command
-import org.http4s.util.threads.DefaultExecutorService
 import org.log4s.getLogger
 
 import scalaz.concurrent.Task
@@ -13,18 +13,15 @@ import scalaz.{-\/, \/-}
 object BlazeClient {
   private[this] val logger = getLogger
 
-  def apply[A <: BlazeConnection](manager: ConnectionManager[A], config: BlazeClientConfig): Client = {
-
-    val shutdownTask = manager.shutdown().flatMap(_ => Task.delay {
-      // shutdown executor services that have been implicitly created for us
-      config.executor match {
-        case es: DefaultExecutorService =>
-          logger.info(s"Shutting down default ExecutorService: $es")
-          es.shutdown()
-
-        case _ => /* NOOP */
-      }
-    })
+  /** Construct a new [[Client]] using blaze components
+    *
+    * @param manager source for acquiring and releasing connections. Not owned by the returned client.
+    * @param config blaze client configuration.
+    * @param onShutdown arbitrary tasks that will be executed when this client is shutdown
+    */
+  def apply[A <: BlazeConnection](manager: ConnectionManager[A],
+                                  config: BlazeClientConfig,
+                                  onShutdown: Task[Unit]): Client = {
 
     Client(Service.lift { req =>
       val key = RequestKey.fromRequest(req)
@@ -66,7 +63,7 @@ object BlazeClient {
       }
       val flushPrelude = !req.body.isHalt
       manager.borrow(key).flatMap(loop(_, flushPrelude))
-    }, shutdownTask)
+    }, onShutdown)
   }
 }
 

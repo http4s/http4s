@@ -9,7 +9,7 @@ import org.specs2.mutable.After
 // TODO: this should have a more comprehensive test suite
 class ExternalBlazeHttp1ClientSpec extends Http4sSpec {
 
-  private val simpleClient = SimpleHttp1Client(BlazeClientConfig.defaultConfig())
+  private val simpleClient = SimpleHttp1Client()
 
   "Blaze Simple Http1 Client" should {
     "Make simple https requests" in {

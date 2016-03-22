@@ -40,13 +40,10 @@ object threads {
       }
     }
 
-  /** Marker trait for thread factories we create ourselves, and thus we need to close ourselves. */
-  private[http4s] trait DefaultExecutorService { self: ExecutorService => }
-
   /** Creates a thread pool marked with the DefaultExecutorService trait, so we know to shut it down. */
-  private[http4s] def newDefaultFixedThreadPool(n: Int, threadFactory: ThreadFactory): ExecutorService with DefaultExecutorService =
+  private[http4s] def newDefaultFixedThreadPool(n: Int, threadFactory: ThreadFactory): ExecutorService =
     new ThreadPoolExecutor(n, n,
       0L, TimeUnit.MILLISECONDS,
       new LinkedBlockingQueue[Runnable],
-      threadFactory) with DefaultExecutorService
+      threadFactory)
 }

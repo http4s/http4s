@@ -25,7 +25,7 @@ class ClientTimeoutSpec extends Http4sSpec {
   val resp = "HTTP/1.1 200 OK\r\nContent-Length: 4\r\n\r\ndone"
 
   // The executor in here needs to be shut down manually because the `BlazeClient` class won't do it for us
-  private val defaultConfig = BlazeClientConfig.defaultConfig()
+  private val defaultConfig = BlazeClientConfig.defaultConfig
 
   private def mkConnection() = new Http1Connection(FooRequestKey, defaultConfig, ec)
 
@@ -35,7 +35,7 @@ class ClientTimeoutSpec extends Http4sSpec {
   private def mkClient(head: => HeadStage[ByteBuffer], tail: => BlazeConnection)
               (idleTimeout: Duration, requestTimeout: Duration): Client = {
     val manager = MockClientBuilder.manager(head, tail)
-    BlazeClient(manager, defaultConfig.copy(idleTimeout = idleTimeout, requestTimeout = requestTimeout))
+    BlazeClient(manager, defaultConfig.copy(idleTimeout = idleTimeout, requestTimeout = requestTimeout), Task.now(()))
   }
 
   "Http1ClientStage responses" should {
@@ -151,10 +151,5 @@ class ClientTimeoutSpec extends Http4sSpec {
 
       c.fetchAs[String](FooRequest).run must throwA[TimeoutException]
     }
-  }
-
-  // shutdown the executor we created
-  step {
-    defaultConfig.executor.shutdown()
   }
 }

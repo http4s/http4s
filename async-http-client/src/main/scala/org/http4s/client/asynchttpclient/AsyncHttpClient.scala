@@ -38,21 +38,22 @@ object AsyncHttpClient {
     *
     * @param config configuration for the client
     * @param bufferSize body chunks to buffer when reading the body; defaults to 8
-    * @param executorService the executor on which response tasks are run
+    * @param customExecutor custom executor which must be managed externally.
     */
   def apply(config: AsyncHttpClientConfig = defaultConfig,
             bufferSize: Int = 8,
-            executorService: ExecutorService = DefaultExecutor.newClientDefaultExecutorService("async-http-client-response")): Client = {
+            customExecutor: Option[ExecutorService] = None): Client = {
     val client = new DefaultAsyncHttpClient(config)
-    val close = executorService match {
-      case es: DefaultExecutorService =>
+    val executorService = customExecutor.getOrElse(DefaultExecutor.newClientDefaultExecutorService("async-http-client-response"))
+    val close =
+      if (customExecutor.isDefined)
+        Task.delay { client.close() }
+      else
         Task.delay {
           client.close()
-          es.shutdown()
+          executorService.shutdown()
         }
-      case _ =>
-        Task.delay { client.close() }
-    }
+
     Client(Service.lift { req =>
       Task.async[DisposableResponse] { cb =>
         client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, executorService))
