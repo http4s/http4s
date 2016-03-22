@@ -7,7 +7,7 @@ import org.http4s.dsl._
 import org.http4s.server._
 import org.http4s.server.blaze._
 import org.http4s.client.blaze._
-import org.http4s.util._
+import org.http4s.util.managed._
 import scalaz._
 import scalaz.concurrent._
 
@@ -21,9 +21,9 @@ object ManagedExample extends ManagedServerApp {
 
   def runServer(args: Vector[String]) = for {
     // These resources will be closed in reverse order
-    clientExecutor <- Executors.newFixedThreadPool(10).manage
-    client <- PooledHttp1Client(config = BlazeClientConfig.defaultConfig(clientExecutor)).manage
-    serverExecutor <- Executors.newFixedThreadPool(10).manage
-    server <- BlazeBuilder.withServiceExecutor(serverExecutor).mountService(service(client)).manage
+    clientExecutor <- manage(Executors.newFixedThreadPool(10))
+    client <- manage(PooledHttp1Client(config = BlazeClientConfig.defaultConfig(clientExecutor)))
+    serverExecutor <- manage(Executors.newFixedThreadPool(10))
+    server <- BlazeBuilder.withServiceExecutor(serverExecutor).mountService(service(client)).managed
   } yield server
 }

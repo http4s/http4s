@@ -2,8 +2,8 @@ package org.http4s
 package client
 
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.util.managed.Manageable
 
-import scalaz.Codensity
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.Process.{eval, eval_}
@@ -167,10 +167,12 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
     fetchAs(req)(d)
 
-  def manage: Codensity[Task, Client] =
-    org.http4s.util.managed(Task.now(this))(_.shutdown)
-
   /** Shuts this client down, and blocks until complete. */
   def shutdownNow(): Unit =
     shutdown.run
+}
+
+object Client {
+  implicit val clientIsManageable: Manageable[Client] =
+    Manageable.fromShutdown(_.shutdown)
 }

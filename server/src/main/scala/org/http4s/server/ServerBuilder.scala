@@ -6,9 +6,9 @@ import java.util.concurrent.ExecutorService
 
 import com.codahale.metrics.MetricRegistry
 import org.http4s.server.SSLSupport.StoreInfo
+import org.http4s.util.managed.{ Manageable, Managed }
 
 import scala.concurrent.duration._
-import scalaz.Codensity
 import scalaz.concurrent.{Strategy, Task}
 
 trait ServerBuilder {
@@ -40,8 +40,8 @@ trait ServerBuilder {
   final def run: Server =
     start.run
 
-  final def manage: Codensity[Task, Server] =
-    org.http4s.util.managed(start)(_.shutdown)
+  def managed: Managed[Server] =
+    org.http4s.util.managed.bracket(start)(_.shutdown)
 }
 
 object ServerBuilder {

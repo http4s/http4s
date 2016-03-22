@@ -5,7 +5,7 @@ import java.nio.charset.CharsetDecoder
 
 import scodec.bits.ByteVector
 
-import scalaz.{Codensity, State}
+import scalaz.State
 import scalaz.concurrent.Task
 import scalaz.stream.{process1, Channel, Process, Process1}
 import scalaz.stream.Process._
@@ -13,35 +13,6 @@ import scalaz.stream.io.bufferedChannel
 import scalaz.std.option.none
 
 package object util {
-
-  import java.util.concurrent.ExecutorService
-
-  private[this] val managedLogger = org.log4s.getLogger("org.http4s.util.managed")
-
-  def managed[R, A](acquire: Task[R])(shutdown: R => Task[Unit]): Codensity[Task, R] =
-    new Codensity[Task, R] {
-      def apply[A](f: R => Task[A]): Task[A] =
-        acquire.flatMap { r =>
-          managedLogger.info(s"Acquired managed resource: $r")
-          f(r).onFinish {
-            case _ =>
-              managedLogger.info(s"Shutting down managed resource: $r")
-              shutdown(r).handle {
-                case t: Throwable =>
-                  managedLogger.error(t)("Error closing managed resource")
-              }
-          }
-        }
-    }
-
-  def manageExecutorService(esTask: Task[ExecutorService]): Codensity[Task, ExecutorService] =
-    managed(esTask)(es => Task.delay(es.shutdown))
-
-  implicit class ExecutorServiceSyntax(val self: ExecutorService) extends AnyVal {
-    def manage: Codensity[Task, ExecutorService] =
-      manageExecutorService(Task.now(self))
-  }
-
   /** Temporary.  Contribute back to scalaz-stream. */
   def decode(charset: Charset): Process1[ByteVector, String] = suspend {
     val decoder = charset.nioCharset.newDecoder

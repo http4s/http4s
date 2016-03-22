@@ -4,7 +4,7 @@ package server
 import scalaz.{\/, Codensity, ImmutableArray}
 import scalaz.concurrent.Task
 
-import org.http4s.util.ManagedApp
+import org.http4s.util.managed.ManagedApp
 
 trait ManagedServerApp extends ManagedApp {
   final def run(args: Vector[String]): Codensity[Task, Unit] =
