@@ -17,6 +17,6 @@ object PooledHttp1Client {
     val (ex,shutdown) = bits.getExecutor(config)
     val http1 = Http1Support(config, ex)
     val pool = ConnectionManager.pool(http1, maxTotalConnections, ex)
-    BlazeClient(pool, config, shutdown)
+    BlazeClient(pool, config, pool.shutdown().flatMap(_ =>shutdown))
   }
 }
