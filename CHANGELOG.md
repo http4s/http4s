@@ -16,6 +16,13 @@
 * Add a `lenient` flag to blazee configuration to accept illegal characters in headers.
 * Remove q-value from `MediaRange` and `MediaType`, replaced by `MediaRangeAndQValue`.
 * Add `address` to `Server` trait.
+* Lazily construct request body in Servlet NIO to support HTTP 100.
+* Common operations pushed down to `MessageOps`.
+* Fix loop in blaze-client when no connection can be established.
+* Privatize most of the blaze internal types.
+* Enable configuration of blaze server parser lengths.
+* Add trailer support in blaze client.
+* Provide an optional external executor to blaze clients.
 
 # v0.12.4 (2016-03-10)
 * Fix bug on rejection of invalid URIs.
