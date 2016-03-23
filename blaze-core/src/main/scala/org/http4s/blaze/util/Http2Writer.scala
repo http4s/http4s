@@ -15,7 +15,7 @@ class Http2Writer(tail: TailStage[Http2Msg],
                   protected val ec: ExecutionContext) extends ProcessWriter {
 
   override protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
-    val f = if (headers == null) tail.channelWrite(DataFrame(isLast = true, data = chunk.toByteBuffer))
+    val f = if (headers == null) tail.channelWrite(DataFrame(true, chunk.toByteBuffer))
     else {
       val hs = headers
       headers = null
@@ -29,11 +29,11 @@ class Http2Writer(tail: TailStage[Http2Msg],
   override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
     if (chunk.isEmpty) Future.successful(())
     else {
-      if (headers == null) tail.channelWrite(DataFrame(isLast = false, data = chunk.toByteBuffer))
+      if (headers == null) tail.channelWrite(DataFrame(false, chunk.toByteBuffer))
       else {
         val hs = headers
         headers = null
-        tail.channelWrite(HeadersFrame(None, false, hs)::DataFrame(isLast = false, data = chunk.toByteBuffer)::Nil)
+        tail.channelWrite(HeadersFrame(None, false, hs)::DataFrame(false, chunk.toByteBuffer)::Nil)
       }
     }
   }
