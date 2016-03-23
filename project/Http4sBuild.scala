@@ -65,7 +65,7 @@ object Http4sBuild extends Build {
       case Seq(7, 2, _*) => "3.7.2"
     }
 
-  lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.4.v20150727"
+  lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.7.v20160121"
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.2-M1"
   lazy val asyncHttp           = "org.asynchttpclient"       % "async-http-client"       % "2.0.0-RC7"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.0-SNAPSHOT"

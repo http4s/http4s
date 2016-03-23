@@ -80,7 +80,7 @@ private class Http2NodeStage(streamId: Int,
     val t = Task.async[ByteVector] { cb =>
       if (complete) cb(-\/(Terminated(End)))
       else channelRead(timeout = timeout).onComplete {
-        case Success(DataFrame(last, bytes)) =>
+        case Success(DataFrame(last, bytes,_)) =>
           complete = last
           bytesRead += bytes.remaining()
 
@@ -215,7 +215,15 @@ private class Http2NodeStage(streamId: Int,
   private def renderResponse(req: Request, resp: Response): Unit = {
     val hs = new ArrayBuffer[(String, String)](16)
     hs += ((Status, Integer.toString(resp.status.code)))
-    resp.headers.foreach{ h => hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value)) }
+    resp.headers.foreach{ h =>
+      // Connection related headers must be removed from the message because
+      // this information is conveyed by other means.
+      // http://httpwg.org/specs/rfc7540.html#rfc.section.8.1.2
+      if (h.name != headers.`Transfer-Encoding`.name &&
+          h.name != headers.Connection.name) {
+        hs += ((h.name.value.toLowerCase(Locale.ROOT), h.value))
+      }
+    }
 
     new Http2Writer(this, hs, ec).writeProcess(resp.body).runAsync {
       case \/-(_)       => shutdownWithCommand(Cmd.Disconnect)
