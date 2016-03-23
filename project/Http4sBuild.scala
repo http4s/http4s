@@ -59,6 +59,8 @@ object Http4sBuild extends Build {
       case Seq(7, 1, _*) => ""
       case Seq(7, 2, _*) => "a"
     }
+  def scodecScalazVersion =
+    "1.2.0" + scalazCrossBuildSuffix
   def specs2Version =
     VersionNumber(scalazVersion).numbers match {
       case Seq(7, 1, _*) => "3.7.2-scalaz-7.1.7"
@@ -103,6 +105,7 @@ object Http4sBuild extends Build {
   lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2Core.revision
   lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2Core.revision
   lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % scalazStreamVersion
+  lazy val scodecScalaz        = "org.scodec"               %% "scodec-scalaz"           % scodecScalazVersion
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.32"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.1.1"
