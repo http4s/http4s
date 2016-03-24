@@ -11,7 +11,7 @@ trait ArgonautInstances {
     json.flatMapR { json =>
       decoder.decodeJson(json).fold(
         (message, history) =>
-          DecodeResult.failure(InvalidMessageBodyFailure("Could not decode JSON: $json, error: $message, cursor: $history")),
+          DecodeResult.failure(InvalidMessageBodyFailure(s"Could not decode JSON: $json, error: $message, cursor: $history")),
         DecodeResult.success(_)
       )
     }
