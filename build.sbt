@@ -183,6 +183,13 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core % "compile;test->test")
 
+lazy val aws = http4sProject("aws")
+  .settings(
+    description := "AWS support for http4s",
+    libraryDependencies += scodecScalaz
+  )
+  .dependsOn(core, client, jawn, json4sNative)
+
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
