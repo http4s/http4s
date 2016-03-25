@@ -167,7 +167,7 @@ object ExampleService {
     case req @ POST -> Root / "multipart" =>
       println("MULTIPART")
       req.decode[Multipart] { m =>
-        Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map { case f:FormData => f.name }.mkString("\n")}""")
+        Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map { case f: Part => f.name }.mkString("\n")}""")
       }
   }
 

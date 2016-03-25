@@ -13,15 +13,21 @@ import org.http4s.Http4s._
 import org.http4s.Uri._
 import org.http4s.util._
 import org.http4s.Status.Ok
+import scalaz.Equal
+import scalaz.concurrent.Task
 import scodec.bits._
 import org.http4s.EntityEncoder._
 import Entity._
 import scalaz.stream.Process
+import scalaz.std.string._
+import scalaz.std.vector._
+import scalaz.syntax.equal._
 import org.specs2.Specification
 import org.specs2.matcher.DisjunctionMatchers
 
 
-class MultipartSpec extends Specification  with DisjunctionMatchers {
+class MultipartSpec extends Specification with DisjunctionMatchers {
+  sequential
 
   def mpe: EntityEncoder[Multipart] = MultipartEntityEncoder
   def mpd: EntityDecoder[Multipart] = MultipartEntityDecoder.decoder
@@ -39,17 +45,22 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
       authority = Some(Authority(host = RegName("example.com"))),
       path = "/path/to/some/where")
 
-  val txtToEntity: String => EntityEncoder.Entity = in =>
-      EntityEncoder.Entity(Process.emit(in).map(s => ByteVector(s.getBytes)))
-   
+  implicit lazy val MultiPartEq: Equal[Multipart] =
+    Equal.equalBy[Multipart, Vector[Part]](_.parts)
+
+  // a.headers == b.headers doesn't do what I expected.
+  implicit lazy val PartEq: Equal[Part] =
+    Equal.equal { (a, b) => a.headers.size == b.headers.size && (a.headers zip b.headers).forall { case (ah, bh) => ah == bh } && a.body === b.body }
+
+  // This one is shady.
+  implicit lazy val EntityBodyEq: Equal[EntityBody] =
+    Equal.equalBy[EntityBody, String](_.pipe(scalaz.stream.text.utf8Decode).runFoldMap(identity).run)
+
   def encodeAndDecodeMultipart = {
 
-    val ctf1       = Some(`Content-Type`(`text/plain`))
-    val body1        = txtToEntity("Text_Field_1")
-    val field1     = FormData(Name("field1"), body1,ctf1)
-    val ef2        = txtToEntity("Text_Field_2")
-    val field2     = FormData(Name("field2"), ef2)
-    val multipart  = Multipart(List(field1,field2))
+    val field1     = Part.formData("field1", "Text_Field_1", `Content-Type`(`text/plain`))
+    val field2     = Part.formData("field2", "Text_Field_2")
+    val multipart  = Multipart(Vector(field1,field2))
     val entity     = mpe.toEntity(multipart)
     val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
     val request    = Request(method  = Method.POST,
@@ -58,28 +69,27 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
                              headers = multipart.headers )
     val decoded    = mpd.decode(request, true)
     val result     = decoded.run.run
-
     
-    result must be_\/-(multipart)
+    result must be_\/-.like { case mp => multipart === mp }
   }
 
   def encodeAndDecodeMultipartMissingContentType = {
 
-    val ef1        = txtToEntity("Text_Field_1")
-    val field1     = FormData(Name("field1"), ef1)
-    val multipart  = Multipart(List(field1))
+    val field1     = Part.formData("field1", "Text_Field_1")
+    val multipart  = Multipart(Vector(field1))
 
     val entity     = mpe.toEntity(multipart)
     val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
+    val bodyString = body.decodeUtf8.right.get
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = Process.emit(body),
                              headers = multipart.headers )                             
     val decoded    = mpd.decode(request, true)
     val result     = decoded.run.run
+    val resultStr  = mpe.toEntity(result.getOrElse(null)).run.body.runLog.run.fold(ByteVector.empty)((acc, x) => acc ++ x).decodeUtf8.right.get
 
-    
-    result must be_\/-(multipart)
+    result must be_\/-.like { case mp => multipart === mp }
   }
 
   def encodeAndDecodeMultipartWithBinaryFormData = {
@@ -87,15 +97,12 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
     val path       = "./core/src/test/resources/Animated_PNG_example_bouncing_beach_ball.png"
     val file       = new File(path)
     
-    val ef1        = txtToEntity("Text_Field_1")
-    val field1     = FormData(Name("field1"),ef1)
+    val field1     = Part.formData("field1", "Text_Field_1")
     
-    val ctf2       = Some(`Content-Type`(`image/png`))
     val ef2        = fileToEntity(file)
-    val field2     = FormData(Name("image"), ef2,ctf2)
+    val field2     = Part.fileData("image", file, `Content-Type`(`image/png`))
     
-    
-    val multipart  = Multipart(List(field1,field2))
+    val multipart  = Multipart(Vector(field1,field2))
     
     val entity     = mpe.toEntity(multipart)
     val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
@@ -106,8 +113,8 @@ class MultipartSpec extends Specification  with DisjunctionMatchers {
                                        
     val decoded    = mpd.decode(request, true)
     val result     = decoded.run.run
-    
-    result must be_\/-(multipart)
+
+    result must be_\/-.like { case mp => multipart === mp }
   }
 
   def decodeMultipartRequestWithContentTypes = {

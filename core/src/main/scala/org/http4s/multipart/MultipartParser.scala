@@ -1,6 +1,7 @@
 package org.http4s
 package multipart
 
+import java.nio.charset.StandardCharsets
 import scodec.bits.ByteVector
 
 import scalaz.stream.Process
@@ -31,12 +32,11 @@ case class MultipartParser(val input: ParserInput, val boundary:Boundary) extend
   // See https://www.ietf.org/rfc/rfc2045.txt Section 5.1
   def Key                 = rule { oneOrMore(Alpha | '-' )    }
   def Value               = rule { oneOrMore(!HeaderDelimiter ~ ANY)     }
-  def HeaderDelimiter     = rule { CRLF |  ";"   | "\"" }
+  def HeaderDelimiter     = rule { CRLF }
   //  Avoid name collision with http4s Header.
   def HeaderRule          = rule { 
-                                  (OLWS ~ capture(Key) ~ OLWS ~ ':' ~ OLWS ~ capture(Value)) ~ OLWS ~ 
-                                  optional(";" ~ oneOrMore(HeaderParameters).separatedBy(";")) ~>
-                                  ((k,v,p) => toHttp4sHeader(k,v,p) ) 
+                                  (OLWS ~ capture(Key) ~ OLWS ~ ':' ~ OLWS ~ capture(Value)) ~>
+                                  ((k,v) => toHttp4sHeader(k,v) ) 
                             }
   def Parameters          = rule { oneOrMore(HeaderParameters).separatedBy(";") } 
   def HeaderParameters    = rule { OLWS  ~ (capture(Key)  ~  OLWS ~  '=' ~  OLWS ~ 
@@ -58,43 +58,22 @@ case class MultipartParser(val input: ParserInput, val boundary:Boundary) extend
   import scalaz._
   import Scalaz._
     
-  private def toHttp4sHeader(key:String,value:String, parameters:Option[Seq[(String, String)]]): ParseFailure \/ Header = 
-    parameters match {
-      case Some(params) if  key == "Content-Disposition" =>  
-        val map = params.toList.toMap
-        lazy val none:ParseFailure \/ Header = ParseFailure("Missing parameter","Missing 'name' parameter. ").left 
-        val some:String => ParseFailure \/ Header = {name =>
-           `Content-Disposition`(name,map - ("name")).right
-         }
-         map.get("name").fold(none)(some)
-      case Some(params) =>  Header.Raw(key.ci,value).right
-      case None         =>  Header.Raw(key.ci,value).right 
-  }    
-  
+  private def toHttp4sHeader(key: String, value: String): ParseFailure \/ Header =
+    Header(key, value).right
   
   private def toPart(_headers:Seq[ParseFailure \/ Header],body:String): Seq[ParseFailure] \/ Part = {
     val headers = _headers.partition(_.isLeft) match {
       case (Nil,headers) => Headers(headers.flatMap(_.toOption).toList).right
       case (errs,_)      => errs.flatMap(_.swap.toOption).left
     }
-    val part: Headers => Seq[ParseFailure] \/ Part = { headers =>
-      lazy val contentType = headers.get(`Content-Type`) 
-      lazy val  failure = {
-       Seq(ParseFailure("Missing header","Missing Content-Disposition header")).left 
-      } 
-      lazy val  entityBody = EntityEncoder.Entity(Process.emit(ByteVector(body.getBytes))).right 
-      val success:`Content-Disposition` => Seq[ParseFailure] \/ Part = { cd =>        
-        entityBody.bimap(f => Seq(f),  b => FormData(multipart.Name(cd.dispositionType),b,contentType))     
-      }
-      headers.get(`Content-Disposition`).fold[Seq[ParseFailure] \/ Part](failure)(success)
-    }
-    headers flatMap part 
+    val entityBody = Process.emit(ByteVector(body.getBytes(StandardCharsets.UTF_8)))
+    headers.map(hs => Part(hs, entityBody))
   }   
   
   
   private def toMultipart(_parts:Seq[Seq[ParseFailure] \/ Part]):Seq[ParseFailure] \/ Multipart = 
     _parts.partition(_.isLeft) match {
-      case (Nil,parts) => Multipart(parts.flatMap(_.toOption), boundary).right
+      case (Nil,parts) => Multipart(parts.flatMap(_.toOption).toVector, boundary).right
       case (errs,_)    => errs.flatMap(_.swap.toOption).flatten.left
   }   
   
