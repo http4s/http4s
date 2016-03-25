@@ -4,8 +4,10 @@ import java.time.{ZoneId, Instant}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+import scodec.bits.ByteVector
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
+
 
 /** A type class that describes how to efficiently render a type
  * @tparam T the type which will be rendered
@@ -142,4 +144,19 @@ class StringWriter(size: Int = 64) extends Writer {
   override def append(long: Long) = { sb.append(long); this }
 
   def result(): String = sb.toString
+}
+/** [[Writer]] that will result in a `ByteVector`
+  * @param bv initial ByteVector`
+  */
+case class ByteVectorWriter(private var bv:ByteVector = ByteVector.empty) extends Writer {
+
+  override def append(s: String)       = { bv = bv ++ ByteVector(s.getBytes);this}
+  override def append(char: Char)      = { bv = bv ++ ByteVector(char.toByte);this}
+  override def append(float: Float)    = { bv = bv ++ ByteVector(float.toByte);this}
+  override def append(double: Double)  = { bv = bv ++ ByteVector(double.toByte);this}
+  override def append(int: Int)        = { bv = bv ++ ByteVector(int.toByte);this}
+  override def append(long: Long)      = { bv = bv ++ ByteVector(long.toByte);this}
+
+  def toByteVector() = bv
+
 }

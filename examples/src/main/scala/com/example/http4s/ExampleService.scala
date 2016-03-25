@@ -10,6 +10,7 @@ import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
 import org.http4s.circe._
+import org.http4s.multipart._
 import org.http4s.scalaxml._
 import org.http4s.server._
 import org.http4s.server.middleware.PushSupport._
@@ -23,6 +24,8 @@ import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
 
 object ExampleService {
 
+  implicit def mpd: EntityDecoder[Multipart] = MultipartEntityDecoder.decoder  
+
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = Router(
@@ -30,7 +33,7 @@ object ExampleService {
     "/auth" -> authService,
     "/science" -> ScienceExperiments.service
   )
-
+  
   def rootService(implicit executionContext: ExecutionContext) = HttpService {
     case req @ GET -> Root =>
       // Supports Play Framework template -- see src/main/twirl.
@@ -156,6 +159,16 @@ object ExampleService {
         .map(Task.now)
         .getOrElse(NotFound())
 
+    ///////////////////////////////////////////////////////////////
+    //////////////////////// Multi Part //////////////////////////
+    case req @ GET -> Root / "form" =>  
+            println("FORM")
+      Ok(html.form())        
+    case req @ POST -> Root / "multipart" =>
+      println("MULTIPART")
+      req.decode[Multipart] { m =>
+        Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map { case f:FormData => f.name }.mkString("\n")}""")
+      }
   }
 
   def helloWorldService = Ok("Hello World!")
