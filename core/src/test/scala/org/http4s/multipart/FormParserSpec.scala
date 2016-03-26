@@ -1,5 +1,7 @@
 package org.http4s
+package multipart
 
+import org.http4s.headers._
 import org.specs2.mutable._
 
 import scalaz.{-\/, \/-, \/}
@@ -7,10 +9,11 @@ import scalaz.stream.{Process, Process0}
 
 import scodec.bits.ByteVector
 
-object FormParserSpecs extends Specification {
+object FormParserSpec extends Specification {
   import Process._
 
   "form parsing" should {
+/*
     "produce the body from a single part input" in {
       def ruinDelims(str: String) = augmentString(str) flatMap {
         case '\n' => "\r\n"
@@ -32,10 +35,10 @@ object FormParserSpecs extends Specification {
 
       val input = ruinDelims(unprocessedInput)
 
-      val expectedHeaders = Map(
-        "Content-Disposition" -> """form-data; name="upload"; filename="integration.txt"""",
-        "Content-Type" -> "application/octet-stream",
-        "Content-Transfer-Encoding" -> "binary"
+      val expectedHeaders = Headers(
+        `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
+        `Content-Type`(MediaType.`application/octet-stream`),
+        Header("Content-Transfer-Encoding", "binary")
       )
 
       val expected = ruinDelims("""this is a test
@@ -56,9 +59,9 @@ object FormParserSpecs extends Specification {
         }
       }
 
-      val results: Process0[Map[String, String] \/ ByteVector] = unspool(input) pipe FormParser.parse
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse
 
-      val (headers, bv) = results.toVector.foldLeft((Map.empty[String, String], ByteVector.empty)) {
+      val (headers, bv) = results.toVector.foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
         case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, bvAcc)
       }
@@ -86,10 +89,10 @@ object FormParserSpecs extends Specification {
 
       val input = ruinDelims(unprocessedInput)
 
-      val expectedHeaders = Map(
-        "Content-Disposition" -> """form-data; name="upload"; filename="integration.txt"""",
-        "Content-Type" -> "application/octet-stream",
-        "Content-Transfer-Encoding" -> "binary"
+      val expectedHeaders = Headers(
+        `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
+        `Content-Type`(MediaType.`application/octet-stream`),
+        Header("Content-Transfer-Encoding", "binary")
       )
 
       val expected = ruinDelims("""this is a test
@@ -99,19 +102,65 @@ object FormParserSpecs extends Specification {
 
       def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
 
-      val results: Process0[Map[String, String] \/ ByteVector] = unspool(input) pipe FormParser.parse
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse
 
       val bytes = results.toVector collect {
         case \/-(bv) => bv
       }
 
-      val (headers, bv) = results.toVector.foldLeft((Map.empty[String, String], ByteVector.empty)) {
+      val (headers, bv) = results.toVector.foldLeft(Headers.empty, ByteVector.empty) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
         case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, bvAcc)
       }
 
       headers mustEqual (expectedHeaders)
       bv.decodeAscii mustEqual Right(expected)
+    }
+*/
+    "produce the body from a two-part input" in {
+      def ruinDelims(str: String) = augmentString(str) flatMap {
+        case '\n' => "\r\n"
+        case c => c.toString
+      }
+
+      val unprocessedInput = """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+        |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+        |Content-Type: application/octet-stream
+        |Content-Transfer-Encoding: binary
+        |
+        |this is a test
+        |here's another test
+        |catch me if you can!
+        |
+        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+        |Content-Disposition: form-data; name="foo"
+        |
+        |bar
+        |--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI--""".stripMargin
+
+      val input = ruinDelims(unprocessedInput)
+
+      val expectedHeaders = Headers(
+        `Content-Disposition`("form-data", Map("name" -> "upload", "filename" -> "integration.txt")),
+        `Content-Type`(MediaType.`application/octet-stream`),
+        Header("Content-Transfer-Encoding", "binary")
+      )
+
+      val expected = ruinDelims("""this is a test
+              |here's another test
+              |catch me if you can!
+              |""".stripMargin)
+
+      def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
+
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse
+
+      val (headers, bv) = results.toVector.foldLeft(Headers.empty, ByteVector.empty) {
+        case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
+        case ((hsAcc, bvAcc), -\/(hs)) => (hsAcc ++ hs, ByteVector.empty)
+      }
+
+      bv.decodeAscii mustEqual Right("bar")
     }
   }
 }

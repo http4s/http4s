@@ -23,6 +23,9 @@ final case class Part(headers: Headers, body: EntityBody) {
 }
 
 object Part {
+  val empty: Part =
+    Part(Headers.empty, EmptyBody)
+
   def formData(name: String, value: String, headers: Header*): Part =
     Part(`Content-Disposition`("form-data", Map("name" -> name)) +: headers, emit(value) |> utf8Encode)
 

@@ -41,7 +41,7 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
                        Boundary.CRLF         toByteVector()
     val end:           Boundary => ByteVector = boundary =>
                        ByteVectorWriter()                <<
-                       closeDelimiter(boundary) toByteVector
+                       closeDelimiter(boundary) toByteVector()
     val encapsulation: Boundary => String =     boundary =>
                        new StringWriter()                <<
                        Boundary.CRLF                     <<
