@@ -15,7 +15,7 @@ import scalaz.concurrent.Task
 import Entity._
 import scalaz.stream.Process
 
-object MultipartEntityEncoder extends EntityEncoder[Multipart] {
+private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
 
   //TODO: Refactor encoders to create headers dependent on value.
   def headers: Headers = Headers.empty

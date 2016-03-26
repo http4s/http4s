@@ -19,7 +19,7 @@ import org.parboiled2._
 import org.log4s.getLogger
 
 
-object MultipartEntityDecoder {
+private[http4s] object MultipartDecoder {
 
   private[this] val logger = getLogger
   

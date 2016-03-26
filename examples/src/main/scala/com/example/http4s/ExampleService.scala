@@ -24,8 +24,6 @@ import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
 
 object ExampleService {
 
-  implicit def mpd: EntityDecoder[Multipart] = MultipartEntityDecoder.decoder  
-
   // A Router can mount multiple services to prefixes.  The request is passed to the
   // service with the longest matching prefix.
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = Router(

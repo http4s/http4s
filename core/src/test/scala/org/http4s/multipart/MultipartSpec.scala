@@ -28,9 +28,6 @@ import org.specs2.matcher.DisjunctionMatchers
 
 class MultipartSpec extends Specification with DisjunctionMatchers {
   sequential
-
-  def mpe: EntityEncoder[Multipart] = MultipartEntityEncoder
-  def mpd: EntityDecoder[Multipart] = MultipartEntityDecoder.decoder
     
   def is = s2"""
     Multipart form data can be
@@ -61,13 +58,13 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val field1     = Part.formData("field1", "Text_Field_1", `Content-Type`(`text/plain`))
     val field2     = Part.formData("field2", "Text_Field_2")
     val multipart  = Multipart(Vector(field1,field2))
-    val entity     = mpe.toEntity(multipart)
+    val entity     = EntityEncoder[Multipart].toEntity(multipart)
     val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = Process.emit(body),
                              headers = multipart.headers )
-    val decoded    = mpd.decode(request, true)
+    val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
     
     result must be_\/-.like { case mp => multipart === mp }
@@ -78,16 +75,15 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val field1     = Part.formData("field1", "Text_Field_1")
     val multipart  = Multipart(Vector(field1))
 
-    val entity     = mpe.toEntity(multipart)
+    val entity     = EntityEncoder[Multipart].toEntity(multipart)
     val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
     val bodyString = body.decodeUtf8.right.get
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = Process.emit(body),
                              headers = multipart.headers )                             
-    val decoded    = mpd.decode(request, true)
+    val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
-    val resultStr  = mpe.toEntity(result.getOrElse(null)).run.body.runLog.run.fold(ByteVector.empty)((acc, x) => acc ++ x).decodeUtf8.right.get
 
     result must be_\/-.like { case mp => multipart === mp }
   }
@@ -104,14 +100,14 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     
     val multipart  = Multipart(Vector(field1,field2))
     
-    val entity     = mpe.toEntity(multipart)
+    val entity     = EntityEncoder[Multipart].toEntity(multipart)
     val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
     val request    = Request(method  = Method.POST,
                              uri     = url,
                              body    = Process.emit(body),
                              headers = multipart.headers )
                                        
-    val decoded    = mpd.decode(request, true)
+    val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
 
     result must be_\/-.like { case mp => multipart === mp }
@@ -142,7 +138,7 @@ Content-Type: application/pdf
                              body    = Process.emit(body).map(s => ByteVector(s.getBytes)),
                              headers = header)
 
-    val decoded    = mpd.decode(request, true)
+    val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
     
    result must be_\/-
@@ -168,7 +164,7 @@ I am a big moose
                              uri     = url,
                              body    = Process.emit(body).map(s => ByteVector(s.getBytes)),
                              headers = header)
-    val decoded    = mpd.decode(request, true)
+    val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
     
    result must be_\/-

@@ -18,8 +18,6 @@ import scalaz.stream._
 
 object ClientMultipartPostExample {
 
-  implicit val mpe: EntityEncoder[Multipart] = MultipartEntityEncoder
-
   val bottle = getClass().getResource("/beerbottle.png")
   
   def go:String = {
