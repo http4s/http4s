@@ -46,7 +46,7 @@ private[http4s] object MultipartDecoder {
         case Some(boundary) =>
           DecodeResult {
             msg.body
-              .pipe(FormParser.parse)
+              .pipe(FormParser.parse(Boundary(boundary)))
               .pipe(gatherParts)
               .runLog
               .map(parts => \/-(Multipart(parts, Boundary(boundary))))

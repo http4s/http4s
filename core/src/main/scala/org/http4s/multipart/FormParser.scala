@@ -12,19 +12,28 @@ import scalaz.stream.{process1, Process, Process1, Writer1}
 object FormParser {
   import Process._
 
-  def parse: Writer1[Headers, ByteVector, ByteVector] = {
+  private val logger = org.log4s.getLogger
+
+  private val CRLF = ByteVector('\r', '\n')
+  private val DASHDASH = ByteVector('-', '-')
+
+  def parse(boundary: Boundary): Writer1[Headers, ByteVector, ByteVector] = {
+    val boundaryBytes = boundary.toByteVector
+    val startLine = DASHDASH ++ boundaryBytes
+    val endLine = startLine ++ DASHDASH
+
     def receiveLine(leading: Option[ByteVector]): Writer1[ByteVector, ByteVector, (ByteVector, Option[ByteVector])] = {
       def handle(bv: ByteVector): Writer1[ByteVector, ByteVector, (ByteVector, Option[ByteVector])] = {
-        val index = bv indexOfSlice ByteVector('\r', '\n')
+        val index = bv indexOfSlice CRLF
 
         if (index >= 0) {
           val (head, tailPre) = bv splitAt index
           val tail = tailPre drop 2       // remove the line feed characters
           val tailM = Some(tail) filter { !_.isEmpty }
-
           emit(\/-((head, tailM)))
         }
         else if (bv.nonEmpty && bv.get(bv.length - 1) == '\r') {
+          // The CRLF may have split across chunks.
           val (head, cr) = bv.splitAt(bv.length - 1)
           emit(-\/(head)) ++ receive1(next => handle(cr ++ next))
         }
@@ -44,42 +53,42 @@ object FormParser {
     }
 
     lazy val start: Writer1[Headers, ByteVector, ByteVector] = {
-      def receiveExpectInit(leading: Option[ByteVector]): Process1[ByteVector, (ByteVector, Option[ByteVector])] = receiveCollapsedLine(leading) flatMap {
-        case (ByteVector.empty, tail) =>
-          // I suspect this could be rewritten to eliminate this condition.
-          receiveExpectInit(tail)
-        case (bv, tail) if bv.startsWith(ByteVector('\r', '\n')) =>
-          // This one, too.
-          receiveExpectInit(tail.map(bv.drop(2) ++ _))
-        case (bv, tail) if bv.startsWith(ByteVector('-', '-')) =>
-          if (bv.endsWith(ByteVector('-', '-')))
+      def beginPart(leading: Option[ByteVector]): Process1[ByteVector, Option[ByteVector]] = {
+        def isStartLine(line: ByteVector): Boolean =
+          line.startsWith(startLine) && isTransportPadding(line.drop(startLine.size))
+
+        def isEndLine(line: ByteVector): Boolean =
+          line.startsWith(endLine) && isTransportPadding(line.drop(endLine.size))
+
+        def isTransportPadding(bv: ByteVector): Boolean =
+          bv.toSeq.find(b => b != ' ' && b != '\t').isEmpty
+
+        receiveCollapsedLine(leading) flatMap {
+          case (line, tail) if isStartLine(line) =>
+            emit(tail)
+          case (line, tail) if isEndLine(line) =>
             halt
-          else
-            emit((ByteVector('\r', '\n') ++ bv, tail))
-        case (bv, tail) =>
-          // If we can make a nice string message, do it.  If it's binary goo, still show it.
-          val badLineDetails = bv.decodeUtf8.fold(_ => bv.toString, identity)
-          fail(InvalidMessageBodyFailure(s"""Expected next line to start with with "--": $badLineDetails"""))
+          case (line, _) =>
+            fail(InvalidMessageBodyFailure(s"Expected multipart boundary, got: $line"))
+            halt
+        }
       }
 
       def go(leading: Option[ByteVector]): Writer1[Headers, ByteVector, ByteVector] = {
-        receiveExpectInit(leading) flatMap {
-          case (ByteVector.empty, leading) =>
-            go(leading)
-          case (expected, leading) => {
-            for {
-              headerPair <- header(leading, expected)
-              (headers, leading2) = headerPair
-              spacePair <- receiveCollapsedLine(leading2)
-              (chomp, leading3) = spacePair // eat the space between header and content
-              part <- emit(-\/(headers)) ++ body(leading3, expected).flatMap {
-                case (chunk, None) =>
-                  emit(\/-(chunk))
-                case (chunk, some @ Some(remainder)) => 
-                  emit(\/-(chunk)) ++ go(some)
-              }
-            } yield part
-          }
+        beginPart(leading) flatMap { tail =>
+          val expected = CRLF ++ startLine
+          for {
+            headerPair <- header(tail, expected)
+            (headers, tail2) = headerPair
+            spacePair <- receiveCollapsedLine(tail2)
+            (chomp, tail3) = spacePair // eat the space between header and content
+            part <- emit(-\/(headers)) ++ body(tail3, expected).flatMap {
+              case (chunk, None) =>
+                emit(\/-(chunk))
+              case (chunk, some @ Some(remainder)) =>
+                emit(\/-(chunk)) ++ go(some)
+            }
+          } yield part
         }
       }
 
@@ -123,7 +132,8 @@ object FormParser {
         val idx = bv indexOfSlice expected
         if (idx >= 0) {
           // if we find the terminator *within* the chunk, we need to just trip and be done
-          emit((bv take idx, Some(bv drop idx)))
+          // the +2 consumes the CRLF before the multipart boundary
+          emit((bv take idx, Some(bv drop (idx + 2))))
         } else {
           // find goes from front to back, and heads is in order from longest to shortest, thus we always greedily match
           heads find (bv endsWith) map { tail =>

@@ -12,13 +12,15 @@ import scodec.bits.ByteVector
 object FormParserSpec extends Specification {
   import Process._
 
+  val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
+
+  def ruinDelims(str: String) = augmentString(str) flatMap {
+    case '\n' => "\r\n"
+    case c => c.toString
+  }
+
   "form parsing" should {
-/*
     "produce the body from a single part input" in {
-      def ruinDelims(str: String) = augmentString(str) flatMap {
-        case '\n' => "\r\n"
-        case c => c.toString
-      }
 
       val Limit = 15
 
@@ -59,7 +61,7 @@ object FormParserSpec extends Specification {
         }
       }
 
-      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse(boundary)
 
       val (headers, bv) = results.toVector.foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
@@ -71,11 +73,6 @@ object FormParserSpec extends Specification {
     }
 
     "produce the body from a single part input without limit" in {
-      def ruinDelims(str: String) = augmentString(str) flatMap {
-        case '\n' => "\r\n"
-        case c => c.toString
-      }
-
       val unprocessedInput = """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
         |Content-Disposition: form-data; name="upload"; filename="integration.txt"
         |Content-Type: application/octet-stream
@@ -102,7 +99,7 @@ object FormParserSpec extends Specification {
 
       def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
 
-      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse(boundary)
 
       val bytes = results.toVector collect {
         case \/-(bv) => bv
@@ -116,13 +113,8 @@ object FormParserSpec extends Specification {
       headers mustEqual (expectedHeaders)
       bv.decodeAscii mustEqual Right(expected)
     }
-*/
-    "produce the body from a two-part input" in {
-      def ruinDelims(str: String) = augmentString(str) flatMap {
-        case '\n' => "\r\n"
-        case c => c.toString
-      }
 
+    "produce the body from a two-part input" in {
       val unprocessedInput = """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
         |Content-Disposition: form-data; name="upload"; filename="integration.txt"
         |Content-Type: application/octet-stream
@@ -153,7 +145,7 @@ object FormParserSpec extends Specification {
 
       def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
 
-      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse(boundary)
 
       val (headers, bv) = results.toVector.foldLeft(Headers.empty, ByteVector.empty) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
