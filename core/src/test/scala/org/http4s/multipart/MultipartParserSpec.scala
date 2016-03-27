@@ -9,7 +9,7 @@ import scalaz.stream.{Process, Process0}
 
 import scodec.bits.ByteVector
 
-object FormParserSpec extends Specification {
+object MultipartParserSpec extends Specification {
   import Process._
 
   val boundary = Boundary("_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI")
@@ -61,7 +61,7 @@ object FormParserSpec extends Specification {
         }
       }
 
-      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse(boundary)
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe MultipartParser.parse(boundary)
 
       val (headers, bv) = results.toVector.foldLeft((Headers.empty, ByteVector.empty)) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)
@@ -99,7 +99,7 @@ object FormParserSpec extends Specification {
 
       def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
 
-      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse(boundary)
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe MultipartParser.parse(boundary)
 
       val bytes = results.toVector collect {
         case \/-(bv) => bv
@@ -145,7 +145,7 @@ object FormParserSpec extends Specification {
 
       def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
 
-      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe FormParser.parse(boundary)
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe MultipartParser.parse(boundary)
 
       val (headers, bv) = results.toVector.foldLeft(Headers.empty, ByteVector.empty) {
         case ((hsAcc, bvAcc), \/-(bv)) => (hsAcc, bvAcc ++ bv)

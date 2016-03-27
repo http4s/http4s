@@ -23,8 +23,8 @@ private[http4s] object MultipartDecoder {
 
   private[this] val logger = getLogger
   
-  val decoder:EntityDecoder[Multipart] =
-    EntityDecoder.decodeBy(MediaType.`multipart/form-data`) { msg =>
+  val decoder: EntityDecoder[Multipart] =
+    EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       def gatherParts = {
         def go(part: Part): Process1[Headers \/ ByteVector, Part] =
           receive1Or[Headers \/ ByteVector, Part](emit(part)) {
@@ -46,7 +46,7 @@ private[http4s] object MultipartDecoder {
         case Some(boundary) =>
           DecodeResult {
             msg.body
-              .pipe(FormParser.parse(Boundary(boundary)))
+              .pipe(MultipartParser.parse(Boundary(boundary)))
               .pipe(gatherParts)
               .runLog
               .map(parts => \/-(Multipart(parts, Boundary(boundary))))

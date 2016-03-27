@@ -9,7 +9,7 @@ import scalaz.{-\/, \/-, \/}
 import scalaz.stream.{process1, Process, Process1, Writer1}
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
-object FormParser {
+object MultipartParser {
   import Process._
 
   private val logger = org.log4s.getLogger
