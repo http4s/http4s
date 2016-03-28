@@ -21,6 +21,7 @@ import Entity._
 import scalaz.stream.Process
 import scalaz.std.string._
 import scalaz.std.vector._
+import scalaz.stream.text._
 import scalaz.syntax.equal._
 import org.specs2.Specification
 import org.specs2.matcher.DisjunctionMatchers
@@ -51,7 +52,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
 
   // This one is shady.
   implicit lazy val EntityBodyEq: Equal[EntityBody] =
-    Equal.equalBy[EntityBody, String](_.pipe(scalaz.stream.text.utf8Decode).runFoldMap(identity).run)
+    Equal.equalBy[EntityBody, String](_.pipe(utf8Decode).runFoldMap(identity).run)
 
   def encodeAndDecodeMultipart = {
 
@@ -59,10 +60,10 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val field2     = Part.formData("field2", "Text_Field_2")
     val multipart  = Multipart(Vector(field1,field2))
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
+    val body       = entity.run.body
     val request    = Request(method  = Method.POST,
                              uri     = url,
-                             body    = Process.emit(body),
+                             body    = body,
                              headers = multipart.headers )
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
@@ -76,11 +77,10 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val multipart  = Multipart(Vector(field1))
 
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
-    val bodyString = body.decodeUtf8.right.get
+    val body       = entity.run.body
     val request    = Request(method  = Method.POST,
                              uri     = url,
-                             body    = Process.emit(body),
+                             body    = body,
                              headers = multipart.headers )                             
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
@@ -101,10 +101,10 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val multipart  = Multipart(Vector(field1,field2))
     
     val entity     = EntityEncoder[Multipart].toEntity(multipart)
-    val body       = entity.run.body.runLog.run.fold(ByteVector.empty)((acc,x) => acc ++ x )
+    val body       = entity.run.body
     val request    = Request(method  = Method.POST,
                              uri     = url,
-                             body    = Process.emit(body),
+                             body    = body,
                              headers = multipart.headers )
                                        
     val decoded    = EntityDecoder[Multipart].decode(request, true)
@@ -135,7 +135,7 @@ Content-Type: application/pdf
     val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("----WebKitFormBoundarycaZFo8IAKVROTEeD"))))
     val request    = Request(method  = Method.POST,
                              uri     = url,
-                             body    = Process.emit(body).map(s => ByteVector(s.getBytes)),
+                             body    = Process.emit(body).pipe(utf8Encode),
                              headers = header)
 
     val decoded    = EntityDecoder[Multipart].decode(request, true)
@@ -162,7 +162,7 @@ I am a big moose
     val header     = Headers(`Content-Type`(MediaType.multipart("form-data", Some("bQskVplbbxbC2JO8ibZ7KwmEe3AJLx_Olz"))))
     val request    = Request(method  = Method.POST,
                              uri     = url,
-                             body    = Process.emit(body).map(s => ByteVector(s.getBytes)),
+                             body    = Process.emit(body).pipe(utf8Encode),
                              headers = header)
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
