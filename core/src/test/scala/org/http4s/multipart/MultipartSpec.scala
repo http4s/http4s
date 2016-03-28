@@ -35,7 +35,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
         encoded and decoded without content types  $encodeAndDecodeMultipartMissingContentType
         encoded and decoded with    binary data    $encodeAndDecodeMultipartWithBinaryFormData        
         decode  and encode  with    content types  $decodeMultipartRequestWithContentTypes
-        decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes        
+        decode  and encode  without content types  $decodeMultipartRequestWithoutContentTypes
      """
   val url = Uri(
       scheme = Some(CaseInsensitiveString("https")),

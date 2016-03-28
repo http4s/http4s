@@ -154,5 +154,22 @@ object MultipartParserSpec extends Specification {
 
       bv.decodeAscii mustEqual Right("bar")
     }
+
+    "fail with an InvalidMessageBodyFailure without an end line" in {
+      val unprocessedInput = """--_5PHqf8_Pl1FCzBuT5o_mVZg36k67UYI
+        |Content-Disposition: form-data; name="upload"; filename="integration.txt"
+        |Content-Type: application/octet-stream
+        |Content-Transfer-Encoding: binary
+        |
+        |this is a test
+        |here's another test
+        |catch me if you can!""".stripMargin
+      val input = ruinDelims(unprocessedInput)
+
+      def unspool(str: String): Process0[ByteVector] = emit(ByteVector view (str getBytes "ASCII"))
+      val results: Process0[Headers \/ ByteVector] = unspool(input) pipe MultipartParser.parse(boundary)
+
+      results.toVector must throwAn[InvalidMessageBodyFailure]
+    }
   }
 }

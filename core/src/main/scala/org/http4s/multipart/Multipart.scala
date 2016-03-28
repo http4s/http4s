@@ -14,7 +14,8 @@ import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 import org.http4s.util.string._
 import scalaz.std.string._
-import scalaz.stream.Process.emit
+import scalaz.stream.Process.{ constant, emit }
+import scalaz.stream.io.chunkR
 import scalaz.stream.text.utf8Encode
 import scodec.bits.{ BitVector, ByteVector }
 
@@ -29,26 +30,18 @@ object Part {
   def formData(name: String, value: String, headers: Header*): Part =
     Part(`Content-Disposition`("form-data", Map("name" -> name)) +: headers, emit(value) |> utf8Encode)
 
-  def fileData(name: String, file: File, headers: Header*): Part = {
-    val in = new FileInputStream(file)
-    try fileData(name, file.getName, in, headers:_*)
-    finally in.close()
-  }
+  def fileData(name: String, file: File, headers: Header*): Part =
+    fileData(name, file.getName, new FileInputStream(file), headers:_*)
 
-  def fileData(name: String, resource: URL, headers: Header*): Part = {
-    val in = resource.openStream()
-    try fileData(name, resource.getPath.split("/").last, in, headers:_*)
-    finally in.close()
-  }
+  def fileData(name: String, resource: URL, headers: Header*): Part =
+    fileData(name, resource.getPath.split("/").last, resource.openStream(), headers:_*)
 
-  private def fileData(name: String, filename: String, in: InputStream, headers: Header*): Part = {
-    // TODO Reading the whole file into one chunk is abominable
-    val body = BitVector.fromInputStream(in).toByteVector
+  private def fileData(name: String, filename: String, in: => InputStream, headers: Header*): Part = {
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
            Header("Content-Transfer-Encoding", "binary") +:
            headers,
-         emit(body))
-  }
+         constant(8192).toSource through chunkR(in))
+   }
 }
 
 final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.create) {

@@ -68,9 +68,10 @@ object MultipartParser {
             emit(tail)
           case (line, tail) if isEndLine(line) =>
             halt
+          case (ByteVector.empty, tail) => // This case smells funny to me.
+            beginPart(tail)
           case (line, _) =>
             fail(InvalidMessageBodyFailure(s"Expected multipart boundary, got: $line"))
-            halt
         }
       }
 
@@ -82,7 +83,7 @@ object MultipartParser {
             (headers, tail2) = headerPair
             spacePair <- receiveCollapsedLine(tail2)
             (chomp, tail3) = spacePair // eat the space between header and content
-            part <- emit(-\/(headers)) ++ body(tail3, expected).flatMap {
+            part <- emit(-\/(headers)) ++ body(tail3.map(_.compact), expected).flatMap {
               case (chunk, None) =>
                 emit(\/-(chunk))
               case (chunk, some @ Some(remainder)) =>
@@ -146,8 +147,8 @@ object MultipartParser {
         if (remainder.isEmpty) {
           halt
         } else {
-          // the "or" is basically an error case, but whatever
-          receive1Or[ByteVector, (ByteVector, Option[ByteVector])](emit((buffer, None))) { bv =>
+          receive1Or[ByteVector, (ByteVector, Option[ByteVector])](
+            fail(new InvalidMessageBodyFailure("Part was not terminated"))) { bv =>
             val (remFront, remBack) = remainder splitAt bv.length
 
             if (bv startsWith remFront)     // there might be trailing junk
