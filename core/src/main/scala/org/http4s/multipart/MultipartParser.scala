@@ -52,7 +52,7 @@ object MultipartParser {
       }
     }
 
-    lazy val start: Writer1[Headers, ByteVector, ByteVector] = {
+    def start: Writer1[Headers, ByteVector, ByteVector] = {
       def beginPart(leading: Option[ByteVector]): Process1[ByteVector, Option[ByteVector]] = {
         def isStartLine(line: ByteVector): Boolean =
           line.startsWith(startLine) && isTransportPadding(line.drop(startLine.size))
