@@ -14,6 +14,9 @@ package org.http4s
   * - When decoding, chunks are kept in memory.  Large ones should be
   * buffered to a temp file.
   * 
+  * - It's a bit handwavy around character sets.  Things probably go
+  * horribly wrong if you're not UTF-8.
+  * 
   * - This module is lightly tested, and its API should be considered
   * experimental.
   * 
