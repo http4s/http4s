@@ -170,10 +170,10 @@ object MediaType extends Registry {
   private def binary = true
   private def notBinary = false
 
-    def multipart(subType: String, boundry: Option[String] = None) = {
-      val ext = boundry.map(b => Map( "boundary" -> b)).getOrElse(Map.empty)
-      new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext)
-    }
+  def multipart(subType: String, boundary: Option[String] = None) = {
+    val ext = boundary.map(b => Map( "boundary" -> b)).getOrElse(Map.empty)
+    new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext)
+  }
 
   private[this] def app(subType: String, compressible: Boolean, binary: Boolean, fileExtensions: String*) =
     registerValue(new MediaType("application", subType, compressible, binary, fileExtensions))
