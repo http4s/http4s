@@ -43,15 +43,9 @@ object Part {
 
   private def fileData(name: String, filename: String, in: InputStream, headers: Header*): Part = {
     // TODO Reading the whole file into one chunk is abominable
-    val bitVector = BitVector.fromInputStream(in)
-    val body = ByteVector.view {
-      Base64.getMimeEncoder(76, "\r\n".getBytes(StandardCharsets.UTF_8))
-        .encode(bitVector.toByteArray)
-    }
-
-   
+    val body = BitVector.fromInputStream(in).toByteVector
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
-           Header("Content-Transfer-Encoding", "base64") +:
+           Header("Content-Transfer-Encoding", "binary") +:
            headers,
          emit(body))
   }
