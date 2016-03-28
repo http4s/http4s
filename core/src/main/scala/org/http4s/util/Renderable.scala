@@ -1,5 +1,6 @@
 package org.http4s.util
 
+import java.nio.charset.{ Charset, StandardCharsets }
 import java.time.{ZoneId, Instant}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
@@ -148,15 +149,15 @@ class StringWriter(size: Int = 64) extends Writer {
 /** [[Writer]] that will result in a `ByteVector`
   * @param bv initial ByteVector`
   */
-case class ByteVectorWriter(private var bv:ByteVector = ByteVector.empty) extends Writer {
+case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
+                            charset: Charset = StandardCharsets.UTF_8) extends Writer {
 
-  override def append(s: String)       = { bv = bv ++ ByteVector(s.getBytes);this}
-  override def append(char: Char)      = { bv = bv ++ ByteVector(char.toByte);this}
-  override def append(float: Float)    = { bv = bv ++ ByteVector(float.toByte);this}
-  override def append(double: Double)  = { bv = bv ++ ByteVector(double.toByte);this}
-  override def append(int: Int)        = { bv = bv ++ ByteVector(int.toByte);this}
-  override def append(long: Long)      = { bv = bv ++ ByteVector(long.toByte);this}
+  override def append(s: String)       = { bv = bv ++ ByteVector(s.getBytes(charset)); this}
+  override def append(char: Char)      = append(char.toString)
+  override def append(float: Float)    = append(float.toString)
+  override def append(double: Double)  = append(double.toString)
+  override def append(int: Int)        = append(int.toString)
+  override def append(long: Long)      = append(long.toString)
 
   def toByteVector() = bv
-
 }
