@@ -1,4 +1,4 @@
-# v0.13.0 (unreleased)
+# v0.13.0 (2016-03-29)
 * Add support for scalaz-7.2.x (use version 0.13.0a).
 * Add a client backed based on async-http-client.
 * Encode keys when rendering a query string.
@@ -23,6 +23,7 @@
 * Enable configuration of blaze server parser lengths.
 * Add trailer support in blaze client.
 * Provide an optional external executor to blaze clients.
+* Fix Argonaut string interpolation
 
 # v0.12.4 (2016-03-10)
 * Fix bug on rejection of invalid URIs.
