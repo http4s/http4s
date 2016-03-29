@@ -67,4 +67,4 @@ patches will be considered.
 [community]: community
 [code of conduct]: community/conduct.html
 [docs/0.13]: docs/0.13
-[docs/0.14]: docs/0.13
+[docs/0.14]: docs/0.14
