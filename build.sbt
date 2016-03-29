@@ -8,7 +8,7 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := s"0.13.0${scalazCrossBuildSuffix}"
+version      in ThisBuild := s"0.14.0${scalazCrossBuildSuffix}-SNAPSHOT"
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaVersion in ThisBuild := "2.10.6"
 crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.8"))
