@@ -47,14 +47,14 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeClientConfig</span><span class="params">(<span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="endpointAuthentication">endpointAuthentication: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="lenientParser">lenientParser: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="executor">executor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <span class="name">BlazeClientConfig</span><span class="params">(<span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="endpointAuthentication">endpointAuthentication: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="lenientParser">lenientParser: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="customExecutor">customExecutor: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span>]</span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Config object for the blaze clients
-</p></div><dl class="paramcmts block"><dt class="param">idleTimeout</dt><dd class="cmt"><p>duration that a connection can wait without traffic before timeout</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>maximum duration for a request to complete before a timeout</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace the default</p></dd><dt class="param">endpointAuthentication</dt><dd class="cmt"><p>require endpoint authentication for encrypted connections</p></dd><dt class="param">maxResponseLineSize</dt><dd class="cmt"><p>maximum length of the request line</p></dd><dt class="param">maxHeaderLength</dt><dd class="cmt"><p>maximum length of headers</p></dd><dt class="param">maxChunkSize</dt><dd class="cmt"><p>maximum size of chunked content chunks</p></dd><dt class="param">lenientParser</dt><dd class="cmt"><p>a lenient parser will accept illegal chars but replaces them with � (0xFFFD)</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>internal buffer size of the blaze client</p></dd><dt class="param">executor</dt><dd class="cmt"><p>thread pool where asynchronous computations will be performed</p></dd><dt class="param">group</dt><dd class="cmt"><p>custom <code>AsynchronousChannelGroup</code> to use other than the system default</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientConfig.scala" target="_blank">BlazeClientConfig.scala</a></dd></dl><div class="toggleContainer block">
+</p></div><dl class="paramcmts block"><dt class="param">idleTimeout</dt><dd class="cmt"><p>duration that a connection can wait without traffic before timeout</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>maximum duration for a request to complete before a timeout</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace the default</p></dd><dt class="param">endpointAuthentication</dt><dd class="cmt"><p>require endpoint authentication for encrypted connections</p></dd><dt class="param">maxResponseLineSize</dt><dd class="cmt"><p>maximum length of the request line</p></dd><dt class="param">maxHeaderLength</dt><dd class="cmt"><p>maximum length of headers</p></dd><dt class="param">maxChunkSize</dt><dd class="cmt"><p>maximum size of chunked content chunks</p></dd><dt class="param">lenientParser</dt><dd class="cmt"><p>a lenient parser will accept illegal chars but replaces them with � (0xFFFD)</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>internal buffer size of the blaze client</p></dd><dt class="param">customExecutor</dt><dd class="cmt"><p>custom executor to run async computations. Will not be shutdown with client.</p></dd><dt class="param">group</dt><dd class="cmt"><p>custom <code>AsynchronousChannelGroup</code> to use other than the system default</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/blaze-client/src/main/scala/org/http4s/client/blaze/BlazeClientConfig.scala" target="_blank">BlazeClientConfig.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div></div>
         
 
@@ -65,7 +65,7 @@
               <ol>
                 
                 <li class="alpha in"><span>Alphabetic</span></li>
-                <li class="inherit out"><span>By inheritance</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
               </ol>
             </div>
         <div id="ancestors">
@@ -83,7 +83,7 @@
             <span class="filtertype"></span>
             <ol>
               <li class="hideall out"><span>Hide All</span></li>
-              <li class="showall in"><span>Show all</span></li>
+              <li class="showall in"><span>Show All</span></li>
             </ol>
           </div>
         <div id="visbl">
@@ -97,7 +97,7 @@
         <div id="constructors" class="members">
               <h3>Instance Constructors</h3>
               <ol><li name="org.http4s.client.blaze.BlazeClientConfig#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="&lt;init&gt;(idleTimeout:scala.concurrent.duration.Duration,requestTimeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],sslContext:Option[javax.net.ssl.SSLContext],endpointAuthentication:Boolean,maxResponseLineSize:Int,maxHeaderLength:Int,maxChunkSize:Int,lenientParser:Boolean,bufferSize:Int,executor:java.util.concurrent.ExecutorService,group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.BlazeClientConfig"></a>
+      <a id="&lt;init&gt;(idleTimeout:scala.concurrent.duration.Duration,requestTimeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],sslContext:Option[javax.net.ssl.SSLContext],endpointAuthentication:Boolean,maxResponseLineSize:Int,maxHeaderLength:Int,maxChunkSize:Int,lenientParser:Boolean,bufferSize:Int,customExecutor:Option[java.util.concurrent.ExecutorService],group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.BlazeClientConfig"></a>
       <a id="&lt;init&gt;:BlazeClientConfig"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -105,14 +105,14 @@
         <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">BlazeClientConfig</span><span class="params">(<span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="endpointAuthentication">endpointAuthentication: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="lenientParser">lenientParser: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="executor">executor: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span>
+        <span class="name">BlazeClientConfig</span><span class="params">(<span name="idleTimeout">idleTimeout: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="requestTimeout">requestTimeout: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>, <span name="userAgent">userAgent: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>, <span name="sslContext">sslContext: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>, <span name="endpointAuthentication">endpointAuthentication: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="maxResponseLineSize">maxResponseLineSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxHeaderLength">maxHeaderLength: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="maxChunkSize">maxChunkSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="lenientParser">lenientParser: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="bufferSize">bufferSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>, <span name="customExecutor">customExecutor: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span>]</span>, <span name="group">group: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@&lt;init&gt;(idleTimeout:scala.concurrent.duration.Duration,requestTimeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],sslContext:Option[javax.net.ssl.SSLContext],endpointAuthentication:Boolean,maxResponseLineSize:Int,maxHeaderLength:Int,maxChunkSize:Int,lenientParser:Boolean,bufferSize:Int,executor:java.util.concurrent.ExecutorService,group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.BlazeClientConfig" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@&lt;init&gt;(idleTimeout:scala.concurrent.duration.Duration,requestTimeout:scala.concurrent.duration.Duration,userAgent:Option[org.http4s.headers.User-Agent],sslContext:Option[javax.net.ssl.SSLContext],endpointAuthentication:Boolean,maxResponseLineSize:Int,maxHeaderLength:Int,maxChunkSize:Int,lenientParser:Boolean,bufferSize:Int,customExecutor:Option[java.util.concurrent.ExecutorService],group:Option[java.nio.channels.AsynchronousChannelGroup]):org.http4s.client.blaze.BlazeClientConfig" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">idleTimeout</dt><dd class="cmt"><p>duration that a connection can wait without traffic before timeout</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>maximum duration for a request to complete before a timeout</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace the default</p></dd><dt class="param">endpointAuthentication</dt><dd class="cmt"><p>require endpoint authentication for encrypted connections</p></dd><dt class="param">maxResponseLineSize</dt><dd class="cmt"><p>maximum length of the request line</p></dd><dt class="param">maxHeaderLength</dt><dd class="cmt"><p>maximum length of headers</p></dd><dt class="param">maxChunkSize</dt><dd class="cmt"><p>maximum size of chunked content chunks</p></dd><dt class="param">lenientParser</dt><dd class="cmt"><p>a lenient parser will accept illegal chars but replaces them with � (0xFFFD)</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>internal buffer size of the blaze client</p></dd><dt class="param">executor</dt><dd class="cmt"><p>thread pool where asynchronous computations will be performed</p></dd><dt class="param">group</dt><dd class="cmt"><p>custom <code>AsynchronousChannelGroup</code> to use other than the system default</p></dd></dl></div>
+      <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">idleTimeout</dt><dd class="cmt"><p>duration that a connection can wait without traffic before timeout</p></dd><dt class="param">requestTimeout</dt><dd class="cmt"><p>maximum duration for a request to complete before a timeout</p></dd><dt class="param">userAgent</dt><dd class="cmt"><p>optional custom user agent header</p></dd><dt class="param">sslContext</dt><dd class="cmt"><p>optional custom <code>SSLContext</code> to use to replace the default</p></dd><dt class="param">endpointAuthentication</dt><dd class="cmt"><p>require endpoint authentication for encrypted connections</p></dd><dt class="param">maxResponseLineSize</dt><dd class="cmt"><p>maximum length of the request line</p></dd><dt class="param">maxHeaderLength</dt><dd class="cmt"><p>maximum length of headers</p></dd><dt class="param">maxChunkSize</dt><dd class="cmt"><p>maximum size of chunked content chunks</p></dd><dt class="param">lenientParser</dt><dd class="cmt"><p>a lenient parser will accept illegal chars but replaces them with � (0xFFFD)</p></dd><dt class="param">bufferSize</dt><dd class="cmt"><p>internal buffer size of the blaze client</p></dd><dt class="param">customExecutor</dt><dd class="cmt"><p>custom executor to run async computations. Will not be shutdown with client.</p></dd><dt class="param">group</dt><dd class="cmt"><p>custom <code>AsynchronousChannelGroup</code> to use other than the system default</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -131,7 +131,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -148,7 +148,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@##():Int" title="Permalink" target="_top">
@@ -210,7 +210,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -244,7 +244,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">bufferSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">bufferSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@bufferSize:Int" title="Permalink" target="_top">
@@ -261,7 +261,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@clone():Object" title="Permalink" target="_top">
@@ -275,6 +275,23 @@
     </span>)</span>
               
         </dd></dl></div>
+    </li><li name="org.http4s.client.blaze.BlazeClientConfig#customExecutor" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="customExecutor:Option[java.util.concurrent.ExecutorService]"></a>
+      <a id="customExecutor:Option[ExecutorService]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">customExecutor</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@customExecutor:Option[java.util.concurrent.ExecutorService]" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">custom executor to run async computations.</p><div class="fullcomment"><div class="comment cmt"><p>custom executor to run async computations. Will not be shutdown with client.</p></div></div>
     </li><li name="org.http4s.client.blaze.BlazeClientConfig#endpointAuthentication" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="endpointAuthentication:Boolean"></a>
       <a id="endpointAuthentication:Boolean"></a>
@@ -284,7 +301,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">endpointAuthentication</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">endpointAuthentication</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@endpointAuthentication:Boolean" title="Permalink" target="_top">
@@ -301,7 +318,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -322,7 +339,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
@@ -343,7 +360,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -364,7 +381,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.client.blaze.BlazeClientConfig">BlazeClientConfig</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@ensuring(cond:Boolean):A" title="Permalink" target="_top">
@@ -385,7 +402,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -393,23 +410,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.client.blaze.BlazeClientConfig#executor" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="executor:java.util.concurrent.ExecutorService"></a>
-      <a id="executor:ExecutorService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">val</span>
-      </span>
-      <span class="symbol">
-        <span class="name">executor</span><span class="result">: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@executor:java.util.concurrent.ExecutorService" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">thread pool where asynchronous computations will be performed</p>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -419,7 +419,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@finalize():Unit" title="Permalink" target="_top">
@@ -483,7 +483,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">group</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>
+        <span class="name">group</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="java.nio.channels.AsynchronousChannelGroup">AsynchronousChannelGroup</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@group:Option[java.nio.channels.AsynchronousChannelGroup]" title="Permalink" target="_top">
@@ -500,7 +500,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">idleTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>
+        <span class="name">idleTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@idleTimeout:scala.concurrent.duration.Duration" title="Permalink" target="_top">
@@ -517,7 +517,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -534,7 +534,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">lenientParser</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">lenientParser</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@lenientParser:Boolean" title="Permalink" target="_top">
@@ -551,7 +551,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">maxChunkSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">maxChunkSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@maxChunkSize:Int" title="Permalink" target="_top">
@@ -568,7 +568,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">maxHeaderLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">maxHeaderLength</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@maxHeaderLength:Int" title="Permalink" target="_top">
@@ -585,7 +585,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">maxResponseLineSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">maxResponseLineSize</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@maxResponseLineSize:Int" title="Permalink" target="_top">
@@ -602,7 +602,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -619,7 +619,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@notify():Unit" title="Permalink" target="_top">
@@ -636,7 +636,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@notifyAll():Unit" title="Permalink" target="_top">
@@ -653,7 +653,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">requestTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>
+        <span class="name">requestTimeout</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@requestTimeout:scala.concurrent.duration.Duration" title="Permalink" target="_top">
@@ -670,7 +670,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">sslContext</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>
+        <span class="name">sslContext</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="javax.net.ssl.SSLContext">SSLContext</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@sslContext:Option[javax.net.ssl.SSLContext]" title="Permalink" target="_top">
@@ -704,7 +704,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">userAgent</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>
+        <span class="name">userAgent</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../headers/User$minusAgent.html" class="extype" name="org.http4s.headers.User-Agent">User-Agent</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@userAgent:Option[org.http4s.headers.User-Agent]" title="Permalink" target="_top">
@@ -721,7 +721,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@wait():Unit" title="Permalink" target="_top">
@@ -744,7 +744,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
@@ -767,7 +767,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.blaze.BlazeClientConfig@wait(x$1:Long):Unit" title="Permalink" target="_top">
@@ -812,17 +812,17 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Serializable">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
             </div><div class="parent" name="java.io.Serializable">
               <h3>Inherited from <span class="extype" name="java.io.Serializable">Serializable</span></h3>
             </div><div class="parent" name="scala.Product">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
             </div><div class="parent" name="scala.Equals">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from

@@ -53,10 +53,10 @@
       
           <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/servlet/src/main/scala/org/http4s/servlet/ServletContainer.scala" target="_blank">ServletContainer.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../server/AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a>, <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="../server/AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a>, <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="../server/jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="../server/tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
+            <div class="subClasses hiddenContent"><a href="../server/jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../server/tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="../server/tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
           </div></div>
         
 
@@ -67,7 +67,7 @@
               <ol>
                 
                 <li class="alpha in"><span>Alphabetic</span></li>
-                <li class="inherit out"><span>By inheritance</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
               </ol>
             </div>
         <div id="ancestors">
@@ -85,7 +85,7 @@
             <span class="filtertype"></span>
             <ol>
               <li class="hideall out"><span>Hide All</span></li>
-              <li class="showall in"><span>Show all</span></li>
+              <li class="showall in"><span>Show All</span></li>
             </ol>
           </div>
         <div id="visbl">
@@ -139,6 +139,27 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+    </li><li name="org.http4s.servlet.ServletContainer#mountFilter" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="mountFilter(filter:javax.servlet.Filter,urlMapping:String,name:Option[String],dispatches:java.util.EnumSet[javax.servlet.DispatcherType]):ServletContainer.this.Self"></a>
+      <a id="mountFilter(Filter,String,Option[String],EnumSet[DispatcherType]):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">mountFilter</span><span class="params">(<span name="filter">filter: <span class="extype" name="javax.servlet.Filter">Filter</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="dispatches">dispatches: <span class="extype" name="java.util.EnumSet">EnumSet</span>[<span class="extype" name="javax.servlet.DispatcherType">DispatcherType</span>] = <span class="defval" name="EnumSet.of(DispatcherType.REQUEST, DispatcherType.FORWARD, DispatcherType.INCLUDE, DispatcherType.ASYNC)">...</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.servlet.ServletContainer@mountFilter(filter:javax.servlet.Filter,urlMapping:String,name:Option[String],dispatches:java.util.EnumSet[javax.servlet.DispatcherType]):ServletContainer.this.Self" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Mounts a filter to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a filter to the server.</p><p>The http4s way is to create a middleware around an  <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on
+servlet containers, but all supported backends.  This method is good for legacy scenarios,
+or for reusing parts of the servlet ecosystem for an app that is committed to running on
+a servlet container.
+</p></div></div>
     </li><li name="org.http4s.server.ServerBuilder#mountService" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="mountService(service:org.http4s.HttpService,prefix:String):ServerBuilder.this.Self"></a>
       <a id="mountService(HttpService,String):Self"></a>
@@ -156,7 +177,7 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
-    </li><li name="org.http4s.servlet.ServletContainer#mountServlet" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.servlet.ServletContainer#mountServlet" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String,name:Option[String]):ServletContainer.this.Self"></a>
       <a id="mountServlet(HttpServlet,String,Option[String]):Self"></a>
       <h4 class="signature">
@@ -165,14 +186,17 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">mountServlet</span><span class="params">(<span name="servlet">servlet: <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+        <span class="name">mountServlet</span><span class="params">(<span name="servlet">servlet: <span class="extype" name="javax.servlet.http.HttpServlet">HttpServlet</span></span>, <span name="urlMapping">urlMapping: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="name">name: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@mountServlet(servlet:javax.servlet.http.HttpServlet,urlMapping:String,name:Option[String]):ServletContainer.this.Self" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Mounts a servlet to the server.</p><div class="fullcomment"><div class="comment cmt"><p>Mounts a servlet to the server.</p><p>The http4s way is to create an <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>, which runs not just on servlet containers,
+but all supported backends.  This method is good for legacy scenarios, or for reusing parts
+of the servlet ecosystem for an app that is committed to running on a servlet container.
+</p></div></div>
     </li><li name="org.http4s.server.ServerBuilder#start" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="start:scalaz.concurrent.Task[org.http4s.server.Server]"></a>
       <a id="start:Task[Server]"></a>
@@ -189,7 +213,9 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      <p class="shortcomment cmt">Returns a task to start a server.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a task to start a server.  The task completes with a
+reference to the server when it has started.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="org.http4s.server.AsyncTimeoutSupport#withAsyncTimeout" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="withAsyncTimeout(asyncTimeout:scala.concurrent.duration.Duration):AsyncTimeoutSupport.this.Self"></a>
       <a id="withAsyncTimeout(Duration):Self"></a>
@@ -199,7 +225,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withAsyncTimeout</span><span class="params">(<span name="asyncTimeout">asyncTimeout: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+        <span class="name">withAsyncTimeout</span><span class="params">(<span name="asyncTimeout">asyncTimeout: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.concurrent.duration.Duration" class="extype" target="_top">Duration</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@withAsyncTimeout(asyncTimeout:scala.concurrent.duration.Duration):AsyncTimeoutSupport.this.Self" title="Permalink" target="_top">
@@ -257,7 +283,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -274,7 +300,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@##():Int" title="Permalink" target="_top">
@@ -336,7 +362,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -387,7 +413,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">bindHttp</span><span class="params">(<span name="port">port: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="../server/ServerBuilder$.html">DefaultHttpPort</a></span></span></span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../server/ServerBuilder$.html">DefaultHost</a></span></span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+        <span class="name">bindHttp</span><span class="params">(<span name="port">port: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol"><span class="name"><a href="../server/ServerBuilder$.html">DefaultHttpPort</a></span></span></span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="../server/ServerBuilder$.html">DefaultHost</a></span></span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@bindHttp(port:Int,host:String):ServerBuilder.this.Self" title="Permalink" target="_top">
@@ -404,7 +430,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">bindLocal</span><span class="params">(<span name="port">port: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
+        <span class="name">bindLocal</span><span class="params">(<span name="port">port: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.servlet.ServletContainer" class="extmbr" name="org.http4s.servlet.ServletContainer.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@bindLocal(port:Int):ServerBuilder.this.Self" title="Permalink" target="_top">
@@ -421,7 +447,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
+        <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@clone():Object" title="Permalink" target="_top">
@@ -444,7 +470,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -465,7 +491,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
@@ -486,7 +512,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -507,7 +533,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@ensuring(cond:Boolean):A" title="Permalink" target="_top">
@@ -528,7 +554,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -545,7 +571,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@equals(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -562,7 +588,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@finalize():Unit" title="Permalink" target="_top">
@@ -626,7 +652,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@hashCode():Int" title="Permalink" target="_top">
@@ -643,7 +669,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -660,7 +686,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
@@ -677,7 +703,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@notify():Unit" title="Permalink" target="_top">
@@ -694,7 +720,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@notifyAll():Unit" title="Permalink" target="_top">
@@ -718,7 +744,9 @@ Not to be confused with the server connectors.
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
+      <p class="shortcomment cmt">Convenience method to run a server.</p><div class="fullcomment"><div class="comment cmt"><p>Convenience method to run a server.  The method blocks
+until the server is started.
+</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></dd></dl></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -762,7 +790,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@wait():Unit" title="Permalink" target="_top">
@@ -785,7 +813,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
@@ -808,7 +836,7 @@ Not to be confused with the server connectors.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+        <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.servlet.ServletContainer@wait(x$1:Long):Unit" title="Permalink" target="_top">
@@ -857,9 +885,9 @@ Not to be confused with the server connectors.
             </div><div class="parent" name="org.http4s.server.ServerBuilder">
               <h3>Inherited from <a href="../server/ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></h3>
             </div><div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from

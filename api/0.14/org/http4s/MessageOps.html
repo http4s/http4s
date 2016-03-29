@@ -45,16 +45,16 @@
         <span class="kind">trait</span>
       </span>
       <span class="symbol">
-        <span class="name">MessageOps</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>
+        <span class="name">MessageOps</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/MessageOps.scala" target="_blank">MessageOps.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>, <a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>, <a href="TaskRequestOps.html" class="extype" name="org.http4s.TaskRequestOps">TaskRequestOps</a>, <a href="TaskResponseOps.html" class="extype" name="org.http4s.TaskResponseOps">TaskResponseOps</a></div>
+            <div class="subClasses hiddenContent"><a href="Message.html" class="extype" name="org.http4s.Message">Message</a>, <a href="Request.html" class="extype" name="org.http4s.Request">Request</a>, <a href="RequestOps.html" class="extype" name="org.http4s.RequestOps">RequestOps</a>, <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>, <a href="ResponseOps.html" class="extype" name="org.http4s.ResponseOps">ResponseOps</a>, <a href="TaskMessageOps.html" class="extype" name="org.http4s.TaskMessageOps">TaskMessageOps</a>, <a href="TaskRequestOps.html" class="extype" name="org.http4s.TaskRequestOps">TaskRequestOps</a>, <a href="TaskResponseOps.html" class="extype" name="org.http4s.TaskResponseOps">TaskResponseOps</a></div>
           </div></div>
         
 
@@ -65,7 +65,7 @@
               <ol>
                 
                 <li class="alpha in"><span>Alphabetic</span></li>
-                <li class="inherit out"><span>By inheritance</span></li>
+                <li class="inherit out"><span>By Inheritance</span></li>
               </ol>
             </div>
         <div id="ancestors">
@@ -83,7 +83,7 @@
             <span class="filtertype"></span>
             <ol>
               <li class="hideall out"><span>Hide All</span></li>
-              <li class="showall in"><span>Show all</span></li>
+              <li class="showall in"><span>Show All</span></li>
             </ol>
           </div>
         <div id="visbl">
@@ -139,25 +139,6 @@
       <p class="shortcomment cmt">Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
 </p><div class="fullcomment"><div class="comment cmt"><p>Decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a> to the specified type
 </p></div><dl class="paramcmts block"><dt class="tparam">T</dt><dd class="cmt"><p>type of the result</p></dd><dt class="param">decoder</dt><dd class="cmt"><p><a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a> used to decode the <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></dd><dt>returns</dt><dd class="cmt"><p>the <code>Task</code> which will generate the <code>DecodeResult[T]</code></p></dd></dl></div>
-    </li><li name="org.http4s.MessageOps#filterHeaders" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self"></a>
-      <a id="filterHeaders((Header)⇒Boolean):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.MessageOps@filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Remove headers that satisfy the predicate
-</p><div class="fullcomment"><div class="comment cmt"><p>Remove headers that satisfy the predicate
-</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers</p></dd></dl></div>
     </li><li name="scala.Any#getClass" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -175,43 +156,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.MessageOps#putHeaders" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="putHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
-      <a id="putHeaders(Header*):Self"></a>
+    </li><li name="org.http4s.MessageOps#transformHeaders" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
+      <a id="transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):MessageOps.this.Self"></a>
+      <a id="transformHeaders((Headers)⇒Headers):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">abstract </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+        <span class="name">transformHeaders</span><span class="params">(<span name="f">f: (<a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a>) ⇒ <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.MessageOps@putHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.MessageOps@transformHeaders(f:org.http4s.Headers=&gt;org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name
-The passed headers are assumed to contain no duplicate Singleton headers.</p>
-    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self"></a>
-      <a id="replaceAllHeaders(Headers):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.MessageOps@replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
-</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl></div>
+      
     </li><li name="org.http4s.MessageOps#withAttribute" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
       <a id="withAttribute[A](key:org.http4s.AttributeKey[A],value:A):MessageOps.this.Self"></a>
       <a id="withAttribute[A](AttributeKey[A],A):Self"></a>
@@ -245,7 +206,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@!=(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -262,7 +223,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@##():Int" title="Permalink" target="_top">
@@ -324,7 +285,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@==(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -337,7 +298,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       <a id="as[T](EntityDecoder[T]):Task[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -375,7 +336,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -396,7 +357,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
@@ -417,7 +378,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
@@ -438,7 +399,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.MessageOps">MessageOps</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@ensuring(cond:Boolean):A" title="Permalink" target="_top">
@@ -459,7 +420,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@equals(x$1:Any):Boolean" title="Permalink" target="_top">
@@ -467,6 +428,25 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.MessageOps#filterHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self"></a>
+      <a id="filterHeaders((Header)⇒Boolean):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">filterHeaders</span><span class="params">(<span name="f">f: (<a href="Header.html" class="extype" name="org.http4s.Header">Header</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.MessageOps@filterHeaders(f:org.http4s.Header=&gt;Boolean):MessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Remove headers that satisfy the predicate
+</p><div class="fullcomment"><div class="comment cmt"><p>Remove headers that satisfy the predicate
+</p></div><dl class="paramcmts block"><dt class="param">f</dt><dd class="cmt"><p>predicate</p></dd><dt>returns</dt><dd class="cmt"><p>a new message object which lacks the specified headers</p></dd></dl></div>
     </li><li name="scala.Predef.StringFormat#formatted" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="formatted(fmtstr:String):String"></a>
       <a id="formatted(String):String"></a>
@@ -500,7 +480,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Int" class="extype" target="_top">Int</a></span>
+        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@hashCode():Int" title="Permalink" target="_top">
@@ -517,7 +497,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
+        <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
@@ -525,12 +505,30 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.MessageOps#putHeaders" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="putHeaders(headers:org.http4s.Header*):MessageOps.this.Self"></a>
+      <a id="putHeaders(Header*):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">putHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.MessageOps@putHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Add the provided headers to the existing headers, replacing those of the same header name
+The passed headers are assumed to contain no duplicate Singleton headers.</p>
     </li><li name="org.http4s.MessageOps#removeHeader" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="removeHeader(key:org.http4s.HeaderKey):MessageOps.this.Self"></a>
       <a id="removeHeader(HeaderKey):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -547,7 +545,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       <a id="replaceAllHeaders(Header*):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -559,6 +557,25 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       </a>
     </span>
       <p class="shortcomment cmt">Replace the existing headers with those provided</p>
+    </li><li name="org.http4s.MessageOps#replaceAllHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self"></a>
+      <a id="replaceAllHeaders(Headers):Self"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">replaceAllHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.MessageOps@replaceAllHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p><div class="fullcomment"><div class="comment cmt"><p>Replaces the <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>s of the incoming Request object
+</p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl></div>
     </li><li name="scala.Any#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
@@ -600,11 +617,11 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       <a id="withContentType(Option[Content-Type]):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+        <span class="name">withContentType</span><span class="params">(<span name="contentType">contentType: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="headers/Content$minusType.html" class="extype" name="org.http4s.headers.Content-Type">Content-Type</a>]</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@withContentType(contentType:Option[org.http4s.headers.Content-Type]):MessageOps.this.Self" title="Permalink" target="_top">
@@ -617,7 +634,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       <a id="withTrailerHeaders(Task[Headers]):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -634,7 +651,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       <a id="withType(MediaType):Self"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
+        <span class="modifier">final </span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
@@ -683,7 +700,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders.">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Header.html" class="extype" name="org.http4s.Header">Header</a>*</span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@withHeaders(headers:org.http4s.Header*):MessageOps.this.Self" title="Permalink" target="_top">
@@ -693,7 +710,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
       <p class="shortcomment cmt">Replace the existing headers with those provided</p><div class="fullcomment"><div class="comment cmt"><p>Replace the existing headers with those provided</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders. Will be removed in 0.11.x</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders.</p></dd></dl></div>
     </li><li name="org.http4s.MessageOps#withHeaders" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withHeaders(headers:org.http4s.Headers):MessageOps.this.Self"></a>
       <a id="withHeaders(Headers):Self"></a>
@@ -703,7 +720,7 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders. Will be removed in 0.11.x">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.10.0) Use replaceAllHeaders.">withHeaders</span><span class="params">(<span name="headers">headers: <a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a></span>)</span><span class="result">: <a href="#Self" class="extmbr" name="org.http4s.MessageOps.Self">Self</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.MessageOps@withHeaders(headers:org.http4s.Headers):MessageOps.this.Self" title="Permalink" target="_top">
@@ -715,14 +732,14 @@ The passed headers are assumed to contain no duplicate Singleton headers.</p>
 </p></div><dl class="paramcmts block"><dt class="param">headers</dt><dd class="cmt"><p><a href="Headers.html" class="extype" name="org.http4s.Headers">Headers</a> containing the desired headers</p></dd><dt>returns</dt><dd class="cmt"><p>a new Request object</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders. Will be removed in 0.11.x</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.10.0)</i> Use replaceAllHeaders.</p></dd></dl></div>
     </li></ol>
             </div>
         </div>
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.7/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
