@@ -2,8 +2,6 @@ import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
-import com.typesafe.tools.mima.plugin.MimaPlugin.mimaDefaultSettings
-import com.typesafe.tools.mima.plugin.MimaKeys._
 import sbtunidoc.Plugin.UnidocKeys._
 
 // Global settings
@@ -447,7 +445,7 @@ lazy val noCoverageSettings = Seq(
   ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := ".*"
 )
 
-lazy val mimaSettings = mimaDefaultSettings ++ Seq(
+lazy val mimaSettings = Seq(
   failOnProblem <<= version(compatibleVersion(_).isDefined),
   previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName)((ver, org, binVer, mod) => compatibleVersion(ver) map {
     org % s"${mod}_${binVer}" % _
