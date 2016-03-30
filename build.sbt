@@ -238,6 +238,10 @@ lazy val docs = http4sProject("docs")
       case _ => Seq.empty
     },
     includeFilter in makeSite := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json" | "*.md" | "CNAME" | "_config.yml",
+    siteMappings := {
+      if (Http4sGhPages.buildMainSite) siteMappings.value
+      else Seq.empty
+    },
     siteMappings <++= (tut, apiVersion) map { case (t, (major, minor)) =>
       for ((f, d) <- t) yield (f, s"docs/$major.$minor/$d")
     },

@@ -4,13 +4,14 @@ repository.
 
 * src/site is a basic Jekyll site that contains mostly static
   information about the project as a whole, and does not pertain to a
-  particular version.
+  particular version.  Travis only updates this on the master branch.
 
 * src/main/tut is a collection of compiler-verified documentation
   built on [tut](http://github.com/tpolecat/tut).  It is a deeper
   walkthrough of the library, and is versioned to remain in sync with
   the code.  These tutorials are published to the [tutdir](docs/x.y)
-  directory of the site.
+  directory of the site.  Travis updates this on the master branch,
+  and any branch named release-*.
 
 * Scaladoc is aggregated by the unidoc plugin and published to
   [api](api/x.y).
