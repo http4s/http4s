@@ -11,7 +11,7 @@ Create a new directory, with the following build.sbt in the root:
 ```scala
 scalaVersion := "2.11.8" // Also supports 2.10.x
 
-lazy val http4sVersion = "0.13.0-SNAPSHOT"
+lazy val http4sVersion = "0.13.0"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")
@@ -64,7 +64,7 @@ val service = HttpService {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6187/800482279@7198f5ae)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$346/81674610@6c361e21)
 ```
 
 ### Running your service
@@ -81,7 +81,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.mountService(service)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@f311e90
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@227fbc94
 ```
 
 A builder can be `run` to start the server.  By default, http4s
@@ -108,7 +108,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val client = PooledHttp1Client()
-// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6201/1978176532@1d041535),scalaz.concurrent.Task@2075be99)
+// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$360/1129457535@a97aed2),scalaz.concurrent.Task@536fd7bd)
 ```
 
 ### Describing a call
@@ -118,7 +118,7 @@ and the URI we want:
 
 ```scala
 val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@6b86dc68
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@303a3036
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -149,7 +149,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@2c722b25
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@1f8918e7
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -167,13 +167,10 @@ the world" varies by context:
 
 ```scala
 greetingList.run.mkString("\n")
-// <console>:30: warning: method run in class Task is deprecated: use unsafePerformSync
-//        greetingList.run.mkString("\n")
-//                     ^
 // res0: String =
 // Hello, Jessica.
-// Hello, Ashley.
 // Hello, Michael.
+// Hello, Ashley.
 // Hello, Christopher.
 ```
 
