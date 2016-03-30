@@ -42,8 +42,6 @@ Please pick a version that suits your needs, and proceed to its tutorial:
 {:.table}
 | http4s Version   | Status      | Tutorial    | scala          | scalaz | scalaz-stream | java |
 | ---              | ---         | ----        | ---            | ---    | ---           | --   | 
-| 0.14.0a          | Development | [docs/0.14] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
-| 0.14.0           | Development | [docs/0.14] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.13.0a          | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
 | 0.13.0           | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.12.4           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
@@ -67,4 +65,4 @@ patches will be considered.
 [community]: community
 [code of conduct]: community/conduct.html
 [docs/0.13]: docs/0.13
-[docs/0.14]: docs/0.14
+[docs/0.14]: docs/0.13

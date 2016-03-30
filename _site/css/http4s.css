@@ -1,0 +1,9 @@
+body {
+  margin-top: 50px;
+}
+
+i.fa-slack.irc {
+  -ms-transform: rotate(19deg);
+  -webkit-transform: rotate(19deg);
+  transform: rotate(19deg);
+}
