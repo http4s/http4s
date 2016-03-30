@@ -16,6 +16,7 @@ import org.http4s.Status.Ok
 import scalaz.Equal
 import scalaz.concurrent.Task
 import scodec.bits._
+
 import org.http4s.EntityEncoder._
 import Entity._
 import scalaz.stream.Process
@@ -68,7 +69,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
     
-    result must be_\/-.like { case mp => multipart === mp }
+    result must be_\/-.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
   }
 
   def encodeAndDecodeMultipartMissingContentType = {
@@ -85,7 +86,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
 
-    result must be_\/-.like { case mp => multipart === mp }
+    result must be_\/-.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
   }
 
   def encodeAndDecodeMultipartWithBinaryFormData = {
