@@ -64,7 +64,7 @@ val service = HttpService {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$357/446996705@ce595a4)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6213/1520893249@43e9263b)
 ```
 
 ### Running your service
@@ -81,7 +81,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.mountService(service)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7bff0065
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@5c5ec554
 ```
 
 A builder can be `run` to start the server.  By default, http4s
@@ -108,7 +108,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val client = PooledHttp1Client()
-// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$371/317459538@7f05f0e6),scalaz.concurrent.Task@5147ff9f)
+// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6227/236087425@c8ac3ef),scalaz.concurrent.Task@73024aa5)
 ```
 
 ### Describing a call
@@ -118,7 +118,7 @@ and the URI we want:
 
 ```scala
 val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@743922ce
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@62a94538
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -149,7 +149,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@6e81abff
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@247076f7
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -167,10 +167,13 @@ the world" varies by context:
 
 ```scala
 greetingList.run.mkString("\n")
+// <console>:30: warning: method run in class Task is deprecated: use unsafePerformSync
+//        greetingList.run.mkString("\n")
+//                     ^
 // res0: String =
-// Hello, Ashley.
 // Hello, Michael.
 // Hello, Jessica.
+// Hello, Ashley.
 // Hello, Christopher.
 ```
 
