@@ -12,25 +12,28 @@ import scalaz.stream.{process1, Process, Process1, Writer1}
 object MultipartParser {
   import Process._
 
-  private val logger = org.log4s.getLogger
+  private[this] val logger = org.log4s.getLogger
 
   private val CRLF = ByteVector('\r', '\n')
   private val DASHDASH = ByteVector('-', '-')
+
+  private case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
   def parse(boundary: Boundary): Writer1[Headers, ByteVector, ByteVector] = {
     val boundaryBytes = boundary.toByteVector
     val startLine = DASHDASH ++ boundaryBytes
     val endLine = startLine ++ DASHDASH
 
-    def receiveLine(leading: Option[ByteVector]): Writer1[ByteVector, ByteVector, (ByteVector, Option[ByteVector])] = {
-      def handle(bv: ByteVector): Writer1[ByteVector, ByteVector, (ByteVector, Option[ByteVector])] = {
+    def receiveLine(leading: Option[ByteVector]): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
+      def handle(bv: ByteVector): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
+        logger.trace(s"handle: $bv")
         val index = bv indexOfSlice CRLF
 
         if (index >= 0) {
           val (head, tailPre) = bv splitAt index
           val tail = tailPre drop 2       // remove the line feed characters
           val tailM = Some(tail) filter { !_.isEmpty }
-          emit(\/-((head, tailM)))
+          emit(\/-(Out(head, tailM)))
         }
         else if (bv.nonEmpty && bv.get(bv.length - 1) == '\r') {
           // The CRLF may have split across chunks.
@@ -45,10 +48,10 @@ object MultipartParser {
       leading map handle getOrElse receive1(handle)
     }
 
-    def receiveCollapsedLine(leading: Option[ByteVector]): Process1[ByteVector, (ByteVector, Option[ByteVector])] = {
-      receiveLine(leading) pipe process1.fold((ByteVector.empty, None: Option[ByteVector])) {
-        case ((acc, tail), -\/(left)) => (acc ++ left, tail)
-        case ((acc, _), \/-((term, tail))) => (acc ++ term, tail)
+    def receiveCollapsedLine(leading: Option[ByteVector]): Process1[ByteVector, Out[ByteVector]] = {
+      receiveLine(leading) pipe process1.fold(Out(ByteVector.empty)) {
+        case (acc, -\/(partial)) => acc.copy(acc.a ++ partial)
+        case (acc, \/-(Out(term, tail))) => Out(acc.a ++ term, tail)
       }
     }
 
@@ -63,15 +66,19 @@ object MultipartParser {
         def isTransportPadding(bv: ByteVector): Boolean =
           bv.toSeq.find(b => b != ' ' && b != '\t').isEmpty
 
-        receiveCollapsedLine(leading) flatMap {
-          case (line, tail) if isStartLine(line) =>
+        receiveCollapsedLine(leading) flatMap { case Out(line, tail) =>
+          if (isStartLine(line)) {
+            logger.debug("Found start line. Beginning new part.")
             emit(tail)
-          case (line, tail) if isEndLine(line) =>
+          }
+          else if (isEndLine(line)) {
+            logger.debug("Found end line. Halting.")
             halt
-          case (ByteVector.empty, tail) => // This case smells funny to me.
+          }
+          else {
+            logger.trace(s"Discarding prelude: $line")
             beginPart(tail)
-          case (line, _) =>
-            fail(InvalidMessageBodyFailure(s"Expected multipart boundary, got: $line"))
+          }
         }
       }
 
@@ -80,14 +87,21 @@ object MultipartParser {
           val expected = CRLF ++ startLine
           for {
             headerPair <- header(tail, expected)
-            (headers, tail2) = headerPair
+            Out(headers, tail2) = headerPair
+            _ = logger.debug(s"Headers: $headers")
             spacePair <- receiveCollapsedLine(tail2)
-            (chomp, tail3) = spacePair // eat the space between header and content
+            tail3 = spacePair.tail // eat the space between header and content
             part <- emit(-\/(headers)) ++ body(tail3.map(_.compact), expected).flatMap {
-              case (chunk, None) =>
+              case Out(chunk, None) =>
+                logger.debug(s"Chunk: $chunk")
                 emit(\/-(chunk))
-              case (chunk, some @ Some(remainder)) =>
-                emit(\/-(chunk)) ++ go(some)
+              case Out(ByteVector.empty, tail) =>
+                logger.trace(s"Resuming with $tail.")
+                go(tail)
+              case Out(chunk, tail) =>
+                logger.debug(s"Last chunk: $chunk.")
+                logger.trace(s"Resuming with $tail.")
+                emit(\/-(chunk)) ++ go(tail)
             }
           } yield part
         }
@@ -96,10 +110,10 @@ object MultipartParser {
       go(None)
     }
 
-    def header(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, (Headers, Option[ByteVector])] = {
-      def go(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, (Headers, Option[ByteVector])] = {
+    def header(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[Headers]] = {
+      def go(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[Headers]] = {
         receiveCollapsedLine(leading) flatMap {
-          case (bv, tail) => {
+          case Out(bv, tail) => {
             if (bv == expected) {
               halt
             } else {
@@ -110,8 +124,7 @@ object MultipartParser {
                 if idx < line.length - 1
               } yield Header(line.substring(0, idx), line.substring(idx + 1).trim)
 
-              headerM.map { header => (Headers(header), tail) }
-                .map(emit)
+              headerM.map { header => emit(Out(Headers(header), tail)) }
                 .map { _ ++ go(tail, expected) }
                 .getOrElse(halt)
             }
@@ -119,42 +132,58 @@ object MultipartParser {
         }
       }
 
-      go(leading, expected).fold(Headers.empty, None: Option[ByteVector]) {
-        case ((acc, _), (header, tail)) => (acc ++ header, tail)
+      go(leading, expected).fold(Out(Headers.empty)) {
+        case (acc, Out(header, tail)) => Out(acc.a ++ header, tail)
       }
     }
 
-    def body(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, (ByteVector, Option[ByteVector])] = {
+    def body(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
       val heads = (0 until expected.length).scanLeft(expected) { (acc, _) =>
         acc dropRight 1
       }
 
-      def pre(bv: ByteVector): Process1[ByteVector, (ByteVector, Option[ByteVector])] = {
+      def pre(bv: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
+        logger.trace(s"pre: $bv")
         val idx = bv indexOfSlice expected
         if (idx >= 0) {
           // if we find the terminator *within* the chunk, we need to just trip and be done
           // the +2 consumes the CRLF before the multipart boundary
-          emit((bv take idx, Some(bv drop (idx + 2))))
+          emit(Out(bv take idx, Some(bv drop (idx + 2))))
         } else {
           // find goes from front to back, and heads is in order from longest to shortest, thus we always greedily match
           heads find (bv endsWith) map { tail =>
-            emit((bv dropRight tail.length, None)) ++ mid(tail, expected drop tail.length)
-          } getOrElse (emit((bv, None)) ++ receive1(pre))
+            emit(Out(bv dropRight tail.length)) ++ mid(tail, expected drop tail.length)
+          } getOrElse (emit(Out(bv)) ++ receive1(pre))
         }
       }
 
-      def mid(buffer: ByteVector, remainder: ByteVector): Process1[ByteVector, (ByteVector, Option[ByteVector])] = {
+      /* We might be looking at a boundary, or we might not.  This is how we
+       * decide that incrementally.
+       * 
+       * @param found the part of the next boundary that we've matched so far
+       * @param remainder the part of the next boundary we're looking for on the next read.
+       */
+      def mid(found: ByteVector, remainder: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
+        logger.trace(s"mid: $found remainder")
         if (remainder.isEmpty) {
-          halt
+          // found should start with a CRLF, because mid is called with it.
+          emit(Out(ByteVector.empty, Some(found.drop(2))))
         } else {
-          receive1Or[ByteVector, (ByteVector, Option[ByteVector])](
+          receive1Or[ByteVector, Out[ByteVector]](
             fail(new InvalidMessageBodyFailure("Part was not terminated"))) { bv =>
             val (remFront, remBack) = remainder splitAt bv.length
-
-            if (bv startsWith remFront)     // there might be trailing junk
-              mid(buffer ++ remFront, remBack)
+            if (bv startsWith remFront) {
+              // If remBack is nonEmpty, then the progress toward our match
+              // is represented by bv, and we'll loop back to read more to
+              // look for remBack.
+              //
+              // If remBack is empty, then `found ++ bv` starts with the
+              // next boundary, and we'll emit out everything we've read
+              // on the next loop.
+              mid(found ++ bv, remBack)
+            }
             else
-              emit((buffer, None)) ++ pre(bv)   // ok, so this buffer frame-slipped, but we might have a different terminator within bv
+              emit(Out(found)) ++ pre(bv)   // ok, so this buffer frame-slipped, but we might have a different terminator within bv
           }
         }
       }
