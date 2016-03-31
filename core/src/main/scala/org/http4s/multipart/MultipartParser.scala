@@ -24,6 +24,9 @@ object MultipartParser {
     val startLine = DASHDASH ++ boundaryBytes
     val endLine = startLine ++ DASHDASH
 
+    // At various points, we'll read up until we find this, to loop back into beginPart.
+    val expected = CRLF ++ startLine
+
     def receiveLine(leading: Option[ByteVector]): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
       def handle(bv: ByteVector): Writer1[ByteVector, ByteVector, Out[ByteVector]] = {
         logger.trace(s"handle: $bv")
@@ -83,28 +86,26 @@ object MultipartParser {
       }
 
       def go(leading: Option[ByteVector]): Writer1[Headers, ByteVector, ByteVector] = {
-        beginPart(leading) flatMap { tail =>
-          val expected = CRLF ++ startLine
-          for {
-            headerPair <- header(tail, expected)
-            Out(headers, tail2) = headerPair
-            _ = logger.debug(s"Headers: $headers")
-            spacePair <- receiveCollapsedLine(tail2)
-            tail3 = spacePair.tail // eat the space between header and content
-            part <- emit(-\/(headers)) ++ body(tail3.map(_.compact), expected).flatMap {
-              case Out(chunk, None) =>
-                logger.debug(s"Chunk: $chunk")
-                emit(\/-(chunk))
-              case Out(ByteVector.empty, tail) =>
-                logger.trace(s"Resuming with $tail.")
-                go(tail)
-              case Out(chunk, tail) =>
-                logger.debug(s"Last chunk: $chunk.")
-                logger.trace(s"Resuming with $tail.")
-                emit(\/-(chunk)) ++ go(tail)
-            }
-          } yield part
-        }
+        for {
+          tail <- beginPart(leading)
+          headerPair <- header(tail, expected)
+          Out(headers, tail2) = headerPair
+          _ = logger.debug(s"Headers: $headers")
+          spacePair <- receiveCollapsedLine(tail2)
+          tail3 = spacePair.tail // eat the space between header and content
+          part <- emit(-\/(headers)) ++ body(tail3.map(_.compact), expected).flatMap {
+            case Out(chunk, None) =>
+              logger.debug(s"Chunk: $chunk")
+              emit(\/-(chunk))
+            case Out(ByteVector.empty, tail) =>
+              logger.trace(s"Resuming with $tail.")
+              go(tail)
+            case Out(chunk, tail) =>
+              logger.debug(s"Last chunk: $chunk.")
+              logger.trace(s"Resuming with $tail.")
+              emit(\/-(chunk)) ++ go(tail)
+          }
+        } yield part
       }
 
       go(None)
