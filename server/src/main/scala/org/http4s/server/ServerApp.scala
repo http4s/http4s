@@ -32,15 +32,15 @@ trait ServerApp {
   def shutdown(server: Server): Task[Unit] =
     server.shutdown
 
-  sealed trait LifeCycle
-  case object Init extends LifeCycle
-  case object Starting extends LifeCycle
-  case object Started extends LifeCycle
-  case object Stopping extends LifeCycle
-  case object Stopped extends LifeCycle
+  private sealed trait LifeCycle
+  private case object Init extends LifeCycle
+  private case object Starting extends LifeCycle
+  private case object Started extends LifeCycle
+  private case object Stopping extends LifeCycle
+  private case object Stopped extends LifeCycle
 
   /** The current state of the server. */
-  val state =
+  private val state =
     new AtomicReference[LifeCycle](Init)
 
   @tailrec
