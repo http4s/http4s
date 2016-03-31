@@ -6,6 +6,7 @@ import javax.xml.parsers.SAXParser
 import org.xml.sax.{InputSource, SAXParseException}
 import java.io.{File, FileOutputStream}
 import org.http4s.headers.`Content-Type`
+import org.http4s.multipart.{Multipart, MultipartDecoder}
 import scodec.bits.ByteVector
 
 import scala.annotation.unchecked.uncheckedVariance
@@ -169,6 +170,9 @@ trait EntityDecoderInstances {
       val p = io.chunkW(new java.io.PrintStream(new FileOutputStream(file)))
       DecodeResult.success(msg.body.to(p).run).map(_ => file)
     }
+
+  implicit def multipart: EntityDecoder[Multipart] = 
+    MultipartDecoder.decoder
 }
 
 object DecodeResult {

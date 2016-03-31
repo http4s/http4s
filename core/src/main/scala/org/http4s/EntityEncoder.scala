@@ -9,6 +9,7 @@ import scala.language.implicitConversions
 
 import org.http4s.EntityEncoder._
 import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
+import org.http4s.multipart.{Multipart, MultipartEncoder}
 import scalaz._
 import scalaz.concurrent.Task
 import scalaz.std.option._
@@ -191,6 +192,9 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   def chunkedEncoder[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): EntityEncoder[A] =
     sourceEncoder[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
+
+  implicit val multipartEncoder: EntityEncoder[Multipart] =
+    MultipartEncoder
 
   implicit val entityEncoderContravariant: Contravariant[EntityEncoder] = new Contravariant[EntityEncoder] {
     override def contramap[A, B](r: EntityEncoder[A])(f: (B) => A): EntityEncoder[B] = r.contramap(f)

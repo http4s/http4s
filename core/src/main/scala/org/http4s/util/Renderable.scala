@@ -1,11 +1,14 @@
 package org.http4s.util
 
+import java.nio.charset.{ Charset, StandardCharsets }
 import java.time.{ZoneId, Instant}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
+import scodec.bits.ByteVector
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
+
 
 /** A type class that describes how to efficiently render a type
  * @tparam T the type which will be rendered
@@ -142,4 +145,19 @@ class StringWriter(size: Int = 64) extends Writer {
   override def append(long: Long) = { sb.append(long); this }
 
   def result(): String = sb.toString
+}
+/** [[Writer]] that will result in a `ByteVector`
+  * @param bv initial ByteVector`
+  */
+case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
+                            charset: Charset = StandardCharsets.UTF_8) extends Writer {
+
+  override def append(s: String)       = { bv = bv ++ ByteVector(s.getBytes(charset)); this}
+  override def append(char: Char)      = append(char.toString)
+  override def append(float: Float)    = append(float.toString)
+  override def append(double: Double)  = append(double.toString)
+  override def append(int: Int)        = append(int.toString)
+  override def append(long: Long)      = append(long.toString)
+
+  def toByteVector() = bv
 }

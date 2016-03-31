@@ -19,8 +19,7 @@ import org.specs2.specification.create.{DefaultFragmentFactory=>ff}
 import org.specs2.specification.core.Fragments
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.typelevel.discipline.Laws
-
-import scalaz.{-\/, \/-}
+import scalaz.{ -\/, \/- }
 import scalaz.concurrent.Task
 import scalaz.std.AllInstances
 import org.scalacheck._
