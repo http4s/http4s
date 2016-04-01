@@ -15,7 +15,8 @@ import scalaz.concurrent.Task
 trait ConnectionManager[A <: Connection] {
 
   /** Bundle of the connection and wheither its new or not */
-  final case class NextConnection(connection: A, fresh: Boolean)
+  // Sealed, rather than final, because SI-4440.
+  sealed case class NextConnection(connection: A, fresh: Boolean)
 
   /** Shutdown this client, closing any open connections and freeing resources */
   def shutdown(): Task[Unit]
