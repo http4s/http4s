@@ -279,7 +279,8 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
         file <- attList.map(_.data)
         path = file.getAbsolutePath if path.contains("jetty.alpn")
       } yield { s"-Xbootclasspath/p:${path}" }
-    }
+    },
+    connectInput in run := true
   )
   .dependsOn(blazeServer, blazeClient)
 

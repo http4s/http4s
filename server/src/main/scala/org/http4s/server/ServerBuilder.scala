@@ -6,6 +6,7 @@ import java.util.concurrent.ExecutorService
 
 import com.codahale.metrics.MetricRegistry
 import org.http4s.server.SSLSupport.StoreInfo
+import org.http4s.util.managed.{ Manageable, Managed }
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
@@ -38,6 +39,9 @@ trait ServerBuilder {
     */
   final def run: Server =
     start.run
+
+  def managed: Managed[Server] =
+    org.http4s.util.managed.bracket(start)(_.shutdown)
 }
 
 object ServerBuilder {
