@@ -6,6 +6,7 @@ import java.util.concurrent.TimeUnit
 
 import com.example.http4s.ExampleService
 import org.http4s._
+import org.http4s.server.ServerApp
 import org.http4s.server.Router
 import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.middleware.Metrics
@@ -16,7 +17,7 @@ import com.codahale.metrics.json.MetricsModule
 
 import com.fasterxml.jackson.databind.ObjectMapper
 
-object BlazeMetricsExample extends App {
+object BlazeMetricsExample extends ServerApp {
 
   val metrics = new MetricRegistry()
   val mapper = new ObjectMapper()
@@ -33,9 +34,8 @@ object BlazeMetricsExample extends App {
     "/metrics" -> metricsService
   )
 
-  BlazeBuilder.bindHttp(8080)
+  def server(args: List[String]) = BlazeBuilder.bindHttp(8080)
     .mountService(srvc, "/http4s")
-    .run
-    .awaitShutdown()
+    .start
 }
 /// end_code_ref
