@@ -34,7 +34,6 @@ trait ServerApp {
 
   private sealed trait LifeCycle
   private case object Init extends LifeCycle
-  private case object Starting extends LifeCycle
   private case object Started extends LifeCycle
   private case object Stopping extends LifeCycle
   private case object Stopped extends LifeCycle
@@ -78,7 +77,6 @@ trait ServerApp {
 
   private def run(args: List[String]): Unit = {
     val s = server(args.toList).map { s =>
-      state.set(Starting)
       sys.addShutdownHook {
         doShutdown(s)
       }
