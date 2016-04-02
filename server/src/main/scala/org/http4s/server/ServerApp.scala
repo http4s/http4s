@@ -71,7 +71,7 @@ trait ServerApp {
    *  - monitoring a file
    *  - console input in an interactive session
    */
-  def requestShutdown() = {
+  def requestShutdown(): Unit = {
     logger.info("Received shutdown request")
     latch.countDown()
   }
