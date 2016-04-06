@@ -4,7 +4,7 @@ package blaze
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
-import java.util.concurrent.TimeoutException
+import java.util.concurrent.{ExecutorService, TimeoutException}
 import java.util.concurrent.atomic.AtomicReference
 
 import org.http4s.Uri.{Authority, RegName}
@@ -13,22 +13,21 @@ import org.http4s.blaze.Http1Stage
 import org.http4s.blaze.pipeline.Command
 import org.http4s.blaze.pipeline.Command.EOF
 import org.http4s.blaze.util.ProcessWriter
-import org.http4s.headers.{Host, `Content-Length`, `User-Agent`, Connection}
-import org.http4s.util.{Writer, StringWriter}
+import org.http4s.headers.{Connection, Host, `Content-Length`, `User-Agent`}
+import org.http4s.util.{StringWriter, Writer}
 
 import scala.annotation.tailrec
 import scala.concurrent.ExecutionContext
 import scala.util.{Failure, Success}
-
 import scalaz.concurrent.Task
 import scalaz.stream.Cause.{End, Terminated}
 import scalaz.stream.Process
 import scalaz.stream.Process.{Halt, halt}
-import scalaz.{\/, -\/, \/-}
-
+import scalaz.{-\/, \/-}
 
 private final class Http1Connection(val requestKey: RequestKey,
                             config: BlazeClientConfig,
+                            executor: ExecutorService,
                             protected val ec: ExecutionContext)
   extends Http1Stage with BlazeConnection
 {
@@ -246,12 +245,12 @@ private final class Http1Connection(val requestKey: RequestKey,
         }
         else {
           val body = rawBody.onHalt {
-            case End => Process.eval_(Task { trailerCleanup(); cleanup(); })
+            case End => Process.eval_(Task{ trailerCleanup(); cleanup(); }(executor))
 
             case c => Process.await(Task {
               logger.debug(c.asThrowable)("Response body halted. Closing connection.")
               stageShutdown()
-            })(_ => Halt(c))
+            }(executor))(_ => Halt(c))
           }
 
           cb(\/-(
