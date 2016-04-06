@@ -57,7 +57,7 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
   }
 
   private def buildStages(requestKey: RequestKey): (LeafBuilder[ByteBuffer], BlazeConnection) = {
-    val t = new Http1Connection(requestKey, config, ec)
+    val t = new Http1Connection(requestKey, config, executor, ec)
     val builder = LeafBuilder(t)
     requestKey match {
       case RequestKey(Https, auth) if config.endpointAuthentication =>
