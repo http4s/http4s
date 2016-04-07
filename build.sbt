@@ -428,9 +428,6 @@ lazy val commonSettings = Seq(
 )
 
 lazy val publishSettings = Seq(
-  publishMavenStyle := true,
-  publishTo <<= version(v => Some(nexusRepoFor(v))),
-  publishArtifact in Test := false,
   credentials ++= sonatypeEnvCredentials
 )
 

@@ -20,16 +20,6 @@ object Http4sBuild extends Build {
     pass <- envOrNone("SONATYPE_PASS")
   } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)).toSeq
 
-  def nexusRepoFor(version: String): Resolver = {
-    val nexus = "https://oss.sonatype.org/"
-    if (isSnapshot(version))
-      "snapshots" at s"$nexus/content/repositories/snapshots"
-    else
-      "releases" at s"$nexus/service/local/staging/deploy/maven2"
-  }
-
-  def isSnapshot(version: String): Boolean = version.endsWith("-SNAPSHOT")
-
   def compatibleVersion(version: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
