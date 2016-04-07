@@ -1,0 +1,4 @@
+#!/bin/bash
+
+sbt -Dscalaz.version=7.1.7 +clean +publishSigned
+sbt -Dscalaz.version=7.2.1 +clean +publishSigned
