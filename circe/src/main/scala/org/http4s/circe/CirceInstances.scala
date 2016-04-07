@@ -7,10 +7,10 @@ import org.http4s.headers.`Content-Type`
 
 // Originally based on ArgonautInstances
 trait CirceInstances {
-  implicit val json: EntityDecoder[Json] = jawn.jawnDecoder(facade)
+  implicit val jsonDecoder: EntityDecoder[Json] = jawn.jawnDecoder(facade)
 
   def jsonOf[A](implicit decoder: Decoder[A]): EntityDecoder[A] =
-    json.flatMapR { json =>
+    jsonDecoder.flatMapR { json =>
       decoder.decodeJson(json).fold(
         failure =>
           DecodeResult.failure(InvalidMessageBodyFailure(s"Could not decode JSON: $json", Some(failure))),

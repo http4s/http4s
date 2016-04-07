@@ -12,7 +12,7 @@ import org.specs2.specification.core.Fragment
 
 // Originally based on ArgonautSpec
 class CirceSpec extends JawnDecodeSupportSpec[Json] {
-  testJsonDecoder(json)
+  testJsonDecoder(jsonDecoder)
 
   case class Foo(bar: Int)
   val foo = Foo(42)

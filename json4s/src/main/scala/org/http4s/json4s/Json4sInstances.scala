@@ -10,10 +10,10 @@ import scala.util.control.NonFatal
 import scalaz.{EitherT, \/}
 
 trait Json4sInstances[J] {
-  implicit lazy val json: EntityDecoder[JValue] = jawn.jawnDecoder(facade)
+  implicit lazy val jsonDecoder: EntityDecoder[JValue] = jawn.jawnDecoder(facade)
 
   def jsonOf[A](implicit reader: Reader[A]): EntityDecoder[A] =
-    json.flatMapR { json =>
+    jsonDecoder.flatMapR { json =>
       try DecodeResult.success(reader.read(json))
       catch {
         case e: MappingException => DecodeResult.failure(InvalidMessageBodyFailure("Could not map JSON", Some(e)))
@@ -27,7 +27,7 @@ trait Json4sInstances[J] {
     * idiomatic http4s, than [[jsonOf]].
     */
   def jsonExtract[A](implicit formats: Formats, manifest: Manifest[A]): EntityDecoder[A] =
-    json.flatMapR { json =>
+    jsonDecoder.flatMapR { json =>
       try DecodeResult.success(json.extract[A])
       catch {
         case NonFatal(e) => DecodeResult.failure(InvalidMessageBodyFailure("Could not extract JSON", Some(e)))
