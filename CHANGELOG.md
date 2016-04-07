@@ -1,3 +1,6 @@
+# v0.13.1 (2016-04-07)
+* Remove implicit resolution of `DefaultExecutor` in blaze-client.
+
 # v0.13.0 (2016-03-29)
 * Add support for scalaz-7.2.x (use version 0.13.0a).
 * Add a client backed based on async-http-client.
