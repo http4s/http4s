@@ -13,7 +13,7 @@ import scalaz.syntax.std.option._
 trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstances[J] =>
   import Json4sSpec._
 
-  testJsonDecoder(json)
+  testJsonDecoder(jsonDecoder)
 
   "json encoder" should {
     val json: JValue = JObject(JField("test", JString("json4s")))

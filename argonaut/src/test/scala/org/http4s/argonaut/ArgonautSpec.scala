@@ -12,7 +12,7 @@ import org.specs2.specification.core.Fragment
 import Status.Ok
 
 class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
-  testJsonDecoder(json)
+  testJsonDecoder(jsonDecoder)
 
   case class Foo(bar: Int)
   val foo = Foo(42)
