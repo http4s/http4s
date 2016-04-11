@@ -26,7 +26,7 @@ import java.time.Instant
 
 object RequestCookieJar {
   def empty = new RequestCookieJar(Nil)
-  
+
   def apply(cookies: Cookie*): RequestCookieJar = (newBuilder ++= cookies).result()
   /** The default builder for RequestCookieJar objects.
    */
@@ -41,22 +41,22 @@ object RequestCookieJar {
 
     def result(): RequestCookieJar = new RequestCookieJar(Vector(coll.toSeq:_*))
   }
-  
-  
+
   implicit def canBuildFrom: CanBuildFrom[TraversableOnce[Cookie], Cookie, RequestCookieJar] =
     new CanBuildFrom[TraversableOnce[Cookie], Cookie, RequestCookieJar] {
-      def apply(from: TraversableOnce[Cookie]): mutable.Builder[Cookie, RequestCookieJar] =
-        newBuilder ++= from
-  
+      def apply(
+        from: TraversableOnce[Cookie]
+      ): mutable.Builder[Cookie, RequestCookieJar] = newBuilder
+
       def apply(): mutable.Builder[Cookie, RequestCookieJar] = newBuilder
     }
-  
+
 }
 class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with IterableLike[Cookie, RequestCookieJar] {
   override protected[this] def newBuilder: mutable.Builder[Cookie, RequestCookieJar] = RequestCookieJar.newBuilder
   def iterator: Iterator[Cookie] = headers.iterator
   def empty: RequestCookieJar = RequestCookieJar.empty
-  
+
   def get(key: String): Option[Cookie] = headers.find(_.name == key)
   def apply(key: String): Cookie = get(key) getOrElse default(key)
   def contains(key: String): Boolean = headers.exists(_.name == key)
@@ -76,14 +76,14 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
    *
    *  @return the values of this map as an iterable.
    */
-  def values: Iterable[String] = headers.map(_.content) 
-  
+  def values: Iterable[String] = headers.map(_.content)
+
   /** Collects all values of this map in an iterable collection.
    *
    *  @return the values of this map as an iterable.
    */
   def cookies: Iterable[Cookie] = headers
-  
+
 
   /** Creates an iterator for all keys.
    *
