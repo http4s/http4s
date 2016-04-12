@@ -18,5 +18,5 @@ import org.http4s.server.blaze.BlazeBuilder
   * https://tools.ietf.org/html/draft-ietf-httpbis-http2-17#section-9.2.1  *
   */
 object BlazeHttp2Example extends SslExample {
-  go(BlazeBuilder.enableHttp2(true))
+  def builder = BlazeBuilder.enableHttp2(true)
 }

@@ -5,5 +5,5 @@ import com.example.http4s.ssl.SslExample
 import org.http4s.server.blaze.BlazeBuilder
 
 object BlazeSslExample extends SslExample {
-  go(BlazeBuilder)
+  def builder = BlazeBuilder
 }
