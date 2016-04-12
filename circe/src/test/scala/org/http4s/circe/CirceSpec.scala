@@ -22,7 +22,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   implicit val FooEncoder = Encoder.instance[Foo](foo => Json.obj("bar" -> Encoder[Int].apply(foo.bar)))
 
   "json encoder" should {
-    val json = Json.obj("test" -> Json.string("CirceSupport"))
+    val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
     "have json content type" in {
       jsonEncoder.headers.get(`Content-Type`) must_== Some(`Content-Type`(MediaType.`application/json`))
@@ -49,7 +49,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
       def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
-      val req = Request().withBody(Json.numberOrNull(157)).run
+      val req = Request().withBody(Json.fromDoubleOrNull(157)).run
       val body = req.decode { json: Json => Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)}.run.body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
@@ -57,7 +57,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
-      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.numberOrNull(42))).run, strict = true)
+      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).run, strict = true)
       result.run.run must be_\/-(Foo(42))
     }
 
@@ -66,7 +66,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       case class Umlaut(wort: String)
       implicit val umlautDecoder = Decoder.instance(_.get("wort")(Decoder[String]).map(Umlaut))
       s"handle JSON with umlauts: $wort" >> {
-        val json = Json.obj("wort" -> Json.string(wort))
+        val json = Json.obj("wort" -> Json.fromString(wort))
         val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
         result.run.run must be_\/-(Umlaut(wort))
       }
