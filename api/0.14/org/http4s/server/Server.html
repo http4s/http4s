@@ -114,23 +114,6 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.server.Server#onShutdown" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="onShutdown(f:=&gt;Unit):Server.this.type"></a>
-      <a id="onShutdown(⇒Unit):Server.this.type"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">onShutdown</span><span class="params">(<span name="f">f: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.Server">Server</a>.this.type</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.Server@onShutdown(f:=&gt;Unit):Server.this.type" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="org.http4s.server.Server#shutdown" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="shutdown:scalaz.concurrent.Task[Unit]"></a>
       <a id="shutdown:Task[Unit]"></a>
@@ -148,6 +131,26 @@
       </a>
     </span>
       
+    </li><li name="org.http4s.server.Server#onShutdown" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="onShutdown(f:=&gt;Unit):Server.this.type"></a>
+      <a id="onShutdown(⇒Unit):Server.this.type"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Compose with the shutdown task instead.">onShutdown</span><span class="params">(<span name="f">f: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.Server">Server</a>.this.type</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.Server@onShutdown(f:=&gt;Unit):Server.this.type" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Compose with the shutdown task instead.</p></dd></dl></div>
     </li></ol>
             </div>
 
@@ -266,23 +269,6 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.Server#awaitShutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="awaitShutdown():Unit"></a>
-      <a id="awaitShutdown():Unit"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">awaitShutdown</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.Server@awaitShutdown():Unit" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Blocks until the server shuts down.</p>
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -719,7 +705,31 @@
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.Server#awaitShutdown" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="awaitShutdown():Unit"></a>
+      <a id="awaitShutdown():Unit"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use ServerApp instead.">awaitShutdown</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.server.Server@awaitShutdown():Unit" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Blocks until the server shuts down.</p><div class="fullcomment"><div class="comment cmt"><p>Blocks until the server shuts down.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use ServerApp instead.</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
