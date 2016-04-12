@@ -55,7 +55,7 @@ object ExampleService {
 
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
-      val json = Json.obj("origin" -> Json.string(req.remoteAddr.getOrElse("unknown")))
+      val json = Json.obj("origin" -> Json.fromString(req.remoteAddr.getOrElse("unknown")))
       Ok(json)
 
     case req @ GET -> Root / "redirect" =>
