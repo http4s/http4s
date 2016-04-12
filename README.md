@@ -13,6 +13,7 @@ val service = HttpService {
 
 Learn more at [http4s.org](http://http4s.org/).
 
-Quick start from [giter8 template](http://github.com/http4s/http4s.g8).
-
-http4s is dedicated to providing a harassment-free community for everyone, and asks that the community adhere to the [code of conduct](http://http4s.org/conduct.html).
+http4s is proud to be a [Typelevel](http://typelevel.org/) incubator
+project.  We are dedicated to providing a harassment-free community
+for everyone, and ask that the community adhere to the
+[code of conduct](http://typelevel.org/conduct.html).
