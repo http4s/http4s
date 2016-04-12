@@ -31,9 +31,9 @@ useful in everyday HTTP programming, such as [circe] and [argonaut],
 are integrated via optional modules.
 
 * *Community-oriented*: http4s is a community-driven project, and aims
-to provide a welcoming environment for all users.  Please see our
-[community] page to see our [code of conduct] and learn how you can
-participate.
+to provide a welcoming environment for all users.  We are proud to be
+a [Typelevel](http://typelevel.org) incubator project.  Please see our
+[community] page to learn how you can participate.
 
 ## Getting started ##
 
