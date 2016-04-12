@@ -6,9 +6,12 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := s"0.14.0${scalazCrossBuildSuffix}-SNAPSHOT"
+version      in ThisBuild := s"0.14.0${scalazCrossBuildSuffix(scalazVersion.value)}-SNAPSHOT"
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaVersion in ThisBuild := "2.10.6"
+// The build supports both scalaz `7.1.x` and `7.2.x`. Simply run `set scalazVersion in ThiBuild := "7.2.1"` to change
+// which version of scalaz is used to build the project.
+scalazVersion in ThisBuild := "7.1.7"
 crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.8"))
 
 // Root project
@@ -22,13 +25,13 @@ lazy val core = libraryProject("core")
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage <<= organization,
-    libraryDependencies <++= scalaVersion { v => Seq(
+    libraryDependencies <++= (scalaVersion, scalazVersion) { (v,sz) => Seq(
       http4sWebsocket,
       log4s,
       parboiled,
       scalaReflect(v) % "provided",
-      scalazCore,
-      scalazStream
+      scalazCore(sz),
+      scalazStream(sz)
     ) },
     macroParadiseSetting
   )
@@ -416,15 +419,15 @@ lazy val commonSettings = Seq(
     if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0")
     else Seq.empty
   ),
-  libraryDependencies  ++= Seq(
+  libraryDependencies <++= scalazVersion(sz => Seq(
     discipline,
     logbackClassic,
     scalameter,
-    scalazScalacheckBinding,
-    specs2Core,
-    specs2MatcherExtra,
-    specs2Scalacheck
-  ).map(_ % "test")
+    scalazScalacheckBinding(sz),
+    specs2Core(sz),
+    specs2MatcherExtra(sz),
+    specs2Scalacheck(sz)
+  ).map(_ % "test"))
 )
 
 lazy val publishSettings = Seq(
@@ -443,8 +446,8 @@ lazy val noCoverageSettings = Seq(
 )
 
 lazy val mimaSettings = Seq(
-  failOnProblem <<= version(compatibleVersion(_).isDefined),
-  previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName)((ver, org, binVer, mod) => compatibleVersion(ver) map {
+  mimaFailOnProblem <<= version.zipWith(scalazVersion)(compatibleVersion(_, _).isDefined),
+  previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName, scalazVersion)((ver, org, binVer, mod, sz) => compatibleVersion(ver, sz) map {
     org % s"${mod}_${binVer}" % _
   }),
   binaryIssueFilters ++= {
