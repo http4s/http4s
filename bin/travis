@@ -3,9 +3,9 @@
 set -e
 
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
-  SBT_COMMAND="\"set scalazVersion in ThisBuild := \\\"7.2.1\\\"\" ;coverage ;clean ;test ;makeSite ;coverageOff"
+  SBT_COMMAND=";coverage ;clean ;test ;makeSite ;coverageOff"
 elif [[ $TRAVIS_SCALA_VERSION = 2.10* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
-  SBT_COMMAND="\"set scalazVersion in ThisBuild := \\\"7.2.1\\\"\" ;test ;mimaReportBinaryIssues"
+  SBT_COMMAND=";test ;mimaReportBinaryIssues"
 else
   SBT_COMMAND=";test"
 fi
@@ -22,7 +22,7 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   fi
 fi
 
-sbt ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
+sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
 if [[ $SBT_COMMAND = *";coverage"* ]]; then
    bash <(curl -s https://codecov.io/bash)
