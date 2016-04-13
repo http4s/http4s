@@ -38,8 +38,9 @@ title: Community
 <div class="col-md-4" markdown="1">
 <h2><i class="fa fa-gavel"></i> Code of Conduct</h2>
 
-http4s is dedicated to providing a harassment-free community for everyone.
-Our community is governed by the [http4s Code of Conduct](conduct.html).
+http4s is dedicated to providing a harassment-free community for
+everyone.  Our community is governed by the
+[Typelevel Code of Conduct](http://typelevel.org/conduct.html).
 </div>
 
 <div class="col-md-4" markdown="1">
