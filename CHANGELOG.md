@@ -1,3 +1,7 @@
+# v0.13.2 (2016-04-13)
+* Fixes the CanBuildFrom for RequestCookieJar to avoid duplicates.
+* Update version of jawn-parser which contains a fix for Json decoding.
+
 # v0.13.1 (2016-04-07)
 * Remove implicit resolution of `DefaultExecutor` in blaze-client.
 

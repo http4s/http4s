@@ -31,9 +31,9 @@ useful in everyday HTTP programming, such as [circe] and [argonaut],
 are integrated via optional modules.
 
 * *Community-oriented*: http4s is a community-driven project, and aims
-to provide a welcoming environment for all users.  Please see our
-[community] page to see our [code of conduct] and learn how you can
-participate.
+to provide a welcoming environment for all users.  We are proud to be
+a [Typelevel](http://typelevel.org) incubator project.  Please see our
+[community] page to learn how you can participate.
 
 ## Getting started ##
 
@@ -44,8 +44,8 @@ Please pick a version that suits your needs, and proceed to its tutorial:
 | ---              | ---         | ----        | ---            | ---    | ---           | --   | 
 | 0.14.0a          | Development | [docs/0.14] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
 | 0.14.0           | Development | [docs/0.14] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
-| 0.13.1a          | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
-| 0.13.1           | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
+| 0.13.2a          | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
+| 0.13.2           | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.12.4           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.11.3           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.10.1           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.8+ |
