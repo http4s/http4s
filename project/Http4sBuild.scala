@@ -85,7 +85,6 @@ object Http4sBuild extends Build {
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.1"
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
-  lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.7"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
   lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % scalazVersion
   lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % scalazCore.revision
