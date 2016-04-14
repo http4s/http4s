@@ -22,7 +22,7 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
   fi
 fi
 
-sbt -Dscalaz.version=$SCALAZ_VERSION ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
+sbt 'set scalazVersion in ThisBuild := System.getenv("SCALAZ_VERSION")' ++$TRAVIS_SCALA_VERSION $SBT_COMMAND
 
 if [[ $SBT_COMMAND = *";coverage"* ]]; then
    bash <(curl -s https://codecov.io/bash)

@@ -20,10 +20,10 @@ object Http4sBuild extends Build {
     pass <- envOrNone("SONATYPE_PASS")
   } yield Credentials("Sonatype Nexus Repository Manager", "oss.sonatype.org", user, pass)).toSeq
 
-  def compatibleVersion(version: String) = {
+  def compatibleVersion(version: String, scalazVersion: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
-    val targetVersion = s"${targetMajor}.${targetMinor}.0${scalazCrossBuildSuffix}"
+    val targetVersion = s"${targetMajor}.${targetMinor}.0${scalazCrossBuildSuffix(scalazVersion)}"
     if (targetVersion != currentVersionWithoutSnapshot)
       Some(targetVersion)
     else
@@ -40,16 +40,15 @@ object Http4sBuild extends Build {
         case _ => Seq.empty
       })
 
-  def scalazVersion =
-    sys.props.getOrElse("scalaz.version", "7.1.7")
-  def scalazStreamVersion =
-    "0.8" + scalazCrossBuildSuffix
-  def scalazCrossBuildSuffix =
+  val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
+  def scalazStreamVersion(scalazVersion: String) =
+    "0.8" + scalazCrossBuildSuffix(scalazVersion)
+  def scalazCrossBuildSuffix(scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
       case Seq(7, 1, _*) => ""
       case Seq(7, 2, _*) => "a"
     }
-  def specs2Version =
+  def specs2Version(scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
       case Seq(7, 1, _*) => "3.7.2-scalaz-7.1.7"
       case Seq(7, 2, _*) => "3.7.2"
@@ -87,12 +86,12 @@ object Http4sBuild extends Build {
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalameter          = "com.storm-enroute"        %% "scalameter"              % "0.7"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
-  lazy val scalazCore          = "org.scalaz"               %% "scalaz-core"             % scalazVersion
-  lazy val scalazScalacheckBinding = "org.scalaz"           %% "scalaz-scalacheck-binding" % scalazCore.revision
-  lazy val specs2Core          = "org.specs2"               %% "specs2-core"             % specs2Version
-  lazy val specs2MatcherExtra  = "org.specs2"               %% "specs2-matcher-extra"    % specs2Core.revision
-  lazy val specs2Scalacheck    = "org.specs2"               %% "specs2-scalacheck"       % specs2Core.revision
-  lazy val scalazStream        = "org.scalaz.stream"        %% "scalaz-stream"           % scalazStreamVersion
+  def scalazCore(version: String)               = "org.scalaz"           %% "scalaz-core"               % version
+  def scalazScalacheckBinding(version: String)  = "org.scalaz"           %% "scalaz-scalacheck-binding" % version
+  def specs2Core(scalazVersion: String)         = "org.specs2"           %% "specs2-core"               % specs2Version(scalazVersion)
+  def specs2MatcherExtra(scalazVersion: String) = "org.specs2"           %% "specs2-matcher-extra"      % specs2Core(scalazVersion).revision
+  def specs2Scalacheck(scalazVersion: String)   = "org.specs2"           %% "specs2-scalacheck"         % specs2Core(scalazVersion).revision
+  def scalazStream(scalazVersion: String)       = "org.scalaz.stream"    %% "scalaz-stream"             % scalazStreamVersion(scalazVersion)
   lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.32"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.1.1"
