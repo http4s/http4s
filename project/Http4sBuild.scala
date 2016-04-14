@@ -43,7 +43,7 @@ object Http4sBuild extends Build {
   def scalazVersion =
     sys.props.getOrElse("scalaz.version", "7.1.7")
   def scalazStreamVersion =
-    "0.8" + scalazCrossBuildSuffix
+    "0.8.1" + scalazCrossBuildSuffix
   def scalazCrossBuildSuffix =
     VersionNumber(scalazVersion).numbers match {
       case Seq(7, 1, _*) => ""
