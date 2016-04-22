@@ -2,26 +2,27 @@ package org.http4s
 package client
 package asynchttpclient
 
-import java.util.concurrent.{Callable, Executors, ExecutorService}
-
-import org.asynchttpclient.AsyncHandler.State
-import org.asynchttpclient.request.body.generator.{InputStreamBodyGenerator, BodyGenerator}
-import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
-import org.asynchttpclient.handler.StreamedAsyncHandler
-import org.http4s.client.impl.DefaultExecutor
-
-import org.http4s.util.threads._
-
-import org.reactivestreams.Publisher
-import scodec.bits.ByteVector
+import java.util.concurrent.ExecutorService
 
 import scala.collection.JavaConverters._
 
-import scalaz.{-\/, \/-}
-import scalaz.stream.io._
-import scalaz.concurrent.Task
-
+import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
+import org.asynchttpclient.AsyncHandler.State
+import org.asynchttpclient.handler.StreamedAsyncHandler
+import org.asynchttpclient.request.body.generator.{BodyGenerator, InputStreamBodyGenerator}
+import org.asynchttpclient.ws.{WebSocket, WebSocketByteListener, WebSocketListener, WebSocketPingListener, WebSocketPongListener, WebSocketTextListener, WebSocketUpgradeHandler}
+import org.http4s.client.impl.DefaultExecutor
+import org.http4s.util.threads._
+import org.http4s.websocket.Websocket
+import org.http4s.websocket.WebsocketBits.{Binary, Close, Ping, Pong, Text, WebSocketFrame}
 import org.log4s.getLogger
+import org.reactivestreams.Publisher
+import scalaz.{\/-, -\/}
+import scalaz.concurrent.Task
+import scalaz.stream.{Exchange, Process, Sink}
+import scalaz.stream.async._
+import scalaz.stream.io._
+import scodec.bits.ByteVector
 
 object AsyncHttpClient {
   private[this] val log = getLogger
@@ -54,11 +55,19 @@ object AsyncHttpClient {
           executorService.shutdown()
         }
 
-    Client(Service.lift { req =>
+    val open = Service.lift { req: Request =>
       Task.async[DisposableResponse] { cb =>
         client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, executorService))
       }
-    }, close)
+    }
+
+    val ws = Service.lift { req: Request =>
+      Task.async[Exchange[WebSocketFrame, WebSocketFrame]] { cb =>
+        client.executeRequest(toAsyncRequest(req), wsHandler(cb))
+      }
+    }
+
+    Client(open, ws, close)
   }
 
   private def asyncHandler(callback: Callback[DisposableResponse],
@@ -126,6 +135,71 @@ object AsyncHttpClient {
           override def run(): Unit = f
         })
     }
+
+  private def wsHandler(cb: Callback[Exchange[WebSocketFrame, WebSocketFrame]]): WebSocketUpgradeHandler = {
+    new WebSocketUpgradeHandler.Builder().addWebSocketListener(
+      new WebSocketListener
+          with WebSocketByteListener
+          with WebSocketPingListener
+          with WebSocketPongListener
+          with WebSocketTextListener {
+        val src = boundedQueue[WebSocketFrame](10)
+
+        def onOpen(ahcWs: WebSocket): Unit = {
+          val src = boundedQueue[WebSocketFrame](10)
+          val sink: Sink[Task, WebSocketFrame] = Process.constant {
+            case Text(str, _) => 
+              Task.delay {
+                ahcWs.sendMessage(str)
+                println(ahcWs.getRemoteAddress)
+                println(ahcWs.getLocalAddress)
+              }
+            case Binary(data, _) =>
+              Task.delay {
+                ahcWs.sendMessage(data)
+              }
+            case close: Close =>
+              Task.delay {
+                ahcWs.close()
+              }
+            case Ping(data) =>
+              Task.delay {
+                ahcWs.sendPing(data)
+              }
+            case Pong(data) =>
+              Task.delay {
+                ahcWs.sendPong(data)
+              }
+          }
+          val webSocket = Exchange(src.dequeue, sink)
+          log.info("Connected")
+          cb(\/-(webSocket))
+        }
+
+        def onClose(ahcWs: WebSocket): Unit = {
+          log.info("Closed")          
+          src.kill.run
+        }
+
+        def onError(t: Throwable): Unit =
+          cb(-\/(t))
+
+        def onMessage(data: Array[Byte]): Unit =
+          src.enqueueOne(Binary(data)).run
+
+        def onPing(data: Array[Byte]): Unit =
+          src.enqueueOne(Ping(data)).run
+
+        def onPong(data: Array[Byte]): Unit =
+          src.enqueueOne(Pong(data)).run
+
+        def onMessage(str: String): Unit = {
+          log.info("Message: "+str)
+          src.enqueueOne(Text(str)).run
+        }
+      }
+    ).build()
+  }
 
   private def toAsyncRequest(request: Request): AsyncRequest =
     new RequestBuilder(request.method.toString)

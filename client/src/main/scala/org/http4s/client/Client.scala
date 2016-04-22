@@ -2,9 +2,11 @@ package org.http4s
 package client
 
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.websocket.Websocket
+import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
 import scalaz.concurrent.Task
-import scalaz.stream.Process
+import scalaz.stream.{ Exchange, Process }
 import scalaz.stream.Process.{eval, eval_}
 
 /**
@@ -32,7 +34,9 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   * @param shutdown a Task to shut down this Shutdown this client, closing any
   *                 open connections and freeing resources
   */
-final case class Client(open: Service[Request, DisposableResponse], shutdown: Task[Unit]) {
+final case class Client(open: Service[Request, DisposableResponse],
+                        websocket: Service[Request, Exchange[WebSocketFrame, WebSocketFrame]],
+                        shutdown: Task[Unit]) {
   /** Submits a request, and provides a callback to process the response.
     *
     * @param req The request to submit

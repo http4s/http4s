@@ -63,6 +63,8 @@ object BlazeClient {
       }
       val flushPrelude = !req.body.isHalt
       manager.borrow(key).flatMap(loop(_, flushPrelude))
+    }, Service.lift { req =>
+      Task.fail(throw new UnsupportedOperationException("Web sockets not supported"))
     }, onShutdown)
   }
 }

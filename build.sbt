@@ -270,6 +270,14 @@ lazy val examples = http4sProject("examples")
   .dependsOn(server, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
+lazy val examplesAsyncHttpClient = exampleProject("examples-async-http-client")
+  .settings(Revolver.settings)
+  .settings(
+    description := "Examples of async-http-client",
+    fork := true
+  )
+  .dependsOn(asyncHttpClient)
+
 lazy val examplesBlaze = exampleProject("examples-blaze")
   .settings(Revolver.settings)
   .settings(
