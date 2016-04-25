@@ -1,8 +1,10 @@
 package org.http4s.websocket
 
+import scalaz.concurrent.Task
 import scalaz.stream.Exchange
 
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
-private[http4s] case class Websocket(exchange: Exchange[WebSocketFrame, WebSocketFrame])
-
+case class WebSocket(
+  exchange: Exchange[WebSocketFrame, WebSocketFrame]
+)

@@ -2,7 +2,10 @@ package org.http4s
 package client
 package asynchttpclient
 
+import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
+import org.asynchttpclient.HttpResponseBodyPart
+import org.asynchttpclient.ws.{ DefaultWebSocketListener, WebSocketCloseCodeReasonListener, WebSocketTextFragmentListener }
 
 import scala.collection.JavaConverters._
 
@@ -10,13 +13,14 @@ import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
 import org.asynchttpclient.request.body.generator.{BodyGenerator, InputStreamBodyGenerator}
-import org.asynchttpclient.ws.{WebSocket, WebSocketByteListener, WebSocketListener, WebSocketPingListener, WebSocketPongListener, WebSocketTextListener, WebSocketUpgradeHandler}
+import org.asynchttpclient.ws.{WebSocket => AhcWebSocket, WebSocketByteListener, WebSocketListener, WebSocketPingListener, WebSocketPongListener, WebSocketTextListener, WebSocketUpgradeHandler}
 import org.http4s.client.impl.DefaultExecutor
 import org.http4s.util.threads._
-import org.http4s.websocket.Websocket
+import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebsocketBits.{Binary, Close, Ping, Pong, Text, WebSocketFrame}
 import org.log4s.getLogger
 import org.reactivestreams.Publisher
+import scalaz.stream.Cause.Terminated
 import scalaz.{\/-, -\/}
 import scalaz.concurrent.Task
 import scalaz.stream.{Exchange, Process, Sink}
@@ -57,13 +61,13 @@ object AsyncHttpClient {
 
     val open = Service.lift { req: Request =>
       Task.async[DisposableResponse] { cb =>
-        client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, executorService))
+        client.executeRequest(toAsyncRequest(req, true), asyncHandler(cb, bufferSize, executorService))
       }
     }
 
     val ws = Service.lift { req: Request =>
-      Task.async[Exchange[WebSocketFrame, WebSocketFrame]] { cb =>
-        client.executeRequest(toAsyncRequest(req), wsHandler(cb))
+      Task.async[WebSocket] { cb =>
+        client.executeRequest(toAsyncRequest(req, false), wsHandler(cb))
       }
     }
 
@@ -136,34 +140,30 @@ object AsyncHttpClient {
         })
     }
 
-  private def wsHandler(cb: Callback[Exchange[WebSocketFrame, WebSocketFrame]]): WebSocketUpgradeHandler = {
+  private def wsHandler(cb: Callback[WebSocket]): WebSocketUpgradeHandler = {
     new WebSocketUpgradeHandler.Builder().addWebSocketListener(
-      new WebSocketListener
-          with WebSocketByteListener
-          with WebSocketPingListener
-          with WebSocketPongListener
-          with WebSocketTextListener {
+      new DefaultWebSocketListener {
         val src = boundedQueue[WebSocketFrame](10)
+        var ahcWs: AhcWebSocket = _
 
-        def onOpen(ahcWs: WebSocket): Unit = {
-          val src = boundedQueue[WebSocketFrame](10)
+        override def onOpen(ws: AhcWebSocket): Unit = {
+          ahcWs = ws
           val sink: Sink[Task, WebSocketFrame] = Process.constant {
             case Text(str, _) => 
               Task.delay {
-                ahcWs.sendMessage(str)
-                println(ahcWs.getRemoteAddress)
-                println(ahcWs.getLocalAddress)
+                println("Sending")
+                ahcWs.sendMessage(str.getBytes)
               }
             case Binary(data, _) =>
               Task.delay {
                 ahcWs.sendMessage(data)
               }
-            case close: Close =>
+            case Close(_) =>
               Task.delay {
                 ahcWs.close()
               }
             case Ping(data) =>
-              Task.delay {
+              Task.delay { 
                 ahcWs.sendPing(data)
               }
             case Pong(data) =>
@@ -171,45 +171,40 @@ object AsyncHttpClient {
                 ahcWs.sendPong(data)
               }
           }
-          val webSocket = Exchange(src.dequeue, sink)
+          val exchange = Exchange(src.dequeue, sink)
           log.info("Connected")
-          cb(\/-(webSocket))
+          cb(\/-(WebSocket(exchange)))
         }
 
-        def onClose(ahcWs: WebSocket): Unit = {
-          log.info("Closed")          
-          src.kill.run
+        override def onClose(ws: AhcWebSocket): Unit = {
+          log.info("Closed")
+          src.close.run
         }
 
-        def onError(t: Throwable): Unit =
-          cb(-\/(t))
+        override def onError(t: Throwable): Unit =
+          t match {
+            case _: Terminated =>
+            case _ => cb(-\/(t))
+          }
 
-        def onMessage(data: Array[Byte]): Unit =
-          src.enqueueOne(Binary(data)).run
-
-        def onPing(data: Array[Byte]): Unit =
-          src.enqueueOne(Ping(data)).run
-
-        def onPong(data: Array[Byte]): Unit =
-          src.enqueueOne(Pong(data)).run
-
-        def onMessage(str: String): Unit = {
-          log.info("Message: "+str)
-          src.enqueueOne(Text(str)).run
-        }
+        override def onMessage(message: String): Unit =
+          src.enqueueOne(Text(message)).run
       }
     ).build()
   }
 
-  private def toAsyncRequest(request: Request): AsyncRequest =
-    new RequestBuilder(request.method.toString)
+  private def toAsyncRequest(request: Request, setBody: Boolean): AsyncRequest = {
+    val builder = new RequestBuilder(request.method.toString)
       .setUrl(request.uri.toString)
       .setHeaders(request.headers
         .groupBy(_.name.toString)
         .mapValues(_.map(_.value).asJavaCollection)
-        .asJava
-      ).setBody(getBodyGenerator(request.body))
-      .build()
+        .asJava)
+    // Websockets don't work if we set a body.
+    if (setBody)
+      builder.setBody(getBodyGenerator(request.body))
+    builder.build
+  }
 
   private def getBodyGenerator(body: EntityBody): BodyGenerator =
     new InputStreamBodyGenerator(toInputStream(body))

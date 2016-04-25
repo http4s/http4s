@@ -7,7 +7,7 @@ import org.http4s.websocket.WebsocketBits._
 import scala.util.{Failure, Success}
 import org.http4s.blaze.pipeline.stages.SerializingStage
 import org.http4s.blaze.util.Execution.{directec, trampoline}
-import org.http4s.{websocket => ws4s}
+import org.http4s.websocket.WebSocket
 
 import scalaz.stream._
 import scalaz.concurrent._
@@ -16,7 +16,7 @@ import scalaz.{\/, \/-, -\/}
 import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import pipeline.Command.EOF
 
-class Http4sWSStage(ws: ws4s.Websocket) extends TailStage[WebSocketFrame] {
+class Http4sWSStage(ws: WebSocket) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
   
   private val dead = async.signalOf(false)
