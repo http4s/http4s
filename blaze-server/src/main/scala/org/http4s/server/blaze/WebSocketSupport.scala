@@ -16,10 +16,11 @@ import scala.concurrent.Future
 
 private trait WebSocketSupport extends Http1ServerStage {
   override protected def renderResponse(req: Request, resp: Response, cleanup: () => Future[ByteBuffer]): Unit = {
-    val ws = resp.attributes.get(org.http4s.server.websocket.websocketKey)
-    logger.debug(s"Websocket key: $ws\nRequest headers: " + req.headers)
+    val exchange = resp.attributes.get(org.http4s.server.websocket.webSocketExchangeKey)
+    logger.debug(s"Websocket key: $exchange")
+    logger.debug(s"Request headers: ${req.headers}")
 
-    if (ws.isDefined) {
+    if (exchange.isDefined) {
       val hdrs =  req.headers.map(h=>(h.name.toString,h.value))
       if (WebsocketHandshake.isWebSocketRequest(hdrs)) {
         WebsocketHandshake.serverHandshake(hdrs) match {
@@ -45,7 +46,7 @@ private trait WebSocketSupport extends Http1ServerStage {
               case Success(_) =>
                 logger.debug("Switching pipeline segments for websocket")
 
-                val segment = LeafBuilder(new Http4sWSStage(ws.get))
+                val segment = LeafBuilder(new Http4sWSStage(exchange.get))
                               .prepend(new WSFrameAggregator)
                               .prepend(new WebSocketDecoder(false))
 

@@ -8,7 +8,8 @@ import scalaz.stream.{Exchange, Process, Sink}
 import scalaz.concurrent.Task
 
 package object websocket {
-  val websocketKey = AttributeKey.http4s[WebSocket]("websocket")
+  val webSocketExchangeKey =
+    AttributeKey.http4s[Exchange[WebSocketFrame, WebSocketFrame]]("websocket-exchange")
 
   /**
    * Build a response which will accept an HTTP websocket upgrade request and initiate a websocket connection using the
@@ -37,5 +38,5 @@ package object websocket {
    */
   def WS(exchange: Exchange[WebSocketFrame, WebSocketFrame],
          status: Task[Response] = Response(Status.NotImplemented).withBody("This is a WebSocket route.")): Task[Response] =
-    status.map(_.withAttribute(websocketKey, WebSocket(exchange)))
+    status.map(_.withAttribute(webSocketExchangeKey, exchange))
 }

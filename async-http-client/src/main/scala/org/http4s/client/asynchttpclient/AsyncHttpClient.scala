@@ -2,6 +2,7 @@ package org.http4s
 package client
 package asynchttpclient
 
+import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 import org.asynchttpclient.HttpResponseBodyPart
@@ -173,7 +174,9 @@ object AsyncHttpClient {
           }
           val exchange = Exchange(src.dequeue, sink)
           log.info("Connected")
-          cb(\/-(WebSocket(exchange)))
+          cb(\/-(WebSocket(exchange,
+            ahcWs.getLocalAddress.asInstanceOf[InetSocketAddress],
+            ahcWs.getRemoteAddress.asInstanceOf[InetSocketAddress])))
         }
 
         override def onClose(ws: AhcWebSocket): Unit = {

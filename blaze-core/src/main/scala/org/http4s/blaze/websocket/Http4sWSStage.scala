@@ -16,7 +16,7 @@ import scalaz.{\/, \/-, -\/}
 import pipeline.{TrunkBuilder, LeafBuilder, Command, TailStage}
 import pipeline.Command.EOF
 
-class Http4sWSStage(ws: WebSocket) extends TailStage[WebSocketFrame] {
+class Http4sWSStage(exchange: Exchange[WebSocketFrame, WebSocketFrame]) extends TailStage[WebSocketFrame] {
   def name: String = "Http4s WebSocket Stage"
   
   private val dead = async.signalOf(false)
@@ -82,16 +82,20 @@ class Http4sWSStage(ws: WebSocket) extends TailStage[WebSocketFrame] {
         sendOutboundCommand(Command.Disconnect)
     }
     
-    (dead.discrete).wye(ws.exchange.read.to(snk))(wye.interrupt).run.runAsync(onFinish)
+    (dead.discrete).wye(exchange.read.to(snk))(wye.interrupt).run.runAsync(onFinish)
 
     // The sink is a bit more complicated
     val discard: Sink[Task, WebSocketFrame] = Process.constant(_ => Task.now(()))
 
     // if we never expect to get a message, we need to make sure the sink signals closed
-    val routeSink: Sink[Task, WebSocketFrame] = ws.exchange.write match {
-      case Process.Halt(Cause.End) => onFinish(\/-(())); discard
-      case Process.Halt(e)   => onFinish(-\/(Cause.Terminated(e))); ws.exchange.write
-      case s => s ++ Process.await(Task{onFinish(\/-(()))})(_ => discard)
+    val routeSink: Sink[Task, WebSocketFrame] = exchange.write match {
+      case Process.Halt(Cause.End) =>
+        onFinish(\/-(())); discard
+      case Process.Halt(e)   =>
+        onFinish(-\/(Cause.Terminated(e)))
+        exchange.write
+      case s =>
+        s ++ Process.await(Task{onFinish(\/-(()))})(_ => discard)
     }
     
     inputstream.to(routeSink).run.runAsync(onFinish)
