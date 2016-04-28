@@ -4,6 +4,7 @@ import java.io.File
 import java.net.{InetSocketAddress, InetAddress}
 import org.http4s.headers._
 import org.http4s.server.ServerSoftware
+import org.http4s.util.string._
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.text.utf8Decode
@@ -201,6 +202,9 @@ case class Request(
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers}"""
+
+  def isWebSocketRequest: Boolean =
+    uri.scheme.fold(false)(s => s == "ws".ci || s == "wss".ci)
 }
 
 object Request {

@@ -18,29 +18,15 @@ import scalaz.stream.wye.{Request => WyeRequest}
 object WebsocketExample extends App {
   val client = AsyncHttpClient()
 
-  implicit val scheduler = scalaz.stream.DefaultScheduler
-
-  val ws = client.websocket(Request(Method.GET, Uri.uri("ws://echo.websocket.org/?encoding=text"))).run
   val send = Process(Text("Hello"), Text("from"), Text("WebsocketExample")).toSource
-  val recv = ws.exchange.run(send, WyeRequest.L).map {
-    case Text(str, _) =>
-      str
-    case frame =>
-      s"Unexpected frame: ${frame}"
-  }.through(stdOutLines.contramap(msg => s"Echoed: $msg")).run.run
+  client.webSocket(Request(Method.GET, Uri.uri("ws://echo.websocket.org/?encoding=text"))) { ws =>
+    ws.exchange.run(send, WyeRequest.L).map {
+      case Text(str, _) =>
+        str
+      case frame =>
+        s"Unexpected frame: ${frame}"
+    }.through(stdOutLines.contramap(msg => s"Echoed: $msg")).run
+  }.run
 
-  // val c = new org.asynchttpclient.DefaultAsyncHttpClient()
-
-  // val req = new RequestBuilder("GET").setUrl("ws://echo.websocket.org/?encoding=text")
-  // val ws = c.executeRequest(req.build, new WebSocketUpgradeHandler.Builder().addWebSocketListener {
-  //   new DefaultWebSocketListener() {
-  //     override def onMessage(message: String) {
-  //       println("Received" +message)
-  //     }
-  //   }
-  // }.build).get()
-  // ws.sendMessage("test")
-
-
-//  client.shutdown.run
+  client.shutdown.run
 }

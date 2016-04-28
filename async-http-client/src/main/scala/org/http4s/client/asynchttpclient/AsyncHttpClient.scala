@@ -62,17 +62,18 @@ object AsyncHttpClient {
 
     val open = Service.lift { req: Request =>
       Task.async[DisposableResponse] { cb =>
-        client.executeRequest(toAsyncRequest(req, true), asyncHandler(cb, bufferSize, executorService))
+        val handler =
+          if (req.isWebSocketRequest)
+            wsHandler(cb.compose {
+              _.map(resp => DisposableResponse(resp, Task.now(())))
+            })
+          else
+            asyncHandler(cb, bufferSize, executorService)
+        client.executeRequest(toAsyncRequest(req), handler)
       }
     }
 
-    val ws = Service.lift { req: Request =>
-      Task.async[WebSocket] { cb =>
-        client.executeRequest(toAsyncRequest(req, false), wsHandler(cb))
-      }
-    }
-
-    Client(open, ws, close)
+    Client(open, close)
   }
 
   private def asyncHandler(callback: Callback[DisposableResponse],
@@ -143,7 +144,7 @@ object AsyncHttpClient {
         })
     }
 
-  private def wsHandler(cb: Callback[WebSocket]): WebSocketUpgradeHandler = {
+  private def wsHandler(cb: Callback[Response]): WebSocketUpgradeHandler = {
     new WebSocketUpgradeHandler.Builder().addWebSocketListener(
       new DefaultWebSocketListener {
         val src = boundedQueue[WebSocketFrame](10)
@@ -176,11 +177,14 @@ object AsyncHttpClient {
           }
           val exchange = Exchange(src.dequeue, sink)
           log.info("Connected")
-          cb(\/-(WebSocket(
+          val webSocket = WebSocket(
             getHeaders(ahcWs.getUpgradeHeaders),
             exchange,
             ahcWs.getLocalAddress.asInstanceOf[InetSocketAddress],
-            ahcWs.getRemoteAddress.asInstanceOf[InetSocketAddress])))
+            ahcWs.getRemoteAddress.asInstanceOf[InetSocketAddress])
+          val resp = Response(Status.SwitchingProtocols)
+            .withAttribute(Client.WebSocketKey, webSocket)
+          cb(\/-(resp))
         }
 
         override def onClose(ws: AhcWebSocket): Unit = {
@@ -191,7 +195,10 @@ object AsyncHttpClient {
         override def onError(t: Throwable): Unit =
           t match {
             case _: Terminated =>
-            case _ => cb(-\/(t))
+            case _ =>
+              // TODO How can we return a full Response here?
+              // All we get if the status != 101 is an IllegalStateException
+              cb(-\/(t))
           }
 
         override def onMessage(message: String): Unit =
@@ -200,15 +207,15 @@ object AsyncHttpClient {
     ).build()
   }
 
-  private def toAsyncRequest(request: Request, setBody: Boolean): AsyncRequest = {
+  private def toAsyncRequest(request: Request): AsyncRequest = {
     val builder = new RequestBuilder(request.method.toString)
       .setUrl(request.uri.toString)
       .setHeaders(request.headers
         .groupBy(_.name.toString)
         .mapValues(_.map(_.value).asJavaCollection)
         .asJava)
-    // Websockets don't work if we set a body.
-    if (setBody)
+    // AHC doesn't like a body on WebSocket requests.
+    if (!request.isWebSocketRequest)
       builder.setBody(getBodyGenerator(request.body))
     builder.build
   }

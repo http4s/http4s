@@ -4,10 +4,12 @@ package client
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
+import org.http4s.Status.SwitchingProtocols
 
 import scalaz.concurrent.Task
 import scalaz.stream.{ Exchange, Process }
 import scalaz.stream.Process.{eval, eval_}
+import scalaz.{ \/, -\/, \/- }
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -35,7 +37,6 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   *                 open connections and freeing resources
   */
 final case class Client(open: Service[Request, DisposableResponse],
-                        websocket: Service[Request, WebSocket],
                         shutdown: Task[Unit]) {
   /** Submits a request, and provides a callback to process the response.
     *
@@ -173,4 +174,30 @@ final case class Client(open: Service[Request, DisposableResponse],
   /** Shuts this client down, and blocks until complete. */
   def shutdownNow(): Unit =
     shutdown.run
+
+  def webSocket[A](req: Request)(f: WebSocket => Task[A]): Task[A] =
+    attemptWebSocket(req) {
+      case \/-(ws) =>
+        f(ws)
+      case -\/(resp) =>
+        // TODO can we do something nicer here?  A FailedResponseException?
+        Task.fail(throw new Exception("WebSocket connection failed: ${resp}"))
+    }
+
+  def attemptWebSocket[A](req: Request)(f: Response \/ WebSocket => Task[A]): Task[A] = {
+    fetch(req) {
+      case SwitchingProtocols(resp) =>
+        resp.attributes.get(Client.WebSocketKey) match {
+          case Some(ws) => f(\/-(ws))
+          case None => f(-\/(resp))
+        }
+      case resp =>
+        f(-\/(resp))
+    }
+  }
 }
+
+object Client {
+  val WebSocketKey: AttributeKey[WebSocket] =
+    AttributeKey.http4s[WebSocket]("websocket")
+}  
