@@ -73,7 +73,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
     libraryDependencies ++= Seq(
-      asyncHttp,
+      Http4sBuild.asyncHttpClient,
       reactiveStreamsTck % "test"
     )
   )
