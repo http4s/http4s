@@ -2,14 +2,14 @@ package org.http4s
 package client
 package asynchttpclient
 
+import scala.collection.JavaConverters._
+
+import io.netty.handler.codec.http.HttpHeaders
 import java.net.InetSocketAddress
 import java.nio.charset.StandardCharsets
 import java.util.concurrent.ExecutorService
 import org.asynchttpclient.HttpResponseBodyPart
 import org.asynchttpclient.ws.{ DefaultWebSocketListener, WebSocketCloseCodeReasonListener, WebSocketTextFragmentListener }
-
-import scala.collection.JavaConverters._
-
 import org.asynchttpclient.{Request => AsyncRequest, Response => _, _}
 import org.asynchttpclient.AsyncHandler.State
 import org.asynchttpclient.handler.StreamedAsyncHandler
@@ -126,7 +126,9 @@ object AsyncHttpClient {
       }
 
       override def onHeadersReceived(headers: HttpResponseHeaders): State = {
-        disposableResponse = disposableResponse.copy(response = disposableResponse.response.copy(headers = getHeaders(headers)))
+        disposableResponse = disposableResponse.copy(
+          response = disposableResponse.response.copy(
+            headers = getHeaders(headers.getHeaders)))
         state
       }
 
@@ -174,7 +176,9 @@ object AsyncHttpClient {
           }
           val exchange = Exchange(src.dequeue, sink)
           log.info("Connected")
-          cb(\/-(WebSocket(exchange,
+          cb(\/-(WebSocket(
+            getHeaders(ahcWs.getUpgradeHeaders),
+            exchange,
             ahcWs.getLocalAddress.asInstanceOf[InetSocketAddress],
             ahcWs.getRemoteAddress.asInstanceOf[InetSocketAddress])))
         }
@@ -215,9 +219,8 @@ object AsyncHttpClient {
   private def getStatus(status: HttpResponseStatus): Status =
     Status.fromInt(status.getStatusCode).valueOr(throw _)
 
-  private def getHeaders(headers: HttpResponseHeaders): Headers = {
-    Headers(headers.getHeaders.iterator.asScala.map { header =>
+  private def getHeaders(headers: HttpHeaders): Headers =
+    Headers(headers.iterator.asScala.map { header =>
       Header(header.getKey, header.getValue)
     }.toList)
-  }
 }
