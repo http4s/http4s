@@ -40,7 +40,6 @@ class Http4sWebSocketListener(cb: Callback[Response])
     val sink: Sink[Task, WebSocketFrame] = Process.constant {
       case Text(str, _) =>
         Task.delay {
-          println("Sending")
           ahcWs.sendMessage(str.getBytes)
         }
       case Binary(data, _) =>
@@ -61,19 +60,21 @@ class Http4sWebSocketListener(cb: Callback[Response])
         }
     }
     val exchange = Exchange(src.dequeue, sink)
-    log.info("Connected")
+    val local = ahcWs.getLocalAddress.asInstanceOf[InetSocketAddress]
+    val remote = ahcWs.getRemoteAddress.asInstanceOf[InetSocketAddress]
+    log.info(s"WebSocket connected: $local to $remote")
     val webSocket = WebSocket(
       getHeaders(ahcWs.getUpgradeHeaders),
       exchange,
-      ahcWs.getLocalAddress.asInstanceOf[InetSocketAddress],
-      ahcWs.getRemoteAddress.asInstanceOf[InetSocketAddress])
+      local,
+      remote)
     val resp = Response(Status.SwitchingProtocols)
       .withAttribute(Client.WebSocketKey, webSocket)
     cb(\/-(resp))
   }
 
   override def onClose(ws: AhcWebSocket): Unit = {
-    log.info("Closed")
+    log.info(s"WebSocket closed: ${ws.getLocalAddress} to ${ws.getRemoteAddress}")
     src.close.run
   }
 
