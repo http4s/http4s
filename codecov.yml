@@ -1,0 +1,8 @@
+status:
+  project:
+    enabled: false
+  patch:
+    enabled: false
+  changes:
+    enabled: false
+comment: off
