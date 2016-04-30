@@ -19,7 +19,7 @@ object ServerSentEvent {
 
   val decoder: Process1[ByteVector, ServerSentEvent] = {
     def splitLines(rest: String): Process1[String, String] =
-      rest.split("""\n""", 2) match {
+      rest.split("""\r\n|\n|\r""", 2) match {
         case Array(head, tail) =>
           emit(head) ++ splitLines(tail)
         case Array(head) =>
