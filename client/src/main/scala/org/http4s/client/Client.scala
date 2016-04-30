@@ -2,7 +2,6 @@ package org.http4s
 package client
 
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
-import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 import org.http4s.Status.SwitchingProtocols
 
@@ -175,15 +174,19 @@ final case class Client(open: Service[Request, DisposableResponse],
   def shutdownNow(): Unit =
     shutdown.run
 
+  /** Sends an upgrade request and invokes the callback on the web socket.  
+    * If the upgrade fails, the non-101 response is wrapped in a
+    * [[WebSocketUpgradeFailure]]. */
   def webSocket[A](req: Request)(f: WebSocket => Task[A]): Task[A] =
     attemptWebSocket(req) {
       case \/-(ws) =>
         f(ws)
       case -\/(resp) =>
-        // TODO can we do something nicer here?  A FailedResponseException?
-        Task.fail(throw new Exception("WebSocket connection failed: ${resp}"))
+        Task.fail(WebSocketUpgradeFailure(resp))
     }
 
+  /** Sends an upgrade request and invokes the callback on either the web
+    * socket or a response reflecting the failed handshake. */
   def attemptWebSocket[A](req: Request)(f: Response \/ WebSocket => Task[A]): Task[A] = {
     fetch(req) {
       case SwitchingProtocols(resp) =>

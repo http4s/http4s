@@ -17,7 +17,7 @@ import org.asynchttpclient.request.body.generator.{BodyGenerator, InputStreamBod
 import org.asynchttpclient.ws.{WebSocket => AhcWebSocket, WebSocketByteListener, WebSocketListener, WebSocketPingListener, WebSocketPongListener, WebSocketTextListener, WebSocketUpgradeHandler}
 import org.http4s.client.impl.DefaultExecutor
 import org.http4s.util.threads._
-import org.http4s.websocket.WebSocket
+import org.http4s.client.WebSocket
 import org.http4s.websocket.WebsocketBits.{Binary, Close, Ping, Pong, Text, WebSocketFrame}
 import org.log4s.getLogger
 import org.reactivestreams.Publisher
@@ -196,7 +196,7 @@ object AsyncHttpClient {
           t match {
             case _: Terminated =>
             case _ =>
-              // TODO How can we return a full Response here?
+              // TODO How can we return a full Response here? 
               // All we get if the status != 101 is an IllegalStateException
               cb(-\/(t))
           }

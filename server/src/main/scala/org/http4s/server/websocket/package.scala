@@ -1,7 +1,6 @@
 package org.http4s
 package server
 
-import org.http4s.websocket.WebSocket
 import org.http4s.websocket.WebsocketBits.WebSocketFrame
 
 import scalaz.stream.{Exchange, Process, Sink}
