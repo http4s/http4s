@@ -8,6 +8,8 @@ import scalaz.stream.text.utf8Encode
 import scodec.bits.ByteVector
 
 class ServerSentEventSpec extends Specification {
+  import ServerSentEvent._
+
   def toStream(s: String): Process[Task, ByteVector] =
     emit(s).pipe(utf8Encode).toSource
 
@@ -36,9 +38,9 @@ class ServerSentEventSpec extends Specification {
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
       stream.pipe(ServerSentEvent.decoder).runLog.run must_== Vector(
-        ServerSentEvent(data = "first event", lastEventId = "1"),
-        ServerSentEvent(data = "second event"),
-        ServerSentEvent(data = " third event")                
+        ServerSentEvent(data = "first event", id = SomeEventId("1")),
+        ServerSentEvent(data = "second event", id = ResetEventId),
+        ServerSentEvent(data = " third event", id = NoEventId)                
       )
     }
 
