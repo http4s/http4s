@@ -63,7 +63,7 @@ patches will be considered.
 [scalaz-stream]: https://github.com/functional-streams-for-scala/fs2
 [blaze]: https://github.com/http4s/blaze
 [circe]: https://github.com/travisbrown/circe
-[argonaut]: https://github.com/argonaut.io/argonaut
+[argonaut]: https://github.com/argonaut-io/argonaut
 [community]: community
 [code of conduct]: community/conduct.html
 [docs/0.13]: docs/0.13
