@@ -191,6 +191,27 @@ trait TestInstances {
         arbitrary[Header.Raw]
       )
     }
+
+  implicit lazy val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
+    def singleLineString: Gen[String] =
+      arbitrary[String] suchThat { s => !s.contains("\r") && !s.contains("\n") }
+    Arbitrary(for {
+      data <- singleLineString
+      event <- frequency(
+        4 -> None,
+        1 -> singleLineString.map(Some.apply)
+      )
+      id <- frequency(
+        8 -> ServerSentEvent.NoEventId,
+        1 -> ServerSentEvent.ResetEventId,
+        1 -> (singleLineString suchThat (_.nonEmpty)).map(ServerSentEvent.SomeEventId.apply)
+      )
+      retry <- frequency(
+        4 -> None,
+        1 -> posNum[Long].map(Some.apply)
+      )
+    } yield ServerSentEvent(data, event, id, retry))
+  }
 }
 
 

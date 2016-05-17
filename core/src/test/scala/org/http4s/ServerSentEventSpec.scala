@@ -1,13 +1,14 @@
 package org.http4s
 
+import org.specs2.ScalaCheck
 import org.specs2.mutable.Specification
 import scalaz.concurrent.Task
 import scalaz.stream.Process
-import scalaz.stream.Process.emit
+import scalaz.stream.Process.{emit, emitAll}
 import scalaz.stream.text.utf8Encode
 import scodec.bits.ByteVector
 
-class ServerSentEventSpec extends Specification {
+class ServerSentEventSpec extends Http4sSpec {
   import ServerSentEvent._
 
   def toStream(s: String): Process[Task, ByteVector] =
@@ -72,6 +73,17 @@ class ServerSentEventSpec extends Specification {
         ServerSentEvent(data = "test"),
         ServerSentEvent(data = "test")
       )
+    }
+  }
+
+  "encode" should {
+    "be consistent with decode" in prop { sses: Vector[ServerSentEvent] =>
+      val roundTrip = emitAll(sses).toSource
+        .pipe(ServerSentEvent.encoder)
+        .pipe(ServerSentEvent.decoder)
+        .runLog
+        .run
+      roundTrip must_== sses
     }
   }
 }

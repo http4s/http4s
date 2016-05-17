@@ -3,18 +3,34 @@ package org.http4s
 import scala.util.Try
 import scalaz.stream.Process._
 import scalaz.stream.Process1
-import scalaz.stream.text.utf8Decode
+import scalaz.stream.text.{utf8Decode, utf8Encode}
 
 import scodec.bits.ByteVector
 
 import ServerSentEvent._
+import util.{Renderable, Writer}
 
 case class ServerSentEvent(
   data: String,
   eventType: Option[String] = None,
   id: EventId = NoEventId,
   retry: Option[Long] = None
-)
+) extends Renderable {
+  def render(writer: Writer): writer.type = {
+    writer << "data:" << data << "\n"
+    eventType.foreach { writer << "event:" << _ << "\n" }
+    id match {
+      case NoEventId =>
+      case SomeEventId(id) => writer << "id:" << id << "\n"
+      case ResetEventId => writer << "id\n"
+    }
+    retry.foreach { writer << "retry:" << _ << "\n" }
+    writer << "\n"
+  }
+
+  override def toString =
+    s"ServerSentEvent($data,$eventType,$id,$retry)"
+}
 
 object ServerSentEvent {
   val empty = ServerSentEvent("")
@@ -88,4 +104,10 @@ object ServerSentEvent {
       .pipe(splitLines(""))
       .pipe(suspend(go(new StringBuilder, None, NoEventId, None)))
   }
+
+  val encoder: Process1[ServerSentEvent, ByteVector] =
+    await1[ServerSentEvent]
+      .map(_.renderString)
+      .repeat
+      .pipe(utf8Encode)
 }
