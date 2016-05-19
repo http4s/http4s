@@ -171,7 +171,7 @@ object MultipartParser {
           emit(Out(ByteVector.empty, Some(found.drop(2))))
         } else {
           receive1Or[ByteVector, Out[ByteVector]](
-            fail(new InvalidMessageBodyFailure("Part was not terminated"))) { bv =>
+            fail(new MalformedMessageBodyFailure("Part was not terminated"))) { bv =>
             val (remFront, remBack) = remainder splitAt bv.length
             if (bv startsWith remFront) {
               // If remBack is nonEmpty, then the progress toward our match
