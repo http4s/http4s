@@ -11,6 +11,7 @@ import java.io.{FileInputStream,File,InputStreamReader}
 import scala.language.postfixOps
 import scala.util.control.NonFatal
 import scalaz.{-\/, \/-}
+import scalaz.syntax.bifunctor._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 
@@ -56,6 +57,17 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     val failDecoder = EntityDecoder.decodeBy[Int](MediaType.`application/soap+xml`) { msg =>
       DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
+    }
+
+    val invalidDecoder = EntityDecoder.decodeBy[String](MediaType.`text/plain`) { msg =>
+      DecodeResult.failure(InvalidMessageBodyFailure("Nope."))
+    }
+
+    "Check the validity of a message body" in {
+      val decoded = invalidDecoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).run.run
+      val status = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).run.status).toEither
+
+      status must beLeft(Status.UnprocessableEntity)
     }
 
     "Not match invalid media type" in {

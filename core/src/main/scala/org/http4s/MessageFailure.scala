@@ -77,7 +77,7 @@ sealed case class InvalidMessageBodyFailure(details: String, override val cause:
     s"Invalid request body: $details"
 
   override def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
-    Response(Status.BadRequest, httpVersion).withBody(s"The request body was invalid.")
+    Response(Status.UnprocessableEntity, httpVersion).withBody(s"The request body was invalid.")
 }
 
 /** Indicates that a [[Message]] came with no supported [[MediaType]]. */
