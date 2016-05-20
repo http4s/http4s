@@ -13,9 +13,8 @@ import scalaz.Kleisli
 
 import scalaz.concurrent.Task
 
-
 object Retry {
- 
+
   private[this] val logger = getLogger
 
   def apply(backoff: Int => Option[FiniteDuration])(client: Client) = {
@@ -25,7 +24,10 @@ object Retry {
           Task.now(dr)
         case dr @ DisposableResponse(Response(status, _, _, _, _), _) =>
           logger.info(s"Request ${req} has failed attempt ${attempts} with reason ${status}")
-          backoff(attempts).fold(Task.now(dr))(dur => nextAttempt(req, attempts, dur))
+          backoff(attempts) match {
+            case Some(duration) => dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration))
+            case None => Task.now(dr)
+          }
       }
     }
 
@@ -35,6 +37,7 @@ object Retry {
     client.copy(open = Service.lift(prepareLoop(_, 1)))
   }
 }
+
 
 object RetryPolicy {
 
