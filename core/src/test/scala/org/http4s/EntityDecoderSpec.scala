@@ -59,12 +59,12 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       DecodeResult.failure(MalformedMessageBodyFailure("Nope."))
     }
 
-    val invalidDecoder = EntityDecoder.decodeBy[String](MediaType.`text/plain`) { msg =>
-      DecodeResult.failure(InvalidMessageBodyFailure("Nope."))
-    }
-
     "Check the validity of a message body" in {
-      val decoded = invalidDecoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).run.run
+      val decoder = EntityDecoder.decodeBy[String](MediaType.`text/plain`) { msg =>
+        DecodeResult.failure(InvalidMessageBodyFailure("Nope."))
+      }
+
+      val decoded = decoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).run.run
       val status = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).run.status).toEither
 
       status must beLeft(Status.UnprocessableEntity)
@@ -80,6 +80,49 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
     "Match valid media type to a range" in {
       EntityDecoder.text.matchesMediaType(MediaType.`text/css`) must_== true
+    }
+
+    "Completely customize the response of a ParsingFailure" in {
+      val failure = GenericParsingFailure("sanitized: details", response =
+        (httpVersion: HttpVersion) =>
+        Response(Status.BadRequest, httpVersion).withBody(ErrorJson("""{"error":"parse error"}""")))
+
+      val contentType = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).run.headers.get(`Content-Type`)
+
+      "the content type is application/json" ==> {
+        contentType must beSome(`Content-Type`(MediaType.`application/json`))
+      }
+    }
+
+    "Completely customize the response of a DecodeFailure" in {
+      val failure = GenericDecodeFailure("unsupported media type: application/xyz because it's Sunday", response =
+        (httpVersion: HttpVersion) =>
+          Response(Status.UnsupportedMediaType, httpVersion).withBody("not on a Sunday"))
+
+      val body = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).run.body.runLast.run.flatMap(_.decodeUtf8.right.toOption)
+
+      "the content type is application/json" ==> {
+        body must beSome("not on a Sunday")
+      }
+    }
+
+    "Completely customize the response of a MessageBodyFailure" in {
+      // customized decoder, with a custom response
+      val decoder = EntityDecoder.decodeBy[String](MediaType.`text/plain`) { msg =>
+        DecodeResult.failure {
+          val invalid = InvalidMessageBodyFailure("Nope.")
+          GenericMessageBodyFailure(invalid.message, invalid.cause, (httpVersion: HttpVersion) =>
+            Response(Status.UnprocessableEntity, httpVersion).
+              withBody(ErrorJson("""{"error":"unprocessable"}""")))
+        }
+      }
+
+      val decoded = decoder.decode(Request().replaceAllHeaders(`Content-Type`(MediaType.`text/plain`)), strict = true).run.run
+      val contentType = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).run.headers.get(`Content-Type`)).toEither
+
+      "the content type is application/json instead of text/plain" ==> {
+        contentType must beLeft(Some(`Content-Type`(MediaType.`application/json`)))
+      }
     }
 
     "decodeStrict" >> {
@@ -257,4 +300,11 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         .flatMap(EntityDecoder.decodeString(_)(Charset.`UTF-8`)) must returnValue(str)
     }
   }
+
+  // we want to return a specific kind of error when there is a MessageFailure
+  case class ErrorJson(value: String)
+  implicit val errorJsonEntityEncoder: EntityEncoder[ErrorJson] =
+    EntityEncoder.simple[ErrorJson](`Content-Type`(MediaType.`application/json`))(json =>
+      ByteVector(json.value.getBytes()))
+
 }
