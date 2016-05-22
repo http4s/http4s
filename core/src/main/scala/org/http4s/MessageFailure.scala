@@ -44,7 +44,10 @@ final case class ParseFailure(sanitized: String, details: String) extends Parsin
 }
 
 /** Generic description of a failure to parse an HTTP [[Message]] */
-final case class GenericParsingFailure(message: String, response: HttpVersion => Task[Response]) extends ParsingFailure {
+final case class GenericParsingFailure(sanitized: String, details: String, response: HttpVersion => Task[Response]) extends ParsingFailure {
+  def message: String =
+    ParseFailure(sanitized, details).message
+
   def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
     response(httpVersion)
 }

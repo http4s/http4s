@@ -83,7 +83,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     }
 
     "Completely customize the response of a ParsingFailure" in {
-      val failure = GenericParsingFailure("sanitized: details", response =
+      val failure = GenericParsingFailure("sanitized", "details", response =
         (httpVersion: HttpVersion) =>
         Response(Status.BadRequest, httpVersion).withBody(ErrorJson("""{"error":"parse error"}""")))
 
