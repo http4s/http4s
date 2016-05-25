@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>DecodeFailure - org.http4s.DecodeFailure</title>
-          <meta name="description" content="DecodeFailure - org.http4s.DecodeFailure" />
-          <meta name="keywords" content="DecodeFailure org.http4s.DecodeFailure" />
+          <title>GenericDecodeFailure - org.http4s.GenericDecodeFailure</title>
+          <meta name="description" content="GenericDecodeFailure - org.http4s.GenericDecodeFailure" />
+          <meta name="keywords" content="GenericDecodeFailure org.http4s.GenericDecodeFailure" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../index.html';
-            var hash = 'org.http4s.DecodeFailure';
+            var hash = 'org.http4s.GenericDecodeFailure';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -30,10 +30,10 @@
       <div id="definition">
         <img alt="Class" src="../../lib/class_big.png" />
         <p id="owner"><a href="../package.html" class="extype" name="org">org</a>.<a href="package.html" class="extype" name="org.http4s">http4s</a></p>
-        <h1>DecodeFailure</h1><h3><span class="morelinks"><div>Related Doc:
+        <h1>GenericDecodeFailure</h1><h3><span class="morelinks"><div>Related Doc:
             <a href="package.html" class="extype" name="org.http4s">package http4s</a>
           </div></span></h3><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -41,22 +41,18 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier">sealed abstract </span>
-        <span class="kind">class</span>
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <span class="name">DecodeFailure</span><span class="result"> extends <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></span>
+        <span class="name">GenericDecodeFailure</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="response">response: (<a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span><span class="result"> extends <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Indicates a problem decoding a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.  This may either be a problem with
-the entity headers or with the entity itself.</p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/MessageFailure.scala" target="_blank">MessageFailure.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Generic description of a failure to decode a <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/core/src/main/scala/org/http4s/MessageFailure.scala" target="_blank">MessageFailure.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a>, <span class="extype" name="java.lang.RuntimeException">RuntimeException</span>, <span class="extype" name="java.lang.Exception">Exception</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="GenericDecodeFailure.html" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>, <a href="GenericMessageBodyFailure.html" class="extype" name="org.http4s.GenericMessageBodyFailure">GenericMessageBodyFailure</a>, <a href="InvalidMessageBodyFailure.html" class="extype" name="org.http4s.InvalidMessageBodyFailure">InvalidMessageBodyFailure</a>, <a href="MalformedMessageBodyFailure.html" class="extype" name="org.http4s.MalformedMessageBodyFailure">MalformedMessageBodyFailure</a>, <a href="MediaTypeMismatch.html" class="extype" name="org.http4s.MediaTypeMismatch">MediaTypeMismatch</a>, <a href="MediaTypeMissing.html" class="extype" name="org.http4s.MediaTypeMissing">MediaTypeMissing</a>, <a href="MessageBodyFailure.html" class="extype" name="org.http4s.MessageBodyFailure">MessageBodyFailure</a>, <a href="UnsupportedMediaTypeFailure.html" class="extype" name="org.http4s.UnsupportedMediaTypeFailure">UnsupportedMediaTypeFailure</a></div>
-          </div></div>
+          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>, <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a>, <span class="extype" name="java.lang.RuntimeException">RuntimeException</span>, <span class="extype" name="java.lang.Exception">Exception</span>, <span class="extype" name="java.lang.Throwable">Throwable</span>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -73,7 +69,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.DecodeFailure"><span>DecodeFailure</span></li><li class="in" name="org.http4s.MessageFailure"><span>MessageFailure</span></li><li class="in" name="java.lang.RuntimeException"><span>RuntimeException</span></li><li class="in" name="java.lang.Exception"><span>Exception</span></li><li class="in" name="java.lang.Throwable"><span>Throwable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.GenericDecodeFailure"><span>GenericDecodeFailure</span></li><li class="in" name="scala.Serializable"><span>Serializable</span></li><li class="in" name="scala.Product"><span>Product</span></li><li class="in" name="scala.Equals"><span>Equals</span></li><li class="in" name="org.http4s.DecodeFailure"><span>DecodeFailure</span></li><li class="in" name="org.http4s.MessageFailure"><span>MessageFailure</span></li><li class="in" name="java.lang.RuntimeException"><span>RuntimeException</span></li><li class="in" name="java.lang.Exception"><span>Exception</span></li><li class="in" name="java.lang.Throwable"><span>Throwable</span></li><li class="in" name="java.io.Serializable"><span>Serializable</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
                 <span class="filtertype">Implicitly<br />
@@ -95,51 +91,34 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
 
       <div id="template">
         <div id="allMembers">
-        
-
-        
-
-        <div id="values" class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.MessageFailure#message" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="message:String"></a>
-      <a id="message:String"></a>
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="org.http4s.GenericDecodeFailure#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(message:String,response:org.http4s.HttpVersion=&gt;scalaz.concurrent.Task[org.http4s.Response]):org.http4s.GenericDecodeFailure"></a>
+      <a id="&lt;init&gt;:GenericDecodeFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
+        <span class="modifier"></span>
+        <span class="kind">new</span>
       </span>
       <span class="symbol">
-        <span class="name">message</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+        <span class="name">GenericDecodeFailure</span><span class="params">(<span name="message">message: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="response">response: (<a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@message:String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@&lt;init&gt;(message:String,response:org.http4s.HttpVersion=&gt;scalaz.concurrent.Task[org.http4s.Response]):org.http4s.GenericDecodeFailure" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Provides a message appropriate for logging.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a message appropriate for logging.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></dd></dl></div>
-    </li><li name="org.http4s.MessageFailure#toHttpResponse" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="toHttpResponse(httpVersion:org.http4s.HttpVersion):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="toHttpResponse(HttpVersion):Task[Response]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">toHttpResponse</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@toHttpResponse(httpVersion:org.http4s.HttpVersion):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides a default rendering of this failure as a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a default rendering of this failure as a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></dd></dl></div>
+      
     </li></ol>
             </div>
 
+        
+
+        
+
         <div id="values" class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -152,7 +131,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -169,7 +148,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@##():Int" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@##():Int" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -186,34 +165,34 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@+(other:String):String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@+(other:String):String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="-&gt;[B](y:B):(A,B)"></a>
-      <a id="-&gt;[B](B):(DecodeFailure,B)"></a>
+      <a id="-&gt;[B](B):(GenericDecodeFailure,B)"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@-&gt;[B](y:B):(A,B)" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@-&gt;[B](y:B):(A,B)" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -231,7 +210,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -248,7 +227,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">addSuppressed</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.lang.Throwable">Throwable</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@addSuppressed(x$1:Throwable):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@addSuppressed(x$1:Throwable):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -265,7 +244,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -282,7 +261,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">clone</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@clone():Object" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@clone():Object" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -295,86 +274,86 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         </dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a>
-      <a id="ensuring((DecodeFailure)⇒Boolean,⇒Any):DecodeFailure"></a>
+      <a id="ensuring((GenericDecodeFailure)⇒Boolean,⇒Any):GenericDecodeFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean):A"></a>
-      <a id="ensuring((DecodeFailure)⇒Boolean):DecodeFailure"></a>
+      <a id="ensuring((GenericDecodeFailure)⇒Boolean):GenericDecodeFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>) ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a>
-      <a id="ensuring(Boolean,⇒Any):DecodeFailure"></a>
+      <a id="ensuring(Boolean,⇒Any):GenericDecodeFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>, <span name="msg">msg: ⇒ <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:Boolean):A"></a>
-      <a id="ensuring(Boolean):DecodeFailure"></a>
+      <a id="ensuring(Boolean):GenericDecodeFailure"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@ensuring(cond:Boolean):A" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@ensuring(cond:Boolean):A" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -389,28 +368,11 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="scala.AnyRef#equals" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="equals(x$1:Any):Boolean"></a>
-      <a id="equals(Any):Boolean"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@equals(x$1:Any):Boolean" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="java.lang.Throwable#fillInStackTrace" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="fillInStackTrace():Throwable"></a>
       <a id="fillInStackTrace():Throwable"></a>
@@ -423,7 +385,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">fillInStackTrace</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@fillInStackTrace():Throwable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@fillInStackTrace():Throwable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -440,7 +402,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@finalize():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -463,13 +425,13 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@formatted(fmtstr:String):String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@formatted(fmtstr:String):String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -487,7 +449,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">getCause</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@getCause():Throwable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@getCause():Throwable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -504,7 +466,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@getClass():Class[_]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -521,7 +483,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">getLocalizedMessage</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@getLocalizedMessage():String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@getLocalizedMessage():String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -538,7 +500,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">getMessage</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@getMessage():String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@getMessage():String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -555,7 +517,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">getStackTrace</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Array" class="extype" target="_top">Array</a>[<span class="extype" name="java.lang.StackTraceElement">StackTraceElement</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@getStackTrace():Array[StackTraceElement]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@getStackTrace():Array[StackTraceElement]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -572,28 +534,11 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">getSuppressed</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Array" class="extype" target="_top">Array</a>[<span class="extype" name="java.lang.Throwable">Throwable</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@getSuppressed():Array[Throwable]" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@getSuppressed():Array[Throwable]" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
-    </li><li name="scala.AnyRef#hashCode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="hashCode():Int"></a>
-      <a id="hashCode():Int"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">hashCode</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@hashCode():Int" title="Permalink" target="_top">
-        <img src="../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
     </li><li name="java.lang.Throwable#initCause" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="initCause(x$1:Throwable):Throwable"></a>
       <a id="initCause(Throwable):Throwable"></a>
@@ -606,7 +551,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">initCause</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.lang.Throwable">Throwable</span></span>)</span><span class="result">: <span class="extype" name="java.lang.Throwable">Throwable</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@initCause(x$1:Throwable):Throwable" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@initCause(x$1:Throwable):Throwable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -623,11 +568,28 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
+    </li><li name="org.http4s.GenericDecodeFailure#message" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="message:String"></a>
+      <a id="message:String"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">message</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@message:String" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a message appropriate for logging.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a message appropriate for logging.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> → <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></dd></dl></div>
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -640,7 +602,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -657,7 +619,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">notify</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@notify():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@notify():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -674,7 +636,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -691,7 +653,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">printStackTrace</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.io.PrintWriter">PrintWriter</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@printStackTrace(x$1:java.io.PrintWriter):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@printStackTrace(x$1:java.io.PrintWriter):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -708,7 +670,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">printStackTrace</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="java.io.PrintStream">PrintStream</span></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@printStackTrace(x$1:java.io.PrintStream):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@printStackTrace(x$1:java.io.PrintStream):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -725,11 +687,28 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">printStackTrace</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@printStackTrace():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@printStackTrace():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Throwable</dd></dl></div>
+    </li><li name="org.http4s.GenericDecodeFailure#response" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="response:org.http4s.HttpVersion=&gt;scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="response:(HttpVersion)⇒Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">response</span><span class="result">: (<a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a>) ⇒ <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@response:org.http4s.HttpVersion=&gt;scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="java.lang.Throwable#setStackTrace" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="setStackTrace(x$1:Array[StackTraceElement]):Unit"></a>
       <a id="setStackTrace(Array[StackTraceElement]):Unit"></a>
@@ -742,7 +721,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">setStackTrace</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Array" class="extype" target="_top">Array</a>[<span class="extype" name="java.lang.StackTraceElement">StackTraceElement</span>]</span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@setStackTrace(x$1:Array[StackTraceElement]):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@setStackTrace(x$1:Array[StackTraceElement]):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -759,11 +738,28 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.GenericDecodeFailure#toHttpResponse" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="toHttpResponse(httpVersion:org.http4s.HttpVersion):scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="toHttpResponse(HttpVersion):Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">toHttpResponse</span><span class="params">(<span name="httpVersion">httpVersion: <a href="HttpVersion.html" class="extype" name="org.http4s.HttpVersion">HttpVersion</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@toHttpResponse(httpVersion:org.http4s.HttpVersion):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides a default rendering of this failure as a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Provides a default rendering of this failure as a <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> → <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></dd></dl></div>
     </li><li name="java.lang.Throwable#toString" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="toString():String"></a>
       <a id="toString():String"></a>
@@ -776,7 +772,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@toString():String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@toString():String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -793,7 +789,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">wait</span><span class="params">()</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@wait():Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@wait():Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -816,7 +812,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>, <span name="arg1">arg1: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -839,7 +835,7 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Long" class="extype" target="_top">Long</a></span>)</span><span class="result">: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Unit" class="extype" target="_top">Unit</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -852,23 +848,23 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a>
-      <a id="→[B](B):(DecodeFailure,B)"></a>
+      <a id="→[B](B):(GenericDecodeFailure,B)"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@→[B](y:B):(A,B)" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@→[B](y:B):(A,B)" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li></ol>
@@ -890,12 +886,12 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         <span class="implicit deprecated" title="Deprecated: (Since version 2.11.0) Use Throwable#getStackTrace">getStackTraceString</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../index.html#org.http4s.DecodeFailure@getStackTraceString:String" title="Permalink" target="_top">
+      <a href="../../index.html#org.http4s.GenericDecodeFailure@getStackTraceString:String" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to
             <span class="extype" name="scala.Predef.RichException">RichException</span> performed by method RichException in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>RichException</dd><dt>Annotations</dt><dd>
@@ -907,7 +903,15 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.MessageFailure">
+        <div class="parent" name="scala.Serializable">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></h3>
+            </div><div class="parent" name="scala.Product">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a></h3>
+            </div><div class="parent" name="scala.Equals">
+              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Equals" class="extype" target="_top">Equals</a></h3>
+            </div><div class="parent" name="org.http4s.DecodeFailure">
+              <h3>Inherited from <a href="DecodeFailure.html" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a></h3>
+            </div><div class="parent" name="org.http4s.MessageFailure">
               <h3>Inherited from <a href="MessageFailure.html" class="extype" name="org.http4s.MessageFailure">MessageFailure</a></h3>
             </div><div class="parent" name="java.lang.RuntimeException">
               <h3>Inherited from <span class="extype" name="java.lang.RuntimeException">RuntimeException</span></h3>
@@ -924,23 +928,23 @@ the entity headers or with the entity itself.</p></div><dl class="attributes blo
             </div>
         <div class="conversion" name="scala.Predef.RichException">
               <h3>Inherited by implicit conversion RichException from
-                <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to <span class="extype" name="scala.Predef.RichException">RichException</span>
+                <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to <span class="extype" name="scala.Predef.RichException">RichException</span>
               </h3>
             </div><div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>]
+                <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>]
+                <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>]
+                <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.DecodeFailure">DecodeFailure</a>]
+                <a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.GenericDecodeFailure">GenericDecodeFailure</a>]
               </h3>
             </div>
         </div>
