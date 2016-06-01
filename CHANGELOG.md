@@ -1,3 +1,12 @@
+# v0.14.0
+* Added the possibility to specify custom responses to MessageFailures
+* Address issue with Retry middleware leaking connections
+* Fixed the status code for a semantically invalid request to `422 UnprocessableEntity`
+* Rename `json` to `jsonDecoder` to reduce possibility of implicit shadowing
+* Introduce the `ServerApp` trait
+* Deprectate `onShutdown` and `awaitShutdown` in `Server`
+* Support for multipart messages
+
 # v0.13.2 (2016-04-13)
 * Fixes the CanBuildFrom for RequestCookieJar to avoid duplicates.
 * Update version of jawn-parser which contains a fix for Json decoding.
