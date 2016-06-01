@@ -43,7 +43,7 @@ trait ServerBuilder {
 object ServerBuilder {
   // Defaults for core server builder functionality
   val LoopbackAddress = InetAddress.getLoopbackAddress.getHostAddress
-  val DefaultHost = LoopbackAddress
+  val DefaultHost = "0.0.0.0"
   val DefaultHttpPort = 8080
   val DefaultSocketAddress = InetSocketAddress.createUnresolved(DefaultHost, DefaultHttpPort)
   val DefaultServiceExecutor = Strategy.DefaultExecutorService
