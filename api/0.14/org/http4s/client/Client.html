@@ -363,6 +363,85 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
+    </li><li name="org.http4s.client.Client#expect" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="expect[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="expect[A](Task[Request])(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@expect[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.client.Client#expect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expect[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="expect[A](String)(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@expect[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Submits a GET request to the URI specified by the String and decodes the
+response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request to the URI specified by the String and decodes the
+response on success.  On failure, the status code is returned.  The
+underlying HTTP connection is closed at the completion of the decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#expect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expect[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="expect[A](Uri)(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@expect[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Submits a GET request to the specified URI and decodes the response on
+success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request to the specified URI and decodes the response on
+success.  On failure, the status code is returned.  The underlying HTTP
+connection is closed at the completion of the decoding.
+</p></div></div>
+    </li><li name="org.http4s.client.Client#expect" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="expect[A](req:org.http4s.Request)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="expect[A](Request)(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">expect</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.expect.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@expect[A](req:org.http4s.Request)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Submits a request and decodes the response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response on success.  On failure, the
+status code is returned.  The underlying HTTP connection is closed at the
+completion of the decoding.
+</p></div></div>
     </li><li name="org.http4s.client.Client#fetch" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="fetch[A](req:scalaz.concurrent.Task[org.http4s.Request])(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]"></a>
       <a id="fetch[A](Task[Request])((Response)⇒Task[A]):Task[A]"></a>
@@ -404,25 +483,6 @@
          is disposed when the returned task completes.  Attempts to read the
          response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
     </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="fetchAs[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
-      <a id="fetchAs[A](Task[Request])(EntityDecoder[A]):Task[A]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">fetchAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@fetchAs[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Submits a request and decodes the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response.  The underlying HTTP connection
-is closed at the completion of the decoding.
-</p></div></div>
-    </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="fetchAs[A](req:org.http4s.Request)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
       <a id="fetchAs[A](Request)(EntityDecoder[A]):Task[A]"></a>
       <h4 class="signature">
@@ -438,8 +498,9 @@ is closed at the completion of the decoding.
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Submits a request and decodes the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response.  The underlying HTTP connection
-is closed at the completion of the decoding.
+      <p class="shortcomment cmt">Submits a request and decodes the response, regardless of the status code.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response, regardless of the status code.
+The underlying HTTP connection is closed at the completion of the
+decoding.
 </p></div></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
@@ -488,7 +549,7 @@ is closed at the completion of the decoding.
                 <span class="name">@inline</span><span class="args">()</span>
               
         </dd></dl></div>
-    </li><li name="org.http4s.client.Client#get" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+    </li><li name="org.http4s.client.Client#get" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="get[A](s:String)(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]"></a>
       <a id="get[A](String)((Response)⇒Task[A]):Task[A]"></a>
       <h4 class="signature">
@@ -504,7 +565,10 @@ is closed at the completion of the decoding.
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Submits a request and decodes the response on success.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response on success.  On failure, the
+status code is returned.  The underlying HTTP connection is closed at the
+completion of the decoding.
+</p></div></div>
     </li><li name="org.http4s.client.Client#get" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="get[A](uri:org.http4s.Uri)(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]"></a>
       <a id="get[A](Uri)((Response)⇒Task[A]):Task[A]"></a>
@@ -525,42 +589,6 @@ is closed at the completion of the decoding.
 </p></div><dl class="paramcmts block"><dt class="param">uri</dt><dd class="cmt"><p>The URI to GET</p></dd><dt class="param">f</dt><dd class="cmt"><p>A callback for the response to a GET on uri.  The underlying HTTP connection
          is disposed when the returned task completes.  Attempts to read the
          response body afterward will result in an error.</p></dd><dt>returns</dt><dd class="cmt"><p>The result of applying f to the response to req</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#getAs" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
-      <a id="getAs[A](String)(EntityDecoder[A]):Task[A]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.client.Client#getAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
-      <a id="getAs[A](Uri)(EntityDecoder[A]):Task[A]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Submits a GET request and decodes the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request and decodes the response.  The underlying HTTP connection
-is closed at the completion of the decoding.
-</p></div></div>
     </li><li name="scala.AnyRef#getClass" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="getClass():Class[_]"></a>
       <a id="getClass():Class[_]"></a>
@@ -753,7 +781,7 @@ is closed at the completion of the decoding.
     </span>
       <p class="shortcomment cmt">Returns this client as an <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.</p><div class="fullcomment"><div class="comment cmt"><p>Returns this client as an <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a>.  It is the responsibility of
 callers of this service to run the response body to dispose of the
-underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <a href="#fetch[A](req:scalaz.concurrent.Task[org.http4s.Request])(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]" class="extmbr" name="org.http4s.client.Client#fetch">fetch</a>, <a href="#fetchAs[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" class="extmbr" name="org.http4s.client.Client#fetchAs">fetchAs</a>,
+underlying HTTP connection.</p><p>This is intended for use in proxy servers.  <a href="#fetch[A](req:scalaz.concurrent.Task[org.http4s.Request])(f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):scalaz.concurrent.Task[A]" class="extmbr" name="org.http4s.client.Client#fetch">fetch</a>, <a href="#fetchAs[A](req:org.http4s.Request)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" class="extmbr" name="org.http4s.client.Client#fetchAs">fetchAs</a>,
 <a href="#toService[A](f:org.http4s.Response=&gt;scalaz.concurrent.Task[A]):org.http4s.Service[org.http4s.Request,A]" class="extmbr" name="org.http4s.client.Client#toService">toService</a>, and <a href="#streaming[A](req:org.http4s.Request)(f:org.http4s.Response=&gt;scalaz.stream.Process[scalaz.concurrent.Task,A]):scalaz.stream.Process[scalaz.concurrent.Task,A]" class="extmbr" name="org.http4s.client.Client#streaming">streaming</a> are safer alternatives, as their
 signatures guarantee disposal of the HTTP connection.
 </p></div></div>
@@ -935,6 +963,71 @@ or when a common response callback is used by many call sites.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use toHttpService.run for compatibility, or fetch for safety</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fetchAs[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="fetchAs[A](Task[Request])(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">fetchAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.fetchAs.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@fetchAs[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Submits a request and decodes the response, regardless of the status code.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a request and decodes the response, regardless of the status code.
+The underlying HTTP connection is closed at the completion of the
+decoding.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#getAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="getAs[A](String)(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="s">s: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@getAs[A](s:String)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
+    </li><li name="org.http4s.client.Client#getAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
+      <a id="getAs[A](Uri)(EntityDecoder[A]):Task[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">getAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.getAs.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.client.Client@getAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Submits a GET request and decodes the response.</p><div class="fullcomment"><div class="comment cmt"><p>Submits a GET request and decodes the response.  The underlying HTTP
+connection is closed at the completion of the decoding.
+</p></div><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
     </li><li name="org.http4s.client.Client#prepAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="prepAs[T](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]"></a>
       <a id="prepAs[T](Task[Request])(EntityDecoder[T]):Task[T]"></a>
@@ -944,7 +1037,7 @@ or when a common response callback is used by many call sites.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use fetchAs">prepAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">prepAs</span><span class="tparams">[<span name="T">T</span>]</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.prepAs.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.client.Client@prepAs[T](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[T]):scalaz.concurrent.Task[T]" title="Permalink" target="_top">
@@ -954,7 +1047,7 @@ or when a common response callback is used by many call sites.
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use fetchAs</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
     </li><li name="org.http4s.client.Client#prepAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="prepAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
       <a id="prepAs[A](Uri)(EntityDecoder[A]):Task[A]"></a>
@@ -984,7 +1077,7 @@ or when a common response callback is used by many call sites.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use fetchAs">prepAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>
+        <span class="name deprecated" title="Deprecated: (Since version 0.14) Use expect">prepAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.client.Client@prepAs[A](req:org.http4s.Request)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
@@ -994,7 +1087,7 @@ or when a common response callback is used by many call sites.
       <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
                 <span class="name">@deprecated</span>
               
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use fetchAs</p></dd></dl></div>
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
     </li><li name="org.http4s.client.Client#prepare" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="prepare(req:scalaz.concurrent.Task[org.http4s.Request]):scalaz.concurrent.Task[org.http4s.Response]"></a>
       <a id="prepare(Task[Request]):Task[Response]"></a>
