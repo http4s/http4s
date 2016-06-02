@@ -2,6 +2,8 @@ package org.http4s
 package client
 
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.Status.ResponseClass.Successful
+import scala.util.control.NoStackTrace
 
 import scalaz.concurrent.Task
 import scalaz.stream.Process
@@ -83,8 +85,27 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     toHttpService.run(req)
 
   /**
-    * Submits a request and decodes the response.  The underlying HTTP connection
-    * is closed at the completion of the decoding.
+    * Submits a request and decodes the response on success.  On failure, the
+    * status code is returned.  The underlying HTTP connection is closed at the
+    * completion of the decoding.
+    */
+  def expect[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] = {
+    val r = if (d.consumes.nonEmpty) {
+      val m = d.consumes.toList
+      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)):_*))
+    } else req
+    fetch(r) {
+      case Successful(resp) =>
+        d.decode(resp, strict = false).fold(throw _, identity)
+      case failedResponse =>
+        Task.fail(UnexpectedStatus(failedResponse.status))
+    }
+  }
+
+  /**
+    * Submits a request and decodes the response, regardless of the status code.
+    * The underlying HTTP connection is closed at the completion of the
+    * decoding.
     */
   def fetchAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] = {
     val r = if (d.consumes.nonEmpty) {
@@ -96,7 +117,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     }
   }
 
-  @deprecated("Use fetchAs", "0.12")
+  @deprecated("Use expect", "0.14")
   def prepAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] =
     fetchAs(req)(d)
 
@@ -111,6 +132,11 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def get[A](uri: Uri)(f: Response => Task[A]): Task[A] =
     fetch(Request(Method.GET, uri))(f)
 
+  /**
+    * Submits a request and decodes the response on success.  On failure, the
+    * status code is returned.  The underlying HTTP connection is closed at the
+    * completion of the decoding.
+    */
   def get[A](s: String)(f: Response => Task[A]): Task[A] =
     Uri.fromString(s).fold(Task.fail, uri => get(uri)(f))
 
@@ -123,12 +149,30 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     toHttpService.run(Request(Method.GET, uri))
 
   /**
-    * Submits a GET request and decodes the response.  The underlying HTTP connection
-    * is closed at the completion of the decoding.
+    * Submits a GET request to the specified URI and decodes the response on
+    * success.  On failure, the status code is returned.  The underlying HTTP
+    * connection is closed at the completion of the decoding.
     */
+  def expect[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
+    expect(Request(Method.GET, uri))(d)
+
+  /**
+    * Submits a GET request to the URI specified by the String and decodes the
+    * response on success.  On failure, the status code is returned.  The
+    * underlying HTTP connection is closed at the completion of the decoding.
+    */
+  def expect[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
+    Uri.fromString(s).fold(Task.fail, expect[A])
+
+  /**
+    * Submits a GET request and decodes the response.  The underlying HTTP
+    * connection is closed at the completion of the decoding.
+    */
+  @deprecated("Use expect", "0.14")
   def getAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
     fetchAs(Request(Method.GET, uri))(d)
 
+  @deprecated("Use expect", "0.14")
   def getAs[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
     Uri.fromString(s).fold(Task.fail, uri => getAs[A](uri))
 
@@ -155,14 +199,19 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def apply(req: Task[Request]): Task[Response] =
     toHttpService =<< req
 
+  def expect[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
+    req.flatMap(expect(_)(d))
+
   /**
-    * Submits a request and decodes the response.  The underlying HTTP connection
-    * is closed at the completion of the decoding.
+    * Submits a request and decodes the response, regardless of the status code.
+    * The underlying HTTP connection is closed at the completion of the
+    * decoding.
     */
+  @deprecated("Use expect", "0.14")
   def fetchAs[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
     req.flatMap(fetchAs(_)(d))
 
-  @deprecated("Use fetchAs", "0.12")
+  @deprecated("Use expect", "0.14")
   def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
     fetchAs(req)(d)
 
@@ -170,3 +219,5 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def shutdownNow(): Unit =
     shutdown.run
 }
+
+case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace
