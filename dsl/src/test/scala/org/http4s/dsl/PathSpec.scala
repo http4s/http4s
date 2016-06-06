@@ -138,25 +138,35 @@ class PathSpec extends Http4sSpec {
       }) must beFalse
     }
 
-    "Long extractor" in {
-      (Path("/user/123") match {
-        case Root / "user" / LongVar(userId) => userId == 123
-        case _                                 => false
-      }) must beTrue
-    }
-
-    "Long extractor, invalid int" in {
-      (Path("/user/invalid") match {
-        case Root / "user" / LongVar(userId) => true
-        case _                                 => false
-      }) must beFalse
-    }
-
-    "Long extractor, number format error" in {
-      (Path("/user/9223372036854775808") match {
-        case Root / "user" / LongVar(userId) => true
-        case _                                 => false
-      }) must beFalse
+    "Long extractor" >> {
+      "valid" >> {
+        "small positive number" in {
+          (Path("/user/123") match {
+            case Root / "user" / LongVar(userId) => userId == 123
+            case _                                 => false
+          }) must beTrue
+        }
+        "negative number" in {
+          (Path("/user/-432") match {
+            case Root / "user" / LongVar(userId) => userId == -432
+            case _                                 => false
+          }) must beTrue
+        }
+      }
+      "invalid" >> {
+        "a word" in {
+          (Path("/user/invalid") match {
+            case Root / "user" / LongVar(userId) => true
+            case _ => false
+          }) must beFalse
+        }
+        "number but out of domain" in {
+          (Path("/user/9223372036854775808") match {
+            case Root / "user" / LongVar(userId) => true
+            case _                                 => false
+          }) must beFalse
+        }
+      }
     }
   }
 }
