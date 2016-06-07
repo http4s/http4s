@@ -64,7 +64,7 @@ val service = HttpService {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6311/1358899950@3ed20d25)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6332/1948598118@13dbfb06)
 ```
 
 ### Running your service
@@ -81,7 +81,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.mountService(service)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@6e9c93e6
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@4702fdfb
 ```
 
 A builder can be `run` to start the server.  By default, http4s
@@ -108,7 +108,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val client = PooledHttp1Client()
-// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6325/1760859997@3689baf5),scalaz.concurrent.Task@6edf89a3)
+// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6346/998537397@6ffebc34),scalaz.concurrent.Task@6a5e91a9)
 ```
 
 ### Describing a call
@@ -121,7 +121,7 @@ val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
 // <console>:25: warning: method getAs in class Client is deprecated: Use expect
 //        val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
 //                                ^
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@6b8333ea
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@154861bb
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -155,7 +155,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@5688bdce
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@1c151715
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -177,10 +177,10 @@ greetingList.run.mkString("\n")
 //        greetingList.run.mkString("\n")
 //                     ^
 // res0: String =
+// Hello, Michael.
 // Hello, Ashley.
 // Hello, Christopher.
 // Hello, Jessica.
-// Hello, Michael.
 ```
 
 ## Cleaning up
