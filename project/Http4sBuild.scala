@@ -42,7 +42,7 @@ object Http4sBuild extends Build {
 
   val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
   def scalazStreamVersion(scalazVersion: String) =
-    "0.8.1" + scalazCrossBuildSuffix(scalazVersion)
+    "0.8.2" + scalazCrossBuildSuffix(scalazVersion)
   def scalazCrossBuildSuffix(scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
       case Seq(7, 1, _*) => ""
