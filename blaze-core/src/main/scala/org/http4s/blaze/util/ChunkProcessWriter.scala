@@ -69,8 +69,8 @@ class ChunkProcessWriter(private var headers: StringWriter,
     f.map(Function.const(false))
   }
 
-  private def writeLength(length: Int): ByteBuffer = {
-    val bytes = Integer.toHexString(length).getBytes(ISO_8859_1)
+  private def writeLength(length: Long): ByteBuffer = {
+    val bytes = length.toHexString.getBytes(ISO_8859_1)
     val b = ByteBuffer.allocate(bytes.length + 2)
     b.put(bytes).put(CRLFBytes).flip()
     b

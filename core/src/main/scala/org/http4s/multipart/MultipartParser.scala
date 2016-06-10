@@ -139,7 +139,7 @@ object MultipartParser {
     }
 
     def body(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
-      val heads = (0 until expected.length).scanLeft(expected) { (acc, _) =>
+      val heads = (0L until expected.length).scanLeft(expected) { (acc, _) =>
         acc dropRight 1
       }
 

@@ -53,6 +53,8 @@ object Http4sBuild extends Build {
       case Seq(7, 1, _*) => "3.7.2-scalaz-7.1.7"
       case Seq(7, 2, _*) => "3.7.2"
     }
+  def jawnStreamzVersion(scalazVersion: String) =
+    "0.9.0" + scalazCrossBuildSuffix(scalazVersion)
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.7.v20160121"
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.2-M1"
@@ -67,7 +69,7 @@ object Http4sBuild extends Build {
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.4"
-  lazy val jawnStreamz         = "org.http4s"               %% "jawn-streamz"            % "0.8.1"
+  def jawnStreamz(scalazVersion: String) = "org.http4s"     %% "jawn-streamz"            % jawnStreamzVersion(scalazVersion)
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.7.v20160115"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.3.0"
