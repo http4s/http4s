@@ -56,7 +56,7 @@ object Status {
   }
 
   private def mkStatus(code: Int, reason: String = ""): ParseResult[Status] =
-    if (code >= 100 && code <= 599) ParseResult.success(Status(code)(isEntityAllowed = true))
+    if (code >= 100 && code <= 599) ParseResult.success(Status(code)(reason, isEntityAllowed = true))
     else ParseResult.fail("Invalid status", s"Code $code must be between 100 and 599, inclusive")
 
   private def lookup(code: Int): Option[\/-[Status]] =
