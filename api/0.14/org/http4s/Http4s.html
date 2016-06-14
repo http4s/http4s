@@ -379,7 +379,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">binary</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<a href="http://scodec.org/api/scodec-bits/1.0.12/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>
+        <span class="name">binary</span><span class="result">: <a href="EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<a href="http://scodec.org/api/scodec-bits/1.1.0/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Http4s@binary:org.http4s.EntityDecoder[scodec.bits.ByteVector]" title="Permalink" target="_top">
@@ -447,7 +447,7 @@
         <span class="kind">val</span>
       </span>
       <span class="symbol">
-        <span class="name">byteVectorEncoder</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<a href="http://scodec.org/api/scodec-bits/1.0.12/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>
+        <span class="name">byteVectorEncoder</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<a href="http://scodec.org/api/scodec-bits/1.1.0/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Http4s@byteVectorEncoder:org.http4s.EntityEncoder[scodec.bits.ByteVector]" title="Permalink" target="_top">
@@ -515,7 +515,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">chunkedEncoder</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.EntityEncoderInstances.chunkedEncoder.A">A</span>) ⇒ <span class="extype" name="scalaz.stream.Channel">Channel</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://scodec.org/api/scodec-bits/1.0.12/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>, <span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">4096</span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.chunkedEncoder.A">A</span>]</span>
+        <span class="name">chunkedEncoder</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="f">f: (<span class="extype" name="org.http4s.EntityEncoderInstances.chunkedEncoder.A">A</span>) ⇒ <span class="extype" name="scalaz.stream.Channel">Channel</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a>, <a href="http://scodec.org/api/scodec-bits/1.1.0/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>, <span name="chunkSize">chunkSize: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Int" class="extype" target="_top">Int</a> = <span class="symbol">4096</span></span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances.chunkedEncoder.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Http4s@chunkedEncoder[A](f:A=&gt;scalaz.stream.Channel[scalaz.concurrent.Task,Int,scodec.bits.ByteVector],chunkSize:Int):org.http4s.EntityEncoder[A]" title="Permalink" target="_top">
@@ -1133,7 +1133,7 @@ q(d) <span class="cmt">// does not compile: not a literal</span></pre></div><dl 
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">sourceEncoder</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.sourceEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<a href="http://docs.typelevel.org/api/scalaz-stream/stable/0.8.1a/doc/index.html#scalaz.stream.Process" class="extype" target="_top">Process</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.sourceEncoder.A">A</span>]]</span>
+        <span class="name">sourceEncoder</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span class="implicit">implicit </span><span name="W">W: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.EntityEncoderInstances0.sourceEncoder.A">A</span>]</span>)</span><span class="result">: <a href="EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<a href="http://docs.typelevel.org/api/scalaz-stream/stable/0.8.2a/doc/index.html#scalaz.stream.Process" class="extype" target="_top">Process</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.EntityEncoderInstances0.sourceEncoder.A">A</span>]]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.Http4s@sourceEncoder[A](implicitW:org.http4s.EntityEncoder[A]):org.http4s.EntityEncoder[scalaz.stream.Process[scalaz.concurrent.Task,A]]" title="Permalink" target="_top">
