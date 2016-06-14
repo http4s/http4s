@@ -23,7 +23,7 @@ object Http4sBuild extends Build {
   def compatibleVersion(version: String, scalazVersion: String) = {
     val currentVersionWithoutSnapshot = version.replaceAll("-SNAPSHOT$", "")
     val (targetMajor, targetMinor) = extractApiVersion(version)
-    val targetVersion = scalazCrossBuild("${targetMajor}.${targetMinor}.0", scalazVersion)
+    val targetVersion = scalazCrossBuild(s"${targetMajor}.${targetMinor}.0", scalazVersion)
     if (targetVersion != currentVersionWithoutSnapshot)
       Some(targetVersion)
     else
