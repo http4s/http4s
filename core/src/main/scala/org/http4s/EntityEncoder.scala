@@ -52,7 +52,7 @@ trait EntityEncoder[A] { self =>
 }
 
 object EntityEncoder extends EntityEncoderInstances {
-  case class Entity(body: EntityBody, length: Option[Int] = None)
+  case class Entity(body: EntityBody, length: Option[Long] = None)
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[A](implicit ev: EntityEncoder[A]): EntityEncoder[A] = ev
@@ -63,7 +63,7 @@ object EntityEncoder extends EntityEncoderInstances {
       empty
     )
 
-    lazy val empty = Entity(EmptyBody, Some(0))
+    lazy val empty = Entity(EmptyBody, Some(0L))
   }
 
   /** Create a new [[EntityEncoder]] */

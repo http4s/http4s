@@ -6,7 +6,8 @@
 * Introduce the `ServerApp` trait
 * Deprectate `onShutdown` and `awaitShutdown` in `Server`
 * Support for multipart messages
-* The PAth extractor for Long now supports negative numbers
+* The Path extractor for Long now supports negative numbers
+* Upgrade to scalaz-stream-0.8.2(a) for compatibility with scodec-bits-1.1
 
 # v0.13.2 (2016-04-13)
 * Fixes the CanBuildFrom for RequestCookieJar to avoid duplicates.
