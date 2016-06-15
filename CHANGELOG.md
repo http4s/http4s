@@ -1,4 +1,4 @@
-# v0.14.0 (2016-06-15)
+# v0.14.1 (2016-06-15)
 * Added the possibility to specify custom responses to MessageFailures
 * Address issue with Retry middleware leaking connections
 * Fixed the status code for a semantically invalid request to `422 UnprocessableEntity`
@@ -9,6 +9,10 @@
 * The Path extractor for Long now supports negative numbers
 * Upgrade to scalaz-stream-0.8.2(a) for compatibility with scodec-bits-1.1
 * Downgrade to argonaut-6.1 (latest stable release) now that it cross builds for scalaz-7.2
+* Upgrade parboiled2 for compatibility with shapeless-2.3.x
+
+~~# v0.14.0 (2016-06-15)~~
+* Recalled. Use v0.14.1 instead.
 
 # v0.13.3 (2016-06-15)
 * Address issue with Retry middleware leaking connections.
