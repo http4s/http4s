@@ -93,7 +93,7 @@ object Http4sBuild extends Build {
   def specs2MatcherExtra(scalazVersion: String) = "org.specs2"           %% "specs2-matcher-extra"      % specs2Core(scalazVersion).revision
   def specs2Scalacheck(scalazVersion: String)   = "org.specs2"           %% "specs2-scalacheck"         % specs2Core(scalazVersion).revision
   def scalazStream(scalazVersion: String)       = "org.scalaz.stream"    %% "scalaz-stream"             % scalazStreamVersion(scalazVersion)
-  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.5.3"
+  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.36"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.2.0"
 }
