@@ -1,4 +1,4 @@
-# v0.14.0
+# v0.14.0 (2016-06-15)
 * Added the possibility to specify custom responses to MessageFailures
 * Address issue with Retry middleware leaking connections
 * Fixed the status code for a semantically invalid request to `422 UnprocessableEntity`
