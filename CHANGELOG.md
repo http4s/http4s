@@ -1,3 +1,7 @@
+# v0.13.3 (2016-06-15)
+* Address issue with Retry middleware leaking connections.
+* Pass the reason string when setting the `Status` for a successful `ParseResult`.
+
 # v0.13.2 (2016-04-13)
 * Fixes the CanBuildFrom for RequestCookieJar to avoid duplicates.
 * Update version of jawn-parser which contains a fix for Json decoding.
