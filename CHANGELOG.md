@@ -1,4 +1,4 @@
-# v0.14.0 (2016-06-10)
+# v0.14.0
 * Added the possibility to specify custom responses to MessageFailures
 * Address issue with Retry middleware leaking connections
 * Fixed the status code for a semantically invalid request to `422 UnprocessableEntity`
@@ -8,6 +8,7 @@
 * Support for multipart messages
 * The Path extractor for Long now supports negative numbers
 * Upgrade to scalaz-stream-0.8.2(a) for compatibility with scodec-bits-1.1
+* Downgrade to argonaut-6.1 (latest stable release) now that it cross builds for scalaz-7.2
 
 # v0.13.2 (2016-04-13)
 * Fixes the CanBuildFrom for RequestCookieJar to avoid duplicates.
