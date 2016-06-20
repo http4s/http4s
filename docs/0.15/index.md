@@ -64,7 +64,7 @@ val service = HttpService {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6401/1963580797@4b921ce8)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6435/807568092@14e378c7)
 ```
 
 ### Running your service
@@ -81,7 +81,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.mountService(service)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@1f3845c8
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@14dbd186
 ```
 
 A builder can be `run` to start the server.  By default, http4s
@@ -108,7 +108,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val client = PooledHttp1Client()
-// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6415/2108040943@6f0def41),scalaz.concurrent.Task@7f13adf0)
+// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6493/1155926082@12349af),scalaz.concurrent.Task@467159ec)
 ```
 
 ### Describing a call
@@ -121,7 +121,7 @@ val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
 // <console>:25: warning: method getAs in class Client is deprecated: Use expect
 //        val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
 //                                ^
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@609856ef
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@78a72776
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -155,7 +155,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@77314bde
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@1cf113f3
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -194,7 +194,13 @@ client.shutdownNow()
 server.shutdownNow()
 ```
 
+### Next steps
+
+Next, we'll take a deeper look at creating `HttpService`s with
+[http4s-dsl].
+
 [blaze]: https://github.com/http4s/blaze
 [tut]: https://github.com/tpolecat/tut
 [Kleisli: Composing monadic functions]: http://eed3si9n.com/learning-scalaz/Composing+monadic+functions.html
 [Scalaz Task: The Missing Documentation]: http://timperrett.com/2014/07/20/scalaz-task-the-missing-documentation/
+[http4s-dsl]: dsl.html
