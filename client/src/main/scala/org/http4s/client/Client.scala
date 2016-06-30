@@ -29,7 +29,7 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   *
   * @param open a service to asynchronously return a [[DisposableResponse]] from
   *             a [[Request]].  This is a low-level operation intended for client
-  *             implementations and middlewares.
+  *             implementations and middleware.
   *
   * @param shutdown a Task to shut down this Shutdown this client, closing any
   *                 open connections and freeing resources
