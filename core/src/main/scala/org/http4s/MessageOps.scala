@@ -54,18 +54,6 @@ trait MessageOps extends Any {
     * @param headers [[Headers]] containing the desired headers
     * @return a new Request object
     */
-  @deprecated("Use replaceAllHeaders.", "0.10.0")
-  final def withHeaders(headers: Headers): Self = replaceAllHeaders(headers)
-
-  /** Replace the existing headers with those provided */
-  @deprecated("Use replaceAllHeaders.", "0.10.0")
-  final def withHeaders(headers: Header*): Self = replaceAllHeaders(Headers(headers.toList))
-  
-  /** Replaces the [[Header]]s of the incoming Request object
-    *
-    * @param headers [[Headers]] containing the desired headers
-    * @return a new Request object
-    */
   final def replaceAllHeaders(headers: Headers): Self =
     transformHeaders(_ => headers)
 
