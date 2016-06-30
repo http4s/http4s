@@ -120,7 +120,6 @@ trait ResponseOps extends Any with MessageOps {
   /** Change the status of this response object
     *
     * @param status value to replace on the response object
-    * @tparam S type that can be converted to a [[Status]]
     * @return a new response object with the new status code
     */
   def withStatus(status: Status): Self
