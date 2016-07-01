@@ -58,7 +58,7 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6465/2115943738@7e03f728)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6366/809313908@34e51c8c)
 ```
 
 One beautiful thing about the `HttpService` model is that we don't
@@ -70,7 +70,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@27469096
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@712ae48e
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -107,7 +107,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@71855caa
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@582d81ea
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -207,7 +207,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@158bc989
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@21445376
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -224,7 +224,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@e7999cd
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7dcb0d5b
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync

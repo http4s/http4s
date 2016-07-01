@@ -52,7 +52,7 @@
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>A <a href="" class="extype" name="org.http4s.client.Client">Client</a> submits <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>s to a server and processes the <a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>.
 </p></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middlewares.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
+            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
                 open connections and freeing resources</p></dd></dl><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/client/src/main/scala/org/http4s/client/Client.scala" target="_blank">Client.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a>, <span class="extype" name="java.io.Serializable">Serializable</span>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Equals" class="extype" target="_top">Equals</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
@@ -115,7 +115,7 @@
     </span>
       <p class="shortcomment cmt"></p><div class="fullcomment"><div class="comment cmt"></div><dl class="paramcmts block"><dt class="param">open</dt><dd class="cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middlewares.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
+            implementations and middleware.</p></dd><dt class="param">shutdown</dt><dd class="cmt"><p>a Task to shut down this Shutdown this client, closing any
                 open connections and freeing resources</p></dd></dl></div>
     </li></ol>
             </div>
@@ -693,7 +693,7 @@ completion of the decoding.
       <p class="shortcomment cmt">a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.</p><div class="fullcomment"><div class="comment cmt"><p>a service to asynchronously return a <a href="DisposableResponse.html" class="extype" name="org.http4s.client.DisposableResponse">DisposableResponse</a> from
             a <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>.  This is a low-level operation intended for client
-            implementations and middlewares.</p></div></div>
+            implementations and middleware.</p></div></div>
     </li><li name="org.http4s.client.Client#shutdown" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="shutdown:scalaz.concurrent.Task[Unit]"></a>
       <a id="shutdown:Task[Unit]"></a>
@@ -903,67 +903,7 @@ or when a common response callback is used by many call sites.
 
         <div id="values" class="values members">
               <h3>Deprecated Value Members</h3>
-              <ol><li name="org.http4s.client.Client#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(req:scalaz.concurrent.Task[org.http4s.Request]):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="apply(Task[Request]):Task[Response]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use toHttpService =&lt;&lt; req for compatibility, or fetch for safety">apply</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@apply(req:scalaz.concurrent.Task[org.http4s.Request]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use toHttpService =&lt;&lt; req for compatibility, or fetch for safety</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(uri:org.http4s.Uri):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="apply(Uri):Task[Response]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety">apply</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@apply(uri:org.http4s.Uri):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="apply(Request):Task[Response]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use toHttpService.run for compatibility, or fetch for safety">apply</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@apply(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use toHttpService.run for compatibility, or fetch for safety</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#fetchAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+              <ol><li name="org.http4s.client.Client#fetchAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="fetchAs[A](req:scalaz.concurrent.Task[org.http4s.Request])(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
       <a id="fetchAs[A](Task[Request])(EntityDecoder[A]):Task[A]"></a>
       <h4 class="signature">
@@ -1049,26 +989,6 @@ connection is closed at the completion of the decoding.
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
     </li><li name="org.http4s.client.Client#prepAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prepAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
-      <a id="prepAs[A](Uri)(EntityDecoder[A]):Task[A]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use getAs">prepAs</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="d">d: <a href="../EntityDecoder.html" class="extype" name="org.http4s.EntityDecoder">EntityDecoder</a>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<span class="extype" name="org.http4s.client.Client.prepAs.A">A</span>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@prepAs[A](uri:org.http4s.Uri)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use getAs</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#prepAs" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="prepAs[A](req:org.http4s.Request)(implicitd:org.http4s.EntityDecoder[A]):scalaz.concurrent.Task[A]"></a>
       <a id="prepAs[A](Request)(EntityDecoder[A]):Task[A]"></a>
       <h4 class="signature">
@@ -1088,66 +1008,6 @@ connection is closed at the completion of the decoding.
                 <span class="name">@deprecated</span>
               
         </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.14)</i> Use expect</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#prepare" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prepare(req:scalaz.concurrent.Task[org.http4s.Request]):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="prepare(Task[Request]):Task[Response]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use toHttpService =&lt;&lt; req for compatibility, or fetch for safety">prepare</span><span class="params">(<span name="req">req: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@prepare(req:scalaz.concurrent.Task[org.http4s.Request]):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use toHttpService =&lt;&lt; req for compatibility, or fetch for safety</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#prepare" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prepare(uri:org.http4s.Uri):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="prepare(Uri):Task[Response]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety">prepare</span><span class="params">(<span name="uri">uri: <a href="../Uri.html" class="extype" name="org.http4s.Uri">Uri</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@prepare(uri:org.http4s.Uri):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety</p></dd></dl></div>
-    </li><li name="org.http4s.client.Client#prepare" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="prepare(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]"></a>
-      <a id="prepare(Request):Task[Response]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name deprecated" title="Deprecated: (Since version 0.12) Use toHttpService.run for compatibility, or fetch for safety">prepare</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.client.Client@prepare(req:org.http4s.Request):scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Annotations</dt><dd>
-                <span class="name">@deprecated</span>
-              
-        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.12)</i> Use toHttpService.run for compatibility, or fetch for safety</p></dd></dl></div>
     </li></ol>
             </div>
         </div>
