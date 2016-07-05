@@ -16,7 +16,7 @@ private final class PoolManager[A <: Connection](builder: ConnectionBuilder[A],
                                                  es: ExecutorService)
   extends ConnectionManager[A] {
 
-  private case class Waiting(key: RequestKey, callback: Callback[NextConnection])
+  private sealed case class Waiting(key: RequestKey, callback: Callback[NextConnection])
 
   private[this] val logger = getLogger
   private var isClosed = false

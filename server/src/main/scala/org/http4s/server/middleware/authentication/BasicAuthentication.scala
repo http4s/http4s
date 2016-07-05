@@ -16,7 +16,7 @@ import scalaz.concurrent.Task
 class BasicAuthentication(realm: String, store: AuthenticationStore) extends Authentication {
 
   private trait AuthReply
-  private case class OK(user: String, realm: String) extends AuthReply
+  private sealed case class OK(user: String, realm: String) extends AuthReply
   private case object NeedsAuth extends AuthReply
 
   protected def getChallenge(req: Request) = checkAuth(req).map {

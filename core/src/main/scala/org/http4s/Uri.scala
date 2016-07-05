@@ -21,7 +21,7 @@ import org.http4s.util.option.ToOptionOps
   * @param fragment   optional Uri Fragment. url-encoded.
   */
 // TODO fix Location header, add unit tests
-case class Uri(
+final case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
   authority: Option[Authority] = None,
   path: Path = "",
@@ -139,7 +139,7 @@ object Uri extends UriFunctions {
   type Path = String
   type Fragment = String
 
-  case class Authority(
+  final case class Authority(
     userInfo: Option[UserInfo] = None,
     host: Host = RegName("localhost"),
     port: Option[Int] = None) extends Renderable {
@@ -168,9 +168,9 @@ object Uri extends UriFunctions {
     }
   }
 
-  case class RegName(host: CaseInsensitiveString) extends Host
-  case class IPv4(address: CaseInsensitiveString) extends Host
-  case class IPv6(address: CaseInsensitiveString) extends Host
+  final case class RegName(host: CaseInsensitiveString) extends Host
+  final case class IPv4(address: CaseInsensitiveString) extends Host
+  final case class IPv6(address: CaseInsensitiveString) extends Host
 
   object RegName { def apply(name: String) = new RegName(name.ci) }
   object IPv4 { def apply(address: String) = new IPv4(address.ci) }
