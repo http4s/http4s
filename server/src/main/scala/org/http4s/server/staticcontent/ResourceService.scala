@@ -26,7 +26,7 @@ object ResourceService {
                     executor: ExecutorService = Strategy.DefaultExecutorService,
                     cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
-  /** Make a new [[org.http4s.server.HttpService]] that serves static files. */
+  /** Make a new [[org.http4s.HttpService]] that serves static files. */
   private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
