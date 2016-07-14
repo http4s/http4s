@@ -20,7 +20,7 @@ class FollowRedirectSpec extends Http4sSpec {
   }
 
 
-  val defaultClient = MockClient(route)
+  val defaultClient = Client.mock(route)
   val client = FollowRedirect(1)(defaultClient)
   val fetchBody = client.toService(_.as[String])
   
