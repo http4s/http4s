@@ -14,7 +14,7 @@ import Status.Ok
 class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
   testJsonDecoder(jsonDecoder)
 
-  case class Foo(bar: Int)
+  sealed case class Foo(bar: Int)
   val foo = Foo(42)
   implicit val FooCodec = CodecJson.derive[Foo]
 
@@ -59,7 +59,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
 
     // https://github.com/http4s/http4s/issues/514
     Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
-      case class Umlaut(wort: String)
+      sealed case class Umlaut(wort: String)
       implicit val codec = CodecJson.derive[Umlaut]
       val umlautDecoder = jsonOf[Umlaut]
       s"handle JSON with umlauts: $wort" >> {

@@ -25,26 +25,26 @@ import scala.concurrent.duration.Duration
   * @param customExecutor custom executor to run async computations. Will not be shutdown with client.
   * @param group custom `AsynchronousChannelGroup` to use other than the system default
   */
-case class BlazeClientConfig(// HTTP properties
-                             idleTimeout: Duration,
-                             requestTimeout: Duration,
-                             userAgent: Option[`User-Agent`],
+final case class BlazeClientConfig(// HTTP properties
+                                   idleTimeout: Duration,
+                                   requestTimeout: Duration,
+                                   userAgent: Option[`User-Agent`],
 
-                             // security options
-                             sslContext: Option[SSLContext],
-                             endpointAuthentication: Boolean,
+                                   // security options
+                                   sslContext: Option[SSLContext],
+                                   endpointAuthentication: Boolean,
 
-                             // parser options
-                             maxResponseLineSize: Int,
-                             maxHeaderLength: Int,
-                             maxChunkSize: Int,
-                             lenientParser: Boolean,
+                                   // parser options
+                                   maxResponseLineSize: Int,
+                                   maxHeaderLength: Int,
+                                   maxChunkSize: Int,
+                                   lenientParser: Boolean,
 
-                             // pipeline management
-                             bufferSize: Int,
-                             customExecutor: Option[ExecutorService],
-                             group: Option[AsynchronousChannelGroup]
-                            )
+                                   // pipeline management
+                                   bufferSize: Int,
+                                   customExecutor: Option[ExecutorService],
+                                   group: Option[AsynchronousChannelGroup]
+                                  )
 
 object BlazeClientConfig {
   /** Default user configuration

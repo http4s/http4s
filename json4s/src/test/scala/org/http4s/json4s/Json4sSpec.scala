@@ -69,5 +69,5 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
 }
 
 object Json4sSpec {
-  case class Foo(bar: Int)
+  final case class Foo(bar: Int)
 }

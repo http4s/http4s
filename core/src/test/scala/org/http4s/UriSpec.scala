@@ -8,7 +8,7 @@ import scalaz.{-\/, Maybe}
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
 
-  case class Ttl(seconds: Int)
+  sealed case class Ttl(seconds: Int)
   object Ttl {
     implicit val queryParamInstance = new QueryParamEncoder[Ttl] with QueryParam[Ttl] {
       def key: QueryParameterKey = QueryParameterKey("ttl")

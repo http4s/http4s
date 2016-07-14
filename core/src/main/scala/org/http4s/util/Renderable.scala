@@ -149,7 +149,7 @@ class StringWriter(size: Int = 64) extends Writer {
 /** [[Writer]] that will result in a `ByteVector`
   * @param bv initial ByteVector`
   */
-case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
+final case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
                             charset: Charset = StandardCharsets.UTF_8) extends Writer {
 
   override def append(s: String)       = { bv = bv ++ ByteVector(s.getBytes(charset)); this}

@@ -225,5 +225,5 @@ object TomcatBuilder extends TomcatBuilder(
   metricPrefix = MetricsSupport.DefaultPrefix
 )
 
-private case class Mount(f: (Context, Int, TomcatBuilder) => Unit)
+private final case class Mount(f: (Context, Int, TomcatBuilder) => Unit)
 

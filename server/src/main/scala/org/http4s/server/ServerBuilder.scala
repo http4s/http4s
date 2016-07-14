@@ -71,12 +71,12 @@ trait SSLSupport { this: ServerBuilder =>
             clientAuth: Boolean = false): Self
 }
 object SSLSupport {
-  case class StoreInfo(path: String, password: String)
-  case class SSLBits(keyStore: StoreInfo,
-           keyManagerPassword: String,
-                     protocol: String,
-                   trustStore: Option[StoreInfo],
-                   clientAuth: Boolean)
+  final case class StoreInfo(path: String, password: String)
+  final case class SSLBits(keyStore: StoreInfo,
+                 keyManagerPassword: String,
+                           protocol: String,
+                         trustStore: Option[StoreInfo],
+                         clientAuth: Boolean)
 }
 
 trait MetricsSupport { this: ServerBuilder =>

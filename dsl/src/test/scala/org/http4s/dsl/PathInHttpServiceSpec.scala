@@ -15,7 +15,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
   object P extends QueryParamDecoderMatcher[Double]("decimal")
   object T extends QueryParamDecoderMatcher[String]("term")
 
-  case class Limit(l: Long)
+  final case class Limit(l: Long)
   implicit val limitQueryParam = QueryParam.fromKey[Limit]("limit")
   implicit val limitDecoder    = QueryParamDecoder.decodeBy[Limit, Long](Limit.apply)
 

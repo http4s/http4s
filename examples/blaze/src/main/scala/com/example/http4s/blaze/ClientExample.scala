@@ -23,7 +23,7 @@ object ClientExample {
     import io.circe.generic.auto._
     import org.http4s.circe.jsonOf
 
-    case class Foo(bar: String)
+    final case class Foo(bar: String)
 
     // jsonOf is defined for Json4s, Argonuat, and Circe, just need the right decoder!
     implicit val fooDecoder = jsonOf[Foo]

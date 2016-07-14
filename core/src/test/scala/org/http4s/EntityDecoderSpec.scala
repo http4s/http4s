@@ -302,7 +302,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   }
 
   // we want to return a specific kind of error when there is a MessageFailure
-  case class ErrorJson(value: String)
+  sealed case class ErrorJson(value: String)
   implicit val errorJsonEntityEncoder: EntityEncoder[ErrorJson] =
     EntityEncoder.simple[ErrorJson](`Content-Type`(MediaType.`application/json`))(json =>
       ByteVector(json.value.getBytes()))

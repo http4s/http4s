@@ -18,7 +18,7 @@ object VirtualHost {
     * filled in, if possible, using the request Uri or knowledge of the
     * security of the underlying transport protocol.
     */
-  case class HostService(service: HttpService, p: Host => Boolean)
+  final case class HostService(service: HttpService, p: Host => Boolean)
 
   /** Create a [[HostService]] that will match based on the exact host string
     * (discounting case) and port, if the port is given. If the port is not

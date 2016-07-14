@@ -120,7 +120,7 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
 
 
 // see http://tools.ietf.org/html/rfc6265
-case class Cookie(
+final case class Cookie(
   name: String,
   content: String,
   expires: Option[Instant] = None,

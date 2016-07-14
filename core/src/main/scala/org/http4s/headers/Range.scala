@@ -24,7 +24,7 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     def apply(first: Long, second: Long): SubRange = SubRange(first, Some(second))
   }
 
-  case class SubRange(first: Long, second: Option[Long]) extends Renderable {
+  final case class SubRange(first: Long, second: Option[Long]) extends Renderable {
     /** Base method for rendering this object efficiently */
     override def render(writer: Writer): writer.type = {
       writer << first
@@ -37,7 +37,7 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
     HttpHeaderParser.RANGE(s)
 }
 
-case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {
+final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {
   override def key = Range
   override def renderValue(writer: Writer): writer.type = {
     writer << unit << '=' << ranges.head

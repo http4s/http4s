@@ -48,7 +48,7 @@ final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.cr
   def headers = Headers(`Content-Type`(MediaType.multipart("form-data", Some(boundary.value))))
 }
 
-case class Boundary(value: String) extends AnyVal {
+final case class Boundary(value: String) extends AnyVal {
   def toByteVector: ByteVector =
     ByteVector.view(value.getBytes(StandardCharsets.UTF_8))
 }

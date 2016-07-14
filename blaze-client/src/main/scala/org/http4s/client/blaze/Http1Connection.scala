@@ -312,7 +312,7 @@ private object Http1Connection {
   private sealed trait State
   private case object Idle extends State
   private case object Running extends State
-  private case class Error(exc: Throwable) extends State
+  private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 

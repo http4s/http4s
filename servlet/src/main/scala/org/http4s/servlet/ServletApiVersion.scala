@@ -4,7 +4,7 @@ import javax.servlet.ServletContext
 
 import scala.math.Ordered.orderingToOrdered
 
-case class ServletApiVersion (major: Int, minor: Int) extends Ordered[ServletApiVersion] {
+final case class ServletApiVersion (major: Int, minor: Int) extends Ordered[ServletApiVersion] {
   override def compare(that: ServletApiVersion): Int = (this.major, this.minor) compare ((that.major, that.minor))
 
   override val toString = s"$major.$minor"
