@@ -14,7 +14,7 @@ import scalaz.stream.Wye
 import scalaz.stream.async._
 import scalaz.stream.async.mutable.Signal
 import scalaz.stream.wye
-import scalaz.stream.wye.receiveBoth
+import scalaz.stream.wye.{receiveBoth, receiveR}
 import scodec.bits.ByteVector
 
 /**
@@ -245,7 +245,7 @@ object Client {
             emit(i) ++ loop(reason)
           case ReceiveL(kill) =>
             if (kill)
-              fail(new IOException(reason))
+              receiveR(_ => fail(new IOException(reason)))
             else
               loop(reason)
           case HaltOne(e) =>
