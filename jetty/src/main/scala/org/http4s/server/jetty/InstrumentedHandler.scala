@@ -34,7 +34,7 @@ import com.codahale.metrics.MetricRegistry.{name => registryName}
  *
  * <a href="https://github.com/http4s/http4s/issues/204">See http4s/http4s#204</a>.
  */
-protected case class InstrumentedHandler(registry:MetricRegistry , _prefix:Option[String] = None) extends HandlerWrapper {
+protected final case class InstrumentedHandler(registry:MetricRegistry , _prefix:Option[String] = None) extends HandlerWrapper {
 
   var name:String                               = null
 

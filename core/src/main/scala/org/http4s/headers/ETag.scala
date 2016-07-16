@@ -5,7 +5,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object ETag extends HeaderKey.Internal[ETag] with HeaderKey.Singleton {
-  case class EntityTag(tag: String, weak: Boolean = false) {
+  final case class EntityTag(tag: String, weak: Boolean = false) {
     override def toString() = {
       if (weak) "W/\"" + tag + '"'
       else "\"" + tag + '"'

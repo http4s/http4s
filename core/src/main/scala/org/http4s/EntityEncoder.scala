@@ -52,7 +52,7 @@ trait EntityEncoder[A] { self =>
 }
 
 object EntityEncoder extends EntityEncoderInstances {
-  case class Entity(body: EntityBody, length: Option[Long] = None)
+  final case class Entity(body: EntityBody, length: Option[Long] = None)
 
   /** summon an implicit [[EntityEncoder]] */
   def apply[A](implicit ev: EntityEncoder[A]): EntityEncoder[A] = ev

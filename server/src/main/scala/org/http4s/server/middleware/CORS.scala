@@ -30,7 +30,7 @@ import scalaz.Kleisli._
   * You can give an instance of this class to the CORS middleware,
   * to specify its behavoir
   */
-case class CORSConfig(
+final case class CORSConfig(
   anyOrigin: Boolean,
   allowCredentials: Boolean,
   maxAge: Long,

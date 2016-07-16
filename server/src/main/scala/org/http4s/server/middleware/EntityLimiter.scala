@@ -10,7 +10,7 @@ import scalaz.stream.Process._
 
 object EntityLimiter {
 
-  case class EntityTooLarge(limit: Long) extends Exception with NoStackTrace
+  final case class EntityTooLarge(limit: Long) extends Exception with NoStackTrace
 
   val DefaultMaxEntitySize: Int = 2*1024*1024 // 2 MB default
 

@@ -31,7 +31,7 @@ object LanguageTag {
 //  def apply(primaryTag: String, subTags: String*): LanguageTag = LanguageTag(primaryTag, Q.Unity, subTags)
 }
 
-case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags: Seq[String] = Nil) extends Renderable {
+final case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags: Seq[String] = Nil) extends Renderable {
   def withQuality(q: QValue): LanguageTag = LanguageTag(primaryTag, q, subTags)
 
   def render(writer: Writer): writer.type = {

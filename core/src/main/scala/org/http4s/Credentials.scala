@@ -28,7 +28,7 @@ sealed abstract class Credentials extends Renderable {
   def value: String
 }
 
-case class BasicCredentials(username: String, password: String) extends Credentials {
+final case class BasicCredentials(username: String, password: String) extends Credentials {
   val authScheme = AuthScheme.Basic
 
   override lazy val value = {
@@ -53,7 +53,7 @@ object BasicCredentials {
 }
 
 
-case class OAuth2BearerToken(token: String) extends Credentials {
+final case class OAuth2BearerToken(token: String) extends Credentials {
   val authScheme = AuthScheme.Bearer
 
   override def value = renderString
@@ -62,7 +62,7 @@ case class OAuth2BearerToken(token: String) extends Credentials {
 }
 
 
-case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
+final case class GenericCredentials(authScheme: AuthScheme, params: Map[String, String]) extends Credentials {
   override lazy val value = renderString
 
   override def render(writer: Writer): writer.type = {

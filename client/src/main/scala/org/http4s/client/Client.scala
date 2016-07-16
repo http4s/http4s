@@ -37,7 +37,7 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   *
   * @param open a service to asynchronously return a [[DisposableResponse]] from
   *             a [[Request]].  This is a low-level operation intended for client
-  *             implementations and middlewares.
+  *             implementations and middleware.
   *
   * @param shutdown a Task to shut down this Shutdown this client, closing any
   *                 open connections and freeing resources
@@ -83,14 +83,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     eval(open(req).map { case DisposableResponse(response, dispose) =>
       f(response).onComplete(eval_(dispose))
     }).flatMap(identity)
-
-  @deprecated("Use toHttpService.run for compatibility, or fetch for safety", "0.12")
-  def prepare(req: Request): Task[Response] =
-    toHttpService.run(req)
-
-  @deprecated("Use toHttpService.run for compatibility, or fetch for safety", "0.12")
-  def apply(req: Request): Task[Response] =
-    toHttpService.run(req)
 
   /**
     * Submits a request and decodes the response on success.  On failure, the
@@ -148,14 +140,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def get[A](s: String)(f: Response => Task[A]): Task[A] =
     Uri.fromString(s).fold(Task.fail, uri => get(uri)(f))
 
-  @deprecated("Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
-  def prepare(uri: Uri): Task[Response] =
-    toHttpService.run(Request(Method.GET, uri))
-
-  @deprecated("Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
-  def apply(uri: Uri): Task[Response] =
-    toHttpService.run(Request(Method.GET, uri))
-
   /**
     * Submits a GET request to the specified URI and decodes the response on
     * success.  On failure, the status code is returned.  The underlying HTTP
@@ -184,10 +168,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def getAs[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
     Uri.fromString(s).fold(Task.fail, uri => getAs[A](uri))
 
-  @deprecated("Use getAs", "0.12")
-  def prepAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
-    getAs(uri)(d)
-
   /** Submits a request, and provides a callback to process the response.
     *
     * @param req A Task of the request to submit
@@ -198,14 +178,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     */
   def fetch[A](req: Task[Request])(f: Response => Task[A]): Task[A] =
     req.flatMap(fetch(_)(f))
-
-  @deprecated("Use toHttpService =<< req for compatibility, or fetch for safety", "0.12")
-  def prepare(req: Task[Request]): Task[Response] =
-    toHttpService =<< req
-
-  @deprecated("Use toHttpService =<< req for compatibility, or fetch for safety", "0.12")
-  def apply(req: Task[Request]): Task[Response] =
-    toHttpService =<< req
 
   def expect[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
     req.flatMap(expect(_)(d))
@@ -228,6 +200,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     shutdown.run
 }
 
+<<<<<<< HEAD
 object Client {
   /** Creates a mock client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
@@ -272,4 +245,5 @@ object Client {
   }
 }
 
-case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace
+final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace
+

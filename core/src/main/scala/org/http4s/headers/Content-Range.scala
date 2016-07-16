@@ -19,7 +19,7 @@ object `Content-Range` extends HeaderKey.Internal[`Content-Range`] with HeaderKe
     HttpHeaderParser.CONTENT_RANGE(s)
 }
 
-case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long]) extends Header.Parsed {
+final case class `Content-Range`(unit: RangeUnit, range: Range.SubRange, length: Option[Long]) extends Header.Parsed {
   override def key = `Content-Range`
 
   override def renderValue(writer: Writer): writer.type = {

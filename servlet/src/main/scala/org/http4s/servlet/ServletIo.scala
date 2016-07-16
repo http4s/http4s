@@ -34,7 +34,7 @@ sealed trait ServletIo {
  * This is more CPU efficient per request than [[NonBlockingServletIo]], but is likely to
  * require a larger request thread pool for the same load.
  */
-case class BlockingServletIo(chunkSize: Int) extends ServletIo {
+final case class BlockingServletIo(chunkSize: Int) extends ServletIo {
   override protected[servlet] def reader(servletRequest: HttpServletRequest): EntityBody =
     chunkR(servletRequest.getInputStream).map(_(chunkSize)).eval
 
@@ -57,7 +57,7 @@ case class BlockingServletIo(chunkSize: Int) extends ServletIo {
  * under high load up through  at least Tomcat 8.0.15.  These appear to be harmless, but are
  * operationally annoying.
  */
-case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
+final case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
   private[this] val logger = getLogger
 
   private[this] val LeftEnd = Terminated(End).left
@@ -68,8 +68,8 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
     case object Init extends State
     case object Ready extends State
     case object Complete extends State
-    case class Errored(t: Throwable) extends State
-    case class Blocked(cb: Callback[ByteVector]) extends State
+    sealed case class Errored(t: Throwable) extends State
+    sealed case class Blocked(cb: Callback[ByteVector]) extends State
 
     val in = servletRequest.getInputStream
 
@@ -166,9 +166,9 @@ case class NonBlockingServletIo(chunkSize: Int) extends ServletIo {
     sealed trait State
     case object Init extends State
     case object Ready extends State
-    case class Errored(t: Throwable) extends State
-    case class Blocked(cb: Callback[ByteVector => Unit]) extends State
-    case class AwaitingLastWrite(cb: Callback[Unit]) extends State
+    sealed case class Errored(t: Throwable) extends State
+    sealed case class Blocked(cb: Callback[ByteVector => Unit]) extends State
+    sealed case class AwaitingLastWrite(cb: Callback[Unit]) extends State
 
     val out = servletResponse.getOutputStream
     /*

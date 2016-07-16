@@ -86,8 +86,8 @@ object PushSupport {
     Service.lift { req => service(req).map(gather(req, _)) }
   }
 
-  private [PushSupport] case class PushLocation(location: String, cascade: Boolean)
-  private [http4s] case class PushResponse(location: String, resp: Response)
+  private [PushSupport] final case class PushLocation(location: String, cascade: Boolean)
+  private [http4s] final case class PushResponse(location: String, resp: Response)
 
   private[PushSupport] val pushLocationKey = AttributeKey.http4s[Vector[PushLocation]]("pushLocation")
   private[http4s] val pushResponsesKey = AttributeKey.http4s[Task[Vector[PushResponse]]]("pushResponses")
