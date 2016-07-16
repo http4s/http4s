@@ -1,20 +1,15 @@
 package org.http4s
 package client
 
+import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.Status.ResponseClass.Successful
 import scala.util.control.NoStackTrace
 
 import java.io.IOException
 import scalaz.concurrent.Task
-import scalaz.stream.Process
+import scalaz.stream.{Process, Process1}
 import scalaz.stream.Process._
-import scalaz.stream.ReceiveY._
-import scalaz.stream.Wye
-import scalaz.stream.async._
-import scalaz.stream.async.mutable.Signal
-import scalaz.stream.wye
-import scalaz.stream.wye.{receiveBoth, receiveR}
 import scodec.bits.ByteVector
 
 /**
@@ -200,7 +195,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     shutdown.run
 }
 
-<<<<<<< HEAD
 object Client {
   /** Creates a mock client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
@@ -208,42 +202,34 @@ object Client {
     * @param service the service to respond to requests to this client
     */
   def mock(service: HttpService): Client = {
-    val isShutdown =
-      signalOf(false)
+    val isShutdown = new AtomicBoolean(false)
 
-    def interruptable(body: EntityBody, disposed: Signal[Boolean]) = {
-      def loop(reason: String): Wye[Boolean, ByteVector, ByteVector] = {
-        receiveBoth {
-          case ReceiveR(i) =>
-            emit(i) ++ loop(reason)
-          case ReceiveL(kill) =>
-            if (kill)
-              receiveR(_ => fail(new IOException(reason)))
-            else
-              loop(reason)
-          case HaltOne(e) =>
-            Halt(e)
-        }
+    def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
+      def loop(reason: String, killed: AtomicBoolean): Process1[ByteVector, ByteVector] = {
+        if (killed.get)
+          fail(new IOException(reason))
+        else
+          await1[ByteVector] ++ loop(reason, killed)
       }
-      val disposedBody = (disposed.continuous wye body)(loop("response was disposed"))
-      (isShutdown.continuous wye disposedBody)(loop("client was shut down"))
+      body.pipe(loop("response was disposed", disposed))
+        .pipe(loop("client was shut down", isShutdown))
     }
 
     def disposableService(service: HttpService) =
       Service.lift { req: Request =>
-        val disposed = signalOf(false)
+        val disposed = new AtomicBoolean(false)
         val req0 = req.copy(body = interruptable(req.body, disposed))
         service(req0) map { resp =>
           DisposableResponse(
             resp.copy(body = interruptable(resp.body, disposed)),
-            disposed.set(true)
+            Task.delay(disposed.set(true))
           )
         }
       }
 
-    Client(disposableService(service), isShutdown.set(true))
+    Client(disposableService(service),
+      Task.delay(isShutdown.set(true)))
   }
 }
 
 final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace
-
