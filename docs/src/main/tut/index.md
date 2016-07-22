@@ -64,27 +64,98 @@ val service = HttpService {
 }
 ```
 
+#### Handling path parameters
+Path params can be extracted and by default are Strings. There are numeric
+extractors provided in the form of `IntVar` and `LongVar`. If you want to
+extract a variable of type `T`, you can provide a custom extractor object
+which implements `def unapply(str: String): Option[T]`, similar to the way
+in which `IntVar` does it. 
+```tut:book
+import org.http4s._
+import org.http4s.dsl._
+import scalaz.concurrent.Task
+
+case class Tweet(id: Int, message: String)
+
+implicit def tweetEncoder: EntityEncoder[Tweet] = ???
+implicit def tweetsEncoder: EntityEncoder[Seq[Tweet]] = ???
+  
+def getTweet(tweetId: Int): Task[Tweet] = ???
+  
+val tweetByIdRoute: PartialFunction[Request, Task[Response]] = {
+  case request @ GET -> Root / "tweets" / IntVar(tweetId) =>
+    Ok(getTweet(tweetId))
+}
+```
+
+#### Handling query parameters
+A query parameter needs to have a `QueryParamDecoderMatcher` provided to
+extract it. In order for the `QueryParamDecoderMatcher` to work there needs to
+be an implicit `QueryParamDecoder[T]` in scope. `QueryParamDecoder`s for simple
+types can be found in the `QueryParamDecoder` object. There are also
+`QueryParamDecoderMatcher`s available which can be used to
+return optional or validated parameter values.
+
+In the example below we're finding a query param named `user_id` and parsing it
+as a String.
+```tut:book
+import org.http4s._
+import org.http4s.dsl._
+import scalaz.ValidationNel
+  
+object UserIdQueryParamMatcher extends QueryParamDecoderMatcher[String]("user_id")
+  
+case class Year(year: Int)
+
+implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
+  def decode(queryParamValue: QueryParameterValue): ValidationNel[ParseFailure, Year] = {
+    QueryParamDecoder.decodeBy[Year, Int](Year(_)).decode(queryParamValue)
+  }
+}
+
+object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
+  
+def getTweetsByUserAndYear(userId: String, year: Year): Task[Seq[Tweet]] = ???
+  
+val tweetQueryParamRoute: PartialFunction[Request, Task[Response]] = {
+  case request @ GET -> Root / "tweets" :? UserIdQueryParamMatcher(userId) +& YearQueryParamMatcher(year)  =>
+    Ok(getTweetsByUserAndYear(userId, year))
+}
+``` 
+
 ### Running your service
 
 http4s supports multiple server backends.  In this example, we'll use
 [blaze], the native backend supported by http4s.
 
-We start from a `BlazeBuilder`, and then mount a service.  The
-`BlazeBuilder` is immutable with chained methods, each returning
+We start from a `BlazeBuilder`, and then mount a service under the base path
+"/api".  The `BlazeBuilder` is immutable with chained methods, each returning
 a new builder.
 
+To run a server as an `App` simply extend `org.http4s.server.ServerApp` and
+implement the `server` method. The server will be shutdown automatically when
+the program exits via a shutdown hook, so you don't need to clean up any
+resources explicitly.
 ```tut:book
+import org.http4s.server.{Server, ServerApp}
 import org.http4s.server.blaze._
 
-val builder = BlazeBuilder.mountService(service)
+object Main extends ServerApp {
+  override def server(args: List[String]): Task[Server] = {
+    def service = HttpService(tweetByIdRoute orElse tweetQueryParamRoute)
+  
+    BlazeBuilder
+      .bindHttp(8080, "localhost")
+      .mountService(service, "/api")
+      .start
+  }
+}
+
 ```
 
-A builder can be `run` to start the server.  By default, http4s
-servers bind to port 8080.
-
-```tut:book
-val server = builder.run
-```
+The `bindHttp` call isn't necessary as the server will be set to run
+using defaults of port 8080 and the loopback address. The `mountService` call
+associates a base path with a `HttpService`.
 
 ## Your first client
 
@@ -164,7 +235,6 @@ up after ourselves by shutting each down:
 
 ```tut:book
 client.shutdownNow()
-server.shutdownNow()
 ```
 
 ### Next steps
