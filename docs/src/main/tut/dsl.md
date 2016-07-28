@@ -56,6 +56,8 @@ val service = HttpService {
 }
 ```
 
+## Testing the Service
+
 One beautiful thing about the `HttpService` model is that we don't
 need a server to test our route.  We can construct our own request
 and experiment directly in the REPL.
