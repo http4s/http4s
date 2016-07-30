@@ -74,7 +74,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Request timeout on slow POST body" in {
 
-      def dataStream(n: Int): Process[Task, ByteVector] = {
+      def dataStream(n: Int): EntityBody = {
         implicit def defaultSecheduler = DefaultTimeoutScheduler
         val interval = 1000.millis
         time.awakeEvery(interval)
@@ -94,7 +94,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Idle timeout on slow POST body" in {
 
-      def dataStream(n: Int): Process[Task, ByteVector] = {
+      def dataStream(n: Int): EntityBody = {
         implicit def defaultSecheduler = DefaultTimeoutScheduler
         val interval = 2.seconds
         time.awakeEvery(interval)
@@ -114,7 +114,7 @@ class ClientTimeoutSpec extends Http4sSpec {
 
     "Not timeout on only marginally slow POST body" in {
 
-      def dataStream(n: Int): Process[Task, ByteVector] = {
+      def dataStream(n: Int): EntityBody = {
         implicit def defaultSecheduler = DefaultTimeoutScheduler
         val interval = 100.millis
         time.awakeEvery(interval)

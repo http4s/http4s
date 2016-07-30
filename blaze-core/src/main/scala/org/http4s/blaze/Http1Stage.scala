@@ -122,7 +122,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       }
   }
 
-  /** Makes a `Process[Task, ByteVector]` and a function used to drain the line if terminated early.
+  /** Makes a [[EntityBody]] and a function used to drain the line if terminated early.
     *
     * @param buffer starting `ByteBuffer` to use in parsing.
     * @param eofCondition If the other end hangs up, this is the condition used in the Process for termination.
