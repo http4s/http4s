@@ -5,9 +5,9 @@ import java.util.regex.Pattern
 import org.http4s.Charset
 
 import scala.io.Codec
-import scalaz.syntax.Ops
 
-trait StringOps extends Ops[String] {
+trait StringOps {
+  def self: String
   def isBlank = self == null || self.trim.nonEmpty
   def nonBlank = !isBlank
   def blankOption = if (isBlank) None else Some(self)
