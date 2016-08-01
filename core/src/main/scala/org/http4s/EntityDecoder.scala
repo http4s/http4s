@@ -174,15 +174,3 @@ trait EntityDecoderInstances {
   implicit def multipart: EntityDecoder[Multipart] = 
     MultipartDecoder.decoder
 }
-
-object DecodeResult {
-  def apply[A](task: Task[DecodeFailure \/ A]): DecodeResult[A] = EitherT(task)
-
-  def success[A](a: Task[A]): DecodeResult[A] = EitherT.right(a)
-
-  def success[A](a: A): DecodeResult[A] = EitherT(Task.now(\/.right[DecodeFailure, A](a)))
-
-  def failure[A](e: Task[DecodeFailure]): DecodeResult[A] = EitherT.left(e)
-
-  def failure[A](e: DecodeFailure): DecodeResult[A] = EitherT(Task.now(-\/(e): DecodeFailure\/A))
-}
