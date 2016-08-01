@@ -109,7 +109,7 @@ To execute a GET request, we can call `getAs` with the type we expect
 and the URI we want:
 
 ```tut:book
-val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
+val helloJames = client.expect[String]("http://localhost:8080/hello/James")
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -128,10 +128,11 @@ parallel:
 
 ```tut:book
 import scalaz.concurrent.Task
+import org.http4s.Uri
 
 def hello(name: String): Task[String] = {
-  val target = uri("http://localhost:8080/hello/") / name
-  client.getAs[String](target)
+  val target = Uri.uri("http://localhost:8080/hello/") / name
+  client.expect[String](target)
 }
 
 val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
