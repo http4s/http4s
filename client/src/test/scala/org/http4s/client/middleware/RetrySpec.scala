@@ -33,7 +33,7 @@ class RetrySpec extends Http4sSpec {
         }
       }
       val client = Retry(policy)(defaultClient)
-      val resp = client.getAs[String](uri("http://localhost/boom")).run
+      val resp = client.expect[String](uri("http://localhost/boom")).attemptRun
       attemptsCounter must_== 2
     }
 
@@ -48,7 +48,7 @@ class RetrySpec extends Http4sSpec {
         }
       }
       val client = Retry(policy)(defaultClient)
-      val resp = client.getAs[String](uri("http://localhost/ok")).run
+      val resp = client.expect[String](uri("http://localhost/ok")).attemptRun
       attempts must_==1
     }
   }

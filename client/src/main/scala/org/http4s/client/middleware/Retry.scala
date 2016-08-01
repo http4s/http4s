@@ -3,14 +3,13 @@ package client
 package middleware
 
 import org.http4s.Status.ResponseClass.Successful
-import org.http4s.{Response, Request, EmptyBody}
+import org.http4s.{EmptyBody, Request, Response}
 import org.http4s.client.Client
 import org.log4s.getLogger
 
 import scala.concurrent.duration._
-import scala.math.{pow, min, random}
-import scalaz.Kleisli
-
+import scala.math.{min, pow, random}
+import scalaz.{-\/, Kleisli, \/-}
 import scalaz.concurrent.Task
 
 object Retry {
