@@ -64,7 +64,7 @@ val service = HttpService {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6314/1202772926@654cc80b)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6368/791417190@2e663a80)
 ```
 
 ### Running your service
@@ -81,7 +81,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.mountService(service)
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@1399eda0
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@243f3137
 ```
 
 A builder can be `run` to start the server.  By default, http4s
@@ -108,7 +108,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val client = PooledHttp1Client()
-// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6372/147765139@3a675ce1),scalaz.concurrent.Task@73fb4c80)
+// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6426/695957725@26bcc261),scalaz.concurrent.Task@17c73ec9)
 ```
 
 ### Describing a call
@@ -117,11 +117,8 @@ To execute a GET request, we can call `getAs` with the type we expect
 and the URI we want:
 
 ```scala
-val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
-// <console>:25: warning: method getAs in class Client is deprecated: Use expect
-//        val helloJames = client.getAs[String]("http://localhost:8080/hello/James")
-//                                ^
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@1d445cf6
+val helloJames = client.expect[String]("http://localhost:8080/hello/James")
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@2f1f016a
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -142,20 +139,20 @@ parallel:
 import scalaz.concurrent.Task
 // import scalaz.concurrent.Task
 
+import org.http4s.Uri
+// import org.http4s.Uri
+
 def hello(name: String): Task[String] = {
-  val target = uri("http://localhost:8080/hello/") / name
-  client.getAs[String](target)
+  val target = Uri.uri("http://localhost:8080/hello/") / name
+  client.expect[String](target)
 }
-// <console>:28: warning: method getAs in class Client is deprecated: Use expect
-//          client.getAs[String](target)
-//                 ^
 // hello: (name: String)scalaz.concurrent.Task[String]
 
 val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@cd90eff
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@1f88ae90
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -173,13 +170,13 @@ the world" varies by context:
 
 ```scala
 greetingList.run.mkString("\n")
-// <console>:30: warning: method run in class Task is deprecated: use unsafePerformSync
+// <console>:31: warning: method run in class Task is deprecated: use unsafePerformSync
 //        greetingList.run.mkString("\n")
 //                     ^
 // res0: String =
 // Hello, Christopher.
-// Hello, Jessica.
 // Hello, Michael.
+// Hello, Jessica.
 // Hello, Ashley.
 ```
 
