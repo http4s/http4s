@@ -65,12 +65,11 @@ val helloWorldService = HttpService {
 ```
 
 #### Handling path parameters
-Path params can be extracted and converted to a specific type (but are
-`String`s by default). There are numeric extractors provided in the form
+Path params can be extracted and converted to a specific type but are
+`String`s by default. There are numeric extractors provided in the form
 of `IntVar` and `LongVar`.
+
 ```tut:book
-import org.http4s._
-import org.http4s.dsl._
 import scalaz.concurrent.Task
 
 def getUserName(userId: Int): Task[String] = ???
@@ -83,11 +82,10 @@ val usersRoute: PartialFunction[Request, Task[Response]] = {
 
 If you want to extract a variable of type `T`, you can provide a custom extractor
 object which implements `def unapply(str: String): Option[T]`, similar to the way
-in which `IntVar` does it. 
+in which `IntVar` does it.
+
 ```tut:book
 import java.time.LocalDate
-import org.http4s._
-import org.http4s.dsl._
 import scala.util.Try
 import scalaz.concurrent.Task
 
@@ -97,9 +95,10 @@ object LocalDateVar {
       Try(LocalDate.parse(str)).toOption
     else
       None
+  }
 }
 
-def getTemperatureForecast(date: LocalDate): Task[Double]
+def getTemperatureForecast(date: LocalDate): Task[Double] = ???
 
 val dailyWeatherRoute: PartialFunction[Request, Task[Response]] = {
   case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
@@ -116,28 +115,27 @@ types can be found in the `QueryParamDecoder` object. There are also
 return optional or validated parameter values.
 
 In the example below we're finding query params named `country` and `year` and
-then parsing them as a String and `java.time.Year`.
+then parsing them as a `String` and `java.time.Year`.
+
 ```tut:book
 import java.time.Year
-import org.http4s._
-import org.http4s.dsl._
 import scalaz.ValidationNel
   
 object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
 
 implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
   def decode(queryParamValue: QueryParameterValue): ValidationNel[ParseFailure, Year] = {
-    QueryParamDecoder.decodeBy[Year, Int](Year.parse).decode(queryParamValue)
+    QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
   }
 }
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 
-def getAverageTemperatureForCountryAndYear(country: String, year: Year): Task[Double]
+def getAverageTemperatureForCountryAndYear(country: String, year: Year): Task[Double] = ???
   
 val averageTemperatureRoute: PartialFunction[Request, Task[Response]] = {
   case request @ GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
-    Ok(getAverageTemperatureForCountryAndYear(country, year))
+    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }
 ``` 
 
@@ -152,26 +150,24 @@ be seen as `Ok(getTweet(tweetId))(tweetEncoder)`.
 
 We've defined `tweetsEncoder` as being implicit so that we don't need to explicitly
 reference it when serving the response, which can be seen as
-`Ok(getPopularTweets())`
+`Ok(getPopularTweets())`.
  
 ```tut:book
-import org.http4s._
-import org.http4s.dsl._
 import scalaz.concurrent.Task
 
 case class Tweet(id: Int, message: String)
 
-def tweetEncoder: EntityEncoder[Tweet]
-implicit def tweetsEncoder: EntityEncoder[Seq[Tweet]]
+def tweetEncoder: EntityEncoder[Tweet] = ???
+implicit def tweetsEncoder: EntityEncoder[Seq[Tweet]] = ???
   
-def getTweet(tweetId: Int): Task[Tweet]
-def getPopularTweets(): Task[Seq[Tweet]]
+def getTweet(tweetId: Int): Task[Tweet] = ???
+def getPopularTweets(): Task[Seq[Tweet]] = ???
 
 val tweetRoutes: PartialFunction[Request, Task[Response]] = {
   case request @ GET -> Root / "tweets" / "popular" =>
     Ok(getPopularTweets())
   case request @ GET -> Root / "tweets" / IntVar(tweetId) =>
-    Ok(getTweet(tweetId))(tweetEncoder)
+    getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
 }
 ```
 
@@ -187,9 +183,8 @@ a new builder.
 ```tut:book
 import org.http4s.server.blaze._
 
-val service = HttpService(usersRoute orElse dailyWeatherRoute orElse averageTemperatureRoute orElse tweetRoutes)
-
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/api")
+val routes = usersRoute orElse dailyWeatherRoute orElse averageTemperatureRoute orElse tweetRoutes
+val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(HttpService(routes), "/api")
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -206,17 +201,16 @@ Alternatively, to run a server as an `App` simply extend
 `org.http4s.server.ServerApp` and implement the `server` method. The server
 will be shutdown automatically when the program exits via a shutdown hook,
 so you don't need to clean up any resources explicitly.
+
 ```tut:book
 import org.http4s.server.{Server, ServerApp}
 import org.http4s.server.blaze._
 
 object Main extends ServerApp {
   override def server(args: List[String]): Task[Server] = {
-    def service = HttpService(tweetRoutes orElse tweetQueryParamRoute)
-  
     BlazeBuilder
       .bindHttp(8080, "localhost")
-      .mountService(service, "/api")
+      .mountService(HttpService(routes), "/api")
       .start
   }
 }
