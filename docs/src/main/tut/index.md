@@ -184,7 +184,7 @@ a new builder.
 import org.http4s.server.blaze._
 
 val routes = usersRoute orElse dailyWeatherRoute orElse averageTemperatureRoute orElse tweetRoutes
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(HttpService(routes), "/api")
+val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/greetings").mountService(HttpService(routes), "/api")
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -295,6 +295,7 @@ up after ourselves by shutting each down:
 
 ```tut:book
 client.shutdownNow()
+server.shutdownNow()
 ```
 
 ### Next steps
