@@ -176,9 +176,10 @@ val tweetRoutes: PartialFunction[Request, Task[Response]] = {
 http4s supports multiple server backends.  In this example, we'll use
 [blaze], the native backend supported by http4s.
 
-We start from a `BlazeBuilder`, and then mount a service under the base path
-"/api".  The `BlazeBuilder` is immutable with chained methods, each returning
-a new builder.
+We start from a `BlazeBuilder`, and then mount the `helloWorldService` under
+the base path of `/greetings` and the remainder of the routes under the base
+path of `/api`. The `BlazeBuilder` is immutable with chained methods, each
+returning a new builder.
 
 ```tut:book
 import org.http4s.server.blaze._
