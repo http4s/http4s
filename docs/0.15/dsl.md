@@ -58,8 +58,10 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6407/354320290@67bffa)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6396/1282964848@5e91ab59)
 ```
+
+## Testing the Service
 
 One beautiful thing about the `HttpService` model is that we don't
 need a server to test our route.  We can construct our own request
@@ -70,7 +72,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5d7616d2
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1f77edb6
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -107,7 +109,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7212bdd8
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@27f356c5
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -207,7 +209,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@4343ef72
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@271da0fc
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -224,7 +226,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7ce67496
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@695a6aa0
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
