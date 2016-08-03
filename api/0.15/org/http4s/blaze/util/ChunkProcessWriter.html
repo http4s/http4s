@@ -709,24 +709,24 @@ connection is to be closed or not.
 </p></div><dl class="paramcmts block"><dt class="param">chunk</dt><dd class="cmt"><p>BodyChunk to write to wire</p></dd><dt>returns</dt><dd class="cmt"><p>a future letting you know when its safe to continue (if <code>false</code>) or
 to close the connection (if <code>true</code>)</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.blaze.util.ChunkProcessWriter">ChunkProcessWriter</a> → <a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="org.http4s.blaze.util.ProcessWriter#writeProcess" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]):scalaz.concurrent.Task[Boolean]"></a>
-      <a id="writeProcess(Process[Task,ByteVector]):Task[Boolean]"></a>
+      <a id="writeProcess(p:org.http4s.EntityBody):scalaz.concurrent.Task[Boolean]"></a>
+      <a id="writeProcess(EntityBody):Task[Boolean]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">writeProcess</span><span class="params">(<span name="p">p: <a href="http://docs.typelevel.org/api/scalaz-stream/stable/0.8.2a/doc/index.html#scalaz.stream.Process" class="extype" target="_top">Process</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="http://scodec.org/api/scodec-bits/1.1.0/index.html#scodec.bits.ByteVector" class="extype" target="_top">ByteVector</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
+        <span class="name">writeProcess</span><span class="params">(<span name="p">p: <a href="../../package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a></span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Boolean" class="extype" target="_top">Boolean</a>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.blaze.util.ChunkProcessWriter@writeProcess(p:scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]):scalaz.concurrent.Task[Boolean]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.blaze.util.ChunkProcessWriter@writeProcess(p:org.http4s.EntityBody):scalaz.concurrent.Task[Boolean]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <p class="shortcomment cmt">Creates a Task that writes the contents the Process to the output.</p><div class="fullcomment"><div class="comment cmt"><p>Creates a Task that writes the contents the Process to the output.
 Cancelled exceptions fall through to the Task cb
-</p></div><dl class="paramcmts block"><dt class="param">p</dt><dd class="cmt"><p>Process[Task, ByteVector] to write out</p></dd><dt>returns</dt><dd class="cmt"><p>the Task which when run will unwind the Process</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
+</p></div><dl class="paramcmts block"><dt class="param">p</dt><dd class="cmt"><p>EntityBody to write out</p></dd><dt>returns</dt><dd class="cmt"><p>the Task which when run will unwind the Process</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="ProcessWriter.html" class="extype" name="org.http4s.blaze.util.ProcessWriter">ProcessWriter</a></dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a>
       <a id="→[B](B):(ChunkProcessWriter,B)"></a>
