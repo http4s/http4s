@@ -75,9 +75,14 @@ package object http4s {
       * services will have the opportunity to handle the request.
       * See [[Fallthrough]] for more details.
       */
-    val notFound: Task[Response] = Task.now(Response(Status.NotFound)
-                                               .withAttribute(Fallthrough.fallthroughKey, ())
-                                               .withBody("404 Not Found.").run)
+    val notFound: Task[Response] =
+      Task.now {
+        // Task.now(task.run) looks weird, but this memoizes it so we don't
+        // constantly recreate it.
+        Response(Status.NotFound)
+          .withAttribute(Fallthrough.fallthroughKey, ())
+          .withBody("404 Not Found.").run
+      }
   
     val empty   : HttpService    = Service.const(notFound)
   }
