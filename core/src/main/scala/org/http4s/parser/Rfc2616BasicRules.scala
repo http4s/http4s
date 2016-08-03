@@ -26,7 +26,7 @@ import shapeless.tag.@@
 
 // direct implementation of http://www.w3.org/Protocols/rfc2616/rfc2616-sec2.html#sec2
 private[http4s] trait Rfc2616BasicRules extends Parser {
-
+  // scalastyle:off public.methods.have.type
   def Octet = rule { "\u0000" - "\u00FF" }
 
   def Char = rule { "\u0000" - "\u007F" }
@@ -82,9 +82,10 @@ private[http4s] trait Rfc2616BasicRules extends Parser {
   def IPv6Address = rule { oneOrMore(Hex | anyOf(":.")) }
 
   def IPv6Reference: Rule1[String] = rule { capture("[" ~ IPv6Address ~ "]") }
+  // scalastyle:on public.methods.have.type
 }
 
-private [http4s] object Rfc2616BasicRules {
+private[http4s] object Rfc2616BasicRules {
   def token(in: ParserInput): ParseResult[String] = new Rfc2616BasicRules {
     override def input: ParserInput = in
   }.Token.run()(ScalazDeliverySchemes.Disjunction)

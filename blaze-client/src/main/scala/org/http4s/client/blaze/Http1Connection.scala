@@ -140,7 +140,7 @@ private final class Http1Connection(val requestKey: RequestKey,
         val next: Task[StringWriter] = 
           if (!flushPrelude) Task.now(rr)
           else Task.async[StringWriter] { cb =>
-            val bb = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
+            val bb = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
             channelWrite(bb).onComplete {
               case Success(_)    => cb(\/-(new StringWriter))
               case Failure(EOF)  => stageState.get match {

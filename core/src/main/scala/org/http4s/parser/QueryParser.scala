@@ -32,7 +32,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
 
   // Some[String] represents an error message, None = success
   def decodeBuffer(input: CharBuffer, acc: (String, Option[String]) => Unit, flush: Boolean): Option[String] = {
-    val valAcc = new StringBuilder(32)
+    val valAcc = new StringBuilder(InitialBufferCapactiy)
 
     var error: String = null
     var key: String = null
@@ -101,6 +101,8 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
 }
 
 private[http4s] object QueryParser {
+  private val InitialBufferCapactiy = 32
+
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] = {
     if (queryString.isEmpty) \/-(Query.empty)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)

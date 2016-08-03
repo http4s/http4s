@@ -15,7 +15,7 @@ import org.http4s.util.Writer
 final case class `Content-Length`(length: Long) extends Header.Parsed {
   require(length >= 0L)
 
-  override def key = `Content-Length`
+  override def key: `Content-Length`.type = `Content-Length`
   override def renderValue(writer: Writer): writer.type = writer.append(length)
 }
 

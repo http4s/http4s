@@ -26,8 +26,7 @@ object MediaRangeAndQValue {
 }
 
 final case class Accept(values: NonEmptyList[MediaRangeAndQValue]) extends Header.RecurringRenderable {
-  implicit
-  def key = Accept
+  def key: Accept.type = Accept
   type Value = MediaRangeAndQValue
 }
 

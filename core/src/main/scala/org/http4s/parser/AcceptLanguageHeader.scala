@@ -22,7 +22,8 @@ import org.parboiled2._
 
 private[parser] trait AcceptLanguageHeader {
 
-  def ACCEPT_LANGUAGE(value: String) = new AcceptLanguageParser(value).parse
+  def ACCEPT_LANGUAGE(value: String): ParseResult[headers.`Accept-Language`] =
+    new AcceptLanguageParser(value).parse
 
   private class AcceptLanguageParser(value: String)
     extends Http4sHeaderParser[headers.`Accept-Language`](value) with MediaParser {

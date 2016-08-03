@@ -10,8 +10,8 @@ object Location extends HeaderKey.Internal[Location] with HeaderKey.Singleton {
 }
 
 final case class Location(uri: Uri) extends Header.Parsed {
-  def key = `Location`
-  override def value = uri.toString
+  def key: `Location`.type = `Location`
+  override def value: String = uri.toString
   def renderValue(writer: Writer): writer.type = writer << uri.toString
 }
 

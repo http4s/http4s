@@ -18,9 +18,9 @@ sealed trait Message extends MessageOps { self =>
   type Self <: Message { type Self = self.Self }
 
   def httpVersion: HttpVersion
-  
+
   def headers: Headers
-  
+
   def body: EntityBody
 
   final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Process[Task, String] = {
@@ -33,9 +33,9 @@ sealed trait Message extends MessageOps { self =>
     }
 
   }
-  
+
   def attributes: AttributeMap
-  
+
   protected def change(body: EntityBody = body,
                        headers: Headers = headers,
                        attributes: AttributeMap = attributes): Self
@@ -188,7 +188,7 @@ final case class Request(
     server.map(_.getPort)
       .orElse(uri.port)
       .orElse(headers.get(Host).flatMap(_.port))
-      .getOrElse(80)
+      .getOrElse(80) // scalastyle:ignore
   }
 
   /** Whether the Request was received over a secure medium */

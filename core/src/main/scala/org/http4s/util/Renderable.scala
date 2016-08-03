@@ -46,7 +46,7 @@ trait Renderable extends Any {
   def render(writer: Writer): writer.type
 
   /** Generates a String rendering of this object */
-  def renderString = Renderer.renderString(this)
+  def renderString: String = Renderer.renderString(this)
 
   override def toString: String = renderString
 }
@@ -86,7 +86,7 @@ trait Writer {
       val c = s.charAt(i)
       if (escapedChars.contains(c.toInt)) this << escapeChar
       this << c
-      go(i+1)
+      go(i + 1)
     }
 
     go(0)
@@ -134,30 +134,35 @@ trait Writer {
 /** [[Writer]] that will result in a `String`
   * @param size initial buffer size of the underlying `StringBuilder`
   */
-class StringWriter(size: Int = 64) extends Writer {
+class StringWriter(size: Int = StringWriter.InitialCapacity) extends Writer {
   private val sb = new java.lang.StringBuilder(size)
 
-  def append(s: String) = { sb.append(s); this }
-  override def append(char: Char) = { sb.append(char); this }
-  override def append(float: Float) = { sb.append(float); this }
-  override def append(double: Double) = { sb.append(double); this }
-  override def append(int: Int) = { sb.append(int); this }
-  override def append(long: Long) = { sb.append(long); this }
+  def append(s: String): this.type = { sb.append(s); this }
+  override def append(char: Char): this.type = { sb.append(char); this }
+  override def append(float: Float): this.type = { sb.append(float); this }
+  override def append(double: Double): this.type = { sb.append(double); this }
+  override def append(int: Int): this.type = { sb.append(int); this }
+  override def append(long: Long): this.type = { sb.append(long); this }
 
-  def result(): String = sb.toString
+  def result: String = sb.toString
 }
+
+object StringWriter {
+  private val InitialCapacity = 64
+}
+
 /** [[Writer]] that will result in a `ByteVector`
   * @param bv initial ByteVector`
   */
 final case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
                             charset: Charset = StandardCharsets.UTF_8) extends Writer {
 
-  override def append(s: String)       = { bv = bv ++ ByteVector(s.getBytes(charset)); this}
-  override def append(char: Char)      = append(char.toString)
-  override def append(float: Float)    = append(float.toString)
-  override def append(double: Double)  = append(double.toString)
-  override def append(int: Int)        = append(int.toString)
-  override def append(long: Long)      = append(long.toString)
+  override def append(s: String): this.type       = { bv = bv ++ ByteVector(s.getBytes(charset)); this}
+  override def append(char: Char): this.type      = append(char.toString)
+  override def append(float: Float): this.type    = append(float.toString)
+  override def append(double: Double): this.type  = append(double.toString)
+  override def append(int: Int): this.type        = append(int.toString)
+  override def append(long: Long): this.type      = append(long.toString)
 
-  def toByteVector() = bv
+  def toByteVector: ByteVector = bv
 }

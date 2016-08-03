@@ -10,7 +10,7 @@ object `Set-Cookie` extends HeaderKey.Internal[`Set-Cookie`] with HeaderKey.Sing
 }
 
 final case class `Set-Cookie`(cookie: org.http4s.Cookie) extends Header.Parsed {
-  override def key = `Set-Cookie`
+  override def key: `Set-Cookie`.type = `Set-Cookie`
   override def renderValue(writer: Writer): writer.type = cookie.render(writer)
 }
 

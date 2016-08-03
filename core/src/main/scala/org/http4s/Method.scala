@@ -26,16 +26,16 @@ object Method extends MethodInstances {
 
   object Semantics {
     trait Default extends Semantics {
-      def isIdempotent = false
-      def isSafe = false
+      def isIdempotent: Boolean = false
+      def isSafe: Boolean = false
     }
     trait Idempotent extends Semantics {
-      def isIdempotent = true
-      def isSafe = false
+      def isIdempotent: Boolean = true
+      def isSafe: Boolean = false
     }
     trait Safe extends Semantics {
-      def isIdempotent = true
-      def isSafe = true
+      def isIdempotent: Boolean = true
+      def isSafe: Boolean = true
     }
   }
 

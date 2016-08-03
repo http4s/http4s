@@ -23,7 +23,8 @@ import headers.`Content-Type`
 
 private[parser] trait ContentTypeHeader {
 
-  def CONTENT_TYPE(value: String) = new ContentTypeParser(value).parse
+  def CONTENT_TYPE(value: String): ParseResult[`Content-Type`] =
+    new ContentTypeParser(value).parse
 
   private class ContentTypeParser(input: ParserInput) extends Http4sHeaderParser[`Content-Type`](input) with MediaParser {
     def entry: org.parboiled2.Rule1[`Content-Type`] = rule {

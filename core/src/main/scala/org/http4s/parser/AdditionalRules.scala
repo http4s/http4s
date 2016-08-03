@@ -26,7 +26,8 @@ import shapeless.{HNil, ::}
 import java.net.InetAddress
 
 private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
-  
+  // scalastyle:off public.methods.have.type
+
   def EOL: Rule0 = rule { OptWS ~ EOI }  // Strip trailing whitespace
 
   def Digits: Rule1[String] = rule { capture(oneOrMore( Digit )) }
@@ -69,6 +70,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Time: RuleN[Int::Int::Int::HNil] = rule { Digit2 ~ ch(':') ~ Digit2 ~ ch(':') ~ Digit2 }
 
+  // scalastyle:off magic.number
   def Wkday: Rule1[Int] = rule { ("Sun" ~ push(0)) |
                                  ("Mon" ~ push(1)) |
                                  ("Tue" ~ push(2)) |
@@ -97,6 +99,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
                                   ("Oct" ~ push(10)) |
                                   ("Nov" ~ push(11)) |
                                   ("Dec" ~ push(12)) }
+  // scalastyle:on magic.number
 
   def Digit1: Rule1[Int] = rule { capture(Digit) ~> {s: String => s.toInt} }
 
@@ -116,7 +119,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int): Instant = {
     Try(ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC).toInstant).getOrElse {
       // TODO Would be better if this message had the real input.
-      throw new Exception("Invalid date: "+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec )
+      throw new Exception(s"Invalid date: $year-$month-$day $hour:$min:$sec")
     }
   }
 
@@ -149,5 +152,5 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       weak ~ opaqueTag ~> { (weak: Boolean, tag: String) => headers.ETag.EntityTag(tag, weak) }
     }
   }
-
+  // scalastyle:on public.methods.have.type
 }
