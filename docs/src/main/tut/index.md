@@ -74,7 +74,7 @@ import scalaz.concurrent.Task
 
 def getUserName(userId: Int): Task[String] = ???
 
-val usersRoute: PartialFunction[Request, Task[Response]] = {
+val usersService = HttpService {
   case request @ GET -> Root / "users" / IntVar(userId) =>
     Ok(getUserName(userId))
 }
@@ -100,7 +100,7 @@ object LocalDateVar {
 
 def getTemperatureForecast(date: LocalDate): Task[Double] = ???
 
-val dailyWeatherRoute: PartialFunction[Request, Task[Response]] = {
+val dailyWeatherService = HttpService {
   case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
@@ -133,7 +133,7 @@ object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 
 def getAverageTemperatureForCountryAndYear(country: String, year: Year): Task[Double] = ???
   
-val averageTemperatureRoute: PartialFunction[Request, Task[Response]] = {
+val averageTemperatureService = HttpService {
   case request @ GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }
@@ -163,7 +163,7 @@ implicit def tweetsEncoder: EntityEncoder[Seq[Tweet]] = ???
 def getTweet(tweetId: Int): Task[Tweet] = ???
 def getPopularTweets(): Task[Seq[Tweet]] = ???
 
-val tweetRoutes: PartialFunction[Request, Task[Response]] = {
+val tweetService = HttpService {
   case request @ GET -> Root / "tweets" / "popular" =>
     Ok(getPopularTweets())
   case request @ GET -> Root / "tweets" / IntVar(tweetId) =>
@@ -177,15 +177,19 @@ http4s supports multiple server backends.  In this example, we'll use
 [blaze], the native backend supported by http4s.
 
 We start from a `BlazeBuilder`, and then mount the `helloWorldService` under
-the base path of `/greetings` and the remainder of the routes under the base
+the base path of `/greetings` and the remainder of the services under the base
 path of `/api`. The `BlazeBuilder` is immutable with chained methods, each
 returning a new builder.
 
+Multiple `HttpService`s can be chained together with the `orElse` method by
+importing `org.http4s.server.syntax._`. 
+
 ```tut:book
 import org.http4s.server.blaze._
+import org.http4s.server.syntax._
 
-val routes = usersRoute orElse dailyWeatherRoute orElse averageTemperatureRoute orElse tweetRoutes
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/greetings").mountService(HttpService(routes), "/api")
+val services = usersService orElse dailyWeatherService orElse averageTemperatureService orElse tweetService
+val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/greetings").mountService(services, "/api")
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -198,7 +202,9 @@ A builder can be `run` to start the server.
 val server = builder.run
 ```
 
-Alternatively, to run a server as an `App` simply extend
+### Running your service as an `App`
+
+To run a server as an `App` simply extend
 `org.http4s.server.ServerApp` and implement the `server` method. The server
 will be shutdown automatically when the program exits via a shutdown hook,
 so you don't need to clean up any resources explicitly.
@@ -211,7 +217,7 @@ object Main extends ServerApp {
   override def server(args: List[String]): Task[Server] = {
     BlazeBuilder
       .bindHttp(8080, "localhost")
-      .mountService(HttpService(routes), "/api")
+      .mountService(services, "/api")
       .start
   }
 }
