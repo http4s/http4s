@@ -1,4 +1,6 @@
-package org.http4s.blaze.util
+package org.http4s
+package blaze
+package util
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets
@@ -23,7 +25,7 @@ import scalaz.stream.{Cause, Process}
 
 class ProcessWriterSpec extends Specification {
 
-  def writeProcess(p: Process[Task, ByteVector])(builder: TailStage[ByteBuffer] => ProcessWriter): String = {
+  def writeProcess(p: EntityBody)(builder: TailStage[ByteBuffer] => ProcessWriter): String = {
     val tail = new TailStage[ByteBuffer] {
       override def name: String = "TestTail"
     }

@@ -1,4 +1,6 @@
-package org.http4s.blaze.util
+package org.http4s
+package blaze
+package util
 
 import scodec.bits.ByteVector
 
@@ -9,7 +11,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.Process
 
 object DumpingWriter {
-  def dump(p: Process[Task, ByteVector]): ByteVector = {
+  def dump(p: EntityBody): ByteVector = {
     val w = new DumpingWriter()
     w.writeProcess(p).run
     w.getVector()

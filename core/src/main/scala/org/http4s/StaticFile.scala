@@ -112,7 +112,7 @@ object StaticFile {
   }}
 
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
-                (implicit es: ExecutorService): Process[Task, ByteVector] = {
+                (implicit es: ExecutorService): EntityBody = {
 
     val outer = Task {
 
@@ -160,7 +160,7 @@ object StaticFile {
         if (ch.isOpen) ch.close()
       })
 
-      def go(c: ByteVector): Process[Task, ByteVector] = {
+      def go(c: ByteVector): EntityBody = {
         emit(c) ++ awaitOr(innerTask)(_ => cleanup)(go)
       }
 
