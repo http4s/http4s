@@ -83,7 +83,7 @@ object QValue extends QValueInstances with QValueFunctions {
     /** Exists to support compile-time verified literals. Do not call directly. */
     def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
-    pdef qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
+    def qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
       import c.universe._
 
       d.tree match {
