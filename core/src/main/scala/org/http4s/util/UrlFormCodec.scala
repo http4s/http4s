@@ -1,11 +1,11 @@
 package org.http4s.util
 
-import org.http4s.ParseResult
-import org.http4s.parser.QueryParser
-
-import collection.immutable.BitSet
+import scala.collection.immutable.BitSet
 import scala.io.Codec
 
+import org.http4s.ParseResult
+import org.http4s.batteries._
+import org.http4s.parser.QueryParser
 
 object UrlFormCodec {
   def decode(formData: String, codec: Codec = Codec.UTF8): ParseResult[Map[String, Seq[String]]] =

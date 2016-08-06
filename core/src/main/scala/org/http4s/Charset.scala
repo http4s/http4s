@@ -19,8 +19,9 @@
 package org.http4s
 
 import java.nio.charset.{Charset => NioCharset, StandardCharsets}
+
+import cats.data.{Writer => _, _}
 import org.http4s.util._
-import scalaz.\/
 
 final case class Charset private (nioCharset: NioCharset) extends Renderable {
   def satisfies(charsetRange: CharsetRange): Boolean = charsetRange isSatisfiedBy this
@@ -42,8 +43,8 @@ object Charset {
   def fromNioCharset(nioCharset: NioCharset): Charset = Charset(nioCharset)
 
   def fromString(name: String): ParseResult[Charset] =
-    \/.fromTryCatchNonFatal(NioCharset.forName(name)).bimap(
+    Xor.catchNonFatal(NioCharset.forName(name)).bimap(
       _ => ParseFailure("Invalid charset", s"$name is not a supported Charset"),
-      Charset.apply
+      Charset(_)
     )
 }

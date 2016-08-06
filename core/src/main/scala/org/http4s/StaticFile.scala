@@ -1,22 +1,17 @@
 package org.http4s
 
-import java.io.File
-import java.util.Collections
+import java.io._
 import java.net.URL
 import java.nio.ByteBuffer
-import java.nio.channels.{CompletionHandler, AsynchronousFileChannel}
-import java.util.concurrent.ExecutorService
+import java.nio.channels._
 import java.time.Instant
+import java.util.concurrent.ExecutorService
 
-import scalaz.stream.Cause.{End, Terminated}
-import scalaz.{\/-, -\/}
-import scalaz.concurrent.{Strategy, Task}
-import scalaz.stream.io
-import scalaz.stream.Process
-import Process._
-
+import fs2._
+import fs2.Stream._
+import fs2.io.file._
+import org.http4s.Status._
 import org.http4s.headers._
-import org.http4s.Status.NotModified
 import org.log4s.getLogger
 import scodec.bits.ByteVector
 
@@ -27,17 +22,17 @@ object StaticFile {
   val DefaultBufferSize = 10240
 
   def fromString(url: String, req: Option[Request] = None)
-                (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+                (implicit es: ExecutorService): Option[Response] = {
     fromFile(new File(url), req)
   }
 
   def fromResource(name: String, req: Option[Request] = None)
-             (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+             (implicit es: ExecutorService): Option[Response] = {
     Option(getClass.getResource(name)).flatMap(fromURL(_, req))
   }
 
   def fromURL(url: URL, req: Option[Request] = None)
-             (implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] = {
+             (implicit es: ExecutorService): Option[Response] = {
     val lastmod = Instant.ofEpochMilli(url.openConnection.getLastModified())
     val expired = req
       .flatMap(_.headers.get(`If-Modified-Since`))
@@ -52,12 +47,12 @@ object StaticFile {
 
       Some(Response(
         headers = headers,
-        body    = Process.constant(DefaultBufferSize).toSource.through(io.chunkR(url.openStream))
+        body    = readInputStream[Task](Task.delay(url.openStream), DefaultBufferSize)
       ))
     } else Some(Response(NotModified))
   }
 
-  def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService = Strategy.DefaultExecutorService): Option[Response] =
+  def fromFile(f: File, req: Option[Request] = None)(implicit es: ExecutorService): Option[Response] =
     fromFile(f, DefaultBufferSize, req)
 
   def fromFile(f: File, buffsize: Int, req: Option[Request])
@@ -85,7 +80,7 @@ object StaticFile {
     notModified orElse {
 
       val (body, contentLength) =
-        if (f.length() < end) (halt, 0)
+        if (f.length() < end) (empty, 0)
         else (fileToBody(f, start, end, buffsize), (end - start).toInt)
 
       val contentType = {
@@ -113,7 +108,10 @@ object StaticFile {
 
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
                 (implicit es: ExecutorService): EntityBody = {
-
+    readInputStream[Task](Task.delay(new FileInputStream(f)), buffsize)
+      .drop(start.toInt) // TODO this is sad if start is much bigger than 0
+      .take(end.toInt - start.toInt)
+    /*
     val outer = Task {
 
       val ch = AsynchronousFileChannel.open(f.toPath, Collections.emptySet(), es)
@@ -168,6 +166,7 @@ object StaticFile {
     }
 
     await(outer)(identity)
+     */
   }
 
   private[http4s] val staticFileKey = AttributeKey.http4s[File]("staticFile")

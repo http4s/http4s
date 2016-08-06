@@ -2,12 +2,12 @@ package org.http4s
 
 import java.io.File
 import java.net.{InetSocketAddress, InetAddress}
+
+import fs2._
+import fs2.text._
 import org.http4s.headers._
+import org.http4s.batteries._
 import org.http4s.server.ServerSoftware
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scalaz.stream.text.utf8Decode
-import scalaz.syntax.monad._
 
 /**
  * Represents a HTTP Message. The interesting subclasses are Request and Response
@@ -23,15 +23,14 @@ sealed trait Message extends MessageOps { self =>
 
   def body: EntityBody
 
-  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Process[Task, String] = {
+  final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Stream[Task, String] = {
     (charset getOrElse defaultCharset) match {
       case Charset.`UTF-8` =>
         // suspect this one is more efficient, though this is superstition
-        body |> utf8Decode
+        body.through(utf8Decode)
       case cs =>
-        body |> util.decode(cs)
+        body.through(util.decode(cs))
     }
-
   }
 
   def attributes: AttributeMap
@@ -197,7 +196,7 @@ final case class Request(
   def serverSoftware: ServerSoftware = attributes.get(Keys.ServerSoftware).getOrElse(ServerSoftware.Unknown)
 
   def decodeWith[A](decoder: EntityDecoder[A], strict: Boolean)(f: A => Task[Response]): Task[Response] =
-    decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).join
+    decoder.decode(this, strict = strict).fold(_.toHttpResponse(httpVersion), f).flatten
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers}"""

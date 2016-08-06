@@ -1,6 +1,6 @@
 package org.http4s
 
-import scalaz.{Equal, Monoid}
+import cats._
 
 /**
   * Encapsulates the notion of fallthrough orElse for a Service
@@ -22,8 +22,8 @@ object Fallthrough {
   val fallthroughKey = AttributeKey.http4s[Unit]("fallthroughKey")
 
   /** A [[Fallthrough]] for any Monoid with an Equals. */
-  implicit def forMonoid[B : Monoid : Equal]: Fallthrough[B] = new Fallthrough[B] {
-    def isFallthrough(a: B): Boolean = Monoid[B].isMZero(a)
+  implicit def forMonoid[B : Monoid : Eq]: Fallthrough[B] = new Fallthrough[B] {
+    def isFallthrough(a: B): Boolean = Monoid[B].isEmpty(a)
   }
 
   /** A [[Response]] specific [[Fallthrough]] which considers any response with a 404

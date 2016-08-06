@@ -1,8 +1,8 @@
 package org.http4s
 
-import scalaz.Kleisli
-import scalaz.concurrent.Task
-import scalaz.syntax.kleisli._
+import cats.data._
+import fs2._
+import org.http4s.batteries._
 
 object Service {
   /**
@@ -10,19 +10,22 @@ object Service {
     *
     * @see [[HttpService.apply]]
     */
-  def lift[A, B](f: A => Task[B]): Service[A, B] = Kleisli.kleisli(f)
+  def lift[A, B](f: A => Task[B]): Service[A, B] =
+    Kleisli(f)
 
   /**
     * Lifts a Task into a [[Service]].
     *
     */
-  def const[A, B](b: => Task[B]): Service[A, B] = b.liftKleisli
+  def const[A, B](b: Task[B]): Service[A, B] =
+    lift(_ => b)
 
   /**
     *  Lifts a value into a [[Service]].
     *
     */
-  def constVal[A, B](b: => B): Service[A, B] = Task.now(b).liftKleisli
+  def constVal[A, B](b: => B): Service[A, B] =
+    lift(_ => Task.delay(b))
 
   /**
     * Allows Service chainig through an implicit [[Fallthrough]] instance.

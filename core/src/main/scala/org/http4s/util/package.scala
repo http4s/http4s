@@ -3,18 +3,18 @@ package org.http4s
 import java.nio.CharBuffer
 import java.nio.charset.CharsetDecoder
 
+import scala.util.control.NonFatal
+
+import fs2._
+import fs2.Stream._
+import fs2.util.Attempt
+
 import scodec.bits.ByteVector
 
-import scalaz.State
-import scalaz.concurrent.Task
-import scalaz.stream.{process1, Channel, Process, Process1}
-import scalaz.stream.Process._
-import scalaz.stream.io.bufferedChannel
-import scalaz.std.option.none
-
 package object util {
-  /** Temporary.  Contribute back to scalaz-stream. */
-  def decode(charset: Charset): Process1[ByteVector, String] = suspend {
+  def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = ??? // suspend {
+    // TODO fs2 port
+    /*
     val decoder = charset.nioCharset.newDecoder
     var carryOver = ByteVector.empty
 
@@ -55,8 +55,13 @@ package object util {
 
     breakBigChunks() pipe go() onComplete flush()
   }
+    */
 
   /** Constructs an assertion error with a reference back to our issue tracker. Use only with head hung low. */
   def bug(message: String): AssertionError =
     new AssertionError(s"This is a bug. Please report to https://github.com/http4s/http4s/issues: ${message}")
+
+  private[http4s] def tryCatchNonFatal[A](f: => A): Attempt[A] =
+    try Right(f)
+    catch { case NonFatal(t) => Left(t) }
 }

@@ -2,10 +2,10 @@ package org.http4s
 
 import java.time.{ZoneOffset, Instant}
 
-import org.http4s.headers.{`Set-Cookie`, `Content-Type`}
-
-import scalaz.\/
-import scalaz.concurrent.Task
+import cats._
+import fs2._
+import org.http4s.batteries._
+import org.http4s.headers._
 
 trait MessageOps extends Any {
   type Self

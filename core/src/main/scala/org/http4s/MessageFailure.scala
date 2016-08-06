@@ -1,8 +1,10 @@
 package org.http4s
 
 import scala.util.control.{NoStackTrace, NonFatal}
-import scalaz.concurrent.Task
-import scalaz.{\/-, -\/, Equal}
+
+import cats._
+import fs2._
+import org.http4s.batteries._
 
 /** Indicates a failure to handle an HTTP [[Message]]. */
 sealed abstract class MessageFailure extends RuntimeException {
@@ -54,19 +56,19 @@ final case class GenericParsingFailure(sanitized: String, details: String, respo
 
 
 object ParseFailure {
-  implicit val eq = Equal.equalA[ParseFailure]
+  implicit val eq = Eq.fromUniversalEquals[ParseFailure]
 }
 
 object ParseResult {
   def fail(sanitized: String, details: String): ParseResult[Nothing] =
-    -\/(ParseFailure(sanitized, details))
+    left(ParseFailure(sanitized, details))
   def success[A](a: A): ParseResult[A] =
-    \/-(a)
+    right(a)
 
   def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
     catch {
-      case NonFatal(e) => -\/(ParseFailure(sanitized, e.getMessage))
+      case NonFatal(e) => left(ParseFailure(sanitized, e.getMessage))
     }
 }
 

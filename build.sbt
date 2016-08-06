@@ -8,12 +8,12 @@ import sbtunidoc.Plugin.UnidocKeys._
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.15.0-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
-scalaVersion in ThisBuild := "2.10.6"
+scalaVersion in ThisBuild := "2.11.8"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThiBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
 scalazVersion in ThisBuild := "7.1.8"
-crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.8"))
+crossScalaVersions in ThisBuild := Seq(scalaVersion.value)
 
 // Root project
 name := "root"
@@ -27,12 +27,13 @@ lazy val core = libraryProject("core")
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage <<= organization,
     libraryDependencies <++= (scalaVersion, scalazVersion) { (v,sz) => Seq(
+      fs2Cats,
+      fs2Io,
       http4sWebsocket,
       log4s,
       parboiled,
       scalaReflect(v) % "provided",
-      scalazCore(sz),
-      scalazStream(sz)
+      scodecBits
     ) },
     macroParadiseSetting
   )

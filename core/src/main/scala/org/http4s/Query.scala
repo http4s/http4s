@@ -1,6 +1,7 @@
 package org.http4s
 
 import org.http4s.Query._
+import org.http4s.batteries._
 import org.http4s.parser.QueryParser
 import org.http4s.util.{UrlFormCodec, UrlCodingUtils, Writer, Renderable}
 

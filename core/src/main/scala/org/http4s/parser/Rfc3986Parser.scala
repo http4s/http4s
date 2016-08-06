@@ -1,13 +1,13 @@
 package org.http4s
 package parser
 
-import org.parboiled2._
 import java.nio.charset.Charset
 import java.net.URLDecoder
-import shapeless.HNil
-import scalaz.syntax.std.option._
-import org.http4s.util.CaseInsensitiveString._
+
 import org.http4s.{ Query => Q }
+import org.http4s.batteries._
+import org.parboiled2._
+import shapeless.HNil
 
 private[parser] trait Rfc3986Parser { this: Parser =>
   // scalastyle:off public.methods.have.type

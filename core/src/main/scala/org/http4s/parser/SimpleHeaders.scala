@@ -18,14 +18,13 @@
 package org.http4s
 package parser
 
-
-import headers._
 import java.net.InetAddress
-import org.http4s.headers.ETag.EntityTag
-import org.http4s.util.CaseInsensitiveString._
-import org.parboiled2.Rule1
 
-import org.http4s.util.NonEmptyList
+import cats.data.NonEmptyList
+import org.http4s.batteries._
+import org.http4s.headers._
+import org.http4s.headers.ETag.EntityTag
+import org.parboiled2.Rule1
 
 /**
  * parser rules for all headers that can be parsed with one simple rule

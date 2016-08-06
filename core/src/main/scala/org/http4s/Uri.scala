@@ -7,7 +7,7 @@ import scala.reflect.macros.Context
 
 import org.http4s.Uri._
 
-import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
+import org.http4s.parser._
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
@@ -126,11 +126,11 @@ object Uri extends UriFunctions {
 
   /** Decodes the String to a [[Uri]] using the RFC 3986 uri decoding specification */
   def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).Uri
-    .run()(ScalazDeliverySchemes.Disjunction)
+    .run()(parseResultDeliveryScheme)
 
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
-    .run()(ScalazDeliverySchemes.Disjunction)
+    .run()(parseResultDeliveryScheme)
 
   type Scheme = CaseInsensitiveString
 

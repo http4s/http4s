@@ -2,7 +2,7 @@ package org.http4s
 
 import util._
 
-import scalaz.{Show, Order}
+import cats.{Show, Order}
 
 sealed abstract class CharsetRange extends HasQValue with Renderable {
   def qValue: QValue
@@ -29,6 +29,8 @@ object CharsetRange extends CharsetRangeInstances {
 }
 
 trait CharsetRangeInstances {
-  implicit val CharacterSetOrder: Order[CharsetRange] = Order[QValue].reverseOrder.contramap(_.qValue)
-  implicit val CharsetShow: Show[Charset] = Show.shows(_.toString)
+  implicit val CharacterSetOrder: Order[CharsetRange] =
+    Order[QValue].reverse.on(_.qValue)
+  implicit val CharsetShow: Show[Charset] =
+    Show.fromToString
 }

@@ -1,25 +1,24 @@
 package org
 
-import scalaz.{Kleisli, EitherT, \/}
-
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import org.http4s.util.CaseInsensitiveString
-import scodec.bits.ByteVector
+import cats.data._
+import fs2._
+import fs2.util.Attempt
 
 package object http4s { // scalastyle:ignore
 
-  type AuthScheme = CaseInsensitiveString
+  type AuthScheme = util.CaseInsensitiveString
 
-  type EntityBody = Process[Task, ByteVector]
+  type EntityBody = Stream[Task, Byte]
 
-  def EmptyBody: EntityBody = Process.halt
+  val EmptyBody: EntityBody =
+    Stream.empty
 
-  type DecodeResult[T] = EitherT[Task, DecodeFailure, T]
+  val ApiVersion: Http4sVersion =
+    Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
-  val ApiVersion: Http4sVersion = Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
+  type DecodeResult[A] = XorT[Task, DecodeFailure, A]
 
-  type ParseResult[+A] = ParseFailure \/ A
+  type ParseResult[+A] = ParseFailure Xor A
 
   val DefaultCharset = Charset.`UTF-8`
 
@@ -54,7 +53,7 @@ package object http4s { // scalastyle:ignore
       * where the function is undefined.
       */
     def apply(pf: PartialFunction[Request, Task[Response]], default: HttpService = empty): HttpService =
-      Service.lift(req => pf.applyOrElse(req, default))
+      Service.lift(req => pf.applyOrElse(req, default.run))
 
     /** Alternative application  which lifts a partial function to an `HttpService`,
       * answering with a [[Response]] as supplied by the default argument.
@@ -81,11 +80,11 @@ package object http4s { // scalastyle:ignore
         // constantly recreate it.
         Response(Status.NotFound)
           .withAttribute(Fallthrough.fallthroughKey, ())
-          .withBody("404 Not Found.").run
+          .withBody("404 Not Found.").unsafeRun
       }
 
     val empty   : HttpService    = Service.const(notFound)
   }
 
-  type Callback[A] = Throwable \/ A => Unit
+  type Callback[A] = Attempt[A] => Unit
 }

@@ -1,10 +1,10 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
+import org.http4s.batteries._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Renderable, Writer}
-
-import org.http4s.util.NonEmptyList
 
 // See https://tools.ietf.org/html/rfc7233
 

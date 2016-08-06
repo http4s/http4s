@@ -1,9 +1,11 @@
 package org.http4s
 
 import java.util.concurrent.atomic.AtomicReferenceArray
-import scalaz._
 
-import Status.ResponseClass
+import cats._
+import cats.data._
+import org.http4s.batteries._
+import org.http4s.Status.ResponseClass
 import org.http4s.util.Renderable
 
 /** Representation of the HTTP response code and reason
@@ -61,7 +63,7 @@ object Status {
     if (code >= 100 && code <= 599) ParseResult.success(Status(code)(reason, isEntityAllowed = true))
     else ParseResult.fail("Invalid status", s"Code $code must be between 100 and 599, inclusive")
 
-  private def lookup(code: Int): Option[\/-[Status]] =
+  private def lookup(code: Int) =
     if (code < 100 || code > 599) None else Option(registry.get(code))
 
   def fromInt(code: Int): ParseResult[Status] = lookup(code).getOrElse(mkStatus(code))
@@ -70,7 +72,8 @@ object Status {
     lookup(code).filter(_.b.reason == reason).getOrElse(mkStatus(code, reason))
 
   // scalastyle:off magic.number
-  private val registry = new AtomicReferenceArray[\/-[Status]](600)
+  private val registry =
+    new AtomicReferenceArray[Xor.Right[Status]](600)
   // scalastyle:on magic.number
 
   def registered: Iterable[Status] = for {
@@ -79,7 +82,8 @@ object Status {
   } yield status
 
   def register(status: Status): status.type = {
-    registry.set(status.code, \/-(status))
+    // Xor.Right, not right, for specific inference
+    registry.set(status.code, Xor.Right(status))
     status
   }
 
@@ -153,6 +157,6 @@ object Status {
 }
 
 trait StatusInstances {
-  implicit val StatusShow = Show.showFromToString[Status]
-  implicit val StatusOrder = Order.fromScalaOrdering[Status]
+  implicit val StatusShow = Show.fromToString[Status]
+  implicit val StatusOrder = Order.fromOrdering[Status]
 }

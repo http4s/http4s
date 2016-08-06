@@ -1,14 +1,16 @@
 package org.http4s.util
 
-import java.nio.charset.{ Charset, StandardCharsets }
-import java.time.{ZoneId, Instant}
+import java.nio.charset.{Charset, StandardCharsets}
+import java.time.{Instant, ZoneId}
 import java.time.format.DateTimeFormatter
 import java.util.Locale
 
-import scodec.bits.ByteVector
 import scala.annotation.tailrec
 import scala.collection.immutable.BitSet
 
+import cats.data.NonEmptyList
+import org.http4s.batteries._
+import scodec.bits.ByteVector
 
 /** A type class that describes how to efficiently render a type
  * @tparam T the type which will be rendered
@@ -166,3 +168,4 @@ final case class ByteVectorWriter(private var bv: ByteVector = ByteVector.empty,
 
   def toByteVector: ByteVector = bv
 }
+

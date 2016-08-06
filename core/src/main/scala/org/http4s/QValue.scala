@@ -2,7 +2,8 @@ package org.http4s
 
 import scala.language.experimental.macros
 import scala.reflect.macros.Context
-import scalaz._
+
+import cats._
 
 import org.http4s.util.{Renderable, Writer}
 
@@ -82,7 +83,7 @@ object QValue extends QValueInstances with QValueFunctions {
     /** Exists to support compile-time verified literals. Do not call directly. */
     def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
-    def qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
+    pdef qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
       import c.universe._
 
       d.tree match {
@@ -99,8 +100,8 @@ object QValue extends QValueInstances with QValueFunctions {
 }
 
 trait QValueInstances {
-  implicit val qValueOrder = Order.fromScalaOrdering[QValue]
-  implicit val qValueShow = Show.showA[QValue]
+  implicit val qValueOrder = Order.fromOrdering[QValue]
+  implicit val qValueShow = Show.fromToString[QValue]
 }
 
 trait QValueFunctions {

@@ -1,12 +1,9 @@
+// TODO fs2 port
+/*
 package org.http4s
 package multipart
 
-import scala.language.postfixOps
-
 import scodec.bits.ByteVector
-
-import scalaz.{-\/, \/-, \/}
-import scalaz.stream.{process1, Process, Process1, Writer1}
 
 /** A low-level multipart-parsing pipe.  Most end users will prefer EntityDecoder[Multipart]. */
 object MultipartParser {
@@ -197,3 +194,4 @@ object MultipartParser {
     start
   }
 }
+*/

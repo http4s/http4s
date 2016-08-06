@@ -1,8 +1,10 @@
 package org.http4s
 
 import scala.collection.concurrent.TrieMap
-import scalaz._
 
+import cats._
+import cats.data._
+import org.http4s.batteries._
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Writer, Renderable}
 
@@ -51,11 +53,11 @@ object Method extends MethodInstances {
 
   import Semantics._
 
-  // Lookups will usually be on fromString, so we store it wrapped in a \/-
-  private val registry = TrieMap[String, \/-[Method]]()
+  // Lookups will usually be on fromString, so we store it wrapped in a Xor.Right
+  private val registry = TrieMap[String, Xor.Right[Method]]()
 
   private def register[M <: Method](method: M): method.type = {
-    registry(method.name) = \/-(method)
+    registry(method.name) = Xor.Right(method)
     method
   }
 
@@ -102,8 +104,8 @@ object Method extends MethodInstances {
 }
 
 trait MethodInstances {
-  implicit val MethodInstances = new Show[Method] with Equal[Method] {
-    override def shows(f: Method): String = f.toString
-    override def equal(a1: Method, a2: Method): Boolean = a1 == a2
+  implicit val MethodInstances = new Show[Method] with Eq[Method] {
+    override def show(f: Method): String = f.toString
+    override def eqv(a1: Method, a2: Method): Boolean = a1 == a2
   }
 }

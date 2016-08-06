@@ -1,11 +1,10 @@
 package org.http4s
 package headers
 
+import cats.data.NonEmptyList
+import org.http4s.batteries._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.{Writer, CaseInsensitiveString}
-import org.http4s.util.string._
-
-import org.http4s.util.NonEmptyList
 
 // values should be case insensitive
 //http://stackoverflow.com/questions/10953635/are-the-http-connection-header-values-case-sensitive
@@ -21,4 +20,3 @@ final case class Connection(values: NonEmptyList[CaseInsensitiveString]) extends
   def hasKeepAlive: Boolean = values.contains("keep-alive".ci)
   override def renderValue(writer: Writer): writer.type = writer.addStringNel(values.map(_.toString), ", ")
 }
-

@@ -1,17 +1,14 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import java.io.UnsupportedEncodingException
 import java.nio.CharBuffer
-import org.http4s._
-import org.http4s.util.string._
 
 import scala.annotation.switch
 import scala.collection.immutable.BitSet
 import scala.io.Codec
 
-import QueryParser._
-
-import scalaz.{-\/, \/-, \/}
+import org.http4s.batteries._
 
 /** Split an encoded query string into unencoded key value pairs
   * It always assumes any input is a  valid query, including "".
@@ -19,6 +16,7 @@ import scalaz.{-\/, \/-, \/}
   * checked beforehand.
   */
 private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars: BitSet = QueryParser.ExtendedQChars) {
+  import QueryParser._
 
   /** Decodes the input into key value pairs.
     * `flush` signals that this is the last input */
@@ -104,7 +102,7 @@ private[http4s] object QueryParser {
   private val InitialBufferCapactiy = 32
 
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] = {
-    if (queryString.isEmpty) \/-(Query.empty)
+    if (queryString.isEmpty) right(Query.empty)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
   }
 
