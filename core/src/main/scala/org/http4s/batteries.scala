@@ -5,9 +5,8 @@ private[http4s] trait Batteries extends AnyRef
     with cats.std.AllInstances
     with cats.data.XorFunctions
     with fs2.interop.cats.Instances
-    with util.ByteVectorSyntax
-    with util.ByteVectorInstances
     with util.CaseInsensitiveStringSyntax
+    with util.ChunkInstances
     with util.NonEmptyListSyntax
     with util.StringSyntax
 {

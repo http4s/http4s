@@ -13,7 +13,6 @@ import fs2.io.file._
 import org.http4s.Status._
 import org.http4s.headers._
 import org.log4s.getLogger
-import scodec.bits.ByteVector
 
 // TODO: consider using the new scalaz.stream.nio.file operations
 object StaticFile {

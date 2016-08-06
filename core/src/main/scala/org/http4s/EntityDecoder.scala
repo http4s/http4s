@@ -9,7 +9,6 @@ import fs2.io.file._
 import org.http4s.headers._
 import org.http4s.batteries._
 import org.http4s.multipart._
-import scodec.bits.ByteVector
 
 /** A type that can be used to decode a [[Message]]
   * EntityDecoder is used to attempt to decode a [[Message]] returning the
@@ -121,8 +120,8 @@ object EntityDecoder extends EntityDecoderInstances {
   }
 
   /** Helper method which simply gathers the body into a single ByteVector */
-  def collectBinary(msg: Message): DecodeResult[ByteVector] =
-    DecodeResult.success(msg.body.chunks.runFoldMap(_.toByteVector))
+  def collectBinary(msg: Message): DecodeResult[Chunk[Byte]] =
+    DecodeResult.success(msg.body.chunks.runFoldMap(identity))
 
   /** Decodes a message to a String */
   def decodeString(msg: Message)(implicit defaultCharset: Charset = DefaultCharset): Task[String] =
@@ -143,7 +142,7 @@ trait EntityDecoderInstances {
     override def consumes: Set[MediaRange] = Set.empty
   }
 
-  implicit val binary: EntityDecoder[ByteVector] = {
+  implicit val binary: EntityDecoder[Chunk[Byte]] = {
     EntityDecoder.decodeBy(MediaRange.`*/*`)(collectBinary)
   }
 

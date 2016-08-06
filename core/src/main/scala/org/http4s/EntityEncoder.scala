@@ -14,7 +14,6 @@ import fs2.Stream._
 import org.http4s.headers._
 import org.http4s.batteries._
 import org.http4s.multipart._
-import scodec.bits.ByteVector
 
 trait EntityEncoder[A] { self =>
   import EntityEncoder._
@@ -137,14 +136,20 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
 
   implicit val charEncoder: EntityEncoder[Char] = charSequenceEncoder.contramap(Character.toString)
 
-  implicit val byteVectorEncoder: EntityEncoder[ByteVector] =
-    simple(`Content-Type`(MediaType.`application/octet-stream`))(_.toChunk)
+  implicit val chunkEncoder: EntityEncoder[Chunk[Byte]] =
+    simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)
 
-  implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
+  implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] =
+    chunkEncoder.contramap(Chunk.bytes)
 
-  implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
+  // TODO fs2 port this is where we miss ByteVector
+  /*
+  implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] =
+    chunkEncoder.contramap(ByteVector.view)
+   */
 
-  implicit val byteEncoder: EntityEncoder[Byte] = byteVectorEncoder.contramap(ByteVector.apply(_))
+  implicit val byteEncoder: EntityEncoder[Byte] =
+    chunkEncoder.contramap(Chunk.singleton)
 
   implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] = new EntityEncoder[Task[A]] {
     override def toEntity(a: Task[A]): Task[Entity] = a.flatMap(W.toEntity)

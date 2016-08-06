@@ -32,8 +32,7 @@ lazy val core = libraryProject("core")
       http4sWebsocket,
       log4s,
       parboiled,
-      scalaReflect(v) % "provided",
-      scodecBits
+      scalaReflect(v) % "provided"
     ) },
     macroParadiseSetting
   )

@@ -9,8 +9,6 @@ import fs2._
 import fs2.Stream._
 import fs2.util.Attempt
 
-import scodec.bits.ByteVector
-
 package object util {
   def decode[F[_]](charset: Charset): Pipe[F, Byte, String] = ??? // suspend {
     // TODO fs2 port
