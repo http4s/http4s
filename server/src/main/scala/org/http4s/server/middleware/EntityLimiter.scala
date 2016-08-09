@@ -1,12 +1,13 @@
-package org.http4s.server.middleware
-
-import org.http4s._
-import org.http4s.server._
-import scodec.bits.ByteVector
+package org.http4s
+package server
+package middleware
 
 import scala.util.control.NoStackTrace
-import scalaz.stream.{Process1, process1}
-import scalaz.stream.Process._
+
+import fs2._
+import fs2.Pull._
+import fs2.Stream.Handle
+import org.http4s.batteries._
 
 object EntityLimiter {
 
@@ -15,20 +16,13 @@ object EntityLimiter {
   val DefaultMaxEntitySize: Int = 2*1024*1024 // 2 MB default
 
   def apply(service: HttpService, limit: Int = DefaultMaxEntitySize): HttpService =
-    service.local { req: Request => req.copy(body = req.body |> takeBytes(limit)) }
-
-  private def takeBytes(n: Long): Process1[ByteVector, ByteVector] = {
-    def go(taken: Long, chunk: ByteVector): Process1[ByteVector, ByteVector] = {
-      val sz = taken + chunk.length
-      if (sz > n) fail(EntityTooLarge(n))
-      else emit(chunk) ++ receive1(go(sz, _))
+    service.local { req: Request =>
+      req.copy(body = req.body.pull(takeLimited(limit)))
     }
-    receive1(go(0,_))
-  }
 
-  def comsumeUpTo(n: Int): Process1[ByteVector, ByteVector] = {
-    val p = process1.fold[ByteVector, ByteVector](ByteVector.empty) { (c1, c2) => c1 ++ c2 }
-    takeBytes(n) |> p
-  }
-
+  private def takeLimited[F[_]](n: Long)(h: Handle[F, Byte]): Pull[F, Byte, Nothing] =
+    take(n)(h) flatMap receiveNonemptyOption {
+      case Some(_) => fail(EntityTooLarge(n))
+      case _ => done
+    }
 }

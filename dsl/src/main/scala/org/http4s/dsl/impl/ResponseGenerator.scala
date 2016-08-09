@@ -2,11 +2,8 @@ package org.http4s
 package dsl
 package impl
 
-import org.http4s.headers.{`WWW-Authenticate`, `Proxy-Authenticate`, Location, `Content-Length`}
-
-import scalaz.concurrent.Task
-
-import org.http4s.EntityEncoder.Entity
+import fs2._
+import org.http4s.headers._
 
 trait ResponseGenerator extends Any {
   def status: Status

@@ -4,11 +4,11 @@ package server
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 
-import com.codahale.metrics.MetricRegistry
-import org.http4s.server.SSLSupport.StoreInfo
-
 import scala.concurrent.duration._
-import scalaz.concurrent.{Strategy, Task}
+
+import com.codahale.metrics.MetricRegistry
+import fs2._
+import org.http4s.server.SSLSupport.StoreInfo
 
 trait ServerBuilder {
   import ServerBuilder._
@@ -37,7 +37,7 @@ trait ServerBuilder {
     * until the server is started.
     */
   final def run: Server =
-    start.run
+    start.unsafeRun
 }
 
 object ServerBuilder {
@@ -46,7 +46,6 @@ object ServerBuilder {
   val DefaultHost = LoopbackAddress
   val DefaultHttpPort = 8080
   val DefaultSocketAddress = InetSocketAddress.createUnresolved(DefaultHost, DefaultHttpPort)
-  val DefaultServiceExecutor = Strategy.DefaultExecutorService
 }
 
 trait IdleTimeoutSupport { this: ServerBuilder =>

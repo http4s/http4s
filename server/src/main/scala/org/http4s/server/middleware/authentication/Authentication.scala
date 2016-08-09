@@ -3,9 +3,10 @@ package server
 package middleware
 package authentication
 
-import scalaz.concurrent.Task
-import scalaz._
-import org.http4s.headers.`WWW-Authenticate`
+import cats.data._
+import fs2._
+import org.http4s.batteries._
+import org.http4s.headers._
 
 /**
  * Authentication instances are middleware that provide a
@@ -25,7 +26,7 @@ trait Authentication extends HttpMiddleware {
    *         Unauthorized response that is returned to the client.
    *
    */
-  protected def getChallenge(req: Request): Task[Challenge \/ Request]
+  protected def getChallenge(req: Request): Task[Challenge Xor Request]
 
   // Utility function for implementors of getChallenge()
   protected def addUserRealmAttributes(req: Request, user: String, realm: String) : Request =
@@ -33,9 +34,9 @@ trait Authentication extends HttpMiddleware {
 
   def apply(service: HttpService): HttpService = Service.lift { req =>
     getChallenge(req) flatMap {
-      case \/-(req) =>
+      case Xor.Right(req) =>
         service(req)
-      case -\/(challenge) =>
+      case Xor.Left(challenge) =>
         Task.now(Response(Status.Unauthorized).putHeaders(`WWW-Authenticate`(challenge)))
     }
   }

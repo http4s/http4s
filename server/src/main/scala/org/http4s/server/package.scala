@@ -1,14 +1,8 @@
 package org.http4s
 
-import scalaz.Kleisli
-import scalaz.concurrent.Task
-import scalaz.syntax.kleisli._
+import fs2._
 
 package object server {
-
-
-
-
   /**
    * A middleware is a function of one [[Service]] to another, possibly of a
    * different [[Request]] and [[Response]] type.  http4s comes with several
@@ -34,5 +28,3 @@ package object server {
    */
   type HttpMiddleware = Middleware[Request, Response, Request, Response]
 }
-
-

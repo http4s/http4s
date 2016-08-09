@@ -1,6 +1,10 @@
 package org.http4s
 
-private[http4s] trait Batteries extends AnyRef
+/** An all-batteries included import for internal use in http4s.  This
+  * is convenient on the master branch and reduces merge conflicts for
+  * those maintaining ports to alternative stacks.
+  */
+protected[http4s] object batteries extends AnyRef
     with cats.syntax.AllSyntax
     with cats.std.AllInstances
     with cats.data.XorFunctions
@@ -18,9 +22,3 @@ private[http4s] trait Batteries extends AnyRef
       self.asInstanceOf[F[B]] // F.widen(self) in cats-0.7
   }
 }
-
-/** An all-batteries included import for internal use in http4s.  This
-  * is convenient on the master branch and reduces merge conflicts for
-  * those maintaining ports to alternative stacks.
-  */
-private[http4s] object batteries extends Batteries

@@ -1,8 +1,8 @@
-package org.http4s.server.staticcontent
+package org.http4s
+package server
+package staticcontent
 
-import org.http4s._
-import scalaz.concurrent.Task
-
+import fs2._
 
 /** Cache strategy that doesn't cache anything, ever. */
 object NoopCacheStrategy extends CacheStrategy {

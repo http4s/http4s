@@ -2,7 +2,7 @@ package org.http4s
 package server
 package middleware
 
-import scalaz.concurrent.Task
+import fs2._
 
 package object authentication {
   // A function mapping (realm, username) to password, None if no password

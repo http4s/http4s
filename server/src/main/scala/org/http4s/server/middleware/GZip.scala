@@ -4,14 +4,12 @@ package middleware
 
 import java.util.zip.Deflater
 
-import org.http4s.headers.{`Content-Type`, `Content-Length`, `Content-Encoding`, `Accept-Encoding`}
+import fs2._
+import fs2.Stream._
+import fs2.compress._
+import org.http4s.batteries._
+import org.http4s.headers._
 import org.log4s.getLogger
-
-import scalaz.stream.Process._
-import scalaz.concurrent.Task
-import scalaz.Kleisli.kleisli
-
-import scodec.bits.ByteVector
 
 object GZip {
   private[this] val logger = getLogger
@@ -27,8 +25,8 @@ object GZip {
             if (isZippable(resp)) {
               logger.trace("GZip middleware encoding content")
               // Need to add the Gzip header
-              val b = emit(ByteVector.view(header)) ++
-                        resp.body.pipe(scalaz.stream.compress.deflate(
+              val b = chunk(header) ++
+                        resp.body.through(deflate(
                           level = level,
                           nowrap = true,
                           bufferSize = bufferSize
@@ -57,7 +55,7 @@ object GZip {
   private val GZIP_MAGIC_NUMBER = 0x8b1f
   private val TRAILER_LENGTH = 8
 
-  private val header: Array[Byte] = Array(
+  private val header: Chunk[Byte] = Chunk.bytes(Array(
     GZIP_MAGIC_NUMBER.toByte,           // Magic number (int16)
     (GZIP_MAGIC_NUMBER >> 8).toByte,    // Magic number  c
     Deflater.DEFLATED.toByte,           // Compression method
@@ -68,5 +66,5 @@ object GZip {
     0.toByte,                           // Modification time  c
     0.toByte,                           // Extra flags
     0.toByte)                           // Operating system
-
+  )
 }

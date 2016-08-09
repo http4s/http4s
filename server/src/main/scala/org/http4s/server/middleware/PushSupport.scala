@@ -2,8 +2,8 @@ package org.http4s
 package server
 package middleware
 
-import scalaz.concurrent.Task
-import scalaz.Kleisli.kleisli
+import fs2.Task
+import org.http4s.batteries._
 import org.log4s.getLogger
 
 object PushSupport {
@@ -47,7 +47,7 @@ object PushSupport {
       if (verify(v.location)) {
         val newReq = locToRequest(v, req)
         if (v.cascade) facc.flatMap { accumulated => // Need to gather the sub resources
-          try route.flatMapK { response =>
+          try route.flatMapF { response =>
             response.attributes.get(pushLocationKey).map { pushed =>
               collectResponse(pushed, req, verify, route)
                 .map(accumulated ++ _ :+ PushResponse(v.location, response))
@@ -55,7 +55,7 @@ object PushSupport {
           }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }
         } else {
-          try route.flatMapK { resp => // Need to make sure to catch exceptions
+          try route.flatMapF { resp => // Need to make sure to catch exceptions
             facc.map(_ :+ PushResponse(v.location, resp))
           }.apply(newReq)
           catch { case t: Throwable => handleException(t); facc }

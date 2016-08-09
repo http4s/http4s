@@ -1,17 +1,14 @@
+/** TODO fs2 port -- onHalt model changed, question pending in Gitter
 package org.http4s
 package server
 package middleware
 
 import java.util.concurrent.TimeUnit
 
+import cats.data._
 import com.codahale.metrics._
-
-import org.http4s.{Method, Response, Request}
-
-import scalaz.stream.Cause.End
-import scalaz.{\/, -\/, \/-}
-import scalaz.concurrent.Task
-import scalaz.stream.Process.{Halt, halt}
+import fs2._
+import org.http4s.batteries._
 
 object Metrics {
 
@@ -67,11 +64,11 @@ object Metrics {
       active_requests.dec()
     }
 
-    def onFinish(method: Method, start: Long)(r: Throwable \/ Response): Throwable \/ Response = {
+    def onFinish(method: Method, start: Long)(r: Throwable Xor Response): Attempt[Response] = {
       val elapsed = System.nanoTime() - start
 
       r match {
-        case \/-(r) =>
+        case Xor.Right(r) =>
           headers_times.update(System.nanoTime() - start, TimeUnit.NANOSECONDS)
           val code = r.status.code
 
@@ -94,13 +91,13 @@ object Metrics {
             }
           }
 
-          \/-(r.copy(body = body))
+          Right(r.copy(body = body))
 
-       case e@ -\/(_)       =>
+       case Xor.Left(e)       =>
           generalMetrics(method, elapsed)
           resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
           service_failure.update(elapsed, TimeUnit.NANOSECONDS)
-          e
+          Left(e)
       }
     }
 
@@ -111,3 +108,4 @@ object Metrics {
     }
   }
 }
+*/
