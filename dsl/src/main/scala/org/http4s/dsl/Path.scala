@@ -8,16 +8,12 @@
 package org.http4s
 package dsl
 
-import org.http4s.QueryParamDecoder
-import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
-
-import scalaz.ValidationNel
-import scalaz.syntax.traverse._
-import scalaz.std.list._
-import scalaz.std.option._
-
-import collection.immutable.BitSet
+import scala.collection.immutable.BitSet
 import scala.util.Try
+
+import cats.data._
+import org.http4s.batteries._
+import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
 
 /** Base class for path extractors. */
 abstract class Path {
@@ -152,10 +148,11 @@ case object Root extends Path {
  * }}}
  */
 object /: {
-  def unapply(path: Path): Option[(String, Path)] = {
-    val asList = path.toList
-    asList.headOption.strengthR(Path(asList.tail))
-  }
+  def unapply(path: Path): Option[(String, Path)] =
+    path.toList match {
+      case head :: tail => Some(head -> Path(tail))
+      case Nil => None
+    }
 }
 
 // Base class for Integer and Long path variable extractors.
@@ -272,7 +269,7 @@ abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   * }}}
   */
 abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[ValidationNel[ParseFailure, T]] =
+  def unapply(params: Map[String, Seq[String]]): Option[ValidatedNel[ParseFailure, T]] =
     params.get(name).flatMap(_.headOption).map {
       s => QueryParamDecoder[T].decode(QueryParameterValue(s))
     }
@@ -304,9 +301,9 @@ abstract class ValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: St
   * }}}
   */
 abstract class OptionalValidatingQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
-  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidationNel[ParseFailure, T]]] =
+  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidatedNel[ParseFailure, T]]] =
     Some {
-      params.get(name).flatMap(_.headOption).fold[Option[ValidationNel[ParseFailure, T]]](None) {
+      params.get(name).flatMap(_.headOption).fold[Option[ValidatedNel[ParseFailure, T]]](None) {
         s => Some(QueryParamDecoder[T].decode(QueryParameterValue(s)))
       }
     }
