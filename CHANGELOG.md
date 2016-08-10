@@ -1,3 +1,6 @@
+# v0.14.2 (2016-08-10)
+* Override `getMessage` in `UnexpectedStatus`
+
 # v0.14.1 (2016-06-15)
 * Added the possibility to specify custom responses to MessageFailures
 * Address issue with Retry middleware leaking connections
