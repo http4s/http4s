@@ -56,7 +56,7 @@ object BasicCredentials {
 final case class OAuth2BearerToken(token: String) extends Credentials {
   val authScheme = AuthScheme.Bearer
 
-  override def value = renderString
+  override def value: String = renderString
 
   override def render(writer: Writer): writer.type = writer.append("Bearer ").append(token)
 }

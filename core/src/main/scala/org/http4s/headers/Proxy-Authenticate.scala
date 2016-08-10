@@ -10,7 +10,7 @@ object `Proxy-Authenticate` extends HeaderKey.Internal[`Proxy-Authenticate`] wit
 }
 
 final case class `Proxy-Authenticate`(values: NonEmptyList[Challenge]) extends Header.RecurringRenderable {
-  override def key = `Proxy-Authenticate`
+  override def key: `Proxy-Authenticate`.type = `Proxy-Authenticate`
   type Value = Challenge
 }
 

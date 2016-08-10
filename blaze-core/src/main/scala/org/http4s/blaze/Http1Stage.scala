@@ -88,7 +88,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
       // add KeepAlive to Http 1.0 responses if the header isn't already present
       rr << (if (!closeOnFinish && minor == 0 && connectionHeader.isEmpty) "Connection: keep-alive\r\n\r\n" else "\r\n")
 
-      val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
+      val b = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
       new IdentityWriter(b, h.length, this)
 
     case _ =>  // No Length designated for body or Transfer-Encoding included for HTTP 1.1
@@ -96,7 +96,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
         if (closeOnFinish) {  // HTTP 1.0 uses a static encoder
           logger.trace("Using static encoder")
           rr << "\r\n"
-          val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
+          val b = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
           new IdentityWriter(b, -1, this)
         }
         else {  // HTTP 1.0, but request was Keep-Alive.

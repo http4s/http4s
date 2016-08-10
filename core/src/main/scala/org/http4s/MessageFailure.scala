@@ -58,8 +58,10 @@ object ParseFailure {
 }
 
 object ParseResult {
-  def fail(sanitized: String, details: String) = -\/(ParseFailure(sanitized, details))
-  def success[A](a: A) = \/-(a)
+  def fail(sanitized: String, details: String): ParseResult[Nothing] =
+    -\/(ParseFailure(sanitized, details))
+  def success[A](a: A): ParseResult[A] =
+    \/-(a)
 
   def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
@@ -117,8 +119,8 @@ sealed case class InvalidMessageBodyFailure(details: String, override val cause:
 sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) extends DecodeFailure with NoStackTrace {
   def sanitizedResponsePrefix: String
 
-  val expectedMsg = s"Expected one of the following media ranges: ${expected.map(_.renderString).mkString(", ")}"
-  val responseMsg = s"$sanitizedResponsePrefix. $expectedMsg"
+  val expectedMsg: String = s"Expected one of the following media ranges: ${expected.map(_.renderString).mkString(", ")}"
+  val responseMsg: String = s"$sanitizedResponsePrefix. $expectedMsg"
 
   def toHttpResponse(httpVersion: HttpVersion): Task[Response] =
     Response(Status.UnsupportedMediaType, httpVersion)
@@ -130,14 +132,14 @@ sealed abstract class UnsupportedMediaTypeFailure(expected: Set[MediaRange]) ext
 final case class MediaTypeMissing(expected: Set[MediaRange])
   extends UnsupportedMediaTypeFailure(expected)
 {
-  def sanitizedResponsePrefix = "No media type specified in Content-Type header"
-  val message = responseMsg
+  def sanitizedResponsePrefix: String = "No media type specified in Content-Type header"
+  val message: String = responseMsg
 }
 
 /** Indicates that no [[EntityDecoder]] matches the [[MediaType]] of the [[Message]] being decoded */
 final case class MediaTypeMismatch(messageType: MediaType, expected: Set[MediaRange])
   extends UnsupportedMediaTypeFailure(expected)
 {
-  def sanitizedResponsePrefix = "Media type supplied in Content-Type header is not supported"
-  def message = s"${messageType.renderString} is not a supported media type. $expectedMsg"
+  def sanitizedResponsePrefix: String = "Media type supplied in Content-Type header is not supported"
+  def message: String = s"${messageType.renderString} is not a supported media type. $expectedMsg"
 }

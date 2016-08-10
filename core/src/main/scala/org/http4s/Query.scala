@@ -21,7 +21,7 @@ final class Query private(pairs: Vector[KeyValue])
   extends IndexedSeq[KeyValue]
   with IndexedSeqOptimized[KeyValue, Query]
   with QueryOps
-  with Renderable 
+  with Renderable
 {
   override def apply(idx: Int): KeyValue = pairs(idx)
 

@@ -25,7 +25,7 @@ import org.http4s.util.{Renderable, Writer}
 import java.time.Instant
 
 object RequestCookieJar {
-  def empty = new RequestCookieJar(Nil)
+  def empty: RequestCookieJar = new RequestCookieJar(Nil)
 
   def apply(cookies: Cookie*): RequestCookieJar = (newBuilder ++= cookies).result()
   /** The default builder for RequestCookieJar objects.

@@ -24,7 +24,8 @@ sealed class CaseInsensitiveString private (val value: String) extends CharSeque
 }
 
 object CaseInsensitiveString extends CaseInsensitiveStringSyntax {
-  def apply(cs: CharSequence) = new CaseInsensitiveString(cs.toString)
+  def apply(cs: CharSequence): CaseInsensitiveString =
+    new CaseInsensitiveString(cs.toString)
 }
 
 final class CaseInsensitiveStringOps(val self: CharSequence) extends AnyVal {

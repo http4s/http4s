@@ -1,4 +1,5 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.http4s.{headers, RangeUnit}
 import org.http4s.headers.{`Accept-Ranges`, `Content-Range`, Range}
@@ -10,7 +11,7 @@ import org.http4s.util.NonEmptyList
 
 private[parser] trait RangeParser {
 
-  def RANGE(value: String) = new Http4sHeaderParser[Range](value) with RangeRule {
+  def RANGE(value: String): ParseResult[Range] = new Http4sHeaderParser[Range](value) with RangeRule {
     import Range.SubRange
 
     def entry = rule {
@@ -20,7 +21,7 @@ private[parser] trait RangeParser {
     }
   }.parse
 
-  def CONTENT_RANGE(value: String) = new Http4sHeaderParser[`Content-Range`](value) with RangeRule {
+  def CONTENT_RANGE(value: String): ParseResult[`Content-Range`] = new Http4sHeaderParser[`Content-Range`](value) with RangeRule {
     import Range.SubRange
     def entry = rule {
       capture(oneOrMore(Alpha)) ~ ' ' ~ byteRange ~ '/' ~ len  ~> { (s: String, r: SubRange, len: Option[Long]) =>
@@ -42,10 +43,10 @@ private[parser] trait RangeParser {
     }
   }
 
-  def ACCEPT_RANGES(input: String) = new AcceptRangesParser(input).parse
+  def ACCEPT_RANGES(input: String): ParseResult[`Accept-Ranges`] =
+    new AcceptRangesParser(input).parse
 
   private class AcceptRangesParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Ranges`](input) {
-
     def entry: Rule1[`Accept-Ranges`] = rule {
       RangeUnitsDef ~ EOL ~> (headers.`Accept-Ranges`(_: Seq[RangeUnit]))
     }
@@ -62,5 +63,4 @@ private[parser] trait RangeParser {
 
     def RangeUnit: Rule1[RangeUnit] = rule { Token ~> { s: String => org.http4s.RangeUnit(s)} }
   }
-
 }

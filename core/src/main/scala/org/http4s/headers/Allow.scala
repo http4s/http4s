@@ -14,7 +14,7 @@ object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
 }
 
 final case class Allow(methods: NonEmptyList[Method]) extends Header.Parsed {
-  override def key = Allow
+  override def key: Allow.type = Allow
   override def renderValue(writer: Writer): writer.type =
     writer.addStringNel(methods.map(_.name), ", ")
 }

@@ -38,23 +38,23 @@ sealed class MediaRange private[http4s](val mainType: String,
     (mainType.charAt(0) == '*' || mainType == mediaType.mainType)
   }
 
-  final def satisfies(mediaRange: MediaRange) = mediaRange.satisfiedBy(this)
+  final def satisfies(mediaRange: MediaRange): Boolean = mediaRange.satisfiedBy(this)
 
-  def isApplication = mainType == "application"
-  def isAudio       = mainType == "audio"
-  def isImage       = mainType == "image"
-  def isMessage     = mainType == "message"
-  def isMultipart   = mainType == "multipart"
-  def isText        = mainType == "text"
-  def isVideo       = mainType == "video"
+  def isApplication: Boolean = mainType == "application"
+  def isAudio: Boolean       = mainType == "audio"
+  def isImage: Boolean       = mainType == "image"
+  def isMessage: Boolean     = mainType == "message"
+  def isMultipart: Boolean   = mainType == "multipart"
+  def isText: Boolean        = mainType == "text"
+  def isVideo: Boolean       = mainType == "video"
 
   def withQValue(q: QValue): MediaRangeAndQValue = MediaRangeAndQValue(this,q)
 
   def withExtensions(ext: Map[String, String]): MediaRange = new MediaRange(mainType, ext)
 
-  override def toString = "MediaRange(" + renderString + ')'
+  override def toString: String = "MediaRange(" + renderString + ')'
 
-  override def equals(obj: Any) = obj match {
+  override def equals(obj: Any): Boolean = obj match {
     case _: MediaType => false
     case x: MediaRange =>
       (this eq x) ||
@@ -66,7 +66,7 @@ sealed class MediaRange private[http4s](val mainType: String,
 
   override def hashCode(): Int = renderString.##
 
-  private [http4s] def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
+  private[http4s] def renderExtensions(sb: Writer): Unit = if (extensions.nonEmpty) {
     extensions.foreach{ case (k,v) => sb << ';' << ' ' << k << '=' <<# v }
   }
 }
@@ -111,9 +111,9 @@ sealed class MediaType(mainType: String,
   override def withExtensions(ext: Map[String, String]): MediaType =
     new MediaType(mainType, subType, compressible,binary, fileExtensions, ext)
 
-  final def satisfies(mediaType: MediaType) = mediaType.satisfiedBy(this)
+  final def satisfies(mediaType: MediaType): Boolean = mediaType.satisfiedBy(this)
 
-  override def satisfiedBy(mediaType: MediaRange) = mediaType match {
+  override def satisfiedBy(mediaType: MediaRange): Boolean = mediaType match {
     case mediaType: MediaType =>
       (this eq mediaType) ||
         mainType == mediaType.mainType &&
@@ -122,7 +122,7 @@ sealed class MediaType(mainType: String,
     case _            => false
   }
 
-  override def equals(obj: Any) = obj match {
+  override def equals(obj: Any): Boolean = obj match {
     case x: MediaType => (this eq x) ||
                           mainType == x.mainType      &&
                           subType == x.subType        &&
@@ -130,8 +130,8 @@ sealed class MediaType(mainType: String,
     case _ => false
   }
 
-  override def hashCode() = renderString.##
-  override def toString = "MediaType(" + renderString + ')'
+  override def hashCode(): Int = renderString.##
+  override def toString: String = "MediaType(" + renderString + ')'
 }
 
 
@@ -170,7 +170,7 @@ object MediaType extends Registry {
   private def binary = true
   private def notBinary = false
 
-  def multipart(subType: String, boundary: Option[String] = None) = {
+  def multipart(subType: String, boundary: Option[String] = None): MediaType = {
     val ext = boundary.map(b => Map( "boundary" -> b)).getOrElse(Map.empty)
     new MediaType("multipart", subType, compressible, notBinary, Nil, extensions = ext)
   }
@@ -193,6 +193,7 @@ object MediaType extends Registry {
   private[this] def vid(subType: String, fileExtensions: String*) =
     registerValue(new MediaType("video", subType, uncompressible, binary, fileExtensions))
 
+  // scalastyle:off line.size.limit
   val `application/atom+xml`                                                      = app("atom+xml", compressible, notBinary, "atom")
   val `application/base64`                                                        = app("base64", compressible, binary, "mm", "mme")
   val `application/excel`                                                         = app("excel", uncompressible, binary, "xl", "xla", "xlb", "xlc", "xld", "xlk", "xll", "xlm", "xls", "xlt", "xlv", "xlw")
@@ -262,6 +263,7 @@ object MediaType extends Registry {
   val `application/xml-dtd`                                                       = app("xml-dtd", compressible, notBinary)
   val `application/xml`                                                           = app("xml", compressible, notBinary)
   val `application/zip`                                                           = app("zip", uncompressible, binary, "zip")
+  // scalastyle:on line.size.limit
 
   val `audio/aiff`        = aud("aiff", compressible, "aif", "aifc", "aiff")
   val `audio/basic`       = aud("basic", compressible, "au", "snd")

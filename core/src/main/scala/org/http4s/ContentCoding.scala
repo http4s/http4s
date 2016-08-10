@@ -23,8 +23,8 @@ import string._
 
 final case class ContentCoding (coding: CaseInsensitiveString, qValue: QValue = QValue.One) extends HasQValue with Renderable {
   def withQValue(q: QValue): ContentCoding = copy(coding, q)
-  def satisfies(encoding: ContentCoding) = encoding.satisfiedBy(this)
-  def satisfiedBy(encoding: ContentCoding) = {
+  def satisfies(encoding: ContentCoding): Boolean = encoding.satisfiedBy(this)
+  def satisfiedBy(encoding: ContentCoding): Boolean = {
     (this.coding.toString == "*" || this.coding == encoding.coding) &&
     qValue.isAcceptable && encoding.qValue.isAcceptable
   }

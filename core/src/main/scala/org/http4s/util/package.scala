@@ -23,10 +23,8 @@ package object util {
       val byteBuffer = in.toByteBuffer
       val charBuffer = CharBuffer.allocate(in.size.toInt + 1)
       decoder.decode(byteBuffer, charBuffer, eof)
-      if (eof)
-        decoder.flush(charBuffer)
-      else
-        carryOver = ByteVector.view(byteBuffer.slice)
+      if (eof) decoder.flush(charBuffer)
+      else carryOver = ByteVector.view(byteBuffer.slice)
       charBuffer.flip().toString
     }
 

@@ -107,7 +107,7 @@ object UriTemplate {
   //  protected val subDelims = '!' :: '$' :: '&' :: '\'' :: '(' :: ')' :: '*' :: '+' :: ',' :: ';' :: '=' :: Nil
   //  protected val reserved = genDelims ::: subDelims
 
-  def isUnreserved(s: String) = s.forall(unreserved.contains)
+  def isUnreserved(s: String): Boolean = s.forall(unreserved.contains)
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()
@@ -257,14 +257,18 @@ object UriTemplate {
       case SimpleFragmentExp(n) => expansions.append(n)
       case MultiFragmentExp(ns) => expansions.append(ns.mkString(","))
     }
-    if (elements.nonEmpty && expansions.nonEmpty)
+    if (elements.nonEmpty && expansions.nonEmpty) {
       "#" + elements.mkString(",") + "{#" + expansions.mkString(",") + "}"
-    else if (elements.nonEmpty)
+    }
+    else if (elements.nonEmpty) {
       "#" + elements.mkString(",")
-    else if (expansions.nonEmpty)
+    }
+    else if (expansions.nonEmpty) {
       "{#" + expansions.mkString(",") + "}"
-    else
+    }
+    else {
       "#"
+    }
   }
 
   protected def renderFragmentIdentifier(f: Fragment): String = {

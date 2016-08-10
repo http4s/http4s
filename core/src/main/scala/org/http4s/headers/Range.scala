@@ -38,7 +38,7 @@ object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
 }
 
 final case class Range(unit: RangeUnit, ranges: NonEmptyList[Range.SubRange]) extends Header.Parsed {
-  override def key = Range
+  override def key: Range.type = Range
   override def renderValue(writer: Writer): writer.type = {
     writer << unit << '=' << ranges.head
     ranges.tail.foreach( writer << ',' << _)

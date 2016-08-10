@@ -19,20 +19,19 @@ final case class AgentProduct(name: String, version: Option[String] = None) exte
   }
 }
 final case class AgentComment(comment: String) extends AgentToken {
-  override def renderString = comment
+  override def renderString: String = comment
   override def render(writer: Writer): writer.type = writer << comment
 }
 
 final case class `User-Agent`(product: AgentProduct, other: Seq[AgentToken] = Seq.empty) extends Header.Parsed {
-  def key = `User-Agent`
+  def key: `User-Agent`.type = `User-Agent`
 
   override def renderValue(writer: Writer): writer.type = {
     writer << product
-    other.foreach { 
+    other.foreach {
       case p: AgentProduct => writer << ' ' << p
       case AgentComment(c) => writer << ' ' << '(' << c << ')'
     }
     writer
   }
 }
-

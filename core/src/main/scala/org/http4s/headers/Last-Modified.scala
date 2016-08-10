@@ -12,8 +12,8 @@ object `Last-Modified` extends HeaderKey.Internal[`Last-Modified`] with HeaderKe
 }
 
 final case class `Last-Modified`(date: Instant) extends Header.Parsed {
-  override def key = `Last-Modified`
-  override def value = Renderer.renderString(date)
+  override def key: `Last-Modified`.type = `Last-Modified`
+  override def value: String = Renderer.renderString(date)
   override def renderValue(writer: Writer): writer.type = writer.append(value)
 }
 

@@ -155,7 +155,7 @@ private class Http1ServerStage(service: HttpService,
         // add KeepAlive to Http 1.0 responses if the header isn't already present
         rr << (if (!closeOnFinish && parser.minorVersion == 0 && respConn.isEmpty) "Connection: keep-alive\r\n\r\n" else "\r\n")
 
-        val b = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
+        val b = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
         new BodylessWriter(b, this, closeOnFinish)(ec)
       }
       else getEncoder(respConn, respTransferCoding, lengthHeader, resp.trailerHeaders, rr, parser.minorVersion, closeOnFinish)

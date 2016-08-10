@@ -21,32 +21,33 @@ private[http4s] object MultipartEncoder extends EntityEncoder[Multipart] {
   def headers: Headers = Headers.empty
 
   def toEntity(mp: Multipart): Task[Entity] = {
+    import scala.language.postfixOps
     val dash             = "--"
     val dashBoundary:  Boundary => String =     boundary =>
                        new StringWriter()                <<
-                       dash                              << 
-                       boundary.value              result()    
+                       dash                              <<
+                       boundary.value              result
     val delimiter:     Boundary => String =     boundary =>
                        new StringWriter()                <<
                        Boundary.CRLF                     <<
-                       dash                              << 
-                       boundary.value              result()
+                       dash                              <<
+                       boundary.value              result
     val closeDelimiter:Boundary => String =     boundary =>
                        new StringWriter()                <<
                        delimiter(boundary)               <<
-                       dash                        result()          
+                       dash                        result
     val start:         Boundary => ByteVector = boundary =>
                        ByteVectorWriter()                <<
                        dashBoundary(boundary)            <<
-                       Boundary.CRLF         toByteVector()
+                       Boundary.CRLF         toByteVector
     val end:           Boundary => ByteVector = boundary =>
                        ByteVectorWriter()                <<
-                       closeDelimiter(boundary) toByteVector()
+                       closeDelimiter(boundary) toByteVector
     val encapsulation: Boundary => String =     boundary =>
                        new StringWriter()                <<
                        Boundary.CRLF                     <<
                        dashBoundary(boundary)            <<
-                       Boundary.CRLF               result()    
+                       Boundary.CRLF               result
 
     val _start         = start(mp.boundary)
     val _end           = end(mp.boundary)
