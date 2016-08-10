@@ -192,4 +192,6 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     shutdown.run
 }
 
-final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace
+final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {
+  override def getMessage: String = s"unexpected HTTP status: $status"
+}
