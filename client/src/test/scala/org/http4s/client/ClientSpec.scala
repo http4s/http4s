@@ -20,7 +20,7 @@ class ClientSpec extends Http4sSpec {
     case r =>
       Response(Ok).withBody(r.body)
   }
-  val client = Client.mock(service)
+  val client = Client.fromHttpService(service)
 
   "mock client" should {
     "read body before dispose" in {
@@ -37,7 +37,7 @@ class ClientSpec extends Http4sSpec {
     }
 
     "fail to read body after client shutdown" in {
-      val client = Client.mock(service)
+      val client = Client.fromHttpService(service)
       client.shutdown.run
       client.expect[String](Request(POST).withBody("foo")).attemptRun must be_-\/.like {
         case e: IOException => e.getMessage == "client was shut down"

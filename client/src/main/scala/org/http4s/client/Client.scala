@@ -196,12 +196,12 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
 }
 
 object Client {
-  /** Creates a mock client from the specified service.  Useful for generating
+  /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
     * 
     * @param service the service to respond to requests to this client
     */
-  def mock(service: HttpService): Client = {
+  def fromHttpService(service: HttpService): Client = {
     val isShutdown = new AtomicBoolean(false)
 
     def interruptable(body: EntityBody, disposed: AtomicBoolean) = {

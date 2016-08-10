@@ -30,7 +30,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val client = Client.mock(route)
+  val client = Client.fromHttpService(route)
 
   val req = Request(GET, uri("http://www.foo.bar/"))
 
