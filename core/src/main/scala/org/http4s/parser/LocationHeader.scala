@@ -12,7 +12,7 @@ trait LocationHeader {
 
   private class LocationParser(value: String) extends Http4sHeaderParser[Location](value) with Rfc3986Parser {
 
-    override def charset = StandardCharsets.ISO_8859_1
+    override def charset: java.nio.charset.Charset = StandardCharsets.ISO_8859_1
 
     def entry: Rule1[Location] = rule {
       // https://tools.ietf.org/html/rfc3986#section-4.1

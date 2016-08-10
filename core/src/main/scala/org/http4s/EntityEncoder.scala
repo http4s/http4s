@@ -130,6 +130,8 @@ trait EntityEncoderInstances0 {
 }
 
 trait EntityEncoderInstances extends EntityEncoderInstances0 {
+  private val DefaultChunkSize = 4096
+
   implicit def stringEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[String] = {
     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
     simple(hdr)(s => ByteVector.view(s.getBytes(charset.nioCharset)))
@@ -178,19 +180,21 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
         src => Task.delay(src.close())) { src =>
         Task.now { buf: Array[Char] => Task.delay {
           val m = src.read(buf)
-          if (m == buf.length) buf
-          else if (m == -1) throw Terminated(End)
-          else buf.slice(0, m)
+          m match {
+            case l if l == buf.length => buf
+            case -1 => throw Terminated(End)
+            case _ => buf.slice(0, m)
+          }
         }}
       }
       val chunkR = unsafeChunkR.map(f => (n: Int) => {
         val buf = new Array[Char](n)
         f(buf)
       })
-      Process.constant(4096).toSource.through(chunkR)
+      Process.constant(DefaultChunkSize).toSource.through(chunkR)
     }
 
-  def chunkedEncoder[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = 4096): EntityEncoder[A] =
+  def chunkedEncoder[A](f: A => Channel[Task, Int, ByteVector], chunkSize: Int = DefaultChunkSize): EntityEncoder[A] =
     sourceEncoder[ByteVector].contramap { a => Process.constant(chunkSize).toSource.through(f(a)) }
 
   implicit val multipartEncoder: EntityEncoder[Multipart] =

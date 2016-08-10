@@ -38,5 +38,5 @@ final case class Challenge(scheme: String,
     b.append(',').append(k).append("=\"").append(v).append('"')
   }
 
-  override def toString = value
+  override def toString: String = value
 }

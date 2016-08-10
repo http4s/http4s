@@ -15,7 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.parboiled2.{Rule1, ParserInput}
 import org.http4s.headers.`WWW-Authenticate`
@@ -23,7 +24,7 @@ import org.http4s.Challenge
 
 private[parser] trait WwwAuthenticateHeader {
 
-  def WWW_AUTHENTICATE(value: String) = new WWWAuthenticateParser(value).parse
+  def WWW_AUTHENTICATE(value: String): ParseResult[`WWW-Authenticate`] = new WWWAuthenticateParser(value).parse
 
   private class WWWAuthenticateParser(input: ParserInput) extends ChallengeParser[`WWW-Authenticate`](input) {
     def entry: Rule1[`WWW-Authenticate`] = rule {

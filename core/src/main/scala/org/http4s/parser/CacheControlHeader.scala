@@ -15,7 +15,8 @@
  * See the License for the specific language governing permissions and
  * limitations under the License.
  */
-package org.http4s.parser
+package org.http4s
+package parser
 
 import org.parboiled2.{Rule1, ParserInput}
 import org.http4s.headers.`Cache-Control`
@@ -26,7 +27,8 @@ import scala.concurrent.duration._
 
 private[parser] trait CacheControlHeader {
 
-  def CACHE_CONTROL(value: String) = new CacheControlParser(value).parse
+  def CACHE_CONTROL(value: String): ParseResult[`Cache-Control`] =
+    new CacheControlParser(value).parse
 
   private class CacheControlParser(input: ParserInput) extends Http4sHeaderParser[`Cache-Control`](input) {
 

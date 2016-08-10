@@ -10,6 +10,7 @@ import org.http4s.util.CaseInsensitiveString._
 import org.http4s.{ Query => Q }
 
 private[parser] trait Rfc3986Parser { this: Parser =>
+  // scalastyle:off public.methods.have.type
   import CharPredicate.{Alpha, Digit, HexDigit}
 
   def charset: Charset
@@ -128,4 +129,5 @@ private[parser] trait Rfc3986Parser { this: Parser =>
   def SubDelims = rule { "!" | "$" | "&" | "'" | "(" | ")" | "*" | "+" | "," | ";" | "=" }
 
   private[this] def decode(s: String) = URLDecoder.decode(s, charset.name)
+  // scalastyle:on public.methods.have.type
 }

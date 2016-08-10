@@ -48,8 +48,8 @@ final case class LanguageTag(primaryTag: String, q: QValue = QValue.One, subTags
     else checkLists(tags1.tail, tags2.tail)
   }
 
-  def satisfies(encoding: LanguageTag) = encoding.satisfiedBy(this)
-  def satisfiedBy(encoding: LanguageTag) = {
+  def satisfies(encoding: LanguageTag): Boolean = encoding.satisfiedBy(this)
+  def satisfiedBy(encoding: LanguageTag): Boolean = {
     (this.primaryTag == "*" || this.primaryTag == encoding.primaryTag) &&
       q.isAcceptable && encoding.q.isAcceptable &&
       q <= encoding.q &&

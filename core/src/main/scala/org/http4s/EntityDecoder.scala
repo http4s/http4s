@@ -86,13 +86,16 @@ object EntityDecoder extends EntityDecoderInstances {
   def decodeBy[T](r1: MediaRange, rs: MediaRange*)(f: Message => DecodeResult[T]): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message, strict: Boolean): DecodeResult[T] = {
       try {
-        if (strict) msg.headers.get(`Content-Type`) match {
-          case Some(c) if matchesMediaType(c.mediaType) => f(msg)
-          case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
-          case None if matchesMediaType(UndefinedMediaType) => f(msg)
-          case None => DecodeResult.failure(MediaTypeMissing(consumes))
+        if (strict) {
+          msg.headers.get(`Content-Type`) match {
+            case Some(c) if matchesMediaType(c.mediaType) => f(msg)
+            case Some(c) => DecodeResult.failure(MediaTypeMismatch(c.mediaType, consumes))
+            case None if matchesMediaType(UndefinedMediaType) => f(msg)
+            case None => DecodeResult.failure(MediaTypeMissing(consumes))
+          }
+        } else {
+          f(msg)
         }
-        else f(msg)
       }
       catch {
         case NonFatal(e) => DecodeResult.failure(MalformedMessageBodyFailure("Error decoding body", Some(e)))
@@ -106,16 +109,18 @@ object EntityDecoder extends EntityDecoderInstances {
     override def decode(msg: Message, strict: Boolean): DecodeResult[T] = {
       msg.headers.get(`Content-Type`) match {
         case Some(contentType) =>
-          if (a.matchesMediaType(contentType.mediaType)) a.decode(msg, strict)
-          else b.decode(msg, strict).leftMap{
+          if (a.matchesMediaType(contentType.mediaType)) {
+            a.decode(msg, strict)
+          } else b.decode(msg, strict).leftMap{
             case MediaTypeMismatch(actual, expected) =>
               MediaTypeMismatch(actual, expected ++ a.consumes)
             case other => other
           }
 
         case None =>
-          if (a.matchesMediaType(UndefinedMediaType)) a.decode(msg, strict)
-          else b.decode(msg, strict).leftMap{
+          if (a.matchesMediaType(UndefinedMediaType)) {
+            a.decode(msg, strict)
+          } else b.decode(msg, strict).leftMap{
             case MediaTypeMissing(expected) =>
               MediaTypeMissing(expected ++ a.consumes)
             case other => other
@@ -142,7 +147,7 @@ trait EntityDecoderInstances {
   /////////////////// Instances //////////////////////////////////////////////
 
   /** Provides a mechanism to fail decoding */
-  def error[T](t: Throwable) = new EntityDecoder[T] {
+  def error[T](t: Throwable): EntityDecoder[T] = new EntityDecoder[T] {
     override def decode(msg: Message, strict: Boolean): DecodeResult[T] = {
       DecodeResult(msg.body.kill.run.flatMap(_ => Task.fail(t)))
     }
@@ -171,18 +176,6 @@ trait EntityDecoderInstances {
       DecodeResult.success(msg.body.to(p).run).map(_ => file)
     }
 
-  implicit def multipart: EntityDecoder[Multipart] = 
+  implicit def multipart: EntityDecoder[Multipart] =
     MultipartDecoder.decoder
-}
-
-object DecodeResult {
-  def apply[A](task: Task[DecodeFailure \/ A]): DecodeResult[A] = EitherT(task)
-
-  def success[A](a: Task[A]): DecodeResult[A] = EitherT.right(a)
-
-  def success[A](a: A): DecodeResult[A] = EitherT(Task.now(\/.right[DecodeFailure, A](a)))
-
-  def failure[A](e: Task[DecodeFailure]): DecodeResult[A] = EitherT.left(e)
-
-  def failure[A](e: DecodeFailure): DecodeResult[A] = EitherT(Task.now(-\/(e): DecodeFailure\/A))
 }

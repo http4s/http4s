@@ -23,9 +23,10 @@ import org.http4s.headers.Authorization
 import org.http4s.util.CaseInsensitiveString._
 
 private[parser] trait AuthorizationHeader {
+  def AUTHORIZATION(value: String): ParseResult[`Authorization`] =
+    new AuthorizationParser(value).parse
 
-  def AUTHORIZATION(value: String) = new AuthorizationParser(value).parse
-
+  // scalastyle:off public.methods.have.type
   private class AuthorizationParser(input: ParserInput) extends Http4sHeaderParser[Authorization](input) {
     def entry: Rule1[Authorization] = rule {
       CredentialDef ~ EOI ~> (Authorization(_))
@@ -69,5 +70,5 @@ private[parser] trait AuthorizationHeader {
       capture(oneOrMore(Alpha | Digit | anyOf("-._~+/")) ~ zeroOrMore('=') )
     }
   }
-
+  // scalastyle:on public.methods.have.type
 }

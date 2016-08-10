@@ -49,7 +49,7 @@ object HttpHeaderParser extends SimpleHeaders
   gatherBuiltIn()
 
   /** Add a parser to the global header parser registry
-    * 
+    *
     * @param key name of the header to register the parser for
     * @param parser [[Header]] parser
     * @return any existing parser already registered to that key
@@ -68,7 +68,7 @@ object HttpHeaderParser extends SimpleHeaders
 
   def parseHeader(header: Header.Raw): ParseResult[Header] = {
     allParsers.get(header.name) match {
-      case null =>  ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
+      case null => ParseResult.success(header) // if we don't have a rule for the header we leave it unparsed
       case parser => parser(header.value)
     }
   }

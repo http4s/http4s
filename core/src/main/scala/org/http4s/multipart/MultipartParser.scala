@@ -160,7 +160,7 @@ object MultipartParser {
 
       /* We might be looking at a boundary, or we might not.  This is how we
        * decide that incrementally.
-       * 
+       *
        * @param found the part of the next boundary that we've matched so far
        * @param remainder the part of the next boundary we're looking for on the next read.
        */
@@ -183,8 +183,10 @@ object MultipartParser {
               // on the next loop.
               mid(found ++ bv, remBack)
             }
-            else
-              emit(Out(found)) ++ pre(bv)   // ok, so this buffer frame-slipped, but we might have a different terminator within bv
+            else {
+              // ok, so this buffer frame-slipped, but we might have a different terminator within bv
+              emit(Out(found)) ++ pre(bv)
+            }
           }
         }
       }

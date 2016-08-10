@@ -10,7 +10,7 @@ object `WWW-Authenticate` extends HeaderKey.Internal[`WWW-Authenticate`] with He
 }
 
 final case class `WWW-Authenticate`(values: NonEmptyList[Challenge]) extends Header.RecurringRenderable {
-  override def key = `WWW-Authenticate`
+  override def key: `WWW-Authenticate`.type = `WWW-Authenticate`
   type Value = Challenge
 }
 

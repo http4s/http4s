@@ -60,7 +60,7 @@ final class QValue private[QValue] (val thousandths: Int) extends AnyVal with Or
 }
 
 object QValue extends QValueInstances with QValueFunctions {
-  lazy val One: QValue = new QValue(1000)
+  lazy val One: QValue = new QValue(1000) // scalastyle:ignore
   lazy val Zero: QValue = new QValue(0)
 
   private def mkQValue(thousandths: Int, s: => String): ParseResult[QValue] = {
@@ -73,14 +73,14 @@ object QValue extends QValueInstances with QValueFunctions {
 
   def fromDouble(d: Double): ParseResult[QValue] =
     mkQValue(Math.round(1000 * d).toInt, d.toString)
-  
+
   def fromString(s: String): ParseResult[QValue] =
     try fromDouble(s.toDouble)
     catch { case e: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number") }
 
   object Macros {
     /** Exists to support compile-time verified literals. Do not call directly. */
-    def ☠(thousandths: Int) = new QValue(thousandths)
+    def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
     def qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
       import c.universe._

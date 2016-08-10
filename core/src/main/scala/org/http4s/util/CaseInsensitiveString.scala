@@ -1,7 +1,6 @@
 package org.http4s.util
 
 import java.util.Locale
-import scalaz.syntax.Ops
 
 sealed class CaseInsensitiveString private (val value: String) extends CharSequence {
   import CaseInsensitiveString._
@@ -25,7 +24,8 @@ sealed class CaseInsensitiveString private (val value: String) extends CharSeque
 }
 
 object CaseInsensitiveString extends CaseInsensitiveStringSyntax {
-  def apply(cs: CharSequence) = new CaseInsensitiveString(cs.toString)
+  def apply(cs: CharSequence): CaseInsensitiveString =
+    new CaseInsensitiveString(cs.toString)
 }
 
 final class CaseInsensitiveStringOps(val self: CharSequence) extends AnyVal {

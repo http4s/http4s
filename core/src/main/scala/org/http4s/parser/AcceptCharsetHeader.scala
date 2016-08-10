@@ -24,7 +24,8 @@ import CharsetRange._
 
 private[parser] trait AcceptCharsetHeader {
 
-  def ACCEPT_CHARSET(value: String) = new AcceptCharsetParser(value).parse
+  def ACCEPT_CHARSET(value: String): ParseResult[headers.`Accept-Charset`] =
+    new AcceptCharsetParser(value).parse
 
   private class AcceptCharsetParser(input: ParserInput) extends Http4sHeaderParser[headers.`Accept-Charset`](input) {
     def entry: Rule1[headers.`Accept-Charset`] = rule {

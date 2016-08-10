@@ -10,7 +10,7 @@ object `Cache-Control` extends HeaderKey.Internal[`Cache-Control`] with HeaderKe
 }
 
 final case class `Cache-Control`(values: NonEmptyList[CacheDirective]) extends Header.RecurringRenderable {
-  override def key = `Cache-Control`
+  override def key: `Cache-Control`.type = `Cache-Control`
   type Value = CacheDirective
 }
 

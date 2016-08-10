@@ -35,7 +35,7 @@ trait MessageOps extends Any {
     */
   def withAttribute[V](entry: AttributeEntry[V]): Self = withAttribute(entry.key, entry.value)
 
-  def transformHeaders(f: Headers => Headers): Self    
+  def transformHeaders(f: Headers => Headers): Self
 
   /** Added the [[`Content-Type`]] header to the response */
   final def withType(t: MediaType): Self =
@@ -46,7 +46,7 @@ trait MessageOps extends Any {
       case Some(t) => putHeaders(t)
       case None => filterHeaders(_.is(`Content-Type`))
     }
-  
+
   final def removeHeader(key: HeaderKey): Self = filterHeaders(_ isNot key)
 
   /** Replaces the [[Header]]s of the incoming Request object
@@ -143,4 +143,3 @@ trait ResponseOps extends Any with MessageOps {
     Cookie(name, "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))
   ))
 }
-

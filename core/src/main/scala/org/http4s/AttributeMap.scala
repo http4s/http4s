@@ -14,7 +14,7 @@ package org.http4s
 final class AttributeKey[T] private (val name: String) {
   def apply(value: T): AttributeEntry[T] = AttributeEntry(this, value)
 
-  override def toString = name
+  override def toString: String = name
 }
 
 object AttributeKey {
@@ -26,7 +26,7 @@ object AttributeKey {
    * Encourage greater consistency in internal keys by imposing a universal prefix.
    */
   private[http4s] def http4s[T](name: String): AttributeKey[T] =
-    apply("org.http4s."+name)
+    apply(s"org.http4s.$name")
 }
 
 /** An immutable map where an [[AttributeKey]]  for a fixed type `T` can only be associated with values of type `T`.
@@ -82,6 +82,6 @@ object AttributeMap
 // type inference required less generality
 /** A map entry where `key` is constrained to only be associated with a fixed value of type `T`. */
 final case class AttributeEntry[T](key: AttributeKey[T], value: T) {
-  override def toString = key.name + ": " + value
+  override def toString: String = key.name + ": " + value
 }
 
