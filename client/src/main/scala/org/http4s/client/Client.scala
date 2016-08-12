@@ -20,8 +20,10 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     * Returns a task to handle the response, safely disposing of the underlying
     * HTTP connection when the task finishes.
     */
-  def apply[A](f: Response => Task[A]): Task[A] =
-    f(response).onFinish { case _ => dispose }
+  def apply[A](f: Response => Task[A]): Task[A] = {
+    val task = try f(response) catch { case e: Throwable => Task.fail(e) }
+    task.onFinish { case _ => dispose }
+  }
 }
 
 /**
