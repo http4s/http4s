@@ -10,7 +10,7 @@ import scala.util.Random
 
 import fs2._
 import fs2.Stream._
-import fs2.io.file._
+import fs2.io._
 import fs2.text._
 import org.http4s.EntityEncoder._
 import org.http4s.MediaType._

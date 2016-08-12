@@ -5,7 +5,7 @@ import java.io._
 import scala.util.control.NonFatal
 
 import fs2._
-import fs2.io.file._
+import fs2.io._
 import org.http4s.headers._
 import org.http4s.batteries._
 import org.http4s.multipart._

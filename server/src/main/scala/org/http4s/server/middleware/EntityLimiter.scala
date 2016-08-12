@@ -6,7 +6,7 @@ import scala.util.control.NoStackTrace
 
 import fs2._
 import fs2.Pull._
-import fs2.Stream.Handle
+import fs2.Handle._
 import org.http4s.batteries._
 
 object EntityLimiter {
@@ -21,8 +21,8 @@ object EntityLimiter {
     }
 
   private def takeLimited[F[_]](n: Long)(h: Handle[F, Byte]): Pull[F, Byte, Nothing] =
-    take(n)(h) flatMap receiveNonemptyOption {
+    h.take(n) flatMap { _.receiveOption {
       case Some(_) => fail(EntityTooLarge(n))
       case _ => done
-    }
+    }}
 }

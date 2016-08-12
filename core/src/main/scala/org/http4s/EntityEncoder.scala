@@ -9,7 +9,7 @@ import scala.concurrent.{ExecutionContext, Future}
 import cats._
 import cats.functor._
 import fs2._
-import fs2.io.file._
+import fs2.io._
 import fs2.Stream._
 import org.http4s.headers._
 import org.http4s.batteries._
