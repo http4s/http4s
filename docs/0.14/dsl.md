@@ -58,7 +58,7 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6438/1638000293@61f1d7b3)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/802191435@438d6105)
 ```
 
 One beautiful thing about the `HttpService` model is that we don't
@@ -70,7 +70,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@69acc33b
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@6cb5ea8b
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -107,7 +107,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@50a2ad0d
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@74910881
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -207,7 +207,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1d8d5be3
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@7fbe4803
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -224,7 +224,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@54c3b819
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@2431f512
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
