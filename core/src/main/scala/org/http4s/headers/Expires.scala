@@ -1,5 +1,28 @@
 package org.http4s
 package headers
 
-object Expires extends HeaderKey.Default
+import java.time.Instant
+
+import org.http4s.parser.HttpHeaderParser
+import org.http4s.util.{Renderer, Writer}
+
+object Expires extends HeaderKey.Internal[Expires] with HeaderKey.Singleton {
+  override def parse(s: String): ParseResult[Expires] =
+    HttpHeaderParser.EXPIRES(s)
+}
+
+/**
+  * Constructs an `Expires` header.
+  *
+  * The HTTP RFCs indicate that Expires should be in the range of now to 1 year in the future.
+  * However, it is a usual practice to set it to the past of far in the future
+  * Thus any instant is in practice allowed
+  *
+  * @param expirationDate the date of expiration
+  */
+final case class Expires(expirationDate: Instant) extends Header.Parsed {
+  val key = `Expires`
+  override val value = Renderer.renderString(expirationDate)
+  override def renderValue(writer: Writer): writer.type = writer.append(value)
+}
 

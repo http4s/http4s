@@ -21,10 +21,11 @@ package parser
 
 import headers._
 import java.net.InetAddress
+import java.time.Instant
+
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.util.CaseInsensitiveString._
 import org.parboiled2.Rule1
-
 import org.http4s.util.NonEmptyList
 
 /**
@@ -72,6 +73,14 @@ private[parser] trait SimpleHeaders {
   def DATE(value: String): ParseResult[Date] = new Http4sHeaderParser[Date](value) {
     def entry = rule {
       HttpDate ~ EOL ~> (Date(_))
+    }
+  }.parse
+
+  def EXPIRES(value: String): ParseResult[Expires] = new Http4sHeaderParser[Expires](value) {
+    def entry = rule {
+      HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
+      Digit1 ~ EOL ~> ((t: Int) => Expires(Instant.ofEpochMilli(t))) | // Used for bogus http servers returning 0
+      NegDigit1 ~ EOL ~> ((_: Int) => Expires(Instant.ofEpochMilli(0))) // Used for bogus http servers returning -1
     }
   }.parse
 
