@@ -30,7 +30,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val client = MockClient(route)
+  val client = Client.fromHttpService(route)
 
   val req = Request(GET, uri("http://www.foo.bar/"))
 
@@ -38,7 +38,9 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   def assertDisposes(f: Client => Task[Unit]) = {
     var disposed = false
-    val disposingClient = MockClient(route, Task.delay(disposed = true))
+    val disposingClient = Client(
+      route.map(DisposableResponse(_, Task.delay(disposed = true))),
+      Task.now(()))
     f(disposingClient).attemptRun
     disposed must beTrue
   }

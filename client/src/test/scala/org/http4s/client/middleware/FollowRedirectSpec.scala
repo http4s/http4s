@@ -29,14 +29,13 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
         .pure[Task]
   }
 
-  val defaultClient = MockClient(service)
+  val defaultClient = Client.fromHttpService(service)
   val client = FollowRedirect(3)(defaultClient)
 
   case class RedirectResponse(
     method: String,
     body: String
   )
-
 
   "FollowRedirect" should {
     "follow the proper strategy" in {
@@ -109,7 +108,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
           val body = loopCounter.incrementAndGet.toString
           MovedPermanently(uri("/loop")).withBody(body)
       }
-      val client = FollowRedirect(3)(MockClient(statefulService))
+      val client = FollowRedirect(3)(Client.fromHttpService(statefulService))
       client.fetch(GET(uri("http://localhost/loop"))) {
         case MovedPermanently(resp) => resp.as[String].map(_.toInt)
         case _ => Task.now(-1)
