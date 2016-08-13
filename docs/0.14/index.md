@@ -64,7 +64,7 @@ val helloWorldService = HttpService {
   case GET -> Root / "hello" / name =>
     Ok(s"Hello, $name.")
 }
-// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/802191435@38ced030)
+// helloWorldService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/1440582295@5c1461aa)
 ```
 
 #### Handling path parameters
@@ -83,7 +83,7 @@ val usersService = HttpService {
   case request @ GET -> Root / "users" / IntVar(userId) =>
     Ok(getUserName(userId))
 }
-// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/802191435@a0fa4f2)
+// usersService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/1440582295@5cc6b597)
 ```
 
 If you want to extract a variable of type `T`, you can provide a custom extractor
@@ -117,7 +117,7 @@ val dailyWeatherService = HttpService {
   case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
-// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/802191435@31102da0)
+// dailyWeatherService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/1440582295@2aa09e37)
 ```
 
 #### Handling query parameters
@@ -146,7 +146,7 @@ implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
     QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
   }
 }
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@1d70a72d
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@25dc914c
 
 object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
 // defined object YearQueryParamMatcher
@@ -158,7 +158,7 @@ val averageTemperatureService = HttpService {
   case request @ GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
     Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
 }
-// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/802191435@3d41746b)
+// averageTemperatureService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/1440582295@7f58f1c8)
 ``` 
 
 ### Returning content in the response
@@ -199,7 +199,7 @@ val tweetService = HttpService {
   case request @ GET -> Root / "tweets" / IntVar(tweetId) =>
     getTweet(tweetId).flatMap(Ok(_)(tweetEncoder))
 }
-// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/802191435@10c9c973)
+// tweetService: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6427/1440582295@68cb64f3)
 ```
 
 ### Running your service
@@ -227,7 +227,7 @@ val services = usersService orElse dailyWeatherService orElse averageTemperature
 // services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(<function1>)
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@378d8fb9
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7bc4b4af
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run
@@ -282,7 +282,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val client = PooledHttp1Client()
-// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6487/1156336476@579aa2da),scalaz.concurrent.Task@70c89454)
+// client: org.http4s.client.Client = Client(Kleisli(org.http4s.client.blaze.BlazeClient$$$Lambda$6487/505229773@212fb0a8),scalaz.concurrent.Task@4c1905e7)
 ```
 
 ### Describing a call
@@ -292,7 +292,7 @@ and the URI we want:
 
 ```scala
 val helloJames = client.expect[String]("http://localhost:8080/hello/James")
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@1961b3d8
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@683b334
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -326,7 +326,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@b65f22e
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@7b4c14c2
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -348,10 +348,10 @@ greetingList.run.mkString("\n")
 //        greetingList.run.mkString("\n")
 //                     ^
 // res0: String =
-// Hello, Jessica.
-// Hello, Michael.
-// Hello, Ashley.
 // Hello, Christopher.
+// Hello, Jessica.
+// Hello, Ashley.
+// Hello, Michael.
 ```
 
 ## Cleaning up
