@@ -75,7 +75,6 @@ private class Http1ServerStage(service: HttpService,
       logger.trace {
         buff.mark()
         val sb = new StringBuilder
-        println(buff) /// ------- Only for tracing purposes!
         while(buff.hasRemaining) sb.append(buff.get().toChar)
 
         buff.reset()
