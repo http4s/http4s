@@ -6,93 +6,101 @@ import java.util.concurrent.atomic._
 
 import org.http4s.dsl._
 import org.http4s.headers._
+import org.specs2.mutable.Tables
+import scalaz._
 import scalaz.concurrent._
+import scalaz.stream.Process._
+import scalaz.syntax.monad._
+import scodec.bits.ByteVector
 
-class FollowRedirectSpec extends Http4sSpec {
+class FollowRedirectSpec extends Http4sSpec with Tables {
 
   private val loopCounter = new AtomicInteger(0)
 
   val service = HttpService {
-    case method -> Root / "ok" =>
-      Ok(method.toString)
-    case req @ _ -> Root / "301" =>
-      MovedPermanently(uri("/ok"))
-    case _ -> Root / "302" =>
-      Found(uri("/ok"))
-    case _ -> Root / "303" =>
-      SeeOther(uri("/ok"))
-    case _ -> Root / "307" =>
-      TemporaryRedirect(uri("/ok"))
-    case _ -> Root / "308" =>
-      PermanentRedirect(uri("/ok"))
+    case req @ _ -> Root / "ok" =>
+      Ok(req.body).putHeaders(
+        Header("X-Original-Method", req.method.toString),
+        Header("X-Original-Content-Length", req.headers.get(`Content-Length`).fold(0L)(_.length).toString)
+      )
+    case req @ _ -> Root / status =>
+      Response(status = Status.fromInt(status.toInt).yolo)
+        .putHeaders(Location(uri("/ok")))
+        .pure[Task]
   }
 
   val defaultClient = MockClient(service)
   val client = FollowRedirect(3)(defaultClient)
 
-  def expectString(method: Method, path: String): Task[String] = {
-    val u = uri("http://localhost") / path
-    val req = method match {
-      case _: Method with Method.PermitsBody =>
-        Request(method, u).withBody("foo")
-      case _ =>
-        Task.now(Request(method, u))
-    }
-    client.expect[String](req)
-  }
+  case class RedirectResponse(
+    method: String,
+    body: String
+  )
+
 
   "FollowRedirect" should {
-    "GET after 301 response to GET" in {
-      expectString(GET, "301").run must_== "GET"
-    }
-    "GET after 301 response to POST" in {
-      expectString(POST, "301").run must_== "GET"
-    }
-    "PUT after 301 response to PUT" in {
-      expectString(PUT, "301").run must_== "PUT"
+    "follow the proper strategy" in {
+      def doIt(method: Method, status: Status, body: String, pure: Boolean, response: Throwable \/ RedirectResponse) = {
+        val u = uri("http://localhost") / status.code.toString
+        val req = method match {
+          case _: Method with Method.PermitsBody if body.nonEmpty =>
+            val bodyBytes = ByteVector.view(body.getBytes)
+            Request(method, u,
+              body = if (pure) emit(bodyBytes) else eval(Task.delay(bodyBytes)))
+          case _ =>
+            Request(method, u)
+        }
+        client.fetch(req) {
+          case Ok(resp) =>
+            val method = resp.headers.get("X-Original-Method".ci).fold("")(_.value)
+            val body = resp.as[String]
+            body.map(RedirectResponse(method, _))
+          case resp =>
+            Task.fail(UnexpectedStatus(resp.status))
+        }.attemptRun must_== (response)
+      }
+
+      "method" | "status"          | "body"    | "pure" | "response"                               |>
+      GET      ! MovedPermanently  ! ""        ! true   ! \/-(RedirectResponse("GET", ""))         |
+      HEAD     ! MovedPermanently  ! ""        ! true   ! \/-(RedirectResponse("HEAD", ""))        |
+      POST     ! MovedPermanently  ! "foo"     ! true   ! \/-(RedirectResponse("GET", ""))         |
+      POST     ! MovedPermanently  ! "foo"     ! false  ! \/-(RedirectResponse("GET", ""))         |            
+      PUT      ! MovedPermanently  ! "foo"     ! true   ! \/-(RedirectResponse("PUT", "foo"))      |
+      PUT      ! MovedPermanently  ! "foo"     ! false  ! -\/(UnexpectedStatus(MovedPermanently))  |
+      GET      ! Found             ! ""        ! true   ! \/-(RedirectResponse("GET", ""))         |
+      HEAD     ! Found             ! ""        ! true   ! \/-(RedirectResponse("HEAD", ""))        |
+      POST     ! Found             ! "foo"     ! true   ! \/-(RedirectResponse("GET", ""))         |
+      POST     ! Found             ! "foo"     ! false  ! \/-(RedirectResponse("GET", ""))         |            
+      PUT      ! Found             ! "foo"     ! true   ! \/-(RedirectResponse("PUT", "foo"))      |
+      PUT      ! Found             ! "foo"     ! false  ! -\/(UnexpectedStatus(Found))             |
+      GET      ! SeeOther          ! ""        ! true   ! \/-(RedirectResponse("GET", ""))         |
+      HEAD     ! SeeOther          ! ""        ! true   ! \/-(RedirectResponse("HEAD", ""))        |
+      POST     ! SeeOther          ! "foo"     ! true   ! \/-(RedirectResponse("GET", ""))         |
+      POST     ! SeeOther          ! "foo"     ! false  ! \/-(RedirectResponse("GET", ""))         |            
+      PUT      ! SeeOther          ! "foo"     ! true   ! \/-(RedirectResponse("GET", ""))         |
+      PUT      ! SeeOther          ! "foo"     ! false  ! \/-(RedirectResponse("GET", ""))         |
+      GET      ! TemporaryRedirect ! ""        ! true   ! \/-(RedirectResponse("GET", ""))         |
+      HEAD     ! TemporaryRedirect ! ""        ! true   ! \/-(RedirectResponse("HEAD", ""))        |
+      POST     ! TemporaryRedirect ! "foo"     ! true   ! \/-(RedirectResponse("POST", "foo"))     |
+      POST     ! TemporaryRedirect ! "foo"     ! false  ! -\/(UnexpectedStatus(TemporaryRedirect)) |            
+      PUT      ! TemporaryRedirect ! "foo"     ! true   ! \/-(RedirectResponse("PUT", "foo"))      |
+      PUT      ! TemporaryRedirect ! "foo"     ! false  ! -\/(UnexpectedStatus(TemporaryRedirect)) |
+      GET      ! PermanentRedirect ! ""        ! true   ! \/-(RedirectResponse("GET", ""))         |
+      HEAD     ! PermanentRedirect ! ""        ! true   ! \/-(RedirectResponse("HEAD", ""))        |
+      POST     ! PermanentRedirect ! "foo"     ! true   ! \/-(RedirectResponse("POST", "foo"))     |
+      POST     ! PermanentRedirect ! "foo"     ! false  ! -\/(UnexpectedStatus(PermanentRedirect)) |            
+      PUT      ! PermanentRedirect ! "foo"     ! true   ! \/-(RedirectResponse("PUT", "foo"))      |
+      PUT      ! PermanentRedirect ! "foo"     ! false  ! -\/(UnexpectedStatus(PermanentRedirect)) |
+      { (method, status, body, pure, response) => doIt(method, status, body, pure, response) }
     }
 
-    "GET after 302 response to GET" in {
-      expectString(GET, "302").run must_== "GET"
-    }
-    "GET after 302 response to POST" in {
-      expectString(POST, "302").run must_== "GET"
-    }
-    "PUT after 302 response to PUT" in {
-      expectString(PUT, "302").run must_== "PUT"
-    }
-
-    "GET after 303 response to GET" in {
-      expectString(GET, "302").run must_== "GET"
-    }
-    "GET after 303 response to POST" in {
-      expectString(POST, "302").run must_== "GET"
-    }
-    "GET after 303 response to PUT" in {
-      expectString(PUT, "302").run must_== "PUT"
-    }
-    "HEAD after 303 response to HEAD" in {
-      expectString(HEAD, "303").run must_== "HEAD"
-    }
-
-    "GET after 307 response to GET" in {
-      expectString(GET, "307").run must_== "GET"
-    }
-    "POST after 307 response to POST" in {
-      expectString(POST, "307").run must_== "POST"
-    }
-    "PUT after 307 response to PUT" in {
-      expectString(PUT, "307").run must_== "PUT"
-    }
-
-    "GET after 308 response to GET" in {
-      expectString(GET, "308").run must_== "GET"
-    }
-    "POST after 308 response to POST" in {
-      expectString(POST, "308").run must_== "POST"
-    }
-    "PUT after 308 response to PUT" in {
-      expectString(PUT, "308").run must_== "PUT"
+    "Strip payload headers when switching to GET" in {
+      // We could test others, and other scenarios, but this was a pain.
+      val req = Request(PUT, uri("http://localhost/303")).withBody("foo")
+      client.fetch(req) {
+        case Ok(resp) =>
+          resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[Task]
+      }.attemptRun must be_\/-(Some("0"))
     }
 
     "Not redirect more than 'maxRedirects' iterations" in {
