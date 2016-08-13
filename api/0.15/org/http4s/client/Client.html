@@ -28,10 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img alt="Class" src="../../../lib/class_big.png" />
+        <a href="Client$.html" title="See companion object"><img alt="Class/Object" src="../../../lib/class_to_object_big.png" /></a>
         <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.client">client</a></p>
-        <h1>Client</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="org.http4s.client">package client</a>
+        <h1><a href="Client$.html" title="See companion object">Client</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="Client$.html" title="See companion object">object Client</a>
+            | <a href="package.html" class="extype" name="org.http4s.client">package client</a>
           </div></span></h3><span class="permalink">
       <a href="../../../index.html#org.http4s.client.Client" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
@@ -738,7 +740,7 @@ completion of the decoding.
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <a href="http://docs.typelevel.org/api/scalaz-stream/stable/0.8.2a/doc/index.html#scalaz.stream.Process" class="extype" target="_top">Process</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <a href="http://docs.typelevel.org/api/scalaz-stream/stable/0.8.2a/doc/index.html#scalaz.stream.Process" class="extype" target="_top">Process</a>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
+        <span class="name">streaming</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="req">req: <a href="../Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="params">(<span name="f">f: (<a href="../Response.html" class="extype" name="org.http4s.Response">Response</a>) ⇒ <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>)</span><span class="result">: <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <span class="extype" name="org.http4s.client.Client.streaming.A">A</span>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.client.Client@streaming[A](req:org.http4s.Request)(f:org.http4s.Response=&gt;scalaz.stream.Process[scalaz.concurrent.Task,A]):scalaz.stream.Process[scalaz.concurrent.Task,A]" title="Permalink" target="_top">
