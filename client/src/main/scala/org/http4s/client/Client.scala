@@ -1,13 +1,16 @@
 package org.http4s
 package client
 
+import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
 import org.http4s.Status.ResponseClass.Successful
 import scala.util.control.NoStackTrace
 
+import java.io.IOException
 import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scalaz.stream.Process.{eval, eval_}
+import scalaz.stream.{Process, Process1}
+import scalaz.stream.Process._
+import scodec.bits.ByteVector
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -20,8 +23,10 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     * Returns a task to handle the response, safely disposing of the underlying
     * HTTP connection when the task finishes.
     */
-  def apply[A](f: Response => Task[A]): Task[A] =
-    f(response).onFinish { case _ => dispose }
+  def apply[A](f: Response => Task[A]): Task[A] = {
+    val task = try f(response) catch { case e: Throwable => Task.fail(e) }
+    task.onFinish { case _ => dispose }
+  }
 }
 
 /**
@@ -192,4 +197,43 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     shutdown.run
 }
 
-final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace
+object Client {
+  /** Creates a client from the specified service.  Useful for generating
+    * pre-determined responses for requests in testing.
+    * 
+    * @param service the service to respond to requests to this client
+    */
+  def fromHttpService(service: HttpService): Client = {
+    val isShutdown = new AtomicBoolean(false)
+
+    def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
+      def loop(reason: String, killed: AtomicBoolean): Process1[ByteVector, ByteVector] = {
+        if (killed.get)
+          fail(new IOException(reason))
+        else
+          await1[ByteVector] ++ loop(reason, killed)
+      }
+      body.pipe(loop("response was disposed", disposed))
+        .pipe(loop("client was shut down", isShutdown))
+    }
+
+    def disposableService(service: HttpService) =
+      Service.lift { req: Request =>
+        val disposed = new AtomicBoolean(false)
+        val req0 = req.copy(body = interruptable(req.body, disposed))
+        service(req0) map { resp =>
+          DisposableResponse(
+            resp.copy(body = interruptable(resp.body, disposed)),
+            Task.delay(disposed.set(true))
+          )
+        }
+      }
+
+    Client(disposableService(service),
+      Task.delay(isShutdown.set(true)))
+  }
+}
+
+final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {
+  override def getMessage: String = s"unexpected HTTP status: $status"
+}

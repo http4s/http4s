@@ -30,7 +30,7 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val client = MockClient(route)
+  val client = Client.fromHttpService(route)
 
   val req = Request(GET, uri("http://www.foo.bar/"))
 
@@ -38,7 +38,9 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
 
   def assertDisposes(f: Client => Task[Unit]) = {
     var disposed = false
-    val disposingClient = MockClient(route, Task.delay(disposed = true))
+    val disposingClient = Client(
+      route.map(DisposableResponse(_, Task.delay(disposed = true))),
+      Task.now(()))
     f(disposingClient).attemptRun
     disposed must beTrue
   }
@@ -80,12 +82,20 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       assertDisposes(_.get(req.uri) { _ => Task.fail(SadTrombone) })
     }
 
+    "get disposes of the response on uncaught exception" in {
+      assertDisposes(_.get(req.uri) { _ => sys.error("Don't do this at home, kids") })
+    }
+
     "fetch disposes of the response on success" in {
       assertDisposes(_.fetch(req) { _ => Task.now(()) })
     }
 
     "fetch disposes of the response on failure" in {
       assertDisposes(_.fetch(req) { _ => Task.fail(SadTrombone) })
+    }
+
+    "fetch disposes of the response on uncaught exception" in {
+      assertDisposes(_.fetch(req) { _ => sys.error("Don't do this at home, kids") })
     }
 
     "fetch on task disposes of the response on success" in {
@@ -96,8 +106,15 @@ class ClientSyntaxSpec extends Http4sSpec with MustThrownMatchers {
       assertDisposes(_.fetch(Task.now(req)) { _ => Task.fail(SadTrombone) })
     }
 
-    "fetch Uris with expect" in {
+    "fetch on task disposes of the response on uncaught exception" in {
+      assertDisposes(_.fetch(Task.now(req)) { _ => sys.error("Don't do this at home, kids") })
+    }
 
+    "fetch on task that does not match results in failed task" in {
+      client.fetch(Task.now(req))(PartialFunction.empty).attempt.run must be_-\/ { e: Throwable => e must beAnInstanceOf[MatchError] }
+    }
+
+    "fetch Uris with expect" in {
       client.expect[String](req.uri) must returnValue("hello")
     }
 

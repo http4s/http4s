@@ -19,7 +19,7 @@ class RetrySpec extends Http4sSpec {
     case r => sys.error("Path not found: " + r.pathInfo)
   }
 
-  val defaultClient = MockClient(route)
+  val defaultClient = Client.fromHttpService(route)
 
   "Retry Client" should {
     "Retry bad requests" in {

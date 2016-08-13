@@ -1,3 +1,15 @@
+# v0.14.3 (unreleased)
+* Follow 301 and 302 responses to POST with a GET request.
+* Follow all redirect responses to HEAD with a HEAD request.
+* Fix bug where redirect response is disposed prematurely even if not followed.
+* Fix bug where payload headers are sent from original request when
+  following a redirect with a GET or HEAD.
+* Return a failed task instead of throwing when a client callback
+  throws an exception. Fixes a resource leak.
+
+# v0.14.2 (2016-08-10)
+* Override `getMessage` in `UnexpectedStatus`
+
 # v0.14.1 (2016-06-15)
 * Added the possibility to specify custom responses to MessageFailures
 * Address issue with Retry middleware leaking connections
