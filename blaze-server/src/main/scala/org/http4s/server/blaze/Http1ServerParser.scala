@@ -3,11 +3,11 @@ package server.blaze
 
 import java.nio.ByteBuffer
 
-import org.log4s.Logger
-
 import scala.collection.mutable.ListBuffer
-import scalaz.\/
-import scalaz.concurrent.Task
+
+import cats.data._
+import fs2._
+import org.log4s.Logger
 
 
 private final class Http1ServerParser(logger: Logger,
@@ -29,7 +29,7 @@ private final class Http1ServerParser(logger: Logger,
 
   def doParseContent(buff: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buff))
 
-  def collectMessage(body: EntityBody, attrs: AttributeMap): (ParseFailure,HttpVersion)\/Request = {
+  def collectMessage(body: EntityBody, attrs: AttributeMap): (ParseFailure,HttpVersion) Xor Request = {
     val h = Headers(headers.result())
     headers.clear()
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`

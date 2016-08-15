@@ -9,13 +9,13 @@ object DecodeResult {
     XorT(fa)
 
   def success[A](a: Task[A]): DecodeResult[A] =
-    DecodeResult(a.map(right(_)))
+    DecodeResult(a.map(Xor.right(_)))
 
   def success[A](a: A): DecodeResult[A] =
     success(Task.now(a))
 
   def failure[A](e: Task[DecodeFailure]): DecodeResult[A] =
-    DecodeResult(e.map(left(_)))
+    DecodeResult(e.map(Xor.left(_)))
 
   def failure[A](e: DecodeFailure): DecodeResult[A] =
     failure(Task.now(e))

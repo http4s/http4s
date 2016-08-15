@@ -1,20 +1,18 @@
 package org.http4s.blaze.util
 
+import scala.concurrent._
 
+import fs2._
+import org.http4s.batteries._
 import org.http4s.blaze.http.Headers
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.blaze.http.http20.NodeMsg._
-
-import scodec.bits.ByteVector
-
-import scala.concurrent.{ExecutionContext, Future}
-
 
 class Http2Writer(tail: TailStage[Http2Msg],
                   private var headers: Headers,
                   protected val ec: ExecutionContext) extends ProcessWriter {
 
-  override protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
+  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val f = if (headers == null) tail.channelWrite(DataFrame(true, chunk.toByteBuffer))
     else {
       val hs = headers
@@ -26,7 +24,7 @@ class Http2Writer(tail: TailStage[Http2Msg],
     f.map(Function.const(false))(ec)
   }
 
-  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
+  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
     if (chunk.isEmpty) Future.successful(())
     else {
       if (headers == null) tail.channelWrite(DataFrame(false, chunk.toByteBuffer))

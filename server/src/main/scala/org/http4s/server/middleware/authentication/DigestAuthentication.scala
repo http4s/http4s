@@ -46,9 +46,9 @@ class DigestAuthentication(realm: String, store: AuthenticationStore, nonceClean
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
   protected def getChallenge(req: Request): Task[Challenge Xor Request] = {
-    def paramsToChallenge(params: Map[String, String]) = left(Challenge("Digest", realm, params))
+    def paramsToChallenge(params: Map[String, String]) = Xor.left(Challenge("Digest", realm, params))
     checkAuth(req).flatMap(_ match {
-      case OK(user, realm) => Task.now(right(addUserRealmAttributes(req, user, realm)))
+      case OK(user, realm) => Task.now(Xor.right(addUserRealmAttributes(req, user, realm)))
       case StaleNonce => getChallengeParams(true).map(paramsToChallenge)
       case _          => getChallengeParams(false).map(paramsToChallenge)
     })

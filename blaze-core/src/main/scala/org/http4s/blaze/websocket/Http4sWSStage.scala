@@ -1,3 +1,5 @@
+// TODO fs2 port
+/*
 package org.http4s
 package blaze
 package websocket
@@ -108,3 +110,4 @@ object Http4sWSStage {
     TrunkBuilder(new SerializingStage[WebSocketFrame]).cap(stage)
   }
 }
+*/

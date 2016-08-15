@@ -2,11 +2,12 @@ package org.http4s.blaze.util
 
 import java.nio.ByteBuffer
 
+import scala.concurrent.{ExecutionContext, Future}
+
+import fs2._
+import org.http4s.batteries._
 import org.http4s.blaze.pipeline.TailStage
 import org.log4s.getLogger
-import scodec.bits.ByteVector
-
-import scala.concurrent.{ExecutionContext, Future}
 
 class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage[ByteBuffer])
                     (implicit val ec: ExecutionContext)
@@ -19,7 +20,7 @@ class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage
   private def willOverflow(count: Long) =
     if (size < 0L) false else (count + bodyBytesWritten > size)
 
-  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] =
+  protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
     if (willOverflow(chunk.size)) {
       // never write past what we have promised using the Content-Length header
       val msg = s"Will not write more bytes than what was indicated by the Content-Length header ($size)"
@@ -44,7 +45,7 @@ class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage
       else out.channelWrite(b)
     }
 
-  protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
+  protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     val total = bodyBytesWritten + chunk.size
 
     if (size < 0 || total >= size) writeBodyChunk(chunk, flush = true).

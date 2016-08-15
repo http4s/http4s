@@ -3,6 +3,7 @@ package org.http4s
 import scala.util.control.{NoStackTrace, NonFatal}
 
 import cats._
+import cats.data._
 import fs2._
 import org.http4s.batteries._
 
@@ -61,14 +62,14 @@ object ParseFailure {
 
 object ParseResult {
   def fail(sanitized: String, details: String): ParseResult[Nothing] =
-    left(ParseFailure(sanitized, details))
+    Xor.left(ParseFailure(sanitized, details))
   def success[A](a: A): ParseResult[A] =
-    right(a)
+    Xor.right(a)
 
   def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
     catch {
-      case NonFatal(e) => left(ParseFailure(sanitized, e.getMessage))
+      case NonFatal(e) => Xor.left(ParseFailure(sanitized, e.getMessage))
     }
 }
 

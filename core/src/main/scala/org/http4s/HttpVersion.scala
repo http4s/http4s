@@ -1,6 +1,7 @@
 package org.http4s
 
 import cats._
+import cats.data.{Writer => _, _}
 import org.http4s.batteries._
 import org.http4s.parser._
 import org.http4s.util._
@@ -22,8 +23,8 @@ object HttpVersion extends HttpVersionInstances {
   val `HTTP/2.0` = new HttpVersion(2, 0)
 
   def fromString(s: String): ParseResult[HttpVersion] = s match {
-    case "HTTP/1.1" => right(`HTTP/1.1`)
-    case "HTTP/1.0" => right(`HTTP/1.0`)
+    case "HTTP/1.1" => Xor.right(`HTTP/1.1`)
+    case "HTTP/1.0" => Xor.right(`HTTP/1.0`)
     case other => new Parser(s).HttpVersion.run()(parseResultDeliveryScheme).leftMap { _ =>
       ParseFailure("Invalid HTTP version", s"$s was not found to be a valid HTTP version")
     }

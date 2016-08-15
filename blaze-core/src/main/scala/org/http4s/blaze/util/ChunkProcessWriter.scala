@@ -1,17 +1,16 @@
-package org.http4s.blaze.util
+package org.http4s
+package blaze
+package util
 
 import java.nio.ByteBuffer
 import java.nio.charset.StandardCharsets.ISO_8859_1
 
-import org.http4s.Headers
+import scala.concurrent._
+
+import fs2._
+import org.http4s.batteries._
 import org.http4s.blaze.pipeline.TailStage
 import org.http4s.util.StringWriter
-
-import scodec.bits.ByteVector
-
-import scala.concurrent.{ExecutionContext, Future, Promise}
-import scalaz.concurrent.Task
-import scalaz.{-\/, \/-}
 
 class ChunkProcessWriter(private var headers: StringWriter,
                          pipe: TailStage[ByteBuffer],
@@ -20,12 +19,12 @@ class ChunkProcessWriter(private var headers: StringWriter,
 
   import org.http4s.blaze.util.ChunkProcessWriter._
 
-  protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
-    if (chunk.nonEmpty) pipe.channelWrite(encodeChunk(chunk, Nil))
-    else Future.successful(())
+  protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
+    if (chunk.isEmpty) Future.successful(())
+    else pipe.channelWrite(encodeChunk(chunk, Nil))
   }
 
-  protected def writeEnd(chunk: ByteVector): Future[Boolean] = {
+  protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = {
     def writeTrailer = {
       val promise = Promise[Boolean]
       trailer.map { trailerHeaders =>
@@ -37,9 +36,9 @@ class ChunkProcessWriter(private var headers: StringWriter,
           ByteBuffer.wrap(rr.result.getBytes(ISO_8859_1))
         }
         else ChunkEndBuffer
-      }.runAsync {
-        case \/-(buffer) => promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
-        case -\/(t) => promise.failure(t)
+      }.unsafeRunAsync {
+        case Right(buffer) => promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
+        case Left(t) => promise.failure(t)
       }
       promise.future
     }
@@ -48,7 +47,7 @@ class ChunkProcessWriter(private var headers: StringWriter,
       val h = headers
       headers = null
 
-      if (chunk.nonEmpty) {
+      if (!chunk.isEmpty) {
         val body = chunk.toByteBuffer
         h << s"Content-Length: ${body.remaining()}\r\n\r\n"
         
@@ -62,7 +61,7 @@ class ChunkProcessWriter(private var headers: StringWriter,
         pipe.channelWrite(hbuff)
       }
     } else {
-      if (chunk.nonEmpty) writeBodyChunk(chunk, true).flatMap { _ => writeTrailer }
+      if (!chunk.isEmpty) writeBodyChunk(chunk, true).flatMap { _ => writeTrailer }
       else writeTrailer
     }
 
@@ -76,8 +75,8 @@ class ChunkProcessWriter(private var headers: StringWriter,
     b
   }
 
-  private def encodeChunk(chunk: ByteVector, last: List[ByteBuffer]): List[ByteBuffer] = {
-    val list = writeLength(chunk.length)::chunk.toByteBuffer::CRLF::last
+  private def encodeChunk(chunk: Chunk[Byte], last: List[ByteBuffer]): List[ByteBuffer] = {
+    val list = writeLength(chunk.size) :: chunk.toByteBuffer :: CRLF :: last
     if (headers != null) {
       headers << "Transfer-Encoding: chunked\r\n\r\n"
       val b = ByteBuffer.wrap(headers.result.getBytes(ISO_8859_1))

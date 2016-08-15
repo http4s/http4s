@@ -1,5 +1,7 @@
 package org.http4s.util
 
+import java.nio.ByteBuffer
+
 import cats._
 import fs2._
 
@@ -26,4 +28,16 @@ trait ChunkInstances0 {
     }
 }
 
-object chunk extends ChunkInstances
+class ByteChunkOps(val self: Chunk[Byte]) extends AnyVal {
+  def toByteBuffer: ByteBuffer =
+    ByteBuffer.wrap(self.toArray).asReadOnlyBuffer
+}
+
+trait ByteChunkSyntax {
+  implicit def toByteChunkOps(self: Chunk[Byte]): ByteChunkOps =
+    new ByteChunkOps(self)
+}
+
+object chunk extends AnyRef
+    with ChunkInstances
+    with ByteChunkSyntax

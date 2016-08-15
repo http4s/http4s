@@ -8,6 +8,7 @@ import scala.annotation.switch
 import scala.collection.immutable.BitSet
 import scala.io.Codec
 
+import cats.data._
 import org.http4s.batteries._
 
 /** Split an encoded query string into unencoded key value pairs
@@ -102,7 +103,7 @@ private[http4s] object QueryParser {
   private val InitialBufferCapactiy = 32
 
   def parseQueryString(queryString: String, codec: Codec = Codec.UTF8): ParseResult[Query] = {
-    if (queryString.isEmpty) right(Query.empty)
+    if (queryString.isEmpty) Xor.right(Query.empty)
     else new QueryParser(codec, true).decode(CharBuffer.wrap(queryString), true)
   }
 

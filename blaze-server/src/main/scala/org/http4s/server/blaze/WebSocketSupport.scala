@@ -1,3 +1,5 @@
+// TODO fs2 port
+/*
 package org.http4s.server.blaze
 
 import java.nio.ByteBuffer
@@ -59,3 +61,4 @@ private trait WebSocketSupport extends Http1ServerStage {
     } else super.renderResponse(req, resp, cleanup)
   }
 }
+*/
