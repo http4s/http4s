@@ -1,3 +1,5 @@
+// TODO fs2 port
+/*
 package org.http4s
 
 import org.http4s.client.impl.{EmptyRequestGenerator, EntityRequestGenerator}
@@ -42,3 +44,4 @@ package object client {
   }
 
 }
+ */

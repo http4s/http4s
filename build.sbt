@@ -285,7 +285,7 @@ lazy val examplesBlaze = exampleProject("examples-blaze")
       } yield { s"-Xbootclasspath/p:${path}" }
     }
   )
-  .dependsOn(blazeServer, blazeClient)
+  .dependsOn(blazeServer /* TODO fs2 port , blazeClient */)
 
 lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(Revolver.settings)

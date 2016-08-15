@@ -1,3 +1,5 @@
+// TODO fs2 port
+/*
 package com.example.http4s.blaze
 
 import org.http4s._
@@ -10,3 +12,4 @@ object ClientPostExample extends App {
   val responseBody = client.expect[String](req)
   println(responseBody.run)
 }
+ */

@@ -1,26 +1,22 @@
 package com.example.http4s
 
-import io.circe.Json
+// TODO fs2 port import io.circe.Json
 
+import scala.concurrent._
 import scala.concurrent.duration._
-import scala.concurrent.{ExecutionContext, Future}
 
-import org.http4s.headers.{`Content-Type`, `Content-Length`}
+import fs2._
 import org.http4s._
 import org.http4s.MediaType._
 import org.http4s.dsl._
-import org.http4s.circe._
-import org.http4s.multipart._
-import org.http4s.scalaxml._
+import org.http4s.headers._
+// TODO fs2 port import org.http4s.circe._
+// TODO fs2 port import org.http4s.multipart._
+// TODO fs2 port import org.http4s.scalaxml._
 import org.http4s.server._
 import org.http4s.server.middleware.PushSupport._
 import org.http4s.server.middleware.authentication._
-import org.http4s.twirl._
-
-import scalaz.stream.Process
-import scalaz.stream.time
-import scalaz.concurrent.Task
-import scalaz.concurrent.Strategy.DefaultTimeoutScheduler
+// TODO fs2 port import org.http4s.twirl._
 
 object ExampleService {
 
@@ -28,14 +24,16 @@ object ExampleService {
   // service with the longest matching prefix.
   def service(implicit executionContext: ExecutionContext = ExecutionContext.global): HttpService = Router(
     "" -> rootService,
-    "/auth" -> authService,
-    "/science" -> ScienceExperiments.service
+    "/auth" -> authService
+    // TODO fs2 port "/science" -> ScienceExperiments.service
   )
   
   def rootService(implicit executionContext: ExecutionContext) = HttpService {
+    /* TODO fs2 port
     case req @ GET -> Root =>
       // Supports Play Framework template -- see src/main/twirl.
       Ok(html.index())
+     */
 
     case _ -> Root =>
       // The default route result is NotFound. Sometimes MethodNotAllowed is more appropriate.
@@ -49,14 +47,18 @@ object ExampleService {
       // EntityEncoder allows rendering asynchronous results as well
       Ok(Future("Hello from the future!"))
 
+    /* TODO fs2 port
     case GET -> Root / "streaming" =>
       // Its also easy to stream responses to clients
       Ok(dataStream(100))
+     */
 
+    /* TODO fs2 port
     case req @ GET -> Root / "ip" =>
       // Its possible to define an EntityEncoder anywhere so you're not limited to built in types
       val json = Json.obj("origin" -> Json.fromString(req.remoteAddr.getOrElse("unknown")))
       Ok(json)
+     */
 
     case req @ GET -> Root / "redirect" =>
       // Not every response must be Ok using a EntityEncoder: some have meaning only for specific types
@@ -67,11 +69,13 @@ object ExampleService {
       Ok("<h2>This will have an html content type!</h2>")
           .withContentType(Some(`Content-Type`(`text/html`)))
 
+    /* TODO fs2 port
     case req @ GET -> "static" /: path =>
       // captures everything after "/static" into `path`
       // Try http://localhost:8080/http4s/static/nasa_blackhole_image.jpg
       // See also org.http4s.server.staticcontent to create a mountable service for static content
       StaticFile.fromResource(path.toString, Some(req)).fold(NotFound())(Task.now)
+     */
 
     ///////////////////////////////////////////////////////////////
     //////////////// Dealing with the message body ////////////////
@@ -79,6 +83,7 @@ object ExampleService {
       // The body can be used in the response
       Ok(req.body).putHeaders(`Content-Type`(`text/plain`))
 
+    /* TODO fs2 port
     case req @ GET -> Root / "echo" =>
       Ok(html.submissionForm("echo data"))
 
@@ -89,6 +94,7 @@ object ExampleService {
 
     case req @ GET -> Root / "echo2" =>
       Ok(html.submissionForm("echo data"))
+     */
 
     case req @ POST -> Root / "sum"  =>
       // EntityDecoders allow turning the body into something useful
@@ -104,8 +110,10 @@ object ExampleService {
         case e: NumberFormatException => BadRequest("Not an int: " + e.getMessage)
       }
 
+    /* TODO fs2 port
     case req @ GET -> Root / "sum" =>
       Ok(html.submissionForm("sum"))
+     */
 
     ///////////////////////////////////////////////////////////////
     ////////////////////// Blaze examples /////////////////////////
@@ -133,8 +141,10 @@ object ExampleService {
 
     ///////////////////////////////////////////////////////////////
     //////////////// Form encoding example ////////////////////////
+     /* TODO fs2 port
     case req @ GET -> Root / "form-encoded" =>
       Ok(html.formEncoded())
+       */
 
     case req @ POST -> Root / "form-encoded" =>
       // EntityDecoders return a Task[A] which is easy to sequence
@@ -145,6 +155,7 @@ object ExampleService {
 
     ///////////////////////////////////////////////////////////////
     //////////////////////// Server Push //////////////////////////
+      /* TODO fs2 port
     case req @ GET -> Root / "push" =>
       // http4s intends to be a forward looking library made with http2.0 in mind
       val data = <html><body><img src="image.jpg"/></body></html>
@@ -156,22 +167,28 @@ object ExampleService {
       StaticFile.fromResource("/nasa_blackhole_image.jpg", Some(req))
         .map(Task.now)
         .getOrElse(NotFound())
+       */
 
     ///////////////////////////////////////////////////////////////
     //////////////////////// Multi Part //////////////////////////
-    case req @ GET -> Root / "form" =>  
+      /* TODO fs2 port
+    case req @ GET -> Root / "form" =>
             println("FORM")
-      Ok(html.form())        
+      Ok(html.form())
+
     case req @ POST -> Root / "multipart" =>
       println("MULTIPART")
       req.decode[Multipart] { m =>
         Ok(s"""Multipart Data\nParts:${m.parts.length}\n${m.parts.map { case f: Part => f.name }.mkString("\n")}""")
       }
+       */
   }
 
   def helloWorldService = Ok("Hello World!")
 
   // This is a mock data source, but could be a Process representing results from a database
+  // TODO fs2 port
+  /*
   def dataStream(n: Int): Process[Task, String] = {
     implicit def defaultScheduler = DefaultTimeoutScheduler
     val interval = 100.millis
@@ -181,6 +198,7 @@ object ExampleService {
 
     Process.emit(s"Starting $interval stream intervals, taking $n results\n\n") ++ stream
   }
+   */
 
   // Services can be protected using HTTP authentication.
   val realm = "testrealm"

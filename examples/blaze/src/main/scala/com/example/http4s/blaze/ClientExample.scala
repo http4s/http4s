@@ -1,3 +1,5 @@
+// TODO fs2 port
+/*
 package com.example.http4s.blaze
 
 object ClientExample {
@@ -44,3 +46,4 @@ object ClientExample {
   def main(args: Array[String]): Unit = getSite()
 
 }
+*/

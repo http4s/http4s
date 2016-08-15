@@ -1,6 +1,6 @@
+// TODO fs2 port
+/*
 package com.example.http4s.blaze
-
-/// code_ref: blaze_server_example
 
 import java.util.concurrent.TimeUnit
 
@@ -38,4 +38,4 @@ object BlazeMetricsExample extends ServerApp {
     .mountService(srvc, "/http4s")
     .start
 }
-/// end_code_ref
+ */

@@ -1,3 +1,5 @@
+// TODO fs2 port
+/*
 package com.example.http4s.blaze
 
 import org.http4s._
@@ -44,3 +46,4 @@ object BlazeWebSocketExample extends ServerApp {
     .mountService(route, "/http4s")
     .start
 }
+ */
