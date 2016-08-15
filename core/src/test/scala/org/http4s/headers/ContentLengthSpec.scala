@@ -1,9 +1,5 @@
 package org.http4s.headers
 
-import org.http4s.Http4sSpec
-
-import scalaz.{\/, -\/}
-
 class ContentLengthSpec extends HeaderLaws {
   checkAll("Content-Length", headerLaws(`Content-Length`))
 

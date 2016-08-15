@@ -83,13 +83,13 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
                                  ("Fri" ~ push(5)) |
                                  ("Sat" ~ push(6)) }
 
-  def Weekday: Rule1[Int] = rule { ("Sunday"   ~ push(0)) |
-                                   ("Monday"   ~ push(1)) |
-                                   ("Tuesday"  ~ push(2)) |
-                                   ("Wednesday"  ~ push(3)) |
-                                   ("Thursday" ~ push(4)) |
-                                   ("Friday"   ~ push(5)) |
-                                   ("Saturday" ~ push(6)) }
+  def Weekday: Rule1[Int] = rule { ("Sunday"    ~ push(0)) |
+                                   ("Monday"    ~ push(1)) |
+                                   ("Tuesday"   ~ push(2)) |
+                                   ("Wednesday" ~ push(3)) |
+                                   ("Thursday"  ~ push(4)) |
+                                   ("Friday"    ~ push(5)) |
+                                   ("Saturday"  ~ push(6)) }
 
   def Month: Rule1[Int] = rule {  ("Jan" ~ push(1))  |
                                   ("Feb" ~ push(2))  |
