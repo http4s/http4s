@@ -6,6 +6,8 @@
   following a redirect with a GET or HEAD.
 * Return a failed task instead of throwing when a client callback
   throws an exception. Fixes a resource leak.
+* Always render `Date` header in GMT.
+* Fully support the three date formats specified by RFC 7231.
 
 # v0.14.2 (2016-08-10)
 * Override `getMessage` in `UnexpectedStatus`
