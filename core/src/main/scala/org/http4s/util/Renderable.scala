@@ -33,7 +33,7 @@ object Renderer {
     private val dateFormat =
       DateTimeFormatter.ofPattern("EEE, dd MMM yyyy HH:mm:ss zzz")
         .withLocale(Locale.US)
-        .withZone(ZoneId.of("UTC"))
+        .withZone(ZoneId.of("GMT"))
 
     override def render(writer: Writer, t: Instant): writer.type =
       writer << dateFormat.format(t)

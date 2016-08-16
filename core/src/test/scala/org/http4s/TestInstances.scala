@@ -151,12 +151,12 @@ trait TestInstances {
     Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
   )
 
-  implicit lazy val arbitararyAllow: Arbitrary[Allow] =
+  implicit lazy val arbitraryAllow: Arbitrary[Allow] =
     Arbitrary { for {
       methods <- nonEmptyContainerOf[Set, Method](arbitrary[Method]).map(_.toList)
     } yield Allow(methods.head, methods.tail:_*) }
 
-  implicit lazy val arbitararyContentLength: Arbitrary[`Content-Length`] =
+  implicit lazy val arbitraryContentLength: Arbitrary[`Content-Length`] =
     Arbitrary { for {
       long <- arbitrary[Long] if long > 0L
     } yield `Content-Length`(long) }
