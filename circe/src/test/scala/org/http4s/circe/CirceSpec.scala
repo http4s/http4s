@@ -58,7 +58,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
       val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).run, strict = true)
-      result.run.run must be_\/-(Foo(42))
+      result.run.run must beXorRight(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -68,7 +68,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))
         val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
-        result.run.run must be_\/-(Umlaut(wort))
+        result.run.run must beXorRight(Umlaut(wort))
       }
     }
   }

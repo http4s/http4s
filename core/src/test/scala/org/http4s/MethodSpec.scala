@@ -13,7 +13,7 @@ class MethodSpec extends Http4sSpec {
   import Method._
 
   "parses own string rendering to equal value" in {
-    forAll(tokens) { token => fromString(token).map(_.renderString) must be_\/-(token) }
+    forAll(tokens) { token => fromString(token).map(_.renderString) must beXorRight(token) }
   }
 
   "only tokens are valid methods" in {
@@ -31,7 +31,7 @@ class MethodSpec extends Http4sSpec {
   checkAll(ScalazProperties.equal.laws[Method])
 
   "methods are equal by name" in {
-    prop { m: Method => Method.fromString(m.name) must be_\/-(m) }
+    prop { m: Method => Method.fromString(m.name) must beXorRight(m) }
   }
 
   "safety implies idempotence" in {

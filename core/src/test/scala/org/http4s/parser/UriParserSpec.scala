@@ -19,7 +19,7 @@ class UriParserSpec extends Http4sSpec {
 
     def check(items: Seq[(String, Uri)]) = foreach(items) {
       case (str, uri) =>
-        Uri.requestTarget(str) must be_\/-(uri)
+        Uri.requestTarget(str) must beXorRight(uri)
     }
 
     // RFC 3986 examples
@@ -50,7 +50,7 @@ class UriParserSpec extends Http4sSpec {
 
     "parse a short IPv6 address" in {
       val s = "01ab::32ba:32ba"
-      Uri.requestTarget("01ab::32ba:32ba") must be_\/-(Uri(authority = Some(Authority(host = IPv6("01ab::32ba:32ba")))))
+      Uri.requestTarget("01ab::32ba:32ba") must beXorRight(Uri(authority = Some(Authority(host = IPv6("01ab::32ba:32ba")))))
     }
 
     "handle port configurations" in {
@@ -90,47 +90,47 @@ class UriParserSpec extends Http4sSpec {
 
     "parse absolute URI with fragment" in {
       val u = Uri.requestTarget("http://foo.bar/foo#Examples")
-      u must be_\/-(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.empty, Some("Examples")))
+      u must beXorRight(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.empty, Some("Examples")))
     }
 
     "parse absolute URI with parameters and fragment" in {
       val u = Uri.requestTarget("http://foo.bar/foo?bar=baz#Example-Fragment")
-      u must be_\/-(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.fromPairs("bar" -> "baz"), Some("Example-Fragment")))
+      u must beXorRight(Uri(Some("http".ci), Some(Authority(host = RegName("foo.bar".ci))), "/foo", Query.fromPairs("bar" -> "baz"), Some("Example-Fragment")))
     }
 
     "parse relative URI with empty query string" in {
       val u = Uri.requestTarget("/foo/bar?")
-      u must be_\/-(Uri(path = "/foo/bar", query = Query("" -> None)))
+      u must beXorRight(Uri(path = "/foo/bar", query = Query("" -> None)))
     }
 
     "parse relative URI with empty query string followed by empty fragment" in {
       val u = Uri.requestTarget("/foo/bar?#")
-      u must be_\/-(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("")))
+      u must beXorRight(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("")))
     }
 
     "parse relative URI with empty query string followed by fragment" in {
       val u = Uri.requestTarget("/foo/bar?#Example_of_Fragment")
-      u must be_\/-(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("Example_of_Fragment")))
+      u must beXorRight(Uri(path = "/foo/bar", query = Query("" -> None), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with fragment" in {
       val u = Uri.requestTarget("/foo/bar#Examples_of_Fragment")
-      u must be_\/-(Uri(path = "/foo/bar", fragment = Some("Examples_of_Fragment")))
+      u must beXorRight(Uri(path = "/foo/bar", fragment = Some("Examples_of_Fragment")))
     }
 
     "parse relative URI with single parameter without a value followed by a fragment" in {
       val u = Uri.requestTarget("/foo/bar?bar#Example_of_Fragment")
-      u must be_\/-(Uri(path = "/foo/bar", query = Query("bar" -> None), fragment = Some("Example_of_Fragment")))
+      u must beXorRight(Uri(path = "/foo/bar", query = Query("bar" -> None), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with parameters and fragment" in {
       val u = Uri.requestTarget("/foo/bar?bar=baz#Example_of_Fragment")
-      u must be_\/-(Uri(path = "/foo/bar", query = Query.fromPairs("bar" -> "baz"), fragment = Some("Example_of_Fragment")))
+      u must beXorRight(Uri(path = "/foo/bar", query = Query.fromPairs("bar" -> "baz"), fragment = Some("Example_of_Fragment")))
     }
 
     "parse relative URI with slash and fragment" in {
       val u = Uri.requestTarget("/#Example_Fragment")
-      u must be_\/-(Uri(path = "/", fragment = Some("Example_Fragment")))
+      u must beXorRight(Uri(path = "/", fragment = Some("Example_Fragment")))
     }
 
     {
@@ -148,8 +148,8 @@ class UriParserSpec extends Http4sSpec {
     "fail on invalid uri" in {
       val invalid = Seq("^", "]", "/hello/wo%2rld", "/hello/world?bad=enc%ode")
       forall(invalid) { i =>
-        Uri.fromString("^") must be_-\/
-        Uri.requestTarget("^") must be_-\/
+        Uri.fromString("^") must beXorLeft
+        Uri.requestTarget("^") must beXorLeft
       }
     }
   }
@@ -158,7 +158,7 @@ class UriParserSpec extends Http4sSpec {
 
     def check(items: Seq[(String, Uri)]) = foreach(items) {
       case (str, uri) =>
-        Uri.fromString(str) must be_\/-(uri)
+        Uri.fromString(str) must beXorRight(uri)
     }
 
     "parse absolute URIs" in {
@@ -179,32 +179,32 @@ class UriParserSpec extends Http4sSpec {
     }
 
     "parse a path-noscheme uri" in {
-      Uri.fromString("q") must be_\/-.like { case u =>
+      Uri.fromString("q") must beXorRight.like { case u =>
         u must_== Uri(path = "q")
       }
-      Uri.fromString("a/b") must be_\/-.like { case u =>
+      Uri.fromString("a/b") must beXorRight.like { case u =>
         u must_== Uri(path = "a/b")
       }
     }
 
     "parse a path-noscheme uri with query" in {
-      Uri.fromString("a/b?foo") must be_\/-.like { case u =>
+      Uri.fromString("a/b?foo") must beXorRight.like { case u =>
         u must_== Uri(path = "a/b", query = Query(("foo", None)))
       }
     }
 
     "parse a path-absolute uri" in {
-      Uri.fromString("/a/b") must be_\/-.like { case u =>
+      Uri.fromString("/a/b") must beXorRight.like { case u =>
         u must_== Uri(path = "/a/b")
       }
     }
     "parse a path-absolute uri with query" in {
-      Uri.fromString("/a/b?foo") must be_\/-.like { case u =>
+      Uri.fromString("/a/b?foo") must beXorRight.like { case u =>
         u must_== Uri(path = "/a/b", query = Query(("foo", None)))
       }
     }
     "parse a path-absolute uri with query and fragment" in {
-      Uri.fromString("/a/b?foo#bar") must be_\/-.like { case u =>
+      Uri.fromString("/a/b?foo#bar") must beXorRight.like { case u =>
         u must_== Uri(path = "/a/b", query = Query(("foo", None)), fragment = Some("bar"))
       }
     }

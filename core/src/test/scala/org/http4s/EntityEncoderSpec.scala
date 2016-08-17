@@ -3,17 +3,11 @@ package org.http4s
 import java.io.{StringReader, ByteArrayInputStream, FileWriter, File}
 import java.nio.charset.StandardCharsets
 
-import org.http4s.EntityEncoder.Entity
+import scala.concurrent.Future
+
+import fs2._
 import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.specs2.mutable.Specification
-import scodec.bits.ByteVector
-
-import scala.concurrent.Future
-import scalaz.concurrent.Task
-import scalaz.stream.text.utf8Decode
-import scalaz.stream.Process
-
-import util.byteVector._
 
 object EntityEncoderSpec {
   def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =

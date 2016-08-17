@@ -99,7 +99,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       client.fetch(req) {
         case Ok(resp) =>
           resp.headers.get("X-Original-Content-Length".ci).map(_.value).pure[Task]
-      }.attemptRun must be_\/-(Some("0"))
+      }.attemptRun must beXorRight(Some("0"))
     }
 
     "Not redirect more than 'maxRedirects' iterations" in {

@@ -69,7 +69,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "provide a useful error message if string argument is not url-encoded" in {
-        Uri.fromString("http://example.org/a file") must_=== -\/(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
+        Uri.fromString("http://example.org/a file") must_=== right(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
       }
     }
 
@@ -257,7 +257,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt")
       foreach (examples) { e =>
-        Uri.fromString(e) must be_\/-.like { case u => u.toString must be_==(e) }
+        Uri.fromString(e) must beXorRight.like { case u => u.toString must be_==(e) }
       }
     }
 
@@ -486,11 +486,11 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       u must be_==(Uri(query = Query.fromString(s"ttl")))
     }
     "add an optional query parameter (Just)" in {
-      val u = Uri() +?? ("param1", Maybe.just(2))
+      val u = Uri() +?? ("param1", Some(2))
       u must be_==(Uri(query = Query.fromString(s"param1=2")))
     }
     "add an optional query parameter (Empty)" in {
-      val u = Uri() +?? ("param1", Maybe.empty[Int])
+      val u = Uri() +?? ("param1", None: Option[Int])
       u must be_==(Uri(query = Query.empty))
     }
     "contains not a parameter" in {

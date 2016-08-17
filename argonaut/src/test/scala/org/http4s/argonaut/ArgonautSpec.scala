@@ -54,7 +54,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
   "jsonOf" should {
     "decode JSON from an Argonaut decoder" in {
       val result = jsonOf[Foo].decode(Request().withBody(jObjectFields("bar" -> jNumberOrNull(42))).run, strict = true)
-      result.run.run must be_\/-(Foo(42))
+      result.run.run must beXorRight(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -65,7 +65,7 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       s"handle JSON with umlauts: $wort" >> {
         val json = Json("wort" -> jString(wort))
         val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
-        result.run.run must be_\/-(Umlaut(wort))
+        result.run.run must beXorRight(Umlaut(wort))
       }
     }
   }

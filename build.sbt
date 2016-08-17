@@ -421,11 +421,12 @@ lazy val commonSettings = Seq(
     else Seq.empty
   ),
   libraryDependencies <++= scalazVersion(sz => Seq(
+    catsLaws,
+    catsKernelLaws,
     discipline,
     logbackClassic,
-    scalazScalacheckBinding(sz),
+    specs2Cats(sz),    
     specs2Core(sz),
-    specs2MatcherExtra(sz),
     specs2Scalacheck(sz)
   ).map(_ % "test"))
 )

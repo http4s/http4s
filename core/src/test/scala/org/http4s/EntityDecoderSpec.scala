@@ -1,27 +1,25 @@
 package org.http4s
 
-import org.http4s.Status.Ok
-import org.specs2.concurrent.ExecutionEnv
-import org.specs2.execute.PendingUntilFixed
-import scodec.bits.ByteVector
-import org.http4s.headers.`Content-Type`
-
 import java.io.{FileInputStream,File,InputStreamReader}
+import java.nio._
 
 import scala.language.postfixOps
 import scala.util.control.NonFatal
-import scalaz.{-\/, \/-}
-import scalaz.syntax.bifunctor._
-import scalaz.concurrent.Task
-import scalaz.stream.Process._
 
+import fs2._
+import fs2.Stream._
+import org.http4s.Status.Ok
+import org.http4s.headers.`Content-Type`
+import org.specs2.concurrent.ExecutionEnv
+import org.specs2.execute.PendingUntilFixed
 
 class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
 
   def getBody(body: EntityBody): Task[Array[Byte]] =
-    body.runLog.map(_.reduce(_ ++ _).toArray)
+    body.runLog.map(_.toArray)
 
-  def strBody(body: String) = emit(body).map(s => ByteVector(s.getBytes))
+  def strBody(body: String) =
+    chunk(body.getBytes(StandardCharsets.UTF_8))
 
   "EntityDecoder" can {
     val req = Response(Ok).withBody("foo")
@@ -30,8 +28,8 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         EntityDecoder.text
           .flatMapR(s => DecodeResult.success("bar"))
           .decode(r, strict = false)
-          .run
-      } must returnValue(\/-("bar"))
+          .value
+      } must returnValue(right("bar"))
     }
 
     "flatMapR with failure" in {
@@ -40,7 +38,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           .flatMapR(s => DecodeResult.failure[String](MalformedMessageBodyFailure("bummer")))
           .decode(r, strict = false)
           .run
-      } must returnValue(-\/(MalformedMessageBodyFailure("bummer")))
+      } must returnValue(left(MalformedMessageBodyFailure("bummer")))
     }
 
     val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
@@ -64,7 +62,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         DecodeResult.failure(InvalidMessageBodyFailure("Nope."))
       }
 
-      val decoded = decoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).run.run
+      val decoded = decoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).value.run
       val status = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).run.status).toEither
 
       status must beLeft(Status.UnprocessableEntity)
@@ -87,7 +85,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         (httpVersion: HttpVersion) =>
         Response(Status.BadRequest, httpVersion).withBody(ErrorJson("""{"error":"parse error"}""")))
 
-      val contentType = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).run.headers.get(`Content-Type`)
+      val contentType = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafeRun.headers.get(`Content-Type`)
 
       "the content type is application/json" ==> {
         contentType must beSome(`Content-Type`(MediaType.`application/json`))
@@ -99,7 +97,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         (httpVersion: HttpVersion) =>
           Response(Status.UnsupportedMediaType, httpVersion).withBody("not on a Sunday"))
 
-      val body = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).run.body.runLast.run.flatMap(_.decodeUtf8.right.toOption)
+      val body = failure.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafeRun.body.runLast.run.flatMap(_.decodeUtf8.right.toOption)
 
       "the content type is application/json" ==> {
         body must beSome("not on a Sunday")
@@ -117,7 +115,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         }
       }
 
-      val decoded = decoder.decode(Request().replaceAllHeaders(`Content-Type`(MediaType.`text/plain`)), strict = true).run.run
+      val decoded = decoder.decode(Request().replaceAllHeaders(`Content-Type`(MediaType.`text/plain`)), strict = true).unsafeRun.run
       val contentType = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).run.headers.get(`Content-Type`)).toEither
 
       "the content type is application/json instead of text/plain" ==> {
@@ -133,7 +131,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       "should produce a MediaTypeMismatch if message has unsupported content type" in {
         val tpe = MediaType.`text/css`
         val req = Request(headers = Headers(`Content-Type`(tpe)))
-        decoder1.decode(req, strict = true).run must returnValue(-\/(MediaTypeMismatch(tpe, decoder1.consumes)))
+        decoder1.decode(req, strict = true).value must returnValue(-\/(MediaTypeMismatch(tpe, decoder1.consumes)))
       }
     }
 
@@ -174,13 +172,13 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
     "invoke the function with  the right on a success" in {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
-        request.decodeWith(happyDecoder, strict = false) { s => cb(\/-(s)); Task.now(Response()) }.run
+        request.decodeWith(happyDecoder, strict = false) { s => cb(\/-(s)); Task.now(Response()) }.unsafeRun
       } must returnValue("hooray")
     }
 
     "wrap the ParseFailure in a ParseException on failure" in {
       val grumpyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.failure[String](Task.now(MalformedMessageBodyFailure("Bah!"))))
-      val resp = request.decodeWith(grumpyDecoder, strict = false) { _ => Task.now(Response())}.run
+      val resp = request.decodeWith(grumpyDecoder, strict = false) { _ => Task.now(Response())}.unsafeRun
       resp.status must_== (Status.BadRequest)
     }
   }
@@ -200,7 +198,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       ))
       val resp = Request().withBody(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`)).flatMap(server)
       resp must beStatus(Ok).run
-      resp.flatMap(UrlForm.entityDecoder.decode(_, strict = true).run) must returnValue(\/-(urlForm))
+      resp.flatMap(UrlForm.entityDecoder.decode(_, strict = true).value) must returnValue(right(urlForm))
     }
 
     // TODO: need to make urlDecode strict
@@ -269,7 +267,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request()
-      binary.decode(msg, strict = false).run.run must be_\/-.like { case ByteVector.empty => ok }
+      binary.decode(msg, strict = false).run.run must beXorRight.like { case ByteVector.empty => ok }
     }
 
     "concat ByteVectors" in {

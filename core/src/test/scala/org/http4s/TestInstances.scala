@@ -1,20 +1,18 @@
 package org.http4s
 
+import java.nio.charset.{Charset => NioCharset}
 import java.time.{ZonedDateTime, ZoneId, Instant}
 import java.time.temporal.ChronoUnit
 
+import scala.collection.JavaConverters._
+import scala.collection.immutable.BitSet
+
+import cats.data.NonEmptyList
 import org.http4s.headers.{Allow, Date, `Content-Length`, `Accept-Charset`}
-import org.http4s.util.NonEmptyList
 import org.http4s.util.string._
-
-import java.nio.charset.{Charset => NioCharset}
-
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
 import org.scalacheck.{Arbitrary, Gen}
-
-import scala.collection.JavaConverters._
-import scala.collection.immutable.BitSet
 
 trait TestInstances {
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {

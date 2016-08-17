@@ -6,19 +6,19 @@ trait JawnDecodeSupportSpec[J] extends Http4sSpec with JawnInstances {
     "json decoder" should {
       "return right when the entity is valid" in {
         val resp = Response(Status.Ok).withBody("""{"valid": true}""").run
-        decoder.decode(resp, strict = false).run.run must be_\/-
+        decoder.decode(resp, strict = false).run.run must beXorRight
       }
 
       "return a ParseFailure when the entity is invalid" in {
         val resp = Response(Status.Ok).withBody("""garbage""").run
-        decoder.decode(resp, strict = false).run.run must be_-\/.like {
+        decoder.decode(resp, strict = false).run.run must beXorLeft.like {
           case MalformedMessageBodyFailure("Invalid JSON", _) => ok
         }
       }
 
       "return a ParseFailure when the entity is empty" in {
         val resp = Response(Status.Ok).withBody("").run
-        decoder.decode(resp, strict = false).run.run must be_-\/.like {
+        decoder.decode(resp, strict = false).run.run must beXorLeft.like {
           case MalformedMessageBodyFailure("Invalid JSON: empty body", _) => ok
         }
       }

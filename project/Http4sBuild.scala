@@ -53,14 +53,16 @@ object Http4sBuild extends Build {
     }
   def specs2Version(scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
-      case Seq(7, 1, _*) => "3.8.3-scalaz-7.1"
-      case Seq(7, 2, _*) => "3.8.3"
+      case Seq(7, 1, _*) => "3.8.4-scalaz-7.1"
+      case Seq(7, 2, _*) => "3.8.4"
     }
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.7.v20160121"
   def argonaut(scalazVersion: String) = "io.argonaut"       %% "argonaut"                % scalazCrossBuild("6.1", scalazVersion)
   lazy val asyncHttpClient     = "org.asynchttpclient"       % "async-http-client"       % "2.0.5"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.0"
+  lazy val catsKernelLaws      = "org.typelevel"            %% "cats-kernel-laws"        % catsLaws.revision
+  lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.6.1"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
   lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.4.1"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.5"
@@ -93,6 +95,7 @@ object Http4sBuild extends Build {
   def scalazCore(version: String)               = "org.scalaz"           %% "scalaz-core"               % version
   def scalazScalacheckBinding(version: String)  = "org.scalaz"           %% "scalaz-scalacheck-binding" % version
   lazy val scodecBits          = "org.scodec"               %% "scodec-bits"             % "1.1.0"
+  def specs2Cats(scalazVersion: String)         = "org.specs2"           %% "specs2-cats"               % specs2Core(scalazVersion).revision
   def specs2Core(scalazVersion: String)         = "org.specs2"           %% "specs2-core"               % specs2Version(scalazVersion)
   def specs2MatcherExtra(scalazVersion: String) = "org.specs2"           %% "specs2-matcher-extra"      % specs2Core(scalazVersion).revision
   def specs2Scalacheck(scalazVersion: String)   = "org.specs2"           %% "specs2-scalacheck"         % specs2Core(scalazVersion).revision

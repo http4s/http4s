@@ -16,63 +16,63 @@ class SimpleHeadersSpec extends Http4sSpec {
 
     "parse Connection" in {
       val header = Connection("closed".ci)
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
     }
 
     "parse Content-Length" in {
       val header = `Content-Length`(4)
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
 
       val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must be_-\/
+      HttpHeaderParser.parseHeader(bad) must beXorLeft
     }
 
     "parse Content-Encoding" in {
       val header = `Content-Encoding`(ContentCoding.`pack200-gzip`)
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
     }
 
     "parse Content-Disposition" in {
       val header = `Content-Disposition`("foo", Map("one" -> "two", "three" -> "four"))
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
 
       val bad = Header(header.name.toString, "foo; bar")
-      HttpHeaderParser.parseHeader(bad) must be_-\/
+      HttpHeaderParser.parseHeader(bad) must beXorLeft
     }
 
     "parse Date" in {       // mills are lost, get rid of them
       val header = Date(Instant.now).toRaw.parsed
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
 
       val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must be_-\/
+      HttpHeaderParser.parseHeader(bad) must beXorLeft
     }
 
     "parse Host" in {
       val header1 = Host("foo", Some(5))
-      HttpHeaderParser.parseHeader(header1.toRaw) must be_\/-(header1)
+      HttpHeaderParser.parseHeader(header1.toRaw) must beXorRight(header1)
 
       val header2 = Host("foo", None)
-      HttpHeaderParser.parseHeader(header2.toRaw) must be_\/-(header2)
+      HttpHeaderParser.parseHeader(header2.toRaw) must beXorRight(header2)
 
       val bad = Header(header1.name.toString, "foo:bar")
-      HttpHeaderParser.parseHeader(bad) must be_-\/
+      HttpHeaderParser.parseHeader(bad) must beXorLeft
     }
 
     "parse Last-Modified" in {
       val header = `Last-Modified`(Instant.now).toRaw.parsed
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
 
       val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must be_-\/
+      HttpHeaderParser.parseHeader(bad) must beXorLeft
     }
 
     "parse If-Modified-Since" in {
       val header = `If-Modified-Since`(Instant.now).toRaw.parsed
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
 
       val bad = Header(header.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must be_-\/
+      HttpHeaderParser.parseHeader(bad) must beXorLeft
     }
 
     "parse ETag" in {
@@ -83,7 +83,7 @@ class SimpleHeadersSpec extends Http4sSpec {
                         ETag("hash", true))
 
       foreach(headers){ header =>
-        HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+        HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
       }
     }
 
@@ -94,30 +94,30 @@ class SimpleHeadersSpec extends Http4sSpec {
                         `If-None-Match`(EntityTag("123-999", weak = true), EntityTag("hash")),
                         `If-None-Match`.`*`)
       foreach(headers){ header =>
-        HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+        HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
       }
     }
 
     "parse Transfer-Encoding" in {
       val header = `Transfer-Encoding`(TransferCoding.chunked)
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
 
       val header2 = `Transfer-Encoding`(TransferCoding.compress)
-      HttpHeaderParser.parseHeader(header2.toRaw) must be_\/-(header2)
+      HttpHeaderParser.parseHeader(header2.toRaw) must beXorRight(header2)
     }
 
     "parse User-Agent" in {
       val header = `User-Agent`(AgentProduct("foo", Some("bar")), Seq(AgentComment("foo")))
       header.value must_== "foo/bar (foo)"
 
-      HttpHeaderParser.parseHeader(header.toRaw) must be_\/-(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
 
       val header2 = `User-Agent`(AgentProduct("foo"), Seq(AgentProduct("bar", Some("biz")), AgentComment("blah")))
       header2.value must_== "foo bar/biz (blah)"
-      HttpHeaderParser.parseHeader(header2.toRaw) must be_\/-(header2)
+      HttpHeaderParser.parseHeader(header2.toRaw) must beXorRight(header2)
 
       val headerstr = "Mozilla/5.0 (Android; Mobile; rv:30.0) Gecko/30.0 Firefox/30.0"
-      HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must be_\/-(
+      HttpHeaderParser.parseHeader(Header.Raw(`User-Agent`.name, headerstr)) must beXorRight(
         `User-Agent`(AgentProduct("Mozilla", Some("5.0")), Seq(
             AgentComment("Android; Mobile; rv:30.0"),
             AgentProduct("Gecko", Some("30.0")),
@@ -129,14 +129,14 @@ class SimpleHeadersSpec extends Http4sSpec {
 
     "parse X-Forward-Spec" in {
       val header1 = `X-Forwarded-For`(NonEmptyList(Some(InetAddress.getLocalHost)))
-      HttpHeaderParser.parseHeader(header1.toRaw) must be_\/-(header1)
+      HttpHeaderParser.parseHeader(header1.toRaw) must beXorRight(header1)
 
       val header2 = `X-Forwarded-For`(NonEmptyList(Some(InetAddress.getLocalHost),
                                 Some(InetAddress.getLoopbackAddress)))
-      HttpHeaderParser.parseHeader(header2.toRaw) must be_\/-(header2)
+      HttpHeaderParser.parseHeader(header2.toRaw) must beXorRight(header2)
 
       val bad = Header(header1.name.toString, "foo")
-      HttpHeaderParser.parseHeader(bad) must be_-\/
+      HttpHeaderParser.parseHeader(bad) must beXorLeft
     }
   }
 

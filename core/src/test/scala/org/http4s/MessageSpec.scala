@@ -2,10 +2,8 @@ package org.http4s
 
 import java.net.InetSocketAddress
 
+import fs2._
 import org.http4s.headers.`Content-Type`
-
-import scalaz.concurrent.Task
-
 
 class MessageSpec extends Http4sSpec {
 

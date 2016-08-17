@@ -24,10 +24,10 @@ class HttpVersionSpec extends Http4sSpec {
   }
 
   "fromString is consistent with toString" in {
-    prop { v: HttpVersion => fromString(v.toString) must be_\/-(v) }
+    prop { v: HttpVersion => fromString(v.toString) must beXorRight(v) }
   }
 
   "protocol is case sensitive" in {
-    HttpVersion.fromString("http/1.0") must be_-\/
+    HttpVersion.fromString("http/1.0") must beXorLeft
   }
 }
