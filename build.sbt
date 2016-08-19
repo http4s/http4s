@@ -428,7 +428,8 @@ lazy val commonSettings = Seq(
     specs2Cats(sz),    
     specs2Core(sz),
     specs2Scalacheck(sz)
-  ).map(_ % "test"))
+  ).map(_ % "test")),
+  addCompilerPlugin("com.milessabin" % "si2712fix-plugin" % "1.2.0" cross CrossVersion.full)
 )
 
 lazy val publishSettings = Seq(

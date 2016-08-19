@@ -211,7 +211,7 @@ object +& {
 abstract class QueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapplySeq(params: Map[String, Seq[String]]): Option[Seq[T]] =
     params.get(name).flatMap(values =>
-      values.toList.traverseU(s =>
+      values.toList.traverse(s =>
         QueryParamDecoder[T].decode(QueryParameterValue(s)).toOption
       )
     )
@@ -241,7 +241,7 @@ abstract class QueryParamMatcher[T: QueryParamDecoder: QueryParam]
 
 abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   def unapply(params: Map[String, Seq[String]]): Option[Option[T]] =
-    params.get(name).flatMap(_.headOption).traverseU(s =>
+    params.get(name).flatMap(_.headOption).traverse(s =>
       QueryParamDecoder[T].decode(QueryParameterValue(s))
     ).toOption
 }
