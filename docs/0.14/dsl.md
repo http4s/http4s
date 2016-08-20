@@ -58,7 +58,7 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6550/1012790470@1afaa503)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6500/763387094@45a0f51)
 ```
 
 One beautiful thing about the `HttpService` model is that we don't
@@ -70,7 +70,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@49461707
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@34b3925b
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -107,7 +107,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@64e4a971
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@6676b699
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -207,7 +207,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@667abe7f
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@10eb89e
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -224,7 +224,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@19ea49b0
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@47a89c89
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
