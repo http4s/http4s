@@ -1,6 +1,6 @@
 package org.http4s
 
-import java.time.{ZonedDateTime, ZoneId, Instant}
+import java.time.{ZonedDateTime, ZoneId, Instant, LocalDateTime}
 import java.time.temporal.ChronoUnit
 
 import org.http4s.headers.{Allow, Date, `Content-Length`, `Accept-Charset`}
@@ -172,6 +172,18 @@ trait TestInstances {
     Arbitrary { for {
       instant <- httpDateInstant
     } yield headers.Date(instant) }
+
+  lazy val httpExpireInstant: Gen[Instant] = {
+    // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
+    val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli
+    val max = ZonedDateTime.of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC")).toInstant.toEpochMilli
+    choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
+  }
+
+  implicit lazy val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
+    Arbitrary { for {
+      instant <- httpExpireInstant
+    } yield headers.Expires(instant) }
 
   implicit lazy val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {

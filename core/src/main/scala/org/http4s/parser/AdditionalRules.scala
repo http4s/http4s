@@ -113,6 +113,8 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Digit4: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
 
+  def NegDigit1: Rule1[Int] = rule { "-" ~ capture(Digit) ~> {s: String => s.toInt} }
+
   def Ip4Number = rule { Digit3 | Digit2 | Digit1 }
 
   def Ip: Rule1[InetAddress] = rule {
