@@ -408,6 +408,26 @@ bytes ought to be good enough for anybody in order to avoid the irritations of <
       </a>
     </span>
       
+    </li><li name="org.http4s.headers.Expires" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="ExpiresextendsHeader.ParsedwithProductwithSerializable"></a>
+      <a id="Expires:Expires"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">final </span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="Expires.html"><span class="name">Expires</span></a><span class="params">(<span name="expirationDate">expirationDate: <span class="extype" name="java.time.Instant">Instant</span></span>)</span><span class="result"> extends <a href="../Header$$Parsed.html" class="extype" name="org.http4s.Header.Parsed">Parsed</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.headers.package@ExpiresextendsHeader.ParsedwithProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Constructs an <code>Expires</code> header.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs an <code>Expires</code> header.</p><p>The HTTP RFCs indicate that Expires should be in the range of now to 1 year in the future.
+However, it is a usual practice to set it to the past of far in the future
+Thus any instant is in practice allowed
+</p></div><dl class="paramcmts block"><dt class="param">expirationDate</dt><dd class="cmt"><p>the date of expiration</p></dd></dl></div>
     </li><li name="org.http4s.headers.Host" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="HostextendsHeader.ParsedwithProductwithSerializable"></a>
       <a id="Host:Host"></a>
@@ -1224,7 +1244,7 @@ bytes ought to be good enough for anybody in order to avoid the irritations of <
         <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <a href="Expires$.html"><span class="name">Expires</span></a><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="../Header.html" class="extype" name="org.http4s.Header">Header</a>] with <span class="extype" name="org.http4s.HeaderKey.Default">Default</span></span>
+        <a href="Expires$.html"><span class="name">Expires</span></a><span class="result"> extends <span class="extype" name="org.http4s.HeaderKey.Internal">Internal</span>[<a href="Expires.html" class="extype" name="org.http4s.headers.Expires">Expires</a>] with <a href="../HeaderKey$$Singleton.html" class="extype" name="org.http4s.HeaderKey.Singleton">Singleton</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.headers.package@Expires" title="Permalink" target="_top">
