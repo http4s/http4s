@@ -60,19 +60,16 @@ final private class Http1Support(config: BlazeClientConfig, executor: ExecutorSe
     val t = new Http1Connection(requestKey, config, executor, ec)
     val builder = LeafBuilder(t)
     requestKey match {
-      case RequestKey(Https, auth) if config.endpointAuthentication =>
+      case RequestKey(Https, auth) =>
         val eng = sslContext.createSSLEngine(auth.host.value, auth.port getOrElse 443)
         eng.setUseClientMode(true)
 
-        val sslParams = eng.getSSLParameters
-        sslParams.setEndpointIdentificationAlgorithm("HTTPS")
-        eng.setSSLParameters(sslParams)
+        if (config.endpointAuthentication) {
+          val sslParams = eng.getSSLParameters
+          sslParams.setEndpointIdentificationAlgorithm("HTTPS")
+          eng.setSSLParameters(sslParams)
+        }
 
-        (builder.prepend(new SSLStage(eng)),t)
-
-      case RequestKey(Https, _) =>
-        val eng = sslContext.createSSLEngine()
-        eng.setUseClientMode(true)
         (builder.prepend(new SSLStage(eng)),t)
 
       case _ => (builder, t)
