@@ -87,7 +87,7 @@ object Header {
       if (_parsed == null) {
         _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
       }
-      parsed
+      _parsed
     }
     override def renderValue(writer: Writer): writer.type = writer.append(value)
   }
