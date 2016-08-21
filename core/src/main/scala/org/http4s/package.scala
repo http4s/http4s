@@ -16,9 +16,9 @@ package object http4s { // scalastyle:ignore
   val ApiVersion: Http4sVersion =
     Http4sVersion(BuildInfo.apiVersion._1, BuildInfo.apiVersion._2)
 
-  type DecodeResult[A] = XorT[Task, DecodeFailure, A]
+  type DecodeResult[A] = EitherT[Task, DecodeFailure, A]
 
-  type ParseResult[+A] = ParseFailure Xor A
+  type ParseResult[+A] = Either[ParseFailure, A]
 
   val DefaultCharset = Charset.`UTF-8`
 

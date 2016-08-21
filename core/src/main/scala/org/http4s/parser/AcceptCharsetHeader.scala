@@ -18,9 +18,9 @@
 package org.http4s
 package parser
 
+import org.http4s.batteries._
 import org.parboiled2._
 import CharsetRange._
-
 
 private[parser] trait AcceptCharsetHeader {
 
@@ -47,7 +47,4 @@ private[parser] trait AcceptCharsetHeader {
       (";" ~ OptWS ~ "q" ~ "=" ~ QValue) | push(org.http4s.QValue.One)
     }
   }
-
-
-
 }

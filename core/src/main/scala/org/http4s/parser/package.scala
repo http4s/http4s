@@ -16,13 +16,13 @@ package object parser {
       type Result = ParseResult[Out]
 
       def success(result: L) =
-        Xor.right(unpack(result))
+        right(unpack(result))
 
       def parseError(error: ParseError) =
-        Xor.left(ParseFailure("", errorFormatter.formatExpectedAsString(error)))
+        left(ParseFailure("", errorFormatter.formatExpectedAsString(error)))
 
       def failure(error: Throwable) =
-        Xor.left(ParseFailure("Exception during parsing.", error.getMessage))
+        left(ParseFailure("Exception during parsing.", error.getMessage))
     }
     // scalastyle:on public.methods.have.type  
 }

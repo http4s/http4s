@@ -7,7 +7,7 @@ import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
 
 object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
-  def apply(m: Method, ms: Method*): Allow = Allow(NonEmptyList(m, ms:_*))
+  def apply(m: Method, ms: Method*): Allow = Allow(NonEmptyList.of(m, ms: _*))
 
   override def parse(s: String): ParseResult[Allow] =
     HttpHeaderParser.ALLOW(s)

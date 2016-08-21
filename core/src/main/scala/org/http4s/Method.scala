@@ -3,7 +3,6 @@ package org.http4s
 import scala.collection.concurrent.TrieMap
 
 import cats._
-import cats.data._
 import org.http4s.batteries._
 import org.http4s.parser.Rfc2616BasicRules
 import org.http4s.util.{Writer, Renderable}
@@ -54,10 +53,10 @@ object Method extends MethodInstances {
   import Semantics._
 
   // Lookups will usually be on fromString, so we store it wrapped in a Xor.Right
-  private val registry = TrieMap[String, Xor.Right[Method]]()
+  private val registry = TrieMap[String, Right[Nothing, Method]]()
 
   private def register[M <: Method](method: M): method.type = {
-    registry(method.name) = Xor.Right(method)
+    registry(method.name) = Right(method)
     method
   }
 

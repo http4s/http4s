@@ -11,7 +11,7 @@ import org.http4s.util.{Renderable, Writer}
 object Range extends HeaderKey.Internal[Range] with HeaderKey.Singleton {
 
   def apply(unit: RangeUnit, r1: SubRange, rs: SubRange*): Range =
-    Range(unit, NonEmptyList(r1, rs:_*))
+    Range(unit, NonEmptyList.of(r1, rs:_*))
 
   def apply(r1: SubRange, rs: SubRange*): Range = apply(RangeUnit.Bytes, r1, rs:_*)
 

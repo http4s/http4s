@@ -62,14 +62,14 @@ object ParseFailure {
 
 object ParseResult {
   def fail(sanitized: String, details: String): ParseResult[Nothing] =
-    Xor.left(ParseFailure(sanitized, details))
+    left(ParseFailure(sanitized, details))
   def success[A](a: A): ParseResult[A] =
-    Xor.right(a)
+    right(a)
 
   def fromTryCatchNonFatal[A](sanitized: String)(f: => A): ParseResult[A] =
     try ParseResult.success(f)
     catch {
-      case NonFatal(e) => Xor.left(ParseFailure(sanitized, e.getMessage))
+      case NonFatal(e) => left(ParseFailure(sanitized, e.getMessage))
     }
 }
 

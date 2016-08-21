@@ -18,12 +18,13 @@
 package org.http4s
 package parser
 
-import java.time.{ZonedDateTime, ZoneOffset, Instant}
-
-import org.parboiled2._
-import scala.util.Try
-import shapeless.{HNil, ::}
 import java.net.InetAddress
+import java.time.{ZonedDateTime, ZoneOffset, Instant}
+import scala.util.Try
+
+import org.http4s.batteries._
+import org.parboiled2._
+import shapeless.{HNil, ::}
 
 private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
   // scalastyle:off public.methods.have.type

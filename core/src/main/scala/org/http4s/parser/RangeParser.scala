@@ -14,7 +14,7 @@ private[parser] trait RangeParser {
 
     def entry = rule {
       capture(oneOrMore(Alpha)) ~ '=' ~ oneOrMore(byteRange).separatedBy(',') ~> { (s: String, rs: Seq[SubRange]) =>
-        Range(RangeUnit(s), NonEmptyList(rs.head, rs.tail:_*))
+        Range(RangeUnit(s), NonEmptyList.of(rs.head, rs.tail:_*))
       }
     }
   }.parse

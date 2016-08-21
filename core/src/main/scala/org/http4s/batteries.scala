@@ -2,7 +2,7 @@ package org.http4s
 
 protected[http4s] trait Batteries0 extends AnyRef
     with cats.syntax.AllSyntax
-    with cats.std.AllInstances
+    with cats.instances.AllInstances
     with fs2.interop.cats.Instances
     with util.ByteChunkSyntax
     with util.CaseInsensitiveStringSyntax

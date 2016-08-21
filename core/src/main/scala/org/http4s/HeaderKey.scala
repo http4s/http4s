@@ -44,14 +44,16 @@ object HeaderKey {
     def apply(values: NonEmptyList[HeaderT#Value]): HeaderT
 
     def apply(first: HeaderT#Value, more: HeaderT#Value*): HeaderT =
-      apply(NonEmptyList(first, more: _*))
+      apply(NonEmptyList(first, more.toList))
 
     def from(headers: Headers): Option[HeaderT] = {
       @tailrec def loop(hs: Headers, acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
         if (hs.nonEmpty) {
           matchHeader(hs.head) match {
-            case Some(header) => loop(hs.tail, acc ::: header.values.widen[HeaderT#Value])
-            case None => loop(hs.tail, acc)
+            case Some(header) =>
+              loop(hs.tail, acc.concat(header.values.widen[HeaderT#Value]))
+            case None =>
+              loop(hs.tail, acc)
           }
         }
         else acc

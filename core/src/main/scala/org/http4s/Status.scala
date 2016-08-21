@@ -3,7 +3,6 @@ package org.http4s
 import java.util.concurrent.atomic.AtomicReferenceArray
 
 import cats._
-import cats.data._
 import org.http4s.batteries._
 import org.http4s.Status.ResponseClass
 import org.http4s.util.Renderable
@@ -73,7 +72,7 @@ object Status {
 
   // scalastyle:off magic.number
   private val registry =
-    new AtomicReferenceArray[Xor.Right[Status]](600)
+    new AtomicReferenceArray[Right[Nothing, Status]](600)
   // scalastyle:on magic.number
 
   def registered: Iterable[Status] = for {
@@ -83,7 +82,7 @@ object Status {
 
   def register(status: Status): status.type = {
     // Xor.Right, not right, for specific inference
-    registry.set(status.code, Xor.Right(status))
+    registry.set(status.code, Right(status))
     status
   }
 

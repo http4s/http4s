@@ -100,7 +100,7 @@ object UrlForm {
   }
 
   /** Attempt to decode the `String` to a [[UrlForm]] */
-  def decodeString(charset: Charset)(urlForm: String): MalformedMessageBodyFailure Xor UrlForm =
+  def decodeString(charset: Charset)(urlForm: String): Either[MalformedMessageBodyFailure, UrlForm] =
     QueryParser.parseQueryString(urlForm.replace("+", "%20"), new Codec(charset.nioCharset))
       .map(q => UrlForm(q.multiParams))
       .leftMap { parseFailure => MalformedMessageBodyFailure(parseFailure.message, None) }

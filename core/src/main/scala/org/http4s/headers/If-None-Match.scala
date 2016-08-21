@@ -12,7 +12,7 @@ object `If-None-Match` extends HeaderKey.Internal[`If-None-Match`] with HeaderKe
   val `*` = `If-None-Match`(None)
 
   def apply(first: ETag.EntityTag, rest: ETag.EntityTag*): `If-None-Match` = {
-    `If-None-Match`(Some(NonEmptyList(first, rest:_*)))
+    `If-None-Match`(Some(NonEmptyList.of(first, rest:_*)))
   }
 
   override def parse(s: String): ParseResult[`If-None-Match`] =
