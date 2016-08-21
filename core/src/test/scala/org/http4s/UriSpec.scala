@@ -1,9 +1,8 @@
 package org.http4s
 
-import org.specs2.matcher.MustThrownMatchers
+import cats.data._
 import org.http4s.Uri._
-
-import scalaz.{-\/, Maybe}
+import org.specs2.matcher.MustThrownMatchers
 
 // TODO: this needs some more filling out
 class UriSpec extends Http4sSpec with MustThrownMatchers {
@@ -69,7 +68,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "provide a useful error message if string argument is not url-encoded" in {
-        Uri.fromString("http://example.org/a file") must_=== right(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
+        Uri.fromString("http://example.org/a file") must_=== Xor.left(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
       }
     }
 

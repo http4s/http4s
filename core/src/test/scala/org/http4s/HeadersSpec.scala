@@ -1,7 +1,7 @@
 package org.http4s
 
+import org.http4s.batteries._
 import org.http4s.headers._
-import org.http4s.util.CaseInsensitiveString._
 import org.specs2.mutable.Specification
 
 class HeadersSpec extends Specification {
@@ -32,7 +32,7 @@ class HeadersSpec extends Specification {
         org.http4s.headers.`Cookie`(org.http4s.Cookie("foo", "bar")),
         Header("Cookie", org.http4s.Cookie("baz", "quux").toString)
       )
-      headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome (2)
+      headers.get(org.http4s.headers.Cookie).map(_.values.unwrap.length) must beSome (2)
     }
 
     "Find the headers with DefaultHeaderKey keys" in {

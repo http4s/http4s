@@ -1,10 +1,9 @@
 package org.http4s
 
-import org.scalacheck.Prop._
+import cats._
+import org.http4s.batteries._
 import org.scalacheck.{Arbitrary, Properties}
-
-import scalaz.Equal
-import scalaz.syntax.validation._
+import org.scalacheck.Prop._
 
 /**
  * Instances of [[QueryParamDecoder]] and [[QueryParamEncoder]]
@@ -12,10 +11,10 @@ import scalaz.syntax.validation._
  */
 object QueryParamCodecLaws {
 
-  def apply[T: Arbitrary: Equal: QueryParamDecoder: QueryParamEncoder] = new Properties("QueryParamCodec") {
+  def apply[T: Arbitrary: Eq: QueryParamDecoder: QueryParamEncoder] = new Properties("QueryParamCodec") {
 
     property("decode . encode == successNel") = forAll { value: T =>
-      (QueryParamDecoder[T].decode _ compose QueryParamEncoder[T].encode)(value) === value.successNel
+      (QueryParamDecoder[T].decode _ compose QueryParamEncoder[T].encode)(value) === value.validNel
     }
 
   }

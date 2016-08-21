@@ -1,10 +1,9 @@
 package org.http4s
 package parser
 
+import org.http4s.batteries._
 import org.http4s.headers.`WWW-Authenticate`
 import org.specs2.mutable.Specification
-import scalaz.Validation
-import scala.Predef._
 
 class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`WWW-Authenticate`] {
   def hparse(value: String): ParseResult[`WWW-Authenticate`] = HttpHeaderParser.WWW_AUTHENTICATE(value)
@@ -35,7 +34,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
       val twotypes = "Newauth realm=\"apps\", Basic realm=\"simple\""
       val twoparsed = Challenge("Newauth", "apps")::Challenge("Basic","simple")::Nil
 
-      parse(twotypes).values.list must be_==(twoparsed)
+      parse(twotypes).values.unwrap must be_==(twoparsed)
     }
 
     "parse mulmultiple concatenated authentications with params" in {
@@ -43,7 +42,7 @@ class WwwAuthenticateHeaderSpec extends Specification with HeaderParserHelper[`W
       val twp = Challenge("Newauth", "apps", Map("type"->"1","title"->"Login to apps"))::
         Challenge("Basic","simple")::Nil
 
-      parse(twowparams).values.list must be_==(twp)
+      parse(twowparams).values.unwrap must be_==(twp)
     }
   }
 }

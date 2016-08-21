@@ -4,7 +4,7 @@
 package org.http4s
 
 import scala.concurrent.TimeoutException
-import scala.concurrent.duration.Duration
+import scala.concurrent.duration.FiniteDuration
 
 import fs2.Task
 import org.specs2._
@@ -27,21 +27,21 @@ trait TaskMatchers {
   def returnValue[T](check: ValueCheck[T]): TaskMatcher[T] =
     attemptRun(check, None)
 
-  def returnBefore[T](duration: Duration): TaskMatcher[T] =
+  def returnBefore[T](duration: FiniteDuration): TaskMatcher[T] =
     attemptRun(ValueCheck.alwaysOk, Some(duration))
 
-  private[specs2] def attemptRun[T](check: ValueCheck[T], duration: Option[Duration]): TaskMatcher[T] =
+  private def attemptRun[T](check: ValueCheck[T], duration: Option[FiniteDuration]): TaskMatcher[T] =
    TaskMatcher(check, duration)
 
-  case class TaskMatcher[T](check: ValueCheck[T], duration: Option[Duration]) extends Matcher[Task[T]] {
+  case class TaskMatcher[T](check: ValueCheck[T], duration: Option[FiniteDuration]) extends Matcher[Task[T]] {
     def apply[S <: Task[T]](e: Expectable[S]) = {
       duration match {
-        case Some(d) => e.value.attemptRunFor(d).fold(failedAttemptWithTimeout(e, d), checkResult(e))
-        case None    => e.value.attemptRun.fold(failedAttempt(e), checkResult(e))
+        case Some(d) => e.value.unsafeAttemptRunFor(d).fold(failedAttemptWithTimeout(e, d), checkResult(e))
+        case None    => e.value.unsafeAttemptRun.fold(failedAttempt(e), checkResult(e))
       }
     }
 
-    def before(d: Duration): TaskMatcher[T] =
+    def before(d: FiniteDuration): TaskMatcher[T] =
       copy(duration = Some(d))
 
     def withValue(check: ValueCheck[T]): TaskMatcher[T] =
@@ -50,7 +50,7 @@ trait TaskMatchers {
     def withValue(t: T): TaskMatcher[T] =
       withValue(valueIsTypedValueCheck(t))
 
-    private def failedAttemptWithTimeout[S <: Task[T]](e: Expectable[S], d: Duration)(t: Throwable): MatchResult[S] = {
+    private def failedAttemptWithTimeout[S <: Task[T]](e: Expectable[S], d: FiniteDuration)(t: Throwable): MatchResult[S] = {
       t match {
         case te: TimeoutException =>
           val message = s"Timeout after ${d.toMillis} milliseconds"

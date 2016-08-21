@@ -1,15 +1,12 @@
 package org.http4s
 
-import scalaz.scalacheck.ScalazProperties
-
-import scalaz.syntax.either._
+import cats.kernel.laws._
+import org.http4s.batteries._
 
 class QValueSpec extends Http4sSpec {
   import QValue._
 
-  checkAll(ScalazProperties.order.laws[QValue])
-
-  checkAll(ScalazProperties.equal.laws[QValue])
+  checkAll("QValue", OrderLaws[QValue].order)
 
   "sort by descending q-value" in {
     prop { (x: QValue, y: QValue) =>

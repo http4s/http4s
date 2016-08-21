@@ -1,6 +1,6 @@
 package org.http4s
 
-import java.nio.charset._
+import java.nio.charset.{Charset => NioCharset}
 import java.time._
 import java.time.temporal.ChronoUnit
 
@@ -23,7 +23,7 @@ trait TestInstances {
     Arbitrary { for {
       a <- arbitrary[A]
       list <- arbitrary[List[A]]
-    } yield NonEmptyList.nel(a, list) }
+    } yield NonEmptyList(a, list) }
 
   lazy val tchars: Gen[Char] = oneOf {
     Seq('!', '#', '$', '%', '&', '\'', '*', '+', '-', '.', '^', '_', '`', '|', '~') ++

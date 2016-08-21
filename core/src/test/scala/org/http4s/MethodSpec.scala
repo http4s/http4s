@@ -2,8 +2,7 @@ package org.http4s
 
 import java.util.Locale
 
-import scalaz.scalacheck.ScalazProperties
-
+import cats.kernel.laws._
 import org.http4s.parser.Rfc2616BasicRules
 import org.scalacheck.Prop.forAll
 
@@ -28,7 +27,7 @@ class MethodSpec extends Http4sSpec {
     }}
   }
 
-  checkAll(ScalazProperties.equal.laws[Method])
+  checkAll("Method", OrderLaws[Method].eqv)
 
   "methods are equal by name" in {
     prop { m: Method => Method.fromString(m.name) must beXorRight(m) }

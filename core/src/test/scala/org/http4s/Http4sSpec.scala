@@ -9,6 +9,9 @@
 
 package org.http4s
 
+import java.util.concurrent.ExecutorService
+
+import org.http4s.util.threads._
 import org.specs2.ScalaCheck
 import org.specs2.execute.AsResult
 import org.specs2.scalacheck.Parameters
@@ -20,7 +23,7 @@ import org.specs2.specification.core.Fragments
 import org.scalacheck._
 import org.scalacheck.util.{FreqMap, Pretty}
 import org.typelevel.discipline.Laws
-import org.typelevel.discipline.specs2.Discipline
+import org.typelevel.discipline.specs2.mutable.Discipline
 
 /**
  * Common stack for http4s' own specs.
@@ -35,7 +38,7 @@ trait Http4sSpec extends Specification
   with FragmentsDsl
   with TaskMatchers
   with Discipline
-  with Batteries
+  with Batteries0
 {
   implicit val params = Parameters(maxSize = 20)
 
@@ -63,14 +66,12 @@ trait Http4sSpec extends Specification
   def beStatus(status: Status): Matcher[Response] = { resp: Response =>
     (resp.status == status) -> s" doesn't have status ${status}"
   }
-
-  def checkAll(name: String, ruleSet: Laws#RuleSet)(implicit p: Parameters) = {
-    s"""${ruleSet.name} laws must hold for ${name}""" in {
-      Fragments.foreach(ruleSet.all.properties) { case (id, prop) =>
-        id ! check(prop, p, defaultFreqMapPretty) ^ br
-      }
-    }
-  }
 }
 
-
+object Http4sSpec {
+  // This is probably in poor taste, but I want to get things working.
+  implicit val TestPool: ExecutorService = {
+    val tf = threadFactory(l => s"http4s-spec-$l", daemon = true)
+    newDefaultFixedThreadPool(8, tf)
+  }
+}

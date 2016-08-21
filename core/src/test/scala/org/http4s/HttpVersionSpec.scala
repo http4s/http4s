@@ -1,15 +1,13 @@
 package org.http4s
 
-import scalaz.scalacheck.ScalazProperties
-
+import cats.kernel.laws._
 import org.scalacheck.Gen._
 import org.scalacheck.Prop._
 
 class HttpVersionSpec extends Http4sSpec {
   import HttpVersion._
 
-  checkAll(ScalazProperties.equal.laws[HttpVersion])
-  checkAll(ScalazProperties.order.laws[HttpVersion])
+  checkAll("HttpVersion", OrderLaws[HttpVersion].order)
 
   "sort by descending major version" in {
     prop { (x: HttpVersion, y: HttpVersion) => x.major > y.major ==> (x > y) }

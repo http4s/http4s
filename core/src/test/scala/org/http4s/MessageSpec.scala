@@ -44,12 +44,12 @@ class MessageSpec extends Http4sSpec {
         "MediaTypeMismatch" in {
           val req = Request(headers = Headers(`Content-Type`(MediaType.`application/base64`)))
           val resp = req.decodeWith(EntityDecoder.text, strict = true)(txt => Task.now(Response()))
-          resp must beStatus(Status.UnsupportedMediaType).run
+          resp.map(_.status) must returnValue(Status.UnsupportedMediaType)
         }
         "MediaTypeMissing" in {
           val req = Request()
           val resp = req.decodeWith(EntityDecoder.text, strict = true)(txt => Task.now(Response()))
-          resp must beStatus(Status.UnsupportedMediaType).run
+          resp.map(_.status) must returnValue(Status.UnsupportedMediaType)
         }
       }
     }
