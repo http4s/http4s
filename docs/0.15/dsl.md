@@ -58,7 +58,7 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6478/1525075326@43c9e3c2)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6507/1102309679@1e0ffd2e)
 ```
 
 ## Testing the Service
@@ -72,7 +72,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@66261391
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5bb391e2
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -109,7 +109,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@31ef829e
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@30deea10
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -209,7 +209,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@37fd06ef
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@a25141a
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -226,7 +226,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@77062771
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@721bbee5
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
