@@ -82,7 +82,13 @@ object Header {
    * @param value String representation of the header value
    */
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
-    override lazy val parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
+    private[this] var _parsed: Header = null
+    final override def parsed: Header = {
+      if (_parsed == null) {
+        _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
+      }
+      _parsed
+    }
     override def renderValue(writer: Writer): writer.type = writer.append(value)
   }
 
