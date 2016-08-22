@@ -14,11 +14,11 @@ class CharsetSpec extends Http4sSpec {
     }
 
     "work for aliases" in {
-      Charset.fromString("UTF8") must beXorRight(Charset.`UTF-8`)
+      Charset.fromString("UTF8") must beRight(Charset.`UTF-8`)
     }
 
     "return InvalidCharset for unregistered names" in {
-      Charset.fromString("blah") must beXorRight
+      Charset.fromString("blah") must beRight
     }
   }
 }

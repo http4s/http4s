@@ -32,7 +32,7 @@ class HeadersSpec extends Specification {
         org.http4s.headers.`Cookie`(org.http4s.Cookie("foo", "bar")),
         Header("Cookie", org.http4s.Cookie("baz", "quux").toString)
       )
-      headers.get(org.http4s.headers.Cookie).map(_.values.unwrap.length) must beSome (2)
+      headers.get(org.http4s.headers.Cookie).map(_.values.length) must beSome (2)
     }
 
     "Find the headers with DefaultHeaderKey keys" in {

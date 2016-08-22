@@ -18,7 +18,7 @@ class RangeParserSpec extends Http4sSpec {
       )
 
       forall(headers) { header =>
-        HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
+        HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
       }
     }
   }
@@ -34,7 +34,7 @@ class RangeParserSpec extends Http4sSpec {
     )
 
     forall(headers) { header =>
-      HttpHeaderParser.parseHeader(header.toRaw) must beXorRight(header)
+      HttpHeaderParser.parseHeader(header.toRaw) must beRight(header)
     }
   }
 }

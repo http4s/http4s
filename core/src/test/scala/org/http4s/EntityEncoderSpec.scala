@@ -8,14 +8,12 @@ import scala.concurrent.Future
 import cats._
 import fs2._
 import fs2.Stream._
-import fs2.interop.cats._
 import fs2.text._
+import org.http4s.batteries._
 import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.specs2.mutable.Specification
 
 object EntityEncoderSpec {
-  import cats.std.string._
-
   def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
     eval(W.toEntity(a))
       .flatMap { case Entity(body, _ ) => body }

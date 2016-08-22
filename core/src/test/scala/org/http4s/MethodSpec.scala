@@ -12,7 +12,7 @@ class MethodSpec extends Http4sSpec {
   import Method._
 
   "parses own string rendering to equal value" in {
-    forAll(tokens) { token => fromString(token).map(_.renderString) must beXorRight(token) }
+    forAll(tokens) { token => fromString(token).map(_.renderString) must beRight(token) }
   }
 
   "only tokens are valid methods" in {
@@ -30,7 +30,7 @@ class MethodSpec extends Http4sSpec {
   checkAll("Method", OrderLaws[Method].eqv)
 
   "methods are equal by name" in {
-    prop { m: Method => Method.fromString(m.name) must beXorRight(m) }
+    prop { m: Method => Method.fromString(m.name) must beRight(m) }
   }
 
   "safety implies idempotence" in {

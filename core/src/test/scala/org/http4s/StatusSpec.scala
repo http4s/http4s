@@ -14,7 +14,7 @@ class StatusSpec extends Http4sSpec {
   }
 
   def responseClassTest(range: Range, responseClass: ResponseClass) =
-    foreach(range) { i => fromInt(i) must beXorRight.like {
+    foreach(range) { i => fromInt(i) must beRight.like {
       case s => s.responseClass must_== responseClass
     }}
 

@@ -85,9 +85,9 @@ class UrlFormSpec extends Http4sSpec {
       map: Map[String, NonEmptyList[String]] => // non-empty because the kv-constructor can't represent valueless fields
         val flattened = for {
           (k, vs) <- map.toSeq
-          v <- vs.unwrap
+          v <- vs.toList
         } yield (k -> v)
-        UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.unwrap))
+        UrlForm(flattened: _*) must_== UrlForm(map.mapValues(_.toList))
     }
   }
 }

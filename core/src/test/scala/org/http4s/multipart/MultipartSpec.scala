@@ -71,7 +71,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
     
-    result must beXorRight.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
+    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
   }
 
   def encodeAndDecodeMultipartMissingContentType = {
@@ -88,7 +88,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
 
-    result must beXorRight.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
+    result must beRight.like { case mp => mp must beTypedEqualTo(multipart, Equal[Multipart].equal) }
   }
 
   def encodeAndDecodeMultipartWithBinaryFormData = {
@@ -113,7 +113,7 @@ class MultipartSpec extends Specification with DisjunctionMatchers {
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
 
-    result must beXorRight.like { case mp => multipart === mp }
+    result must beRight.like { case mp => multipart === mp }
   }
 
   def decodeMultipartRequestWithContentTypes = {
@@ -144,7 +144,7 @@ Content-Type: application/pdf
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
     
-   result must beXorRight
+   result must beRight
   }
 
   
@@ -170,7 +170,7 @@ I am a big moose
     val decoded    = EntityDecoder[Multipart].decode(request, true)
     val result     = decoded.run.run
     
-   result must beXorRight
+   result must beRight
   }  
 
  

@@ -17,19 +17,19 @@ class ExpiresSpec extends HeaderLaws {
 
   "parse" should {
     "accept format RFC 1123" in {
-      Expires.parse("Sun, 06 Nov 1994 08:49:37 GMT").map(_.expirationDate) must beXorRight(Instant.from(gmtDate))
+      Expires.parse("Sun, 06 Nov 1994 08:49:37 GMT").map(_.expirationDate) must beRight(Instant.from(gmtDate))
     }
     "accept 0 value (This value is not legal but it used by some servers)" in {
       // 0 is an illegal value used to denote an expired header, should be
       // equivalent to expiration set at the epoch
-      Expires.parse("0").map(_.expirationDate) must beXorRight(epoch)
-      Expires.parse("0").map(_.renderString) must beXorRight(epochString)
+      Expires.parse("0").map(_.expirationDate) must beRight(epoch)
+      Expires.parse("0").map(_.renderString) must beRight(epochString)
     }
     "accept -1 value (This value is not legal but it used by some servers)" in {
       // 0 is an illegal value used to denote an expired header, should be
       // equivalent to expiration set at the epoch
-      Expires.parse("-1").map(_.expirationDate) must beXorRight(epoch)
-      Expires.parse("-1").map(_.renderString) must beXorRight(epochString)
+      Expires.parse("-1").map(_.expirationDate) must beRight(epoch)
+      Expires.parse("-1").map(_.renderString) must beRight(epochString)
     }
   }
 }

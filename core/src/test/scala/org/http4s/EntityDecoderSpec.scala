@@ -40,7 +40,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
           .flatMapR(s => DecodeResult.failure[String](MalformedMessageBodyFailure("bummer")))
           .decode(r, strict = false)
           .value
-      } must returnValue(left(MalformedMessageBodyFailure("bummer")))
+      } must returnValue(Left(MalformedMessageBodyFailure("bummer")))
     }
 
     val nonMatchingDecoder = EntityDecoder.decodeBy[String](MediaRange.`video/*`) { _ =>
@@ -65,7 +65,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
 
       val decoded = decoder.decode(Request(headers = Headers(`Content-Type`(MediaType.`text/plain`))), strict = true).value.unsafeRun
-      val status = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafeRun.status).toEither
+      val status = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafeRun.status)
 
       status must beLeft(Status.UnprocessableEntity)
     }
@@ -117,19 +117,19 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val contentType = decoded.leftMap(_.toHttpResponse(HttpVersion.`HTTP/1.1`).unsafeRun.headers.get(`Content-Type`))
 
       "the content type is application/json instead of text/plain" ==> {
-        contentType must beXorLeft(Some(`Content-Type`(MediaType.`application/json`)))
+        contentType must beLeft(Some(`Content-Type`(MediaType.`application/json`)))
       }
     }
 
     "decodeStrict" >> {
       "should produce a MediaTypeMissing if message has no content type" in {
         val req = Request()
-        decoder1.decode(req, strict = true).value must returnValue(left(MediaTypeMissing(decoder1.consumes)))
+        decoder1.decode(req, strict = true).value must returnValue(Left(MediaTypeMissing(decoder1.consumes)))
       }
       "should produce a MediaTypeMismatch if message has unsupported content type" in {
         val tpe = MediaType.`text/css`
         val req = Request(headers = Headers(`Content-Type`(tpe)))
-        decoder1.decode(req, strict = true).value must returnValue(left(MediaTypeMismatch(tpe, decoder1.consumes)))
+        decoder1.decode(req, strict = true).value must returnValue(Left(MediaTypeMismatch(tpe, decoder1.consumes)))
       }
     }
 
@@ -265,7 +265,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
   "binary EntityDecoder" should {
     "yield an empty array on a bodyless message" in {
       val msg = Request()
-      binary.decode(msg, strict = false).value.unsafeRun must beXorRight.like { case Chunk.empty => ok }
+      binary.decode(msg, strict = false).value.unsafeRun must beRight.like { case Chunk.empty => ok }
     }
 
     "concat ByteVectors" in {
@@ -274,7 +274,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val msg = Request(body = body)
 
       val expected = Array[Byte](1, 2, 3, 4, 5, 6)
-      binary.decode(msg, strict = false).value must returnValue(right(expected))
+      binary.decode(msg, strict = false).value must returnValue(Right(expected))
     }
 
     "Match any media type" in {

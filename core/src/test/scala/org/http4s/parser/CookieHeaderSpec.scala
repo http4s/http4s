@@ -46,9 +46,7 @@ class CookieHeaderSpec extends Specification with HeaderParserHelper[headers.Coo
 
   "Cookie parser" should {
     "parse a cookie" in {
-
-      parse(cookiestr).values.unwrap must be_== (cookies)
-
+      parse(cookiestr).values.toList must be_== (cookies)
     }
   }
 }

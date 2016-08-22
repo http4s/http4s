@@ -68,7 +68,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       }
 
       "provide a useful error message if string argument is not url-encoded" in {
-        Uri.fromString("http://example.org/a file") must_=== Xor.left(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
+        Uri.fromString("http://example.org/a file") must_=== Left(ParseFailure("", "'/', 'EOI', '#', '?' or Pchar"))
       }
     }
 
@@ -256,7 +256,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
         "http://example.org/absolute/URI/with/absolute/path/to/resource.txt",
         "/relative/URI/with/absolute/path/to/resource.txt")
       foreach (examples) { e =>
-        Uri.fromString(e) must beXorRight.like { case u => u.toString must be_==(e) }
+        Uri.fromString(e) must beRight.like { case u => u.toString must be_==(e) }
       }
     }
 

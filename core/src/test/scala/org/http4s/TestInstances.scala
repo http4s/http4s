@@ -8,6 +8,7 @@ import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
 
 import cats.data.NonEmptyList
+import org.http4s.batteries._
 import org.http4s.headers.{Allow, Date, `Content-Length`, `Accept-Charset`}
 import org.http4s.util.string._
 import org.scalacheck.Arbitrary._
@@ -188,7 +189,7 @@ trait TestInstances {
       for {
         token <- tokens
         value <- fieldValues
-      } yield Header.Raw(token.ci, value)
+      } yield Header(token, value)
     }
 
   implicit lazy val arbitraryHeader: Arbitrary[Header] =
