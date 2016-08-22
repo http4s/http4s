@@ -28,19 +28,19 @@ class HttpServiceSpec extends Http4sSpec {
 
   "HttpService" should {
     "Return a valid Response from the first service of an aggregate" in {
-      aggregate1.apply(Request(uri = uri("/match"))).run.as[String].run must_== ("match")
+      aggregate1.apply(Request(uri = uri("/match"))) must runToBody("match")
     }
 
     "Return a custom NotFound from the first service of an aggregate" in {
-      aggregate1.apply(Request(uri = uri("/notfound"))).run.as[String].run must_== ("notfound")
+      aggregate1.apply(Request(uri = uri("/notfound"))) must runToBody("notfound")
     }
 
     "Accept the first matching route in the case of overlapping paths" in {
-      aggregate1.apply(Request(uri = uri("/conflict"))).run.as[String].run must_== ("srvc1conflict")
+      aggregate1.apply(Request(uri = uri("/conflict"))) must runToBody("srvc1conflict")
     }
 
     "Fall through the first service that doesn't match to a second matching service" in {
-      aggregate1.apply(Request(uri = uri("/srvc2"))).run.as[String].run must_== ("srvc2")
+      aggregate1.apply(Request(uri = uri("/srvc2"))) must runToBody("srvc2")
     }
 
     "Properly fall through two aggregated service if no path matches" in {
