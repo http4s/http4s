@@ -36,6 +36,7 @@ trait Http4sSpec extends Specification
   with TestInstances
   with AllInstances
   with FragmentsDsl
+  with Http4sMatchers
   with TaskMatchers
 {
   implicit val params = Parameters(maxSize = 20)

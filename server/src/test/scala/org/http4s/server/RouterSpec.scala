@@ -36,7 +36,7 @@ class RouterSpec extends Http4sSpec {
 
   "A router" should {
     "translate mount prefixes" in {
-      service.apply(Request(GET, uri("/numbers/1"))).run.as[String].run must_== ("one")
+      service.apply(Request(GET, uri("/numbers/1"))) must runToBody("one")
     }
 
     "require the correct prefix" in {
@@ -47,24 +47,23 @@ class RouterSpec extends Http4sSpec {
     }
 
     "support root mappings" in {
-      service.apply(Request(GET, uri("/about"))).run.as[String].run must_== ("about")
+      service.apply(Request(GET, uri("/about"))) must runToBody("about")
     }
 
     "match longer prefixes first" in {
-      service.apply(Request(GET, uri("/shadow/shadowed"))).run.as[String].run must_== ("visible")
+      service.apply(Request(GET, uri("/shadow/shadowed"))) must runToBody("visible")
     }
 
     "404 on unknown prefixes" in {
-      service.apply(Request(GET, uri("/symbols/~"))).run.status must_== (NotFound)
+      service.apply(Request(GET, uri("/symbols/~"))) must runToStatus (NotFound)
     }
 
     "Allow passing through of routes with identical prefixes" in {
-      Router("" -> letters, "" -> numbers).apply(Request(GET, uri("/1")))
-        .run.as[String].run must_== ("one")
+      Router("" -> letters, "" -> numbers).apply(Request(GET, uri("/1"))) must runToBody("one")
     }
 
     "Serve custom NotFound responses" in {
-      Router("/foo" -> notFound).apply(Request(uri = uri("/foo/bar"))).run.as[String].run must_== ("Custom NotFound")
+      Router("/foo" -> notFound).apply(Request(uri = uri("/foo/bar"))) must runToBody("Custom NotFound")
     }
 
     "Return the tagged NotFound response if no route is found" in {
