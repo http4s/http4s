@@ -195,7 +195,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
         "Name"    -> Seq("Jonathan Doe")
       ))
       val resp = Request().withBody(urlForm)(UrlForm.entityEncoder(Charset.`UTF-8`)).flatMap(server)
-      resp.map(_.status) must be(Ok)
+      resp.map(_.status) must returnValue(Ok)
       resp.flatMap(UrlForm.entityDecoder.decode(_, strict = true).value) must returnValue(right(urlForm))
     }
 
@@ -273,7 +273,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val body = chunk(Chunk.bytes(d1)) ++ chunk(Chunk.bytes(d2))
       val msg = Request(body = body)
 
-      val expected = Array[Byte](1, 2, 3, 4, 5, 6)
+      val expected = Chunk.bytes(Array[Byte](1, 2, 3, 4, 5, 6))
       binary.decode(msg, strict = false).value must returnValue(Right(expected))
     }
 

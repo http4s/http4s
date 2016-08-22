@@ -425,7 +425,6 @@ lazy val commonSettings = Seq(
     catsKernelLaws,
     discipline,
     logbackClassic,
-    specs2Cats(sz),    
     specs2Core(sz),
     specs2Scalacheck(sz)
   ).map(_ % "test")),

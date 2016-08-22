@@ -27,7 +27,7 @@ class UrlFormSpec extends Http4sSpec {
     "decodeString . encodeString == right" in prop{ (urlForm: UrlForm) =>
       UrlForm.decodeString(charset)(
         UrlForm.encodeString(charset)(urlForm)
-      ) must_== right(urlForm)
+      ) must_== Right(urlForm)
     }
 
     "get returns elements matching key" in {

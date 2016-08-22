@@ -32,7 +32,6 @@ trait Http4sSpec extends Specification
   with ScalaCheck
   with AnyMatchers
   with OptionMatchers
-  with XorMatchers
   with Http4s
   with TestInstances
   with FragmentsDsl
