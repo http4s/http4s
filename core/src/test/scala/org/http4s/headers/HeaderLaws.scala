@@ -8,6 +8,7 @@ trait HeaderLaws extends Http4sSpec with Laws {
   def headerLaws(key: HeaderKey)(implicit arbHeader: Arbitrary[key.HeaderT]): RuleSet = {
     new SimpleRuleSet(
       "header",
+
       """parse(a.value) == right(a)"""" -> prop { a: key.HeaderT =>
         key.parse(a.value) must beRight(a)
       },

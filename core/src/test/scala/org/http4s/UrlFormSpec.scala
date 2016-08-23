@@ -19,15 +19,15 @@ class UrlFormSpec extends Http4sSpec {
     val charset = Charset.`UTF-8`
 
     "entityDecoder . entityEncoder == right" in prop { (urlForm: UrlForm) =>
-      Request().withBody(urlForm)(UrlForm.entityEncoder(charset)).flatMap { req =>
-        UrlForm.entityDecoder.decode(req, strict = false).value
-      } must returnValue(right(urlForm))
+      DecodeResult.success(Request().withBody(urlForm)(UrlForm.entityEncoder(charset))).flatMap { req =>
+        UrlForm.entityDecoder.decode(req, strict = false)
+      } must returnRight(urlForm)
     }
 
     "decodeString . encodeString == right" in prop{ (urlForm: UrlForm) =>
       UrlForm.decodeString(charset)(
         UrlForm.encodeString(charset)(urlForm)
-      ) must_== Right(urlForm)
+      ) must beRight(urlForm)
     }
 
     "get returns elements matching key" in {

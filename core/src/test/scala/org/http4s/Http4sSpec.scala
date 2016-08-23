@@ -38,6 +38,7 @@ trait Http4sSpec extends Specification
   with TaskMatchers
   with Discipline
   with Batteries0
+  with Http4sMatchers
 {
   implicit val params = Parameters(maxSize = 20)
 
