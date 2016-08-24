@@ -1,4 +1,4 @@
-# v0.14.3 (unreleased)
+# v0.14.3 (2016-08-24)
 * Follow 301 and 302 responses to POST with a GET request.
 * Follow all redirect responses to HEAD with a HEAD request.
 * Fix bug where redirect response is disposed prematurely even if not followed.
@@ -8,6 +8,8 @@
   throws an exception. Fixes a resource leak.
 * Always render `Date` header in GMT.
 * Fully support the three date formats specified by RFC 7231.
+* Always specify peer information in blaze-client SSL engines
+* Patch upgrades to latest async-http-client, jetty, scalaz, and scalaz-stream
 
 # v0.14.2 (2016-08-10)
 * Override `getMessage` in `UnexpectedStatus`
