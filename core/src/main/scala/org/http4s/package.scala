@@ -83,4 +83,7 @@ package object http4s {
   }
 
   type Callback[A] = Throwable \/ A => Unit
+
+  /** A stream of server-sent events */
+  type EventStream = Process[Task, ServerSentEvent]
 }

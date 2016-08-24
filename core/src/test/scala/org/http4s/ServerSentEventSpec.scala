@@ -1,7 +1,6 @@
 package org.http4s
 
-import org.specs2.ScalaCheck
-import org.specs2.mutable.Specification
+import org.http4s.headers._
 import scalaz.concurrent.Task
 import scalaz.stream.Process
 import scalaz.stream.Process.{emit, emitAll}
@@ -84,6 +83,18 @@ class ServerSentEventSpec extends Http4sSpec {
         .runLog
         .run
       roundTrip must_== sses
+    }
+  }
+
+  "EntityEncoder[ServerSentEvent]" should {
+    val eventStream = Process.range(0, 5).map(i => ServerSentEvent(data = i.toString)).toSource
+    "set Content-Type to text/event-stream" in {
+      Response().withBody(eventStream).run.contentType must beSome(`Content-Type`(MediaType.`text/event-stream`))
+    }
+
+    "decode to original event stream" in {
+      val resp = Response().withBody(eventStream).run
+      resp.body.pipe(ServerSentEvent.decoder).runLog.run must_== eventStream.runLog.run
     }
   }
 }

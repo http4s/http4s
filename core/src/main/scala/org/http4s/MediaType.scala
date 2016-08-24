@@ -308,6 +308,7 @@ object MediaType extends Registry {
   val `text/calendar`             = txt("calendar", "ics", "icz")
   val `text/css`                  = txt("css", "css")
   val `text/csv`                  = txt("csv", "csv")
+  val `text/event-stream`         = txt("event-stream")
   val `text/html`                 = txt("html", "htm", "html", "htmls", "htx")
   val `text/mcf`                  = txt("mcf", "mcf")
   val `text/plain`                = txt("plain", "conf", "text", "txt", "properties")
