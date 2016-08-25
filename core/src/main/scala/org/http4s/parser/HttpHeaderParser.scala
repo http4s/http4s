@@ -20,6 +20,7 @@ package parser
 
 import java.util
 
+import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 
 import Header.Parsed

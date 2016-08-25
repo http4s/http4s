@@ -14,16 +14,16 @@ import util.{Renderable, Writer}
 case class ServerSentEvent(
   data: String,
   eventType: Option[String] = None,
-  id: EventId = NoEventId,
+  id: Option[EventId] = None,
   retry: Option[Long] = None
 ) extends Renderable {
   def render(writer: Writer): writer.type = {
     writer << "data:" << data << "\n"
     eventType.foreach { writer << "event:" << _ << "\n" }
     id match {
-      case NoEventId =>
-      case SomeEventId(id) => writer << "id:" << id << "\n"
-      case ResetEventId => writer << "id\n"
+      case None =>
+      case Some(EventId.reset) => writer << "id\n"
+      case Some(EventId(id)) => writer << "id:" << id << "\n"
     }
     retry.foreach { writer << "retry:" << _ << "\n" }
     writer << "\n"
@@ -36,13 +36,11 @@ case class ServerSentEvent(
 object ServerSentEvent {
   val empty = ServerSentEvent("")
 
-  sealed trait EventId
-  /** An explicit event ID. */
-  case class SomeEventId(value: String) extends EventId
-  /** An empty ID field, which resets the last event ID in an event source. */
-  case object ResetEventId extends EventId
-  /** A message that specifies no ID. */
-  case object NoEventId extends EventId
+  case class EventId(value: String)
+
+  object EventId {
+    val reset: EventId = EventId("")
+  }
 
   val decoder: Process1[ByteVector, ServerSentEvent] = {
     def splitLines(rest: String): Process1[String, String] =
@@ -55,16 +53,16 @@ object ServerSentEvent {
 
     def go(dataBuffer: StringBuilder,
            eventType: Option[String],
-           id: EventId,
+           id: Option[EventId],
            retry: Option[Long]): Process1[String, ServerSentEvent] = {
       def dispatch =
         dataBuffer.toString match {
           case "" =>
-            go(new StringBuilder, None, NoEventId, None)
+            go(new StringBuilder, None, None, None)
           case s =>
             val data = if (s.endsWith("\n")) s.dropRight(1) else s
             val sse = ServerSentEvent(data, eventType, id, retry)
-            emit(sse) ++ go(new StringBuilder, None, NoEventId, None)
+            emit(sse) ++ go(new StringBuilder, None, None, None)
         }
 
       def handleLine(field: String, value: String) =
@@ -74,11 +72,8 @@ object ServerSentEvent {
           case "data" =>
             go(dataBuffer.append(value).append("\n"), eventType, id, retry)
           case "id" =>
-            val newId = value match {
-              case "" => ResetEventId
-              case s => SomeEventId(s)
-            }
-            go(dataBuffer, eventType, newId, retry)
+            val newId = EventId(value)
+            go(dataBuffer, eventType, Some(newId), retry)
           case "retry" =>
             val newRetry = Try(value.toLong).toOption.orElse(retry)
             go(dataBuffer, eventType, id, newRetry)
@@ -103,7 +98,7 @@ object ServerSentEvent {
 
     utf8Decode
       .pipe(splitLines(""))
-      .pipe(suspend(go(new StringBuilder, None, NoEventId, None)))
+      .pipe(suspend(go(new StringBuilder, None, None, None)))
   }
 
   val encoder: Process1[ServerSentEvent, ByteVector] =

@@ -38,9 +38,9 @@ class ServerSentEventSpec extends Http4sSpec {
       |""".stripMargin('|'))
       //test stream\n\ndata: first event\nid: 1\n\ndata:second event\nid\n\ndata:  third event\n")
       stream.pipe(ServerSentEvent.decoder).runLog.run must_== Vector(
-        ServerSentEvent(data = "first event", id = SomeEventId("1")),
-        ServerSentEvent(data = "second event", id = ResetEventId),
-        ServerSentEvent(data = " third event", id = NoEventId)                
+        ServerSentEvent(data = "first event", id = Some(EventId("1"))),
+        ServerSentEvent(data = "second event", id = Some(EventId.reset)),
+        ServerSentEvent(data = " third event", id = None)                
       )
     }
 
