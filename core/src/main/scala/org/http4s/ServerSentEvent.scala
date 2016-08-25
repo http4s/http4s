@@ -1,7 +1,9 @@
 
 package org.http4s
 
+import java.util.regex.Pattern
 import scala.util.Try
+
 import scalaz.stream.Process._
 import scalaz.stream.Process1
 import scalaz.stream.text.{utf8Decode, utf8Encode}
@@ -42,9 +44,15 @@ object ServerSentEvent {
     val reset: EventId = EventId("")
   }
 
+  // Pattern instead of Regex, because Regex doesn't have split with limit. :(
+  private val LineEnd =
+    Pattern.compile("""\r\n|\n|\r""")
+  private val FieldSeparator =
+    Pattern.compile(""": ?""")
+
   val decoder: Process1[ByteVector, ServerSentEvent] = {
     def splitLines(rest: String): Process1[String, String] =
-      rest.split("""\r\n|\n|\r""", 2) match {
+      LineEnd.split(rest, 2) match {
         case Array(head, tail) =>
           emit(head) ++ splitLines(tail)
         case Array(head) =>
@@ -58,7 +66,8 @@ object ServerSentEvent {
       def dispatch =
         dataBuffer.toString match {
           case "" =>
-            go(new StringBuilder, None, None, None)
+            // We just proved dataBuffer is empty, so we can reuse it
+            go(dataBuffer, None, None, None)
           case s =>
             val data = if (s.endsWith("\n")) s.dropRight(1) else s
             val sse = ServerSentEvent(data, eventType, id, retry)
@@ -87,7 +96,7 @@ object ServerSentEvent {
         case s if s.startsWith(":") =>
           go(dataBuffer, eventType, id, retry)
         case s =>
-          s.split(":\\s?", 2) match {
+          FieldSeparator.split(s, 2) match {
             case Array(field, value) =>
               handleLine(field, value)
             case Array(line) =>
