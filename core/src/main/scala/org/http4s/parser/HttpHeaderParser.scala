@@ -38,7 +38,8 @@ object HttpHeaderParser extends SimpleHeaders
                     with RangeParser
                     with LocationHeader
                     with ProxyAuthenticateHeader
-                    with WwwAuthenticateHeader {
+                    with WwwAuthenticateHeader
+                    with ZipkinHeader {
 
   type HeaderParser = String => ParseResult[Parsed]
 
