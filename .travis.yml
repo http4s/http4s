@@ -24,7 +24,9 @@ webhooks:
 sudo: false
 cache:
   directories:
+  - "$HOME/.coursier/cache"
   - "$HOME/.ivy2/cache"
+  - "$HOME/.sbt/boot"
 before_install:
 - rvm install 2.2.3
 - openssl aes-256-cbc -K $encrypted_cb02ffa32b87_key -iv $encrypted_cb02ffa32b87_iv
