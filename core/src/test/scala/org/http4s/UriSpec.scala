@@ -691,4 +691,10 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       "http:g"        shouldResolveTo "http:g"
     }
   }
+
+  "Uri.equals" should {
+    "be false between an empty path and a trailing slash after an authority" in {
+      uri("http://example.com") must_!= uri("http://example.com/")
+    }
+  }
 }
