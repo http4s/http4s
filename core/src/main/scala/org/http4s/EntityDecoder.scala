@@ -121,7 +121,7 @@ object EntityDecoder extends EntityDecoderInstances {
 
   /** Helper method which simply gathers the body into a single ByteVector */
   def collectBinary(msg: Message): DecodeResult[Chunk[Byte]] =
-    DecodeResult.success(msg.body.chunks.runFoldMap(identity))
+    DecodeResult.success(msg.body.chunks.runFoldMap[Chunk[Byte]](identity))
 
   /** Decodes a message to a String */
   def decodeString(msg: Message)(implicit defaultCharset: Charset = DefaultCharset): Task[String] =
