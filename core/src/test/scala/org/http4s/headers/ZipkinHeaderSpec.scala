@@ -5,7 +5,13 @@ import org.http4s.Http4sSpec
 
 import scalaz.\/
 
-class ZipkinHeaderSpec extends Http4sSpec {
+class ZipkinHeaderSpec extends HeaderLaws {
+  checkAll("X-B3-Sampled", headerLaws(`X-B3-Sampled`))
+  checkAll("X-B3-Flags", headerLaws(`X-B3-Flags`))
+  checkAll("X-B3-TraceId", headerLaws(`X-B3-TraceId`))
+  checkAll("X-B3-SpanId", headerLaws(`X-B3-SpanId`))
+  checkAll("X-B3-ParentSpanId", headerLaws(`X-B3-ParentSpanId`))
+
   "flags" >> {
     import `X-B3-Flags`.Flag
     "no parse when arbitrary string" >> {
@@ -18,25 +24,25 @@ class ZipkinHeaderSpec extends Http4sSpec {
     "parses no flags when 0" >> {
       val noFlags = "0"
       `X-B3-Flags`.parse(noFlags) must_=== {
-        \/.right(`X-B3-Flags`(List.empty))
+        \/.right(`X-B3-Flags`(Set.empty))
       }
     }
     "parses 'debug' flag" >> {
       val debugFlag = "1"
       `X-B3-Flags`.parse(debugFlag) must_=== {
-        \/.right(`X-B3-Flags`(List(Flag.Debug)))
+        \/.right(`X-B3-Flags`(Set(Flag.Debug)))
       }
     }
     "parses 'sampling set' flag" >> {
       val samplingSetFlag = "2"
       `X-B3-Flags`.parse(samplingSetFlag) must_=== {
-        \/.right(`X-B3-Flags`(List(Flag.SamplingSet)))
+        \/.right(`X-B3-Flags`(Set(Flag.SamplingSet)))
       }
     }
     "parses 'sampled' flag" >> {
       val sampledFlag = "4"
       `X-B3-Flags`.parse(sampledFlag) must_=== {
-        \/.right(`X-B3-Flags`(List(Flag.Sampled)))
+        \/.right(`X-B3-Flags`(Set(Flag.Sampled)))
       }
     }
     "parses multiple flags" >> {
@@ -45,6 +51,23 @@ class ZipkinHeaderSpec extends Http4sSpec {
       result must be_\/-
       result.toOption.get.flags must contain(Flag.Sampled)
       result.toOption.get.flags must contain(Flag.Debug)
+    }
+
+    "renders when no flags" >> {
+      val result = `X-B3-Flags`(Set.empty).value
+      result must_=== "0"
+    }
+    "renders when one flag" >> {
+      val result = `X-B3-Flags`(Set(Flag.Debug)).value
+      result must_=== "1"
+    }
+    "renders when no flags" >> {
+      val result = `X-B3-Flags`(Set.empty).value
+      result must_=== "0"
+    }
+    "renders when multiple flags" >> {
+      val result = `X-B3-Flags`(Set(Flag.Debug, Flag.Sampled)).value
+      result must_=== "5"
     }
   }
 

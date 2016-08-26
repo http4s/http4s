@@ -3,7 +3,7 @@ package headers
 
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.Writer
-import org.http4s.{Header, HeaderKey, ParseResult}
+import java.lang.{Long => JLong}
 
 object `X-B3-ParentSpanId` extends HeaderKey.Internal[`X-B3-ParentSpanId`] with HeaderKey.Singleton {
   override def parse(s: String): ParseResult[`X-B3-ParentSpanId`] =
@@ -11,8 +11,9 @@ object `X-B3-ParentSpanId` extends HeaderKey.Internal[`X-B3-ParentSpanId`] with 
 
 }
 
-final case class `X-B3-ParentSpanId`(traceId: Long) extends Header.Parsed {
+final case class `X-B3-ParentSpanId`(id: Long) extends Header.Parsed {
   override def key: `X-B3-ParentSpanId`.type = `X-B3-ParentSpanId`
 
-  override def renderValue(writer: Writer): writer.type = writer.append(value)
+  override def renderValue(writer: Writer): writer.type =
+    xB3RenderValueImpl(writer, id)
 }
