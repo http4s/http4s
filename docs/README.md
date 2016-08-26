@@ -24,7 +24,7 @@ repository.
 You can generate the site with:
 
 ```
-sbt ++2.11.7 docs/makeSite
+sbt docs/makeSite
 ```
 
 The site can be previewed locally by running the bin/local-site script
