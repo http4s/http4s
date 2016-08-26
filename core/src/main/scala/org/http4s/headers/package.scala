@@ -5,7 +5,7 @@ import java.lang.{Long => JLong}
 
 package object headers {
 
-  def xB3RenderValueImpl(writer: Writer, id: Long): writer.type = {
+  private[headers] def xB3RenderValueImpl(writer: Writer, id: Long): writer.type = {
     if (id == 0L) {
       val idLength = 16
       writer.append("0" * idLength)
