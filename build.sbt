@@ -158,7 +158,16 @@ lazy val json4s = libraryProject("json4s")
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
     description := "Provides json4s-native codecs for http4s",
-    libraryDependencies += Http4sBuild.json4sNative
+    libraryDependencies += Http4sBuild.json4sNative,
+    scalacOptions := {
+      VersionNumber(scalaVersion.value).numbers match {
+        case Seq(2, y, _) if y >= 11 =>
+          // scala.text.Document is deprecated starting in 2.10
+          scalacOptions.value filterNot (_ == "-Xfatal-warnings")
+        case _ =>
+          scalacOptions.value
+      }
+    }
   )
   .dependsOn(json4s % "compile;test->test")
 
@@ -409,6 +418,16 @@ lazy val commonSettings = Seq(
     "-Ywarn-value-discard",
     "-Xfuture"
   ),
+  scalacOptions ++= {
+    // We're deprecation-clean across Scala versions, but not across scalaz
+    // versions.  This is not worth maintaining a branch.
+    VersionNumber(scalazVersion.value).numbers match {
+      case Seq(7, 1, _) =>
+        Seq("-Xfatal-warnings")
+      case _ =>
+        Seq.empty
+    }
+  },
   /* disabled because SI-7529
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
