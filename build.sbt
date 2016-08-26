@@ -418,14 +418,16 @@ lazy val commonSettings = Seq(
     "-Ywarn-value-discard",
     "-Xfuture"
   ),
-  scalacOptions ++= {
+  scalacOptions := {
     // We're deprecation-clean across Scala versions, but not across scalaz
     // versions.  This is not worth maintaining a branch.
     VersionNumber(scalazVersion.value).numbers match {
       case Seq(7, 1, _) =>
-        Seq("-Xfatal-warnings")
+        scalacOptions.value
       case _ =>
-        Seq.empty
+        // This filtering does not trigger when scalazVersion is changed in a
+        // running SBT session.  Help wanted.
+        scalacOptions.value filterNot (_ == "-Xfatal-warnings")
     }
   },
   /* disabled because SI-7529
