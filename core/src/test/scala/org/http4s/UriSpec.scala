@@ -620,7 +620,7 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
     "correctly remove ./.. sequences" >> {
       implicit class checkDotSequences(path: String) {
         def removingDotsShould_==(expected: String) =
-          s"$path -> $expected" in { removeDotSequences(path) must_== expected }
+          s"$path -> $expected" in { removeDotSegments(path) must_== expected }
       }
 
       // from RFC 3986 sec 5.2.4

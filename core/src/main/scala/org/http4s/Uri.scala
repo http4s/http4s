@@ -3,10 +3,10 @@ package org.http4s
 import java.nio.charset.StandardCharsets
 
 import scala.language.experimental.macros
-import scala.reflect.macros.Context
+import scala.reflect.macros.whitebox.Context
 
+import macrocompat.bundle
 import org.http4s.Uri._
-
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
 import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
@@ -108,15 +108,16 @@ final case class Uri(
 }
 
 object Uri extends UriFunctions {
-  object macros {
-    def uriLiteral(c: Context)(s: c.Expr[String]): c.Expr[Uri] = {
-      import c.universe._
+  @bundle
+  class Macros(val c: Context) {
+    import c.universe._
 
+    def uriLiteral(s: c.Expr[String]): Tree = {
       s.tree match {
         case Literal(Constant(s: String)) =>
           Uri.fromString(s).fold(
             e => c.abort(c.enclosingPosition, e.details),
-            qValue => c.Expr(q"org.http4s.Uri.fromString($s).valueOr(throw _)")
+            qValue => q"org.http4s.Uri.fromString($s).valueOr(throw _)"
           )
         case _ =>
           c.abort(c.enclosingPosition, s"only supports literal Strings")
@@ -195,14 +196,14 @@ trait UriFunctions {
    * Literal syntax for URIs.  Invalid or non-literal arguments are rejected
    * at compile time.
    */
-  def uri(s: String): Uri = macro Uri.macros.uriLiteral
+  def uri(s: String): Uri = macro Uri.Macros.uriLiteral
 
   /**
    * Resolve a relative Uri reference, per RFC 3986 sec 5.2
    */
   def resolve(base: Uri, reference: Uri): Uri = {
 
-    /** Merge paths per RFC 3986 5.2.3 */
+    /* Merge paths per RFC 3986 5.2.3 */
     def merge(base: Path, reference: Path): Path =
       base.substring(0, base.lastIndexOf('/') + 1) + reference
 
@@ -216,13 +217,13 @@ trait UriFunctions {
         else Uri(s,a,merge(bp,p),q,f)
     }
 
-    target.withPath(removeDotSequences(target.path))
+    target.withPath(removeDotSegments(target.path))
   }
 
   /**
    * Remove dot sequences from a Path, per RFC 3986 Sec 5.2.4
    */
-  private[http4s] def removeDotSequences(path: Path): Path = {
+  def removeDotSegments(path: Path): Path = {
     def loop(input: List[Char], output: List[Char], depth: Int = 0): Path = input match {
       case Nil                              => output.reverse.mkString
       case '.' :: '.' :: '/' :: rest        => loop(rest, output, depth)        // remove initial ../

@@ -148,7 +148,7 @@ object MediaType extends Registry {
   private[this] val extensionMap = new AtomicReference(Map.empty[String, MediaType])
 
   @tailrec
-  private def registerFileExtension(ext: String, mediaType: MediaType) {
+  private def registerFileExtension(ext: String, mediaType: MediaType): Unit = {
     val lcExt = ext.toLowerCase
     val current = extensionMap.get
     require(!current.contains(lcExt), "Extension '%s' clash: media-types '%s' and '%s'" format (ext, current(lcExt), mediaType))

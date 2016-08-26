@@ -29,7 +29,7 @@ import HttpMethod._
 
 import com.codahale.metrics.MetricRegistry.{name => registryName}
 /**
- * A Jetty {@link Handler} which records various metrics about an underlying {@link Handler}
+ * A Jetty Handler which records various metrics about an underlying `Handler`
  * instance.
  *
  * <a href="https://github.com/http4s/http4s/issues/204">See http4s/http4s#204</a>.
@@ -87,100 +87,99 @@ protected final case class InstrumentedHandler(registry:MetricRegistry , _prefix
   private lazy val  moveRequests     = registerTimer( "move-requests")
   private lazy val  otherRequests    = registerTimer( "other-requests")
 
-  override protected def doStart  {
-      super.doStart()
-      registry.register(registryName(prefix, "percent-4xx-1m"), new RatioGauge() {
-          protected def getRatio() = {
-            Ratio.of(responses(3).getOneMinuteRate(),
-                     requests.getOneMinuteRate())
-          }
+  override protected def doStart: Unit = {
+    super.doStart()
+    registry.register(registryName(prefix, "percent-4xx-1m"), new RatioGauge() {
+      protected def getRatio() = {
+        Ratio.of(responses(3).getOneMinuteRate(),
+          requests.getOneMinuteRate())
+      }
+    })
+    registry.register(registryName(prefix, "percent-4xx-5m"), new RatioGauge() {
+      protected def getRatio() =
+        Ratio.of(responses(3).getFiveMinuteRate(),requests.getFiveMinuteRate())
       })
-      registry.register(registryName(prefix, "percent-4xx-5m"), new RatioGauge() {
-          protected def getRatio() =
-            Ratio.of(responses(3).getFiveMinuteRate(),requests.getFiveMinuteRate())
-      })
-      registry.register(registryName(prefix, "percent-4xx-15m"), new RatioGauge() {
-          protected def getRatio() =
-            Ratio.of(responses(3).getFifteenMinuteRate(),requests.getFifteenMinuteRate())
+    registry.register(registryName(prefix, "percent-4xx-15m"), new RatioGauge() {
+      protected def getRatio() =
+        Ratio.of(responses(3).getFifteenMinuteRate(),requests.getFifteenMinuteRate())
+    })
+    registry.register(registryName(prefix, "percent-5xx-1m"), new RatioGauge() {
+      protected def getRatio() =
+        Ratio.of(responses(4).getOneMinuteRate(),requests.getOneMinuteRate())
 
-      })
-      registry.register(registryName(prefix, "percent-5xx-1m"), new RatioGauge() {
-          protected def getRatio() =
-            Ratio.of(responses(4).getOneMinuteRate(),requests.getOneMinuteRate())
-
-      })
-      registry.register(registryName(prefix, "percent-5xx-5m"), new RatioGauge() {
-          protected def getRatio() =
-            Ratio.of(responses(4).getFiveMinuteRate(),requests.getFiveMinuteRate())
-      })
-      registry.register(registryName(prefix, "percent-5xx-15m"), new RatioGauge() {
-          protected def getRatio() =
-            Ratio.of(responses(4).getFifteenMinuteRate(),requests.getFifteenMinuteRate())
-      })
+    })
+    registry.register(registryName(prefix, "percent-5xx-5m"), new RatioGauge() {
+      protected def getRatio() =
+        Ratio.of(responses(4).getFiveMinuteRate(),requests.getFiveMinuteRate())
+    })
+    registry.register(registryName(prefix, "percent-5xx-15m"), new RatioGauge() {
+      protected def getRatio() =
+        Ratio.of(responses(4).getFifteenMinuteRate(),requests.getFifteenMinuteRate())
+    })
+    ()
   }
 
-    override def handle(path:String,
-                        request:Request,
-                        httpRequest:HttpServletRequest,
-                        httpResponse:HttpServletResponse):Unit = {
-        activeDispatches.inc()
-        val state = request.getHttpChannelState()
-        val start = if (state.isInitial()) {
-            // new request
-            activeRequests.inc()
-            request.getTimeStamp()
-        } else {
-            // resumed request
-            activeSuspended.dec()
-            if (state.getState() == HttpChannelState.State.DISPATCHED) {
-                asyncDispatches.mark()
-            }
-            System.currentTimeMillis()
-        }
-
-        try {
-            super.handle(path, request, httpRequest, httpResponse)
-        } finally {
-            val now = System.currentTimeMillis()
-            val dispatched = now - start
-
-            activeDispatches.dec()
-            dispatches.update(dispatched, TimeUnit.MILLISECONDS)
-
-            if (state.isSuspended()) {
-                if (state.isInitial()) {
-                    state.addListener(listener)
-                }
-                activeSuspended.inc()
-            } else if (state.isInitial()) {
-                updateResponses(request)
-            }
-            // else onCompletion will handle it.
-        }
+  override def handle(path:String,
+    request:Request,
+    httpRequest:HttpServletRequest,
+    httpResponse:HttpServletResponse):Unit = {
+    activeDispatches.inc()
+    val state = request.getHttpChannelState()
+    val start = if (state.isInitial()) {
+      // new request
+      activeRequests.inc()
+      request.getTimeStamp()
+    } else {
+      // resumed request
+      activeSuspended.dec()
+      if (state.getState() == HttpChannelState.State.DISPATCHED) {
+        asyncDispatches.mark()
+      }
+      System.currentTimeMillis()
     }
 
-    private def requestTimer( method:String) = HttpMethod.fromString(method) match  {
-      case GET     => getRequests
-      case POST    => postRequests
-      case PUT     => putRequests
-      case HEAD    => headRequests
-      case DELETE  => deleteRequests
-      case OPTIONS => optionsRequests
-      case TRACE   => traceRequests
-      case CONNECT => connectRequests
-      case MOVE    => moveRequests
-      case default => otherRequests
+    try {
+      super.handle(path, request, httpRequest, httpResponse)
+    } finally {
+      val now = System.currentTimeMillis()
+      val dispatched = now - start
+
+      activeDispatches.dec()
+      dispatches.update(dispatched, TimeUnit.MILLISECONDS)
+
+      if (state.isSuspended()) {
+        if (state.isInitial()) {
+          state.addListener(listener)
+        }
+        activeSuspended.inc()
+      } else if (state.isInitial()) {
+        updateResponses(request)
+      }
+      // else onCompletion will handle it.
     }
+  }
+
+  private def requestTimer( method:String) = HttpMethod.fromString(method) match  {
+    case GET     => getRequests
+    case POST    => postRequests
+    case PUT     => putRequests
+    case HEAD    => headRequests
+    case DELETE  => deleteRequests
+    case OPTIONS => optionsRequests
+    case TRACE   => traceRequests
+    case CONNECT => connectRequests
+    case MOVE    => moveRequests
+    case default => otherRequests
+  }
 
   private def updateResponses(request:Request) = {
-      val response = request.getResponse().getStatus() / 100
-      if (response >= 1 && response <= 5) {
-          responses(response - 1).mark()
-      }
-      activeRequests.dec()
-        val elapsedTime = System.currentTimeMillis() - request.getTimeStamp()
-        requests.update(elapsedTime, TimeUnit.MILLISECONDS)
-        requestTimer(request.getMethod()).update(elapsedTime, TimeUnit.MILLISECONDS)
+    val response = request.getResponse().getStatus() / 100
+    if (response >= 1 && response <= 5) {
+      responses(response - 1).mark()
     }
-
+    activeRequests.dec()
+    val elapsedTime = System.currentTimeMillis() - request.getTimeStamp()
+    requests.update(elapsedTime, TimeUnit.MILLISECONDS)
+    requestTimer(request.getMethod()).update(elapsedTime, TimeUnit.MILLISECONDS)
+  }
 }

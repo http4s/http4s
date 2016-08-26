@@ -37,7 +37,7 @@ trait MessageOps extends Any {
 
   def transformHeaders(f: Headers => Headers): Self
 
-  /** Added the [[`Content-Type`]] header to the response */
+  /** Added the [[org.http4s.headers.Content-Type]] header to the response */
   final def withType(t: MediaType): Self =
     putHeaders(`Content-Type`(t))
 
@@ -134,11 +134,11 @@ trait ResponseOps extends Any with MessageOps {
                       expires: Option[Instant] = None): Self =
     addCookie(Cookie(name, content, expires))
 
-  /** Add a [[`Set-Cookie`]] which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   final def removeCookie(cookie: Cookie): Self = putHeaders(`Set-Cookie`(cookie.copy(content = "",
     expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))))
 
-  /** Add a Set-Cookie which will remove the specified cookie from the client */
+  /** Add a [[org.http4s.headers.Set-Cookie]] which will remove the specified cookie from the client */
   final def removeCookie(name: String): Self = putHeaders(`Set-Cookie`(
     Cookie(name, "", expires = Some(Instant.ofEpochSecond(0)), maxAge = Some(0))
   ))

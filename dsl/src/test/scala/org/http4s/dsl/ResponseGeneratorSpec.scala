@@ -16,7 +16,7 @@ class ResponseGeneratorSpec extends Specification {
       old and (resultheaders.exists(_ == h) must_=== true)
     }
 
-    resultheaders.get(`Content-Length`) must_=== Some(`Content-Length`(body.getBytes().length))
+    resultheaders.get(`Content-Length`) must_=== Some(`Content-Length`(body.getBytes.length.toLong))
   }
 
   "Not duplicate headers when not provided" in {

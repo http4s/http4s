@@ -7,8 +7,6 @@ import scalaz.syntax.kleisli._
 object Service {
   /**
     * Lifts an unwrapped function that returns a Task into a [[Service]].
-    *
-    * @see [[HttpService.apply]]
     */
   def lift[A, B](f: A => Task[B]): Service[A, B] = Kleisli.kleisli(f)
 

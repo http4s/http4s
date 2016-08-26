@@ -19,16 +19,17 @@ object Timeout {
   private def timeoutResp(timeout: Duration, response: Task[Response]): Task[Response] = Task.async[Task[Response]] { cb =>
     val r = new Runnable { override def run(): Unit = cb(\/-(response)) }
     ec.schedule(r, timeout.toNanos, TimeUnit.NANOSECONDS)
+    ()
   }.join
 
-    /** Transform the service such to return whichever resolves first:
-      * the provided Task[Response], or the result of the service
-      * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
-      * @param service [[org.http4s.server.HttpService]] to transform
-      */
+  /** Transform the service such to return whichever resolves first:
+    * the provided Task[Response], or the result of the service
+    * @param r Task[Response] to race against the result of the service. This will be run for each [[Request]]
+    * @param service [[org.http4s.HttpService]] to transform
+    */
   def apply(r: Task[Response])(service: HttpService): HttpService = Service.lift { req =>
-      Task.taskInstance.chooseAny(service(req), r :: Nil).map(_._1)
-    }
+    Task.taskInstance.chooseAny(service(req), r :: Nil).map(_._1)
+  }
 
   /** Transform the service to return a RequestTimeOut [[Status]] after the supplied Duration
     * @param timeout Duration to wait before returning the RequestTimeOut

@@ -33,7 +33,7 @@ final class Headers private (headers: List[Header])
     *
     * @param key [[HeaderKey.Extractable]] that can identify the required header
     * @return a scala.Option possibly containing the resulting header of type key.HeaderT
-  *   @see [[Header]] object and get([[CaseInsensitiveString]])
+    * @see [[Header]] object and get([[org.http4s.util.CaseInsensitiveString]])
     */
   def get(key: HeaderKey.Extractable): Option[key.HeaderT] = key.from(this)
 
@@ -41,8 +41,6 @@ final class Headers private (headers: List[Header])
     *
     * @param key name of the header to find
     * @return a scala.Option possibly containing the resulting [[org.http4s.Header]]
-    *
-    * @see [[HeaderKey.Default]] in conjunction with get([[HeaderKey]])
     */
   def get(key: CaseInsensitiveString): Option[Header] = headers.find(_.name == key)
 

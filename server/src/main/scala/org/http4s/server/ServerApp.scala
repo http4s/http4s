@@ -23,7 +23,7 @@ trait ServerApp {
   /** Return a task to shutdown the application.
    * 
    *  This task is run as a JVM shutdown hook, or when
-   *  [[requestShutdown()]] is explicitly called.
+   *  [[org.http4s.server.ServerApp.requestShutdown]] is explicitly called.
    *  
    *  The default implementation shuts down the server, and waits for
    *  it to finish.  Other resources may shutdown by flatMapping this

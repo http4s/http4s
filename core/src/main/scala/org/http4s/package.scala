@@ -24,8 +24,8 @@ package object http4s { // scalastyle:ignore
   val DefaultCharset = Charset.`UTF-8`
 
   /**
-   * A Service wraps a function of request type [[A]] to a Task that runs
-   * to response type [[B]].  By wrapping the `Service`, we can compose them
+   * A Service wraps a function of request type `A` to a Task that runs
+   * to response type `B`.  By wrapping the [[Service]], we can compose them
    * using Kleisli operations.
    */
   type Service[A, B] = Kleisli[Task, A, B]

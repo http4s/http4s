@@ -26,14 +26,16 @@ lazy val core = libraryProject("core")
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage <<= organization,
-    libraryDependencies <++= (scalaVersion, scalazVersion) { (v,sz) => Seq(
+    libraryDependencies ++= Seq(
       http4sWebsocket,
       log4s,
+      macroCompat,
       parboiled,
-      scalaReflect(v) % "provided",
-      scalazCore(sz),
-      scalazStream(sz)
-    ) },
+      scalaCompiler(scalaVersion.value) % "provided",
+      scalaReflect(scalaVersion.value) % "provided",
+      scalazCore(scalazVersion.value),
+      scalazStream(scalazVersion.value)
+    ),
     macroParadiseSetting
   )
 
@@ -389,22 +391,33 @@ lazy val commonSettings = Seq(
       case _ => "1.8"
     }
   },
-  scalacOptions <<= jvmTarget.map { jvm => Seq(
+  scalacOptions := Seq(
     "-deprecation",
+    "-encoding", "UTF-8",
     "-feature",
-    "-language:implicitConversions",
+    "-language:existentials",
     "-language:higherKinds",
-    s"-target:jvm-$jvm",
+    "-language:implicitConversions",
+    s"-target:jvm-${jvmTarget.value}",
     "-unchecked",
-    "-Xlint"
-  )},
+    "-Xfatal-warnings",
+    "-Xlint",
+    "-Yinline-warnings",
+    "-Yno-adapted-args",
+    "-Ywarn-dead-code",
+    "-Ywarn-numeric-widen",
+    "-Ywarn-value-discard",
+    "-Xfuture"
+  ),
+  /* disabled because SI-7529
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
-      "-Ybackend:GenBCode",
+      "-Ybackend:GenBCode", 
       "-Ydelambdafy:method",
       "-Yopt:l:classpath"
     ) else Seq.empty
   },
+   */
   javacOptions <++= jvmTarget.map { jvm => Seq(
     "-source", jvm,
     "-target", jvm,

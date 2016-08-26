@@ -77,7 +77,7 @@ object HttpHeaderParser extends SimpleHeaders
    * Warm up the header parsers by triggering the loading of most classes in this package,
    * so as to increase the speed of the first usage.
    */
-  def warmUp() {
+  def warmUp(): Unit = {
     val results = List(
       Header("Accept", "*/*,text/plain,custom/custom"),
       Header("Accept-Charset", "*,UTF-8"),

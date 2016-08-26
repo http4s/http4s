@@ -22,6 +22,7 @@ object UrlFormCodec {
           sb.append(formEncode(k))
             .append('=')
             .append(formEncode(v))
+          ()
         }
 
         addKvPair(vs.head)

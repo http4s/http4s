@@ -11,7 +11,7 @@ trait TwirlInstances {
 
   /**
    * Note: Twirl uses a media type of `text/javascript`.  This is obsolete, so we instead return
-   * [[`application/javascript`]].
+   * [[org.http4s.MediaType.application/javascript]].
    */
   implicit def jsContentEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[JavaScript] =
     contentEncoder(`application/javascript`)
