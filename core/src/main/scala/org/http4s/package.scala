@@ -88,4 +88,7 @@ package object http4s { // scalastyle:ignore
   }
 
   type Callback[A] = Throwable \/ A => Unit
+
+  /** A stream of server-sent events */
+  type EventStream = Process[Task, ServerSentEvent]
 }
