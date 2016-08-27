@@ -27,26 +27,23 @@ object `X-B3-Flags` extends HeaderKey.Internal[`X-B3-Flags`] with HeaderKey.Sing
     }
   }
 
+  private def bitIsSet(bit: Long, flagBits: Long): Boolean =
+    (flagBits & bit) == bit
+
+  // Pure API, despite internal mutation.
   def fromLong(flagBits: Long): `X-B3-Flags` = {
-    def getFlags(x: Long): Set[`X-B3-Flags`.Flag] = {
+    var flags: Set[`X-B3-Flags`.Flag] = Set.empty
 
-      def bitIsSet(theBit: Long): Boolean =
-        (x & theBit) == theBit
+    if (bitIsSet(Flag.Debug.longValue, flagBits))
+      flags = flags + Flag.Debug
 
-      def addFlagIfFound(flag: Flag): Set[Flag] => Set[Flag] = { flags =>
-        if (bitIsSet(flag.longValue)) flags + flag
-        else flags
-      }
+    if (bitIsSet(Flag.SamplingSet.longValue, flagBits))
+      flags = flags + Flag.SamplingSet
 
-      val addFlagsIfFound: Set[Flag] => Set[Flag] =
-        addFlagIfFound(Flag.Debug)
-          .andThen(addFlagIfFound(Flag.Sampled))
-          .andThen(addFlagIfFound(Flag.SamplingSet))
+    if (bitIsSet(Flag.Sampled.longValue, flagBits))
+      flags = flags + Flag.Sampled
 
-      addFlagsIfFound(Set.empty)
-    }
-
-    `X-B3-Flags`(getFlags(flagBits))
+    `X-B3-Flags`(flags)
   }
 }
 
