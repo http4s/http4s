@@ -473,6 +473,23 @@ a streaming decoder by having the value of A be some kind of streaming construct
       </a>
     </span>
       
+    </li><li name="org.http4s.EventStream" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="EventStream=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.ServerSentEvent]"></a>
+      <a id="EventStream:EventStream"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">EventStream</span><span class="result"> = <span class="extype" name="scalaz.stream.Process">Process</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="ServerSentEvent.html" class="extype" name="org.http4s.ServerSentEvent">ServerSentEvent</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@EventStream=scalaz.stream.Process[scalaz.concurrent.Task,org.http4s.ServerSentEvent]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A stream of server-sent events</p>
     </li><li name="org.http4s.Fallthrough" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="Fallthrough[B]extendsAnyRef"></a>
       <a id="Fallthrough[B]:Fallthrough[B]"></a>
@@ -1412,6 +1429,23 @@ status line, headers, and a possible request body.
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@ResponseOpsextendsAnywithMessageOps" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ServerSentEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServerSentEventextendsRenderablewithProductwithSerializable"></a>
+      <a id="ServerSentEvent:ServerSentEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerSentEvent.html"><span class="name">ServerSentEvent</span></a><span class="params">(<span name="data">data: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="eventType">eventType: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>, <span name="id">id: <span class="extype" name="scala.Option">Option</span>[<a href="ServerSentEvent$$EventId.html" class="extype" name="org.http4s.ServerSentEvent.EventId">EventId</a>] = <span class="symbol">None</span></span>, <span name="retry">retry: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Long">Long</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <a href="util/Renderable.html" class="extype" name="org.http4s.util.Renderable">Renderable</a> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ServerSentEventextendsRenderablewithProductwithSerializable" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -2367,6 +2401,23 @@ with some commonly used instances which can be resolved implicitly.</p>
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@Response" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.ServerSentEvent" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="ServerSentEvent"></a>
+      <a id="ServerSentEvent:ServerSentEvent"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="ServerSentEvent$.html"><span class="name">ServerSentEvent</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@ServerSentEvent" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
