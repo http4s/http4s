@@ -402,7 +402,7 @@ lazy val commonSettings = Seq(
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
       "-Ybackend:GenBCode",
-      "-Ydelambdafy:method",
+      // "-Ydelambdafy:method", // breaks code - tut hangs with it on
       "-Yopt:l:classpath"
     ) else Seq.empty
   },
