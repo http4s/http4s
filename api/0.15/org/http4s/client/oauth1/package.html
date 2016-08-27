@@ -50,7 +50,7 @@
           <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Basic OAuth1 message signing support</p><p>This feature is not considered stable.
 </p></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/client/src/main/scala/org/http4s/client/oauth1/oauth1.scala" target="_blank">oauth1.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a>, <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></div>
+          <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
         
 
@@ -98,7 +98,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Consumer.html"><span class="name">Consumer</span></a><span class="params">(<span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Consumer.html"><span class="name">Consumer</span></a><span class="params">(<span name="key">key: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.oauth1.package@ConsumerextendsProductwithSerializable" title="Permalink" target="_top">
@@ -115,7 +115,7 @@
         <span class="kind">case class</span>
       </span>
       <span class="symbol">
-        <a href="Token.html"><span class="name">Token</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Product" class="extype" target="_top">Product</a> with <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Serializable" class="extype" target="_top">Serializable</a></span>
+        <a href="Token.html"><span class="name">Token</span></a><span class="params">(<span name="value">value: <span class="extype" name="scala.Predef.String">String</span></span>, <span name="secret">secret: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.oauth1.package@TokenextendsProductwithSerializable" title="Permalink" target="_top">
@@ -139,7 +139,7 @@
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">signRequest</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="consumer">consumer: <a href="Consumer.html" class="extype" name="org.http4s.client.oauth1.Consumer">Consumer</a></span>, <span name="callback">callback: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>]</span>, <span name="verifier">verifier: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="token">token: <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Option" class="extype" target="_top">Option</a>[<a href="Token.html" class="extype" name="org.http4s.client.oauth1.Token">Token</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>
+        <span class="name">signRequest</span><span class="params">(<span name="req">req: <a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a></span>, <span name="consumer">consumer: <a href="Consumer.html" class="extype" name="org.http4s.client.oauth1.Consumer">Consumer</a></span>, <span name="callback">callback: <span class="extype" name="scala.Option">Option</span>[<a href="../../Uri.html" class="extype" name="org.http4s.Uri">Uri</a>]</span>, <span name="verifier">verifier: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>]</span>, <span name="token">token: <span class="extype" name="scala.Option">Option</span>[<a href="Token.html" class="extype" name="org.http4s.client.oauth1.Token">Token</a>]</span>)</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Request.html" class="extype" name="org.http4s.Request">Request</a>]</span>
       </span>
       </h4><span class="permalink">
       <a href="../../../../index.html#org.http4s.client.oauth1.package@signRequest(req:org.http4s.Request,consumer:org.http4s.client.oauth1.Consumer,callback:Option[org.http4s.Uri],verifier:Option[String],token:Option[org.http4s.client.oauth1.Token]):scalaz.concurrent.Task[org.http4s.Request]" title="Permalink" target="_top">
@@ -158,9 +158,9 @@
 
         <div id="inheritedMembers">
         <div class="parent" name="scala.AnyRef">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.AnyRef" class="extype" target="_top">AnyRef</a></h3>
+              <h3>Inherited from <span class="extype" name="scala.AnyRef">AnyRef</span></h3>
             </div><div class="parent" name="scala.Any">
-              <h3>Inherited from <a href="http://www.scala-lang.org/api/2.11.8/index.html#scala.Any" class="extype" target="_top">Any</a></h3>
+              <h3>Inherited from <span class="extype" name="scala.Any">Any</span></h3>
             </div>
         
         </div>
