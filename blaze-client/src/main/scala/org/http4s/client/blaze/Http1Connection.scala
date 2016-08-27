@@ -140,7 +140,7 @@ private final class Http1Connection(val requestKey: RequestKey,
         val next: Task[StringWriter] = 
           if (!flushPrelude) Task.now(rr)
           else Task.async[StringWriter] { cb =>
-            val bb = ByteBuffer.wrap(rr.result().getBytes(StandardCharsets.ISO_8859_1))
+            val bb = ByteBuffer.wrap(rr.result.getBytes(StandardCharsets.ISO_8859_1))
             channelWrite(bb).onComplete {
               case Success(_)    => cb(\/-(new StringWriter))
               case Failure(EOF)  => stageState.get match {
@@ -312,7 +312,7 @@ private object Http1Connection {
   private sealed trait State
   private case object Idle extends State
   private case object Running extends State
-  private case class Error(exc: Throwable) extends State
+  private final case class Error(exc: Throwable) extends State
 
   private def getHttpMinor(req: Request): Int = req.httpVersion.minor
 

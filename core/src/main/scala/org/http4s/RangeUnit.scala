@@ -25,7 +25,7 @@ object RangeUnit {
   val None = new RangeUnit("none")
 }
 
-case class RangeUnit(value: String) extends Renderable {
-  override def toString = value
+final case class RangeUnit(value: String) extends Renderable {
+  override def toString: String = value
   def render(writer: Writer): writer.type = writer.append(value)
 }

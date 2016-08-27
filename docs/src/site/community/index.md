@@ -9,7 +9,7 @@ title: Community
   <h2><i class="fa fa-comments-o"></i> Gitter</h2>
 
   <p>The http4s community is gathering on <a
-  href="https://github.com/http4s/http4s/">Gitter at http4s/http4s</a>.  
+  href="https://gitter.im/http4s/http4s">Gitter at http4s/http4s</a>.  
   The core developers and many of our users are here to provide support,
   get feedback, and discuss the next steps on the project.  For those 
   who prefer IRC, Gitter provides an <a href="https://irc.gitter.im/">IRC

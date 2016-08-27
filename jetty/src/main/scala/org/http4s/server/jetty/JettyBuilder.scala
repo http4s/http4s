@@ -217,4 +217,4 @@ object JettyBuilder extends JettyBuilder(
   metricPrefix = MetricsSupport.DefaultPrefix
 )
 
-private case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)
+private final case class Mount(f: (ServletContextHandler, Int, JettyBuilder) => Unit)

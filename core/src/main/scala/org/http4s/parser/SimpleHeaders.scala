@@ -21,10 +21,11 @@ package parser
 
 import headers._
 import java.net.InetAddress
+import java.time.Instant
+
 import org.http4s.headers.ETag.EntityTag
 import org.http4s.util.CaseInsensitiveString._
 import org.parboiled2.Rule1
-
 import org.http4s.util.NonEmptyList
 
 /**
@@ -52,40 +53,48 @@ private[parser] trait SimpleHeaders {
     }.parse
   }
 
-  def CONTENT_LENGTH(value: String) = new Http4sHeaderParser[`Content-Length`](value) {
+  def CONTENT_LENGTH(value: String): ParseResult[`Content-Length`] = new Http4sHeaderParser[`Content-Length`](value) {
     def entry = rule { Digits ~ EOL ~> {s: String => `Content-Length`(s.toLong)} }
   }.parse
 
-  def CONTENT_ENCODING(value: String) = new Http4sHeaderParser[`Content-Encoding`](value) {
+  def CONTENT_ENCODING(value: String): ParseResult[`Content-Encoding`] = new Http4sHeaderParser[`Content-Encoding`](value) {
     def entry = rule { Token ~ EOL ~> {s: String =>
       `Content-Encoding`(ContentCoding.getOrElseCreate(s.ci))}
     }
   }.parse
 
-  def CONTENT_DISPOSITION(value: String) = new Http4sHeaderParser[`Content-Disposition`](value) {
+  def CONTENT_DISPOSITION(value: String): ParseResult[`Content-Disposition`] = new Http4sHeaderParser[`Content-Disposition`](value) {
     def entry = rule {
      Token ~ zeroOrMore(";" ~ OptWS ~ Parameter) ~ EOL ~> { (token:String, params: Seq[(String, String)]) =>
       `Content-Disposition`(token, params.toMap)}
     }
   }.parse
 
-  def DATE(value: String) = new Http4sHeaderParser[Date](value) {
+  def DATE(value: String): ParseResult[Date] = new Http4sHeaderParser[Date](value) {
     def entry = rule {
       HttpDate ~ EOL ~> (Date(_))
+    }
+  }.parse
+
+  def EXPIRES(value: String): ParseResult[Expires] = new Http4sHeaderParser[Expires](value) {
+    def entry = rule {
+      HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
+      Digit1 ~ EOL ~> ((t: Int) => Expires(Instant.ofEpochMilli(t))) | // Used for bogus http servers returning 0
+      NegDigit1 ~ EOL ~> ((_: Int) => Expires(Instant.ofEpochMilli(0))) // Used for bogus http servers returning -1
     }
   }.parse
 
 //  // Do not accept scoped IPv6 addresses as they should not appear in the Host header,
 //  // see also https://issues.apache.org/bugzilla/show_bug.cgi?id=35122 (WONTFIX in Apache 2 issue) and
 //  // https://bugzilla.mozilla.org/show_bug.cgi?id=464162 (FIXED in mozilla)
-  def HOST(value: String) = new Http4sHeaderParser[Host](value) {
+  def HOST(value: String): ParseResult[Host] = new Http4sHeaderParser[Host](value) {
     def entry = rule {
       (Token | IPv6Reference) ~ OptWS ~
         optional(":" ~ capture(oneOrMore(Digit)) ~> (_.toInt)) ~ EOL ~> (Host(_:String, _:Option[Int]))
     }
   }.parse
 
-  def LAST_EVENT_ID(value: String) =
+  def LAST_EVENT_ID(value: String): ParseResult[`Last-Event-Id`] =
     new Http4sHeaderParser[`Last-Event-Id`](value) {
       def entry = rule {
         capture(zeroOrMore(ANY)) ~ EOL ~> { id: String =>
@@ -94,23 +103,24 @@ private[parser] trait SimpleHeaders {
       }
     }.parse
 
-  def LAST_MODIFIED(value: String) = new Http4sHeaderParser[`Last-Modified`](value) {
-    def entry = rule {
-      HttpDate ~ EOL ~> (`Last-Modified`(_))
-    }
-  }.parse
+  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] = 
+    new Http4sHeaderParser[`Last-Modified`](value) {
+      def entry = rule {
+        HttpDate ~ EOL ~> (`Last-Modified`(_))
+      }
+    }.parse
 
-  def IF_MODIFIED_SINCE(value: String) = new Http4sHeaderParser[`If-Modified-Since`](value) {
+  def IF_MODIFIED_SINCE(value: String): ParseResult[`If-Modified-Since`] = new Http4sHeaderParser[`If-Modified-Since`](value) {
     def entry = rule {
       HttpDate ~ EOL ~> (`If-Modified-Since`(_))
     }
   }.parse
 
-  def ETAG(value: String) = new Http4sHeaderParser[ETag](value) {
+  def ETAG(value: String): ParseResult[ETag] = new Http4sHeaderParser[ETag](value) {
     def entry = rule { EntityTag ~> (ETag(_: ETag.EntityTag)) }
   }.parse
 
-  def IF_NONE_MATCH(value: String) = new Http4sHeaderParser[`If-None-Match`](value) {
+  def IF_NONE_MATCH(value: String): ParseResult[`If-None-Match`] = new Http4sHeaderParser[`If-None-Match`](value) {
     def entry = rule {
       "*" ~ push(`If-None-Match`.`*`) |
       oneOrMore(EntityTag).separatedBy(ListSep) ~> { tags: Seq[EntityTag] =>
@@ -119,7 +129,7 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
-  def TRANSFER_ENCODING(value: String) = new Http4sHeaderParser[`Transfer-Encoding`](value) {
+  def TRANSFER_ENCODING(value: String): ParseResult[`Transfer-Encoding`] = new Http4sHeaderParser[`Transfer-Encoding`](value) {
     def entry = rule {
       oneOrMore(Token).separatedBy(ListSep) ~> { vals: Seq[String] =>
         if (vals.tail.isEmpty) `Transfer-Encoding`(TransferCoding.fromKey(vals.head.ci))
@@ -128,7 +138,7 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
-  def USER_AGENT(value: String) = new Http4sHeaderParser[`User-Agent`](value) {
+  def USER_AGENT(value: String): ParseResult[`User-Agent`] = new Http4sHeaderParser[`User-Agent`](value) {
     def entry = rule {
       product ~ zeroOrMore(RWS ~ (product | comment)) ~> (`User-Agent`(_,_))
     }
@@ -144,7 +154,7 @@ private[parser] trait SimpleHeaders {
     def RWS = rule { oneOrMore(anyOf(" \t")) }
   }.parse
 
-  def X_FORWARDED_FOR(value: String) = new Http4sHeaderParser[`X-Forwarded-For`](value) {
+  def X_FORWARDED_FOR(value: String): ParseResult[`X-Forwarded-For`] = new Http4sHeaderParser[`X-Forwarded-For`](value) {
     def entry = rule {
       oneOrMore((Ip ~> (Some(_)))  | ("unknown" ~ push(None))).separatedBy(ListSep) ~
         EOL ~> { xs: Seq[Option[InetAddress]] =>

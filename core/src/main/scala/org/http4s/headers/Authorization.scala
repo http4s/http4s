@@ -10,6 +10,6 @@ object Authorization extends HeaderKey.Internal[Authorization] with HeaderKey.Si
 }
 
 final case class Authorization(credentials: Credentials) extends Header.Parsed {
-  override def key = `Authorization`
+  override def key: `Authorization`.type = `Authorization`
   override def renderValue(writer: Writer): writer.type = credentials.render(writer)
 }

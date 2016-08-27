@@ -22,7 +22,7 @@ import org.log4s.getLogger
 private[http4s] object MultipartDecoder {
 
   private[this] val logger = getLogger
-  
+
   val decoder: EntityDecoder[Multipart] =
     EntityDecoder.decodeBy(MediaRange.`multipart/*`) { msg =>
       def gatherParts = {

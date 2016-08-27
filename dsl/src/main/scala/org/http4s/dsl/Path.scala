@@ -11,12 +11,13 @@ package dsl
 import org.http4s.QueryParamDecoder
 import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
 
-import scalaz.{ Failure, NonEmptyList, ValidationNel }
+import scalaz.ValidationNel
 import scalaz.syntax.traverse._
 import scalaz.std.list._
 import scalaz.std.option._
 
 import collection.immutable.BitSet
+import scala.util.Try
 
 /** Base class for path extractors. */
 abstract class Path {
@@ -89,7 +90,7 @@ object ~ {
   }
 }
 
-case class /(parent: Path, child: String) extends Path {
+final case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
   def lastOption: Option[String] = Some(child)
   lazy val asString = parent.toString + "/" + UrlCodingUtils.urlEncode(child, toSkip = Path.pathUnreserved)
@@ -152,23 +153,16 @@ case object Root extends Path {
  */
 object /: {
   def unapply(path: Path): Option[(String, Path)] = {
-    path.toList match {
-      case Nil => None
-      case head :: tail => Some((head, Path(tail)))
-    }
+    val asList = path.toList
+    asList.headOption.strengthR(Path(asList.tail))
   }
 }
 
 // Base class for Integer and Long path variable extractors.
 protected class NumericPathVar[A <: AnyVal](cast: String => A) {
   def unapply(str: String): Option[A] = {
-    if (!str.isEmpty && str.forall(Character.isDigit))
-      try {
-        Some(cast(str))
-      } catch {
-        case _: NumberFormatException =>
-          None
-      }
+    if (!str.isEmpty)
+      Try(cast(str)).toOption
     else
       None
   }

@@ -56,10 +56,8 @@ final class NonEmptyList[+A] private[util] (val head: A, val tail: List[A]) {
     @tailrec def loop(src: List[A], seen: ISet[AA], acc: NonEmptyList[AA]): NonEmptyList[AA] =
       src match {
         case h :: t =>
-          if (seen.notMember(h))
-            loop(t, seen.insert(h), h <:: acc)
-          else
-            loop(t, seen, acc)
+          if (seen.notMember(h)) loop(t, seen.insert(h), h <:: acc)
+          else loop(t, seen, acc)
         case Nil =>
           acc.reverse
       }
@@ -194,7 +192,13 @@ sealed abstract class NonEmptyListInstances0 {
 
 sealed abstract class NonEmptyListInstances extends NonEmptyListInstances0 {
   implicit val nonEmptyList =
-    new Traverse1[NonEmptyList] with Monad[NonEmptyList] with Plus[NonEmptyList] with Comonad[NonEmptyList] with Zip[NonEmptyList] with Unzip[NonEmptyList] with Align[NonEmptyList] {
+    new Traverse1[NonEmptyList]
+        with Monad[NonEmptyList]
+        with Plus[NonEmptyList]
+        with Comonad[NonEmptyList]
+        with Zip[NonEmptyList]
+        with Unzip[NonEmptyList]
+        with Align[NonEmptyList] {
       def traverse1Impl[G[_] : Apply, A, B](fa: NonEmptyList[A])(f: A => G[B]): G[NonEmptyList[B]] =
         fa traverse1 f
 

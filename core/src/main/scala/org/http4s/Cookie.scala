@@ -25,7 +25,7 @@ import org.http4s.util.{Renderable, Writer}
 import java.time.Instant
 
 object RequestCookieJar {
-  def empty = new RequestCookieJar(Nil)
+  def empty: RequestCookieJar = new RequestCookieJar(Nil)
 
   def apply(cookies: Cookie*): RequestCookieJar = (newBuilder ++= cookies).result()
   /** The default builder for RequestCookieJar objects.
@@ -120,7 +120,7 @@ class RequestCookieJar(headers: Seq[Cookie]) extends Iterable[Cookie] with Itera
 
 
 // see http://tools.ietf.org/html/rfc6265
-case class Cookie(
+final case class Cookie(
   name: String,
   content: String,
   expires: Option[Instant] = None,

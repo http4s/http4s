@@ -14,7 +14,7 @@ import org.specs2.specification.core.Fragment
 class CirceSpec extends JawnDecodeSupportSpec[Json] {
   testJsonDecoder(jsonDecoder)
 
-  case class Foo(bar: Int)
+  sealed case class Foo(bar: Int)
   val foo = Foo(42)
   // Beware of possible conflicting shapeless versions if using the circe-generic module
   // to derive these.
@@ -63,7 +63,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
     // https://github.com/http4s/http4s/issues/514
     Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
-      case class Umlaut(wort: String)
+      sealed case class Umlaut(wort: String)
       implicit val umlautDecoder = Decoder.instance(_.get("wort")(Decoder[String]).map(Umlaut))
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))

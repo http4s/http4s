@@ -40,14 +40,14 @@ sealed trait Header extends Renderable with Product {
 
   def value: String = {
     val w = new StringWriter
-    renderValue(w).result()
+    renderValue(w).result
   }
 
   def is(key: HeaderKey): Boolean = key.matchHeader(this).isDefined
 
   def isNot(key: HeaderKey): Boolean = !is(key)
 
-  override def toString = name + ": " + value
+  override def toString: String = name + ": " + value
 
   def toRaw: Raw = Raw(name, value)
 
@@ -82,14 +82,20 @@ object Header {
    * @param value String representation of the header value
    */
   final case class Raw(name: CaseInsensitiveString, override val value: String) extends Header {
-    override lazy val parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
+    private[this] var _parsed: Header = null
+    final override def parsed: Header = {
+      if (_parsed == null) {
+        _parsed = parser.HttpHeaderParser.parseHeader(this).getOrElse(this)
+      }
+      _parsed
+    }
     override def renderValue(writer: Writer): writer.type = writer.append(value)
   }
 
   /** A Header that is already parsed from its String representation. */
   trait Parsed extends Header {
     def key: HeaderKey
-    def name = key.name
+    def name: CaseInsensitiveString = key.name
     def parsed: this.type = this
   }
 

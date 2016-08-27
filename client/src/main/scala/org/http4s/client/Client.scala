@@ -1,11 +1,16 @@
 package org.http4s
 package client
 
+import java.util.concurrent.atomic.AtomicBoolean
 import org.http4s.headers.{Accept, MediaRangeAndQValue}
+import org.http4s.Status.ResponseClass.Successful
+import scala.util.control.NoStackTrace
 
+import java.io.IOException
 import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scalaz.stream.Process.{eval, eval_}
+import scalaz.stream.{Process, Process1}
+import scalaz.stream.Process._
+import scodec.bits.ByteVector
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -18,8 +23,10 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     * Returns a task to handle the response, safely disposing of the underlying
     * HTTP connection when the task finishes.
     */
-  def apply[A](f: Response => Task[A]): Task[A] =
-    f(response).onFinish { case _ => dispose }
+  def apply[A](f: Response => Task[A]): Task[A] = {
+    val task = try f(response) catch { case e: Throwable => Task.fail(e) }
+    task.onFinish { case _ => dispose }
+  }
 }
 
 /**
@@ -27,7 +34,7 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   *
   * @param open a service to asynchronously return a [[DisposableResponse]] from
   *             a [[Request]].  This is a low-level operation intended for client
-  *             implementations and middlewares.
+  *             implementations and middleware.
   *
   * @param shutdown a Task to shut down this Shutdown this client, closing any
   *                 open connections and freeing resources
@@ -74,17 +81,28 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
       f(response).onComplete(eval_(dispose))
     }).flatMap(identity)
 
-  @deprecated("Use toHttpService.run for compatibility, or fetch for safety", "0.12")
-  def prepare(req: Request): Task[Response] =
-    toHttpService.run(req)
-
-  @deprecated("Use toHttpService.run for compatibility, or fetch for safety", "0.12")
-  def apply(req: Request): Task[Response] =
-    toHttpService.run(req)
+  /**
+    * Submits a request and decodes the response on success.  On failure, the
+    * status code is returned.  The underlying HTTP connection is closed at the
+    * completion of the decoding.
+    */
+  def expect[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] = {
+    val r = if (d.consumes.nonEmpty) {
+      val m = d.consumes.toList
+      req.putHeaders(Accept(MediaRangeAndQValue(m.head), m.tail.map(MediaRangeAndQValue(_)):_*))
+    } else req
+    fetch(r) {
+      case Successful(resp) =>
+        d.decode(resp, strict = false).fold(throw _, identity)
+      case failedResponse =>
+        Task.fail(UnexpectedStatus(failedResponse.status))
+    }
+  }
 
   /**
-    * Submits a request and decodes the response.  The underlying HTTP connection
-    * is closed at the completion of the decoding.
+    * Submits a request and decodes the response, regardless of the status code.
+    * The underlying HTTP connection is closed at the completion of the
+    * decoding.
     */
   def fetchAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] = {
     val r = if (d.consumes.nonEmpty) {
@@ -96,7 +114,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     }
   }
 
-  @deprecated("Use fetchAs", "0.12")
+  @deprecated("Use expect", "0.14")
   def prepAs[A](req: Request)(implicit d: EntityDecoder[A]): Task[A] =
     fetchAs(req)(d)
 
@@ -111,30 +129,41 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def get[A](uri: Uri)(f: Response => Task[A]): Task[A] =
     fetch(Request(Method.GET, uri))(f)
 
+  /**
+    * Submits a request and decodes the response on success.  On failure, the
+    * status code is returned.  The underlying HTTP connection is closed at the
+    * completion of the decoding.
+    */
   def get[A](s: String)(f: Response => Task[A]): Task[A] =
     Uri.fromString(s).fold(Task.fail, uri => get(uri)(f))
 
-  @deprecated("Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
-  def prepare(uri: Uri): Task[Response] =
-    toHttpService.run(Request(Method.GET, uri))
-
-  @deprecated("Use toHttpService.run(Request(Method.GET, uri)).run for compatibility, or get for safety", "0.12")
-  def apply(uri: Uri): Task[Response] =
-    toHttpService.run(Request(Method.GET, uri))
+  /**
+    * Submits a GET request to the specified URI and decodes the response on
+    * success.  On failure, the status code is returned.  The underlying HTTP
+    * connection is closed at the completion of the decoding.
+    */
+  def expect[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
+    expect(Request(Method.GET, uri))(d)
 
   /**
-    * Submits a GET request and decodes the response.  The underlying HTTP connection
-    * is closed at the completion of the decoding.
+    * Submits a GET request to the URI specified by the String and decodes the
+    * response on success.  On failure, the status code is returned.  The
+    * underlying HTTP connection is closed at the completion of the decoding.
     */
+  def expect[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
+    Uri.fromString(s).fold(Task.fail, expect[A])
+
+  /**
+    * Submits a GET request and decodes the response.  The underlying HTTP
+    * connection is closed at the completion of the decoding.
+    */
+  @deprecated("Use expect", "0.14")
   def getAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
     fetchAs(Request(Method.GET, uri))(d)
 
+  @deprecated("Use expect", "0.14")
   def getAs[A](s: String)(implicit d: EntityDecoder[A]): Task[A] =
     Uri.fromString(s).fold(Task.fail, uri => getAs[A](uri))
-
-  @deprecated("Use getAs", "0.12")
-  def prepAs[A](uri: Uri)(implicit d: EntityDecoder[A]): Task[A] =
-    getAs(uri)(d)
 
   /** Submits a request, and provides a callback to process the response.
     *
@@ -147,26 +176,64 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
   def fetch[A](req: Task[Request])(f: Response => Task[A]): Task[A] =
     req.flatMap(fetch(_)(f))
 
-  @deprecated("Use toHttpService =<< req for compatibility, or fetch for safety", "0.12")
-  def prepare(req: Task[Request]): Task[Response] =
-    toHttpService =<< req
-
-  @deprecated("Use toHttpService =<< req for compatibility, or fetch for safety", "0.12")
-  def apply(req: Task[Request]): Task[Response] =
-    toHttpService =<< req
+  def expect[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
+    req.flatMap(expect(_)(d))
 
   /**
-    * Submits a request and decodes the response.  The underlying HTTP connection
-    * is closed at the completion of the decoding.
+    * Submits a request and decodes the response, regardless of the status code.
+    * The underlying HTTP connection is closed at the completion of the
+    * decoding.
     */
+  @deprecated("Use expect", "0.14")
   def fetchAs[A](req: Task[Request])(implicit d: EntityDecoder[A]): Task[A] =
     req.flatMap(fetchAs(_)(d))
 
-  @deprecated("Use fetchAs", "0.12")
+  @deprecated("Use expect", "0.14")
   def prepAs[T](req: Task[Request])(implicit d: EntityDecoder[T]): Task[T] =
     fetchAs(req)(d)
 
   /** Shuts this client down, and blocks until complete. */
   def shutdownNow(): Unit =
     shutdown.run
+}
+
+object Client {
+  /** Creates a client from the specified service.  Useful for generating
+    * pre-determined responses for requests in testing.
+    * 
+    * @param service the service to respond to requests to this client
+    */
+  def fromHttpService(service: HttpService): Client = {
+    val isShutdown = new AtomicBoolean(false)
+
+    def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
+      def loop(reason: String, killed: AtomicBoolean): Process1[ByteVector, ByteVector] = {
+        if (killed.get)
+          fail(new IOException(reason))
+        else
+          await1[ByteVector] ++ loop(reason, killed)
+      }
+      body.pipe(loop("response was disposed", disposed))
+        .pipe(loop("client was shut down", isShutdown))
+    }
+
+    def disposableService(service: HttpService) =
+      Service.lift { req: Request =>
+        val disposed = new AtomicBoolean(false)
+        val req0 = req.copy(body = interruptable(req.body, disposed))
+        service(req0) map { resp =>
+          DisposableResponse(
+            resp.copy(body = interruptable(resp.body, disposed)),
+            Task.delay(disposed.set(true))
+          )
+        }
+      }
+
+    Client(disposableService(service),
+      Task.delay(isShutdown.set(true)))
+  }
+}
+
+final case class UnexpectedStatus(status: Status) extends RuntimeException with NoStackTrace {
+  override def getMessage: String = s"unexpected HTTP status: $status"
 }

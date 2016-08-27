@@ -20,9 +20,9 @@ package org.http4s
 
 import org.http4s.util.{Writer, Renderable}
 
-case class Challenge(scheme: String,
-                     realm: String,
-                     params: Map[String, String] = Map.empty) extends Renderable {
+final case class Challenge(scheme: String,
+                           realm: String,
+                           params: Map[String, String] = Map.empty) extends Renderable {
 
   lazy val value = renderString
 
@@ -38,5 +38,5 @@ case class Challenge(scheme: String,
     b.append(',').append(k).append("=\"").append(v).append('"')
   }
 
-  override def toString = value
+  override def toString: String = value
 }

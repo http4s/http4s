@@ -21,7 +21,7 @@ import org.http4s.util.option.ToOptionOps
   * @param fragment   optional Uri Fragment. url-encoded.
   */
 // TODO fix Location header, add unit tests
-case class Uri(
+final case class Uri(
   scheme: Option[CaseInsensitiveString] = None,
   authority: Option[Authority] = None,
   path: Path = "",
@@ -139,7 +139,7 @@ object Uri extends UriFunctions {
   type Path = String
   type Fragment = String
 
-  case class Authority(
+  final case class Authority(
     userInfo: Option[UserInfo] = None,
     host: Host = RegName("localhost"),
     port: Option[Int] = None) extends Renderable {
@@ -168,13 +168,13 @@ object Uri extends UriFunctions {
     }
   }
 
-  case class RegName(host: CaseInsensitiveString) extends Host
-  case class IPv4(address: CaseInsensitiveString) extends Host
-  case class IPv6(address: CaseInsensitiveString) extends Host
+  final case class RegName(host: CaseInsensitiveString) extends Host
+  final case class IPv4(address: CaseInsensitiveString) extends Host
+  final case class IPv6(address: CaseInsensitiveString) extends Host
 
-  object RegName { def apply(name: String) = new RegName(name.ci) }
-  object IPv4 { def apply(address: String) = new IPv4(address.ci) }
-  object IPv6 { def apply(address: String) = new IPv6(address.ci) }
+  object RegName { def apply(name: String): RegName = new RegName(name.ci) }
+  object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
+  object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
 
   private def renderScheme(writer: Writer, s: Scheme): writer.type =
     writer << s << ':'
@@ -204,7 +204,7 @@ trait UriFunctions {
 
     /** Merge paths per RFC 3986 5.2.3 */
     def merge(base: Path, reference: Path): Path =
-      base.substring(0, base.lastIndexOf('/')+1) + reference
+      base.substring(0, base.lastIndexOf('/') + 1) + reference
 
     val target = (base,reference) match {
       case (_,               Uri(Some(_),_,_,_,_))      => reference
@@ -239,10 +239,10 @@ trait UriFunctions {
         output.reverse.mkString
       case ('/' :: rest) =>                                                    // move "/segment"
         val (take,leave) = rest.span(_ != '/')
-        loop(leave, ('/' :: take).reverse ++ output, depth+1)
+        loop(leave, ('/' :: take).reverse ++ output, depth + 1)
       case _ =>                                                                // move "segment"
         val (take,leave) = input.span(_ != '/')
-        loop(leave, take.reverse ++ output, depth+1)
+        loop(leave, take.reverse ++ output, depth + 1)
     }
     loop(path.toList, Nil, 0)
   }

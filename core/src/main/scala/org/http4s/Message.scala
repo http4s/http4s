@@ -18,9 +18,9 @@ sealed trait Message extends MessageOps { self =>
   type Self <: Message { type Self = self.Self }
 
   def httpVersion: HttpVersion
-  
+
   def headers: Headers
-  
+
   def body: EntityBody
 
   final def bodyAsText(implicit defaultCharset: Charset = DefaultCharset): Process[Task, String] = {
@@ -33,9 +33,9 @@ sealed trait Message extends MessageOps { self =>
     }
 
   }
-  
+
   def attributes: AttributeMap
-  
+
   protected def change(body: EntityBody = body,
                        headers: Headers = headers,
                        attributes: AttributeMap = attributes): Self
@@ -107,7 +107,7 @@ object Message {
   * @param body scalaz.stream.Process[Task,Chunk] defining the body of the request
   * @param attributes Immutable Map used for carrying additional information in a type safe fashion
   */
-case class Request(
+final case class Request(
   method: Method = Method.GET,
   uri: Uri = Uri(path = "/"),
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
@@ -188,7 +188,7 @@ case class Request(
     server.map(_.getPort)
       .orElse(uri.port)
       .orElse(headers.get(Host).flatMap(_.port))
-      .getOrElse(80)
+      .getOrElse(80) // scalastyle:ignore
   }
 
   /** Whether the Request was received over a secure medium */
@@ -205,7 +205,7 @@ case class Request(
 
 object Request {
 
-  case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
+  final case class Connection(local: InetSocketAddress, remote: InetSocketAddress, secure: Boolean)
 
   object Keys {
     val PathInfoCaret = AttributeKey.http4s[Int]("request.pathInfoCaret")
@@ -223,7 +223,7 @@ object Request {
  * @param attributes [[AttributeMap]] containing additional parameters which may be used by the http4s
  *                   backend for additional processing such as java.io.File object
  */
-case class Response(
+final case class Response(
   status: Status = Status.Ok,
   httpVersion: HttpVersion = HttpVersion.`HTTP/1.1`,
   headers: Headers = Headers.empty,

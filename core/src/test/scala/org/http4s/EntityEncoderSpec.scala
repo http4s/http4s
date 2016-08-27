@@ -129,8 +129,8 @@ class EntityEncoderSpec extends Http4sSpec {
     "work with local defined EntityEncoders" in {
       import scodec.bits.ByteVector
 
-      case class ModelA(name: String, color: Int)
-      case class ModelB(name: String, id: Long)
+      sealed case class ModelA(name: String, color: Int)
+      sealed case class ModelB(name: String, id: Long)
 
       implicit val w1: EntityEncoder[ModelA] = EntityEncoder.simple[ModelA]()(_ => ByteVector.view("A".getBytes))
       implicit val w2: EntityEncoder[ModelB] = EntityEncoder.simple[ModelB]()(_ => ByteVector.view("B".getBytes))

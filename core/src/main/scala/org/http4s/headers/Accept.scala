@@ -11,7 +11,7 @@ object Accept extends HeaderKey.Internal[Accept] with HeaderKey.Recurring {
 }
 
 
-case class MediaRangeAndQValue(mediaRange: MediaRange, qValue: QValue = QValue.One)
+final case class MediaRangeAndQValue(mediaRange: MediaRange, qValue: QValue = QValue.One)
   extends Renderable {
   def render(writer: Writer): writer.type = {
     writer << mediaRange.withExtensions(Map.empty) << qValue
@@ -26,8 +26,7 @@ object MediaRangeAndQValue {
 }
 
 final case class Accept(values: NonEmptyList[MediaRangeAndQValue]) extends Header.RecurringRenderable {
-  implicit
-  def key = Accept
+  def key: Accept.type = Accept
   type Value = MediaRangeAndQValue
 }
 

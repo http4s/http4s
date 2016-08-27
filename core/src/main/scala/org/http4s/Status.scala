@@ -17,18 +17,20 @@ import org.http4s.util.Renderable
   * @see [http://www.iana.org/assignments/http-status-codes/http-status-codes.xhtml IANA Status Code Registry]
   */
 final case class Status private (code: Int)(val reason: String = "", val isEntityAllowed: Boolean = true) extends Ordered[Status] with Renderable {
+  // scalastyle:off magic.number
   val responseClass: ResponseClass =
     if (code < 200) ResponseClass.Informational
     else if (code < 300) ResponseClass.Successful
     else if (code < 400) ResponseClass.Redirection
     else if (code < 500) ResponseClass.ClientError
     else ResponseClass.ServerError
+  // scalastyle:on magic.number
 
-  def compare(that: Status) = code - that.code
+  def compare(that: Status): Int = code - that.code
 
-  def isSuccess = responseClass.isSuccess
+  def isSuccess: Boolean = responseClass.isSuccess
 
-  def withReason(reason: String) = new Status(code)(reason, isEntityAllowed)
+  def withReason(reason: String): Status = new Status(code)(reason, isEntityAllowed)
 
   override def render(writer: org.http4s.util.Writer): writer.type =  writer << code << ' ' << reason
 
@@ -56,7 +58,7 @@ object Status {
   }
 
   private def mkStatus(code: Int, reason: String = ""): ParseResult[Status] =
-    if (code >= 100 && code <= 599) ParseResult.success(Status(code)(isEntityAllowed = true))
+    if (code >= 100 && code <= 599) ParseResult.success(Status(code)(reason, isEntityAllowed = true))
     else ParseResult.fail("Invalid status", s"Code $code must be between 100 and 599, inclusive")
 
   private def lookup(code: Int): Option[\/-[Status]] =
@@ -67,7 +69,9 @@ object Status {
   def fromIntAndReason(code: Int, reason: String): ParseResult[Status] =
     lookup(code).filter(_.b.reason == reason).getOrElse(mkStatus(code, reason))
 
+  // scalastyle:off magic.number
   private val registry = new AtomicReferenceArray[\/-[Status]](600)
+  // scalastyle:on magic.number
 
   def registered: Iterable[Status] = for {
     code <- 100 to 599
@@ -82,6 +86,7 @@ object Status {
   /**
    * Status code list taken from http://www.iana.org/assignments/http-status-codes/http-status-codes.xml
    */
+  // scalastyle:off magic.number
   val Continue = register(Status(100)("Continue", isEntityAllowed = false))
   val SwitchingProtocols = register(Status(101)("Switching Protocols", isEntityAllowed = false))
   val Processing = register(Status(102)("Processing", isEntityAllowed = false))
@@ -144,6 +149,7 @@ object Status {
   val LoopDetected = register(Status(508)("Loop Detected"))
   val NotExtended = register(Status(510)("Not Extended"))
   val NetworkAuthenticationRequired = register(Status(511)("Network Authentication Required"))
+  // scalastyle:on magic.number
 }
 
 trait StatusInstances {

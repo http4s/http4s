@@ -26,7 +26,8 @@ import shapeless.{HNil, ::}
 import java.net.InetAddress
 
 private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =>
-  
+  // scalastyle:off public.methods.have.type
+
   def EOL: Rule0 = rule { OptWS ~ EOI }  // Strip trailing whitespace
 
   def Digits: Rule1[String] = rule { capture(oneOrMore( Digit )) }
@@ -46,14 +47,18 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
     }
   }
 
+  // RFC 850 date string, e.g. `Sunday, 06-Nov-94 08:49:37 GMT`
   def RFC850Date: Rule1[Instant] = rule {
     // TODO: hopefully parboiled2 will get more helpers so we don't need to chain methods to get under 5 args
     Weekday ~ str(", ") ~ Date2 ~ ch(' ') ~ Time ~ ch(' ') ~ ("GMT" | "UTC") ~> {
-      (month: Int, day: Int, wkday: Int, year: Int, hour: Int, min: Int, sec: Int) =>
-        createDateTime(year, month, day, hour, min, sec, wkday)
+      (wkday: Int, day: Int, month: Int, year: Int, hour: Int, min: Int, sec: Int) =>
+        // We'll assume that if the date is less than 100 it is missing the 1900 part
+        val fullYear = if (year < 100) 1900 + year else year
+        createDateTime(fullYear, month, day, hour, min, sec, wkday)
     }
   }
 
+  // ANSI C's asctime() format, e.g. `Sun Nov  6 08:49:37 1994`
   def ASCTimeDate: Rule1[Instant] = rule {
     Wkday ~ ch(' ') ~ Date3 ~ ch(' ') ~ Time ~ ch(' ') ~ Digit4 ~> {
       (wkday:Int, month:Int, day:Int, hour:Int, min:Int, sec:Int, year:Int) =>
@@ -63,12 +68,13 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
 
   def Date1: RuleN[Int::Int::Int::HNil] = rule { (Digit2 | Digit1) ~ ch(' ') ~ Month ~ ch(' ') ~ Digit4 }
 
-  def Date2: RuleN[Int::Int::Int::HNil] = rule { (Digit2 | Digit1) ~ ch('-') ~ Month ~ ch('-') ~ Digit4 }
+  def Date2: RuleN[Int::Int::Int::HNil] = rule { (Digit2 | Digit1) ~ ch('-') ~ Month ~ ch('-') ~ (Digit2 | Digit4) }
 
   def Date3: Rule2[Int, Int] = rule { Month ~ ch(' ') ~ (Digit2 | ch(' ') ~ Digit1) }
 
   def Time: RuleN[Int::Int::Int::HNil] = rule { Digit2 ~ ch(':') ~ Digit2 ~ ch(':') ~ Digit2 }
 
+  // scalastyle:off magic.number
   def Wkday: Rule1[Int] = rule { ("Sun" ~ push(0)) |
                                  ("Mon" ~ push(1)) |
                                  ("Tue" ~ push(2)) |
@@ -77,13 +83,13 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
                                  ("Fri" ~ push(5)) |
                                  ("Sat" ~ push(6)) }
 
-  def Weekday: Rule1[Int] = rule { ("Sunday"   ~ push(0)) |
-                                   ("Monday"   ~ push(1)) |
-                                   ("Tuesday"  ~ push(2)) |
-                                   ("Wedsday"  ~ push(3)) |
-                                   ("Thursday" ~ push(4)) |
-                                   ("Friday"   ~ push(5)) |
-                                   ("Saturday" ~ push(6)) }
+  def Weekday: Rule1[Int] = rule { ("Sunday"    ~ push(0)) |
+                                   ("Monday"    ~ push(1)) |
+                                   ("Tuesday"   ~ push(2)) |
+                                   ("Wednesday" ~ push(3)) |
+                                   ("Thursday"  ~ push(4)) |
+                                   ("Friday"    ~ push(5)) |
+                                   ("Saturday"  ~ push(6)) }
 
   def Month: Rule1[Int] = rule {  ("Jan" ~ push(1))  |
                                   ("Feb" ~ push(2))  |
@@ -97,6 +103,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
                                   ("Oct" ~ push(10)) |
                                   ("Nov" ~ push(11)) |
                                   ("Dec" ~ push(12)) }
+  // scalastyle:on magic.number
 
   def Digit1: Rule1[Int] = rule { capture(Digit) ~> {s: String => s.toInt} }
 
@@ -105,6 +112,8 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   def Digit3: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
 
   def Digit4: Rule1[Int] = rule { capture(Digit ~ Digit ~ Digit ~ Digit) ~> {s: String => s.toInt} }
+
+  def NegDigit1: Rule1[Int] = rule { "-" ~ capture(Digit) ~> {s: String => s.toInt} }
 
   def Ip4Number = rule { Digit3 | Digit2 | Digit1 }
 
@@ -116,7 +125,7 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
   private def createDateTime(year: Int, month: Int, day: Int, hour: Int, min: Int, sec: Int, wkday: Int): Instant = {
     Try(ZonedDateTime.of(year, month, day, hour, min, sec, 0, ZoneOffset.UTC).toInstant).getOrElse {
       // TODO Would be better if this message had the real input.
-      throw new Exception("Invalid date: "+year+"-"+month+"-"+day+" "+hour+":"+min+":"+sec )
+      throw new Exception(s"Invalid date: $year-$month-$day $hour:$min:$sec")
     }
   }
 
@@ -149,5 +158,5 @@ private[parser] trait AdditionalRules extends Rfc2616BasicRules { this: Parser =
       weak ~ opaqueTag ~> { (weak: Boolean, tag: String) => headers.ETag.EntityTag(tag, weak) }
     }
   }
-
+  // scalastyle:on public.methods.have.type
 }

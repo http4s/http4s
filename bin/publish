@@ -1,4 +1,5 @@
 #!/bin/bash
 
-sbt "set scalazVersion in ThisBuild := \"7.1.7\"" +clean +publishSigned
-sbt "set scalazVersion in ThisBuild := \"7.2.1\"" +clean +publishSigned
+for SCALAZ_VERSION in $(sed -ne 's/.*SCALAZ_VERSION=\(.*\)/\1/p' .travis.yml); do
+  sbt "set scalazVersion in ThisBuild := \"$SCALAZ_VERSION\"" +clean +publishSigned
+done

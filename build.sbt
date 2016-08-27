@@ -6,12 +6,13 @@ import sbtunidoc.Plugin.UnidocKeys._
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := s"0.14.0${scalazCrossBuildSuffix(scalazVersion.value)}-SNAPSHOT"
+version      in ThisBuild := scalazCrossBuild("0.15.0-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaVersion in ThisBuild := "2.10.6"
-// The build supports both scalaz `7.1.x` and `7.2.x`. Simply run `set scalazVersion in ThiBuild := "7.2.1"` to change
-// which version of scalaz is used to build the project.
-scalazVersion in ThisBuild := "7.1.7"
+// The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
+// `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
+// is used to build the project.
+scalazVersion in ThisBuild := "7.1.8"
 crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.8"))
 
 // Root project
@@ -48,7 +49,7 @@ lazy val client = libraryProject("client")
     description := "Base library for building http4s clients",
     libraryDependencies += jettyServlet % "test"
   )
-  .dependsOn(core % "compile;test->test", server % "test->compile")
+  .dependsOn(core % "compile;test->test", server % "test->compile", theDsl % "test->compile")
 
 lazy val blazeCore = libraryProject("blaze-core")
   .settings(
@@ -73,7 +74,7 @@ lazy val asyncHttpClient = libraryProject("async-http-client")
   .settings(
     description := "async http client implementation for http4s clients",
     libraryDependencies ++= Seq(
-      asyncHttp,
+      Http4sBuild.asyncHttpClient,
       reactiveStreamsTck % "test"
     )
   )
@@ -121,7 +122,7 @@ lazy val theDsl = libraryProject("dsl")
 lazy val jawn = libraryProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
-    libraryDependencies += jawnStreamz
+    libraryDependencies += jawnStreamz(scalazVersion.value)
   )
   .dependsOn(core % "compile;test->test")
 
@@ -129,7 +130,7 @@ lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sBuild.argonaut,
+      Http4sBuild.argonaut(scalazVersion.value),
       jawnParser
     )
   )
@@ -422,7 +423,6 @@ lazy val commonSettings = Seq(
   libraryDependencies <++= scalazVersion(sz => Seq(
     discipline,
     logbackClassic,
-    scalameter,
     scalazScalacheckBinding(sz),
     specs2Core(sz),
     specs2MatcherExtra(sz),

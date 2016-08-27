@@ -7,13 +7,13 @@ import scalaz.stream.Process
 import org.http4s.util.CaseInsensitiveString
 import scodec.bits.ByteVector
 
-package object http4s {
+package object http4s { // scalastyle:ignore
 
   type AuthScheme = CaseInsensitiveString
 
   type EntityBody = Process[Task, ByteVector]
 
-  def EmptyBody = Process.halt
+  def EmptyBody: EntityBody = Process.halt
 
   type DecodeResult[T] = EitherT[Task, DecodeFailure, T]
 
@@ -48,26 +48,26 @@ package object http4s {
     * </ul>
     */
   object HttpService {
-  
+
     /** Alternative application which lifts a partial function to an `HttpService`,
       * answering with a [[Response]] with status [[Status.NotFound]] for any requests
       * where the function is undefined.
       */
     def apply(pf: PartialFunction[Request, Task[Response]], default: HttpService = empty): HttpService =
       Service.lift(req => pf.applyOrElse(req, default))
-  
+
     /** Alternative application  which lifts a partial function to an `HttpService`,
       * answering with a [[Response]] as supplied by the default argument.
       */
     def apply(pf: PartialFunction[Request, Task[Response]], default: Task[Response]): HttpService =
       Service.lift(req => pf.applyOrElse(req, (_: Request) => default))
-  
+
     /**
       * Lifts a (total) function to an `HttpService`. The function is expected to handle
       * ALL requests it is given.
       */
     def lift(f: Request => Task[Response]): HttpService = Service.lift(f)
-  
+
     /** The default 'Not Found' response used when lifting a partial function
       * to a [[HttpService]] or general 'not handled' results.
       *
@@ -75,10 +75,15 @@ package object http4s {
       * services will have the opportunity to handle the request.
       * See [[Fallthrough]] for more details.
       */
-    val notFound: Task[Response] = Task.now(Response(Status.NotFound)
-                                               .withAttribute(Fallthrough.fallthroughKey, ())
-                                               .withBody("404 Not Found.").run)
-  
+    val notFound: Task[Response] =
+      Task.now {
+        // Task.now(task.run) looks weird, but this memoizes it so we don't
+        // constantly recreate it.
+        Response(Status.NotFound)
+          .withAttribute(Fallthrough.fallthroughKey, ())
+          .withBody("404 Not Found.").run
+      }
+
     val empty   : HttpService    = Service.const(notFound)
   }
 

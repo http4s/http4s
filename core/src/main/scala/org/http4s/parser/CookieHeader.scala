@@ -26,10 +26,13 @@ import shapeless.{HNil, ::}
 
 private[parser] trait CookieHeader {
 
-  def SET_COOKIE(value: String) = new SetCookieParser(value).parse
+  def SET_COOKIE(value: String): ParseResult[`Set-Cookie`] =
+    new SetCookieParser(value).parse
 
-  def COOKIE(value: String) = new CookieParser(value).parse
+  def COOKIE(value: String): ParseResult[headers.Cookie] =
+    new CookieParser(value).parse
 
+  // scalastyle:off public.methods.have.type
   private class SetCookieParser(input: ParserInput) extends BaseCookieParser[`Set-Cookie`](input) {
     def entry: Rule1[`Set-Cookie`] = rule {
       CookiePair ~ zeroOrMore(";" ~ OptWS ~ CookieAttrs) ~ EOI ~> (`Set-Cookie`(_))
@@ -79,5 +82,5 @@ private[parser] trait CookieHeader {
 
     def StringValue: Rule1[String] = rule { capture(oneOrMore((!(CTL | ch(';'))) ~ Char)) }
   }
-
+  // scalastyle:on public.methods.have.type
 }

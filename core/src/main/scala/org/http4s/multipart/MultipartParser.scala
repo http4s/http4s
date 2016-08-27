@@ -17,7 +17,7 @@ object MultipartParser {
   private val CRLF = ByteVector('\r', '\n')
   private val DASHDASH = ByteVector('-', '-')
 
-  private case class Out[+A](a: A, tail: Option[ByteVector] = None)
+  private final case class Out[+A](a: A, tail: Option[ByteVector] = None)
 
   def parse(boundary: Boundary): Writer1[Headers, ByteVector, ByteVector] = {
     val boundaryBytes = boundary.toByteVector
@@ -139,7 +139,7 @@ object MultipartParser {
     }
 
     def body(leading: Option[ByteVector], expected: ByteVector): Process1[ByteVector, Out[ByteVector]] = {
-      val heads = (0 until expected.length).scanLeft(expected) { (acc, _) =>
+      val heads = (0L until expected.length).scanLeft(expected) { (acc, _) =>
         acc dropRight 1
       }
 
@@ -160,7 +160,7 @@ object MultipartParser {
 
       /* We might be looking at a boundary, or we might not.  This is how we
        * decide that incrementally.
-       * 
+       *
        * @param found the part of the next boundary that we've matched so far
        * @param remainder the part of the next boundary we're looking for on the next read.
        */
@@ -171,7 +171,7 @@ object MultipartParser {
           emit(Out(ByteVector.empty, Some(found.drop(2))))
         } else {
           receive1Or[ByteVector, Out[ByteVector]](
-            fail(new InvalidMessageBodyFailure("Part was not terminated"))) { bv =>
+            fail(new MalformedMessageBodyFailure("Part was not terminated"))) { bv =>
             val (remFront, remBack) = remainder splitAt bv.length
             if (bv startsWith remFront) {
               // If remBack is nonEmpty, then the progress toward our match
@@ -183,8 +183,10 @@ object MultipartParser {
               // on the next loop.
               mid(found ++ bv, remBack)
             }
-            else
-              emit(Out(found)) ++ pre(bv)   // ok, so this buffer frame-slipped, but we might have a different terminator within bv
+            else {
+              // ok, so this buffer frame-slipped, but we might have a different terminator within bv
+              emit(Out(found)) ++ pre(bv)
+            }
           }
         }
       }

@@ -23,12 +23,12 @@ object FileService {
     * @param executor [[ExecutorService]] to use when collecting content
     * @param cacheStartegy strategy to use for caching purposes. Default to no caching.
     */
-  case class Config(systemPath: String,
-                    pathPrefix: String = "",
-                    pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
-                    bufferSize: Int = 50*1024,
-                    executor: ExecutorService = Strategy.DefaultExecutorService,
-                    cacheStartegy: CacheStrategy = NoopCacheStrategy)
+  final case class Config(systemPath: String,
+                          pathPrefix: String = "",
+                          pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
+                          bufferSize: Int = 50*1024,
+                          executor: ExecutorService = Strategy.DefaultExecutorService,
+                          cacheStartegy: CacheStrategy = NoopCacheStrategy)
 
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */

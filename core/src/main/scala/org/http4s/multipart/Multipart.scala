@@ -24,6 +24,8 @@ final case class Part(headers: Headers, body: EntityBody) {
 }
 
 object Part {
+  private val ChunkSize = 8192
+
   val empty: Part =
     Part(Headers.empty, EmptyBody)
 
@@ -40,25 +42,26 @@ object Part {
     Part(`Content-Disposition`("form-data", Map("name" -> name, "filename" -> filename)) +:
            Header("Content-Transfer-Encoding", "binary") +:
            headers,
-         constant(8192).toSource through chunkR(in))
+         constant(ChunkSize).toSource through chunkR(in))
    }
 }
 
 final case class Multipart(parts: Vector[Part], boundary: Boundary = Boundary.create) {
-  def headers = Headers(`Content-Type`(MediaType.multipart("form-data", Some(boundary.value))))
+  def headers: Headers = Headers(`Content-Type`(MediaType.multipart("form-data", Some(boundary.value))))
 }
 
-case class Boundary(value: String) extends AnyVal {
+final case class Boundary(value: String) extends AnyVal {
   def toByteVector: ByteVector =
     ByteVector.view(value.getBytes(StandardCharsets.UTF_8))
 }
 
 object Boundary {
+  private val BoundaryLength = 40
   val CRLF = "\r\n"
-  
+
   private val DIGIT = ('0' to '9').toList
   private val ALPHA = ('a' to 'z').toList ++ ('A' to 'Z').toList
-  private val OTHER = """'()+_,-./:=? """.toSeq 
+  private val OTHER = """'()+_,-./:=? """.toSeq
   private val CHARS = (DIGIT ++ ALPHA ++ OTHER).toList
   private val nchars = CHARS.length
   private val rand = new Random()
@@ -69,6 +72,5 @@ object Boundary {
   private def endChar: Char = stream.filter(_ != ' ').headOption.getOrElse('X')
   private def value(l: Int): String = (stream take l).mkString
 
-  def create = Boundary(value(40) + endChar)
+  def create: Boundary = Boundary(value(BoundaryLength) + endChar)
 }
-

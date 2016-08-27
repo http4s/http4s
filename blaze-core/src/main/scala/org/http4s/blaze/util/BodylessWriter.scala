@@ -1,4 +1,6 @@
-package org.http4s.blaze.util
+package org.http4s
+package blaze
+package util
 
 import java.nio.ByteBuffer
 
@@ -26,7 +28,7 @@ class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Bo
     * @param p Process[Task, Chunk] that will be killed
     * @return the Task which when run will send the headers and kill the body process
     */
-  override def writeProcess(p: Process[Task, ByteVector]): Task[Boolean] = Task.async { cb =>
+  override def writeProcess(p: EntityBody): Task[Boolean] = Task.async { cb =>
     val callback = cb.compose((t: scalaz.\/[Throwable, Unit]) => t.map(_ => close))
 
     pipe.channelWrite(headers).onComplete {

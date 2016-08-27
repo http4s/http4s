@@ -1,12 +1,13 @@
-package org.http4s.parser
+package org.http4s
+package parser
 
-import org.http4s.Challenge
 import org.http4s.headers._
 import org.parboiled2._
 
 trait ProxyAuthenticateHeader {
 
-  def PROXY_AUTHENTICATE(value: String) = new ProxyAuthenticateParser(value).parse
+  def PROXY_AUTHENTICATE(value: String): ParseResult[`Proxy-Authenticate`] =
+    new ProxyAuthenticateParser(value).parse
 
   private class ProxyAuthenticateParser(input: ParserInput) extends ChallengeParser[`Proxy-Authenticate`](input) {
     def entry: Rule1[`Proxy-Authenticate`] = rule {

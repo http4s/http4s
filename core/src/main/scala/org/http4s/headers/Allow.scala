@@ -13,8 +13,8 @@ object Allow extends HeaderKey.Internal[Allow] with HeaderKey.Singleton {
     HttpHeaderParser.ALLOW(s)
 }
 
-case class Allow(methods: NonEmptyList[Method]) extends Header.Parsed {
-  override def key = Allow
+final case class Allow(methods: NonEmptyList[Method]) extends Header.Parsed {
+  override def key: Allow.type = Allow
   override def renderValue(writer: Writer): writer.type =
     writer.addStringNel(methods.map(_.name), ", ")
 }

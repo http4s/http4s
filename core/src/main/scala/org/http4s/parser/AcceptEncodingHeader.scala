@@ -24,9 +24,8 @@ import org.http4s.headers.`Accept-Encoding`
 import org.http4s.util.CaseInsensitiveString
 
 private[parser] trait AcceptEncodingHeader {
-
-
-  def ACCEPT_ENCODING(value: String) = new AcceptEncodingParser(value).parse
+  def ACCEPT_ENCODING(value: String): ParseResult[`Accept-Encoding`] =
+    new AcceptEncodingParser(value).parse
 
   private class AcceptEncodingParser(input: ParserInput) extends Http4sHeaderParser[`Accept-Encoding`](input) {
 

@@ -15,9 +15,9 @@ sealed trait HeaderKey {
   def matchHeader(header: Header): Option[HeaderT]
   final def unapply(header: Header): Option[HeaderT] = matchHeader(header)
 
-  override def toString: String = s"HeaderKey($name})"
+  override def toString: String = s"HeaderKey($name)"
 
-def parse(s: String): ParseResult[HeaderT]
+  def parse(s: String): ParseResult[HeaderT]
 }
 
 object HeaderKey {
@@ -45,15 +45,19 @@ object HeaderKey {
     def apply(first: HeaderT#Value, more: HeaderT#Value*): HeaderT = apply(NonEmptyList.apply(first, more: _*))
     def from(headers: Headers): Option[HeaderT] = {
       @tailrec def loop(hs: Headers, acc: NonEmptyList[HeaderT#Value]): NonEmptyList[HeaderT#Value] =
-        if (hs.nonEmpty) matchHeader(hs.head) match {
-          case Some(header) => loop(hs.tail, acc append header.values)
-          case None => loop(hs.tail, acc)
+        if (hs.nonEmpty) {
+          matchHeader(hs.head) match {
+            case Some(header) => loop(hs.tail, acc append header.values)
+            case None => loop(hs.tail, acc)
+          }
         }
         else acc
       @tailrec def start(hs: Headers): Option[HeaderT] =
-        if (hs.nonEmpty) matchHeader(hs.head) match {
-          case Some(header) => Some(apply(loop(hs.tail, header.values)))
-          case None => start(hs.tail)
+        if (hs.nonEmpty) {
+          matchHeader(hs.head) match {
+            case Some(header) => Some(apply(loop(hs.tail, header.values)))
+            case None => start(hs.tail)
+          }
         }
         else None
       start(headers)
@@ -65,10 +69,14 @@ object HeaderKey {
     val name = getClass.getName.split("\\.").last.replaceAll("\\$minus", "-").split("\\$").last.replace("\\$$", "").ci
     private val runtimeClass = implicitly[ClassTag[HeaderT]].runtimeClass
     override def matchHeader(header: Header): Option[HeaderT] = {
-      if (runtimeClass.isInstance(header)) Some(header.asInstanceOf[HeaderT])
-      else if (header.isInstanceOf[Header.Raw] && name == header.name && runtimeClass.isInstance(header.parsed))
-        Some(header.parsed.asInstanceOf[HeaderT])
-      else None
+      header match {
+        case h if runtimeClass.isInstance(h) =>
+          Some(header.asInstanceOf[HeaderT])
+        case Header.Raw(name, _) if name == header.name && runtimeClass.isInstance(header.parsed) =>
+          Some(header.parsed.asInstanceOf[HeaderT])
+        case _ =>
+          None
+      }
     }
   }
 
@@ -87,6 +95,3 @@ object HeaderKey {
       ParseResult.success(Header.Raw(name, s))
   }
 }
-
-
-

@@ -246,5 +246,5 @@ object BlazeBuilder extends BlazeBuilder(
   serviceMounts = Vector.empty
 )
 
-private case class ServiceMount(service: HttpService, prefix: String)
+private final case class ServiceMount(service: HttpService, prefix: String)
 

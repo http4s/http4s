@@ -9,6 +9,7 @@ import org.http4s.util.string._
 private[http4s] class RequestUriParser(val input: ParserInput, val charset: Charset)
   extends Parser with Rfc3986Parser
 {
+  // scalastyle:off public.methods.have.type
   def RequestUri = rule {
     (OriginForm  |
      AbsoluteUri |
@@ -22,4 +23,5 @@ private[http4s] class RequestUriParser(val input: ParserInput, val charset: Char
   } }
 
   def Asterisk: Rule1[Uri] = rule { "*" ~ push(org.http4s.Uri(authority = Some(org.http4s.Uri.Authority(host = org.http4s.Uri.RegName("*"))), path = "")) }
+  // scalastyle:on public.methods.have.type
 }

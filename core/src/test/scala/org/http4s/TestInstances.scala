@@ -1,17 +1,16 @@
 package org.http4s
 
-import java.time.{ZonedDateTime, ZoneId, Instant}
+import java.time.{ Instant, LocalDateTime, ZoneId, ZonedDateTime }
 import java.time.temporal.ChronoUnit
 
-import org.http4s.headers.{Allow, Date, `Content-Length`, `Accept-Charset`}
+import org.http4s.headers._
 import org.http4s.util.NonEmptyList
 import org.http4s.util.string._
-
-import java.nio.charset.{Charset => NioCharset}
+import java.nio.charset.{ Charset => NioCharset }
 
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
-import org.scalacheck.{Arbitrary, Gen}
+import org.scalacheck.{ Arbitrary, Gen }
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
@@ -151,15 +150,43 @@ trait TestInstances {
     Arbitrary.arbitrary[Set[Char]].map(_.map(_.toInt)).map(set => BitSet(set.toSeq: _*))
   )
 
-  implicit lazy val arbitararyAllow: Arbitrary[Allow] =
+  implicit lazy val arbitraryAllow: Arbitrary[Allow] =
     Arbitrary { for {
       methods <- nonEmptyContainerOf[Set, Method](arbitrary[Method]).map(_.toList)
     } yield Allow(methods.head, methods.tail:_*) }
 
-  implicit lazy val arbitararyContentLength: Arbitrary[`Content-Length`] =
+  implicit lazy val arbitraryContentLength: Arbitrary[`Content-Length`] =
     Arbitrary { for {
       long <- arbitrary[Long] if long > 0L
     } yield `Content-Length`(long) }
+
+  implicit lazy val arbitraryXB3TraceId: Arbitrary[`X-B3-TraceId`] =
+    Arbitrary { for {
+      long <- arbitrary[Long]
+    } yield `X-B3-TraceId`(long) }
+
+  implicit lazy val arbitraryXB3SpanId: Arbitrary[`X-B3-SpanId`] =
+    Arbitrary { for {
+      long <- arbitrary[Long]
+    } yield `X-B3-SpanId`(long) }
+
+  implicit lazy val arbitraryXB3ParentSpanId: Arbitrary[`X-B3-ParentSpanId`] =
+    Arbitrary { for {
+      long <- arbitrary[Long]
+    } yield `X-B3-ParentSpanId`(long) }
+
+  implicit lazy val arbitraryXB3Flags: Arbitrary[`X-B3-Flags`] =
+    Arbitrary { for {
+      flags <- Gen.listOfN(3, Gen.oneOf(
+        `X-B3-Flags`.Flag.Debug,
+        `X-B3-Flags`.Flag.Sampled,
+        `X-B3-Flags`.Flag.SamplingSet))
+    } yield `X-B3-Flags`(flags.toSet) }
+
+  implicit lazy val arbitraryXB3Sampled: Arbitrary[`X-B3-Sampled`] =
+    Arbitrary { for {
+      boolean <- arbitrary[Boolean]
+    } yield `X-B3-Sampled`(boolean) }
 
   lazy val httpDateInstant: Gen[Instant] = {
     // RFC 5322 says 1900 is the minimum year
@@ -172,6 +199,18 @@ trait TestInstances {
     Arbitrary { for {
       instant <- httpDateInstant
     } yield headers.Date(instant) }
+
+  lazy val httpExpireInstant: Gen[Instant] = {
+    // RFC 2616 says Expires should be between now and 1 year in the future, though other values are allowed
+    val min = ZonedDateTime.of(LocalDateTime.now, ZoneId.of("UTC")).toInstant.toEpochMilli
+    val max = ZonedDateTime.of(LocalDateTime.now.plusYears(1), ZoneId.of("UTC")).toInstant.toEpochMilli
+    choose[Long](min, max).map(Instant.ofEpochMilli(_).truncatedTo(ChronoUnit.SECONDS))
+  }
+
+  implicit lazy val arbitraryExpiresHeader: Arbitrary[headers.Expires] =
+    Arbitrary { for {
+      instant <- httpExpireInstant
+    } yield headers.Expires(instant) }
 
   implicit lazy val arbitraryRawHeader: Arbitrary[Header.Raw] =
     Arbitrary {

@@ -10,7 +10,7 @@ object ClientExample {
 
     val client = org.http4s.client.blaze.SimpleHttp1Client()
 
-    val page: Task[String] = client.getAs[String](uri("https://www.google.com/"))
+    val page: Task[String] = client.expect[String](uri("https://www.google.com/"))
 
     for (_ <- 1 to 2)
       println(page.map(_.take(72)).run)   // each execution of the Task will refetch the page!
@@ -23,7 +23,7 @@ object ClientExample {
     import io.circe.generic.auto._
     import org.http4s.circe.jsonOf
 
-    case class Foo(bar: String)
+    final case class Foo(bar: String)
 
     // jsonOf is defined for Json4s, Argonuat, and Circe, just need the right decoder!
     implicit val fooDecoder = jsonOf[Foo]

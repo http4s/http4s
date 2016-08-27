@@ -1,3 +1,39 @@
+# v0.14.3 (2016-08-24)
+* Follow 301 and 302 responses to POST with a GET request.
+* Follow all redirect responses to HEAD with a HEAD request.
+* Fix bug where redirect response is disposed prematurely even if not followed.
+* Fix bug where payload headers are sent from original request when
+  following a redirect with a GET or HEAD.
+* Return a failed task instead of throwing when a client callback
+  throws an exception. Fixes a resource leak.
+* Always render `Date` header in GMT.
+* Fully support the three date formats specified by RFC 7231.
+* Always specify peer information in blaze-client SSL engines
+* Patch upgrades to latest async-http-client, jetty, scalaz, and scalaz-stream
+
+# v0.14.2 (2016-08-10)
+* Override `getMessage` in `UnexpectedStatus`
+
+# v0.14.1 (2016-06-15)
+* Added the possibility to specify custom responses to MessageFailures
+* Address issue with Retry middleware leaking connections
+* Fixed the status code for a semantically invalid request to `422 UnprocessableEntity`
+* Rename `json` to `jsonDecoder` to reduce possibility of implicit shadowing
+* Introduce the `ServerApp` trait
+* Deprectate `onShutdown` and `awaitShutdown` in `Server`
+* Support for multipart messages
+* The Path extractor for Long now supports negative numbers
+* Upgrade to scalaz-stream-0.8.2(a) for compatibility with scodec-bits-1.1
+* Downgrade to argonaut-6.1 (latest stable release) now that it cross builds for scalaz-7.2
+* Upgrade parboiled2 for compatibility with shapeless-2.3.x
+
+~~# v0.14.0 (2016-06-15)~~
+* Recalled. Use v0.14.1 instead.
+
+# v0.13.3 (2016-06-15)
+* Address issue with Retry middleware leaking connections.
+* Pass the reason string when setting the `Status` for a successful `ParseResult`.
+
 # v0.13.2 (2016-04-13)
 * Fixes the CanBuildFrom for RequestCookieJar to avoid duplicates.
 * Update version of jawn-parser which contains a fix for Json decoding.

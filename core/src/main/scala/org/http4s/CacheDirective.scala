@@ -26,7 +26,7 @@ import util.string._
 sealed trait CacheDirective extends Product with Renderable {
   val name = productPrefix.replace("$minus", "-").ci
   def value: String = name.toString
-  override def toString = value
+  override def toString: String = value
   def render(writer: Writer): writer.type = writer.append(value)
 }
 
@@ -35,22 +35,22 @@ sealed trait CacheDirective extends Product with Renderable {
  * http://www.iana.org/assignments/http-cache-directives/http-cache-directives.xhtml
  */
 object CacheDirective {
-  case class `max-age`(deltaSeconds: Duration) extends CacheDirective {
-    override def value = name + "=" + deltaSeconds.toSeconds
+  final case class `max-age`(deltaSeconds: Duration) extends CacheDirective {
+    override def value: String = name + "=" + deltaSeconds.toSeconds
   }
 
-  case class `max-stale`(deltaSeconds: Option[Duration] = None) extends CacheDirective {
-    override def value = name + deltaSeconds.fold("")("=" + _.toSeconds)
+  final case class `max-stale`(deltaSeconds: Option[Duration] = None) extends CacheDirective {
+    override def value: String = name + deltaSeconds.fold("")("=" + _.toSeconds)
   }
 
-  case class `min-fresh`(deltaSeconds: Duration) extends CacheDirective {
-    override def value = name + "=" + deltaSeconds.toSeconds
+  final case class `min-fresh`(deltaSeconds: Duration) extends CacheDirective {
+    override def value: String = name + "=" + deltaSeconds.toSeconds
   }
 
   case object `must-revalidate` extends CacheDirective
 
-  case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty) extends CacheDirective {
-    override def value = name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
+  final case class `no-cache`(fieldNames: Seq[CaseInsensitiveString] = Seq.empty) extends CacheDirective {
+    override def value: String = name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
   case object `no-store` extends CacheDirective
@@ -59,24 +59,24 @@ object CacheDirective {
 
   case object `only-if-cached` extends CacheDirective
 
-  case class `private`(fieldNames: Seq[CaseInsensitiveString] = Nil) extends CacheDirective {
-    override def value = name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
+  final case class `private`(fieldNames: Seq[CaseInsensitiveString] = Nil) extends CacheDirective {
+    override def value: String = name + (if (fieldNames.isEmpty) "" else fieldNames.mkString("=\"", ",", "\""))
   }
 
   case object `proxy-revalidate` extends CacheDirective
 
   case object public extends CacheDirective
 
-  case class `s-maxage`(deltaSeconds: Duration) extends CacheDirective {
-    override def value = name + "=" + deltaSeconds.toSeconds
+  final case class `s-maxage`(deltaSeconds: Duration) extends CacheDirective {
+    override def value: String = name + "=" + deltaSeconds.toSeconds
   }
 
-  case class `stale-if-error`(deltaSeconds: Duration) extends CacheDirective {
-    override def value = name + "=" + deltaSeconds.toSeconds
+  final case class `stale-if-error`(deltaSeconds: Duration) extends CacheDirective {
+    override def value: String = name + "=" + deltaSeconds.toSeconds
   }
 
-  case class `stale-while-revalidate`(deltaSeconds: Duration) extends CacheDirective {
-    override def value = name + "=" + deltaSeconds.toSeconds
+  final case class `stale-while-revalidate`(deltaSeconds: Duration) extends CacheDirective {
+    override def value: String = name + "=" + deltaSeconds.toSeconds
   }
 
   def apply(name: CaseInsensitiveString, argument: Option[String] = None): CacheDirective =
@@ -87,9 +87,9 @@ object CacheDirective {
 
   def apply(name: String): CacheDirective = apply(name, None)
 
-  private case class CustomCacheDirective(override val name: CaseInsensitiveString, argument: Option[String] = None)
+  private final case class CustomCacheDirective(override val name: CaseInsensitiveString, argument: Option[String] = None)
     extends CacheDirective
   {
-    override def value = name + argument.fold("")("=\"" + _ + '"')
+    override def value: String = name + argument.fold("")("=\"" + _ + '"')
   }
 }

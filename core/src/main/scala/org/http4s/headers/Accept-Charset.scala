@@ -10,7 +10,7 @@ object `Accept-Charset` extends HeaderKey.Internal[`Accept-Charset`] with Header
 }
 
 final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends Header.RecurringRenderable {
-  def key = `Accept-Charset`
+  def key: `Accept-Charset`.type = `Accept-Charset`
   type Value = CharsetRange
 
   def qValue(charset: Charset): QValue = {
@@ -19,7 +19,7 @@ final case class `Accept-Charset`(values: NonEmptyList[CharsetRange]) extends He
     specific orElse splatted getOrElse QValue.Zero
   }
 
-  def isSatisfiedBy(charset: Charset) = qValue(charset) > QValue.Zero
+  def isSatisfiedBy(charset: Charset): Boolean = qValue(charset) > QValue.Zero
 
   def map(f: CharsetRange => CharsetRange): `Accept-Charset` = `Accept-Charset`(values.map(f))
 }

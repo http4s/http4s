@@ -48,18 +48,18 @@ trait ProcessWriter {
   /** Creates a Task that writes the contents the Process to the output.
     * Cancelled exceptions fall through to the Task cb
     *
-    * @param p Process[Task, ByteVector] to write out
+    * @param p EntityBody to write out
     * @return the Task which when run will unwind the Process
     */
-  def writeProcess(p: Process[Task, ByteVector]): Task[Boolean] = Task.async(go(p, Nil, _))
+  def writeProcess(p: EntityBody): Task[Boolean] = Task.async(go(p, Nil, _))
 
   /** Helper to allow `go` to be tail recursive. Non recursive calls can 'bounce' through
     * this function but must be properly trampolined or we risk stack overflows */
-  final private def bounce(p: Process[Task, ByteVector], stack: List[StackElem], cb: Callback[Boolean]): Unit =
+  final private def bounce(p: EntityBody, stack: List[StackElem], cb: Callback[Boolean]): Unit =
     go(p, stack, cb)
 
   @tailrec
-  final private def go(p: Process[Task, ByteVector], stack: List[StackElem], cb: Callback[Boolean]): Unit = p match {
+  final private def go(p: EntityBody, stack: List[StackElem], cb: Callback[Boolean]): Unit = p match {
     case Emit(seq) if seq.isEmpty =>
       if (stack.isEmpty) writeEnd(ByteVector.empty).onComplete(completionListener(_, cb))
       else go(Try(stack.head.apply(End).run), stack.tail, cb)
@@ -112,7 +112,7 @@ trait ProcessWriter {
   }
 
   @inline
-  private def Try(p: => Process[Task, ByteVector]): Process[Task, ByteVector] = {
+  private def Try(p: => EntityBody): EntityBody = {
     try p
     catch { case t: Throwable => Process.fail(t) }
   }

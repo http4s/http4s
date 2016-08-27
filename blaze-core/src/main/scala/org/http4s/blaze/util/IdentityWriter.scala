@@ -14,10 +14,10 @@ class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage
 
   private[this] val logger = getLogger
 
-  private var bodyBytesWritten = 0
+  private var bodyBytesWritten = 0L
 
-  private def willOverflow(count: Int) =
-    if (size < 0) false else (count + bodyBytesWritten > size)
+  private def willOverflow(count: Long) =
+    if (size < 0L) false else (count + bodyBytesWritten > size)
 
   protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] =
     if (willOverflow(chunk.size)) {

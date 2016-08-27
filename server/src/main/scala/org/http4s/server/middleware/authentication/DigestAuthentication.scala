@@ -31,7 +31,7 @@ import scalaz._
 class DigestAuthentication(realm: String, store: AuthenticationStore, nonceCleanupInterval: Duration = 3600.seconds, nonceStaleTime: Duration = 3600.seconds, nonceBits: Int = 160) extends Authentication {
 
   private trait AuthReply
-  private case class OK(user: String, realm: String) extends AuthReply
+  private sealed case class OK(user: String, realm: String) extends AuthReply
   private case object StaleNonce extends AuthReply
   private case object BadNC extends AuthReply
   private case object WrongResponse extends AuthReply

@@ -683,7 +683,7 @@ object UriTemplateSpec extends Specification {
       val types = ParamExp("type")
       val path = List(PathElm("orders"))
 
-      case class Foo(bar: String)
+      final case class Foo(bar: String)
 
       val qpe =
         new QueryParamEncoder[Foo] {

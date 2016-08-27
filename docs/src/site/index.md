@@ -42,10 +42,12 @@ Please pick a version that suits your needs, and proceed to its tutorial:
 {:.table}
 | http4s Version   | Status      | Tutorial    | scala          | scalaz | scalaz-stream | java |
 | ---              | ---         | ----        | ---            | ---    | ---           | --   | 
-| 0.14.0a          | Development | [docs/0.14] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
-| 0.14.0           | Development | [docs/0.14] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
-| 0.13.2a          | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
-| 0.13.2           | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
+| 0.15.0a-SNAPSHOT | Development | [docs/0.15] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
+| 0.15.0-SNAPSHOT  | Development | [docs/0.15] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
+| 0.14.3a          | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
+| 0.14.3           | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
+| 0.13.3a          | EOL         | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8a          | 1.8+ |
+| 0.13.3           | EOL         | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.12.4           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.11.3           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
 | 0.10.1           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.8+ |
@@ -63,8 +65,9 @@ patches will be considered.
 [scalaz-stream]: https://github.com/functional-streams-for-scala/fs2
 [blaze]: https://github.com/http4s/blaze
 [circe]: https://github.com/travisbrown/circe
-[argonaut]: https://github.com/argonaut.io/argonaut
+[argonaut]: https://github.com/argonaut-io/argonaut
 [community]: community
 [code of conduct]: community/conduct.html
 [docs/0.13]: docs/0.13
 [docs/0.14]: docs/0.14
+[docs/0.15]: docs/0.15
