@@ -80,7 +80,6 @@ val jsonService = HttpService {
     )(jsonOf)
 }
 
-import org.http4s.server.syntax._
 import org.http4s.server.blaze._
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(jsonService, "/")
 val server = builder.run
