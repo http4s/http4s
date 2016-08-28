@@ -430,15 +430,12 @@ lazy val commonSettings = Seq(
         scalacOptions.value filterNot (_ == "-Xfatal-warnings")
     }
   },
-  /* disabled because SI-7529
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
       "-Ybackend:GenBCode", 
-      "-Ydelambdafy:method",
-      "-Yopt:l:classpath"
+      "-Ydelambdafy:method"
     ) else Seq.empty
   },
-   */
   javacOptions <++= jvmTarget.map { jvm => Seq(
     "-source", jvm,
     "-target", jvm,
