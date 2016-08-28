@@ -8,6 +8,24 @@ title: HTTP Client
 How do we know the server is running?  Let's create a client with
 http4s to try our service.
 
+The service again so tut picks it up:
+
+```tut:book
+import org.http4s.server.{Server, ServerApp}
+import org.http4s.server.blaze._
+import org.http4s._, org.http4s.dsl._
+
+val service = HttpService {
+  case GET -> Root / "hello" / name =>
+    Ok(s"Hello, $name.")
+}
+
+import org.http4s.server.syntax._
+val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
+val server = builder.run
+```
+
+
 ### Creating the client
 
 A good default choice is the `PooledHttp1Client`.  As the name
@@ -61,23 +79,6 @@ Observe how simply we could combine a single `Task[String]` returned
 by `hello` into a scatter-gather to return a `Task[List[String]]`.
 
 ## Making the call
-
-To actually make a call, we'll need a small [service] running.
-
-```tut:book
-import org.http4s.server.{Server, ServerApp}
-import org.http4s.server.blaze._
-import org.http4s._, org.http4s.dsl._
-
-val service = HttpService {
-  case GET -> Root / "hello" / name =>
-    Ok(s"Hello, $name.")
-}
-
-import org.http4s.server.syntax._
-val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
-val server = builder.run
-```
 
 It is best to run your `Task` "at the end of the world."  The "end of
 the world" varies by context:
