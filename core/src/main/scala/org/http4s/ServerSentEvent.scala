@@ -1,4 +1,3 @@
-
 package org.http4s
 
 import java.util.regex.Pattern
@@ -25,7 +24,7 @@ case class ServerSentEvent(
     id match {
       case None =>
       case Some(EventId.reset) => writer << "id\n"
-      case Some(EventId(id)) => writer << "id:" << id << "\n"
+      case Some(EventId(id)) => writer << "id: " << id << "\n"
     }
     retry.foreach { writer << "retry:" << _ << "\n" }
     writer << "\n"

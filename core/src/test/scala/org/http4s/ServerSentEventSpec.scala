@@ -84,6 +84,12 @@ class ServerSentEventSpec extends Http4sSpec {
         .run
       roundTrip must_== sses
     }
+
+    "handle events that begin with a space" in {
+      // This is a pathological case uncovered by scalacheck
+      val sse = ServerSentEvent("meh",None,Some(EventId(" begins_with_space")),None)
+      emit(sse).toSource.pipe(ServerSentEvent.encoder).pipe(ServerSentEvent.decoder).runLast.run must beSome(sse)
+    }
   }
 
   "EntityEncoder[ServerSentEvent]" should {
