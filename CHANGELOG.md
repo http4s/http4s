@@ -1,3 +1,13 @@
+# v0.15.0-SNASPHOT (unreleased)
+* Added `Client.fromHttpService` to assist with testing.
+* Make all case classes final where possible, sealed where not.
+* Codec for Server Sent Events (SSE)
+* Added JSONP middleware
+* Improve Expires header to more easily build the header and support parsing of the header
+* Replce lazy `Raw.parsed` field with a siple null check
+* Added support for Zipkin headers
+* Upgrade to json4s-3.4.0
+
 # v0.14.3 (2016-08-24)
 * Follow 301 and 302 responses to POST with a GET request.
 * Follow all redirect responses to HEAD with a HEAD request.
