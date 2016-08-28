@@ -7,6 +7,8 @@ title: JSON handling
 
 ### Argonaut
 
+Argonaut-shapeless for automatic codec derivation.
+
 ```scala
 libraryDependencies += Seq(
   "org.http4s" %% "http4s-argonaut" % "0.15.0a-SNAPSHOT",
@@ -16,8 +18,13 @@ libraryDependencies += Seq(
 
 ### Circe
 
+Circe-generic for automatic codec derivation.
+
 ```scala
-libraryDependencies += "org.http4s" %% "http4s-circe" % "0.15.0a-SNAPSHOT"
+libraryDependencies ++= Seq(
+  "org.http4s" %% "http4s-circe" % "0.15.0a-SNAPSHOT",
+  "io.circe" %% "circe-generic" % "0.4.1"
+)
 ```
 
 ### Json4s
