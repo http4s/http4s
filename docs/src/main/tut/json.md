@@ -175,7 +175,7 @@ def repos(org: String): Task[List[Repo]] = {
 }
 
 val http4s = repos("http4s")
-http4s.map(_.map(_.stargazers_count)).run.mkString("\n")
+http4s.map(_.map(_.stargazers_count).mkString("\n")).run
 httpClient.shutdownNow()
 ```
 
