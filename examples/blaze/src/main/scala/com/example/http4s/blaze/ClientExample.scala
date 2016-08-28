@@ -25,9 +25,6 @@ object ClientExample {
 
     final case class Foo(bar: String)
 
-    // jsonOf is defined for Json4s, Argonuat, and Circe, just need the right decoder!
-    implicit val fooDecoder = jsonOf[Foo]
-
     // Match on response code!
     val page2 = client.get(uri("http://http4s.org/resources/foo.json")) {
       case Successful(resp) => resp.as[Foo].map("Received response: " + _)

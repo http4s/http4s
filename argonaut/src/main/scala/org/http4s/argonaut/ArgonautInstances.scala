@@ -7,7 +7,7 @@ import org.http4s.headers.`Content-Type`
 trait ArgonautInstances {
   implicit val jsonDecoder: EntityDecoder[Json] = jawn.jawnDecoder(Parser.facade)
 
-  def jsonOf[A](implicit decoder: DecodeJson[A]): EntityDecoder[A] =
+  implicit def jsonOf[A](implicit decoder: DecodeJson[A]): EntityDecoder[A] =
     jsonDecoder.flatMapR { json =>
       decoder.decodeJson(json).fold(
         (message, history) =>
@@ -23,6 +23,6 @@ trait ArgonautInstances {
       Argonaut.nospace.pretty(json)
     }.withContentType(`Content-Type`(MediaType.`application/json`, Charset.`UTF-8`))
 
-  def jsonEncoderOf[A](implicit encoder: EncodeJson[A]): EntityEncoder[A] =
+  implicit def jsonEncoderOf[A](implicit encoder: EncodeJson[A]): EntityEncoder[A] =
     jsonEncoder.contramap[A](encoder.encode)
 }

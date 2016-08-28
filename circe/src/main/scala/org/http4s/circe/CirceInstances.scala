@@ -9,7 +9,7 @@ import org.http4s.headers.`Content-Type`
 trait CirceInstances {
   implicit val jsonDecoder: EntityDecoder[Json] = jawn.jawnDecoder(facade)
 
-  def jsonOf[A](implicit decoder: Decoder[A]): EntityDecoder[A] =
+  implicit def jsonOf[A](implicit decoder: Decoder[A]): EntityDecoder[A] =
     jsonDecoder.flatMapR { json =>
       decoder.decodeJson(json).fold(
         failure =>
@@ -26,6 +26,6 @@ trait CirceInstances {
       Printer.noSpaces.pretty(json)
     }.withContentType(`Content-Type`(MediaType.`application/json`))
 
-  def jsonEncoderOf[A](implicit encoder: Encoder[A]): EntityEncoder[A] =
+  implicit def jsonEncoderOf[A](implicit encoder: Encoder[A]): EntityEncoder[A] =
     jsonEncoder.contramap[A](encoder.apply)
 }
