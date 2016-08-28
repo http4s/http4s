@@ -35,13 +35,13 @@ libraryDependencies += "org.http4s" %% "http4s-json4s-jackson" % "0.15.0a-SNAPSH
 
 ## Import it
 
-The namespace is
+The import statement is one of the following:
 
 ```scala
-import org.http4s.<libraryName>._
+import org.http4s.argonaut._
+import org.http4s.circe._
+import org.http4s.json4s._
 ```
-
-where `libraryName` can be one of the above, e.g. `org.http4s.argonaut._`.
 
 ## Deriving codecs
 
