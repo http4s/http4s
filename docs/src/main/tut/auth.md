@@ -20,12 +20,10 @@ import org.http4s._
 
 case class User(id: Long, name: String)
 
-def addInput[I, T](k: Service[I, T]): Service[I, (T, I)] =
-  Kleisli(input => k.run(input).map(user => (user, input)))
-
-val authUser: Service[Request, User] = Kleisli(_ => Task.delay(???))
+// Needs to be Kleisli for the type inference of &&& to work.
+val authUser: Kleisli[Task, Request, User] = Kleisli(_ => Task.delay(???))
 val authedService: Service[(User, Request), Response] = Kleisli(_ => Task.delay(???))
-val service: HttpService = authedService.compose(addInput(authUser))
+val service: HttpService = authedService.compose((authUser &&& Kleisli.ask))
 ```
 
 ## Returning an error Response
@@ -44,9 +42,9 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```tut:book
 import org.http4s.dsl._
 
-val authUser: Service[Request, String \/ User] = Kleisli(_ => Task.delay(???))
+val authUser: Kleisli[Task, Request, String \/ User] = Kleisli(_ => Task.delay(???))
 val onFailure: Service[String, Response] = Kleisli(message => Forbidden(message))
-val service: HttpService = addInput(authUser).flatMapK({
+val service: HttpService = (authUser &&& Kleisli.ask).flatMapK({
   case (maybeUser, request) =>
     maybeUser.fold(
       onFailure.run,
