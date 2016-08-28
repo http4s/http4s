@@ -1,7 +1,5 @@
 package com.example.http4s.blaze
 
-/// code_ref: blaze_server_example
-
 import java.util.concurrent.TimeUnit
 
 import com.example.http4s.ExampleService
@@ -38,4 +36,3 @@ object BlazeMetricsExample extends ServerApp {
     .mountService(srvc, "/http4s")
     .start
 }
-/// end_code_ref
