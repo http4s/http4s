@@ -159,7 +159,7 @@ want to be more explicit.
 ```tut:book
 import scalaz.concurrent.Task
 
-import org.http4s.util.CaseInsensitiveString.ToCaseInsensitiveStringSyntax
+import org.http4s.util.string._
 import org.http4s.UriTemplate
 import org.http4s.UriTemplate._
 
