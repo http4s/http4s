@@ -185,6 +185,20 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core % "compile;test->test")
 
+lazy val zipkin = http4sProject("zipkin")
+  .settings(
+    description := "Zipkin support for http4s"
+  )
+  .dependsOn(
+    core % "compile->compile;test->test",
+    theDsl % "compile->compile;test->test",
+    server % "compile->compile;test->test",
+    client % "compile->compile;test->test",
+    blazeServer % "compile->compile;test->test",
+    blazeClient % "compile->compile;test->test",
+    argonaut % "compile->compile;test->test"
+  )
+
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
   .settings(noPublishSettings)
