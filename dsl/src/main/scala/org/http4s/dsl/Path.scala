@@ -153,8 +153,10 @@ case object Root extends Path {
  */
 object /: {
   def unapply(path: Path): Option[(String, Path)] = {
-    val asList = path.toList
-    asList.headOption.strengthR(Path(asList.tail))
+    path.toList match {
+      case head :: tail => Some(head -> Path(tail))
+      case Nil => None
+    }
   }
 }
 
