@@ -1,3 +1,7 @@
+# v0.14.4 (2016-08-29)
+* Don't render trailing "/" for URIs with empty paths
+* Avoid calling tail of empty list in `/:` extractor
+
 # v0.14.3 (2016-08-24)
 * Follow 301 and 302 responses to POST with a GET request.
 * Follow all redirect responses to HEAD with a HEAD request.
