@@ -1,6 +1,6 @@
 package org.http4s.util
 
-import java.io._
+import java.io.{Writer => JWriter, _}
 
 import scalaz.concurrent._
 import scalaz.stream._
@@ -53,4 +53,38 @@ package object io {
       val start = Process.eval_(Task(f(os))).onComplete(Process eval_ q.close)
       q.dequeue.merge(start.drain)
     }
+
+  /** Passes an Writer to an action that captures the output as a Process.
+    * Useful for adapting the `java.io` push model to scalaz-stream's pull model.
+    * 
+    * @param size of the bounded queue that buffers writes.  If `f` writes
+    * faster than the result is consumed, `f` will be blocked.
+    * @param f an action that writes to an Writer
+    * @param S the strategy to call f on.  Should be a different thread from the
+    * consumer of the resulting Process, or else deadlock is possible.
+    * @return a Process of what was written to the Writer passed to f
+    */
+  def captureWriter(bound: Int)(f: JWriter => Unit)(implicit S: Strategy): Process[Task, ByteVector] =
+    captureOutputStream(bound)(osCallbackToWriterCallback(f))
+
+  /** Passes an Writer to an action that captures the output as a Process.
+    * Useful for adapting the `java.io` push model to scalaz-stream's pull model.
+    * 
+    * This variant uses an unbounded queue, which assures that `f` never blocks,
+    * but may consume boundless memory if the consumer is slow.
+    * 
+    * @param f an action that writes to an Writer
+    * @param S the strategy to call f on.  Should be a different thread from the
+    * consumer of the resulting Process, or else deadlock is possible.
+    * @return a Process of what was written to the Writer passed to f
+    */
+  def captureWriter(f: JWriter => Unit)(implicit S: Strategy): Process[Task, ByteVector] =
+    captureOutputStream(osCallbackToWriterCallback(f))
+
+  private def osCallbackToWriterCallback(f: JWriter => Unit) = { out: OutputStream =>
+    val w = new OutputStreamWriter(out)
+    f(w)
+    w.flush()
+  }
 }
+

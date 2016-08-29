@@ -1,10 +1,13 @@
 package org.http4s
 package util.io
 
-import java.io._
+import java.io.{Writer => JWriter, _}
 import org.http4s.util.byteVector._
 import org.scalacheck._, Arbitrary._
+import scalaz._
 import scalaz.concurrent._
+import scalaz.stream.text._
+import scalaz.syntax.foldable._
 import scodec.bits.ByteVector
 
 class IoSpec extends Http4sSpec {
@@ -51,6 +54,22 @@ class IoSpec extends Http4sSpec {
         val f = { out: OutputStream => chunks.foreach(chunk => out.write(chunk.toArray)) }
         val p0 = captureOutputStream(f).runLog.run
         val p1 = captureOutputStream(bound)(f).runLog.run
+        p0 must_== p1
+      }
+    }
+  }
+
+  "captureWriter" should {
+    "write strings" in prop { chunks: Vector[String] =>
+      val p = captureWriter(w => chunks.foreach(chunk => w.write(chunk)))
+      p.pipe(utf8Decode).foldMonoid.runLast.run must beSome(chunks.foldMap(identity))
+    }
+
+    "work with bounded queues" in prop { (bound: Int, chunks: Vector[String]) =>
+      (bound > 0) ==> {
+        val f = { w: JWriter => chunks.foreach(chunk => w.write(chunk)) }
+        val p0 = captureWriter(f).runLog.run
+        val p1 = captureWriter(bound)(f).runLog.run
         p0 must_== p1
       }
     }
