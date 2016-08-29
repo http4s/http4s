@@ -51,7 +51,6 @@ package object interpreters {
         ("debug" := true) ->:
         //TODO: Stubs, for now.
 //        ("duration" := 1234) ->:
-        //TODO: Stubs, for now.
         ("timestamp" := a.annotations.head.timestamp) ->: // YOLO
         jEmptyObject
     )
