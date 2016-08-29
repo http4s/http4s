@@ -16,7 +16,6 @@ class SimpleResponseServerApp(
   getConfig: Task[Endpoint],
   randomness: Randomness, clock: Clock
 ) extends ServerApp {
-  val me = Endpoint("127.0.0.1", 8083, "server_3")
 
   val originalService: HttpService = HttpService {
     case GET -> Root / "hello" / name =>
