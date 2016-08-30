@@ -3,7 +3,7 @@ package org.http4s.zipkin.middleware
 import java.time.Instant
 
 import org.http4s.headers.{`X-B3-ParentSpanId`, `X-B3-SpanId`, `X-B3-TraceId`}
-import org.http4s.zipkin.algebras.{Clock, CollectorInterpreter, Randomness}
+import org.http4s.zipkin.algebras.{Clock, Collector, Randomness}
 import org.http4s.zipkin.models.{AnnotationType, Endpoint, ServerIds}
 import org.http4s.{Service, _}
 
@@ -13,7 +13,7 @@ import scalaz.{Kleisli, Scalaz}
 object ZipkinServer {
 
   def apply(
-    collectorInterpreter: CollectorInterpreter,
+    collector: Collector,
     randomness: Randomness,
     clock: Clock,
     endpoint: Endpoint
@@ -26,13 +26,13 @@ object ZipkinServer {
         serverIds = serverIdsFromHeaders(request.headers)(freshSpanId)
 
         srInfo <- Clock.getInstant(clock).map(serverReceiveInfo(true, name, endpoint, serverIds))
-        _ <- sendToCollector(srInfo)(collectorInterpreter)
+        _ <- Collector.send(srInfo)(collector)
 
         responseForOurClient <- zipkinService.run(
           ServerRequirements(serverIds))(request)
 
         ssInfo <- Clock.getInstant(clock).map(serverSendInfo(true, name, endpoint, serverIds))
-        _ <- sendToCollector(ssInfo)(collectorInterpreter)
+        _ <- Collector.send(ssInfo)(collector)
 
       } yield responseForOurClient
     }

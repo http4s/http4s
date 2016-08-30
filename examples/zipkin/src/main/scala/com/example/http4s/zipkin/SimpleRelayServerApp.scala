@@ -20,10 +20,10 @@ class SimpleRelayServerApp(
 ) extends ServerApp {
 
   val http1Client = PooledHttp1Client()
-  val collectorInterpreter = Http(http1Client)
+  val collector = Http(http1Client)
 
   val instrument: Client => ZipkinClient =
-    ZipkinClient(collectorInterpreter, randomness, clock)
+    ZipkinClient(collector, randomness, clock)
 
   val zipkinClient: ZipkinClient = instrument(http1Client)
 
@@ -51,7 +51,7 @@ class SimpleRelayServerApp(
     val lifted: ZipkinService =
       ZipkinServer.lift(serviceWithZipkinClient(nextServiceName))
 
-    ZipkinServer(collectorInterpreter, randomness, clock, me)(lifted)
+    ZipkinServer(collector, randomness, clock, me)(lifted)
   }
 
   override def server(args: List[String]): Task[Server] = {

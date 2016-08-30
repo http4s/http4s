@@ -5,7 +5,6 @@ import java.time.Instant
 import org.http4s.{HttpService, Request}
 import org.http4s.client.Client
 import org.http4s.headers._
-import org.http4s.zipkin.algebras.CollectorOp
 import org.http4s.zipkin.models._
 
 import scalaz._
@@ -16,9 +15,6 @@ package object middleware {
 
   type ZipkinClient = Reader[ClientRequirements, Client]
   type ZipkinService = Reader[ServerRequirements, HttpService]
-
-  def sendToCollector(zipkinInfo: ZipkinInfo)(collectorInterpreter: CollectorOp ~> Task): Task[Unit] =
-    CollectorOp.send(zipkinInfo).foldMap(Coyoneda.liftTF(collectorInterpreter))
 
   def nameFromRequest(request: Request): String =
     s"${request.method} ${request.uri.path}"

@@ -4,7 +4,7 @@ import java.time.Instant
 
 import org.http4s.client.{Client, DisposableResponse}
 import org.http4s.headers._
-import org.http4s.zipkin.algebras.{Clock, CollectorInterpreter, Randomness}
+import org.http4s.zipkin.algebras.{Clock, Collector, Randomness}
 import org.http4s.zipkin.models.{AnnotationType, ClientIds, Endpoint, ServerIds}
 import org.http4s.{Request, Service}
 
@@ -14,7 +14,7 @@ import scalaz.{Kleisli, Scalaz}
 object ZipkinClient {
 
   def apply(
-    collectorInterpreter: CollectorInterpreter,
+    collector: Collector,
     randomness: Randomness,
     clock: Clock
   )(client: Client): ZipkinClient = {
@@ -33,13 +33,13 @@ object ZipkinClient {
             clientRequirements.serverIds, freshSpanId)
 
           csInfo <- Clock.getInstant(clock).map(clientSendInfo(true, name,endpoint, clientIds))
-          _ <- sendToCollector(csInfo)(collectorInterpreter)
+          _ <- Collector.send(csInfo)(collector)
 
           requestWithIds = addZipkinHeaders(request, clientIds)
           response <- open.run(requestWithIds)
 
           crInfo <- Clock.getInstant(clock).map(clientReceiveInfo(true, name,endpoint, clientIds))
-          _ <- sendToCollector(crInfo)(collectorInterpreter)
+          _ <- Collector.send(crInfo)(collector)
         } yield response
       }
     }
