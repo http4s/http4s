@@ -44,7 +44,8 @@ package object middleware {
     Endpoint(
       ipv4 = request.uri.host.get.toString, // YOLO
       port = request.uri.port.get, // YOLO
-      serviceName = serviceName
+      serviceName = serviceName,
+      iPv6 = None
     )
   }
 }

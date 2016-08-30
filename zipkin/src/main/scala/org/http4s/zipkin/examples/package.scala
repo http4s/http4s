@@ -10,7 +10,7 @@ package object examples {
   def getConfig: Task[Config] = for {
     endpoint <- getEndpointFromConsole
     nextServiceName <- getNextServiceNameConsole
-  }yield Config(
+  } yield Config(
     endpoint = endpoint,
     nextServiceName = nextServiceName)
 
@@ -35,7 +35,7 @@ package object examples {
       ip <- getAddress
       port <- getPort
       name <- getServiceName
-    } yield Endpoint(ip, port, name)
+    } yield Endpoint(ip, None, port, name)
   }
 
   type ServiceName = String

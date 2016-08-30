@@ -12,8 +12,7 @@ package object interpreters {
     EncodeJson((e: Endpoint) =>
       ("ipv4" := e.ipv4) ->:
         ("port" := e.port) ->:
-        //TODO: Stubbed to localhost for now
-        ("ipv6" := "0:0:0:0:0:0:0:1") ->:
+        ("ipv6" := e.iPv6) ->:
         ("serviceName" := e.serviceName) ->:
         jEmptyObject
     )
