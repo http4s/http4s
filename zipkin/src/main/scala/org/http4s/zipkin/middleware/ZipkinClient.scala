@@ -32,13 +32,13 @@ object ZipkinClient {
           clientIds = clientIdsFromServerIds(
             clientRequirements.serverIds, freshSpanId)
 
-          csInfo <- Clock.getInstant(clock).map(clientSendInfo(name,endpoint, clientIds))
+          csInfo <- Clock.getInstant(clock).map(clientSendInfo(true, name,endpoint, clientIds))
           _ <- sendToCollector(csInfo)(collectorInterpreter)
 
           requestWithIds = addZipkinHeaders(request, clientIds)
           response <- open.run(requestWithIds)
 
-          crInfo <- Clock.getInstant(clock).map(clientReceiveInfo(name,endpoint, clientIds))
+          crInfo <- Clock.getInstant(clock).map(clientReceiveInfo(true, name,endpoint, clientIds))
           _ <- sendToCollector(crInfo)(collectorInterpreter)
         } yield response
       }
@@ -68,14 +68,16 @@ object ZipkinClient {
     parentId = `X-B3-ParentSpanId`(serverIds.spanId.id)
   )
 
-  def clientSendInfo(name: String, host: Endpoint, clientIds: ClientIds)(instant: Instant) =
+  def clientSendInfo(debug: Boolean, name: String, host: Endpoint, clientIds: ClientIds)(instant: Instant) =
     buildZipkinInfo(
+      debug,
       name,
       instant,host,clientIds.traceId, clientIds.spanId, Option(clientIds.parentId)
     )(AnnotationType.ClientSend)
 
-  def clientReceiveInfo(name: String, host: Endpoint, clientIds: ClientIds)(instant: Instant) =
+  def clientReceiveInfo(debug: Boolean, name: String, host: Endpoint, clientIds: ClientIds)(instant: Instant) =
     buildZipkinInfo(
+      debug,
       name,
       instant,host,clientIds.traceId, clientIds.spanId, Option(clientIds.parentId)
     )(AnnotationType.ClientReceive)

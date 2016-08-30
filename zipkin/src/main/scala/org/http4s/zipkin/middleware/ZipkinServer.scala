@@ -25,13 +25,13 @@ object ZipkinServer {
         freshSpanId <- Randomness.getRandomLong(randomness)
         serverIds = serverIdsFromHeaders(request.headers)(freshSpanId)
 
-        srInfo <- Clock.getInstant(clock).map(serverReceiveInfo(name, endpoint, serverIds))
+        srInfo <- Clock.getInstant(clock).map(serverReceiveInfo(true, name, endpoint, serverIds))
         _ <- sendToCollector(srInfo)(collectorInterpreter)
 
         responseForOurClient <- zipkinService.run(
           ServerRequirements(serverIds))(request)
 
-        ssInfo <- Clock.getInstant(clock).map(serverSendInfo(name, endpoint, serverIds))
+        ssInfo <- Clock.getInstant(clock).map(serverSendInfo(true, name, endpoint, serverIds))
         _ <- sendToCollector(ssInfo)(collectorInterpreter)
 
       } yield responseForOurClient
@@ -57,14 +57,16 @@ object ZipkinServer {
 
   }
 
-  def serverSendInfo(name: String, host: Endpoint, ids: ServerIds)(instant: Instant) =
+  def serverSendInfo(debug: Boolean, name: String, host: Endpoint, ids: ServerIds)(instant: Instant) =
     buildZipkinInfo(
+      debug,
       name,
       instant,host,ids.traceId, ids.spanId, ids.parentId
     )(AnnotationType.ServerSend)
 
-  def serverReceiveInfo(name: String, host: Endpoint, ids: ServerIds)(instant: Instant) =
+  def serverReceiveInfo(debug: Boolean, name: String, host: Endpoint, ids: ServerIds)(instant: Instant) =
     buildZipkinInfo(
+      debug,
       name,
       instant,host,ids.traceId, ids.spanId, ids.parentId
     )(AnnotationType.ServerReceive)

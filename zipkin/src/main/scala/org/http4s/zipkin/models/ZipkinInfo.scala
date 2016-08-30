@@ -29,6 +29,7 @@ object AnnotationType {
 
 final case class ZipkinInfo(
   name: String,
+  debug: Boolean,
   traceId: `X-B3-TraceId`,
   spanId: `X-B3-SpanId`,
   parentSpanId: Option[`X-B3-ParentSpanId`],

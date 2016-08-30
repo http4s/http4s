@@ -23,8 +23,14 @@ package object middleware {
   def nameFromRequest(request: Request): String =
     s"${request.method} ${request.uri.path}"
 
-  def buildZipkinInfo(name: String,
-    instant: Instant, host: Endpoint, traceId: `X-B3-TraceId`, spanId: `X-B3-SpanId`, parentId: Option[`X-B3-ParentSpanId`]
+  def buildZipkinInfo(
+    debug: Boolean,
+    name: String,
+    instant: Instant,
+    host: Endpoint,
+    traceId: `X-B3-TraceId`,
+    spanId: `X-B3-SpanId`,
+    parentId: Option[`X-B3-ParentSpanId`]
   ): AnnotationType => ZipkinInfo = { annotationType =>
     val annotation = Annotation(
       timestamp = instant,
@@ -33,6 +39,7 @@ package object middleware {
     )
     ZipkinInfo(
       name,
+      debug,
       traceId,
       spanId,
       parentId,
