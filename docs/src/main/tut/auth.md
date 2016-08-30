@@ -128,7 +128,7 @@ val authUser: Service[Request, String \/ User] = Kleisli({ request =>
     token <- crypto.validateSignedToken(cookie.content).toRightDisjunction("Cookie invalid")
     message <- \/.fromTryCatchNonFatal(token.toLong).leftMap(_.toString)
   } yield message
-  message.map(retrieveUser).sequence
+  message.traverse(retrieveUser)
 })
 ```
 
@@ -147,7 +147,7 @@ val authUser: Service[Request, String \/ User] = Kleisli({ request =>
     token <- crypto.validateSignedToken(header.value).toRightDisjunction("Cookie invalid")
     message <- \/.fromTryCatchNonFatal(token.toLong).leftMap(_.toString)
   } yield message
-  message.map(retrieveUser).sequence
+  message.traverse(retrieveUser)
 })
 ```
 
