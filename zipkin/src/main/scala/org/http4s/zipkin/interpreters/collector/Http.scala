@@ -19,9 +19,7 @@ final case class Http(client: Client) extends CollectorInterpreter {
         )),
         path = "/api/v1/spans"
       )
-      println(uri)
       val payload = List(zipkinInfo).asJson.spaces2
-      println(payload)
       val request = Request(Method.POST, uri)
         .withContentType(Option(MediaType.`application/json`))
         .withBody(payload)
