@@ -6,7 +6,7 @@ import org.http4s.headers.{`X-B3-ParentSpanId`, `X-B3-SpanId`, `X-B3-TraceId`}
 
 final case class Endpoint(
   ipv4: String,
-  iPv6: Option[String], // TODO: Currently not used
+  ipv6: Option[String], // TODO: Currently not used
   port: Int,
   serviceName: String
 )

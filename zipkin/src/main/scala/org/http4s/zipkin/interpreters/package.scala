@@ -4,16 +4,19 @@ import java.time.{Duration, Instant}
 
 import argonaut.Argonaut._
 import argonaut._
+import org.http4s.Uri.IPv4
 import org.http4s.util.StringWriter
 import org.http4s.zipkin.models._
 
 
 package object interpreters {
   implicit def EndpointCodecJson: EncodeJson[Endpoint] = {
+    //TODO: Stubbed
+    def toIpv6(iPv4: String): String =  "0:0:0:0:0:0:0:1"
     EncodeJson((e: Endpoint) =>
       ("ipv4" := e.ipv4) ->:
         ("port" := e.port) ->:
-        ("ipv6" := e.iPv6) ->:
+        ("ipv6" := toIpv6(e.ipv4)) ->:
         ("serviceName" := e.serviceName) ->:
         jEmptyObject
     )
