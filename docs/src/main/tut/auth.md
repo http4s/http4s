@@ -17,12 +17,16 @@ with the `Service[(User, Request), Response]` to get a [service]. Or in code:
 ```tut:book
 import scalaz._, Scalaz._, scalaz.concurrent.Task
 import org.http4s._
+import org.http4s.dsl._
 
 case class User(id: Long, name: String)
 
 // Needs to be Kleisli for the type inference of &&& to work.
 val authUser: Kleisli[Task, Request, User] = Kleisli(_ => Task.delay(???))
-val authedService: Service[(User, Request), Response] = Kleisli(_ => Task.delay(???))
+val authedService: Service[(User, Request), Response] =
+  Service.lift {
+    case (user, GET -> Root / "welcome" ) => Ok(s"Welcome, ${user.name}")
+  }
 val service: HttpService = authedService.compose((authUser &&& Kleisli.ask))
 ```
 
@@ -40,8 +44,6 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request
 error handling, we recommend an error [ADT] instead of a `String`.
 
 ```tut:book
-import org.http4s.dsl._
-
 val authUser: Kleisli[Task, Request, String \/ User] = Kleisli(_ => Task.delay(???))
 val onFailure: Service[String, Response] = Kleisli(message => Forbidden(message))
 val service: HttpService = (authUser &&& Kleisli.ask).flatMapK({
