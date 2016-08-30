@@ -75,9 +75,9 @@ case class Hello(greeting: String)
 
 val jsonService = HttpService {
   case r @ POST -> Root / "hello" =>
-    r.decode[User](user =>
-      Ok(Hello(s"Hello, ${user.name}"))(jsonEncoderOf)
-    )(jsonOf)
+    r.as(jsonOf[User]).flatMap(user =>
+      Ok(Hello(s"Hello, ${user.name}").asJson)
+    )
 }
 
 import org.http4s.server.blaze._
