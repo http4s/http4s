@@ -76,27 +76,26 @@ final case class Uri(
   override lazy val renderString: String =
     super.renderString
 
-  override def render(writer: Writer): writer.type = this match {
-    case Uri(Some(s), Some(a), "/", q, None) if q.isEmpty =>
-      renderSchemeAndAuthority(writer, s, a)
+  override def render(writer: Writer): writer.type = {
+    def renderScheme(s: Scheme): writer.type =
+      writer << s << ':'
 
-    case Uri(Some(s), Some(a), path, params, fragment) =>
-      renderSchemeAndAuthority(writer, s, a)
-      writer.append(path)
-      renderParamsAndFragment(writer, params, fragment)
+    this match {
+      case Uri(Some(s), Some(a), _, _, _) =>
+        renderScheme(s) << "//" << a
 
-    case Uri(Some(s), None, path, params, fragment) =>
-      renderScheme(writer, s)
-      writer.append(path)
-      renderParamsAndFragment(writer, params, fragment)
+      case Uri(Some(s), None, _, _, _) =>
+        renderScheme(s)
 
-    case Uri(None, Some(a), path, params, fragment) =>
-      writer << a << path
-      renderParamsAndFragment(writer, params, fragment)
+      case Uri(None, Some(a), _, _, _) =>
+        writer << a
 
-    case Uri(None, None, path, params, fragment) =>
-      writer.append(path)
-      renderParamsAndFragment(writer, params, fragment)
+      case Uri(None, None, _, _, _) =>
+    }
+    writer << path
+    if (query.nonEmpty) writer << '?' << query
+    fragment.foreach { f => writer << '#' << UrlCodingUtils.urlEncode(f, spaceIsPlus = false) }
+    writer
   }
 
   /////////// Query Operations ///////////////
@@ -175,19 +174,6 @@ object Uri extends UriFunctions {
   object RegName { def apply(name: String): RegName = new RegName(name.ci) }
   object IPv4 { def apply(address: String): IPv4 = new IPv4(address.ci) }
   object IPv6 { def apply(address: String): IPv6 = new IPv6(address.ci) }
-
-  private def renderScheme(writer: Writer, s: Scheme): writer.type =
-    writer << s << ':'
-
-  private def renderSchemeAndAuthority(writer: Writer, s: Scheme, a: Authority): writer.type =
-    renderScheme(writer, s) << "//" << a
-
-
-  private def renderParamsAndFragment(writer: Writer, p: Query, f: Option[Fragment]): writer.type = {
-    if (p.nonEmpty) writer << '?' << p
-    if (f.isDefined) writer << '#' << UrlCodingUtils.urlEncode(f.get, spaceIsPlus = false)
-    writer
-  }
 }
 
 trait UriFunctions {

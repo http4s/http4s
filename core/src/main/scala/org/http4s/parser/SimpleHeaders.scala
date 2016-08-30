@@ -93,11 +93,23 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
-  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] = new Http4sHeaderParser[`Last-Modified`](value) {
-    def entry = rule {
-      HttpDate ~ EOL ~> (`Last-Modified`(_))
-    }
-  }.parse
+  /* TOOO fs2 port
+  def LAST_EVENT_ID(value: String): ParseResult[`Last-Event-Id`] =
+    new Http4sHeaderParser[`Last-Event-Id`](value) {
+      def entry = rule {
+        capture(zeroOrMore(ANY)) ~ EOL ~> { id: String =>
+          `Last-Event-Id`(ServerSentEvent.EventId(id))
+        }
+      }
+    }.parse
+   */
+  
+  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] = 
+    new Http4sHeaderParser[`Last-Modified`](value) {
+      def entry = rule {
+        HttpDate ~ EOL ~> (`Last-Modified`(_))
+      }
+    }.parse
 
   def IF_MODIFIED_SINCE(value: String): ParseResult[`If-Modified-Since`] = new Http4sHeaderParser[`If-Modified-Since`](value) {
     def entry = rule {

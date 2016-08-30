@@ -1,0 +1,19 @@
+/* TODO fs2 port
+package org.http4s
+package headers
+
+import org.http4s.ServerSentEvent._
+import org.http4s.parser.HttpHeaderParser
+import org.http4s.util.Writer
+
+final case class `Last-Event-Id`(id: EventId) extends Header.Parsed {
+  override def key = `Last-Event-Id`
+  override def renderValue(writer: Writer): writer.type =
+    writer.append(id.value)
+}
+
+object `Last-Event-Id` extends HeaderKey.Internal[`Last-Event-Id`] with HeaderKey.Singleton {
+  def parse(s: String): ParseResult[`Last-Event-Id`] =
+    HttpHeaderParser.LAST_EVENT_ID(s)
+}
+ */

@@ -87,4 +87,9 @@ package object http4s { // scalastyle:ignore
   }
 
   type Callback[A] = Attempt[A] => Unit
+
+  /* TODO fs2 port
+  /** A stream of server-sent events */
+  type EventStream = Stream[Task, ServerSentEvent]
+   */
 }
