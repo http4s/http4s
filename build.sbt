@@ -194,8 +194,6 @@ lazy val zipkin = http4sProject("zipkin")
     theDsl % "compile->compile;test->test",
     server % "compile->compile;test->test",
     client % "compile->compile;test->test",
-    blazeServer % "compile->compile;test->test",
-    blazeClient % "compile->compile;test->test",
     argonaut % "compile->compile;test->test"
   )
 
