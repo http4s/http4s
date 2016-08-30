@@ -1,11 +1,12 @@
 package org.http4s.zipkin
 
-import java.time.Instant
+import java.time.{Duration, Instant}
 
 import argonaut.Argonaut._
 import argonaut._
 import org.http4s.util.StringWriter
 import org.http4s.zipkin.models._
+
 
 package object interpreters {
   implicit def EndpointCodecJson: EncodeJson[Endpoint] = {
@@ -22,6 +23,11 @@ package object interpreters {
   implicit def JavaTimeInstantEncodeJson: EncodeJson[Instant] = {
     EncodeJson((instant: java.time.Instant) =>
       jNumber(instant.toEpochMilli * 1000))
+  }
+
+  implicit def JavaTimeDurationEncodeJson: EncodeJson[Duration] = {
+    EncodeJson((duration: java.time.Duration) =>
+      jNumber(duration.toMillis * 1000))
   }
 
   implicit def AnnotationEncodeJson: EncodeJson[Annotation] =
@@ -48,8 +54,7 @@ package object interpreters {
         ("binaryAnnotations" := a.binaryAnnotations) ->:
         //TODO: Stubs, for now.
         ("debug" := true) ->:
-        //TODO: Stubs, for now.
-//        ("duration" := 1234) ->:
+        ("duration" := a.duration) ->:
         ("timestamp" := a.annotations.head.timestamp) ->: // YOLO
         jEmptyObject
     )

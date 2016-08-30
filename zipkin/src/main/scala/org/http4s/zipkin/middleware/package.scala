@@ -33,7 +33,11 @@ package object middleware {
     )
     ZipkinInfo(
       name,
-      traceId, spanId, parentId,
+      traceId,
+      spanId,
+      parentId,
+      timestamp = None,
+      duration = None,
       List(annotation),
       // TODO: Stubbed
       List.empty

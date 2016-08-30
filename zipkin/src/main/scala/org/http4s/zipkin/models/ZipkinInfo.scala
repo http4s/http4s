@@ -1,6 +1,6 @@
 package org.http4s.zipkin.models
 
-import java.time.Instant
+import java.time.{Duration, Instant}
 
 import org.http4s.headers.{`X-B3-ParentSpanId`, `X-B3-SpanId`, `X-B3-TraceId`}
 
@@ -29,7 +29,11 @@ object AnnotationType {
 
 final case class ZipkinInfo(
   name: String,
-  traceId: `X-B3-TraceId`, spanId: `X-B3-SpanId`, parentSpanId: Option[`X-B3-ParentSpanId`],
+  traceId: `X-B3-TraceId`,
+  spanId: `X-B3-SpanId`,
+  parentSpanId: Option[`X-B3-ParentSpanId`],
+  timestamp: Option[Instant],
+  duration: Option[Duration],
   annotations: List[Annotation],
   binaryAnnotations: List[BinaryAnnotation]
 )
