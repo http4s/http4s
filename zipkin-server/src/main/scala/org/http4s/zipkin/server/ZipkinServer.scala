@@ -7,8 +7,8 @@ import org.http4s.zipkin.core.algebras.{Clock, Collector, Randomness}
 import org.http4s.zipkin.core.{AnnotationType, Endpoint, ServerIds}
 import org.http4s.zipkin.middleware._
 import org.http4s.{Service, _}
-import org.http4s.zipkin.core.nameFromRequest
 import org.http4s.zipkin.middleware.server.ZipkinService
+import org.http4s.zipkin.core._
 
 import scalaz.{Kleisli, Scalaz}
 

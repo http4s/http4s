@@ -6,7 +6,6 @@ import org.http4s.client.{Client, DisposableResponse}
 import org.http4s.headers._
 import org.http4s.zipkin.core.algebras.{Clock, Collector, Randomness}
 import org.http4s.zipkin.core._
-import org.http4s.zipkin.middleware._
 import org.http4s.{Request, Service}
 
 import scalaz.concurrent.Task
