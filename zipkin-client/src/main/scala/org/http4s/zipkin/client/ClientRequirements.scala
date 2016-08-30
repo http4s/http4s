@@ -1,7 +1,6 @@
-package org.http4s.zipkin.middleware.client
+package org.http4s.zipkin.client
 
 import org.http4s.zipkin.core.ServerIds
-import org.http4s.zipkin.middleware._
 
 final case class ClientRequirements(
   serverIds: ServerIds,

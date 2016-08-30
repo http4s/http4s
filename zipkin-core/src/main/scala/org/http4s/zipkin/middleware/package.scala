@@ -2,15 +2,9 @@ package org.http4s.zipkin
 
 import java.time.Instant
 
-import org.http4s.{HttpService, Request}
-import org.http4s.client.Client
+import org.http4s.Request
 import org.http4s.headers._
 import org.http4s.zipkin.core._
-import org.http4s.zipkin.middleware.client.ClientRequirements
-import org.http4s.zipkin.middleware.server.ServerRequirements
-
-import scalaz._
-import scalaz.concurrent.Task
 
 package object middleware {
 

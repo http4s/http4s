@@ -185,17 +185,28 @@ lazy val twirl = http4sProject("twirl")
   .enablePlugins(SbtTwirl)
   .dependsOn(core % "compile;test->test")
 
-lazy val zipkin = http4sProject("zipkin")
+lazy val zipkinCore = libraryProject("zipkin-core")
   .settings(
-    description := "Zipkin support for http4s"
+    description := "Base library for Zipkin instrumentation for http4s servers and clients"
   )
   .dependsOn(
-    core % "compile->compile;test->test",
-    theDsl % "compile->compile;test->test",
-    server % "compile->compile;test->test",
-    client % "compile->compile;test->test",
-    argonaut % "compile->compile;test->test"
+    argonaut,
+    core,
+    server,
+    client
   )
+
+lazy val zipkinServer = libraryProject("zipkin-server")
+  .settings(
+    description := "Zipkin instrumentation for http4s servers"
+  )
+  .dependsOn(zipkinCore % "compile;test->test", server % "compile;test->test")
+
+lazy val zipkinClient = libraryProject("zipkin-client")
+  .settings(
+    description := "Zipkin instrumentation for http4s clients"
+  )
+  .dependsOn(zipkinCore % "compile;test->test", client % "compile;test->test")
 
 lazy val bench = http4sProject("bench")
   .enablePlugins(JmhPlugin)
@@ -345,7 +356,9 @@ lazy val examplesZipkin = exampleProject("examples-zipkin")
     client,
     server,
     theDsl,
-    zipkin
+    zipkinClient,
+    zipkinCore,
+    zipkinServer
   )
 
 def http4sProject(name: String) = Project(name, file(name))

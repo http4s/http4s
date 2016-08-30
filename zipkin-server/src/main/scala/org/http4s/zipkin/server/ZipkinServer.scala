@@ -1,4 +1,4 @@
-package org.http4s.zipkin.middleware.server
+package org.http4s.zipkin.server
 
 import java.time.Instant
 
@@ -8,6 +8,7 @@ import org.http4s.zipkin.core.{AnnotationType, Endpoint, ServerIds}
 import org.http4s.zipkin.middleware._
 import org.http4s.{Service, _}
 import org.http4s.zipkin.core.nameFromRequest
+import org.http4s.zipkin.middleware.server.ZipkinService
 
 import scalaz.{Kleisli, Scalaz}
 

@@ -8,7 +8,8 @@ import org.http4s.server.{Server, ServerApp}
 import org.http4s.zipkin.core.algebras.{Clock, Randomness}
 import org.http4s.zipkin.core.interpreters.collector.Http
 import org.http4s.zipkin.core.Endpoint
-import org.http4s.zipkin.middleware.server.{ZipkinServer, ZipkinService}
+import org.http4s.zipkin.middleware.server.ZipkinService
+import org.http4s.zipkin.server.ZipkinServer
 
 import scalaz.concurrent.Task
 
