@@ -1,4 +1,4 @@
-package org.http4s.zipkin
+package com.example.http4s
 
 import org.http4s.Uri
 import org.http4s.Uri.IPv4
@@ -6,7 +6,7 @@ import org.http4s.zipkin.models.Endpoint
 
 import scalaz.concurrent.Task
 
-package object examples {
+package object zipkin {
   def getConfig: Task[Config] = for {
     endpoint <- getEndpointFromConsole
     nextServiceName <- getNextServiceNameConsole

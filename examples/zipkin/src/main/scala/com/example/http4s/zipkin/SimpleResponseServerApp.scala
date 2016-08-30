@@ -1,4 +1,4 @@
-package org.http4s.zipkin.examples
+package com.example.http4s.zipkin
 
 import org.http4s._
 import org.http4s.client.blaze.PooledHttp1Client
@@ -7,7 +7,7 @@ import org.http4s.server.blaze.BlazeBuilder
 import org.http4s.server.{Server, ServerApp}
 import org.http4s.zipkin.algebras.{Clock, Randomness}
 import org.http4s.zipkin.interpreters.collector.Http
-import org.http4s.zipkin.middleware.{ZipkinServer, _}
+import org.http4s.zipkin.middleware.{ZipkinServer, ZipkinService}
 import org.http4s.zipkin.models.Endpoint
 
 import scalaz.concurrent.Task

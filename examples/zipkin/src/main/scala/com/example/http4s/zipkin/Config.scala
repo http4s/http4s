@@ -1,4 +1,4 @@
-package org.http4s.zipkin.examples
+package com.example.http4s.zipkin
 
 import org.http4s.zipkin.models.Endpoint
 

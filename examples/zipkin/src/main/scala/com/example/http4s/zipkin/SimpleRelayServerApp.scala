@@ -1,6 +1,4 @@
-package org.http4s.zipkin.examples
-
-import java.time.Instant
+package com.example.http4s.zipkin
 
 import org.http4s.client.Client
 import org.http4s.client.blaze.PooledHttp1Client
@@ -8,15 +6,12 @@ import org.http4s.dsl._
 import org.http4s.server.blaze._
 import org.http4s.server.{Server, ServerApp}
 import org.http4s.zipkin.algebras.{Clock, Randomness}
-import org.http4s.zipkin.interpreters.clock.default
 import org.http4s.zipkin.interpreters.collector.Http
-import org.http4s.zipkin.interpreters.randomness.apply
 import org.http4s.zipkin.middleware._
-import org.http4s.zipkin.models.{Endpoint, ServerIds}
+import org.http4s.zipkin.models.Endpoint
 import org.http4s.{HttpService, Uri}
 
 import scalaz.concurrent.Task
-import scalaz.{Kleisli, Scalaz}
 
 class SimpleRelayServerApp(
   getConfig: Task[Config],

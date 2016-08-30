@@ -334,6 +334,22 @@ lazy val examplesWar = exampleProject("examples-war")
   )
   .dependsOn(servlet)
 
+lazy val examplesZipkin = exampleProject("examples-zipkin")
+  .settings(Revolver.settings)
+  .settings(
+    description := "Examples of http4s server and client with Zipkin instrumentation",
+    fork := true,
+    libraryDependencies ++= Seq(alpnBoot, metricsJson)
+  )
+  .dependsOn(
+    blazeClient,
+    blazeServer,
+    client,
+    server,
+    theDsl,
+    zipkin
+  )
+
 def http4sProject(name: String) = Project(name, file(name))
   .settings(commonSettings)
   .settings(projectMetadata)
