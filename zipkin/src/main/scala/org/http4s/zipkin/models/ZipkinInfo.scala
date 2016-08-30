@@ -16,10 +16,9 @@ final case class Annotation(
   endpoint: Endpoint
 )
 
-// TODO: This can contain additional info we want to send to the collector.
-final case class BinaryAnnotation(/* stuff here */)
+final case class BinaryAnnotation(/* TODO: stuff here */)
 
-sealed trait AnnotationType
+sealed trait AnnotationType extends Product with Serializable
 object AnnotationType {
   case object ClientSend extends AnnotationType
   case object ServerReceive extends AnnotationType
