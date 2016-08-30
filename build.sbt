@@ -336,7 +336,7 @@ lazy val examplesZipkin = exampleProject("examples-zipkin")
   .settings(Revolver.settings)
   .settings(
     description := "Examples of http4s server and client with Zipkin instrumentation",
-    fork := true,
+    fork := false,
     libraryDependencies ++= Seq(alpnBoot, metricsJson)
   )
   .dependsOn(
