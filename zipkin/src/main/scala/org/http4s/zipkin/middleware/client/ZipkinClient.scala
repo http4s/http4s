@@ -1,15 +1,17 @@
-package org.http4s.zipkin.middleware
+package org.http4s.zipkin.middleware.client
 
 import java.time.Instant
 
 import org.http4s.client.{Client, DisposableResponse}
 import org.http4s.headers._
-import org.http4s.zipkin.algebras.{Clock, Collector, Randomness}
-import org.http4s.zipkin.models.{AnnotationType, ClientIds, Endpoint, ServerIds}
+import org.http4s.zipkin.core.algebras.{Clock, Collector, Randomness}
+import org.http4s.zipkin.core.{AnnotationType, ClientIds, Endpoint, ServerIds}
+import org.http4s.zipkin.middleware._
 import org.http4s.{Request, Service}
 
 import scalaz.concurrent.Task
 import scalaz.{Kleisli, Scalaz}
+import org.http4s.zipkin.core.nameFromRequest
 
 object ZipkinClient {
 

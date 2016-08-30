@@ -1,9 +1,9 @@
-package org.http4s.zipkin.interpreters
+package org.http4s.zipkin.core.interpreters
 
 import java.time.Instant
 import java.util.Random
 
-import org.http4s.zipkin.algebras.Randomness
+import org.http4s.zipkin.core.algebras.Randomness
 
 package object randomness {
 

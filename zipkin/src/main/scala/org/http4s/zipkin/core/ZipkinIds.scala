@@ -1,4 +1,4 @@
-package org.http4s.zipkin.models
+package org.http4s.zipkin.core
 
 import org.http4s.headers._
 

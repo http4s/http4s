@@ -1,9 +1,9 @@
-package org.http4s.zipkin.interpreters.collector
+package org.http4s.zipkin.core.interpreters.collector
 
 import argonaut.Argonaut._
-import org.http4s.zipkin.algebras.Collector
-import org.http4s.zipkin.interpreters._
-import org.http4s.zipkin.models.ZipkinInfo
+import org.http4s.zipkin.core.algebras.Collector
+import org.http4s.zipkin.core.interpreters._
+import org.http4s.zipkin.core.ZipkinInfo
 
 import scalaz.concurrent.Task
 import scalaz.~>

@@ -5,10 +5,12 @@ import org.http4s.client.blaze.PooledHttp1Client
 import org.http4s.dsl._
 import org.http4s.server.blaze._
 import org.http4s.server.{Server, ServerApp}
-import org.http4s.zipkin.algebras.{Clock, Randomness}
-import org.http4s.zipkin.interpreters.collector.Http
+import org.http4s.zipkin.core.algebras.{Clock, Randomness}
+import org.http4s.zipkin.core.interpreters.collector.Http
 import org.http4s.zipkin.middleware._
-import org.http4s.zipkin.models.Endpoint
+import org.http4s.zipkin.core.Endpoint
+import org.http4s.zipkin.middleware.client.{ClientRequirements, ZipkinClient}
+import org.http4s.zipkin.middleware.server.{ServerRequirements, ZipkinServer, ZipkinService}
 import org.http4s.{HttpService, Uri}
 
 import scalaz.concurrent.Task

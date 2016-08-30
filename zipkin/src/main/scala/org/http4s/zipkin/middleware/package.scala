@@ -5,19 +5,16 @@ import java.time.Instant
 import org.http4s.{HttpService, Request}
 import org.http4s.client.Client
 import org.http4s.headers._
-import org.http4s.zipkin.models._
+import org.http4s.zipkin.core._
+import org.http4s.zipkin.middleware.client.ClientRequirements
+import org.http4s.zipkin.middleware.server.ServerRequirements
 
 import scalaz._
 import scalaz.concurrent.Task
 
 package object middleware {
-  type ServiceName = String
 
-  type ZipkinClient = Reader[ClientRequirements, Client]
-  type ZipkinService = Reader[ServerRequirements, HttpService]
 
-  def nameFromRequest(request: Request): String =
-    s"${request.method} ${request.uri.path}"
 
   def buildZipkinInfo(
     debug: Boolean,

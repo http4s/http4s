@@ -1,4 +1,4 @@
-package org.http4s.zipkin.algebras
+package org.http4s.zipkin.core.algebras
 
 import java.time.Instant
 

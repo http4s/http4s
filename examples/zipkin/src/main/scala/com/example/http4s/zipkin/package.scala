@@ -2,7 +2,7 @@ package com.example.http4s
 
 import org.http4s.Uri
 import org.http4s.Uri.IPv4
-import org.http4s.zipkin.models.Endpoint
+import org.http4s.zipkin.core.Endpoint
 
 import scalaz.concurrent.Task
 

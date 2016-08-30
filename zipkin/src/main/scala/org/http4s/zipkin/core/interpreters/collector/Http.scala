@@ -1,11 +1,11 @@
-package org.http4s.zipkin.interpreters.collector
+package org.http4s.zipkin.core.interpreters.collector
 
 import argonaut.Argonaut._
 import org.http4s.Uri.RegName
 import org.http4s.client.Client
-import org.http4s.zipkin.algebras.Collector
-import org.http4s.zipkin.interpreters._
-import org.http4s.zipkin.models.ZipkinInfo
+import org.http4s.zipkin.core.algebras.Collector
+import org.http4s.zipkin.core.interpreters._
+import org.http4s.zipkin.core.ZipkinInfo
 import org.http4s.{MediaType, Method, Request, Uri}
 
 import scalaz.concurrent.Task
@@ -20,7 +20,7 @@ final case class Http(client: Client) extends Collector {
       )),
       path = "/api/v1/spans"
     )
-    val payload = List(zipkinInfo).asJson.spaces2
+    val payload = List(zipkinInfo).asJson.nospaces
     val request = Request(Method.POST, uri)
       .withContentType(Option(MediaType.`application/json`))
       .withBody(payload)
