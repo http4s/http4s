@@ -151,6 +151,6 @@ object FollowRedirect {
       }
     }
 
-    client.copy(open = Service.lift(prepareLoop(_, 0)))
+    client.copy(open = Kleisli(prepareLoop(_, 0)))
   }
 }

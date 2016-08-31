@@ -24,13 +24,6 @@ package object http4s { // scalastyle:ignore
   val DefaultCharset = Charset.`UTF-8`
 
   /**
-   * A Service wraps a function of request type [[A]] to a Task that runs
-   * to response type [[B]].  By wrapping the `Service`, we can compose them
-   * using Kleisli operations.
-   */
-  type Service[A, B] = Kleisli[Task, A, B]
-
-  /**
     * A [[Service]] that produces a Task to compute a [[Response]] from a
     * [[Request]].  An HttpService can be run on any supported http4s
     * server backend, such as Blaze, Jetty, or Tomcat.
@@ -48,19 +41,8 @@ package object http4s { // scalastyle:ignore
     * </ul>
     */
   object HttpService {
-
-    /** Alternative application which lifts a partial function to an `HttpService`,
-      * answering with a [[Response]] with status [[Status.NotFound]] for any requests
-      * where the function is undefined.
-      */
-    def apply(pf: PartialFunction[Request, Task[Response]], default: HttpService = empty): HttpService =
-      Service.lift(req => pf.applyOrElse(req, default))
-
-    /** Alternative application  which lifts a partial function to an `HttpService`,
-      * answering with a [[Response]] as supplied by the default argument.
-      */
-    def apply(pf: PartialFunction[Request, Task[Response]], default: Task[Response]): HttpService =
-      Service.lift(req => pf.applyOrElse(req, (_: Request) => default))
+    def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =
+      Service(pf)
 
     /**
       * Lifts a (total) function to an `HttpService`. The function is expected to handle
@@ -70,17 +52,12 @@ package object http4s { // scalastyle:ignore
 
     /** The default 'Not Found' response used when lifting a partial function
       * to a [[HttpService]] or general 'not handled' results.
-      *
-      * This [[Response]] is tagged with the [[Fallthrough]] attribute so composed
-      * services will have the opportunity to handle the request.
-      * See [[Fallthrough]] for more details.
       */
     val notFound: Task[Response] =
       Task.now {
         // Task.now(task.run) looks weird, but this memoizes it so we don't
         // constantly recreate it.
         Response(Status.NotFound)
-          .withAttribute(Fallthrough.fallthroughKey, ())
           .withBody("404 Not Found.").run
       }
 
