@@ -1,8 +1,6 @@
 package org.http4s
 package server
 
-import syntax.ServiceOps
-
 class HttpServiceSpec extends Http4sSpec {
 
  val srvc1 = HttpService {
@@ -46,7 +44,6 @@ class HttpServiceSpec extends Http4sSpec {
     "Properly fall through two aggregated service if no path matches" in {
       val resp = aggregate1.apply(Request(uri = uri("/wontMatch"))).run
       resp.status must_== (Status.NotFound)
-      resp.attributes.contains(Fallthrough.fallthroughKey) must_== (true)
     }
   }
 }

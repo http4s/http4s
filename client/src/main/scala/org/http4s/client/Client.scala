@@ -7,6 +7,7 @@ import org.http4s.Status.ResponseClass.Successful
 import scala.util.control.NoStackTrace
 
 import java.io.IOException
+import scalaz.Kleisli
 import scalaz.concurrent.Task
 import scalaz.stream.{Process, Process1}
 import scalaz.stream.Process._
@@ -39,7 +40,10 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
   * @param shutdown a Task to shut down this Shutdown this client, closing any
   *                 open connections and freeing resources
   */
-final case class Client(open: Service[Request, DisposableResponse], shutdown: Task[Unit]) {
+final case class Client(
+  open: Kleisli[Task, Request, DisposableResponse],
+  shutdown: Task[Unit])
+{
   /** Submits a request, and provides a callback to process the response.
     *
     * @param req The request to submit
@@ -60,7 +64,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * or when a common response callback is used by many call sites.
     */
   def toService[A](f: Response => Task[A]): Service[Request, A] =
-    open.flatMapK(_.apply(f))
+    Service.lift(open.flatMapK(_.apply(f)).run)
 
   /**
     * Returns this client as an [[HttpService]].  It is the responsibility of
@@ -72,9 +76,9 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * signatures guarantee disposal of the HTTP connection.
     */
   def toHttpService: HttpService =
-    open.map { case DisposableResponse(response, dispose) =>
+    Service.lift(open.map { case DisposableResponse(response, dispose) =>
       response.copy(body = response.body.onComplete(eval_(dispose)))
-    }
+    }.run)
 
   def streaming[A](req: Request)(f: Response => Process[Task, A]): Process[Task, A] =
     eval(open(req).map { case DisposableResponse(response, dispose) =>
@@ -218,10 +222,10 @@ object Client {
     }
 
     def disposableService(service: HttpService) =
-      Service.lift { req: Request =>
+      Kleisli { req: Request =>
         val disposed = new AtomicBoolean(false)
         val req0 = req.copy(body = interruptable(req.body, disposed))
-        service(req0) map { resp =>
+        service.kleisli.apply(req0) map { resp =>
           DisposableResponse(
             resp.copy(body = interruptable(resp.body, disposed)),
             Task.delay(disposed.set(true))

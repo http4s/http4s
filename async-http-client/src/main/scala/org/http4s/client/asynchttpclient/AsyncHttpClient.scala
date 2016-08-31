@@ -17,7 +17,7 @@ import scodec.bits.ByteVector
 
 import scala.collection.JavaConverters._
 
-import scalaz.{-\/, \/-}
+import scalaz._
 import scalaz.stream.io._
 import scalaz.concurrent.Task
 
@@ -54,7 +54,7 @@ object AsyncHttpClient {
           executorService.shutdown()
         }
 
-    Client(Service.lift { req =>
+    Client(Kleisli { req =>
       Task.async[DisposableResponse] { cb =>
         client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, executorService))
       }

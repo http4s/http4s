@@ -60,7 +60,7 @@ object CORS {
   def apply(service: HttpService, config: CORSConfig = DefaultCORSConfig): HttpService = Service.lift { req =>
 
     def options(origin: Header, acrm: Header): HttpService =
-      Service.withFallback(ok)(service).map { resp =>
+      (service orElse ok).map { resp =>
         if (resp.status.isSuccess)
           corsHeaders(origin.value, acrm.value)(resp)
         else {

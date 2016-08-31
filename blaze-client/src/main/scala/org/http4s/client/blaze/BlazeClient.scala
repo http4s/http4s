@@ -6,6 +6,7 @@ package blaze
 import org.http4s.blaze.pipeline.Command
 import org.log4s.getLogger
 
+import scalaz._
 import scalaz.concurrent.Task
 import scalaz.{-\/, \/-}
 
@@ -23,7 +24,7 @@ object BlazeClient {
                                   config: BlazeClientConfig,
                                   onShutdown: Task[Unit]): Client = {
 
-    Client(Service.lift { req =>
+    Client(Kleisli { req =>
       val key = RequestKey.fromRequest(req)
 
       // If we can't invalidate a connection, it shouldn't tank the subsequent operation,

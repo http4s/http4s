@@ -33,7 +33,7 @@ object Retry {
     def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] =
       Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1).get after duration).runAsync }
 
-    client.copy(open = Service.lift(prepareLoop(_, 1)))
+    client.copy(open = Kleisli(prepareLoop(_, 1)))
   }
 }
 
