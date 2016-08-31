@@ -30,7 +30,12 @@ final case class Http(client: Client) extends Collector {
       // Fire and forget.
       .fetch(request)(response => Task.now(()))
       // We don't care about failure.
-      .runAsync(_ => ())
+      .runAsync({
+      case ex: Throwable =>
+        logger.debug(ex)("No response from Zipkin collector")
+      case _ =>
+        ()
+    })
   }
 
 }
