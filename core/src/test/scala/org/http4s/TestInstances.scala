@@ -14,6 +14,7 @@ import org.scalacheck.{ Arbitrary, Gen }
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
+import scodec.bits.ByteVector
 
 trait TestInstances {
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -58,6 +59,12 @@ trait TestInstances {
 
   lazy val standardMethods: Gen[Method] =
     oneOf(Method.registered.toSeq)
+
+  implicit lazy val arbitraryByteVector: Arbitrary[ByteVector] =
+    Arbitrary {
+      Gen.containerOf[Array, Byte](arbitrary[Byte])
+        .map { b => ByteVector.view(b) }
+    }
 
   implicit lazy val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
     10 -> standardMethods,
