@@ -21,39 +21,34 @@ class SimpleRelayServerApp(
   randomness: Randomness, clock: Clock
 ) extends ServerApp {
 
-  val http1Client = PooledHttp1Client()
-  val collector = Http(http1Client)
+  val client = PooledHttp1Client()
+  val collector = Http(client)
 
-  val instrument: Client => ZipkinClient =
-    ZipkinClient(collector, randomness, clock)
-
-  val zipkinClient: ZipkinClient = instrument(http1Client)
+  val zipkinClient =
+    ZipkinClient(collector, randomness, clock)(client)
 
   def serviceWithZipkinClient(nextServiceName: ServiceName)(
     serverRequirements: ServerRequirements
   ): HttpService = {
+    val client = zipkinClient.run(
+      ClientRequirements(serverRequirements.serverIds, nextServiceName))
 
     HttpService {
       case req @ GET -> Root / "hello" / name =>
         for {
           nextServiceHost <- serviceDiscovery(nextServiceName)
           uri = nextServiceHost / s"api/hello/${name}"
-          responseBody <- zipkinClient.map(_.expect[String](uri)).run(
-            ClientRequirements(
-              serverRequirements.serverIds, nextServiceName))
+          responseBody <- client.expect[String](uri)
           result <- Ok(responseBody)
         } yield result
     }
   }
 
-  def zipkinService(nextServiceName: ServiceName): ZipkinService =
-    ZipkinServer.lift(serviceWithZipkinClient(nextServiceName))
-
-  def serviceWithZipkin(me: Endpoint, nextServiceName: ServiceName): HttpService = {
-    val lifted: ZipkinService =
+  def serviceWithZipkinServer(me: Endpoint, nextServiceName: ServiceName): HttpService = {
+    val zipkinService =
       ZipkinServer.lift(serviceWithZipkinClient(nextServiceName))
 
-    ZipkinServer(collector, randomness, clock, me)(lifted)
+    ZipkinServer(collector, randomness, clock, me)(zipkinService)
   }
 
   override def server(args: List[String]): Task[Server] = {
@@ -62,8 +57,14 @@ class SimpleRelayServerApp(
       built <- BlazeBuilder
         .bindHttp(config.endpoint.port,config.endpoint.ipv4)
         .mountService(
-          serviceWithZipkin(config.endpoint, config.nextServiceName), "/api")
+          serviceWithZipkinServer(config.endpoint, config.nextServiceName), "/api")
         .start
     } yield built
   }
+
+
+  override def shutdown(server: Server): Task[Unit] = for {
+    _ <- server.shutdown
+    _ <- client.shutdown
+  } yield ()
 }

@@ -1,6 +1,7 @@
 package com.example.http4s.zipkin
 
 import org.http4s._
+import org.http4s.client.Client
 import org.http4s.client.blaze.PooledHttp1Client
 import org.http4s.dsl._
 import org.http4s.server.blaze.BlazeBuilder
@@ -18,6 +19,8 @@ class SimpleResponseServerApp(
   randomness: Randomness, clock: Clock
 ) extends ServerApp {
 
+  val client: Client = PooledHttp1Client()
+
   val originalService: HttpService = HttpService {
     case GET -> Root / "hello" / name =>
       Ok(s"Hello, $name.")
@@ -27,7 +30,7 @@ class SimpleResponseServerApp(
 
   def instrument(me: Endpoint): ZipkinService => HttpService =
     ZipkinServer(
-      new Http(PooledHttp1Client()), randomness, clock, me)
+      new Http(client), randomness, clock, me)
 
   override def server(args: List[String]): Task[Server] = {
     for {
@@ -38,4 +41,9 @@ class SimpleResponseServerApp(
         .start
     } yield built
   }
+
+  override def shutdown(server: Server): Task[Unit] = for {
+    _ <- server.shutdown
+    _ <- client.shutdown
+  } yield ()
 }

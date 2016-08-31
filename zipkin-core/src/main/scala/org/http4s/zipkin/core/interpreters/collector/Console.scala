@@ -10,7 +10,7 @@ import scalaz.~>
 
 object Console extends Collector {
   override def send(zipkinInfo: ZipkinInfo): Unit = {
-    Task.delay(println(zipkinInfo.asJson.spaces2))
+    Task.delay(println(zipkinInfo.asJson))
   }
 
 }
