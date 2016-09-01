@@ -16,7 +16,7 @@ object Service {
     * answering with a [[Response]] with status [[Status.NotFound]] for any requests
     * where the function is undefined.
     */
-  def apply[A, B](pf: PartialFunction[A, Task[B]], default: Service[A, B]): Service[A, B] =
+  def apply[A, B](pf: PartialFunction[A, Task[B]], default: Service[A, B] = Service.empty): Service[A, B] =
     lift(req => pf.applyOrElse(req, default))
 
   /** Alternative application which lifts a partial function to an [[Service]],
@@ -43,4 +43,7 @@ object Service {
     */
   def withFallback[A, B : Fallthrough](fallback: Service[A, B])(service: Service[A, B]): Service[A, B] =
     service.flatMap(resp => Fallthrough[B].fallthrough(resp, fallback))
+
+  def empty[A, B: Fallthrough]: Service[A, B] =
+    constVal(Fallthrough[B].fallthroughValue)
 }
