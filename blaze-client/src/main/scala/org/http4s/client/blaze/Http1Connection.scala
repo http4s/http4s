@@ -158,7 +158,7 @@ private final class Http1Connection(val requestKey: RequestKey,
           val bodyTask = getChunkEncoder(req, mustClose, rr)
             .writeProcess(req.body)
             .handle { case EOF => () } // If we get a pipeline closed, we might still be good. Check response
-          val respTask = receiveResponse(mustClose)
+          val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
           Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
             .handleWith { case t =>
               fatalError(t, "Error executing request")
@@ -169,13 +169,13 @@ private final class Http1Connection(val requestKey: RequestKey,
     }
   }
 
-  private def receiveResponse(close: Boolean): Task[Response] =
-    Task.async[Response](cb => readAndParsePrelude(cb, close, "Initial Read"))
+  private def receiveResponse(closeOnFinish: Boolean, doesntHaveBody: Boolean): Task[Response] =
+    Task.async[Response](cb => readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Initial Read"))
 
   // this method will get some data, and try to continue parsing using the implicit ec
-  private def readAndParsePrelude(cb: Callback[Response], closeOnFinish: Boolean, phase: String): Unit = {
+  private def readAndParsePrelude(cb: Callback[Response], closeOnFinish: Boolean, doesntHaveBody: Boolean, phase: String): Unit = {
     channelRead().onComplete {
-      case Success(buff) => parsePrelude(buff, closeOnFinish, cb)
+      case Success(buff) => parsePrelude(buff, closeOnFinish, doesntHaveBody, cb)
       case Failure(EOF)  => stageState.get match {
         case Idle | Running => shutdown(); cb(-\/(EOF))
         case Error(e)       => cb(-\/(e))
@@ -187,10 +187,10 @@ private final class Http1Connection(val requestKey: RequestKey,
     }(ec)
   }
 
-  private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, cb: Callback[Response]): Unit = {
+  private def parsePrelude(buffer: ByteBuffer, closeOnFinish: Boolean, doesntHaveBody: Boolean, cb: Callback[Response]): Unit = {
     try {
-      if (!parser.finishedResponseLine(buffer)) readAndParsePrelude(cb, closeOnFinish, "Response Line Parsing")
-      else if (!parser.finishedHeaders(buffer)) readAndParsePrelude(cb, closeOnFinish, "Header Parsing")
+      if (!parser.finishedResponseLine(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Response Line Parsing")
+      else if (!parser.finishedHeaders(buffer)) readAndParsePrelude(cb, closeOnFinish, doesntHaveBody, "Header Parsing")
       else {
         // Get headers and determine if we need to close
         val headers = parser.getHeaders()
@@ -216,51 +216,50 @@ private final class Http1Connection(val requestKey: RequestKey,
           }
         }
 
-        // We are to the point of parsing the body and then cleaning up
-        val (rawBody,_) = collectBodyFromParser(buffer, terminationCondition)
+        val (attributes, body) = if (doesntHaveBody) {
+          // responses to HEAD requests do not have a body
+          cleanup()
+          (AttributeMap.empty, EmptyBody)
+        } else {
+          // We are to the point of parsing the body and then cleaning up
+          val (rawBody, _) = collectBodyFromParser(buffer, terminationCondition)
 
-        // to collect the trailers we need a cleanup helper and a Task in the attribute map
-        val (trailerCleanup, attributes) =
-          if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
-            val trailers = new AtomicReference(Headers.empty)
+          // to collect the trailers we need a cleanup helper and a Task in the attribute map
+          val (trailerCleanup, attributes) =
+            if (parser.getHttpVersion().minor == 1 && parser.isChunked()) {
+              val trailers = new AtomicReference(Headers.empty)
 
-            val attrs = AttributeMap.empty.put(Message.Keys.TrailerHeaders, Task.suspend {
-              if (parser.contentComplete()) Task.now(trailers.get())
-              else Task.fail(new IllegalStateException("Attempted to collect trailers before the body was complete."))
-            })
+              val attrs = AttributeMap.empty.put(Message.Keys.TrailerHeaders, Task.suspend {
+                if (parser.contentComplete()) Task.now(trailers.get())
+                else Task.fail(new IllegalStateException("Attempted to collect trailers before the body was complete."))
+              })
 
-            ({ () => trailers.set(parser.getHeaders()) }, attrs)
+              ({ () => trailers.set(parser.getHeaders()) }, attrs)
+            }
+            else ({ () => () }, AttributeMap.empty)
+
+          if (parser.contentComplete()) {
+            trailerCleanup(); cleanup()
+            attributes -> rawBody
+          } else {
+            attributes -> rawBody.onHalt {
+              case End => Process.eval_(Task{ trailerCleanup(); cleanup(); }(executor))
+
+              case c => Process.await(Task {
+                logger.debug(c.asThrowable)("Response body halted. Closing connection.")
+                stageShutdown()
+              }(executor))(_ => Halt(c))
+            }
           }
-          else ({ () => () }, AttributeMap.empty)
+        }
 
-        if (parser.contentComplete()) {
-          trailerCleanup(); cleanup();
-          cb(\/-(
-            Response(status = status,
+        cb(\/-(
+          Response(status = status,
             httpVersion = httpVersion,
             headers = headers,
-            body = rawBody,
+            body = body,
             attributes = attributes)
-          ))
-        }
-        else {
-          val body = rawBody.onHalt {
-            case End => Process.eval_(Task{ trailerCleanup(); cleanup(); }(executor))
-
-            case c => Process.await(Task {
-              logger.debug(c.asThrowable)("Response body halted. Closing connection.")
-              stageShutdown()
-            }(executor))(_ => Halt(c))
-          }
-
-          cb(\/-(
-            Response(status = status,
-              httpVersion = httpVersion,
-              headers = headers,
-              body = body,
-              attributes = attributes)
-          ))
-        }
+        ))
       }
     } catch {
       case t: Throwable =>
