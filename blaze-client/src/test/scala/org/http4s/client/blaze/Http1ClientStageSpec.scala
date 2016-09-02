@@ -245,6 +245,28 @@ class Http1ClientStageSpec extends Specification {
       response must_==("done")
     }
 
+    "Not expect body if request was a HEAD request" in {
+      val contentLength = 12345L
+      val resp = s"HTTP/1.1 200 OK\r\nContent-Length: $contentLength\r\n\r\n"
+      val headRequest = FooRequest.copy(method = Method.HEAD)
+      val tail = mkConnection(FooRequestKey)
+      try {
+        val h = new SeqTestHead(List(mkBuffer(resp)))
+        LeafBuilder(tail).base(h)
+
+        val response = tail.runRequest(headRequest, false).run
+        response.contentLength must_== Some(contentLength)
+
+        // connection reusable immediately after headers read
+        tail.isRecyclable must_=== true
+
+        // body is empty due to it being HEAD request
+        response.body.runLog.run.foldLeft(0L)(_ + _.length) must_== 0L
+      } finally {
+        tail.shutdown()
+      }
+    }
+
     {
       val resp = "HTTP/1.1 200 OK\r\n" +
         "Transfer-Encoding: chunked\r\n\r\n" +
