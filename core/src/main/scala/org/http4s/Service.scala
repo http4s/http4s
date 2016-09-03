@@ -6,7 +6,7 @@ import scalaz.syntax.kleisli._
 
 object Service {
   /**
-    * Lifts an unwrapped function that returns a Task into a [[Service]].
+    * Lifts a total function that returns a Task into a [[Service]].
     *
     * @see [[HttpService.apply]]
     */

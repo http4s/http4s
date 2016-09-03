@@ -15,7 +15,7 @@ trait Fallthrough[B] {
 
 /** Houses the principal [[Fallthrough]] typeclass instances. */
 object Fallthrough {
-  /** Sintacticl utility for recovering the [[Fallthrough]] currently in scope. */
+  /** Syntax for recovering the [[Fallthrough]] currently in scope. */
   def apply[B](implicit F : Fallthrough[B]): Fallthrough[B] = F
 
   /** Attribute key that signals that a `HttpService` didn't result in a definitive [[Response]] */
@@ -26,8 +26,8 @@ object Fallthrough {
     def isFallthrough(a: B): Boolean = Monoid[B].isMZero(a)
   }
 
-  /** A [[Response]] specific [[Fallthrough]] which considers any response with a 404
-    * status code as a fallthrough. */
+  /** Considers any response with a 404 status code and the [[fallthroughKey]]
+    * attribute as a fallthrough. */
   implicit def forResponse: Fallthrough[Response] = new Fallthrough[Response] {
     def isFallthrough(r: Response): Boolean =
       r.status.code == 404 && r.attributes.contains(fallthroughKey)
