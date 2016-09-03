@@ -30,9 +30,9 @@ object ResourceService {
   private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
-      HttpService.notFound
+      Response.fallthrough
     else
       StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
-        .fold(HttpService.notFound)(config.cacheStartegy.cache(uriPath, _))
+        .fold(Response.fallthrough)(config.cacheStartegy.cache(uriPath, _))
   }
 }
