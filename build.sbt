@@ -8,6 +8,7 @@ import sbtunidoc.Plugin.UnidocKeys._
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.15.0-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
+scalaOrganization in ThisBuild := "org.typelevel"
 scalaVersion in ThisBuild := "2.11.8"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
@@ -396,7 +397,9 @@ lazy val commonSettings = Seq(
     "-language:higherKinds",
     s"-target:jvm-$jvm",
     "-unchecked",
-    "-Xlint"
+    "-Xlint",
+    "-Ypartial-unification",
+    "-Yliteral-types"
   )},
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
@@ -427,8 +430,7 @@ lazy val commonSettings = Seq(
     logbackClassic,
     specs2Core(sz),
     specs2Scalacheck(sz)
-  ).map(_ % "test")),
-  addCompilerPlugin("com.milessabin" % "si2712fix-plugin" % "1.2.0" cross CrossVersion.full)
+  ).map(_ % "test"))
 )
 
 lazy val publishSettings = Seq(
