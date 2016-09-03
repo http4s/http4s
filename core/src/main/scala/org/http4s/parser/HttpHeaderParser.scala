@@ -20,6 +20,7 @@ package parser
 
 import java.util
 
+import org.http4s.headers._
 import org.http4s.util.CaseInsensitiveString
 
 import Header.Parsed
@@ -38,7 +39,8 @@ object HttpHeaderParser extends SimpleHeaders
                     with RangeParser
                     with LocationHeader
                     with ProxyAuthenticateHeader
-                    with WwwAuthenticateHeader {
+                    with WwwAuthenticateHeader
+                    with ZipkinHeader {
 
   type HeaderParser = String => ParseResult[Parsed]
 

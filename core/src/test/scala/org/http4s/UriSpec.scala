@@ -168,12 +168,16 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       Uri(Some("http".ci), Some(Authority(host = IPv6("2001:0db8:85a3:08d3:1319:8a2e:0370:7344".ci)))).toString must_==("http://[2001:0db8:85a3:08d3:1319:8a2e:0370:7344]")
     }
 
+    "not append a '/' unless it's in the path" in {
+      uri("http://www.example.com").toString must_==("http://www.example.com")
+    }
+
     "render email address" in {
       Uri(Some("mailto".ci), path = "John.Doe@example.com").toString must_==("mailto:John.Doe@example.com")
     }
 
     "render an URL with username and password" in {
-      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/", Query.empty, None).toString must_==("http://username:password@some.example.com")
+      Uri(Some("http".ci), Some(Authority(Some("username:password"), RegName("some.example.com"), None)), "/", Query.empty, None).toString must_==("http://username:password@some.example.com/")
     }
 
     "render an URL with username and password, path and params" in {
@@ -685,6 +689,12 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       "g#s/../x"      shouldResolveTo "http://a/b/c/g#s/../x"
 
       "http:g"        shouldResolveTo "http:g"
+    }
+  }
+
+  "Uri.equals" should {
+    "be false between an empty path and a trailing slash after an authority" in {
+      uri("http://example.com") must_!= uri("http://example.com/")
     }
   }
 }
