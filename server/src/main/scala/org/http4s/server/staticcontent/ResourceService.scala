@@ -28,9 +28,9 @@ object ResourceService {
     implicit val executor = config.executor
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
-      HttpService.notFound
+      Response.fallthrough
     else
       StaticFile.fromResource(sanitize(config.basePath + '/' + getSubPath(uriPath, config.pathPrefix)))
-        .fold(HttpService.notFound)(config.cacheStartegy.cache(uriPath, _))
+        .fold(Response.fallthrough)(config.cacheStartegy.cache(uriPath, _))
   }
 }
