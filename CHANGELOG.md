@@ -1,3 +1,6 @@
+# v0.14.5 (2016-09-02)
+* Fix blaze-client handling of HEAD requests
+
 # v0.14.4 (2016-08-29)
 * Don't render trailing "/" for URIs with empty paths
 * Avoid calling tail of empty list in `/:` extractor
@@ -31,7 +34,7 @@
 * Downgrade to argonaut-6.1 (latest stable release) now that it cross builds for scalaz-7.2
 * Upgrade parboiled2 for compatibility with shapeless-2.3.x
 
-~~# v0.14.0 (2016-06-15)~~
+# ~~v0.14.0 (2016-06-15)~~
 * Recalled. Use v0.14.1 instead.
 
 # v0.13.3 (2016-06-15)
