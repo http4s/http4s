@@ -221,6 +221,30 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Response#fallthrough" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="fallthrough:scalaz.concurrent.Task[org.http4s.Response]"></a>
+      <a id="fallthrough:Task[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">fallthrough</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Response$@fallthrough:scalaz.concurrent.Task[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">The default response to signifiy that a <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a> could not handle a
+response.</p><div class="fullcomment"><div class="comment cmt"><p>The default response to signifiy that a <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a> could not handle a
+response.  This generates a 404 response <code>r</code> such that
+<code>Fallthrough.isFallthrough(r.run)</code> is true.  This response is used todo
+preserve the totality of a <a href="package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>, while indicating that a better
+response may be obtained by falling through to another service via
+<code>orElse</code>.</p><p>See <a href="Fallthrough.html" class="extype" name="org.http4s.Fallthrough">Fallthrough</a> for more details.
+</p></div></div>
     </li><li name="scala.AnyRef#finalize" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="finalize():Unit"></a>
       <a id="finalize():Unit"></a>
@@ -278,6 +302,23 @@
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.Response#instance" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="instance:org.http4s.Fallthrough[org.http4s.Response]"></a>
+      <a id="instance:Fallthrough[Response]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">implicit </span>
+        <span class="kind">val</span>
+      </span>
+      <span class="symbol">
+        <span class="name">instance</span><span class="result">: <a href="Fallthrough.html" class="extype" name="org.http4s.Fallthrough">Fallthrough</a>[<a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Response$@instance:org.http4s.Fallthrough[org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A <a href="Response.html" class="extype" name="org.http4s.Response">Response</a> falls through if it is <code>Response.fallthrough</code>.</p>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
