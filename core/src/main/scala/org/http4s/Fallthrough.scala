@@ -16,7 +16,7 @@ trait Fallthrough[B] {
 
 /** Houses the principal [[Fallthrough]] typeclass instances. */
 object Fallthrough {
-  /** Sintacticl utility for recovering the [[Fallthrough]] currently in scope. */
+  /** Syntax for recovering the [[Fallthrough]] currently in scope. */
   def apply[B](implicit F : Fallthrough[B]): Fallthrough[B] = F
 
   /** A [[Fallthrough]] for any Monoid with an Equals. */
