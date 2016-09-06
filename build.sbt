@@ -214,6 +214,7 @@ lazy val docs = http4sProject("docs")
   .settings(ghpages.settings)
   .settings(tutSettings)
   .settings(
+    libraryDependencies <+= scalazVersion {szv => argonautShapeless(szv) },
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -228,11 +229,11 @@ lazy val docs = http4sProject("docs")
       ),
     // documentation source code linking
     scalacOptions in (Compile,doc) <++= (version, apiVersion, scmInfo, baseDirectory in ThisBuild) map {
-      case (v, (maj,min), Some(s), b) => 
+      case (v, (maj,min), Some(s), b) =>
         val sourceTemplate =
           if (v.endsWith("SNAPSHOT"))
             s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
-          else 
+          else
             s"${s.browseUrl}/tree/v$maj.$min.0€{FILE_PATH}.scala"
         Seq("-implicits",
             "-doc-source-url", sourceTemplate,
@@ -401,7 +402,7 @@ lazy val commonSettings = Seq(
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
       "-Ybackend:GenBCode",
-      "-Ydelambdafy:method",
+      // "-Ydelambdafy:method", // breaks code - tut hangs with it on
       "-Yopt:l:classpath"
     ) else Seq.empty
   },
