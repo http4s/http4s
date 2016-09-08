@@ -29,10 +29,15 @@ final case class Uri(
   fragment: Option[Fragment] = None)
   extends QueryOps with Renderable
 {
+  import Uri._
+
   def withPath(path: Path): Uri = copy(path = path)
 
-  def /(newFragment: Path): Uri = {
-    val newPath = if (path.isEmpty || path.last != '/') path + "/" + newFragment else path + newFragment
+  def /(newSegment: Path)(implicit charset: Charset = Charset.`UTF-8`): Uri = {
+    val encoded = pathEncode(newSegment, charset)
+    val newPath =
+      if (path.isEmpty || path.last != '/') s"${path}/${encoded}"
+      else s"${path}${encoded}"
     copy(path = newPath)
   }
 
@@ -130,6 +135,12 @@ object Uri extends UriFunctions {
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
+
+  private val SkipEncodeInPath =
+    UrlFormCodec.urlUnreserved ++ ":@!$&'()*+,;="
+
+  def pathEncode(s: String, charset: Charset): String =
+    UrlCodingUtils.urlEncode(s, charset.nioCharset, true, SkipEncodeInPath)
 
   type Scheme = CaseInsensitiveString
 

@@ -49,7 +49,7 @@ object Path {
 
   def unapplySeq(request: Request): Option[List[String]] = Some(Path(request.pathInfo).toList)
 
-  val pathUnreserved = UrlFormCodec.urlUnreserved ++ BitSet(":@!$&'()*+,;=".toList.map(_.toInt): _*)
+  val pathUnreserved = UrlFormCodec.urlUnreserved ++ ":@!$&'()*+,;="
 }
 
 object :? {
@@ -93,7 +93,7 @@ object ~ {
 final case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
   def lastOption: Option[String] = Some(child)
-  lazy val asString = parent.toString + "/" + UrlCodingUtils.urlEncode(child, toSkip = Path.pathUnreserved)
+  lazy val asString = s"${parent}/${Uri.pathEncode(child, Charset.`UTF-8`)}"
   override def toString = asString
   def startsWith(other: Path) = {
     val components = other.toList
