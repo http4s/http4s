@@ -48,8 +48,6 @@ object Path {
   def unapplySeq(path: Path): Option[List[String]] = Some(path.toList)
 
   def unapplySeq(request: Request): Option[List[String]] = Some(Path(request.pathInfo).toList)
-
-  val pathUnreserved = UrlFormCodec.urlUnreserved ++ ":@!$&'()*+,;="
 }
 
 object :? {

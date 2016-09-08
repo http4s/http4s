@@ -140,7 +140,7 @@ object Uri extends UriFunctions {
     UrlFormCodec.urlUnreserved ++ ":@!$&'()*+,;="
 
   def pathEncode(s: String, charset: Charset): String =
-    UrlCodingUtils.urlEncode(s, charset.nioCharset, true, SkipEncodeInPath)
+    UrlCodingUtils.urlEncode(s, charset.nioCharset, false, SkipEncodeInPath)
 
   type Scheme = CaseInsensitiveString
 

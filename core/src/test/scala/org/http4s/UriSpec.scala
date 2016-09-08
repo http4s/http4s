@@ -699,6 +699,10 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   }
 
   "/" should {
+    "encode space as %20" in {
+      uri("http://example.com/") / " " must_== uri("http://example.com/%20")
+    }
+
     "encode generic delimiters that aren't pchars" in {
       // ":" and "@" are valid pchars
       uri("http://example.com") / ":/?#[]@" must_== uri("http://example.com/:%2F%3F%23%5B%5D@")
