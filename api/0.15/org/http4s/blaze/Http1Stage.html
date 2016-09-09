@@ -329,7 +329,7 @@
       <p class="shortcomment cmt">Makes a <a href="../package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> and a function used to drain the line if terminated early.</p><div class="fullcomment"><div class="comment cmt"><p>Makes a <a href="../package.html#EntityBody=scalaz.stream.Process[scalaz.concurrent.Task,scodec.bits.ByteVector]" class="extmbr" name="org.http4s.EntityBody">EntityBody</a> and a function used to drain the line if terminated early.
 </p></div><dl class="paramcmts block"><dt class="param">buffer</dt><dd class="cmt"><p>starting <code>ByteBuffer</code> to use in parsing.</p></dd><dt class="param">eofCondition</dt><dd class="cmt"><p>If the other end hangs up, this is the condition used in the Process for termination.
                     The desired result will differ between Client and Server as the former can interpret
-                    and <span class="extype" name="Command.EOF">Command.EOF</span> as the end of the body while a server cannot.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+                    and <code>Command.EOF</code> as the end of the body while a server cannot.</p></dd></dl><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
     </li><li name="org.http4s.blaze.Http1Stage#drainBody" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="drainBody(buffer:java.nio.ByteBuffer):scala.concurrent.Future[java.nio.ByteBuffer]"></a>
       <a id="drainBody(ByteBuffer):Future[ByteBuffer]"></a>

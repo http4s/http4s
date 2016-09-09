@@ -508,7 +508,7 @@ a streaming decoder by having the value of A be some kind of streaming construct
     </span>
       <p class="shortcomment cmt">Encapsulates the notion of fallthrough orElse for a Service
 For any given B, if a Fallthrough[B] exists within implicit context
-then <span class="extype" name="Service#orElse">Service#orElse</span> can be used.</p>
+then <code>service.orElse</code> can be used.</p>
     </li><li name="org.http4s.GenericCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="GenericCredentialsextendsCredentialswithProductwithSerializable"></a>
       <a id="GenericCredentials:GenericCredentials"></a>
@@ -870,7 +870,7 @@ server backend, such as Blaze, Jetty, or Tomcat.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Indicates an syntactic error decoding the body of an HTTP <span class="extype" name="Message]."></span></p>
+      <p class="shortcomment cmt">Indicates an syntactic error decoding the body of an HTTP <a href="Message.html" class="extype" name="org.http4s.Message">Message</a>.</p>
     </li><li name="org.http4s.MediaRange" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="MediaRangeextendsRenderable"></a>
       <a id="MediaRange:MediaRange"></a>
@@ -1466,9 +1466,9 @@ status line, headers, and a possible request body.
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">A Service wraps a function of request type <span class="extype" name="A">A</span> to a Task that runs
-to response type <span class="extype" name="B">B</span>.</p><div class="fullcomment"><div class="comment cmt"><p>A Service wraps a function of request type <span class="extype" name="A">A</span> to a Task that runs
-to response type <span class="extype" name="B">B</span>.  By wrapping the <code>Service</code>, we can compose them
+      <p class="shortcomment cmt">A Service wraps a function of request type <code>A</code> to a Task that runs
+to response type <code>B</code>.</p><div class="fullcomment"><div class="comment cmt"><p>A Service wraps a function of request type <code>A</code> to a Task that runs
+to response type <code>B</code>.  By wrapping the <a href="#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>, we can compose them
 using Kleisli operations.
 </p></div></div>
     </li><li name="org.http4s.Status" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">

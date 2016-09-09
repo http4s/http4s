@@ -342,9 +342,9 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Constructs a <code>Content-Length</code> header.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs a <code>Content-Length</code> header.</p><p>The HTTP RFCs do not specify a maximum length.  We have decided that <span class="extype" name="Long.MaxValue">Long.MaxValue</span>
-bytes ought to be good enough for anybody in order to avoid the irritations of <span class="extype" name="scala.math.BigInt">scala.math.BigInt</span>.
-</p></div><dl class="paramcmts block"><dt class="param">length</dt><dd class="cmt"><p>the length; throws an <span class="extype" name="IllegalArgumentException">IllegalArgumentException</span> if negative</p></dd></dl></div>
+      <p class="shortcomment cmt">Constructs a <code>Content-Length</code> header.</p><div class="fullcomment"><div class="comment cmt"><p>Constructs a <code>Content-Length</code> header.</p><p>The HTTP RFCs do not specify a maximum length.  We have decided that <code>Long.MaxValue</code>
+bytes ought to be good enough for anybody in order to avoid the irritations of <code>BigInt</code>.
+</p></div><dl class="paramcmts block"><dt class="param">length</dt><dd class="cmt"><p>the length; throws an <code>IllegalArgumentException</code> if negative</p></dd></dl></div>
     </li><li name="org.http4s.headers.Content-Range" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="Content-RangeextendsHeader.ParsedwithProductwithSerializable"></a>
       <a id="Content-Range:Content-Range"></a>
