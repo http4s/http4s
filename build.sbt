@@ -419,6 +419,7 @@ lazy val commonSettings = Seq(
     "-Ywarn-value-discard",
     "-Xfuture"
   ),
+  scalacOptions in (Compile, doc) -= "-Xfatal-warnings", // broken references to other modules
   scalacOptions := {
     // We're deprecation-clean across Scala versions, but not across scalaz
     // versions.  This is not worth maintaining a branch.
