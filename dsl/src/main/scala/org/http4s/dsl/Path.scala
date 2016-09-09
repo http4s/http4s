@@ -9,7 +9,7 @@ package org.http4s
 package dsl
 
 import org.http4s.QueryParamDecoder
-import org.http4s.util.{UrlCodingUtils, UrlFormCodec}
+import org.http4s.util.UrlCodingUtils
 
 import scalaz.ValidationNel
 import scalaz.syntax.traverse._
@@ -91,7 +91,7 @@ object ~ {
 final case class /(parent: Path, child: String) extends Path {
   lazy val toList: List[String] = parent.toList ++ List(child)
   def lastOption: Option[String] = Some(child)
-  lazy val asString = s"${parent}/${Uri.pathEncode(child, Charset.`UTF-8`)}"
+  lazy val asString = s"${parent}/${UrlCodingUtils.pathEncode(child)}"
   override def toString = asString
   def startsWith(other: Path) = {
     val components = other.toList

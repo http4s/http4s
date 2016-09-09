@@ -8,7 +8,7 @@ import scala.reflect.macros.Context
 import org.http4s.Uri._
 
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
-import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
+import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
 
@@ -34,7 +34,7 @@ final case class Uri(
   def withPath(path: Path): Uri = copy(path = path)
 
   def /(newSegment: Path)(implicit charset: Charset = Charset.`UTF-8`): Uri = {
-    val encoded = pathEncode(newSegment, charset)
+    val encoded = UrlCodingUtils.pathEncode(newSegment, charset.nioCharset)
     val newPath =
       if (path.isEmpty || path.last != '/') s"${path}/${encoded}"
       else s"${path}${encoded}"
@@ -135,12 +135,6 @@ object Uri extends UriFunctions {
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
-
-  private val SkipEncodeInPath =
-    UrlFormCodec.urlUnreserved ++ ":@!$&'()*+,;="
-
-  def pathEncode(s: String, charset: Charset): String =
-    UrlCodingUtils.urlEncode(s, charset.nioCharset, false, SkipEncodeInPath)
 
   type Scheme = CaseInsensitiveString
 

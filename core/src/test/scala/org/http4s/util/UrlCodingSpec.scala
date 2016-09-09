@@ -16,8 +16,20 @@ class UrlCodingSpec extends Specification with ScalaCheck {
         val encoded = urlEncode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
         encoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~"
       } ^
-      "uppercase encodings already in a string" ! {
-        ensureUppercasedEncodings("hello%3fworld") must_== "hello%3Fworld"
+      "uppercase skipped encodings already in a string" ! {
+        urlEncode("hello%3fworld", toSkip = Unreserved ++ "%") must_== "hello%3Fworld"
+      } ^
+      "leave alone invalid '%' escapes in a string" ! {
+        urlEncode("%ag", toSkip = Unreserved ++ "%") must_== "%ag"
+      } ^
+      "leave alone invalid '%' escapes with special chars in a string" ! {
+        urlEncode("%é0", toSkip = Unreserved ++ "%") must_== "%%C3%A90"
+      } ^
+      "leave alone invalid '%' escapes with single chars in a string" ! {
+        urlEncode("%a", toSkip = Unreserved ++ "%") must_== "%a"
+      } ^
+      "leave alone dangling '%' escapes in a string" ! {
+        urlEncode("%", toSkip = Unreserved ++ "%") must_== "%"
       } ^
       "percent encode spaces" ! {
         urlEncode("hello world") must_== "hello%20world"
