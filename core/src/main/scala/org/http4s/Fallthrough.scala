@@ -5,7 +5,7 @@ import scalaz.{Equal, Monoid}
 /**
   * Encapsulates the notion of fallthrough orElse for a Service
   * For any given B, if a Fallthrough[B] exists within implicit context
-  * then [[Service#orElse]] can be used.
+  * then `service.orElse` can be used.
   */
 trait Fallthrough[B] {
   def fallthrough: B

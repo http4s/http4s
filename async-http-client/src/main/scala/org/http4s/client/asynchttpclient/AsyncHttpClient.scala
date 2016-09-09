@@ -57,6 +57,7 @@ object AsyncHttpClient {
     Client(Service.lift { req =>
       Task.async[DisposableResponse] { cb =>
         client.executeRequest(toAsyncRequest(req), asyncHandler(cb, bufferSize, executorService))
+        ()
       }
     }, close)
   }

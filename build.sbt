@@ -8,12 +8,12 @@ import sbtunidoc.Plugin.UnidocKeys._
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.15.0-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
-scalaVersion in ThisBuild := "2.10.6"
+scalaVersion in ThisBuild := "2.11.8"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
 scalazVersion in ThisBuild := "7.1.8"
-crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.8"))
+crossScalaVersions in ThisBuild <<= scalaVersion(Seq("2.10.6", _))
 
 // Root project
 name := "root"
@@ -26,14 +26,16 @@ lazy val core = libraryProject("core")
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage <<= organization,
-    libraryDependencies <++= (scalaVersion, scalazVersion) { (v,sz) => Seq(
+    libraryDependencies ++= Seq(
       http4sWebsocket,
       log4s,
+      macroCompat,
       parboiled,
-      scalaReflect(v) % "provided",
-      scalazCore(sz),
-      scalazStream(sz)
-    ) },
+      scalaCompiler(scalaVersion.value) % "provided",
+      scalaReflect(scalaVersion.value) % "provided",
+      scalazCore(scalazVersion.value),
+      scalazStream(scalazVersion.value)
+    ),
     macroParadiseSetting
   )
 
@@ -156,7 +158,16 @@ lazy val json4s = libraryProject("json4s")
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
     description := "Provides json4s-native codecs for http4s",
-    libraryDependencies += Http4sBuild.json4sNative
+    libraryDependencies += Http4sBuild.json4sNative,
+    scalacOptions := {
+      VersionNumber(scalaVersion.value).numbers match {
+        case Seq(2, y, _) if y >= 11 =>
+          // scala.text.Document is deprecated starting in 2.10
+          scalacOptions.value filterNot (_ == "-Xfatal-warnings")
+        case _ =>
+          scalacOptions.value
+      }
+    }
   )
   .dependsOn(json4s % "compile;test->test")
 
@@ -390,20 +401,39 @@ lazy val commonSettings = Seq(
       case _ => "1.8"
     }
   },
-  scalacOptions <<= jvmTarget.map { jvm => Seq(
+  scalacOptions := Seq(
     "-deprecation",
+    "-encoding", "UTF-8",
     "-feature",
-    "-language:implicitConversions",
+    "-language:existentials",
     "-language:higherKinds",
-    s"-target:jvm-$jvm",
+    "-language:implicitConversions",
+    s"-target:jvm-${jvmTarget.value}",
     "-unchecked",
-    "-Xlint"
-  )},
+    "-Xfatal-warnings",
+    "-Xlint",
+    "-Yinline-warnings",
+    "-Yno-adapted-args",
+    "-Ywarn-dead-code",
+    "-Ywarn-numeric-widen",
+    "-Ywarn-value-discard",
+    "-Xfuture"
+  ),
+  scalacOptions := {
+    // We're deprecation-clean across Scala versions, but not across scalaz
+    // versions.  This is not worth maintaining a branch.
+    VersionNumber(scalazVersion.value).numbers match {
+      case Seq(7, 1, _) =>
+        scalacOptions.value
+      case _ =>
+        // This filtering does not trigger when scalazVersion is changed in a
+        // running SBT session.  Help wanted.
+        scalacOptions.value filterNot (_ == "-Xfatal-warnings")
+    }
+  },
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
-      "-Ybackend:GenBCode",
-      // "-Ydelambdafy:method", // breaks code - tut hangs with it on
-      "-Yopt:l:classpath"
+      "-Ybackend:GenBCode"
     ) else Seq.empty
   },
   javacOptions <++= jvmTarget.map { jvm => Seq(

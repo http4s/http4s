@@ -46,8 +46,8 @@ object RetryPolicy {
   }
 
   private def expBackoff(k: Int, maxInMillis: Long): FiniteDuration = {
-    val millis = (pow(2, k) - 1) * 1000
-    val interval = min(millis, maxInMillis)
+    val millis = (pow(2.0, k.toDouble) - 1.0) * 1000.0
+    val interval = min(millis, maxInMillis.toDouble)
     FiniteDuration((random * interval).toLong, MILLISECONDS)
   }
 }

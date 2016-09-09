@@ -63,7 +63,7 @@ private class Http1ServerStage(service: HttpService,
   final override protected def contentComplete(): Boolean = parser.contentComplete()
 
   // Will act as our loop
-  override def stageStartup() {
+  override def stageStartup(): Unit = {
     logger.debug("Starting HTTP pipeline")
     requestLoop()
   }
@@ -117,7 +117,7 @@ private class Http1ServerStage(service: HttpService,
     }
   }
 
-  protected def renderResponse(req: Request, resp: Response, bodyCleanup: () => Future[ByteBuffer]) {
+  protected def renderResponse(req: Request, resp: Response, bodyCleanup: () => Future[ByteBuffer]): Unit = {
     val rr = new StringWriter(512)
     rr << req.httpVersion << ' ' << resp.status.code << ' ' << resp.status.reason << "\r\n"
 
@@ -184,7 +184,7 @@ private class Http1ServerStage(service: HttpService,
     }
   }
 
-  private def closeConnection() {
+  private def closeConnection(): Unit = {
     logger.debug("closeConnection()")
     stageShutdown()
     sendOutboundCommand(Cmd.Disconnect)
@@ -198,7 +198,7 @@ private class Http1ServerStage(service: HttpService,
 
   /////////////////// Error handling /////////////////////////////////////////
 
-  final protected def badMessage(debugMessage: String, t: ParserException, req: Request) {
+  final protected def badMessage(debugMessage: String, t: ParserException, req: Request): Unit = {
     logger.debug(t)(s"Bad Request: $debugMessage")
     val resp = Response(Status.BadRequest).replaceAllHeaders(Connection("close".ci), `Content-Length`(0))
     renderResponse(req, resp, () => Future.successful(emptyBuffer))

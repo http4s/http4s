@@ -32,7 +32,7 @@ class Http4sServlet(service: HttpService,
   // micro-optimization: unwrap the service and call its .run directly
   private[this] val serviceFn = service.run
 
-  override def init(config: ServletConfig) {
+  override def init(config: ServletConfig): Unit = {
     val servletContext = config.getServletContext
     val servletApiVersion = ServletApiVersion(servletContext)
     logger.info(s"Detected Servlet API version $servletApiVersion")
@@ -108,7 +108,9 @@ class Http4sServlet(service: HttpService,
                              servletResponse: HttpServletResponse,
                              bodyWriter: BodyWriter): Task[Unit] =
     response.flatMap { r =>
-      servletResponse.setStatus(r.status.code, r.status.reason)
+      // Note: the servlet API gives us no undeprecated method to both set
+      // a body and a status reason.  We sacrifice the status reason.
+      servletResponse.setStatus(r.status.code)
       for (header <- r.headers if header.isNot(`Transfer-Encoding`))
         servletResponse.addHeader(header.name.toString, header.value)
       bodyWriter(r)

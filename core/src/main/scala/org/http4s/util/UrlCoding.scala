@@ -45,7 +45,7 @@ private[util] trait UrlCodingUtils {
 
   def urlEncode(toEncode: String, charset: Charset = Utf8, spaceIsPlus: Boolean = false, toSkip: BitSet = toSkip): String = {
     val in = charset.encode(ensureUppercasedEncodings(toEncode))
-    val out = CharBuffer.allocate((in.remaining() * 3).ceil.toInt)
+    val out = CharBuffer.allocate((in.remaining() * 3).toInt)
     while (in.hasRemaining) {
       val b = in.get() & 0xFF
       if (toSkip.contains(b)) {
@@ -100,7 +100,7 @@ private[util] trait UrlCodingUtils {
         // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
         // however there are cases where a string can be partially decoded
         // so we have to make sure the non us-ascii chars get preserved properly.
-        if (this.toSkip.contains(c)) {
+        if (this.toSkip.contains(c.toInt)) {
           out.put(c.toByte)
         }
         else {
