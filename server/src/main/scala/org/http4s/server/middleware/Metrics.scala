@@ -89,7 +89,6 @@ object Metrics {
             cause match {
               case End | Kill =>
               case Error(_) =>
-                println("Abnormal termination caused by: " + cause)
                 abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
             }
             Halt(cause)
