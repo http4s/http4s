@@ -58,7 +58,7 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6498/143848579@a0600d)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6497/1328632070@5fdb4e18)
 ```
 
 One beautiful thing about the `HttpService` model is that we don't
@@ -70,7 +70,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@a7a38ff
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@75471b13
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -107,7 +107,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@38bf4ee9
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@296cbc22
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -207,7 +207,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5d5374aa
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5c16511c
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -224,7 +224,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1debdcc3
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@fa0c380
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
