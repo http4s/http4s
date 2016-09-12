@@ -16,7 +16,7 @@ import scalaz._
 
 /**
  * Provides Digest Authentication from RFC 2617. Note that this class creates a new thread
- * on creation to clean up stale nonces. Please call {@link shutdown()} when the object is not
+ * on creation to clean up stale nonces. Please call `shutdown()` when the object is not
  * used anymore to kill this thread.
  * @param realm The realm used for authentication purposes.
  * @param store A partial function mapping (realm, user) to the

@@ -37,7 +37,7 @@ object RequestCookieJar {
       this
     }
 
-    def clear() { coll.clear() }
+    def clear(): Unit = { coll.clear() }
 
     def result(): RequestCookieJar = new RequestCookieJar(Vector(coll.toSeq:_*))
   }

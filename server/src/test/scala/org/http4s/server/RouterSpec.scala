@@ -67,10 +67,9 @@ class RouterSpec extends Http4sSpec {
       Router("/foo" -> notFound).apply(Request(uri = uri("/foo/bar"))).run.as[String].run must_== ("Custom NotFound")
     }
 
-    "Return the tagged NotFound response if no route is found" in {
+    "Return the fallthrough response if no route is found" in {
       val resp = Router("/foo" -> notFound).apply(Request(uri = uri("/bar"))).run
-      resp.attributes.contains(Fallthrough.fallthroughKey) must_== (true)
+      Fallthrough[Response].isFallthrough(resp) must beTrue
     }
-
   }
 }

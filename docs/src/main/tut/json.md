@@ -29,11 +29,7 @@ libraryDependencies ++= Seq(
 
 ### Json4s
 
-```scala
-libraryDependencies += "org.http4s" %% "http4s-json4s" % "0.15.0a-SNAPSHOT"
-```
-
-And one of
+Json4s supports two backends.  Choose one of:
 
 ```scala
 libraryDependencies += "org.http4s" %% "http4s-json4s-native" % "0.15.0a-SNAPSHOT"
@@ -47,7 +43,8 @@ The import statement is one of the following:
 ```scala
 import org.http4s.argonaut._
 import org.http4s.circe._
-import org.http4s.json4s._
+import org.http4s.json4s.jackson._
+import org.http4s.json4s.native._
 ```
 
 ## Deriving codecs
@@ -60,9 +57,13 @@ corresponding drawbacks.
 ## Sending JSON
 
 The usage is the same for client and server, both points use an
-`EntityEncoder[T]` to transform the outgoing data into a scala class. So
-whenever you see a `EntityEncoder[T]` in the http4s scaladocs, you can plugin in
-a `jsonEncoderOf[T]` and it will convert it into json for you.
+`EntityEncoder[T]` to transform the outgoing data into a scala class.
+One of the imports above brings into scope an `EntityDecoder[Json]` 
+(or `EntityDecoder[JValue]` in the case of json4s).
+
+In argonaut, when one has an `EncodeJson` instance, `.asJson` can be
+called to get to a `Json`.  In the example below, we convert the
+`Hello` case class to JSON for rendering in an `Ok` response.
 
 ```tut:book
 import argonaut._, Argonaut._, ArgonautShapeless._
@@ -75,14 +76,14 @@ case class Hello(greeting: String)
 
 val jsonService = HttpService {
   case r @ POST -> Root / "hello" =>
-    r.decode[User](user =>
-      Ok(Hello(s"Hello, ${user.name}"))(jsonEncoderOf)
-    )(jsonOf)
+    r.as(jsonOf[User]).flatMap(user =>
+      Ok(Hello(s"Hello, ${user.name}").asJson)
+    )
 }
 
 import org.http4s.server.blaze._
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(jsonService, "/")
-val server = builder.run
+val blazeServer = builder.run
 ```
 
 ## Receiving JSON
@@ -105,7 +106,7 @@ And clean everything up.
 
 ```tut:book
 httpClient.shutdownNow()
-server.shutdownNow()
+blazeServer.shutdownNow()
 ```
 
 ## Talking to the Github API
@@ -149,7 +150,7 @@ case class Repo(id: Long, name: String, full_name: String, owner: User, `private
 ```
 
 This parts skips over the [client] explanation. We'll use argonaut, with
-[argonaut-shapeless] for codec derivation. The json decoder is provided by
+[argonaut-shapeless] for codec derivation. The JSON decoder is provided by
 `ArgonautShapeless`, and passed to the `client.expect` method via the second
 argument, which is usually an implicit `EntityDecoder`, but in this case, we
 want to be more explicit.
@@ -160,17 +161,11 @@ want to be more explicit.
 import scalaz.concurrent.Task
 
 import org.http4s.util.string._
-import org.http4s.UriTemplate
-import org.http4s.UriTemplate._
 
 val httpClient = PooledHttp1Client()
 
-def repos(org: String): Task[List[Repo]] = {
-  val uri = UriTemplate(
-    scheme = Some("https".ci),
-    authority = Some(Uri.Authority(host = Uri.RegName("api.github.com"))),
-    path = List(PathElm("orgs"), PathElm(org), PathElm("repos"))
-  ).toUriIfPossible.get
+def repos(organization: String): Task[List[Repo]] = {
+  val uri = Uri.uri("https://api.github.com/orgs") / organization / "repos"
   httpClient.expect(uri)(jsonOf[List[Repo]])
 }
 

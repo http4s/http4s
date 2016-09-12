@@ -17,7 +17,7 @@ object ServerTestRoutes {
   val connKeep = Connection("keep-alive".ci)
   val chunked = `Transfer-Encoding`(TransferCoding.chunked)
 
-  def length(i: Int) = `Content-Length`(i)
+  def length(l: Long) = `Content-Length`(l)
 
   def testRequestResults: Seq[(String, (Status,Set[Header], String))] = Seq(
     ("GET /get HTTP/1.0\r\n\r\n", (Status.Ok,

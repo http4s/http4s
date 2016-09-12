@@ -102,10 +102,10 @@ sealed class JettyBuilder private (
     copy(servletIo = servletIo)
 
   /**
-   * Collects metrics into the specified [[MetricRegistry]], including:
-   * * Connections via [[InstrumentedConnectionFactory]]
-   * * The Jetty thread pool via [[InstrumentedQueuedThreadPool]]
-   * * HTTP responses via [[InstrumentedHandler]]
+   * Collects metrics into the specified `MetricRegistry`, including:
+   * * Connections via `InstrumentedConnectionFactory`
+   * * The Jetty thread pool via `InstrumentedQueuedThreadPool
+   * * HTTP responses via `InstrumentedHandler
    *
    * @param metricRegistry The registry to collect metrics into..
    */

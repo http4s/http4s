@@ -97,7 +97,15 @@ class PathSpec extends Http4sSpec {
         case _ => None
       }) must_== Some(Path("/3/test.json"))
     }
-    
+
+    "/: should not crash without trailing slash" in {
+      // Bug reported on Gitter
+      Path("/cameras/1NJDOI") match {
+        case "cameras" /: _ /: "events" /: _ /: "exports" /: _=> false
+        case _ => true
+      }
+    }
+
     "trailing slash" in {
       (Path("/1/2/3/") match {
         case Root / "1" / "2" / "3" / "" => true

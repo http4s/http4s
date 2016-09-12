@@ -14,6 +14,7 @@ import org.scalacheck.{ Arbitrary, Gen }
 
 import scala.collection.JavaConverters._
 import scala.collection.immutable.BitSet
+import scodec.bits.ByteVector
 
 trait TestInstances {
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -58,6 +59,12 @@ trait TestInstances {
 
   lazy val standardMethods: Gen[Method] =
     oneOf(Method.registered.toSeq)
+
+  implicit lazy val arbitraryByteVector: Arbitrary[ByteVector] =
+    Arbitrary {
+      Gen.containerOf[Array, Byte](arbitrary[Byte])
+        .map { b => ByteVector.view(b) }
+    }
 
   implicit lazy val arbitraryMethod: Arbitrary[Method] = Arbitrary(frequency(
     10 -> standardMethods,
@@ -230,6 +237,28 @@ trait TestInstances {
         arbitrary[Header.Raw]
       )
     }
+
+  implicit lazy val arbitraryServerSentEvent: Arbitrary[ServerSentEvent] = {
+    import ServerSentEvent._
+    def singleLineString: Gen[String] =
+      arbitrary[String] suchThat { s => !s.contains("\r") && !s.contains("\n") }
+    Arbitrary(for {
+      data <- singleLineString
+      event <- frequency(
+        4 -> None,
+        1 -> singleLineString.map(Some.apply)
+      )
+      id <- frequency(
+        8 -> None,
+        1 -> Some(EventId.reset),
+        1 -> (singleLineString suchThat (_.nonEmpty)).map(id => Some(EventId(id)))
+      )
+      retry <- frequency(
+        4 -> None,
+        1 -> posNum[Long].map(Some.apply)
+      )
+    } yield ServerSentEvent(data, event, id, retry))
+  }
 }
 
 

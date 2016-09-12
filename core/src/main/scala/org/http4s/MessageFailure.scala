@@ -97,7 +97,7 @@ final case class GenericMessageBodyFailure(message: String,
     response(httpVersion)
 }
 
-/** Indicates an syntactic error decoding the body of an HTTP [[Message]. */
+/** Indicates an syntactic error decoding the body of an HTTP [[Message]]. */
 sealed case class MalformedMessageBodyFailure(details: String, override val cause: Option[Throwable] = None) extends MessageBodyFailure {
   def message: String =
     s"Malformed request body: $details"

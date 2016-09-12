@@ -8,7 +8,7 @@ import com.codahale.metrics._
 
 import org.http4s.{Method, Response, Request}
 
-import scalaz.stream.Cause.End
+import scalaz.stream.Cause._
 import scalaz.{\/, -\/, \/-}
 import scalaz.concurrent.Task
 import scalaz.stream.Process.{Halt, halt}
@@ -87,11 +87,11 @@ object Metrics {
             else resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
 
             cause match {
-              case End => halt
-              case _   =>
+              case End | Kill =>
+              case Error(_) =>
                 abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
-                Halt(cause)
             }
+            Halt(cause)
           }
 
           \/-(r.copy(body = body))

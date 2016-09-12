@@ -242,6 +242,33 @@ final case class Response(
 }
 
 object Response {
+  private val theFallthrough = 
+    Response(Status.NotFound)
+      .withBody("404 Not Found")
+      .run
+
+  /** The default response to signifiy that a [[Service]] could not handle a
+    * response.  This generates a 404 response `r` such that
+    * `Fallthrough.isFallthrough(r.run)` is true.  This response is used todo
+    * preserve the totality of a [[Service]], while indicating that a better
+    * response may be obtained by falling through to another service via
+    * `orElse`.
+    * 
+    * See [[Fallthrough]] for more details.
+    */
+  val fallthrough: Task[Response] =
+    Task.now(theFallthrough)
+
+  /** A [[Response]] falls through if it is `Response.fallthrough`. */
+  implicit val instance: Fallthrough[Response] =
+    new Fallthrough[Response] {
+      val fallthrough: Response =
+        theFallthrough
+
+      def isFallthrough(r: Response): Boolean =
+        r eq theFallthrough
+    }
+
   def notFound(request: Request): Task[Response] = {
     val body = s"${request.pathInfo} not found"
     Response(Status.NotFound).withBody(body)

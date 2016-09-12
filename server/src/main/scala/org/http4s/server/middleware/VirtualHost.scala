@@ -8,7 +8,7 @@ import Status.{BadRequest, NotFound}
 /** Middleware for virtual host mapping
   *
   * The `VirtualHost` middleware allows multiple services to be mapped
-  * based on the [[Host]] header of the [[Request]].
+  * based on the [[org.http4s.headers.Host]] header of the [[org.http4s.Request]].
   */
 object VirtualHost {
 

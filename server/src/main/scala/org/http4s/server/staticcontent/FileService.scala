@@ -14,13 +14,13 @@ import org.http4s.util._
 
 object FileService {
 
-  /** [[FileService]] configuration
+  /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
     * @param systemPath path prefix to the folder from which content will be served
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param executor [[ExecutorService]] to use when collecting content
+    * @param executor `ExecutorService` to use when collecting content
     * @param cacheStartegy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config(systemPath: String,
@@ -35,12 +35,12 @@ object FileService {
   private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
     val uriPath = req.pathInfo
     if (!uriPath.startsWith(config.pathPrefix))
-      HttpService.notFound
+      Response.fallthrough
     else
       getFile(config.systemPath + '/' + getSubPath(uriPath, config.pathPrefix))
         .map { f => config.pathCollector(f, config, req) }
         .getOrElse(Task.now(None))
-        .flatMap(_.fold(HttpService.notFound)(config.cacheStartegy.cache(uriPath, _)))
+        .flatMap(_.fold(Response.fallthrough)(config.cacheStartegy.cache(uriPath, _)))
   }
 
   /* Returns responses for static files.

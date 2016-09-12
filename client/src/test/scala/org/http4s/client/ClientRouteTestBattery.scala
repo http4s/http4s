@@ -37,7 +37,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   }
 
   override def testServlet() = new HttpServlet {
-    override def doGet(req: HttpServletRequest, srv: HttpServletResponse) {
+    override def doGet(req: HttpServletRequest, srv: HttpServletResponse): Unit = {
       getPaths.get(req.getRequestURI) match {
         case Some(r) => renderResponse(srv, r)
         case None    => srv.sendError(404)

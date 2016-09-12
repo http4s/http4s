@@ -1,6 +1,5 @@
 package org.http4s
 
-import scala.language.experimental.macros
 import scala.math.Ordered.orderingToOrdered
 import scalaz.{\/-, Order, Show, -\/}
 import scalaz.\/._

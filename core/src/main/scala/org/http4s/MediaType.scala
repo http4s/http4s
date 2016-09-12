@@ -148,7 +148,7 @@ object MediaType extends Registry {
   private[this] val extensionMap = new AtomicReference(Map.empty[String, MediaType])
 
   @tailrec
-  private def registerFileExtension(ext: String, mediaType: MediaType) {
+  private def registerFileExtension(ext: String, mediaType: MediaType): Unit = {
     val lcExt = ext.toLowerCase
     val current = extensionMap.get
     require(!current.contains(lcExt), "Extension '%s' clash: media-types '%s' and '%s'" format (ext, current(lcExt), mediaType))
@@ -310,6 +310,7 @@ object MediaType extends Registry {
   val `text/calendar`             = txt("calendar", "ics", "icz")
   val `text/css`                  = txt("css", "css")
   val `text/csv`                  = txt("csv", "csv")
+  val `text/event-stream`         = txt("event-stream")
   val `text/html`                 = txt("html", "htm", "html", "htmls", "htx")
   val `text/mcf`                  = txt("mcf", "mcf")
   val `text/plain`                = txt("plain", "conf", "text", "txt", "properties")

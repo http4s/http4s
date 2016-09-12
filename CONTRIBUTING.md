@@ -66,9 +66,7 @@ use any of the following commands:
  * `compile`: compile the code
  * `console`: launch a REPL
  * `test`: run the tests
- * `++2.11.8 makeSite`: generate the documentation, including
-   scaladoc.  The documentation only builds on Scala 2.11 due to the
-   use of macros.
+ * `makeSite`: generate the documentation, including scaladoc.
  * `scalastyle`: run the style-checker on the code
 
 ### Write code

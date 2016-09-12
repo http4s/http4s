@@ -1,3 +1,24 @@
+# v0.15.0-SNASPHOT (unreleased)
+* Added `Client.fromHttpService` to assist with testing.
+* Make all case classes final where possible, sealed where not.
+* Codec for Server Sent Events (SSE)
+* Added JSONP middleware
+* Improve Expires header to more easily build the header and support parsing of the header
+* Replce lazy `Raw.parsed` field with a siple null check
+* Added support for Zipkin headers
+* Upgrade to json4s-3.4.0
+
+# v0.14.6 (2016-09-11)
+* Don't treat `Kill`ed responses (i.e., HEAD requests) as abnormal
+  termination in metrics
+
+# v0.14.5 (2016-09-02)
+* Fix blaze-client handling of HEAD requests
+
+# v0.14.4 (2016-08-29)
+* Don't render trailing "/" for URIs with empty paths
+* Avoid calling tail of empty list in `/:` extractor
+
 # v0.14.3 (2016-08-24)
 * Follow 301 and 302 responses to POST with a GET request.
 * Follow all redirect responses to HEAD with a HEAD request.
@@ -27,7 +48,7 @@
 * Downgrade to argonaut-6.1 (latest stable release) now that it cross builds for scalaz-7.2
 * Upgrade parboiled2 for compatibility with shapeless-2.3.x
 
-~~# v0.14.0 (2016-06-15)~~
+# ~~v0.14.0 (2016-06-15)~~
 * Recalled. Use v0.14.1 instead.
 
 # v0.13.3 (2016-06-15)

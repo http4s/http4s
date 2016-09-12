@@ -22,7 +22,7 @@ import scodec.bits.ByteVector
 
 trait EntityEncoder[A] { self =>
 
-  /** Convert the type `A` to an [[Entity]] in the `Task` monad */
+  /** Convert the type `A` to an [[EntityEncoder.Entity]] in the `Task` monad */
   def toEntity(a: A): Task[EntityEncoder.Entity]
 
   /** Headers that may be added to a [[Message]]
@@ -38,13 +38,13 @@ trait EntityEncoder[A] { self =>
     override def headers: Headers = self.headers
   }
 
-  /** Get the [[`Content-Type`]] of the body encoded by this [[EntityEncoder]], if defined the headers */
+  /** Get the [[org.http4s.headers.Content-Type]] of the body encoded by this [[EntityEncoder]], if defined the headers */
   def contentType: Option[`Content-Type`] = headers.get(`Content-Type`)
 
   /** Get the [[Charset]] of the body encoded by this [[EntityEncoder]], if defined the headers */
   def charset: Option[Charset] = headers.get(`Content-Type`).flatMap(_.charset)
 
-  /** Generate a new EntityEncoder that will contain the [[`Content-Type`]] header */
+  /** Generate a new EntityEncoder that will contain the `Content-Type` header */
   def withContentType(tpe: `Content-Type`): EntityEncoder[A] = new EntityEncoder[A] {
       override def toEntity(a: A): Task[Entity] = self.toEntity(a)
       override val headers: Headers = self.headers.put(tpe)
@@ -203,4 +203,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit val entityEncoderContravariant: Contravariant[EntityEncoder] = new Contravariant[EntityEncoder] {
     override def contramap[A, B](r: EntityEncoder[A])(f: (B) => A): EntityEncoder[B] = r.contramap(f)
   }
+
+  implicit val serverSentEventEncoder: EntityEncoder[EventStream] =
+    sourceEncoder[ByteVector].contramap[EventStream] { _.pipe(ServerSentEvent.encoder) }
+      .withContentType(MediaType.`text/event-stream`)
 }

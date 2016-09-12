@@ -79,8 +79,8 @@ private[parser] trait SimpleHeaders {
   def EXPIRES(value: String): ParseResult[Expires] = new Http4sHeaderParser[Expires](value) {
     def entry = rule {
       HttpDate ~ EOL ~> (Expires(_)) | // Valid Expires header
-      Digit1 ~ EOL ~> ((t: Int) => Expires(Instant.ofEpochMilli(t))) | // Used for bogus http servers returning 0
-      NegDigit1 ~ EOL ~> ((_: Int) => Expires(Instant.ofEpochMilli(0))) // Used for bogus http servers returning -1
+      Digit1 ~ EOL ~> ((t: Int) => Expires(Instant.ofEpochMilli(t.toLong))) | // Used for bogus http servers returning 0
+      NegDigit1 ~ EOL ~> ((_: Int) => Expires(Instant.ofEpochMilli(0.toLong))) // Used for bogus http servers returning -1
     }
   }.parse
 
@@ -94,11 +94,21 @@ private[parser] trait SimpleHeaders {
     }
   }.parse
 
-  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] = new Http4sHeaderParser[`Last-Modified`](value) {
-    def entry = rule {
-      HttpDate ~ EOL ~> (`Last-Modified`(_))
-    }
-  }.parse
+  def LAST_EVENT_ID(value: String): ParseResult[`Last-Event-Id`] =
+    new Http4sHeaderParser[`Last-Event-Id`](value) {
+      def entry = rule {
+        capture(zeroOrMore(ANY)) ~ EOL ~> { id: String =>
+          `Last-Event-Id`(ServerSentEvent.EventId(id))
+        }
+      }
+    }.parse
+
+  def LAST_MODIFIED(value: String): ParseResult[`Last-Modified`] = 
+    new Http4sHeaderParser[`Last-Modified`](value) {
+      def entry = rule {
+        HttpDate ~ EOL ~> (`Last-Modified`(_))
+      }
+    }.parse
 
   def IF_MODIFIED_SINCE(value: String): ParseResult[`If-Modified-Since`] = new Http4sHeaderParser[`If-Modified-Since`](value) {
     def entry = rule {

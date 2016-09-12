@@ -24,6 +24,7 @@ import scalaz.stream.{Cause, Process}
 
 
 class ProcessWriterSpec extends Specification {
+  case object Failed extends RuntimeException
 
   def writeProcess(p: EntityBody)(builder: TailStage[ByteBuffer] => ProcessWriter): String = {
     val tail = new TailStage[ByteBuffer] {
@@ -72,7 +73,7 @@ class ProcessWriterSpec extends Specification {
     }
 
     "Write a Process that fails and falls back" in {
-      val p = Process.await(Task.fail(new Exception("Failed")))(identity).onFailure { _ =>
+      val p = Process.eval(Task.fail(Failed)).onFailure { _ =>
         emit(messageBuffer)
       }
       writeProcess(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
@@ -168,7 +169,7 @@ class ProcessWriterSpec extends Specification {
 
     // The Process adds a Halt to the end, so the encoding is chunked
     "Write a Process that fails and falls back" in {
-      val p = Process.await(Task.fail(new Exception("Failed")))(identity).onFailure { _ =>
+      val p = Process.eval(Task.fail(Failed)).onFailure { _ =>
         emit(messageBuffer)
       }
       writeProcess(p)(builder) must_== "Transfer-Encoding: chunked\r\n\r\n" +
@@ -192,7 +193,7 @@ class ProcessWriterSpec extends Specification {
       clean must_== true
 
       clean = false
-      val p2 = Process.await(Task.fail(new Exception("Failed")))(identity).onComplete(Process.eval_(Task.delay{
+      val p2 = Process.eval(Task.fail(Failed)).onComplete(Process.eval_(Task.delay{
         clean = true
       }))
 
@@ -247,7 +248,7 @@ class ProcessWriterSpec extends Specification {
 
       {
         var clean = false
-        val p = Process.await(Task.fail(new Exception("Failed")))(identity).onComplete(Process.eval_(Task.delay{
+        val p = Process.eval(Task.fail(Failed)).onComplete(Process.eval_(Task.delay{
           clean = true
         }))
 

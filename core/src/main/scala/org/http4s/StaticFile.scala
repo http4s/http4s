@@ -85,8 +85,8 @@ object StaticFile {
     notModified orElse {
 
       val (body, contentLength) =
-        if (f.length() < end) (halt, 0)
-        else (fileToBody(f, start, end, buffsize), (end - start).toInt)
+        if (f.length() < end) (halt, 0L)
+        else (fileToBody(f, start, end, buffsize), (end - start).toLong)
 
       val contentType = {
         val name = f.getName()
@@ -130,13 +130,13 @@ object StaticFile {
           if (buff.capacity() > remaining) buff.limit(remaining.toInt)
 
           ch.read(buff, position, null: Null, new CompletionHandler[Integer, Null] {
-            def failed(t: Throwable, attachment: Null) {
+            def failed(t: Throwable, attachment: Null): Unit = {
               logger.error(t)("Static file NIO process failed")
               ch.close()
               cb(-\/(t))
             }
 
-            def completed(count: Integer, attachment: Null) {
+            def completed(count: Integer, attachment: Null): Unit = {
               logger.trace(s"Read $count bytes")
               buff.flip()
 

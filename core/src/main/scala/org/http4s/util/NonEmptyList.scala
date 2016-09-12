@@ -10,7 +10,7 @@ import scalaz._
 /** A singly-linked list that is guaranteed to be non-empty.
   *
   * Forked from Scalaz 7.1 after moving past Scalaz 7.1 out of a desire to maintain
-  * one based on [[scala.List]].
+  * one based on `List`.
   */
 final class NonEmptyList[+A] private[util] (val head: A, val tail: List[A]) {
   import NonEmptyList._

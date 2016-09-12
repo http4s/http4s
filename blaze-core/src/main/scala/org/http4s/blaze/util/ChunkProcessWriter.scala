@@ -38,8 +38,12 @@ class ChunkProcessWriter(private var headers: StringWriter,
         }
         else ChunkEndBuffer
       }.runAsync {
-        case \/-(buffer) => promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
-        case -\/(t) => promise.failure(t)
+        case \/-(buffer) =>
+          promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
+          ()
+        case -\/(t) =>
+          promise.failure(t)
+          ()
       }
       promise.future
     }

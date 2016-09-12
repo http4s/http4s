@@ -118,7 +118,7 @@ sealed class TomcatBuilder private (
     copy(servletIo = servletIo)
 
   /**
-   * Installs an [[InstrumentedFilter]] around the root of the context to collect
+   * Installs an `InstrumentedFilter` around the root of the context to collect
    * HTTP response metrics.
    *
    * @param metricRegistry The registry to collect metrics into..
