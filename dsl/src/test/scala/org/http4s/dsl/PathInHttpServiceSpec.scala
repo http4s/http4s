@@ -1,8 +1,8 @@
 package org.http4s
 package dsl
 
-import scalaz.{ Failure, Success }
-import scalaz.concurrent.Task
+import cats.data.Validated._
+import fs2._
 
 object PathInHttpServiceSpec extends Http4sSpec {
 
@@ -48,13 +48,13 @@ object PathInHttpServiceSpec extends Http4sSpec {
       Ok(s"counter: $c")
     case GET -> Root / "valid" :? ValidatingCounter(c) =>
       c.fold(
-        errors => BadRequest(errors.list.toList.map(_.sanitized).mkString(",")),
+        errors => BadRequest(errors.map(_.sanitized).mkString(",")),
         vc => Ok(s"counter: $vc")
       )
     case GET -> Root / "optvalid" :? OptValidatingCounter(c) =>
       c match {
-        case Some(Failure(errors)) => BadRequest(errors.list.toList.map(_.sanitized).mkString(","))
-        case Some(Success(cv)) => Ok(s"counter: $cv")
+        case Some(Invalid(errors)) => BadRequest(errors.map(_.sanitized).mkString(","))
+        case Some(Valid(cv)) => Ok(s"counter: $cv")
         case None => Ok("no counter")
       }
     case r =>
@@ -62,7 +62,7 @@ object PathInHttpServiceSpec extends Http4sSpec {
   }
 
   def serve(req: Request): Response =
-    service.run(req).run
+    service.run(req).unsafeRun
 
   "Path DSL within HttpService" should {
     "GET /" in {
