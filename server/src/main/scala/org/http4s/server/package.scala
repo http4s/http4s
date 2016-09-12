@@ -5,10 +5,6 @@ import scalaz.concurrent.Task
 import scalaz.syntax.kleisli._
 
 package object server {
-
-
-
-
   /**
    * A middleware is a function of one [[Service]] to another, possibly of a
    * different [[Request]] and [[Response]] type.  http4s comes with several
@@ -33,6 +29,8 @@ package object server {
    * An HTTP middleware converts an [[HttpService]] to another.
    */
   type HttpMiddleware = Middleware[Request, Response, Request, Response]
+  /**
+   * An HTTP middleware that authenticates users.
+   */
+  type AuthMiddleware[T] = Middleware[AuthedRequest[T], Response, Request, Response]
 }
-
-

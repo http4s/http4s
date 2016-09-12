@@ -44,7 +44,9 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request
 error handling, we recommend an error [ADT] instead of a `String`.
 
 ```tut:book
-val authUser: Kleisli[Task, Request, String \/ User] = Kleisli(_ => Task.delay(???))
+val authUser = AuthedService[User] {
+  case GET -> Root / "foo" as user => Ok(user.toString)
+}
 val onFailure: Service[String, Response] = Kleisli(message => Forbidden(message))
 val service: HttpService = (authUser &&& Kleisli.ask).flatMapK({
   case (maybeUser, request) =>
@@ -55,23 +57,6 @@ val service: HttpService = (authUser &&& Kleisli.ask).flatMapK({
 })
 ```
 
-### With minimal Kleisli Usage
-
-```tut:book
-import org.http4s.dsl._
-
-val authUser: Request => Task[String \/ User] = {_ => Task.delay(???)}
-val onFailure: String => Task[Response] = {message => Forbidden(message)}
-val service: HttpService =
-  Kleisli({ request =>
-    authUser(request).flatMap(
-      _.fold(
-        onFailure,
-        {user => authedService.run.apply((user, request))}
-      )
-    )
-  })
-```
 
 ## Implementing authUser
 

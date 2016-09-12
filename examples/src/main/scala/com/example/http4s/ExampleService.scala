@@ -31,7 +31,7 @@ object ExampleService {
     "/auth" -> authService,
     "/science" -> ScienceExperiments.service
   )
-  
+
   def rootService(implicit executionContext: ExecutionContext) = HttpService {
     case req @ GET -> Root =>
       // Supports Play Framework template -- see src/main/twirl.
@@ -92,7 +92,7 @@ object ExampleService {
 
     case req @ POST -> Root / "sum"  =>
       // EntityDecoders allow turning the body into something useful
-      req.decode[UrlForm] { data => 
+      req.decode[UrlForm] { data =>
         data.values.get("sum") match {
           case Some(Seq(s, _*)) =>
             val sum = s.split(' ').filter(_.length > 0).map(_.trim.toInt).sum
@@ -159,9 +159,9 @@ object ExampleService {
 
     ///////////////////////////////////////////////////////////////
     //////////////////////// Multi Part //////////////////////////
-    case req @ GET -> Root / "form" =>  
+    case req @ GET -> Root / "form" =>
             println("FORM")
-      Ok(html.form())        
+      Ok(html.form())
     case req @ POST -> Root / "multipart" =>
       println("MULTIPART")
       req.decode[Multipart] { m =>
@@ -192,14 +192,9 @@ object ExampleService {
 
   // Digest is a middleware.  A middleware is a function from one service to another.
   // In this case, the wrapped service is protected with digest authentication.
-  def authService = digest( HttpService {
-    case req @ GET -> Root / "protected" => {
-      (req.attributes.get(authenticatedUser), req.attributes.get(authenticatedRealm)) match {
-        case (Some(user), Some(realm)) => 
-          Ok("This page is protected using HTTP authentication; logged in user/realm: " + user + "/" + realm)
-        case _ => 
-          Ok("This page is protected using HTTP authentication; logged in user/realm unknown")
-      }
+  def authService = digest( AuthedService.apply[(String, String)]({
+    case req @ GET -> Root / "protected" as ((user, realm)) => {
+      Ok("This page is protected using HTTP authentication; logged in user/realm: " + user + "/" + realm)
     }
-  } )
+  }))
 }

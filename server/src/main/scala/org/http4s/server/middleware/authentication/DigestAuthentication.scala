@@ -8,6 +8,7 @@ import java.math.BigInteger
 import java.util.Date
 
 import org.http4s.headers.Authorization
+import org.http4s.{AuthedRequest, AuthedService}
 
 import scala.concurrent.duration._
 
@@ -45,7 +46,7 @@ class DigestAuthentication(realm: String, store: AuthenticationStore, nonceClean
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  protected def getChallenge(req: Request): Task[Challenge\/Request] = {
+  protected def getChallenge(req: Request): Task[Challenge \/ AuthedRequest[(String, String)]] = {
     def paramsToChallenge(params: Map[String, String]) = -\/(Challenge("Digest", realm, params))
     checkAuth(req).flatMap(_ match {
       case OK(user, realm) => Task.now(\/-(addUserRealmAttributes(req, user, realm)))
