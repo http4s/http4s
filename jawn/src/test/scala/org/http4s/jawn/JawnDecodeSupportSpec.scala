@@ -2,7 +2,7 @@ package org.http4s
 package jawn
 
 trait JawnDecodeSupportSpec[J] extends Http4sSpec with JawnInstances {
-  def testJsonDecoder(decoder: EntityDecoder[J]) {
+  def testJsonDecoder(decoder: EntityDecoder[J]) = {
     "json decoder" should {
       "return right when the entity is valid" in {
         val resp = Response(Status.Ok).withBody("""{"valid": true}""").run

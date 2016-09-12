@@ -23,7 +23,8 @@ object Timeout {
   private def timeoutResp(timeout: Duration, response: Task[Response]): Task[Response] = Task.async[Task[Response]] { cb =>
     val r = new Runnable { override def run(): Unit = cb(Right(response)) }
     ec.schedule(r, timeout.toNanos, TimeUnit.NANOSECONDS)
-  }.flatten
+    ()
+  }.join
 
   /** Transform the service such to return whichever resolves first:
     * the provided Task[Response], or the result of the service

@@ -164,6 +164,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       val happyDecoder = EntityDecoder.decodeBy(MediaRange.`*/*`)(_ => DecodeResult.success(Task.now("hooray")))
       Task.async[String] { cb =>
         request.decodeWith(happyDecoder, strict = false) { s => cb(Right(s)); Task.now(Response()) }.unsafeRun
+        ()                                                              
       } must returnValue("hooray")
     }
 
@@ -234,6 +235,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
       finally {
         tmpFile.delete()
+        ()
       }
     }
 
@@ -250,6 +252,7 @@ class EntityDecoderSpec extends Http4sSpec with PendingUntilFixed {
       }
       finally {
         tmpFile.delete()
+        ()
       }
     }
   }

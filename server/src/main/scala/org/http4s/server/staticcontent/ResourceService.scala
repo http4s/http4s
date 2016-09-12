@@ -8,12 +8,12 @@ import fs2._
 
 object ResourceService {
 
-  /** [[ResourceService]] configuration
+  /** [[org.http4s.server.staticcontent.ResourceService]] configuration
     *
     * @param basePath prefix of the path files will be served from
     * @param pathPrefix prefix of the Uri that content will be served from
     * @param bufferSize size hint of internal buffers to use when serving resources
-    * @param executor [[ExecutorService]] to use when collecting content
+    * @param executor `ExecutorService` to use when collecting content
     * @param cacheStartegy strategy to use for caching purposes. Default to no caching.
     
 */

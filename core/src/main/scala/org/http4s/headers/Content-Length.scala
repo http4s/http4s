@@ -7,10 +7,10 @@ import org.http4s.util.Writer
 /**
   * Constructs a `Content-Length` header.
   *
-  * The HTTP RFCs do not specify a maximum length.  We have decided that [[Long.MaxValue]]
-  * bytes ought to be good enough for anybody in order to avoid the irritations of [[scala.math.BigInt]].
+  * The HTTP RFCs do not specify a maximum length.  We have decided that `Long.MaxValue`
+  * bytes ought to be good enough for anybody in order to avoid the irritations of `BigInt`.
   *
-  * @param length the length; throws an [[IllegalArgumentException]] if negative
+  * @param length the length; throws an `IllegalArgumentException` if negative
   */
 final case class `Content-Length`(length: Long) extends Header.Parsed {
   require(length >= 0L)

@@ -37,6 +37,12 @@ class ChunkProcessWriter(private var headers: StringWriter,
         }
         else ChunkEndBuffer
       }.unsafeRunAsync {
+        case Right(buffer) =>
+          promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
+          ()
+        case Left(t) =>
+          promise.failure(t)
+          ()
         case Right(buffer) => promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
         case Left(t) => promise.failure(t)
       }

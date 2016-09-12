@@ -9,8 +9,12 @@ trait TaskFunctions {
   def unsafeTaskToFuture[A](task: Task[A]): Future[A] = {
     val p = Promise[A]()
     task.unsafeRunAsync {
-      case Right(a) => p.success(a)
-      case Left(t) => p.failure(t)
+      case Right(a) =>
+        p.success(a)
+        ()
+      case Left(t) =>
+        p.failure(t)
+        ()
     }
     p.future
   }

@@ -31,7 +31,7 @@ package object util {
     def breakBigChunks(): Process1[ByteVector, ByteVector] =
       receive1[ByteVector, ByteVector] { chunk =>
         def loop(chunk: ByteVector): Process1[ByteVector, ByteVector] =
-          chunk.splitAt(Int.MaxValue - 1) match {
+          chunk.splitAt(Long.MaxValue - 1L) match {
             case (bv, ByteVector.empty) =>
               emit(bv) ++ breakBigChunks()
             case (bv, tail) =>

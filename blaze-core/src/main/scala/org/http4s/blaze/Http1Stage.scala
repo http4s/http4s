@@ -125,7 +125,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     * @param buffer starting `ByteBuffer` to use in parsing.
     * @param eofCondition If the other end hangs up, this is the condition used in the Process for termination.
     *                     The desired result will differ between Client and Server as the former can interpret
-    *                     and [[Command.EOF]] as the end of the body while a server cannot.
+    *                     and `Command.EOF` as the end of the body while a server cannot.
     */
   final protected def collectBodyFromParser(buffer: ByteBuffer, eofCondition:() => Throwable): (EntityBody, () => Future[ByteBuffer]) = {
     if (contentComplete()) {
@@ -205,7 +205,7 @@ trait Http1Stage { self: TailStage[ByteBuffer] =>
     * @param t
     * @param msg
     */
-  protected def fatalError(t: Throwable, msg: String) {
+  protected def fatalError(t: Throwable, msg: String): Unit = {
     logger.error(t)(s"Fatal Error: $msg")
     stageShutdown()
     sendOutboundCommand(Command.Error(t))
@@ -258,5 +258,6 @@ object Http1Stage {
     if (isServer && !dateEncoded) {
       rr << Date.name << ": " << Instant.now << "\r\n"
     }
+    ()
   }
 }

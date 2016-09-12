@@ -10,10 +10,7 @@ version      in ThisBuild := scalazCrossBuild("0.15.0-SNAPSHOT", scalazVersion.v
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaOrganization in ThisBuild := "org.typelevel"
 scalaVersion in ThisBuild := "2.11.8"
-// The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
-// `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
-// is used to build the project.
-scalazVersion in ThisBuild := "7.1.8"
+scalazVersion in ThisBuild := "7.1.9"
 crossScalaVersions in ThisBuild := Seq(scalaVersion.value)
 
 // Root project
@@ -27,14 +24,15 @@ lazy val core = libraryProject("core")
     description := "Core http4s library for servers and clients",
     buildInfoKeys := Seq[BuildInfoKey](version, scalaVersion, apiVersion),
     buildInfoPackage <<= organization,
-    libraryDependencies <++= (scalaVersion, scalazVersion) { (v,sz) => Seq(
+    libraryDependencies ++= Seq(
       fs2Cats,
       fs2Io,
       http4sWebsocket,
       log4s,
+      macroCompat,
       parboiled,
-      scalaReflect(v) % "provided"
-    ) },
+      scalaReflect(scalaVersion.value) % "provided"
+    ),
     macroParadiseSetting
   )
 
@@ -157,7 +155,16 @@ lazy val json4s = libraryProject("json4s")
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
     description := "Provides json4s-native codecs for http4s",
-    libraryDependencies += Http4sBuild.json4sNative
+    libraryDependencies += Http4sBuild.json4sNative,
+    scalacOptions := {
+      VersionNumber(scalaVersion.value).numbers match {
+        case Seq(2, y, _) if y >= 11 =>
+          // scala.text.Document is deprecated starting in 2.10
+          scalacOptions.value filterNot (_ == "-Xfatal-warnings")
+        case _ =>
+          scalacOptions.value
+      }
+    }
   )
   .dependsOn(json4s % "compile;test->test")
 
@@ -215,6 +222,7 @@ lazy val docs = http4sProject("docs")
   .settings(ghpages.settings)
   .settings(tutSettings)
   .settings(
+    libraryDependencies <+= scalazVersion {szv => argonautShapeless(szv) },
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -229,11 +237,11 @@ lazy val docs = http4sProject("docs")
       ),
     // documentation source code linking
     scalacOptions in (Compile,doc) <++= (version, apiVersion, scmInfo, baseDirectory in ThisBuild) map {
-      case (v, (maj,min), Some(s), b) => 
+      case (v, (maj,min), Some(s), b) =>
         val sourceTemplate =
           if (v.endsWith("SNAPSHOT"))
             s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
-          else 
+          else
             s"${s.browseUrl}/tree/v$maj.$min.0€{FILE_PATH}.scala"
         Seq("-implicits",
             "-doc-source-url", sourceTemplate,
@@ -390,22 +398,29 @@ lazy val commonSettings = Seq(
       case _ => "1.8"
     }
   },
-  scalacOptions <<= jvmTarget.map { jvm => Seq(
+  scalacOptions := Seq(
     "-deprecation",
+    "-encoding", "UTF-8",
     "-feature",
-    "-language:implicitConversions",
+    "-language:existentials",
     "-language:higherKinds",
-    s"-target:jvm-$jvm",
+    "-language:implicitConversions",
+    s"-target:jvm-${jvmTarget.value}",
     "-unchecked",
+    "-Xfatal-warnings",
     "-Xlint",
+    "-Yinline-warnings",
+    "-Yno-adapted-args",
     "-Ypartial-unification",
-    "-Yliteral-types"
-  )},
+    "-Ywarn-dead-code",
+    "-Ywarn-numeric-widen",
+    "-Ywarn-value-discard",
+    "-Xfuture"
+  ),
+  scalacOptions in (Compile, doc) -= "-Xfatal-warnings", // broken references to other modules
   scalacOptions <++= scalaVersion.map { v =>
     if (delambdafyOpts(v)) Seq(
-      "-Ybackend:GenBCode",
-      "-Ydelambdafy:method",
-      "-Yopt:l:classpath"
+      "-Ybackend:GenBCode"
     ) else Seq.empty
   },
   javacOptions <++= jvmTarget.map { jvm => Seq(

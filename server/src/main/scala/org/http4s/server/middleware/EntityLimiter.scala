@@ -13,9 +13,9 @@ object EntityLimiter {
 
   final case class EntityTooLarge(limit: Long) extends Exception with NoStackTrace
 
-  val DefaultMaxEntitySize: Int = 2*1024*1024 // 2 MB default
+  val DefaultMaxEntitySize: Long = 2L*1024L*1024L // 2 MB default
 
-  def apply(service: HttpService, limit: Int = DefaultMaxEntitySize): HttpService =
+  def apply(service: HttpService, limit: Long = DefaultMaxEntitySize): HttpService =
     service.local { req: Request =>
       req.copy(body = req.body.pull(takeLimited(limit)))
     }

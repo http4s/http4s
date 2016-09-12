@@ -31,14 +31,13 @@ object Http4sBuild extends Build {
   }
 
   val macroParadiseSetting =
-    libraryDependencies <++= scalaVersion (
-      VersionNumber(_).numbers match {
-        case Seq(2, 10, _*) => Seq(
-          compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full),
-          "org.scalamacros" %% "quasiquotes" % "2.1.0" cross CrossVersion.binary
-        )
+    libraryDependencies ++= Seq(
+      Seq(compilerPlugin("org.scalamacros" % "paradise" % "2.1.0" cross CrossVersion.full)),
+      VersionNumber(scalaVersion.value).numbers match {
+        case Seq(2, 10, _*) => Seq(quasiquotes)
         case _ => Seq.empty
-      })
+      }
+    ).flatten
 
   val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
   def scalazCrossBuild(version: String, scalazVersion: String) =
@@ -59,12 +58,17 @@ object Http4sBuild extends Build {
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.9.v20160720"
   def argonaut(scalazVersion: String) = "io.argonaut"       %% "argonaut"                % scalazCrossBuild("6.1", scalazVersion)
+  def argonautShapeless(scalazVersion: String) = "com.github.alexarchambault" %% "argonaut-shapeless_6.1" %
+    (VersionNumber(scalazVersion).numbers match {
+      case Seq(7, 1, _*) => "1.1.0"
+      case Seq(7, 2, _*) => "1.1.1"
+    })
   lazy val asyncHttpClient     = "org.asynchttpclient"       % "async-http-client"       % "2.0.12"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.0"
   lazy val catsKernelLaws      = "org.typelevel"            %% "cats-kernel-laws"        % catsLaws.revision
   lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.7.0"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
-  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.4.1"
+  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.5.1"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.4"
   lazy val fs2Cats             = "co.fs2"                   %% "fs2-cats"                % "0.1.0-RC2"
   lazy val fs2Io               = "co.fs2"                   %% "fs2-io"                  % "0.9.0-RC2"
@@ -83,13 +87,16 @@ object Http4sBuild extends Build {
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack
   lazy val log4s               = "org.log4s"                %% "log4s"                   % "1.3.0"
   lazy val logbackClassic      = "ch.qos.logback"            % "logback-classic"         % "1.1.7"
+  lazy val macroCompat         = "org.typelevel"            %% "macro-compat"            % "1.1.1"
   lazy val metricsCore         = "io.dropwizard.metrics"     % "metrics-core"            % "3.1.2"
   lazy val metricsJetty9       = "io.dropwizard.metrics"     % "metrics-jetty9"          % metricsCore.revision
   lazy val metricsServlet      = "io.dropwizard.metrics"     % "metrics-servlet"         % metricsCore.revision
   lazy val metricsServlets     = "io.dropwizard.metrics"     % "metrics-servlets"        % metricsCore.revision
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.2"
+  lazy val quasiquotes         = "org.scalamacros"          %% "quasiquotes"             % "2.1.0"  
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
+  def scalaCompiler(sv: String) = "org.scala-lang"           % "scala-compiler"          % sv
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
   def scalazCore(version: String)               = "org.scalaz"           %% "scalaz-core"               % version

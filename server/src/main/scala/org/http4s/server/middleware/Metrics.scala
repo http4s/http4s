@@ -10,6 +10,13 @@ import com.codahale.metrics._
 import fs2._
 import org.http4s.batteries._
 
+import org.http4s.{Method, Response, Request}
+
+import scalaz.stream.Cause._
+import scalaz.{\/, -\/, \/-}
+import scalaz.concurrent.Task
+import scalaz.stream.Process.{Halt, halt}
+
 object Metrics {
 
   def meter(m: MetricRegistry, name: String)(srvc: HttpService): HttpService = {
@@ -84,11 +91,11 @@ object Metrics {
             else resp5xx.update(elapsed, TimeUnit.NANOSECONDS)
 
             cause match {
-              case End => halt
-              case _   =>
+              case End | Kill =>
+              case Error(_) =>
                 abnormal_termination.update(elapsed, TimeUnit.NANOSECONDS)
-                Halt(cause)
             }
+            Halt(cause)
           }
 
           Right(r.copy(body = body))

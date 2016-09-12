@@ -34,7 +34,7 @@ final case class Challenge(scheme: String,
   }
 
   @inline
-  private def addPair(b: Writer, k: String, v: String) {
+  private def addPair(b: Writer, k: String, v: String): b.type = {
     b.append(',').append(k).append("=\"").append(v).append('"')
   }
 

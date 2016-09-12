@@ -30,7 +30,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
   }
 
   // Some[String] represents an error message, None = success
-  def decodeBuffer(input: CharBuffer, acc: (String, Option[String]) => Unit, flush: Boolean): Option[String] = {
+  def decodeBuffer(input: CharBuffer, acc: (String, Option[String]) => Query.Builder, flush: Boolean): Option[String] = {
     val valAcc = new StringBuilder(InitialBufferCapactiy)
 
     var error: String = null
@@ -52,6 +52,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
         val v = Some(decodeParam(s))
         acc(k, v)
       }
+      ()
     }
 
     def endPair(): Unit = {
@@ -78,7 +79,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
             valAcc.clear()
           }
 
-        case c if (qChars.contains(c)) => valAcc.append(c)
+        case c if (qChars.contains(c.toInt)) => valAcc.append(c)
 
         case c => error = s"Invalid char while splitting key/value pairs: '$c'"
       }

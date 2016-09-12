@@ -35,7 +35,7 @@ object PushSupport {
     }
   }
 
-  private def handleException(t: Throwable) {
+  private def handleException(t: Throwable): Unit = {
     logger.error(t)("Push resource route failure")
   }
 

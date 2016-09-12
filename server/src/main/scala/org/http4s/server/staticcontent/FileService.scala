@@ -12,13 +12,13 @@ import org.http4s.headers.Range.SubRange
 
 object FileService {
 
-  /** [[FileService]] configuration
+  /** [[org.http4s.server.staticcontent.FileService]] configuration
     *
     * @param systemPath path prefix to the folder from which content will be served
     * @param pathPrefix prefix of Uri from which content will be served
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
-    * @param executor [[ExecutorService]] to use when collecting content
+    * @param executor `ExecutorService` to use when collecting content
     * @param cacheStartegy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config(systemPath: String,

@@ -106,7 +106,10 @@ class EntityEncoderSpec extends Http4sSpec {
         finally w.close()
         writeToString(tmpFile) must_== "render files test"
       }
-      finally tmpFile.delete()
+      finally {
+        tmpFile.delete()
+        ()
+      }
     }
 
     "render input streams" in {

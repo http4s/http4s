@@ -7,7 +7,7 @@ import org.http4s.batteries._
 object Service {
   /**
     * Lifts a total function to a `Service`. The function is expected to handle
-    * all requests it is given.  If `f` is a [[PartialFunction]], use `apply`
+    * all requests it is given.  If `f` is a `PartialFunction`, use `apply`
     * instead.
     */
   def lift[A, B](f: A => Task[B]): Service[A, B] =

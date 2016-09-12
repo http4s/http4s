@@ -39,7 +39,7 @@ class IoSpec extends Http4sSpec {
     "write(b, offset, len) is consistent with writing individual bytes" in prop { clo: ChunkOffsetLen =>
       val p0 = captureOutputStream(out => out.write(clo.chunk.toArray, clo.offset, clo.len)).runLast.run
       val p1 = captureOutputStream { out =>
-        for (i <- clo.offset until (clo.offset + clo.len)) { out.write(clo.chunk(i)) }
+        for (i <- clo.offset until (clo.offset + clo.len)) { out.write(clo.chunk(i.toLong).toInt) }
       }.foldMonoid.runLast.run
       p0 must_== p1
     }

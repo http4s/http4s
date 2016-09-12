@@ -11,6 +11,7 @@ class Bootstrap extends ServletContextListener {
   override def contextInitialized(sce: ServletContextEvent): Unit = {
     val ctx = sce.getServletContext
     ctx.mountService("example", ExampleService.service, "/*")
+    ()
   }
 
   override def contextDestroyed(sce: ServletContextEvent): Unit = {}

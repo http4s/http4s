@@ -27,7 +27,7 @@ class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage
 
       logger.warn(msg)
 
-      writeBodyChunk(chunk.take((size - bodyBytesWritten).toInt), true) flatMap {_ =>
+      writeBodyChunk(chunk.take(size - bodyBytesWritten), true) flatMap {_ =>
         Future.failed(new IllegalArgumentException(msg))
       }
 

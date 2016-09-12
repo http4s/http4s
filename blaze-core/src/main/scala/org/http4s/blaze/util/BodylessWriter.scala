@@ -17,7 +17,7 @@ import org.http4s.blaze.pipeline._
 /** Discards the body, killing it so as to clean up resources
   *
   * @param headers ByteBuffer representation of [[Headers]] to send
-  * @param pipe the blaze [[TailStage]] which takes ByteBuffers which will send the data downstream
+  * @param pipe the blaze `TailStage`, which takes ByteBuffers which will send the data downstream
   * @param ec an ExecutionContext which will be used to complete operations
   */
 class BodylessWriter(headers: ByteBuffer, pipe: TailStage[ByteBuffer], close: Boolean)

@@ -86,7 +86,7 @@ abstract class UnicastSubscriber[A](bufferSize: Int = 8) extends Subscriber[A] {
       logger.debug(s"Triggering request of $n elements to $subscription")
       // If we want elements, according to rule 2.1 we need to call `request`
       // And, according to rule 3.2 we are allowed to call this synchronously from within the `onSubscribe` method
-      subscription.request(n)
+      subscription.request(n.toLong)
     }
     catch {
       case t: Throwable =>

@@ -23,7 +23,6 @@ object MockRoute extends Http4s {
 
     case req: Request if req.uri.path == "/fail" =>
       sys.error("Problem!")
-      Response(Ok).withBody("No problem...")
 
     /** For testing the PushSupport middleware */
     case req: Request if req.uri.path == "/push" =>
