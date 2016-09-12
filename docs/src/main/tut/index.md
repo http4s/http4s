@@ -11,7 +11,7 @@ Create a new directory, with the following build.sbt in the root:
 ```scala
 scalaVersion := "2.11.8" // Also supports 2.10.x
 
-lazy val http4sVersion = "0.14.5"
+lazy val http4sVersion = "0.14.6"
 
 // Only necessary for SNAPSHOT releases
 resolvers += Resolver.sonatypeRepo("snapshots")

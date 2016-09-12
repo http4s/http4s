@@ -1,3 +1,7 @@
+# v0.14.6 (2016-09-11)
+* Don't treat `Kill`ed responses (i.e., HEAD requests) as abnormal
+  termination in metrics
+
 # v0.14.5 (2016-09-02)
 * Fix blaze-client handling of HEAD requests
 
