@@ -119,7 +119,7 @@ object Uri extends UriFunctions {
             qValue => c.Expr(q"org.http4s.Uri.fromString($s).valueOr(throw _)")
           )
         case _ =>
-          c.abort(c.enclosingPosition, s"only supports literal Strings")
+          c.abort(c.enclosingPosition, s"This method uses a macro to verify that a String literal is a valid URI. Use Uri.fromString if you have a dynamic String that you want to parse as a Uri.")
       }
     }
   }
