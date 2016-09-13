@@ -26,16 +26,16 @@ class UriTranslationSpec extends Http4sSpec {
   "UriTranslation" should {
     "match a matching request" in {
       val req = Request(uri = Uri(path = "/http4s/foo"))
-      trans1.apply(req).run.status must_== (Ok)
-      trans2.apply(req).run.status must_== (Ok)
-      service.apply(req).run.status must_== (NotFound)
+      trans1.apply(req) must returnStatus (Ok)
+      trans2.apply(req) must returnStatus (Ok)
+      service.apply(req) must returnStatus (NotFound)
     }
 
     "Not match a request missing the prefix" in {
       val req = Request(uri = Uri(path = "/foo"))
-      trans1.apply(req).run.status must_== (NotFound)
-      trans2.apply(req).run.status must_== (NotFound)
-      service.apply(req).run.status must_== (Ok)
+      trans1.apply(req) must returnStatus (NotFound)
+      trans2.apply(req) must returnStatus (NotFound)
+      service.apply(req) must returnStatus (Ok)
     }
 
     "Split the Uri into scriptName and pathInfo" in {

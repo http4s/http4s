@@ -6,15 +6,31 @@ import org.http4s.headers._
 import org.specs2.matcher._
 
 /** This might be useful in a testkit spinoff.  Let's see what they do for us. */
+// TODO these akas might be all wrong.
 trait Http4sMatchers extends Matchers with TaskMatchers {
   def haveStatus(expected: Status): Matcher[Response] =
     be_===(expected) ^^ { r: Response =>
       r.status aka "the response status"
     }
 
-  def haveBody[A: EntityDecoder](expected: A): Matcher[Message] =
-    returnValue(expected) ^^ { m: Message =>
+  def returnStatus(s: Status): Matcher[Task[Response]] =
+    haveStatus(s) ^^ { r: Task[Response] =>
+      r.unsafeRun aka "the returned"
+    }
+
+  def haveBody[A: EntityDecoder](a: ValueCheck[A]): Matcher[Message] =
+    returnValue(a) ^^ { m: Message =>
       m.as[A] aka "the message body"
+    }
+
+  def returnBody[A: EntityDecoder](a: ValueCheck[A]): Matcher[Task[Message]] =
+    returnValue(a) ^^ { m: Task[Message] =>
+      m.flatMap(_.as[A]) aka "the returned message body"
+    }
+
+  def haveHeaders(a: Headers): Matcher[Message] =
+    be(a) ^^ { m: Message =>
+      m.headers aka "the headers"
     }
 
   def haveMediaType(mt: MediaType): Matcher[Message] =

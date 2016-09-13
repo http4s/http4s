@@ -16,37 +16,29 @@ class ResourceServiceSpec extends Http4sSpec with StaticContentShared {
     "Respect UriTranslation" in {
       val s2 = URITranslation.translateRoot("/foo")(s)
 
-      def runReq(req: Request): (ByteVector, Response) = {
-        val resp = s2.apply(req).run
-        val body = resp.body.runLog.run.fold(ByteVector.empty)(_ ++ _)
-        (body, resp)
-      }
-
       {
         val req = Request(uri = uri("foo/testresource.txt"))
-        val (bv,resp) = runReq(req)
-        bv must_== testResource
-        resp.status must_== Status.Ok
+        s2(req) must returnBody(testResource)
+        s2(req) must returnStatus(Status.Ok)
       }
 
       {
         val req = Request(uri = uri("testresource.txt"))
-        val (_,resp) = runReq(req)
-        resp.status must_== Status.NotFound
+        s2(req) must returnStatus(Status.NotFound)
       }
     }
 
     "Serve available content" in {
       val req = Request(uri = Uri.fromString("testresource.txt").yolo)
-      val rb = runReq(req)
+      val rb = s(req)
 
-      rb._1 must_== testResource
-      rb._2.status must_== Status.Ok
+      rb must returnBody(testResource)
+      rb must returnStatus(Status.Ok)
     }
 
     "Generate non on missing content" in {
       val req = Request(uri = Uri.fromString("testresource.txtt").yolo)
-      runReq(req)._2.status must_== (Status.NotFound)
+      s(req) must returnStatus(Status.NotFound)
     }
   }
 

@@ -36,8 +36,8 @@ class VirtualHostSpec extends Http4sSpec {
         val req1 = Request(GET, uri("/numbers/1"), httpVersion = HttpVersion.`HTTP/1.1`)
         val req2 = Request(GET, uri("/numbers/1"), httpVersion = HttpVersion.`HTTP/2.0`)
 
-        virtualServices.apply(req1).run.status must_== BadRequest
-        virtualServices.apply(req2).run.status must_== BadRequest
+        virtualServices.apply(req1) must returnStatus BadRequest
+        virtualServices.apply(req2) must returnStatus BadRequest
       }
 
       "honor the Host header host" in {
@@ -65,7 +65,7 @@ class VirtualHostSpec extends Http4sSpec {
         val req = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("serviceb", Some(8000)))
 
-        virtualServices.apply(req).run.status must_== NotFound
+        virtualServices.apply(req) must returnStatus(NotFound)
       }
     }
 
@@ -80,14 +80,14 @@ class VirtualHostSpec extends Http4sSpec {
         val req = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("servicea", Some(80)))
 
-        virtualServices.apply(req).run.as[String].run must_== ("servicea")
+        virtualServices.apply(req) must returnBody("servicea")
       }
 
       "allow for a dash in the service" in {
         val req = Request(GET, uri("/numbers/1"))
           .replaceAllHeaders(Host("foo.foo-service", Some(80)))
 
-        virtualServices.apply(req).run.as[String].run must_== ("default")
+        virtualServices.apply(req) must returnBody("default")
       }
 
       "match a route with a wildcard route" in {
@@ -97,7 +97,7 @@ class VirtualHostSpec extends Http4sSpec {
                        req.replaceAllHeaders(Host("b.service", Some(80))))
 
         forall(reqs){ req =>
-          virtualServices.apply(req).run.as[String].run must_== ("serviceb")
+          virtualServices.apply(req) must returnBody("serviceb")
         }
       }
 
@@ -107,7 +107,7 @@ class VirtualHostSpec extends Http4sSpec {
                        req.replaceAllHeaders(Host("service", Some(80))))
 
         forall(reqs){ req =>
-          virtualServices.apply(req).run.status must_== NotFound
+          virtualServices.apply(req) must returnStatus(NotFound)
         }
       }
     }

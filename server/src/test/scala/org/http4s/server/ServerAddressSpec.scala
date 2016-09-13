@@ -2,17 +2,17 @@ package org.http4s
 package server
 
 import java.net.InetSocketAddress
+import fs2._
 import org.specs2.mutable.After
-import scalaz.{\/-, -\/}
-import scalaz.concurrent.Task
 
 trait ServerAddressSpec extends Http4sSpec {
   def builder: ServerBuilder
 
   trait ServerContext extends After {
+    import Http4sSpec.TestPoolStrategy
     val address = new InetSocketAddress(0)
-    val server = Task.fork(builder.bindSocketAddress(address).start).run
-    def after = server.shutdown.run
+    val server = builder.bindSocketAddress(address).start.async.unsafeRun
+    def after = server.shutdown.unsafeRun
   }
 
   "A server configured with port 0" should {

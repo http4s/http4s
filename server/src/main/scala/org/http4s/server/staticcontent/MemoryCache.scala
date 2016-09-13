@@ -36,7 +36,7 @@ class MemoryCache extends CacheStrategy {
   ////////////// private methods //////////////////////////////////////////////
 
   private def collectResource(path: String, resp: Response): Task[Response] = {
-    resp.body.chunks.runFoldMap(identity)
+    resp.body.chunks.runFoldMap[Chunk[Byte]](identity)
       .map { bytes =>
         val newResponse = resp.copy(body = chunk(bytes))
         cacheMap.put(path, newResponse)

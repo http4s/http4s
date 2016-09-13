@@ -11,6 +11,7 @@ package org.http4s
 
 import java.util.concurrent.ExecutorService
 
+import fs2._
 import org.http4s.util.threads._
 import org.specs2.ScalaCheck
 import org.specs2.execute.AsResult
@@ -74,4 +75,7 @@ object Http4sSpec {
     val tf = threadFactory(l => s"http4s-spec-$l", daemon = true)
     newDefaultFixedThreadPool(8, tf)
   }
+
+  implicit val TestPoolStrategy: Strategy =
+    Strategy.fromExecutor(TestPool)
 }

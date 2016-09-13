@@ -61,7 +61,7 @@ object FileService {
 
   // Attempt to find a Range header and collect only the subrange of content requested
   private def getPartialContentFile(file: File, config: Config, req: Request): Option[Response] = req.headers.get(Range).flatMap {
-    case Range(RangeUnit.Bytes, OneAnd(SubRange(s, e), Nil)) if validRange(s, e, file.length) =>
+    case Range(RangeUnit.Bytes, NonEmptyList(SubRange(s, e), Nil)) if validRange(s, e, file.length) =>
       val size = file.length()
       val start = if (s >= 0) s else math.max(0, size + s)
       val end = math.min(size - 1, e getOrElse (size - 1))  // end is inclusive
