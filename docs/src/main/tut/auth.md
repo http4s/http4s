@@ -12,23 +12,24 @@ along with the `Request`, there's `AuthedRequest[User]`, which is equivalent to
 `(User, Request)`. So the service has the signature `AuthedRequest[User] =>
 Task[Response]`, or `AuthedService[User]`. So we'll need a `Request => User`
 function, or more likely, a `Request => Task[User]`, because the `User` will
-come from a database. Which is a `Service[Request, User]`, which we can compose
-with the `AuthedService[User]` to get a [service]. Or in code:
+come from a database. We can convert that into an `AuthMiddleware` and apply it.
+Or in code:
 
 ```tut:book
 import scalaz._, Scalaz._, scalaz.concurrent.Task
 import org.http4s._
 import org.http4s.dsl._
+import org.http4s.server._
 
 case class User(id: Long, name: String)
 
-// Needs to be Kleisli for the type inference of ||| to work.
-val authUser: Kleisli[Task, Request, User] = Kleisli(_ => Task.delay(???))
+val authUser: Service[Request, User] = Kleisli(_ => Task.delay(???))
+val middleware = AuthMiddleware(authUser)
 val authedService: AuthedService[User] =
   AuthedService {
     case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
-val service: HttpService = authedService <=< AuthedRequest(authUser)
+val service: HttpService = middleware(authedService)
 ```
 
 ## Returning an error Response
@@ -47,12 +48,10 @@ error handling, we recommend an error [ADT] instead of a `String`.
 ```tut:book
 val authUser: Kleisli[Task, Request, String \/ User] = Kleisli(_ => Task.delay(???))
 
-// Needs to be Kleisli for the type inference of ||| to work.
-val onFailure: Kleisli[Task, AuthedRequest[String], Response] = Kleisli(req => Forbidden(req.authInfo))
-val authedServiceWithFailure: AuthedService[String \/ User] =
-  (onFailure ||| authedService).local({authed => authed.authInfo.bimap(err => AuthedRequest(err, authed.req), suc => AuthedRequest(suc, authed.req))})
+val onFailure: AuthedService[String] = Kleisli(req => Forbidden(req.authInfo))
+val middleware = AuthMiddleware(authUser, onFailure)
 
-val service: HttpService = authedServiceWithFailure <=< AuthedRequest(authUser)
+val service: HttpService = middleware(authedService)
 ```
 
 
@@ -65,8 +64,7 @@ request, the two most common are cookie for regular browser usage or the
 ### Cookies
 
 We'll use a small library for the signing/validation of the cookies, which
-basically contains the specific code used by the Play framework for this
-specific task.
+basically contains the code used by the Play framework for this specific task.
 
 ```scala
 libraryDependencies += "org.reactormonk" %% "cryptobits" % "1.0"
