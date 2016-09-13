@@ -5,14 +5,15 @@ title: Authentication
 ## Authentication
 
 A [service] is a `Kleisli[Task, Request, Response]`, the composable version of
-`Request => Task[Response]`. http4s provides an alias called
-`Service[Request, Response]`. A service with authentication also requires some
-kind of `User` object which identifies which user did the request. So the
-service has the signature `(User, Request) => Task[Response]`, or
-`Service[(User, Request), Response]`. So we'll need a `Request => User`
+`Request => Task[Response]`. http4s provides an alias called `Service[Request,
+Response]`. A service with authentication also requires some kind of `User`
+object which identifies which user did the request. To store the `User` object
+along with the `Request`, there's `AuthedRequest[User]`, which is equivalent to
+`(User, Request)`. So the service has the signature `AuthedRequest[User] =>
+Task[Response]`, or `AuthedService[User]`. So we'll need a `Request => User`
 function, or more likely, a `Request => Task[User]`, because the `User` will
 come from a database. Which is a `Service[Request, User]`, which we can compose
-with the `Service[(User, Request), Response]` to get a [service]. Or in code:
+with the `AuthedService[User]` to get a [service]. Or in code:
 
 ```tut:book
 import scalaz._, Scalaz._, scalaz.concurrent.Task
@@ -21,13 +22,13 @@ import org.http4s.dsl._
 
 case class User(id: Long, name: String)
 
-// Needs to be Kleisli for the type inference of &&& to work.
+// Needs to be Kleisli for the type inference of ||| to work.
 val authUser: Kleisli[Task, Request, User] = Kleisli(_ => Task.delay(???))
-val authedService: Service[(User, Request), Response] =
-  Service.lift {
-    case (user, GET -> Root / "welcome" ) => Ok(s"Welcome, ${user.name}")
+val authedService: AuthedService[User] =
+  AuthedService {
+    case GET -> Root / "welcome" as user => Ok(s"Welcome, ${user.name}")
   }
-val service: HttpService = authedService.compose((authUser &&& Kleisli.ask))
+val service: HttpService = authedService <=< AuthedRequest(authUser)
 ```
 
 ## Returning an error Response
@@ -44,17 +45,14 @@ To allow for failure, the `authUser` function has to be adjusted to a `Request
 error handling, we recommend an error [ADT] instead of a `String`.
 
 ```tut:book
-val authUser = AuthedService[User] {
-  case GET -> Root / "foo" as user => Ok(user.toString)
-}
-val onFailure: Service[String, Response] = Kleisli(message => Forbidden(message))
-val service: HttpService = (authUser &&& Kleisli.ask).flatMapK({
-  case (maybeUser, request) =>
-    maybeUser.fold(
-      onFailure.run,
-      authedService.local({user: User => (user, request)}).run
-    )
-})
+val authUser: Kleisli[Task, Request, String \/ User] = Kleisli(_ => Task.delay(???))
+
+// Needs to be Kleisli for the type inference of ||| to work.
+val onFailure: Kleisli[Task, AuthedRequest[String], Response] = Kleisli(req => Forbidden(req.authInfo))
+val authedServiceWithFailure: AuthedService[String \/ User] =
+  (onFailure ||| authedService).local({authed => authed.authInfo.bimap(err => AuthedRequest(err, authed.req), suc => AuthedRequest(suc, authed.req))})
+
+val service: HttpService = authedServiceWithFailure <=< AuthedRequest(authUser)
 ```
 
 

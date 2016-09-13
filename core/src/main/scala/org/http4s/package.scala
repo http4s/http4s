@@ -71,7 +71,7 @@ package object http4s { // scalastyle:ignore
       */
     def lift[T](f: AuthedRequest[T] => Task[Response]): AuthedService[T] = Service.lift(f)
 
-    /** Lifts a partial function to an `HttpService`.  Responds with
+    /** Lifts a partial function to an `AuthedService`.  Responds with
       * [[org.http4s.Response.fallthrough]], which generates a 404, for any request
       * where `pf` is not defined.
       */
