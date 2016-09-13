@@ -96,7 +96,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(jsonService, "/")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7c719a33
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@13858ba2
 
 val blazeServer = builder.run
 // blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -117,10 +117,10 @@ import org.http4s.Uri
 // import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@54009880)
+// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@13e0658f)
 
 val req = Request(uri = Uri.uri("http://localhost:8080/hello"), method = Method.POST).withBody(User("Anabelle"))(jsonEncoderOf)
-// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@f2fb7f0
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@26934c6a
 
 httpClient.expect(req)(jsonOf[Hello]).run
 // <console>:44: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -196,7 +196,7 @@ import org.http4s.util.string._
 // import org.http4s.util.string._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@354eabed)
+// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@525b6de7)
 
 def repos(organization: String): Task[List[Repo]] = {
   val uri = Uri.uri("https://api.github.com/orgs") / organization / "repos"
@@ -205,14 +205,14 @@ def repos(organization: String): Task[List[Repo]] = {
 // repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
 
 val http4s = repos("http4s")
-// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@304c30d2
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@804330e
 
 http4s.map(_.map(_.stargazers_count).mkString("\n")).run
 // <console>:49: warning: method run in class Task is deprecated: use unsafePerformSync
 //        http4s.map(_.map(_.stargazers_count).mkString("\n")).run
 //                                                             ^
 // res3: String =
-// 543
+// 547
 // 79
 // 6
 // 66
