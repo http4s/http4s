@@ -17,10 +17,11 @@ import scala.concurrent.duration._
 class AuthenticationSpec extends Http4sSpec {
 
   def nukeService(launchTheNukes: => Unit) = AuthedService[(String, String)] {
-    case r as user if r.pathInfo == "/launch-the-nukes" => for {
-      _ <- Task.delay(launchTheNukes)
-      r <- Response(Gone).withBody(s"oops, ${user} launched the nukes")
-    } yield r
+    case GET -> Root / "launch-the-nukes" as ((user, realm)) =>
+      for {
+        _ <- Task.delay(launchTheNukes)
+        r <- Response(Gone).withBody(s"Oops, ${user} launched the nukes.")
+      } yield r
   }
 
   val realm = "Test Realm"
@@ -32,26 +33,28 @@ class AuthenticationSpec extends Http4sSpec {
     else None
   }
 
-  val authedService = basicAuth(realm, authStore)(AuthedService[(String, String)] {
-    case GET -> Root as user => Ok(user)
+  val service = AuthedService[(String, String)] {
+    case GET -> Root as ((user, _)) => Ok(user)
     case req as _ => Response.notFound(req)
-  })
+  }
 
   "Failure to authenticate" should {
     "not run unauthorized routes" in {
       var isNuked = false
-      val service = basicAuth(realm, authStore)(nukeService { isNuked = true })
+      val authedNukeService = basicAuth(realm, authStore)(nukeService { isNuked = true })
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
-      val res = service(req).run
+      val res = authedNukeService(req).run
       isNuked must_== false
       res.status must_== (Unauthorized)
     }
   }
 
   "BasicAuthentication" should {
+    val basicAuthedService = basicAuth(realm, authStore)(service)
+
     "Respond to a request without authentication with 401" in {
       val req = Request(uri = Uri(path = "/"))
-      val res = basic.apply(req).run
+      val res = basicAuthedService(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -59,7 +62,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with unknown username with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
-      val res = basic.apply(req).run
+      val res = basicAuthedService(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -67,7 +70,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with wrong password with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
-      val res = basic.apply(req).run
+      val res = basicAuthedService(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -75,7 +78,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with correct credentials" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
-      val res = basic.apply(req).run
+      val res = basicAuthedService(req).run
 
       res.status must_== (Ok)
     }
@@ -86,10 +89,9 @@ class AuthenticationSpec extends Http4sSpec {
 
   "DigestAuthentication" should {
     "Respond to a request without authentication with 401" in {
-      val da = new DigestAuthentication(realm, authStore)
-      val digest = da(service)
+      val authedService = digestAuth(realm, authStore)(service)
       val req = Request(uri = Uri(path = "/"))
-      val res = digest.apply(req).run
+      val res = authedService(req).run
 
       res.status must_== (Status.Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -144,16 +146,15 @@ class AuthenticationSpec extends Http4sSpec {
     }
 
     "Respond to a request with correct credentials" in {
-      val da = new DigestAuthentication(realm, authStore)
-      val digest = da(service)
-      val challenge = doDigestAuth1(digest)
+      val digestAuthService = digestAuth(realm, authStore)(service)
+      val challenge = doDigestAuth1(digestAuthService)
 
       (challenge match {
         case Challenge("Digest", realm, _) => true
         case _ => false
       }) must_== true
 
-      val (res2, res3) = doDigestAuth2(digest, challenge, true)
+      val (res2, res3) = doDigestAuth2(digestAuthService, challenge, true)
 
       res2.status must_== (Ok)
 
@@ -166,16 +167,15 @@ class AuthenticationSpec extends Http4sSpec {
     "Respond to many concurrent requests while cleaning up nonces" in {
       val n = 100
       val sched = Executors.newFixedThreadPool(4)
-      val da = new DigestAuthentication(realm, authStore, 2.millis, 2.millis)
-      val digest = da(service)
+      val digestAuthService = digestAuth(realm, authStore, 2.millis, 2.millis)(service)
       val tasks = (1 to n).map(i =>
         Task {
-          val challenge = doDigestAuth1(digest)
+          val challenge = doDigestAuth1(digestAuthService)
           (challenge match {
             case Challenge("Digest", realm, _) => true
             case _ => false
           }) must_== true
-          val res = doDigestAuth2(digest, challenge, false)._1
+          val res = doDigestAuth2(digestAuthService, challenge, false)._1
           // We don't check whether res.status is Ok since it may not
           // be due to the low nonce stale timer.  Instead, we check
           // that it's found.
@@ -189,12 +189,11 @@ class AuthenticationSpec extends Http4sSpec {
     "Avoid many concurrent replay attacks" in {
       val n = 100
       val sched = Executors.newFixedThreadPool(4)
-      val da = new DigestAuthentication(realm, authStore)
-      val digest = da(service)
-      val challenge = doDigestAuth1(digest)
+      val digestAuthService = digestAuth(realm, authStore)(service)
+      val challenge = doDigestAuth1(digestAuthService)
       val tasks = (1 to n).map(i =>
         Task {
-          val res = doDigestAuth2(digest, challenge, false)._1
+          val res = doDigestAuth2(digestAuthService, challenge, false)._1
           res.status
         }(sched))
       val res = Task.gatherUnordered(tasks).run
@@ -205,8 +204,7 @@ class AuthenticationSpec extends Http4sSpec {
     }
 
     "Respond to invalid requests with 401" in {
-      val da = new DigestAuthentication(realm, authStore)
-      val digest = da(service)
+      val digestAuthService = digestAuth(realm, authStore)(service)
       val method = "GET"
       val uri = "/"
       val qop = "auth"
@@ -225,7 +223,7 @@ class AuthenticationSpec extends Http4sSpec {
         val invalid_params = params.take(i) ++ params.drop(i + 1)
         val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), invalid_params))
         val req = Request(uri = Uri(path = "/"), headers = Headers(header))
-        val res = digest.apply(req).run
+        val res = digestAuthService(req).run
 
         res.status
       })
