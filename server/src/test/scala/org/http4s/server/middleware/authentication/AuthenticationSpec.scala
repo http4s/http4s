@@ -5,7 +5,7 @@ package authentication
 
 import java.util.concurrent.Executors
 
-import org.http4s.Status._
+import org.http4s.dsl._
 import org.http4s.headers._
 import org.http4s.parser.HttpHeaderParser
 import org.http4s.util.CaseInsensitiveString
@@ -16,15 +16,10 @@ import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
 
-  val service = HttpService {
-    case r if r.pathInfo == "/" => Response(Ok).withBody("foo")
-    case r => Response.notFound(r)
-  }
-
-  def nukeService(launchTheNukes: => Unit) = HttpService {
-    case r if r.pathInfo == "/launch-the-nukes" => for {
+  def nukeService(launchTheNukes: => Unit) = AuthedService[(String, String)] {
+    case r as user if r.pathInfo == "/launch-the-nukes" => for {
       _ <- Task.delay(launchTheNukes)
-      r <- Response(Gone).withBody("oops")
+      r <- Response(Gone).withBody(s"oops, ${user} launched the nukes")
     } yield r
   }
 
@@ -37,14 +32,17 @@ class AuthenticationSpec extends Http4sSpec {
     else None
   }
 
-  val basic = new BasicAuthentication(realm, authStore)(service)
+  val authedService = basicAuth(realm, authStore)(AuthedService[(String, String)] {
+    case GET -> Root as user => Ok(user)
+    case req as _ => Response.notFound(req)
+  })
 
   "Failure to authenticate" should {
     "not run unauthorized routes" in {
       var isNuked = false
-      val basic = new BasicAuthentication(realm, authStore)(nukeService { isNuked = true })
+      val service = basicAuth(realm, authStore)(nukeService { isNuked = true })
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
-      val res = basic.apply(req).run
+      val res = service(req).run
       isNuked must_== false
       res.status must_== (Unauthorized)
     }

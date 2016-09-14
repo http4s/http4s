@@ -13,18 +13,23 @@ import scalaz.concurrent.Task
  * @param store A partial function mapping (realm, user) to the
  *              appropriate password.
  */
-class BasicAuthentication(realm: String, store: AuthenticationStore) extends Authentication {
+object basicAuth {
+  def apply(realm: String, store: AuthenticationStore): AuthMiddleware[(String, String)] =
+    challenged(Service.lift { req =>
+      getChallenge(realm, store, req)
+    })
 
   private trait AuthReply
   private sealed case class OK(user: String, realm: String) extends AuthReply
   private case object NeedsAuth extends AuthReply
 
-  protected def getChallenge(req: Request) = checkAuth(req).map {
-    case OK(user, realm) => \/-(addUserRealmAttributes(req, user, realm))
-    case NeedsAuth       => -\/(Challenge("Basic", realm, Nil.toMap))
-  }
+  private def getChallenge(realm: String, store: AuthenticationStore, req: Request) =
+    checkAuth(realm, store, req).map {
+      case OK(user, realm) => \/-(AuthedRequest((user, realm), req))
+      case NeedsAuth       => -\/(Challenge("Basic", realm, Nil.toMap))
+    }
 
-  private def checkAuth(req: Request): Task[AuthReply] = {
+  private def checkAuth(realm: String, store: AuthenticationStore, req: Request): Task[AuthReply] = {
     req.headers.get(Authorization) match {
       case Some(Authorization(BasicCredentials(user, client_pass))) =>
         store(realm, user).map {
