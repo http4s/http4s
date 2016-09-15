@@ -1,7 +1,7 @@
 package org.http4s
 
 import java.io.{File, InputStream, Reader}
-import java.nio.ByteBuffer
+import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.file.Path
 
 import scala.concurrent.{ExecutionContext, Future}
@@ -137,13 +137,14 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     simple(hdr)(s => ByteVector.view(s.getBytes(charset.nioCharset)))
   }
 
-  implicit def charSequenceEncoder[A <: CharSequence](implicit charset: Charset = DefaultCharset): EntityEncoder[CharSequence] =
+  implicit def charBufferEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[CharBuffer] =
     stringEncoder.contramap(_.toString)
 
   implicit def charArrayEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Array[Char]] =
-    charSequenceEncoder.contramap(new String(_))
+    stringEncoder.contramap(new String(_))
 
-  implicit val charEncoder: EntityEncoder[Char] = charSequenceEncoder.contramap(Character.toString)
+  implicit val charEncoder: EntityEncoder[Char] =
+    stringEncoder.contramap(Character.toString)
 
   implicit val byteVectorEncoder: EntityEncoder[ByteVector] =
     simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)
