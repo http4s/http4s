@@ -2,7 +2,7 @@ package org.http4s
 
 import org.http4s.headers.`Content-Type`
 import org.http4s.parser.QueryParser
-import org.http4s.util.{UrlFormCodec, UrlCodingUtils}
+import org.http4s.util.UrlCodingUtils
 
 import scala.collection.{GenTraversableOnce, MapLike}
 import scala.io.Codec
@@ -114,7 +114,7 @@ object UrlForm {
   /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
   def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
-      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlFormCodec.urlUnreserved)
+      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlCodingUtils.Unreserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach { case (k, vs) =>

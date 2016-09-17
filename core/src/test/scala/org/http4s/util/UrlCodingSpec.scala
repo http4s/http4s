@@ -5,13 +5,10 @@
 package org.http4s.util
 
 import org.http4s.util.UrlCodingUtils._
+import org.parboiled2.CharPredicate
 import org.specs2.{ScalaCheck, Specification}
 
-import scala.collection.immutable.BitSet
-
 class UrlCodingSpec extends Specification with ScalaCheck {
-  def bitSet(s: String): BitSet = BitSet(s.toSet[Char].map(_.toInt).toSeq: _*)
-
   def is =
 
     "Encoding a URI should" ^
@@ -19,8 +16,20 @@ class UrlCodingSpec extends Specification with ScalaCheck {
         val encoded = urlEncode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
         encoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~"
       } ^
-      "uppercase encodings already in a string" ! {
-        ensureUppercasedEncodings("hello%3fworld") must_== "hello%3Fworld"
+      "uppercase skipped encodings already in a string" ! {
+        urlEncode("hello%3fworld", toSkip = Unreserved ++ "%") must_== "hello%3Fworld"
+      } ^
+      "leave alone invalid '%' escapes in a string" ! {
+        urlEncode("%ag", toSkip = Unreserved ++ "%") must_== "%ag"
+      } ^
+      "leave alone invalid '%' escapes with special chars in a string" ! {
+        urlEncode("%é0", toSkip = Unreserved ++ "%") must_== "%%C3%A90"
+      } ^
+      "leave alone invalid '%' escapes with single chars in a string" ! {
+        urlEncode("%a", toSkip = Unreserved ++ "%") must_== "%a"
+      } ^
+      "leave alone dangling '%' escapes in a string" ! {
+        urlEncode("%", toSkip = Unreserved ++ "%") must_== "%"
       } ^
       "percent encode spaces" ! {
         urlEncode("hello world") must_== "hello%20world"
@@ -51,11 +60,11 @@ class UrlCodingSpec extends Specification with ScalaCheck {
         urlDecode("%C3%A9") must_== "é"
       } ^
       "skip the chars in toSkip when decoding" ^
-        "skips '%2F' when decoding" ! { urlDecode("%2F", toSkip = bitSet("/?#")) must_== "%2F" } ^
-        "skips '%23' when decoding" ! { urlDecode("%23", toSkip = bitSet("/?#")) must_== "%23" } ^
-        "skips '%3F' when decoding" ! { urlDecode("%3F", toSkip = bitSet("/?#")) must_== "%3F" } ^
-        "still encodes others" ! { urlDecode("br%C3%BCcke", toSkip = bitSet("/?#")) must_== "brücke"} ^
-        "handles mixed" ! { urlDecode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = bitSet("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"} ^ p ^
+        "skips '%2F' when decoding" ! { urlDecode("%2F", toSkip = CharPredicate("/?#")) must_== "%2F" } ^
+        "skips '%23' when decoding" ! { urlDecode("%23", toSkip = CharPredicate("/?#")) must_== "%23" } ^
+        "skips '%3F' when decoding" ! { urlDecode("%3F", toSkip = CharPredicate("/?#")) must_== "%3F" } ^
+        "still encodes others" ! { urlDecode("br%C3%BCcke", toSkip = CharPredicate("/?#")) must_== "brücke"} ^
+        "handles mixed" ! { urlDecode("/ac%2Fdc/br%C3%BCcke%2342%3Fcheck", toSkip = CharPredicate("/?#")) must_== "/ac%2Fdc/brücke%2342%3Fcheck"} ^ p ^
     "The plusIsSpace flag specifies how to treat pluses" ^
       "it treats + as allowed when the plusIsSpace flag is either not supplied or supplied as false" ! {
         urlDecode("+") must_== "+"

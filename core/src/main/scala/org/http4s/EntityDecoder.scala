@@ -18,7 +18,6 @@ import scalaz.stream.{io, process1}
 import scalaz.syntax.monad._
 import scalaz.{-\/, EitherT, \/, \/-}
 
-import util.UrlFormCodec.{ decode => formDecode }
 import util.byteVector._
 
 /** A type that can be used to decode a [[Message]]

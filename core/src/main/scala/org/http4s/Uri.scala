@@ -8,7 +8,7 @@ import scala.reflect.macros.whitebox.Context
 import macrocompat.bundle
 import org.http4s.Uri._
 import org.http4s.parser.{ ScalazDeliverySchemes, RequestUriParser }
-import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
+import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
 
@@ -29,10 +29,15 @@ final case class Uri(
   fragment: Option[Fragment] = None)
   extends QueryOps with Renderable
 {
+  import Uri._
+
   def withPath(path: Path): Uri = copy(path = path)
 
-  def /(newFragment: Path): Uri = {
-    val newPath = if (path.isEmpty || path.last != '/') path + "/" + newFragment else path + newFragment
+  def /(newSegment: Path): Uri = {
+    val encoded = UrlCodingUtils.pathEncode(newSegment)
+    val newPath =
+      if (path.isEmpty || path.last != '/') s"${path}/${encoded}"
+      else s"${path}${encoded}"
     copy(path = newPath)
   }
 
