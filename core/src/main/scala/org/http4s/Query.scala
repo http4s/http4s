@@ -1,14 +1,15 @@
 package org.http4s
 
-import org.http4s.Query._
-import org.http4s.batteries._
-import org.http4s.parser.QueryParser
-import org.http4s.util.{UrlFormCodec, UrlCodingUtils, Writer, Renderable}
-
 import scala.collection.generic.CanBuildFrom
 import scala.collection.immutable.{BitSet, IndexedSeq}
 import scala.collection.mutable.ListBuffer
 import scala.collection.{ IndexedSeqOptimized, mutable }
+
+import org.http4s.Query._
+import org.http4s.batteries._
+import org.http4s.parser.QueryParser
+import org.http4s.util.{UrlCodingUtils, Writer, Renderable}
+import org.parboiled2.CharPredicate
 
 /** Collection representation of a query string
   *
@@ -113,8 +114,8 @@ object Query {
    * avoid percent-encoding those characters."
    *   -- http://tools.ietf.org/html/rfc3986#section-3.4
    */
-  private val NoEncode: BitSet =
-    UrlFormCodec.urlUnreserved ++ Set('?', '/').map(_.toInt)
+  private val NoEncode: CharPredicate =
+    UrlCodingUtils.Unreserved ++ "?/"
 
   def apply(xs: (String, Option[String])*): Query =
     new Query(xs.toVector)

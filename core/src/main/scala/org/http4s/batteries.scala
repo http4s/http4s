@@ -8,7 +8,6 @@ protected[http4s] trait Batteries0 extends AnyRef
     with util.CaseInsensitiveStringSyntax
     with util.ChunkInstances
     with util.NonEmptyListSyntax
-    with util.StringSyntax
 {
   implicit def StreamCatsOps[F[_], A](self: fs2.Stream[F, A]): fs2.interop.cats.StreamCatsOps[F, A] =
     fs2.interop.cats.StreamCatsOps(self)

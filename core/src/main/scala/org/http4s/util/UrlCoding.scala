@@ -4,65 +4,69 @@
  */
 package org.http4s.util
 
-import java.util.Locale
-import util.matching.Regex
-import util.matching.Regex.Match
+import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.Charset
-import java.nio.{ CharBuffer, ByteBuffer }
-import collection.immutable.BitSet
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util.Locale
 
-private[util] trait UrlCodingUtils {
+import scala.util.matching.Regex
+import scala.util.matching.Regex.Match
 
-  private val toSkip = BitSet((('a' to 'z') ++ ('A' to 'Z') ++ ('0' to '9') ++ "!$&'()*+,;=:/?@-._~".toSet).map(_.toInt): _*)
-  private val space = ' '.toInt
-  private val PctEncoded = """%([0-9a-fA-F][0-9a-fA-F])""".r
-  private val LowerPctEncoded = """%([0-9a-f][0-9a-f])""".r
-  private val InvalidChars = "[^\\.a-zA-Z0-9!$&'()*+,;=:/?#\\[\\]@-_~]".r
+import org.parboiled2.CharPredicate
+
+private[http4s] object UrlCodingUtils {
+
+  val Unreserved = 
+    CharPredicate.AlphaNum ++ "-_.~"
+
+  private val toSkip =
+    Unreserved ++ "!$&'()*+,;=:/?@"
 
   // scalastyle:off magic.number
-  private val HexUpperCaseChars = (0 until 16) map { i ⇒ Character.toUpperCase(Character.forDigit(i, 16)) }
+  private val HexUpperCaseChars = (0 until 16) map { i => Character.toUpperCase(Character.forDigit(i, 16)) }
   // scalastyle:on magic.number
 
-  private val UTF_8 = "UTF-8"
-  private val Utf8 = Charset.forName(UTF_8)
-
-  def isUrlEncoded(string: String): Boolean =
-    PctEncoded.findFirstIn(string).isDefined
-
-  def containsInvalidUriChars(string: String): Boolean =
-    InvalidChars.findFirstIn(string).isDefined
-
-  def needsUrlEncoding(string: String): Boolean =
-    !isUrlEncoded(string) && containsInvalidUriChars(string)
-
-  def ensureUrlEncoding(string: String): String =
-    if (needsUrlEncoding(string)) urlEncode(string) else string
-
-  def ensureUppercasedEncodings(string: String): String =
-    LowerPctEncoded.replaceAllIn(string, (_: Match) match {
-      case Regex.Groups(v) => "%" + v.toUpperCase(Locale.ENGLISH)
-    })
-
-  def urlEncode(toEncode: String, charset: Charset = Utf8, spaceIsPlus: Boolean = false, toSkip: BitSet = toSkip): String = {
-    val in = charset.encode(ensureUppercasedEncodings(toEncode))
+  def urlEncode(toEncode: String, charset: Charset = UTF_8, spaceIsPlus: Boolean = false, toSkip: Char => Boolean = toSkip): String = {
+    val in = charset.encode(toEncode)
     val out = CharBuffer.allocate((in.remaining() * 3).toInt)
     while (in.hasRemaining) {
-      val b = in.get() & 0xFF
-      if (toSkip.contains(b)) {
-        out.put(b.toInt.toChar)
-      } else if (b == space && spaceIsPlus) {
+      val c = in.get().toChar
+      if (toSkip(c)) {
+        out.put(c)
+        if (c == '%' && in.hasRemaining) {
+          in.mark()
+          val c0 = in.get().toChar
+          if (CharPredicate.HexDigit(c0) && in.hasRemaining) {
+            val c1 = in.get().toChar
+            if (CharPredicate.HexDigit(c1)) {
+              out.put(c0.toUpper)
+              out.put(c1.toUpper)
+            } else {
+              in.reset()
+            }
+          } else {
+            in.reset()
+          }
+        }
+      } else if (c == ' ' && spaceIsPlus) {
         out.put('+')
       } else {
         out.put('%')
-        out.put(HexUpperCaseChars((b >> 4) & 0xF))
-        out.put(HexUpperCaseChars(b & 0xF))
+        out.put(HexUpperCaseChars((c >> 4) & 0xF))
+        out.put(HexUpperCaseChars(c & 0xF))
       }
     }
     out.flip()
     out.toString
   }
 
-  def urlDecode(toDecode: String, charset: Charset = Utf8, plusIsSpace: Boolean = false, toSkip: BitSet = BitSet.empty): String = {
+  private val SkipEncodeInPath =
+    Unreserved ++ ":@!$&'()*+,;="
+
+  def pathEncode(s: String, charset: Charset = UTF_8): String =
+    UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInPath)
+
+  def urlDecode(toDecode: String, charset: Charset = UTF_8, plusIsSpace: Boolean = false, toSkip: Char => Boolean = Function.const(false)): String = {
     val in = CharBuffer.wrap(toDecode)
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
     // as surrogate pairs of characters, and will get a luxurious 6 bytes of space.
@@ -80,7 +84,7 @@ private[util] trait UrlCodingUtils {
           // scalastyle:on magic.number
           if (x != -1 && y != -1) {
             val oo = (x << 4) + y
-            if (!toSkip.contains(oo)) {
+            if (!toSkip(oo.toChar)) {
               out.put(oo.toByte)
             } else {
               out.put('%'.toByte)
@@ -100,7 +104,7 @@ private[util] trait UrlCodingUtils {
         // normally `out.put(c.toByte)` would be enough since the url is %-encoded,
         // however there are cases where a string can be partially decoded
         // so we have to make sure the non us-ascii chars get preserved properly.
-        if (this.toSkip.contains(c.toInt)) {
+        if (this.toSkip(c)) {
           out.put(c.toByte)
         }
         else {
@@ -111,7 +115,5 @@ private[util] trait UrlCodingUtils {
     out.flip()
     charset.decode(out).toString
   }
-
 }
 
-object UrlCodingUtils extends UrlCodingUtils

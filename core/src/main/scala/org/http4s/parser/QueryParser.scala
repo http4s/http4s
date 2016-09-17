@@ -10,6 +10,7 @@ import scala.io.Codec
 
 import cats.data._
 import org.http4s.batteries._
+import org.http4s.util.UrlCodingUtils
 
 /** Split an encoded query string into unencoded key value pairs
   * It always assumes any input is a  valid query, including "".
@@ -93,7 +94,7 @@ private[http4s] class QueryParser(codec: Codec, colonSeparators: Boolean, qChars
   }
 
   private def decodeParam(str: String): String =
-    try str.formDecode(codec)
+    try UrlCodingUtils.urlDecode(str, codec.charSet, plusIsSpace = true)
     catch {
       case e: IllegalArgumentException     => ""
       case e: UnsupportedEncodingException => ""

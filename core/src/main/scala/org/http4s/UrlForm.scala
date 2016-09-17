@@ -108,7 +108,7 @@ object UrlForm {
   /** Encode the [[UrlForm]] into a `String` using the provided `Charset` */
   def encodeString(charset: Charset)(urlForm: UrlForm): String = {
     def encode(s: String): String =
-      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlFormCodec.urlUnreserved)
+      UrlCodingUtils.urlEncode(s, charset.nioCharset, spaceIsPlus = true, toSkip = UrlCodingUtils.Unreserved)
 
     val sb = new StringBuilder(urlForm.values.size * 20)
     urlForm.values.foreach { case (k, vs) =>

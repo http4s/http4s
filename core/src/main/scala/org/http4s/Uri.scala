@@ -9,7 +9,7 @@ import macrocompat.bundle
 import org.http4s.Uri._
 
 import org.http4s.parser._
-import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils, UrlFormCodec }
+import org.http4s.util.{ Writer, Renderable, CaseInsensitiveString, UrlCodingUtils }
 import org.http4s.util.string.ToCaseInsensitiveStringSyntax
 import org.http4s.util.option.ToOptionOps
 
@@ -30,10 +30,15 @@ final case class Uri(
   fragment: Option[Fragment] = None)
   extends QueryOps with Renderable
 {
+  import Uri._
+
   def withPath(path: Path): Uri = copy(path = path)
 
-  def /(newFragment: Path): Uri = {
-    val newPath = if (path.isEmpty || path.last != '/') path + "/" + newFragment else path + newFragment
+  def /(newSegment: Path): Uri = {
+    val encoded = UrlCodingUtils.pathEncode(newSegment)
+    val newPath =
+      if (path.isEmpty || path.last != '/') s"${path}/${encoded}"
+      else s"${path}${encoded}"
     copy(path = newPath)
   }
 
@@ -120,7 +125,7 @@ object Uri extends UriFunctions {
             qValue => q"org.http4s.Uri.fromString($s).valueOr(throw _)"
           )
         case _ =>
-          c.abort(c.enclosingPosition, s"only supports literal Strings")
+          c.abort(c.enclosingPosition, s"This method uses a macro to verify that a String literal is a valid URI. Use Uri.fromString if you have a dynamic String that you want to parse as a Uri.")
       }
     }
   }

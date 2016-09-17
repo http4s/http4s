@@ -2,6 +2,7 @@ package org.http4s
 
 import cats.data._
 import org.http4s.Uri._
+import org.scalacheck.Prop._
 import org.specs2.matcher.MustThrownMatchers
 
 // TODO: this needs some more filling out
@@ -694,6 +695,33 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
   "Uri.equals" should {
     "be false between an empty path and a trailing slash after an authority" in {
       uri("http://example.com") must_!= uri("http://example.com/")
+    }
+  }
+
+  "/" should {
+    "encode space as %20" in {
+      uri("http://example.com/") / " " must_== uri("http://example.com/%20")
+    }
+
+    "encode generic delimiters that aren't pchars" in {
+      // ":" and "@" are valid pchars
+      uri("http://example.com") / ":/?#[]@" must_== uri("http://example.com/:%2F%3F%23%5B%5D@")
+    }
+
+    "encode percent sequences" in {
+      uri("http://example.com") / "%2F" must_== uri("http://example.com/%252F")
+    }
+
+    "not encode sub-delims" in {
+      uri("http://example.com") / "!$&'()*+,;=" must_== uri("http://example.com/!$&'()*+,;=")
+    }
+
+    "UTF-8 encode characters" in {
+      uri("http://example.com/") / "ö" must_== uri("http://example.com/%C3%B6")
+    }
+
+    "not make bad URIs" >> forAll { s: String =>
+      Uri.fromString((uri("http://example.com/") / s).toString) must beRight
     }
   }
 }
