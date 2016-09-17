@@ -143,17 +143,12 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit def charArrayEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Array[Char]] =
     stringEncoder.contramap(new String(_))
 
-  implicit val charEncoder: EntityEncoder[Char] =
-    stringEncoder.contramap(Character.toString)
-
   implicit val byteVectorEncoder: EntityEncoder[ByteVector] =
     simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)
 
   implicit val byteArrayEncoder: EntityEncoder[Array[Byte]] = byteVectorEncoder.contramap(ByteVector.apply)
 
   implicit val byteBufferEncoder: EntityEncoder[ByteBuffer] = byteVectorEncoder.contramap(ByteVector.apply)
-
-  implicit val byteEncoder: EntityEncoder[Byte] = byteVectorEncoder.contramap(ByteVector.apply(_))
 
   implicit def taskEncoder[A](implicit W: EntityEncoder[A]): EntityEncoder[Task[A]] = new EntityEncoder[Task[A]] {
     override def toEntity(a: Task[A]): Task[Entity] = a.flatMap(W.toEntity)
