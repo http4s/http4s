@@ -42,10 +42,6 @@ class EntityEncoderSpec extends Http4sSpec {
       writeToString("pong") must_== "pong"
     }
 
-    "render single characters" in {
-      prop { char: Char => writeToString(char) must_== Character.toString(char) }
-    }
-
     "calculate the content length of strings" in {
       implicitly[EntityEncoder[String]].toEntity("pong").map(_.length) must returnValue(Some(4))
     }
@@ -53,10 +49,6 @@ class EntityEncoderSpec extends Http4sSpec {
     "render byte arrays" in {
       val hello = "hello"
       writeToString(hello.getBytes(StandardCharsets.UTF_8)) must_== hello
-    }
-
-    "render bytes" in {
-      prop { byte: Byte => writeToByteVector(byte) must_== ByteVector(byte) }
     }
 
     "render futures" in {
