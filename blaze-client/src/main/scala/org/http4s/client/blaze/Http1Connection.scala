@@ -157,7 +157,7 @@ private final class Http1Connection(val requestKey: RequestKey,
         next.flatMap{ rr =>
           val bodyTask = getChunkEncoder(req, mustClose, rr)
             .writeProcess(req.body)
-            .handle { case EOF => () } // If we get a pipeline closed, we might still be good. Check response
+            .handle { case EOF => false } // If we get a pipeline closed, we might still be good. Check response
           val respTask = receiveResponse(mustClose, doesntHaveBody = req.method == Method.HEAD)
           Task.taskInstance.mapBoth(bodyTask, respTask)((_,r) => r)
             .handleWith { case t =>

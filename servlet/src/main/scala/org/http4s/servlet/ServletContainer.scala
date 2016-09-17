@@ -39,7 +39,7 @@ trait ServletContainer
    * Sets the servlet I/O mode for reads and writes within the servlet.
    * Not to be confused with the server connectors.
    *
-   * @see [[ServletIo]]
+   * @see [[org.http4s.servlet.ServletIo]]
    */
   def withServletIo(servletIo: ServletIo): Self
 }

@@ -42,7 +42,7 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
       def doIt(method: Method, status: Status, body: String, pure: Boolean, response: Throwable \/ RedirectResponse) = {
         val u = uri("http://localhost") / status.code.toString
         val req = method match {
-          case _: Method with Method.PermitsBody if body.nonEmpty =>
+          case _: Method.PermitsBody if body.nonEmpty =>
             val bodyBytes = ByteVector.view(body.getBytes)
             Request(method, u,
               body = if (pure) emit(bodyBytes) else eval(Task.delay(bodyBytes)))

@@ -90,7 +90,7 @@ final class Query private(pairs: Vector[KeyValue])
     }
   }
 
-  override protected[this] def newBuilder: mutable.Builder[KeyValue, Query] = Query.newBuilder
+  override protected[this] def newBuilder: Builder = Query.newBuilder
 
   /////////////////////// QueryOps methods and types /////////////////////////
   override protected type Self = Query
@@ -102,6 +102,8 @@ final class Query private(pairs: Vector[KeyValue])
 
 object Query {
   type KeyValue = (String, Option[String])
+
+  type Builder = mutable.Builder[KeyValue, Query]
 
   val empty: Query = new Query(Vector.empty)
 

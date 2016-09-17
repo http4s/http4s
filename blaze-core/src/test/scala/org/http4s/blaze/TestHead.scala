@@ -35,6 +35,7 @@ abstract class TestHead(val name: String) extends HeadStage[ByteBuffer] {
     closed = true
     super.stageShutdown()
     p.trySuccess(ByteBuffer.wrap(getBytes()))
+    ()
   }
 }
 

@@ -40,14 +40,14 @@ trait Http4sSpec extends Specification
 {
   implicit val params = Parameters(maxSize = 20)
 
-  def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty) {
+  def checkAll(name: String, props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"$name  ${props.name} must satisfy"))
     addFragments(Fragments.foreach(props.properties) { case (name, prop) => 
       Fragments(name in check(prop, p, f)) 
     })
   }
 
-  def checkAll(props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty) {
+  def checkAll(props: Properties)(implicit p: Parameters, f: FreqMap[Set[Any]] => Pretty): Fragments = {
     addFragment(ff.text(s"${props.name} must satisfy"))
     addFragments(Fragments.foreach(props.properties) { case (name, prop) => 
       Fragments(name in check(prop, p, f)) 

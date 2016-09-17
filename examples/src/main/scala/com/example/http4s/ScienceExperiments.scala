@@ -124,7 +124,7 @@ object ScienceExperiments {
     case GET -> Root / "fail" / "fatally" =>
       ???
 
-    case req @ GET -> Root / "idle" / IntVar(seconds) =>
+    case req @ GET -> Root / "idle" / LongVar(seconds) =>
       for {
         _    <- Task.delay { Thread.sleep(seconds) }
         resp <- Ok("finally!")

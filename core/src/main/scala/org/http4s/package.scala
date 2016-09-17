@@ -24,8 +24,8 @@ package object http4s { // scalastyle:ignore
   val DefaultCharset = Charset.`UTF-8`
 
   /**
-   * A Service wraps a function of request type [[A]] to a Task that runs
-   * to response type [[B]].  By wrapping the `Service`, we can compose them
+   * A Service wraps a function of request type `A` to a Task that runs
+   * to response type `B`.  By wrapping the [[Service]], we can compose them
    * using Kleisli operations.
    */
   type Service[A, B] = Kleisli[Task, A, B]
@@ -41,13 +41,13 @@ package object http4s { // scalastyle:ignore
   object HttpService {
     /**
       * Lifts a total function to an `HttpService`. The function is expected to
-      * handle all requests it is given.  If `f` is a [[PartialFunction]], use
+      * handle all requests it is given.  If `f` is a `PartialFunction`, use
       * `apply` instead.
       */
     def lift(f: Request => Task[Response]): HttpService = Service.lift(f)
 
     /** Lifts a partial function to an `HttpService`.  Responds with
-      * [[Repsonse.fallthrough]], which generates a 404, for any request
+      * [[org.http4s.Response.fallthrough]], which generates a 404, for any request
       * where `pf` is not defined.
       */
     def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =

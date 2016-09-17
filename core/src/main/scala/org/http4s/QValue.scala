@@ -1,9 +1,10 @@
 package org.http4s
 
 import scala.language.experimental.macros
-import scala.reflect.macros.Context
+import scala.reflect.macros.whitebox.Context
 import scalaz._
 
+import macrocompat.bundle
 import org.http4s.util.{Renderable, Writer}
 
 /**
@@ -78,18 +79,19 @@ object QValue extends QValueInstances with QValueFunctions {
     try fromDouble(s.toDouble)
     catch { case e: NumberFormatException => ParseResult.fail("Invalid q-value", s"${s} is not a number") }
 
-  object Macros {
-    /** Exists to support compile-time verified literals. Do not call directly. */
-    def ☠(thousandths: Int): QValue = new QValue(thousandths)
+  /** Exists to support compile-time verified literals. Do not call directly. */
+  def ☠(thousandths: Int): QValue = new QValue(thousandths)
 
-    def qValueLiteral(c: Context)(d: c.Expr[Double]): c.Expr[QValue] = {
-      import c.universe._
+  @bundle
+  class Macros(val c: Context) {
+    import c.universe._
 
+    def qValueLiteral(d: c.Expr[Double]): Tree = {
       d.tree match {
         case Literal(Constant(d: Double)) =>
           QValue.fromDouble(d).fold(
             e => c.abort(c.enclosingPosition, e.details),
-            qValue => c.Expr(q"org.http4s.QValue.Macros.☠(${qValue.thousandths})")
+            qValue => q"org.http4s.QValue.☠(${qValue.thousandths})"
           )
         case _ =>
           c.abort(c.enclosingPosition, s"literal Double value required")

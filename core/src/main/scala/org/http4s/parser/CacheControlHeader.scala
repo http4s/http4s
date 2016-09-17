@@ -18,12 +18,13 @@
 package org.http4s
 package parser
 
+import java.util.concurrent.TimeUnit
+import scala.concurrent.duration._
+
 import org.parboiled2.{Rule1, ParserInput}
 import org.http4s.headers.`Cache-Control`
-import org.http4s.CacheDirective
 import org.http4s.CacheDirective._
 import org.http4s.util.string._
-import scala.concurrent.duration._
 
 private[parser] trait CacheControlHeader {
 
@@ -57,7 +58,7 @@ private[parser] trait CacheControlHeader {
     }
 
     def FieldNames: Rule1[Seq[String]] = rule { oneOrMore(QuotedString).separatedBy(ListSep) }
-    def DeltaSeconds: Rule1[Duration] = rule { capture(oneOrMore(Digit)) ~> {s: String => s.toLong.seconds} }
+    def DeltaSeconds: Rule1[Duration] = rule { capture(oneOrMore(Digit)) ~> {s: String => Duration(s.toLong, TimeUnit.SECONDS)} }
   }
 
 }

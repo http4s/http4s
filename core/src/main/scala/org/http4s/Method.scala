@@ -40,8 +40,8 @@ object Method extends MethodInstances {
   }
 
   // Type tags for a method allowing a body or not
-  sealed trait PermitsBody
-  sealed trait NoBody
+  sealed trait PermitsBody extends Method
+  sealed trait NoBody extends Method
 
   def fromString(s: String): ParseResult[Method] =
     registry.getOrElse(s, Rfc2616BasicRules.token(s).bimap(

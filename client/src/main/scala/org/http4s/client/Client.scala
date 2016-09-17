@@ -55,7 +55,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * Returns this client as a [[Service]].  All connections created by this
     * service are disposed on completion of callback task f.
     *
-    * This method effectively reverses the arguments to [[fetch]], and is
+    * This method effectively reverses the arguments to `fetch`, and is
     * preferred when an HTTP client is composed into a larger Kleisli function,
     * or when a common response callback is used by many call sites.
     */
@@ -67,7 +67,7 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     * callers of this service to run the response body to dispose of the
     * underlying HTTP connection.
     *
-    * This is intended for use in proxy servers.  [[fetch]], [[fetchAs]],
+    * This is intended for use in proxy servers.  `fetch`, `fetchAs`,
     * [[toService]], and [[streaming]] are safer alternatives, as their
     * signatures guarantee disposal of the HTTP connection.
     */

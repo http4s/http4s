@@ -24,10 +24,10 @@ final case class `X-Forwarded-For`(values: NonEmptyList[Option[InetAddress]]) ex
   }
 
   @inline
-  private def append(sb: Writer, add: Option[InetAddress]): Unit = {
-    sb.append(", ")
-    if (add.isDefined) sb.append(add.get.getHostAddress)
-    else sb.append("unknown")
+  private def append(w: Writer, add: Option[InetAddress]): w.type = {
+    w.append(", ")
+    if (add.isDefined) w.append(add.get.getHostAddress)
+    else w.append("unknown")
   }
 }
 

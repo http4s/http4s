@@ -28,7 +28,7 @@ private[http4s] object UrlCodingUtils {
 
   def urlEncode(toEncode: String, charset: Charset = UTF_8, spaceIsPlus: Boolean = false, toSkip: Char => Boolean = toSkip): String = {
     val in = charset.encode(toEncode)
-    val out = CharBuffer.allocate((in.remaining() * 3).ceil.toInt)
+    val out = CharBuffer.allocate((in.remaining() * 3).toInt)
     while (in.hasRemaining) {
       val c = in.get().toChar
       if (toSkip(c)) {
