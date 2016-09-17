@@ -23,7 +23,7 @@ private[http4s] object UrlCodingUtils {
     Unreserved ++ "!$&'()*+,;=:/?@"
 
   // scalastyle:off magic.number
-  private val HexUpperCaseChars = (0 until 16) map { i ⇒ Character.toUpperCase(Character.forDigit(i, 16)) }
+  private val HexUpperCaseChars = (0 until 16) map { i => Character.toUpperCase(Character.forDigit(i, 16)) }
   // scalastyle:on magic.number
 
   def urlEncode(toEncode: String, charset: Charset = UTF_8, spaceIsPlus: Boolean = false, toSkip: Char => Boolean = toSkip): String = {

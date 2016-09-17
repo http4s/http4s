@@ -33,8 +33,8 @@ final case class Uri(
 
   def withPath(path: Path): Uri = copy(path = path)
 
-  def /(newSegment: Path)(implicit charset: Charset = Charset.`UTF-8`): Uri = {
-    val encoded = UrlCodingUtils.pathEncode(newSegment, charset.nioCharset)
+  def /(newSegment: Path): Uri = {
+    val encoded = UrlCodingUtils.pathEncode(newSegment)
     val newPath =
       if (path.isEmpty || path.last != '/') s"${path}/${encoded}"
       else s"${path}${encoded}"

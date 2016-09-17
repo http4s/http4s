@@ -720,13 +720,8 @@ class UriSpec extends Http4sSpec with MustThrownMatchers {
       uri("http://example.com/") / "ö" must_== uri("http://example.com/%C3%B6")
     }
 
-    "encode according to charset" in {
-      implicit val cs = Charset.`ISO-8859-1`
-      uri("http://example.com/") / "ö" must_== uri("http://example.com/%F6")      
-    }
-
     "not make bad URIs" >> forAll { s: String =>
-      Uri.fromString("http://example.com/").map(_ / s) must be_\/-
+      Uri.fromString((uri("http://example.com/") / s).toString) must be_\/-
     }
   }
 }
