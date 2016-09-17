@@ -108,7 +108,7 @@ object StaticFile {
   private def fileToBody(f: File, start: Long, end: Long, buffsize: Int)
                 (implicit es: ExecutorService): EntityBody = {
     readInputStream[Task](Task.delay(new FileInputStream(f)), buffsize)
-      .drop(start.toInt) // TODO this is sad if start is much bigger than 0
+      .drop(start) // TODO this is sad if start is much bigger than 0
       .take(end - start)
     /*
     val outer = Task {
