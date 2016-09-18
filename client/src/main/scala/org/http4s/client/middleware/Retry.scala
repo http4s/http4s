@@ -27,21 +27,24 @@ object Retry {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
         case \/-(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if req.isIdempotent && RetriableStatuses(status) =>
-          logger.info(s"Request ${req} has failed attempt ${attempts} with reason ${status}. Retrying.")
           backoff(attempts) match {
             case Some(duration) =>
+              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Retrying after ${duration}.")
               dr.dispose.flatMap(_ => nextAttempt(req, attempts, duration))
             case None =>
+              logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Giving up.")
               Task.now(dr)
           }
         case \/-(dr) =>
           Task.now(dr)
         case -\/(e) if req.isIdempotent =>
-          logger.error(e)(s"Request ${req} has failed attempt ${attempts}. Retrying.")
           backoff(attempts) match {
             case Some(duration) =>
+              logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
               nextAttempt(req, attempts, duration)
             case None =>
+              // info instead of error(e), because e is not discarded
+              logger.info(s"Request ${req} threw an exception on attempt #${attempts} attempts. Giving up.")
               Task.fail(e)
           }
         case -\/(e) =>
