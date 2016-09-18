@@ -65,8 +65,10 @@ object FollowRedirect {
         // We can only resubmit a body if it was not effectful.
         def pureBody = {
           req.body.unemit match {
-            case (chunks, _) if chunks.nonEmpty => Some(chunks.reduce(_ ++ _))
-            case _ => None
+            case (chunks, p) if chunks.nonEmpty && p.isHalt =>
+              Some(chunks.reduce(_ ++ _))
+            case _ =>
+              None
           }
         }
 

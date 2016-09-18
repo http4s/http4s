@@ -46,7 +46,9 @@ class FollowRedirectSpec extends Http4sSpec with Tables {
           case _: Method with Method.PermitsBody if body.nonEmpty =>
             val bodyBytes = ByteVector.view(body.getBytes)
             Request(method, u,
-              body = if (pure) emit(bodyBytes) else eval(Task.delay(bodyBytes)))
+              body =
+                if (pure) emit(bodyBytes)
+                else (emit(bodyBytes) ++ eval_(Task.now(()))))
           case _ =>
             Request(method, u)
         }
