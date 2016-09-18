@@ -1,3 +1,4 @@
+import Http4sBuild._
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
@@ -479,10 +480,10 @@ lazy val noCoverageSettings = Seq(
 
 lazy val mimaSettings = Seq(
   mimaFailOnProblem <<= version.zipWith(scalazVersion)(compatibleVersion(_, _).isDefined),
-  previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName, scalazVersion)((ver, org, binVer, mod, sz) => compatibleVersion(ver, sz) map {
-    org % s"${mod}_${binVer}" % _
-  }),
-  binaryIssueFilters ++= {
+  mimaPreviousArtifacts := (compatibleVersion(version.value, scalazVersion.value) map {
+    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
+  }).toSet,
+  mimaBinaryIssueFilters ++= {
     import com.typesafe.tools.mima.core._
     import com.typesafe.tools.mima.core.ProblemFilters._
     Seq(

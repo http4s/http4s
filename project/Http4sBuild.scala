@@ -3,7 +3,7 @@ import Keys._
 
 import scala.util.Properties.envOrNone
 
-object Http4sBuild extends Build {
+object Http4sBuild {
   // keys
   val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
   val jvmTarget = TaskKey[String]("jvm-target-version", "Defines the target JVM version for object files.")
