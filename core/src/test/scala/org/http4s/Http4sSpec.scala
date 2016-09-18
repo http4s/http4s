@@ -78,4 +78,7 @@ object Http4sSpec {
 
   implicit val TestPoolStrategy: Strategy =
     Strategy.fromExecutor(TestPool)
+
+  implicit val TestScheduler: Scheduler =
+    Scheduler.fromFixedDaemonPool(4)
 }

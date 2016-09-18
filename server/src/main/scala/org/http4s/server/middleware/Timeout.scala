@@ -17,8 +17,10 @@ object Timeout {
   private implicit val strategy = Strategy.fromExecutionContext(
     ExecutionContext.fromExecutor(ec))
 
-  val DefaultTimeoutResponse = Response(Status.InternalServerError)
-    .withBody("The service timed out.")
+  val DefaultTimeoutResponse =
+    Response(Status.InternalServerError)
+      .withBody("The service timed out.")
+      .async(strategy)
 
   private def timeoutResp(timeout: Duration, response: Task[Response]): Task[Response] = Task.async[Task[Response]] { cb =>
     val r = new Runnable { override def run(): Unit = cb(Right(response)) }

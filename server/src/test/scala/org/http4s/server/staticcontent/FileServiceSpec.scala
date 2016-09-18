@@ -2,14 +2,12 @@ package org.http4s
 package server
 package staticcontent
 
+import fs2._
+import org.http4s.Http4sSpec._
 import org.http4s.server.middleware.URITranslation
-import scodec.bits.ByteVector
-
-import scalaz.concurrent.Task
 
 class FileServiceSpec extends Http4sSpec with StaticContentShared {
-
-  val s = fileService(FileService.Config(System.getProperty("user.dir")))
+  val s = fileService(FileService.Config(System.getProperty("user.dir"), executor = TestPool))
 
   "FileService" should {
 
@@ -44,7 +42,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       val req = Request(uri = uri("server/src/test/resources/testresource.txt")).replaceAllHeaders(range)
 
       s(req) must returnStatus(Status.PartialContent)
-      s(req) must returnBody(testResource.splitAt(4)._2)
+      s(req) must returnBody(Chunk.bytes(testResource.toArray.splitAt(4)._2))
     }
 
     "Return a 206 PartialContent file" in {
@@ -52,7 +50,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       val req = Request(uri = uri("server/src/test/resources/testresource.txt")).replaceAllHeaders(range)
 
       s(req) must returnStatus(Status.PartialContent)
-      s(req) must returnBody(testResource.splitAt(testResource.size - 4)._2)
+      s(req) must returnBody(Chunk.bytes(testResource.toArray.splitAt(testResource.size - 4)._2))
     }
 
     "Return a 206 PartialContent file" in {
@@ -60,7 +58,7 @@ class FileServiceSpec extends Http4sSpec with StaticContentShared {
       val req = Request(uri = uri("server/src/test/resources/testresource.txt")).replaceAllHeaders(range)
 
       s(req) must returnStatus(Status.PartialContent)
-      s(req) must returnBody(testResource.slice(2, 4 + 1)) // the end number is inclusive in the Range header
+      s(req) must returnBody(Chunk.bytes(testResource.toArray.slice(2, 4 + 1))) // the end number is inclusive in the Range header
     }
 
     "Return a 200 OK on invalid range" in {

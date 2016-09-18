@@ -41,8 +41,8 @@ class RouterSpec extends Http4sSpec {
 
     "require the correct prefix" in {
       val resp = service.apply(Request(GET, uri("/letters/1"))).unsafeRun
-      resp must haveBody("bee")
-      resp must haveBody("one")
+      resp must not(haveBody("bee"))
+      resp must not(haveBody("one"))
       resp must haveStatus(NotFound)
     }
 
