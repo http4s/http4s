@@ -727,6 +727,24 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </a>
     </span>
       <p class="shortcomment cmt">the HTTP version</p><div class="fullcomment"><div class="comment cmt"><p>the HTTP version</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.Request">Request</a> → <a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Message#isBodyPure" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isBodyPure:Boolean"></a>
+      <a id="isBodyPure:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isBodyPure</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Request@isBodyPure:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">True if and only if the body is composed solely of Emits and Halt.</p><div class="fullcomment"><div class="comment cmt"><p>True if and only if the body is composed solely of Emits and Halt.  This
+indicates that the body can be re-run without side-effects.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
     </li><li name="org.http4s.Message#isChunked" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isChunked:Boolean"></a>
       <a id="isChunked:Boolean"></a>
@@ -744,6 +762,25 @@ If decoding fails, a BadRequest <a href="Response.html" class="extype" name="org
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="Message.html" class="extype" name="org.http4s.Message">Message</a></dd></dl></div>
+    </li><li name="org.http4s.Request#isIdempotent" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="isIdempotent:Boolean"></a>
+      <a id="isIdempotent:Boolean"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">isIdempotent</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.Request@isIdempotent:Boolean" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">A request is idempotent if and only if its method is idempotent and its body
+is pure.</p><div class="fullcomment"><div class="comment cmt"><p>A request is idempotent if and only if its method is idempotent and its body
+is pure.  If true, this request can be submitted multipe times.</p></div></div>
     </li><li name="scala.Any#isInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="isInstanceOf[T0]:Boolean"></a>
       <a id="isInstanceOf[T0]:Boolean"></a>
