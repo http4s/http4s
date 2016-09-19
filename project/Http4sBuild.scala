@@ -66,7 +66,7 @@ object Http4sBuild extends Build {
   lazy val asyncHttpClient     = "org.asynchttpclient"       % "async-http-client"       % "2.0.12"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.0"
   lazy val catsKernelLaws      = "org.typelevel"            %% "cats-kernel-laws"        % catsLaws.revision
-  lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.7.0"
+  lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.7.2"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
   lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.5.1"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.4"
