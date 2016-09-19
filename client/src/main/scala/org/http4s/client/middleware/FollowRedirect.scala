@@ -5,7 +5,7 @@ package middleware
 import org.http4s.Method._
 import org.http4s.headers._
 import org.http4s.util.string._
-import scalaz.Kleisli
+import scalaz._
 import scalaz.concurrent.Task
 import scalaz.stream.Process._
 import scalaz.syntax.monad._
@@ -65,8 +65,8 @@ object FollowRedirect {
         // We can only resubmit a body if it was not effectful.
         def pureBody = {
           req.body.unemit match {
-            case (chunks, p) if chunks.nonEmpty && p.isHalt =>
-              Some(chunks.reduce(_ ++ _))
+            case (chunks, p) if p.isHalt =>
+              Some(chunks.fold(ByteVector.empty)(_ ++ _))
             case _ =>
               None
           }
