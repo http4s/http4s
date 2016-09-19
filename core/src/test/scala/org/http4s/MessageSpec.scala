@@ -36,6 +36,22 @@ class MessageSpec extends Http4sSpec {
         r.remotePort must beSome(remote.getPort)
       }
     }
+
+    /* TODO fs2 spec bring back when unemit comes back
+    "isIdempotent" should {
+      "be true if the method is idempotent and the body is pure" in {
+        Request(Method.GET).withBody("pure").map(_.isIdempotent) must returnValue(true)
+      }
+
+      "be false if the body is effectful" in {
+        Request(Method.GET).withBody(Task.now("effectful")).map(_.isIdempotent) must returnValue(true)
+      }
+
+      "be false if the method is not idempotent" in {
+        Request(Method.POST).isIdempotent must beFalse
+      }
+    }
+     */
   }
 
   "Message" should {

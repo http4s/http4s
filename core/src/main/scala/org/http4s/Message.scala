@@ -33,6 +33,14 @@ sealed trait Message extends MessageOps { self =>
     }
   }
 
+  /** True if and only if the body is composed solely of Emits and Halt.  This
+    * indicates that the body can be re-run without side-effects. */
+  // TODO fs2 port need to replace unemit
+  /*
+  def isBodyPure: Boolean =
+    body.unemit._2.isHalt
+   */
+  
   def attributes: AttributeMap
 
   protected def change(body: EntityBody = body,
@@ -200,6 +208,14 @@ final case class Request(
 
   override def toString: String =
     s"""Request(method=$method, uri=$uri, headers=${headers}"""
+
+  /** A request is idempotent if and only if its method is idempotent and its body
+    * is pure.  If true, this request can be submitted multipe times. */
+  // TODO fs2 port uncomment when isBodyPure is back
+  /*
+  def isIdempotent: Boolean =
+    method.isIdempotent && isBodyPure
+   */
 }
 
 object Request {

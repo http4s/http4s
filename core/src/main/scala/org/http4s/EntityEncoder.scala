@@ -134,9 +134,6 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
   implicit def charArrayEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Array[Char]] =
     stringEncoder.contramap(new String(_))
 
-  implicit val charEncoder: EntityEncoder[Char] =
-    stringEncoder.contramap(Character.toString)
-
   implicit val chunkEncoder: EntityEncoder[Chunk[Byte]] =
     simple(`Content-Type`(MediaType.`application/octet-stream`))(identity)
 
@@ -149,6 +146,8 @@ trait EntityEncoderInstances extends EntityEncoderInstances0 {
     chunkEncoder.contramap(ByteVector.view)
    */
 
+  // TODO fs2 port this is gone in master but is needed by sourceEncoder.
+  // That's troubling.  Make this go away.
   implicit val byteEncoder: EntityEncoder[Byte] =
     chunkEncoder.contramap(Chunk.singleton)
 
