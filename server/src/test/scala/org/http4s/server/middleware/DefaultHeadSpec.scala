@@ -31,9 +31,10 @@ class DefaultHeadSpec extends Http4sSpec {
       service.run(req).flatMap(_.as[String]).run must_== ""
     }
 
-    "retain entity headers of corresponding GET on fallthrough" in {
-      val req = Request(Method.HEAD, uri = uri("/hello"))
-      service.run(req).map(_.contentLength).run must_== Some("hello".length)
+    "retain all headers of corresponding GET on fallthrough" in {
+      val get = Request(Method.GET, uri = uri("/hello"))      
+      val head = get.copy(method = Method.HEAD)
+      service.run(get).map(_.headers).run must_== service.run(head).map(_.headers).run
     }
 
     "allow GET body to clean up on fallthrough" in {
