@@ -486,7 +486,8 @@ lazy val mimaSettings = Seq(
     import com.typesafe.tools.mima.core._
     import com.typesafe.tools.mima.core.ProblemFilters._
     Seq(
-      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.this")
+      exclude[DirectMissingMethodProblem]("org.http4s.client.blaze.Http1Connection.this"),
+      exclude[ReversedMissingMethodProblem]("org.http4s.Message.isBodyPure")
     )
   }
 )
