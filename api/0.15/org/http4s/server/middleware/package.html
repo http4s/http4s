@@ -147,6 +147,27 @@ uri = &quot;/foo/&quot; to match the route.
       </a>
     </span>
       
+    </li><li name="org.http4s.server.middleware.DefaultHead" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="DefaultHead"></a>
+      <a id="DefaultHead:DefaultHead"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="DefaultHead$.html"><span class="name">DefaultHead</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.middleware.package@DefaultHead" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Handles HEAD requests as a GET without a body.</p><div class="fullcomment"><div class="comment cmt"><p>Handles HEAD requests as a GET without a body.</p><p>If the service returns the fallthrough response, the request is resubmitted
+as a GET.  The resulting response's body is killed, but all headers are
+preserved.  This is a naive, but correct, implementation of HEAD.  Routes
+requiring more optimization should implement their own HEAD handler.
+</p></div></div>
     </li><li name="org.http4s.server.middleware.EntityLimiter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="EntityLimiter"></a>
       <a id="EntityLimiter:EntityLimiter"></a>
