@@ -24,7 +24,6 @@ val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/"
 val server = builder.run
 ```
 
-
 ### Creating the client
 
 A good default choice is the `PooledHttp1Client`.  As the name
