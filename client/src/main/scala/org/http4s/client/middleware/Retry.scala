@@ -5,13 +5,12 @@ package middleware
 import scala.concurrent.duration._
 import scala.math.{pow, min, random}
 
-// import scalaz._
+import scalaz._
 // import scalaz.concurrent.Task
-
-import fs2._
 
 import org.http4s.Status._
 import org.log4s.getLogger
+import fs2._
 
 import scala.Either
 import scala.Right
@@ -33,7 +32,8 @@ object Retry {
   def apply(backoff: Int => Option[FiniteDuration])(client: Client) = {
     def prepareLoop(req: Request, attempts: Int): Task[DisposableResponse] = {
       client.open(req).attempt flatMap {
-        case Right(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if req.isIdempotent && RetriableStatuses(status) =>
+        // TODO fs2 port - Reimplement request isIdempotent in some form
+        case Right(dr @ DisposableResponse(Response(status, _, _, _, _), _)) if RetriableStatuses(status) =>
           backoff(attempts) match {
             case Some(duration) =>
               logger.info(s"Request ${req} has failed on attempt #${attempts} with reason ${status}. Retrying after ${duration}.")
@@ -44,7 +44,7 @@ object Retry {
           }
         case Right(dr) =>
           Task.now(dr)
-        case Left(e) if req.isIdempotent =>
+        case Left(e) =>
           backoff(attempts) match {
             case Some(duration) =>
               logger.error(e)(s"Request ${req} threw an exception on attempt #${attempts} attempts. Retrying after ${duration}.")
@@ -59,9 +59,11 @@ object Retry {
       }
     }
 
-    def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] =
+    def nextAttempt(req: Request, attempts: Int, duration: FiniteDuration): Task[DisposableResponse] = {
+        prepareLoop(req.copy(body = EmptyBody), attempts + 1)
+    }
       // TODO honor Retry-After header
-      Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1).get after duration).runAsync }
+      // Task.async { (prepareLoop(req.copy(body = EmptyBody), attempts + 1)) }
 
     client.copy(open = Service.lift(prepareLoop(_, 1)))
   }
