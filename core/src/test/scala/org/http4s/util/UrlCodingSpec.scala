@@ -13,14 +13,17 @@ class UrlCodingSpec extends Specification with ScalaCheck {
   def bitSet(s: String): BitSet = BitSet(s.toSet[Char].map(_.toInt).toSeq: _*)
 
   def is =
-
     "Encoding a URI should" ^
       "not change any of the allowed chars" ! {
         val encoded = urlEncode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
         encoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~"
       } ^
-      "uppercase encodings already in a string" ! {
-        ensureUppercasedEncodings("hello%3fworld") must_== "hello%3Fworld"
+      "uppercase skipped encodings already in a string" ! {
+        urlEncode("hello%3fworld", toSkip = UrlFormCodec.urlUnreserved ++ BitSet('%')) must_== "hello%3Fworld"
+      } ^
+      "not uppercase hex digits after percent chars that will be encoded" ! {
+        // https://github.com/http4s/http4s/issues/720
+        urlEncode("hello%3fworld") must_== "hello%253fworld"
       } ^
       "percent encode spaces" ! {
         urlEncode("hello world") must_== "hello%20world"

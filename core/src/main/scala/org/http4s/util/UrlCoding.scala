@@ -4,12 +4,16 @@
  */
 package org.http4s.util
 
-import java.util.Locale
-import util.matching.Regex
-import util.matching.Regex.Match
+import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.Charset
-import java.nio.{ CharBuffer, ByteBuffer }
-import collection.immutable.BitSet
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util.Locale
+
+import scala.collection.immutable.BitSet
+import scala.util.matching.Regex
+import scala.util.matching.Regex.Match
+
+import org.parboiled2.CharPredicate
 
 private[util] trait UrlCodingUtils {
 
@@ -44,13 +48,42 @@ private[util] trait UrlCodingUtils {
     })
   }
 
+  /**
+    * Percent-encodes a string.  Depending on the parameters, this method is
+    * appropriate for URI or URL form encoding.  Any resulting percent-encodings
+    * are normalized to uppercase.
+    * 
+    * Characeters in `toSkip` are rendered as is.  If a skipped '%' is followed
+    * by exactly two hex digits, they are uppercased for normalization purposes.
+    * 
+    * Space is rendered as `" "` if skipped.  If space is not skipped, it is
+    * encoded as `"+"` when `spaceIsPlus` is true, or percent encoded otherwise.
+    * 
+    * All characters not in toSkip are rendered in a percent encoding, according
+    * to `charset`.
+    */
   def urlEncode(toEncode: String, charset: Charset = Utf8, spaceIsPlus: Boolean = false, toSkip: BitSet = toSkip) = {
-    val in = charset.encode(ensureUppercasedEncodings(toEncode))
+    val in = charset.encode(toEncode)
     val out = CharBuffer.allocate((in.remaining() * 3).ceil.toInt)
     while (in.hasRemaining) {
       val b = in.get() & 0xFF
       if (toSkip.contains(b)) {
         out.put(b.toInt.toChar)
+        if (b == '%' && in.hasRemaining) {
+          in.mark()
+          val c0 = in.get().toChar
+          if (CharPredicate.HexDigit(c0) && in.hasRemaining) {
+            val c1 = in.get().toChar
+            if (CharPredicate.HexDigit(c1)) {
+              out.put(c0.toUpper)
+              out.put(c1.toUpper)
+            } else {
+              in.reset()
+            }
+          } else {
+            in.reset()
+          }
+        }
       } else if (b == space && spaceIsPlus) {
         out.put('+')
       } else {
