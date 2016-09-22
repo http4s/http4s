@@ -1,5 +1,6 @@
 import Http4sBuild._
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
+import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
@@ -263,8 +264,8 @@ lazy val docs = http4sProject("docs")
     siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map {
       case (m, (major, minor)) => for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
     },
-    cleanSite <<= Http4sGhPages.cleanSite0,
-    synchLocal <<= Http4sGhPages.synchLocal0,
+    cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
+    synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
     git.remoteRepo := "git@github.com:http4s/http4s.git",
     ghpagesNoJekyll := false
   )
@@ -350,6 +351,10 @@ def exampleProject(name: String) = http4sProject(name)
   .settings(noPublishSettings)
   .settings(noCoverageSettings)
   .dependsOn(examples)
+
+lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
+lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
+lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
 
 lazy val projectMetadata = Seq(
   homepage := Some(url("http://http4s.org/")),
