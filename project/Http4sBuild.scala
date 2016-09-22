@@ -3,10 +3,7 @@ import Keys._
 
 import scala.util.Properties.envOrNone
 
-object Http4sBuild extends Build {
-  // keys
-  val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
-  val jvmTarget = TaskKey[String]("jvm-target-version", "Defines the target JVM version for object files.")
+object Http4sBuild {
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -39,7 +36,6 @@ object Http4sBuild extends Build {
       }
     ).flatten
 
-  val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
   def scalazCrossBuild(version: String, scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
       case Seq(7, 1, _*) =>
