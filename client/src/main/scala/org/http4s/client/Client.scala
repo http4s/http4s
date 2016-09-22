@@ -11,11 +11,15 @@ import java.io.IOException
 // import scalaz.stream.{Process, Process1}
 // import scalaz.stream.Process._
 
-import fs2._
-
-// Replaced with Chunk
-// cue taken from https://github.com/http4s/http4s/pull/661/commits/68f0d712fd482f31991d642c0a4c0575a715b389
 // import scodec.bits.ByteVector
+// import cats._
+// import cats.data._
+// import cats.implicits._
+import fs2.interop.cats._
+import fs2.Task
+import fs2._
+import fs2.Stream._
+
 
 /**
   * Contains a [[Response]] that needs to be disposed of to free the underlying
@@ -30,7 +34,9 @@ final case class DisposableResponse(response: Response, dispose: Task[Unit]) {
     */
   def apply[A](f: Response => Task[A]): Task[A] = {
     val task = try f(response) catch { case e: Throwable => Task.fail(e) }
-    task.flatMap { a => dispose.map(_ => a) }
+
+    task
+    // task.flatMap { case _ => dispose }
   }
 }
 
@@ -198,28 +204,30 @@ final case class Client(open: Service[Request, DisposableResponse], shutdown: Ta
     fetchAs(req)(d)
 
   /** Shuts this client down, and blocks until complete. */
-  def shutdownNow(): Unit =
-    shutdown.run
+  def shutdownNow(): Unit = shutdown.unsafeRun()
+
 }
 
 object Client {
   /** Creates a client from the specified service.  Useful for generating
     * pre-determined responses for requests in testing.
-    * 
+    *
     * @param service the service to respond to requests to this client
     */
   def fromHttpService(service: HttpService): Client = {
     val isShutdown = new AtomicBoolean(false)
 
-    def interruptable(body: EntityBody, disposed: AtomicBoolean) = {
-      def loop(reason: String, killed: AtomicBoolean): Stream[ByteVector, ByteVector] = {
+    def interruptable(body: EntityBody, disposed: AtomicBoolean): Stream[Task, Byte]  = {
+      def kill(reason: String, killed: AtomicBoolean): Stream[Task, Byte] = {
         if (killed.get)
-          fail(new IOException(reason))
+          Stream.fail(new IOException(reason))
         else
-          await1[ByteVector] ++ loop(reason, killed)
+          body
       }
-      body.pipe(loop("response was disposed", disposed))
-        .pipe(loop("client was shut down", isShutdown))
+
+      kill("response was disposed", disposed) ++
+      kill("client was shut down", isShutdown)
+
     }
 
     def disposableService(service: HttpService) =

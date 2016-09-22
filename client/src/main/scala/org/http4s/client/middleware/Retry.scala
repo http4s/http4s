@@ -5,12 +5,10 @@ package middleware
 import scala.concurrent.duration._
 import scala.math.{pow, min, random}
 
-import scalaz._
-// import scalaz.concurrent.Task
 
 import org.http4s.Status._
 import org.log4s.getLogger
-import fs2._
+import fs2.Task
 
 import scala.Either
 import scala.Right
@@ -54,8 +52,6 @@ object Retry {
               logger.info(s"Request ${req} threw an exception on attempt #${attempts} attempts. Giving up.")
               Task.fail(e)
           }
-        case Left(e) =>
-          Task.fail(e)
       }
     }
 

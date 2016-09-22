@@ -10,12 +10,10 @@ import org.http4s.util.UrlCodingUtils
 
 import scala.collection.mutable.ListBuffer
 
-// import scalaz.concurrent.Task
-
-import fs2._
+import fs2.Task
 
 /** Basic OAuth1 message signing support
-  * 
+  *
   * This feature is not considered stable.
   */
 package object oauth1 {

@@ -4,9 +4,11 @@ package middleware
 
 import scala.concurrent.duration._
 
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-import scodec.bits.ByteVector
+import fs2._
+import fs2.Stream._
+// import scalaz.concurrent.Task
+// import scalaz.stream.Process
+// import scodec.bits.ByteVector
 import org.http4s.dsl._
 import org.http4s.headers.Location
 import org.specs2.specification.Tables
@@ -35,7 +37,7 @@ class RetrySpec extends Http4sSpec with Tables {
       }
       val retryClient = Retry(policy)(client)
       val req = Request(method, uri("http://localhost/") / status.code.toString).withBody(body)
-      val resp = retryClient.fetch(req){ _ => Task.now(()) }.attemptRun
+      val resp = retryClient.fetch(req){ _ => Task.now(()) }.unsafeAttemptRun()
       attemptsCounter
     }
 
@@ -60,7 +62,7 @@ class RetrySpec extends Http4sSpec with Tables {
     }
 
     "not retry effectful bodies" in prop { s: Status =>
-      countRetries(defaultClient, PUT, s, Process.eval_(Task.now(()))) must_== 1
+      countRetries(defaultClient, PUT, s, Stream.eval_(Task.now(()))) must_== 1
     }
 
     "retry exceptions" in {

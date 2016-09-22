@@ -10,9 +10,12 @@ import org.http4s.client.testroutes.GetRoutes
 
 import org.specs2.specification.core.{ Fragments, Fragment }
 
-import scalaz.concurrent.Task
-import scalaz.stream.Process
-
+// import scalaz.concurrent.Task
+// import scalaz.stream.Process
+import scala.concurrent.duration.FiniteDuration
+import fs2._
+import fs2.Task
+import fs2.Stream._
 
 abstract class ClientRouteTestBattery(name: String, client: Client)
   extends JettyScaffold(name) with GetRoutes
@@ -23,7 +26,7 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
   override def cleanup() = {
     super.cleanup() // shuts down the jetty server
-    client.shutdown.run
+    client.shutdown.unsafeRun()
   }
 
   override def runAllTests(): Fragments = {
@@ -54,9 +57,17 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
   }
 
   private def runTest[A](req: Request, address: InetSocketAddress)(f: Response => Task[A]): A = {
+    implicit val s = Strategy.sequential
+    implicit val sched = Scheduler.fromFixedDaemonPool(1, "runTestThread")
     val newreq = req.copy(uri = req.uri.copy(authority = Some(Authority(host = RegName(address.getHostName),
       port = Some(address.getPort)))))
-    client.fetch(newreq)(f).runFor(timeout)
+      timeout match {
+        case finiteDuration: FiniteDuration =>
+        client.fetch(newreq)(f).unsafeRunFor(finiteDuration)
+        case _ =>
+        client.fetch(newreq)(f).unsafeRun
+      }
+
   }
 
   private def checkResponse(rec: Response, expected: Response) = {
@@ -87,11 +98,11 @@ abstract class ClientRouteTestBattery(name: String, client: Client)
 
     val os = srv.getOutputStream
     resp.body.flatMap { body =>
-      os.write(body.toArray)
+      os.write(Array(body))
       os.flush()
-      Process.halt.asInstanceOf[Process[Task, Unit]]
-    }.run.run
+      Stream.empty.asInstanceOf[Stream[Task, Unit]]
+    }.run.unsafeRun()
   }
 
-  private def collectBody(body: EntityBody): Array[Byte] = body.runLog.run.toArray.map(_.toArray).flatten
+  private def collectBody(body: EntityBody): Array[Byte] = body.runLog.unsafeRun().toArray
 }
