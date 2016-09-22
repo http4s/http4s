@@ -17,9 +17,6 @@ class UrlCodingSpec extends Http4sSpec {
       val encoded = urlEncode("abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~")
       encoded must_== "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ01234567890!$&'()*+,;=:/?@-._~"
     }
-    "uppercase skipped encodings already in a string" in {
-      urlEncode("hello%3fworld", toSkip = UrlFormCodec.urlUnreserved ++ BitSet('%')) must_== "hello%3Fworld"
-    }
     "not uppercase hex digits after percent chars that will be encoded" in {
       // https://github.com/http4s/http4s/issues/720
       urlEncode("hello%3fworld") must_== "hello%253fworld"
@@ -70,7 +67,20 @@ class UrlCodingSpec extends Http4sSpec {
       urlDecode("+", plusIsSpace = true) must_== " "
     }
   }
-  "urlDecode(urlEncode(s)) == s" in {
-    prop { (s: String) => urlDecode(urlEncode(s)) must_== s }
+
+  "urlDecode(urlEncode(s)) == s" should {
+    "for all s" in prop { (s: String) =>
+      urlDecode(urlEncode(s)) must_== s
+    }
+    """for "%ab"""" in {
+      // Special case that triggers https://github.com/http4s/http4s/issues/720,
+      // not likely to be uncovered by the generator.
+      urlDecode(urlEncode("%ab")) must_== "%ab"
+    }
+    """when decode skips a skipped percent encoding""" in {
+      // This is a silly thing to do, but as long as the API allows it, it would
+      // be good to know if it breaks.
+      urlDecode(urlEncode("%2f", toSkip = bitSet("%")), toSkip = bitSet("/")) must_== "%2f"
+    }    
   }
 }

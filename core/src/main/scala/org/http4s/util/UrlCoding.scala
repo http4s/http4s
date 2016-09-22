@@ -53,14 +53,13 @@ private[util] trait UrlCodingUtils {
     * appropriate for URI or URL form encoding.  Any resulting percent-encodings
     * are normalized to uppercase.
     * 
-    * Characeters in `toSkip` are rendered as is.  If a skipped '%' is followed
-    * by exactly two hex digits, they are uppercased for normalization purposes.
-    * 
-    * Space is rendered as `" "` if skipped.  If space is not skipped, it is
-    * encoded as `"+"` when `spaceIsPlus` is true, or percent encoded otherwise.
-    * 
-    * All characters not in toSkip are rendered in a percent encoding, according
-    * to `charset`.
+    * @param toEncode the string to encode
+    * @param charset the charset to use for characters that are percent encoded
+    * @param spaceIsPlus if space is not skipped, determines whether it will be
+    * rendreed as a `"+"` or a percent-encoding according to `charset`.
+    * @param toSkip a bitset of characters exempt from encoding.  In typical
+    * use, this is composed of all Unreserved URI characters and sometimes a
+    * subset of Reserved URI characters.
     */
   def urlEncode(toEncode: String, charset: Charset = Utf8, spaceIsPlus: Boolean = false, toSkip: BitSet = toSkip) = {
     val in = charset.encode(toEncode)
@@ -69,21 +68,6 @@ private[util] trait UrlCodingUtils {
       val b = in.get() & 0xFF
       if (toSkip.contains(b)) {
         out.put(b.toInt.toChar)
-        if (b == '%' && in.hasRemaining) {
-          in.mark()
-          val c0 = in.get().toChar
-          if (CharPredicate.HexDigit(c0) && in.hasRemaining) {
-            val c1 = in.get().toChar
-            if (CharPredicate.HexDigit(c1)) {
-              out.put(c0.toUpper)
-              out.put(c1.toUpper)
-            } else {
-              in.reset()
-            }
-          } else {
-            in.reset()
-          }
-        }
       } else if (b == space && spaceIsPlus) {
         out.put('+')
       } else {
@@ -96,6 +80,15 @@ private[util] trait UrlCodingUtils {
     out.toString
   }
 
+  /**
+    * Percent-decodes a string.
+    * 
+    * @param toDecode the string to decode
+    * @param charset the charset of percent-encoded characters
+    * @param plusIsSpace true if `'+'` is to be interpreted as a `' '`
+    * @param toSkip a bitset of characters whose percent-encoded form
+    * is left percent-encoded.  Almost certainly should be left empty.
+    */
   def urlDecode(toDecode: String, charset: Charset = Utf8, plusIsSpace: Boolean = false, toSkip: BitSet = BitSet.empty) = {
     val in = CharBuffer.wrap(toDecode)
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
