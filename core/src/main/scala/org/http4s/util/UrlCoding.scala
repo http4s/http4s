@@ -124,7 +124,10 @@ private[util] trait UrlCodingUtils {
             in.position(mark+1)
           }
         } else {
-          while(in.hasRemaining) in.get() // just burn the rest of the bytes
+          // This is an invalid encoding. Fail gracefully by treating the '%' as
+          // a literal.
+          out.put(c.toByte)
+          while(in.hasRemaining) out.put(in.get().toByte)
         }
       } else if (c == '+' && plusIsSpace) {
         out.put(' '.toByte)
