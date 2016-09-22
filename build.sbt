@@ -4,6 +4,8 @@ import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 import sbtunidoc.Plugin.UnidocKeys._
 
+import scala.xml.transform.{RewriteRule, RuleTransformer}
+
 // Global settings
 organization in ThisBuild := "org.http4s"
 version      in ThisBuild := scalazCrossBuild("0.14.7-SNAPSHOT", scalazVersion.value)
@@ -427,7 +429,22 @@ lazy val commonSettings = Seq(
     specs2Core(sz),
     specs2MatcherExtra(sz),
     specs2Scalacheck(sz)
-  ).map(_ % "test"))
+  ).map(_ % "test")),
+  // don't include scoverage as a dependency in the pom
+  // https://github.com/scoverage/sbt-scoverage/issues/153
+  // this code was copied from https://github.com/mongodb/mongo-spark
+  pomPostProcess := { (node: xml.Node) =>
+    new RuleTransformer(
+      new RewriteRule {
+        override def transform(node: xml.Node): Seq[xml.Node] = node match {
+          case e: xml.Elem
+              if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
+          case _ => Seq(node)
+
+        }
+
+      }).transform(node).head
+  }
 )
 
 lazy val publishSettings = Seq(
