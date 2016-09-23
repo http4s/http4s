@@ -8,6 +8,12 @@
 * Added support for Zipkin headers
 * Upgrade to json4s-3.4.0
 
+# v0.14.7
+* Retry middleware now only retries requests with idempotent methods and pure bodies and appropriate status codes
+* Fix bug where redirects followed when an effectful chunk (i.e., `Await`) follows pure ones.
+* Don't uppercase two hex digits after "%25" when percent encoding.
+* Tolerate invalid percent-encodings when decoding.
+
 # v0.14.6 (2016-09-11)
 * Don't treat `Kill`ed responses (i.e., HEAD requests) as abnormal
   termination in metrics
