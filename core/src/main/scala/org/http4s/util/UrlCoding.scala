@@ -4,12 +4,16 @@
  */
 package org.http4s.util
 
-import java.util.Locale
-import util.matching.Regex
-import util.matching.Regex.Match
+import java.nio.{ByteBuffer, CharBuffer}
 import java.nio.charset.Charset
-import java.nio.{ CharBuffer, ByteBuffer }
-import collection.immutable.BitSet
+import java.nio.charset.StandardCharsets.UTF_8
+import java.util.Locale
+
+import scala.collection.immutable.BitSet
+import scala.util.matching.Regex
+import scala.util.matching.Regex.Match
+
+import org.parboiled2.CharPredicate
 
 private[util] trait UrlCodingUtils {
 
@@ -44,8 +48,21 @@ private[util] trait UrlCodingUtils {
     })
   }
 
+  /**
+    * Percent-encodes a string.  Depending on the parameters, this method is
+    * appropriate for URI or URL form encoding.  Any resulting percent-encodings
+    * are normalized to uppercase.
+    * 
+    * @param toEncode the string to encode
+    * @param charset the charset to use for characters that are percent encoded
+    * @param spaceIsPlus if space is not skipped, determines whether it will be
+    * rendreed as a `"+"` or a percent-encoding according to `charset`.
+    * @param toSkip a bitset of characters exempt from encoding.  In typical
+    * use, this is composed of all Unreserved URI characters and sometimes a
+    * subset of Reserved URI characters.
+    */
   def urlEncode(toEncode: String, charset: Charset = Utf8, spaceIsPlus: Boolean = false, toSkip: BitSet = toSkip) = {
-    val in = charset.encode(ensureUppercasedEncodings(toEncode))
+    val in = charset.encode(toEncode)
     val out = CharBuffer.allocate((in.remaining() * 3).ceil.toInt)
     while (in.hasRemaining) {
       val b = in.get() & 0xFF
@@ -63,6 +80,15 @@ private[util] trait UrlCodingUtils {
     out.toString
   }
 
+  /**
+    * Percent-decodes a string.
+    * 
+    * @param toDecode the string to decode
+    * @param charset the charset of percent-encoded characters
+    * @param plusIsSpace true if `'+'` is to be interpreted as a `' '`
+    * @param toSkip a bitset of characters whose percent-encoded form
+    * is left percent-encoded.  Almost certainly should be left empty.
+    */
   def urlDecode(toDecode: String, charset: Charset = Utf8, plusIsSpace: Boolean = false, toSkip: BitSet = BitSet.empty) = {
     val in = CharBuffer.wrap(toDecode)
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
@@ -91,7 +117,10 @@ private[util] trait UrlCodingUtils {
             in.position(mark+1)
           }
         } else {
-          while(in.hasRemaining) in.get() // just burn the rest of the bytes
+          // This is an invalid encoding. Fail gracefully by treating the '%' as
+          // a literal.
+          out.put(c.toByte)
+          while(in.hasRemaining) out.put(in.get().toByte)
         }
       } else if (c == '+' && plusIsSpace) {
         out.put(' '.toByte)
