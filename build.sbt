@@ -45,10 +45,19 @@ lazy val core = libraryProject("core")
 
 lazy val server = libraryProject("server")
   .settings(
-    description := "Base library for building http4s servers",
-    libraryDependencies += metricsCore
+    description := "Base library for building http4s servers"
   )
   .dependsOn(core % "compile;test->test", theDsl % "test->compile")
+
+lazy val serverMetrics = libraryProject("server-metrics")
+  .settings(
+    description := "Support for Dropwizard Metrics on the server",
+    libraryDependencies ++= Seq(
+      metricsCore,
+      metricsJson
+    )
+  )
+  .dependsOn(server % "compile;test->test")
 
 lazy val client = libraryProject("client")
   .settings(
@@ -101,7 +110,6 @@ lazy val jetty = libraryProject("jetty")
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
-      metricsJetty9,
       jettyServlet
     )
   )
@@ -111,7 +119,6 @@ lazy val tomcat = libraryProject("tomcat")
   .settings(
     description := "Tomcat implementation for http4s servers",
     libraryDependencies ++= Seq(
-      metricsServlet,
       tomcatCatalina,
       tomcatCoyote
     )
@@ -284,7 +291,7 @@ lazy val examples = http4sProject("examples")
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
   )
-  .dependsOn(server, theDsl, circe, scalaXml, twirl)
+  .dependsOn(server, serverMetrics, theDsl, circe, scalaXml, twirl)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -308,7 +315,6 @@ lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(
     description := "Example of http4s server on Jetty",
     fork := true,
-    libraryDependencies += metricsServlets,
     mainClass in reStart := Some("com.example.http4s.jetty.JettyExample")
   )
   .dependsOn(jetty)
@@ -318,7 +324,6 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(
     description := "Example of http4s server on Tomcat",
     fork := true,
-    libraryDependencies += metricsServlets,
     mainClass in reStart := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)

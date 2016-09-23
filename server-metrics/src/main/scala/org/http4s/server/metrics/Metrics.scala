@@ -1,53 +1,42 @@
 package org.http4s
 package server
-package middleware
+package metrics
 
 import java.util.concurrent.TimeUnit
 
-import com.codahale.metrics._
-
-import org.http4s.{Method, Response, Request}
-
+import scalaz._
 import scalaz.stream.Cause._
-import scalaz.{\/, -\/, \/-}
+import scalaz.stream.Process._
 import scalaz.concurrent.Task
-import scalaz.stream.Process.{Halt, halt}
+import com.codahale.metrics.MetricRegistry
 
 object Metrics {
 
-  def meter(m: MetricRegistry, name: String)(srvc: HttpService): HttpService = {
+  def apply(m: MetricRegistry, prefix: String = "org.http4s.server"): HttpMiddleware = { service =>
+    val active_requests = m.counter(s"${prefix}.active-requests")
 
-    val active_requests = m.counter(name + ".active-requests")
+    val abnormal_termination = m.timer(s"${prefix}.abnormal-termination")
+    val service_failure = m.timer(s"${prefix}.service-error")
+    val headers_times = m.timer(s"${prefix}.headers-times")
 
-    val abnormal_termination = m.timer(name + ".abnormal-termination")
-    val service_failure = m.timer(name + ".service-error")
-    val headers_times = m.timer(name + ".headers-times")
+    val resp1xx = m.timer(s"${prefix}.1xx-responses")
+    val resp2xx = m.timer(s"${prefix}.2xx-responses")
+    val resp3xx = m.timer(s"${prefix}.3xx-responses")
+    val resp4xx = m.timer(s"${prefix}.4xx-responses")
+    val resp5xx = m.timer(s"${prefix}.5xx-responses")
 
+    val get_req = m.timer(s"${prefix}.get-requests")
+    val post_req = m.timer(s"${prefix}.post-requests")
+    val put_req = m.timer(s"${prefix}.put-requests")
+    val head_req = m.timer(s"${prefix}.head-requests")
+    val move_req = m.timer(s"${prefix}.move-requests")
+    val options_req = m.timer(s"${prefix}.options-requests")
 
-    val resp1xx = m.timer(name + ".1xx-responses")
-    val resp2xx = m.timer(name + ".2xx-responses")
-    val resp3xx = m.timer(name + ".3xx-responses")
-    val resp4xx = m.timer(name + ".4xx-responses")
-    val resp5xx = m.timer(name + ".5xx-responses")
-//    "org.eclipse.jetty.servlet.ServletContextHandler.async-dispatches"
-//    "org.eclipse.jetty.servlet.ServletContextHandler.async-timeouts"
-
-//    "http.connections"
-
-//    "org.eclipse.jetty.servlet.ServletContextHandler.dispatches"
-    val get_req = m.timer(name + ".get-requests")
-    val post_req = m.timer(name + ".post-requests")
-    val put_req = m.timer(name + ".put-requests")
-    val head_req = m.timer(name + ".head-requests")
-    val move_req = m.timer(name + ".move-requests")
-    val options_req = m.timer(name + ".options-requests")
-
-    val trace_req = m.timer(name + ".trace-requests")
-    val connect_req = m.timer(name + ".connect-requests")
-    val delete_req = m.timer(name + ".delete-requests")
-    val other_req = m.timer(name + ".other-requests")
-    val total_req = m.timer(name + ".requests")
-
+    val trace_req = m.timer(s"${prefix}.trace-requests")
+    val connect_req = m.timer(s"${prefix}.connect-requests")
+    val delete_req = m.timer(s"${prefix}.delete-requests")
+    val other_req = m.timer(s"${prefix}.other-requests")
+    val total_req = m.timer(s"${prefix}.requests")
 
     def generalMetrics(method: Method, elapsed: Long): Unit = {
       method match {
@@ -107,7 +96,7 @@ object Metrics {
     Service.lift { req: Request =>
       val now = System.nanoTime()
       active_requests.inc()
-      new Task(srvc(req).get.map(onFinish(req.method, now)))
+      new Task(service(req).get.map(onFinish(req.method, now)))
     }
   }
 }

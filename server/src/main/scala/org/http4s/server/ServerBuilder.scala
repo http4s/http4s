@@ -4,7 +4,6 @@ package server
 import java.net.{InetAddress, InetSocketAddress}
 import java.util.concurrent.ExecutorService
 
-import com.codahale.metrics.MetricRegistry
 import org.http4s.server.SSLSupport.StoreInfo
 
 import scala.concurrent.duration._
@@ -79,6 +78,7 @@ object SSLSupport {
                          clientAuth: Boolean)
 }
 
+/*
 trait MetricsSupport { this: ServerBuilder =>
   /**
    * Triggers collection of backend-specific Metrics into the specified `MetricRegistry`.
@@ -91,6 +91,7 @@ trait MetricsSupport { this: ServerBuilder =>
 object MetricsSupport {
   val DefaultPrefix = "org.http4s.server"
 }
+ */
 
 trait WebSocketSupport { this: ServerBuilder =>
   /* Enable websocket support */
