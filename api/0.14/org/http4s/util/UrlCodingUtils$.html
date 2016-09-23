@@ -479,7 +479,9 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UrlCodingUtils</dd></dl></div>
+      <p class="shortcomment cmt">Percent-decodes a string.</p><div class="fullcomment"><div class="comment cmt"><p>Percent-decodes a string.
+</p></div><dl class="paramcmts block"><dt class="param">toDecode</dt><dd class="cmt"><p>the string to decode</p></dd><dt class="param">charset</dt><dd class="cmt"><p>the charset of percent-encoded characters</p></dd><dt class="param">plusIsSpace</dt><dd class="cmt"><p>true if <code>'+'</code> is to be interpreted as a <code>' '</code></p></dd><dt class="param">toSkip</dt><dd class="cmt"><p>a bitset of characters whose percent-encoded form
+is left percent-encoded.  Almost certainly should be left empty.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd>UrlCodingUtils</dd></dl></div>
     </li><li name="org.http4s.util.UrlCodingUtils#urlEncode" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="urlEncode(toEncode:String,charset:java.nio.charset.Charset,spaceIsPlus:Boolean,toSkip:scala.collection.immutable.BitSet):String"></a>
       <a id="urlEncode(String,java.nio.charset.Charset,Boolean,BitSet):String"></a>
@@ -496,7 +498,13 @@
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>UrlCodingUtils</dd></dl></div>
+      <p class="shortcomment cmt">Percent-encodes a string.</p><div class="fullcomment"><div class="comment cmt"><p>Percent-encodes a string.  Depending on the parameters, this method is
+appropriate for URI or URL form encoding.  Any resulting percent-encodings
+are normalized to uppercase.
+</p></div><dl class="paramcmts block"><dt class="param">toEncode</dt><dd class="cmt"><p>the string to encode</p></dd><dt class="param">charset</dt><dd class="cmt"><p>the charset to use for characters that are percent encoded</p></dd><dt class="param">spaceIsPlus</dt><dd class="cmt"><p>if space is not skipped, determines whether it will be
+rendreed as a <code>&quot;+&quot;</code> or a percent-encoding according to <code>charset</code>.</p></dd><dt class="param">toSkip</dt><dd class="cmt"><p>a bitset of characters exempt from encoding.  In typical
+use, this is composed of all Unreserved URI characters and sometimes a
+subset of Reserved URI characters.</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd>UrlCodingUtils</dd></dl></div>
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
