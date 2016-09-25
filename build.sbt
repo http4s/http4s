@@ -8,7 +8,7 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := scalazCrossBuild("0.14.7", scalazVersion.value)
+version      in ThisBuild := scalazCrossBuild("0.14.8-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaVersion in ThisBuild := "2.10.6"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
