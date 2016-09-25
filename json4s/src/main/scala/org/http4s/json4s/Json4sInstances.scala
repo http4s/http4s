@@ -12,7 +12,7 @@ import scalaz.{EitherT, \/}
 trait Json4sInstances[J] {
   implicit lazy val jsonDecoder: EntityDecoder[JValue] = jawn.jawnDecoder(facade)
 
-  def jsonOf[A](implicit reader: Reader[A]): EntityDecoder[A] =
+  implicit def jsonOf[A](implicit reader: Reader[A]): EntityDecoder[A] =
     jsonDecoder.flatMapR { json =>
       try DecodeResult.success(reader.read(json))
       catch {
@@ -43,6 +43,6 @@ trait Json4sInstances[J] {
       jsonMethods.compact(jsonMethods.render(json))
     }.withContentType(`Content-Type`(MediaType.`application/json`))
 
-  def jsonEncoderOf[A](implicit writer: Writer[A]): EntityEncoder[A] =
+  implicit def jsonEncoderOf[A](implicit writer: Writer[A]): EntityEncoder[A] =
     jsonEncoder.contramap[A](writer.write)
 }
