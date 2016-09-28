@@ -1,5 +1,7 @@
 package org.http4s
 
+import java.net.URLEncoder
+
 import org.http4s.Uri.{Authority, Host, IPv4, IPv6, RegName, Scheme}
 import org.http4s.UriTemplate._
 
@@ -108,6 +110,9 @@ object UriTemplate {
   //  protected val reserved = genDelims ::: subDelims
 
   def isUnreserved(s: String) = s.forall(unreserved.contains)
+
+  def isUnreservedOrEncoded(s: String): Boolean =
+    URLEncoder.encode(s, "UTF-8").forall(c => unreserved.contains(c) || c == '%')
 
   protected def expandPathN(path: Path, name: String, values: List[QueryParameterValue]): Path = {
     val acc = new ArrayBuffer[PathDef]()
@@ -503,7 +508,7 @@ object UriTemplate {
    */
   case class ParamExp(names: List[String]) extends QueryExp {
     require(names.nonEmpty, "at least one name must be set")
-    require(names forall isUnreserved, "all names must consist of unreserved characters")
+    require(names forall isUnreservedOrEncoded, "all names must consist of unreserved characters or be encoded")
   }
   object ParamExp {
     def apply(names: String*): ParamExp = new ParamExp(names.toList)
