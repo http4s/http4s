@@ -32,10 +32,10 @@ val authedService: AuthedService[User] =
 val service: HttpService = middleware(authedService)
 ```
 
-## Returning an error Response
+## Returning an Error Response
 
-Usually, it should also be possible to send back a 403 in case there was no
-valid login. The 403 response can be adjusted as needed, some applications use a
+Usually, it should also be possible to send back a 401 in case there was no
+valid login. The 401 response can be adjusted as needed, some applications use a
 redirect to a login page, or a popup requesting login data. With the upcoming of
 [SPA], the correct http status codes are relevant again.
 
