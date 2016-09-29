@@ -53,7 +53,7 @@ object Http4sBuild extends Build {
     }
   def specs2Version(scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
-      case Seq(7, 1, _*) => "3.8.5-scalaz-7.1"
+      case Seq(7, 1, _*) => "3.8.5-scalaz-7.1.10"
       case Seq(7, 2, _*) => "3.8.5"
     }
 
