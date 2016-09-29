@@ -43,7 +43,7 @@ class AuthenticationSpec extends Http4sSpec {
       var isNuked = false
       val authedNukeService = basicAuth(realm, authStore)(nukeService { isNuked = true })
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
-      val res = authedNukeService(req).run
+      val res = authedNukeService.run(req).run
       isNuked must_== false
       res.status must_== (Unauthorized)
     }
@@ -54,7 +54,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request without authentication with 401" in {
       val req = Request(uri = Uri(path = "/"))
-      val res = basicAuthedService(req).run
+      val res = basicAuthedService.run(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -62,7 +62,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with unknown username with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
-      val res = basicAuthedService(req).run
+      val res = basicAuthedService.run(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -70,7 +70,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with wrong password with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
-      val res = basicAuthedService(req).run
+      val res = basicAuthedService.run(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -78,7 +78,7 @@ class AuthenticationSpec extends Http4sSpec {
 
     "Respond to a request with correct credentials" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
-      val res = basicAuthedService(req).run
+      val res = basicAuthedService.run(req).run
 
       res.status must_== (Ok)
     }
@@ -91,7 +91,7 @@ class AuthenticationSpec extends Http4sSpec {
     "Respond to a request without authentication with 401" in {
       val authedService = digestAuth(realm, authStore)(service)
       val req = Request(uri = Uri(path = "/"))
-      val res = authedService(req).run
+      val res = authedService.run(req).run
 
       res.status must_== (Status.Unauthorized)
       val opt = res.headers.get(`WWW-Authenticate`).map(_.value)
@@ -223,7 +223,7 @@ class AuthenticationSpec extends Http4sSpec {
         val invalid_params = params.take(i) ++ params.drop(i + 1)
         val header = Authorization(GenericCredentials(CaseInsensitiveString("Digest"), invalid_params))
         val req = Request(uri = Uri(path = "/"), headers = Headers(header))
-        val res = digestAuthService(req).run
+        val res = digestAuthService.run(req).run
 
         res.status
       })
