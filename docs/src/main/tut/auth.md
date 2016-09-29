@@ -121,10 +121,11 @@ function.
 
 ```tut:book
 import org.http4s.util.string._
+import org.http4s.headers.Authorization
 
 val authUser: Service[Request, String \/ User] = Kleisli({ request =>
   val message = for {
-    header <- request.headers.get("Authorization".ci).toRightDisjunction("Couldn't find an Authorization header")
+    header <- request.headers.get(Authorization).toRightDisjunction("Couldn't find an Authorization header")
     token <- crypto.validateSignedToken(header.value).toRightDisjunction("Cookie invalid")
     message <- \/.fromTryCatchNonFatal(token.toLong).leftMap(_.toString)
   } yield message
