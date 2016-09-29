@@ -226,7 +226,7 @@ lazy val docs = http4sProject("docs")
   .settings(tutSettings)
   .settings(
     libraryDependencies <+= scalazVersion {szv => argonautShapeless(szv) },
-    libraryDependencies += "org.reactormonk" %% "cryptobits" % "1.0",
+    libraryDependencies += cryptbits,
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
