@@ -37,6 +37,8 @@ package object http4s { // scalastyle:ignore
     */
   type HttpService = Service[Request, Response]
 
+  type AuthedService[T] = Service[AuthedRequest[T], Response]
+
   /* Lives here to work around https://issues.scala-lang.org/browse/SI-7139 */
   object HttpService {
     /**
@@ -53,9 +55,28 @@ package object http4s { // scalastyle:ignore
     def apply(pf: PartialFunction[Request, Task[Response]]): HttpService =
       lift(req => pf.applyOrElse(req, Function.const(Response.fallthrough)))
 
-    @deprecated("Use Response.fallthrough instead", "0.15")    
+    @deprecated("Use Response.fallthrough instead", "0.15")
     val notFound: Task[Response] =
       Response.fallthrough
+
+    val empty: HttpService =
+      Service.const(Response.fallthrough)
+  }
+
+  object AuthedService {
+    /**
+      * Lifts a total function to an `HttpService`. The function is expected to
+      * handle all requests it is given.  If `f` is a `PartialFunction`, use
+      * `apply` instead.
+      */
+    def lift[T](f: AuthedRequest[T] => Task[Response]): AuthedService[T] = Service.lift(f)
+
+    /** Lifts a partial function to an `AuthedService`.  Responds with
+      * [[org.http4s.Response.fallthrough]], which generates a 404, for any request
+      * where `pf` is not defined.
+      */
+    def apply[T](pf: PartialFunction[AuthedRequest[T], Task[Response]]): AuthedService[T] =
+      lift(req => pf.applyOrElse(req, Function.const(Response.fallthrough)))
 
     val empty: HttpService =
       Service.const(Response.fallthrough)
