@@ -53,8 +53,8 @@ object Http4sBuild extends Build {
     }
   def specs2Version(scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
-      case Seq(7, 1, _*) => "3.8.4.1-scalaz-7.1"
-      case Seq(7, 2, _*) => "3.8.4"
+      case Seq(7, 1, _*) => "3.8.5-scalaz-7.1.10"
+      case Seq(7, 2, _*) => "3.8.5"
     }
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.9.v20160720"
@@ -71,7 +71,7 @@ object Http4sBuild extends Build {
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.4"
   def jawnStreamz(scalazVersion: String) = "org.http4s"     %% "jawn-streamz"            % scalazCrossBuild("0.9.0", scalazVersion)
-  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.11.v20160721"
+  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.12.v20160915"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.3.0"
   lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sCore.revision
@@ -94,7 +94,7 @@ object Http4sBuild extends Build {
   def specs2MatcherExtra(scalazVersion: String) = "org.specs2"           %% "specs2-matcher-extra"      % specs2Core(scalazVersion).revision
   def specs2Scalacheck(scalazVersion: String)   = "org.specs2"           %% "specs2-scalacheck"         % specs2Core(scalazVersion).revision
   def scalazStream(scalazVersion: String)       = "org.scalaz.stream"    %% "scalaz-stream"             % scalazCrossBuild("0.8.4", scalazVersion)
-  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.36"
+  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.37"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.2.0"
 }
