@@ -163,39 +163,23 @@
     </span>
       
     </li><li name="org.http4s.server.middleware.Timeout#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(service:org.http4s.HttpService):org.http4s.HttpService"></a>
-      <a id="apply(HttpService):HttpService"></a>
+      <a id="apply(timeout:scala.concurrent.duration.Duration,response:scalaz.concurrent.Task[org.http4s.Response],customScheduler:Option[java.util.concurrent.ScheduledExecutorService])(service:org.http4s.HttpService):org.http4s.HttpService"></a>
+      <a id="apply(Duration,Task[Response],Option[ScheduledExecutorService])(HttpService):HttpService"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="service">service: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
+        <span class="name">apply</span><span class="params">(<span name="timeout">timeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="response">response: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>] = <span class="symbol"><span class="name"><a href="#DefaultTimeoutResponse:scalaz.concurrent.Task[org.http4s.Response]">DefaultTimeoutResponse</a></span></span></span>, <span name="customScheduler">customScheduler: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="java.util.concurrent.ScheduledExecutorService">ScheduledExecutorService</span>] = <span class="symbol">None</span></span>)</span><span class="params">(<span name="service">service: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Timeout$@apply(service:org.http4s.HttpService):org.http4s.HttpService" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.middleware.Timeout$@apply(timeout:scala.concurrent.duration.Duration,response:scalaz.concurrent.Task[org.http4s.Response],customScheduler:Option[java.util.concurrent.ScheduledExecutorService])(service:org.http4s.HttpService):org.http4s.HttpService" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      <p class="shortcomment cmt">Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after 30 seconds</p><div class="fullcomment"><div class="comment cmt"><p>Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after 30 seconds</p></div><dl class="paramcmts block"><dt class="param">service</dt><dd class="cmt"><p><a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a> to transform</p></dd></dl></div>
-    </li><li name="org.http4s.server.middleware.Timeout#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="apply(timeout:scala.concurrent.duration.Duration,response:scalaz.concurrent.Task[org.http4s.Response])(service:org.http4s.HttpService):org.http4s.HttpService"></a>
-      <a id="apply(Duration,Task[Response])(HttpService):HttpService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">apply</span><span class="params">(<span name="timeout">timeout: <span class="extype" name="scala.concurrent.duration.Duration">Duration</span></span>, <span name="response">response: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="../../Response.html" class="extype" name="org.http4s.Response">Response</a>] = <span class="symbol"><span class="name"><a href="#DefaultTimeoutResponse:scalaz.concurrent.Task[org.http4s.Response]">DefaultTimeoutResponse</a></span></span></span>)</span><span class="params">(<span name="service">service: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Timeout$@apply(timeout:scala.concurrent.duration.Duration,response:scalaz.concurrent.Task[org.http4s.Response])(service:org.http4s.HttpService):org.http4s.HttpService" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after the supplied Duration</p><div class="fullcomment"><div class="comment cmt"><p>Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after the supplied Duration</p></div><dl class="paramcmts block"><dt class="param">timeout</dt><dd class="cmt"><p>Duration to wait before returning the RequestTimeOut</p></dd><dt class="param">service</dt><dd class="cmt"><p><a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a> to transform</p></dd></dl></div>
+      <p class="shortcomment cmt">Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after the supplied Duration</p><div class="fullcomment"><div class="comment cmt"><p>Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after the supplied Duration</p></div><dl class="paramcmts block"><dt class="param">timeout</dt><dd class="cmt"><p>Duration to wait before returning the RequestTimeOut</p></dd><dt class="param">customScheduler</dt><dd class="cmt"><p>a custom scheduler to use for timing out the request.
+  If <code>None</code> is provided, then a default daemon thread scheduler will be used.</p></dd><dt class="param">service</dt><dd class="cmt"><p><a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a> to transform</p></dd></dl></div>
     </li><li name="org.http4s.server.middleware.Timeout#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="apply(r:scalaz.concurrent.Task[org.http4s.Response])(service:org.http4s.HttpService):org.http4s.HttpService"></a>
       <a id="apply(Task[Response])(HttpService):HttpService"></a>
@@ -522,7 +506,30 @@ the provided Task[Response], or the result of the service</p></div><dl class="pa
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Deprecated Value Members</h3>
+              <ol><li name="org.http4s.server.middleware.Timeout#apply" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="apply(service:org.http4s.HttpService):org.http4s.HttpService"></a>
+      <a id="apply(HttpService):HttpService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name deprecated" title="Deprecated: (Since version 0.15) Use the overload that also has response and customScheduler parameters (with default values provided)">apply</span><span class="params">(<span name="service">service: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.middleware.Timeout$@apply(service:org.http4s.HttpService):org.http4s.HttpService" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after 30 seconds</p><div class="fullcomment"><div class="comment cmt"><p>Transform the service to return a RequestTimeOut <a href="../../Status.html" class="extype" name="org.http4s.Status">Status</a> after 30 seconds</p></div><dl class="paramcmts block"><dt class="param">service</dt><dd class="cmt"><p><a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a> to transform</p></dd></dl><dl class="attributes block"> <dt>Annotations</dt><dd>
+                <span class="name">@deprecated</span>
+              
+        </dd><dt>Deprecated</dt><dd class="cmt"><p><i>(Since version 0.15)</i> Use the overload that also has response and customScheduler parameters (with default values provided)</p></dd></dl></div>
+    </li></ol>
+            </div>
         </div>
 
         <div id="inheritedMembers">
