@@ -46,6 +46,11 @@ object UriTemplateSpec extends Specification {
       val query = List(ParamVarExp("ref", "path"))
       UriTemplate(path = path, query = query).toString must equalTo("/here?ref={path}")
     }
+    "render /here?{ref[name]}" in {
+      val path = List(PathElm("here"))
+      val query = List(ParamExp("ref[name]"))
+      UriTemplate(path = path, query = query).toString must equalTo("/here{?ref[name]}")
+    }
     "render /here?ref={+path}" in {
       val path = List(PathElm("here"))
       val query = List(ParamReservedExp("ref", "path"))

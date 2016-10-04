@@ -16,8 +16,8 @@ scalaVersion in ThisBuild := "2.11.8"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
-scalazVersion in ThisBuild := "7.1.8"
-crossScalaVersions in ThisBuild <<= scalaVersion(Seq("2.10.6", _))
+scalazVersion in ThisBuild := "7.1.10"
+crossScalaVersions in ThisBuild <<= scalaVersion(Seq(_, "2.11.8"))
 
 // Root project
 name := "root"
