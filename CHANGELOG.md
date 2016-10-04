@@ -1,11 +1,11 @@
-# v0.14.8 (2016-10-02)
+# v0.14.8 (2016-10-04)
 * Allow param names in UriTemplate to have encoded, reserved parameters
 * Upgrade to blaze-0.12.1, to fix OutOfMemoryError with direct buffers
 * Upgrade to Scalaz 7.1.10/7.2.6
 * Upgrade to Jetty 9.3.12
 * Upgrade to Tomcat 8.0.37
 
-# v0.14.8 (2016-09-25)
+# v0.14.7 (2016-09-25)
 * Retry middleware now only retries requests with idempotent methods and pure bodies and appropriate status codes
 * Fix bug where redirects followed when an effectful chunk (i.e., `Await`) follows pure ones.
 * Don't uppercase two hex digits after "%25" when percent encoding.
