@@ -160,6 +160,40 @@ for keys with the same label and same types.</p></div></div>
       </a>
     </span>
       
+    </li><li name="org.http4s.AuthedRequest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthedRequest[A]extendsProductwithSerializable"></a>
+      <a id="AuthedRequest[A]:AuthedRequest[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">case class</span>
+      </span>
+      <span class="symbol">
+        <a href="AuthedRequest.html"><span class="name">AuthedRequest</span></a><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="authInfo">authInfo: <span class="extype" name="org.http4s.AuthedRequest.A">A</span></span>, <span name="req">req: <a href="Request.html" class="extype" name="org.http4s.Request">Request</a></span>)</span><span class="result"> extends <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@AuthedRequest[A]extendsProductwithSerializable" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.AuthedService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthedService[T]=org.http4s.package.Service[org.http4s.AuthedRequest[T],org.http4s.Response]"></a>
+      <a id="AuthedService[T]:AuthedService[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">type</span>
+      </span>
+      <span class="symbol">
+        <span class="name">AuthedService</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> = <span class="extype" name="scalaz.Kleisli">Kleisli</span>[<span class="extype" name="scalaz.concurrent.Task">Task</span>, <a href="AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.AuthedService.T">T</span>], <a href="Response.html" class="extype" name="org.http4s.Response">Response</a>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@AuthedService[T]=org.http4s.package.Service[org.http4s.AuthedRequest[T],org.http4s.Response]" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="org.http4s.BasicCredentials" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="BasicCredentialsextendsCredentialswithProductwithSerializable"></a>
       <a id="BasicCredentials:BasicCredentials"></a>
@@ -1734,6 +1768,40 @@ Level 3 features are limited to:</p><ul><li>Path segments, slash-prefixed</li><l
       </span>
       </h4><span class="permalink">
       <a href="../../index.html#org.http4s.package@AuthScheme" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.AuthedRequest" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthedRequest"></a>
+      <a id="AuthedRequest:AuthedRequest"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="AuthedRequest$.html"><span class="name">AuthedRequest</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@AuthedRequest" title="Permalink" target="_top">
+        <img src="../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.AuthedService" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="AuthedService"></a>
+      <a id="AuthedService:AuthedService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="package$$AuthedService$.html"><span class="name">AuthedService</span></a><span class="result"> extends <span class="extype" name="scala.Serializable">Serializable</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../index.html#org.http4s.package@AuthedService" title="Permalink" target="_top">
         <img src="../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

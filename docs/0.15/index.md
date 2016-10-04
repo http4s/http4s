@@ -12,8 +12,10 @@ To get started, let's see how to define a [service].
 * Making http requests with a [client]
 * About [json] encoding / decoding
 * [URI] handling
+* [Authentication]
 
 [json]: json.html
 [client]: client.html
 [service]: service.html
 [URI]: uri.html
+[Authentication]: auth.html

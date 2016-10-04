@@ -88,25 +88,7 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.middleware.authentication.Authentication" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Authenticationextendsorg.http4s.server.HttpMiddleware"></a>
-      <a id="Authentication:Authentication"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
-      </span>
-      <span class="symbol">
-        <a href="Authentication.html"><span class="name">Authentication</span></a><span class="result"> extends <a href="../../package.html#HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpMiddleware">HttpMiddleware</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@Authenticationextendsorg.http4s.server.HttpMiddleware" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Authentication instances are middleware that provide a
-<code><a href="../../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></code> with HTTP authentication.</p>
-    </li><li name="org.http4s.server.middleware.authentication.AuthenticationStore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+              <ol><li name="org.http4s.server.middleware.authentication.AuthenticationStore" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
       <a id="AuthenticationStore=(String,String)=&gt;scalaz.concurrent.Task[Option[String]]"></a>
       <a id="AuthenticationStore:AuthenticationStore"></a>
       <h4 class="signature">
@@ -123,42 +105,6 @@
       </a>
     </span>
       
-    </li><li name="org.http4s.server.middleware.authentication.BasicAuthentication" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="BasicAuthenticationextendsAuthentication"></a>
-      <a id="BasicAuthentication:BasicAuthentication"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="BasicAuthentication.html"><span class="name">BasicAuthentication</span></a><span class="result"> extends <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@BasicAuthenticationextendsAuthentication" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides Basic Authentication from RFC 2617.</p>
-    </li><li name="org.http4s.server.middleware.authentication.DigestAuthentication" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="DigestAuthenticationextendsAuthentication"></a>
-      <a id="DigestAuthentication:DigestAuthentication"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="DigestAuthentication.html"><span class="name">DigestAuthentication</span></a><span class="result"> extends <a href="Authentication.html" class="extype" name="org.http4s.server.middleware.authentication.Authentication">Authentication</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@DigestAuthenticationextendsAuthentication" title="Permalink" target="_top">
-        <img src="../../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Provides Digest Authentication from RFC 2617.</p><div class="fullcomment"><div class="comment cmt"><p>Provides Digest Authentication from RFC 2617. Note that this class creates a new thread
-on creation to clean up stale nonces. Please call <code>shutdown()</code> when the object is not
-used anymore to kill this thread.</p></div></div>
     </li></ol>
             </div>
 
@@ -166,40 +112,77 @@ used anymore to kill this thread.</p></div></div>
 
         <div id="values" class="values members">
               <h3>Value Members</h3>
-              <ol><li name="org.http4s.server.middleware.authentication#authenticatedRealm" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="authenticatedRealm:org.http4s.AttributeKey[String]"></a>
-      <a id="authenticatedRealm:AttributeKey[String]"></a>
+              <ol><li name="org.http4s.server.middleware.authentication.Authentication" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="Authentication"></a>
+      <a id="Authentication:Authentication"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">authenticatedRealm</span><span class="result">: <a href="../../../AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <a href="Authentication$.html"><span class="name">Authentication</span></a>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@authenticatedRealm:org.http4s.AttributeKey[String]" title="Permalink" target="_top">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@Authentication" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Authentication instances are middleware that provide a
+<code><a href="../../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></code> with HTTP authentication.</p>
+    </li><li name="org.http4s.server.middleware.authentication.basicAuth" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="basicAuth"></a>
+      <a id="basicAuth:basicAuth"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="basicAuth$.html"><span class="name">basicAuth</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@basicAuth" title="Permalink" target="_top">
+        <img src="../../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Provides Basic Authentication from RFC 2617.</p>
+    </li><li name="org.http4s.server.middleware.authentication#challenged" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="challenged[A](challenge:org.http4s.Service[org.http4s.Request,scalaz.\/[org.http4s.Challenge,org.http4s.AuthedRequest[A]]])(service:org.http4s.AuthedService[A]):org.http4s.HttpService"></a>
+      <a id="challenged[A](Service[Request,\/[Challenge,AuthedRequest[A]]])(AuthedService[A]):HttpService"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">challenged</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="challenge">challenge: <a href="../../../package.html#Service[A,B]=scalaz.Kleisli[scalaz.concurrent.Task,A,B]" class="extmbr" name="org.http4s.Service">Service</a>[<a href="../../../Request.html" class="extype" name="org.http4s.Request">Request</a>, <span class="extype" name="scalaz.\/">\/</span>[<a href="../../../Challenge.html" class="extype" name="org.http4s.Challenge">Challenge</a>, <a href="../../../AuthedRequest.html" class="extype" name="org.http4s.AuthedRequest">AuthedRequest</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.A">A</span>]]]</span>)</span><span class="params">(<span name="service">service: <a href="../../../package.html#AuthedService[T]=org.http4s.package.Service[org.http4s.AuthedRequest[T],org.http4s.Response]" class="extmbr" name="org.http4s.AuthedService">AuthedService</a>[<span class="extype" name="org.http4s.server.middleware.authentication.challenged.A">A</span>]</span>)</span><span class="result">: <a href="../../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@challenged[A](challenge:org.http4s.Service[org.http4s.Request,scalaz.\/[org.http4s.Challenge,org.http4s.AuthedRequest[A]]])(service:org.http4s.AuthedService[A]):org.http4s.HttpService" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       
-    </li><li name="org.http4s.server.middleware.authentication#authenticatedUser" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="authenticatedUser:org.http4s.AttributeKey[String]"></a>
-      <a id="authenticatedUser:AttributeKey[String]"></a>
+    </li><li name="org.http4s.server.middleware.authentication.digestAuth" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="digestAuth"></a>
+      <a id="digestAuth:digestAuth"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
-        <span class="kind">val</span>
+        <span class="kind">object</span>
       </span>
       <span class="symbol">
-        <span class="name">authenticatedUser</span><span class="result">: <a href="../../../AttributeKey.html" class="extype" name="org.http4s.AttributeKey">AttributeKey</a>[<span class="extype" name="scala.Predef.String">String</span>]</span>
+        <a href="digestAuth$.html"><span class="name">digestAuth</span></a>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@authenticatedUser:org.http4s.AttributeKey[String]" title="Permalink" target="_top">
+      <a href="../../../../../index.html#org.http4s.server.middleware.authentication.package@digestAuth" title="Permalink" target="_top">
         <img src="../../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
-      
+      <p class="shortcomment cmt">Provides Digest Authentication from RFC 2617.</p><div class="fullcomment"><div class="comment cmt"><p>Provides Digest Authentication from RFC 2617. Note that this class creates a new thread
+on creation to clean up stale nonces. Please call <code>shutdown()</code> when the object is not
+used anymore to kill this thread.</p></div></div>
     </li></ol>
             </div>
 
