@@ -180,7 +180,7 @@ class BlazeBuilder(
     val serverChannel = factory.bind(address, pipelineFactory).get
 
     new Server {
-      override def shutdown: Task[Unit] = Task.delay {
+      override protected def destroy: Task[Unit] = Task.delay {
         serverChannel.close()
         factory.closeGroup()
       }
