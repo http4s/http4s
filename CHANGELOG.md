@@ -1,3 +1,6 @@
+# v0.14.9 (2016-10-09)
+* Don't use `"null"` as query string in servlet backends for requests without a query string
+
 # v0.14.8 (2016-10-04)
 * Allow param names in UriTemplate to have encoded, reserved parameters
 * Upgrade to blaze-0.12.1, to fix OutOfMemoryError with direct buffers
