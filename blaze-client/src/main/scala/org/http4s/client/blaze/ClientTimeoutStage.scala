@@ -34,7 +34,7 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
   /////////// Private impl bits //////////////////////////////////////////
   private def killswitch(name: String, timeout: Duration) = new Runnable {
     override def run(): Unit = {
-      logger.debug(s"Client $name stage is disconnecting due to timeout after $timeout.")
+      logger.debug(s"Client stage is disconnecting due to $name timeout after $timeout.")
 
       // check the idle timeout conditions
       timeoutState.getAndSet(new TimeoutException(s"Client $name timeout after $timeout.")) match {
