@@ -133,7 +133,7 @@ class Http4sServlet(service: HttpService,
   private def toRequest(req: HttpServletRequest): ParseResult[Request] =
     for {
       method <- Method.fromString(req.getMethod)
-      uri <- Uri.requestTarget(s"${req.getRequestURI}?${req.getQueryString}")
+      uri <- Uri.requestTarget(Option(req.getQueryString).map { q => s"${req.getRequestURI}?$q" }.getOrElse(req.getRequestURI))
       version <- HttpVersion.fromString(req.getProtocol)
     } yield Request(
       method = method,

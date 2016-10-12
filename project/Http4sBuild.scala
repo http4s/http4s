@@ -3,10 +3,7 @@ import Keys._
 
 import scala.util.Properties.envOrNone
 
-object Http4sBuild extends Build {
-  // keys
-  val apiVersion = TaskKey[(Int, Int)]("api-version", "Defines the API compatibility version for the project.")
-  val jvmTarget = TaskKey[String]("jvm-target-version", "Defines the target JVM version for object files.")
+object Http4sBuild {
 
   def extractApiVersion(version: String) = {
     val VersionExtractor = """(\d+)\.(\d+)\..*""".r
@@ -39,7 +36,6 @@ object Http4sBuild extends Build {
       }
     ).flatten
 
-  val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
   def scalazCrossBuild(version: String, scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
       case Seq(7, 1, _*) =>
@@ -64,7 +60,7 @@ object Http4sBuild extends Build {
       case Seq(7, 2, _*) => "1.1.1"
     })
   lazy val asyncHttpClient     = "org.asynchttpclient"       % "async-http-client"       % "2.0.12"
-  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.0"
+  lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.1"
   lazy val catsKernelLaws      = "org.typelevel"            %% "cats-kernel-laws"        % catsLaws.revision
   lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.7.2"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
@@ -79,7 +75,7 @@ object Http4sBuild extends Build {
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
   lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.4"
   def jawnStreamz(scalazVersion: String) = "org.http4s"     %% "jawn-streamz"            % scalazCrossBuild("0.9.0", scalazVersion)
-  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.11.v20160721"
+  lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.12.v20160915"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
   lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.4.0"
   lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sCore.revision
@@ -94,7 +90,7 @@ object Http4sBuild extends Build {
   lazy val metricsServlets     = "io.dropwizard.metrics"     % "metrics-servlets"        % metricsCore.revision
   lazy val metricsJson         = "io.dropwizard.metrics"     % "metrics-json"            % metricsCore.revision
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.2"
-  lazy val quasiquotes         = "org.scalamacros"          %% "quasiquotes"             % "2.1.0"  
+  lazy val quasiquotes         = "org.scalamacros"          %% "quasiquotes"             % "2.1.0"
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
   def scalaCompiler(sv: String) = "org.scala-lang"           % "scala-compiler"          % sv
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
@@ -106,7 +102,8 @@ object Http4sBuild extends Build {
   def specs2MatcherExtra(scalazVersion: String) = "org.specs2"           %% "specs2-matcher-extra"      % specs2Core(scalazVersion).revision
   def specs2Scalacheck(scalazVersion: String)   = "org.specs2"           %% "specs2-scalacheck"         % specs2Core(scalazVersion).revision
   def scalazStream(scalazVersion: String)       = "org.scalaz.stream"    %% "scalaz-stream"             % scalazCrossBuild("0.8.4", scalazVersion)
-  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.36"
+  lazy val tomcatCatalina      = "org.apache.tomcat"         % "tomcat-catalina"         % "8.0.37"
   lazy val tomcatCoyote        = "org.apache.tomcat"         % "tomcat-coyote"           % tomcatCatalina.revision
   lazy val twirlApi            = "com.typesafe.play"        %% "twirl-api"               % "1.2.0"
+  lazy val cryptbits           = "org.reactormonk"          %% "cryptobits"              % "1.0"
 }

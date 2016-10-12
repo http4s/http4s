@@ -8,6 +8,26 @@
 * Added support for Zipkin headers
 * Upgrade to json4s-3.4.0
 
+# v0.14.10 (2016-10-12)
+* Include timeout type and duration in blaze client timeouts
+
+# v0.14.9 (2016-10-09)
+* Don't use `"null"` as query string in servlet backends for requests without a query string
+
+# v0.14.8 (2016-10-04)
+* Allow param names in UriTemplate to have encoded, reserved parameters
+* Upgrade to blaze-0.12.1, to fix OutOfMemoryError with direct buffers
+* Upgrade to Scalaz 7.1.10/7.2.6
+* Upgrade to Jetty 9.3.12
+* Upgrade to Tomcat 8.0.37
+
+# v0.14.7 (2016-09-25)
+* Retry middleware now only retries requests with idempotent methods and pure bodies and appropriate status codes
+* Fix bug where redirects followed when an effectful chunk (i.e., `Await`) follows pure ones.
+* Don't uppercase two hex digits after "%25" when percent encoding.
+* Tolerate invalid percent-encodings when decoding.
+* Omit scoverage dependencies from POM
+
 # v0.14.6 (2016-09-11)
 * Don't treat `Kill`ed responses (i.e., HEAD requests) as abnormal
   termination in metrics
