@@ -58,7 +58,7 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6536/102642772@a324a0c)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6580/1327791149@6d32098e)
 ```
 
 One beautiful thing about the `HttpService` model is that we don't
@@ -70,7 +70,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1fb61f35
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@58878eb
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -107,7 +107,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@3a1a0862
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@382af89d
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -207,7 +207,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@43bd381f
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@16d8d2a8
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -224,7 +224,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@2c802028
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@9e69cca
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
