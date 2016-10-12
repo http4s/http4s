@@ -1,3 +1,6 @@
+# v0.14.10 (2016-10-12)
+* Include timeout type and duration in blaze client timeouts
+
 # v0.14.9 (2016-10-09)
 * Don't use `"null"` as query string in servlet backends for requests without a query string
 
