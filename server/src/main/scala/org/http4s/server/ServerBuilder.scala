@@ -9,6 +9,8 @@ import org.http4s.server.SSLSupport.StoreInfo
 
 import scala.concurrent.duration._
 import scalaz.concurrent.{Strategy, Task}
+import scalaz.stream.Process
+import scalaz.stream.Process._
 
 trait ServerBuilder {
   import ServerBuilder._
@@ -38,6 +40,14 @@ trait ServerBuilder {
     */
   final def run: Server =
     start.run
+
+  /** Convenience method to start and stop a server as a Process */
+  final def bracket[A](f: Server => Process[Task, A]): Process[Task, A] =
+    Process.bracket(start)(s => eval_(s.shutdown))(f)
+
+  /** Starts this server as an infinite process. */
+  final def process: Process[Task, Nothing] =
+    bracket(_ => eval(Task.async[Nothing] { cb => }))
 }
 
 object ServerBuilder {
