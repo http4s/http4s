@@ -95,6 +95,11 @@ trait EntityEncoderInstances0 {
     simple[A](hdr)(a => ByteVector.view(show.shows(a).getBytes(charset.nioCharset)))
   }
 
+  def emptyEncoder[A]: EntityEncoder[A] = new EntityEncoder[A] {
+    def toEntity(a: A): Task[Entity] = Task.now(Entity.empty)
+    def headers: Headers = Headers.empty
+  }
+
   implicit def futureEncoder[A](implicit W: EntityEncoder[A], ec: ExecutionContext): EntityEncoder[Future[A]] =
     new EntityEncoder[Future[A]] {
       override def toEntity(a: Future[A]): Task[Entity] = util.task.futureToTask(a).flatMap(W.toEntity)
@@ -131,6 +136,8 @@ trait EntityEncoderInstances0 {
 
 trait EntityEncoderInstances extends EntityEncoderInstances0 {
   private val DefaultChunkSize = 4096
+
+  implicit val unitEncoder: EntityEncoder[Unit] = emptyEncoder[Unit]
 
   implicit def stringEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[String] = {
     val hdr = `Content-Type`(MediaType.`text/plain`).withCharset(charset)
