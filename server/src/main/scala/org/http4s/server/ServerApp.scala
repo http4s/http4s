@@ -11,9 +11,9 @@ import scalaz.concurrent.Task
 import org.http4s.util.threads
 
 /**
- * Apps extending the server app trait get a graceful shutdown.  The
- * 
- */ 
+ * Apps extending the server app trait get a graceful shutdown.
+ */
+@deprecated("Use org.http4s.util.ProcessApp", "0.15")
 trait ServerApp {
   private[this] val logger = org.log4s.getLogger
 
