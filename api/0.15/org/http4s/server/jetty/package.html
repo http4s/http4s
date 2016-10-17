@@ -66,46 +66,8 @@
 
         <div id="types" class="types members">
               <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.jetty.InstrumentedConnectionFactory" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="InstrumentedConnectionFactoryextendsInstrumentedConnectionFactory"></a>
-      <a id="InstrumentedConnectionFactory:InstrumentedConnectionFactory"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">class</span>
-      </span>
-      <span class="symbol">
-        <a href="InstrumentedConnectionFactory.html"><span class="name">InstrumentedConnectionFactory</span></a><span class="result"> extends <span class="extype" name="com.codahale.metrics.jetty9.InstrumentedConnectionFactory">com.codahale.metrics.jetty9.InstrumentedConnectionFactory</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.jetty.package@InstrumentedConnectionFactoryextendsInstrumentedConnectionFactory" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Workaround for https://github.com/http4s/http4s/issues/396
-</p>
-    </li><li name="org.http4s.server.jetty.InstrumentedHandler" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="InstrumentedHandlerextendsHandlerWrapperwithProductwithSerializable"></a>
-      <a id="InstrumentedHandler:InstrumentedHandler"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">case class</span>
-      </span>
-      <span class="symbol">
-        <a href="InstrumentedHandler.html"><span class="name">InstrumentedHandler</span></a><span class="params">(<span name="registry">registry: <span class="extype" name="com.codahale.metrics.MetricRegistry">MetricRegistry</span></span>, <span name="_prefix">_prefix: <span class="extype" name="scala.Option">Option</span>[<span class="extype" name="scala.Predef.String">String</span>] = <span class="symbol">None</span></span>)</span><span class="result"> extends <span class="extype" name="org.eclipse.jetty.server.handler.HandlerWrapper">HandlerWrapper</span> with <span class="extype" name="scala.Product">Product</span> with <span class="extype" name="scala.Serializable">Serializable</span></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.jetty.package@InstrumentedHandlerextendsHandlerWrapperwithProductwithSerializable" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">A Jetty Handler which records various metrics about an underlying <code>Handler</code>
-instance.</p><div class="fullcomment"><div class="comment cmt"><p>A Jetty Handler which records various metrics about an underlying <code>Handler</code>
-instance.</p><p><a href="https://github.com/http4s/http4s/issues/204">See http4s/http4s#204</a>.
-</p></div><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
-    </li><li name="org.http4s.server.jetty.JettyBuilder" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="JettyBuilderextendsServerBuilderwithServletContainerwithIdleTimeoutSupportwithSSLSupportwithMetricsSupport"></a>
+              <ol><li name="org.http4s.server.jetty.JettyBuilder" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="JettyBuilderextendsServerBuilderwithServletContainerwithIdleTimeoutSupportwithSSLSupport"></a>
       <a id="JettyBuilder:JettyBuilder"></a>
       <h4 class="signature">
       <span class="modifier_kind">
@@ -113,10 +75,10 @@ instance.</p><p><a href="https://github.com/http4s/http4s/issues/204">See http4s
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <a href="JettyBuilder.html"><span class="name">JettyBuilder</span></a><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> with <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a> with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a> with <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> with <a href="../MetricsSupport.html" class="extype" name="org.http4s.server.MetricsSupport">MetricsSupport</a></span>
+        <a href="JettyBuilder.html"><span class="name">JettyBuilder</span></a><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> with <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a> with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a> with <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.jetty.package@JettyBuilderextendsServerBuilderwithServletContainerwithIdleTimeoutSupportwithSSLSupportwithMetricsSupport" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.jetty.package@JettyBuilderextendsServerBuilderwithServletContainerwithIdleTimeoutSupportwithSSLSupport" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>Metrics - org.http4s.server.middleware.Metrics</title>
-          <meta name="description" content="Metrics - org.http4s.server.middleware.Metrics" />
-          <meta name="keywords" content="Metrics org.http4s.server.middleware.Metrics" />
+          <title>Metrics - org.http4s.server.metrics.Metrics</title>
+          <meta name="description" content="Metrics - org.http4s.server.metrics.Metrics" />
+          <meta name="keywords" content="Metrics org.http4s.server.metrics.Metrics" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../../index.html';
-            var hash = 'org.http4s.server.middleware.Metrics$';
+            var hash = 'org.http4s.server.metrics.Metrics$';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -29,11 +29,11 @@
         <body class="value">
       <div id="definition">
         <img alt="Object" src="../../../../lib/object_big.png" />
-        <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.server">server</a>.<a href="package.html" class="extype" name="org.http4s.server.middleware">middleware</a></p>
+        <p id="owner"><a href="../../../package.html" class="extype" name="org">org</a>.<a href="../../package.html" class="extype" name="org.http4s">http4s</a>.<a href="../package.html" class="extype" name="org.http4s.server">server</a>.<a href="package.html" class="extype" name="org.http4s.server.metrics">metrics</a></p>
         <h1>Metrics</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="org.http4s.server.middleware">package middleware</a>
+            <a href="package.html" class="extype" name="org.http4s.server.metrics">package metrics</a>
           </div></span></h3><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -49,7 +49,7 @@
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/middleware/Metrics.scala" target="_blank">Metrics.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server-metrics/src/main/scala/org/http4s/server/metrics/Metrics.scala" target="_blank">Metrics.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div></div>
@@ -69,7 +69,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.server.middleware.Metrics"><span>Metrics</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.server.metrics.Metrics"><span>Metrics</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
             <span class="filtertype"></span>
@@ -106,7 +106,7 @@
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -123,7 +123,7 @@
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@##():Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@##():Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -140,11 +140,28 @@
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.server.metrics.Metrics#apply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="apply(m:com.codahale.metrics.MetricRegistry,prefix:String):org.http4s.server.HttpMiddleware"></a>
+      <a id="apply(MetricRegistry,String):HttpMiddleware"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">apply</span><span class="params">(<span name="m">m: <span class="extype" name="com.codahale.metrics.MetricRegistry">MetricRegistry</span></span>, <span name="prefix">prefix: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;org.http4s.server&quot;</span></span>)</span><span class="result">: <a href="../package.html#HttpMiddleware=org.http4s.server.package.Middleware[org.http4s.Request,org.http4s.Response,org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.server.HttpMiddleware">HttpMiddleware</a></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@apply(m:com.codahale.metrics.MetricRegistry,prefix:String):org.http4s.server.HttpMiddleware" title="Permalink" target="_top">
+        <img src="../../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.Any#asInstanceOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="asInstanceOf[T0]:T0"></a>
       <a id="asInstanceOf[T0]:T0"></a>
@@ -157,7 +174,7 @@
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -174,7 +191,7 @@
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@clone():Object" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@clone():Object" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -197,7 +214,7 @@
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -214,7 +231,7 @@
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@equals(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -231,7 +248,7 @@
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@finalize():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -254,7 +271,7 @@
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@getClass():Class[_]" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -271,7 +288,7 @@
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@hashCode():Int" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -288,28 +305,11 @@
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.middleware.Metrics#meter" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="meter(m:com.codahale.metrics.MetricRegistry,name:String)(srvc:org.http4s.HttpService):org.http4s.HttpService"></a>
-      <a id="meter(MetricRegistry,String)(HttpService):HttpService"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">meter</span><span class="params">(<span name="m">m: <span class="extype" name="com.codahale.metrics.MetricRegistry">MetricRegistry</span></span>, <span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span name="srvc">srvc: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>)</span><span class="result">: <a href="../../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@meter(m:com.codahale.metrics.MetricRegistry,name:String)(srvc:org.http4s.HttpService):org.http4s.HttpService" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#ne" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ne(x$1:AnyRef):Boolean"></a>
       <a id="ne(AnyRef):Boolean"></a>
@@ -322,7 +322,7 @@
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -339,7 +339,7 @@
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@notify():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@notify():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -356,7 +356,7 @@
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -373,7 +373,7 @@
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -390,7 +390,7 @@
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@toString():String" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@toString():String" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -407,7 +407,7 @@
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@wait():Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@wait():Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -430,7 +430,7 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -453,7 +453,7 @@
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.middleware.Metrics$@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../../index.html#org.http4s.server.metrics.Metrics$@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

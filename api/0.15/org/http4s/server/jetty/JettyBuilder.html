@@ -47,13 +47,13 @@
         <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">JettyBuilder</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> with <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a> with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a> with <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a> with <a href="../MetricsSupport.html" class="extype" name="org.http4s.server.MetricsSupport">MetricsSupport</a></span>
+        <span class="name">JettyBuilder</span><span class="result"> extends <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> with <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a> with <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a> with <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></span>
       </span>
       </h4>
       
           <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/jetty/src/main/scala/org/http4s/server/jetty/JettyBuilder.scala" target="_blank">JettyBuilder.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
-          <div class="superTypes hiddenContent"><a href="../MetricsSupport.html" class="extype" name="org.http4s.server.MetricsSupport">MetricsSupport</a>, <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>, <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a>, <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>, <a href="../AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a>, <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
+          <div class="superTypes hiddenContent"><a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a>, <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a>, <a href="../../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>, <a href="../AsyncTimeoutSupport.html" class="extype" name="org.http4s.server.AsyncTimeoutSupport">AsyncTimeoutSupport</a>, <a href="../ServerBuilder.html" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
         </div><div class="toggleContainer block">
             <span class="toggle">Known Subclasses</span>
             <div class="subClasses hiddenContent"><a href="JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a></div>
@@ -74,7 +74,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.server.jetty.JettyBuilder"><span>JettyBuilder</span></li><li class="in" name="org.http4s.server.MetricsSupport"><span>MetricsSupport</span></li><li class="in" name="org.http4s.server.SSLSupport"><span>SSLSupport</span></li><li class="in" name="org.http4s.server.IdleTimeoutSupport"><span>IdleTimeoutSupport</span></li><li class="in" name="org.http4s.servlet.ServletContainer"><span>ServletContainer</span></li><li class="in" name="org.http4s.server.AsyncTimeoutSupport"><span>AsyncTimeoutSupport</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.server.jetty.JettyBuilder"><span>JettyBuilder</span></li><li class="in" name="org.http4s.server.SSLSupport"><span>SSLSupport</span></li><li class="in" name="org.http4s.server.IdleTimeoutSupport"><span>IdleTimeoutSupport</span></li><li class="in" name="org.http4s.servlet.ServletContainer"><span>ServletContainer</span></li><li class="in" name="org.http4s.server.AsyncTimeoutSupport"><span>AsyncTimeoutSupport</span></li><li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
                 <span class="filtertype">Implicitly<br />
@@ -828,48 +828,6 @@ reference to the server when it has started.
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a></dd></dl></div>
-    </li><li name="org.http4s.server.jetty.JettyBuilder#withMetricPrefix" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withMetricPrefix(metricPrefix:String):JettyBuilder.this.Self"></a>
-      <a id="withMetricPrefix(String):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withMetricPrefix</span><span class="params">(<span name="metricPrefix">metricPrefix: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.jetty.JettyBuilder@withMetricPrefix(metricPrefix:String):JettyBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Sets the prefix for metrics gathered by the server.</p><div class="fullcomment"><div class="comment cmt"><p>Sets the prefix for metrics gathered by the server.</p></div><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../MetricsSupport.html" class="extype" name="org.http4s.server.MetricsSupport">MetricsSupport</a></dd></dl></div>
-    </li><li name="org.http4s.server.jetty.JettyBuilder#withMetricRegistry" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="withMetricRegistry(metricRegistry:com.codahale.metrics.MetricRegistry):JettyBuilder.this.Self"></a>
-      <a id="withMetricRegistry(MetricRegistry):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withMetricRegistry</span><span class="params">(<span name="metricRegistry">metricRegistry: <span class="extype" name="com.codahale.metrics.MetricRegistry">MetricRegistry</span></span>)</span><span class="result">: <a href="#Self=org.http4s.server.jetty.JettyBuilder" class="extmbr" name="org.http4s.server.jetty.JettyBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../../index.html#org.http4s.server.jetty.JettyBuilder@withMetricRegistry(metricRegistry:com.codahale.metrics.MetricRegistry):JettyBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Collects metrics into the specified <code>MetricRegistry</code>, including:
-* Connections via <code>InstrumentedConnectionFactory</code>
-* The Jetty thread pool via <code>InstrumentedQueuedThreadPool
-* HTTP responses via </code>InstrumentedHandler
-</p><div class="fullcomment"><div class="comment cmt"><p>Collects metrics into the specified <code>MetricRegistry</code>, including:
-* Connections via <code>InstrumentedConnectionFactory</code>
-* The Jetty thread pool via <code>InstrumentedQueuedThreadPool
-* HTTP responses via </code>InstrumentedHandler
-</p></div><dl class="paramcmts block"><dt class="param">metricRegistry</dt><dd class="cmt"><p>The registry to collect metrics into..</p></dd></dl><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a> → <a href="../MetricsSupport.html" class="extype" name="org.http4s.server.MetricsSupport">MetricsSupport</a></dd></dl></div>
     </li><li name="org.http4s.server.jetty.JettyBuilder#withSSL" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="withSSL(keyStore:org.http4s.server.SSLSupport.StoreInfo,keyManagerPassword:String,protocol:String,trustStore:Option[org.http4s.server.SSLSupport.StoreInfo],clientAuth:Boolean):JettyBuilder.this.Self"></a>
       <a id="withSSL(StoreInfo,String,String,Option[StoreInfo],Boolean):Self"></a>
@@ -953,9 +911,7 @@ Not to be confused with the server connectors.
         </div>
 
         <div id="inheritedMembers">
-        <div class="parent" name="org.http4s.server.MetricsSupport">
-              <h3>Inherited from <a href="../MetricsSupport.html" class="extype" name="org.http4s.server.MetricsSupport">MetricsSupport</a></h3>
-            </div><div class="parent" name="org.http4s.server.SSLSupport">
+        <div class="parent" name="org.http4s.server.SSLSupport">
               <h3>Inherited from <a href="../SSLSupport.html" class="extype" name="org.http4s.server.SSLSupport">SSLSupport</a></h3>
             </div><div class="parent" name="org.http4s.server.IdleTimeoutSupport">
               <h3>Inherited from <a href="../IdleTimeoutSupport.html" class="extype" name="org.http4s.server.IdleTimeoutSupport">IdleTimeoutSupport</a></h3>
