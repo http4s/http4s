@@ -27,7 +27,7 @@ trait ElemInstances {
       val stream = toInputStream(msg.body)
       val source = new InputSource(stream)
       msg.charset.foreach(cs => source.setEncoding(cs.nioCharset.name))
-      try DecodeResult.success(XML.loadXML(source, parser))
+      try DecodeResult.success(Http4sXmlLoader.loadXML(source, parser))
       catch {
         case e: SAXParseException =>
           DecodeResult.failure(MalformedMessageBodyFailure("Invalid XML", Some(e)))
