@@ -33,6 +33,11 @@ class AuthenticationSpec extends Http4sSpec {
     else None
   }
 
+  def validatePassword(r: String, u: String, p: String) = Task.now {
+    if (r == realm && u == username && p == password) Some(true)
+    else None
+  }
+
   val service = AuthedService[(String, String)] {
     case GET -> Root as ((user, _)) => Ok(user)
     case req as _ => Response.notFound(req)
@@ -40,21 +45,41 @@ class AuthenticationSpec extends Http4sSpec {
 
   "Failure to authenticate" should {
     "not run unauthorized routes" in {
-      var isNuked = false
-      val authedNukeService = basicAuth(realm, authStore)(nukeService { isNuked = true })
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
-      val res = authedNukeService.run(req).run
-      isNuked must_== false
-      res.status must_== (Unauthorized)
+
+      {
+        var isNuked = false
+        val authedNukeService = basicAuth(realm, authStore _)(nukeService { isNuked = true })
+        val res = authedNukeService.run(req).run
+        isNuked must_== false
+        res.status must_== (Unauthorized)
+      }
+
+      {
+        var isNuked = false
+        val authedValidateNukeService = basicAuth(realm, validatePassword _)(nukeService { isNuked = true })
+        val res = authedValidateNukeService.run(req).run
+        isNuked must_== false
+        res.status must_== (Unauthorized)
+      }
     }
   }
 
   "BasicAuthentication" should {
-    val basicAuthedService = basicAuth(realm, authStore)(service)
+    val basicAuthedService = basicAuth(realm, authStore _)(service)
+    val basicAuthedWithValidationService = basicAuth(realm, validatePassword _)(service)
 
     "Respond to a request without authentication with 401" in {
       val req = Request(uri = Uri(path = "/"))
       val res = basicAuthedService.run(req).run
+
+      res.status must_== (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
+    }
+
+    "(validate) Respond to a request without authentication with 401" in {
+      val req = Request(uri = Uri(path = "/"))
+      val res = basicAuthedWithValidationService.run(req).run
 
       res.status must_== (Unauthorized)
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
@@ -68,6 +93,14 @@ class AuthenticationSpec extends Http4sSpec {
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
+    "(validate) Respond to a request with unknown username with 401" in {
+      val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials("Wrong User", password))))
+      val res = basicAuthedWithValidationService.run(req).run
+
+      res.status must_== (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
+    }
+
     "Respond to a request with wrong password with 401" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
       val res = basicAuthedService.run(req).run
@@ -76,9 +109,24 @@ class AuthenticationSpec extends Http4sSpec {
       res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
     }
 
+    "(validate) Respond to a request with wrong password with 401" in {
+      val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, "Wrong Password"))))
+      val res = basicAuthedWithValidationService.run(req).run
+
+      res.status must_== (Unauthorized)
+      res.headers.get(`WWW-Authenticate`).map(_.value) must_== (Some(Challenge("Basic", realm, Nil.toMap).toString))
+    }
+
     "Respond to a request with correct credentials" in {
       val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
       val res = basicAuthedService.run(req).run
+
+      res.status must_== (Ok)
+    }
+
+    "(validate) Respond to a request with correct credentials" in {
+      val req = Request(uri = Uri(path = "/"), headers = Headers(Authorization(BasicCredentials(username, password))))
+      val res = basicAuthedWithValidationService.run(req).run
 
       res.status must_== (Ok)
     }
