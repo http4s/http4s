@@ -43,7 +43,7 @@ object basicAuth {
   private sealed case class OK(user: String, realm: String) extends AuthReply
   private case object NeedsAuth extends AuthReply
 
-  private def getChallenge[Store](realm: String, store: Store, req: Request, doCheck: (String, Store, Request) => Task[AuthReply]) =
+  private def getChallenge[A](realm: String, store: A, req: Request, doCheck: (String, A, Request) => Task[AuthReply]) =
     doCheck(realm, store, req).map {
       case OK(user, realm) => \/-(AuthedRequest((user, realm), req))
       case NeedsAuth       => -\/(Challenge("Basic", realm, Nil.toMap))
