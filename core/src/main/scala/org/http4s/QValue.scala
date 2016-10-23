@@ -89,7 +89,7 @@ object QValue extends QValueInstances with QValueFunctions {
         case Literal(Constant(d: Double)) =>
           QValue.fromDouble(d).fold(
             e => c.abort(c.enclosingPosition, e.details),
-            qValue => c.Expr(q"org.http4s.QValue.Macros.☠(${qValue.thousandths})")
+            qValue => c.Expr(q"_root_.org.http4s.QValue.Macros.☠(${qValue.thousandths})")
           )
         case _ =>
           c.abort(c.enclosingPosition, s"literal Double value required")
