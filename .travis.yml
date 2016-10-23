@@ -2,6 +2,7 @@ language: scala
 scala:
 - 2.10.6
 - 2.11.8
+- 2.12.0-RC2
 jdk: oraclejdk8
 env:
   global:
@@ -9,6 +10,10 @@ env:
   matrix:
   - SCALAZ_VERSION=7.1.10
   - SCALAZ_VERSION=7.2.6
+matrix:
+  exclude:
+    - scala: 2.12.0-RC2
+      env: SCALAZ_VERSION=7.1.10
 rvm:
 - 2.2.3
 before_script:
