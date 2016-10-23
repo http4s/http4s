@@ -121,7 +121,7 @@ object Uri extends UriFunctions {
         case Literal(Constant(s: String)) =>
           Uri.fromString(s).fold(
             e => c.abort(c.enclosingPosition, e.details),
-            qValue => q"org.http4s.Uri.fromString($s).valueOr(throw _)"
+            qValue => q"_root_.org.http4s.Uri.fromString($s).valueOr(throw _)"
           )
         case _ =>
           c.abort(c.enclosingPosition, s"This method uses a macro to verify that a String literal is a valid URI. Use Uri.fromString if you have a dynamic String that you want to parse as a Uri.")
