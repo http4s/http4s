@@ -27,7 +27,7 @@ class TwirlSpec extends Http4sSpec {
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response(Ok).withBody(html.test())
-      text.decode(resp.run, strict = false).run.run must beXorRight("<h1>test html</h1>")
+      text.decode(resp.unsafeRun, strict = false).value.unsafeRun must beRight("<h1>test html</h1>")
     }
   }
 
@@ -39,7 +39,7 @@ class TwirlSpec extends Http4sSpec {
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response(Ok).withBody(js.test())
-      text.decode(resp.run, strict = false).run.run must beXorRight(""""test js"""")
+      text.decode(resp.unsafeRun, strict = false).value.unsafeRun must beRight(""""test js"""")
     }
   }
 
@@ -51,7 +51,7 @@ class TwirlSpec extends Http4sSpec {
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response(Ok).withBody(txt.test())
-      text.decode(resp.run, strict = false).run.run must beXorRight("""test text""")
+      text.decode(resp.unsafeRun, strict = false).value.unsafeRun must beRight("""test text""")
     }
   }
 
@@ -63,7 +63,7 @@ class TwirlSpec extends Http4sSpec {
 
     "render the body" in prop { implicit cs: Charset =>
       val resp = Response(Ok).withBody(_root_.xml.test())
-      text.decode(resp.run, strict = false).run.run must beXorRight("<test>test xml</test>")
+      text.decode(resp.unsafeRun, strict = false).value.unsafeRun must beRight("<test>test xml</test>")
     }
   }
 }
