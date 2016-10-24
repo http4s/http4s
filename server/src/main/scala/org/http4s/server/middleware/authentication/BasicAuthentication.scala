@@ -21,61 +21,31 @@ object basicAuth {
     * @param validate
     * @return
     */
-  def apply(realm: String, validate: ValidatePassword): AuthMiddleware[(String, String)] = {
+  def apply(realm: String, validate: AuthenticationValidator): AuthMiddleware[(String, String)] = {
     challenged(Service.lift { req =>
-      getChallenge(realm, validate, req, validatePassword _)
+      getChallenge(realm, validate, req)
     })
   }
-
-  /**
-    * Construct authentication middleware that compares the client-provided password
-    * to a plaintext password stored on the server.
-    * @param realm
-    * @param store
-    * @return
-    */
-  def apply(realm: String, store: AuthenticationStore): AuthMiddleware[(String, String)] =
-    challenged(Service.lift { req =>
-      getChallenge(realm, store, req, comparePasswords _)
-    })
 
   private trait AuthReply
   private sealed case class OK(user: String, realm: String) extends AuthReply
   private case object NeedsAuth extends AuthReply
 
-  private def getChallenge[A](realm: String, store: A, req: Request, doCheck: (String, A, Request) => Task[AuthReply]) =
-    doCheck(realm, store, req).map {
+  private def getChallenge[A](realm: String, validate: AuthenticationValidator, req: Request) =
+    validatePassword(realm, validate, req).map {
       case OK(user, realm) => \/-(AuthedRequest((user, realm), req))
       case NeedsAuth       => -\/(Challenge("Basic", realm, Nil.toMap))
     }
 
-  private def validatePassword(realm: String, validate: ValidatePassword, req: Request): Task[AuthReply] = {
+  private def validatePassword(realm: String, validate: AuthenticationValidator, req: Request): Task[AuthReply] = {
     req.headers.get(Authorization) match {
       case Some(Authorization(BasicCredentials(user, client_pass))) =>
-        validate(realm, user, client_pass).map {
-          case Some(true) => OK(user, realm)
+        validate(realm, user, client_pass).map({
+          case Some(_) => OK(user, realm)
           case _ => NeedsAuth
-        }
+        })
 
-      case Some(Authorization(_)) => Task.now(NeedsAuth)
-
-      case None => Task.now(NeedsAuth)
-    }
-  }
-
-  private def comparePasswords(realm: String, store: AuthenticationStore, req: Request): Task[AuthReply] = {
-    req.headers.get(Authorization) match {
-      case Some(Authorization(BasicCredentials(user, client_pass))) =>
-        store(realm, user).map {
-          case None => NeedsAuth
-          case Some(server_pass) =>
-            if (server_pass == client_pass) OK(user, realm)
-            else NeedsAuth
-        }
-
-      case Some(Authorization(_)) => Task.now(NeedsAuth)
-
-      case None => Task.now(NeedsAuth)
+      case _ => Task.now(NeedsAuth)
     }
   }
 }

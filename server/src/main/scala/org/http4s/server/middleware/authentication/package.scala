@@ -10,14 +10,16 @@ package object authentication {
   type Realm = String
   type User = String
   type ClientPasssword = String
-  // A function mapping (realm, username) to password, None if no password
-  // exists for that (realm, username) pair.
+  /**
+    * A function mapping (realm, username) to password, None if no password
+    * exists for that (realm, username) pair.
+    */
   type AuthenticationStore = (Realm, User) => Task[Option[String]]
   /**
     *  Validates a plaintext password (presumably by comparing it to a hashed value).
-    *  Some(true) means the password given is valid.
+    *  A Some value indicates success; None indicates the password failed to validate.
     */
-  type ValidatePassword = (Realm, User, ClientPasssword) => Task[Option[Boolean]]
+  type AuthenticationValidator = (Realm, User, ClientPasssword) => Task[Option[Unit]]
 
   def challenged[A](challenge: Service[Request, Challenge \/ AuthedRequest[A]])
                    (service: AuthedService[A]): HttpService =
