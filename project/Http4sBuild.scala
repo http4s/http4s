@@ -77,7 +77,7 @@ object Http4sBuild {
   lazy val jawnFs2             = "org.http4s"               %% "jawn-fs2"                % "0.10.0"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.12.v20160915"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
-  lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.4.0"
+  lazy val json4sCore          = "org.json4s"               %% "json4s-core"             % "3.4.2"
   lazy val json4sJackson       = "org.json4s"               %% "json4s-jackson"          % json4sCore.revision
   lazy val json4sNative        = "org.json4s"               %% "json4s-native"           % json4sCore.revision
   lazy val jspApi              = "javax.servlet.jsp"         % "javax.servlet.jsp-api"   % "2.3.1" // YourKit hack

@@ -7,7 +7,6 @@ import org.json4s._
 import _root_.jawn.support.json4s.Parser.facade
 
 import scala.util.control.NonFatal
-import scalaz.{EitherT, \/}
 
 trait Json4sInstances[J] {
   implicit lazy val jsonDecoder: EntityDecoder[JValue] = jawn.jawnDecoder(facade)
