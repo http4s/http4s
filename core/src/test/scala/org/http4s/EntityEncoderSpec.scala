@@ -14,7 +14,7 @@ import org.http4s.headers.{`Transfer-Encoding`, `Content-Type`}
 import org.specs2.mutable.Specification
 
 object EntityEncoderSpec {
-  private def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
+  def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
     eval(W.toEntity(a))
       .flatMap { case Entity(body, _ ) => body }
       .through(utf8Decode)
@@ -23,7 +23,7 @@ object EntityEncoderSpec {
       .map(_.getOrElse(""))
       .unsafeRun
 
-  private def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): Chunk[Byte] =
+   def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): Chunk[Byte] =
     eval(W.toEntity(a))
       .flatMap { case Entity(body, _ ) => body }
       .bufferAll

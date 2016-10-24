@@ -64,7 +64,7 @@ object Http4sBuild {
   lazy val catsKernelLaws      = "org.typelevel"            %% "cats-kernel-laws"        % catsLaws.revision
   lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.7.2"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
-  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.5.1"
+  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.5.4"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.4"
   lazy val fs2Cats             = "co.fs2"                   %% "fs2-cats"                % "0.1.0"
   lazy val fs2Io               = "co.fs2"                   %% "fs2-io"                  % "0.9.1"
@@ -73,7 +73,7 @@ object Http4sBuild {
   lazy val http4sWebsocket     = "org.http4s"               %% "http4s-websocket"        % "0.1.3"
   lazy val javaxServletApi     = "javax.servlet"             % "javax.servlet-api"       % "3.1.0"
   lazy val jawnJson4s          = "org.spire-math"           %% "jawn-json4s"             % jawnParser.revision
-  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.8.4"
+  lazy val jawnParser          = "org.spire-math"           %% "jawn-parser"             % "0.10.2"
   lazy val jawnFs2             = "org.http4s"               %% "jawn-fs2"                % "0.10.0"
   lazy val jettyServer         = "org.eclipse.jetty"         % "jetty-server"            % "9.3.12.v20160915"
   lazy val jettyServlet        = "org.eclipse.jetty"         % "jetty-servlet"           % jettyServer.revision
