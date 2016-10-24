@@ -9,10 +9,12 @@ title: JSON handling
 
 Argonaut-shapeless for automatic codec derivation.
 
+Note: argonaut-shapeless is not yet available for argonaut-6.2.
+
 ```scala
 libraryDependencies += Seq(
   "org.http4s" %% "http4s-argonaut" % "0.15.0a-SNAPSHOT",
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.1" % "1.1.1" // or 1.1.0 for non-a versions
+  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0"
 )
 ```
 
@@ -61,15 +63,18 @@ The usage is the same for client and server, both points use an
 One of the imports above brings into scope an `EntityDecoder[Json]` 
 (or `EntityDecoder[JValue]` in the case of json4s).
 
-In argonaut, when one has an `EncodeJson` instance, `.asJson` can be
+In circe, when one has an `Encoder` instance, `.asJson` can be
 called to get to a `Json`.  In the example below, we convert the
 `Hello` case class to JSON for rendering in an `Ok` response.
 
 ```tut:book
-import argonaut._, Argonaut._, ArgonautShapeless._
-import org.http4s.argonaut._
+import io.circe._
+import io.circe.generic.auto._
+import io.circe.syntax._
 
-import org.http4s._, org.http4s.dsl._
+import org.http4s._
+import org.http4s.circe._
+import org.http4s.dsl._
 
 case class User(name: String)
 case class Hello(greeting: String)
@@ -149,11 +154,11 @@ case class User(login: String, id: Long)
 case class Repo(id: Long, name: String, full_name: String, owner: User, `private`: Boolean, html_url: String, description: String, size: Int, stargazers_count: Int, language: String, forks_count: Int, open_issues_count: Int, forks: Int, open_issues: Int, watchers: Int)
 ```
 
-This parts skips over the [client] explanation. We'll use argonaut, with
-[argonaut-shapeless] for codec derivation. The JSON decoder is provided by
-`ArgonautShapeless`, and passed to the `client.expect` method via the second
-argument, which is usually an implicit `EntityDecoder`, but in this case, we
-want to be more explicit.
+This parts skips over the [client] explanation. We'll use circe, with
+[circe-generic] for codec derivation. The JSON decoder is provided by
+circe-generic, and passed to the `client.expect` method via the second
+argument, which is usually an implicit `EntityDecoder`.  In this case,
+we want to be more explicit.
 
 <!-- For more information about the uri templating, visit [uri]. -->
 

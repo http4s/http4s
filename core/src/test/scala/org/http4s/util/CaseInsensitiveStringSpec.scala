@@ -40,21 +40,21 @@ class CaseInsensitiveStringSpec extends Http4sSpec {
   "charAt" should {
     "be consistent with the orignal's charAt" in {
       def gen = for {
-        s <- Arbitrary.arbitrary[String]
+        s <- Arbitrary.arbitrary[String].suchThat(_.nonEmpty)
         i <- Gen.choose(0, s.length - 1)
       } yield (s, i)
-      Prop.forAll(gen) { case (s, i) => s.nonEmpty ==> { s.ci.charAt(i) equals (s.charAt(i)) }}
+      Prop.forAll(gen) { case (s, i) => s.ci.charAt(i) equals (s.charAt(i)) }
     }
   }
 
   "subSequence" should {
     "be consistent with the orignal's subSequence" in {
       def gen = for {
-        s <- Arbitrary.arbitrary[String]
+        s <- Arbitrary.arbitrary[String].suchThat(_.nonEmpty)
         i <- Gen.choose(0, s.length - 1)
         j <- Gen.choose(i, s.length - 1)
       } yield (s, i, j)
-      Prop.forAll(gen) { case (s, i, j) => s.nonEmpty ==> { s.ci.subSequence(i, j) equals (s.subSequence(i, j).ci) }}
+      Prop.forAll(gen) { case (s, i, j) => s.ci.subSequence(i, j) equals (s.subSequence(i, j).ci) }
     }
   }
 }

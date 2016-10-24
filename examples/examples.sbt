@@ -7,9 +7,9 @@ libraryDependencies ++= Seq(
 )
 
 // Adds ALPN to the boot classpath for HTTP/2 support
-javaOptions in run <++= (managedClasspath in Runtime) map { attList =>
+javaOptions in run ++= {
    for {
-     file <- attList.map(_.data)
+     file <- (managedClasspath in Runtime).value.map(_.data)
      path = file.getAbsolutePath if path.contains("jetty.alpn")
    } yield "-Xbootclasspath/p:" + path
 }
