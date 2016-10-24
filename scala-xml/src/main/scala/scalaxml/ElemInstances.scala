@@ -3,12 +3,15 @@ package scalaxml
 
 import java.io.StringReader
 
+import fs2.interop.cats._
+import fs2.Task
 import headers.`Content-Type`
+
 import scala.util.control.NonFatal
 import scala.xml._
 
 trait ElemInstances {
-  implicit def xmlEnocder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
+  implicit def xmlEncoder(implicit charset: Charset = DefaultCharset): EntityEncoder[Elem] =
     EntityEncoder.stringEncoder(charset)
       .contramap[Elem](xml => xml.buildString(false))
       .withContentType(`Content-Type`(MediaType.`application/xml`))
