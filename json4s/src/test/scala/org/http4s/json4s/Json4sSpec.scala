@@ -1,6 +1,7 @@
 package org.http4s
 package json4s
 
+import cats.syntax.option._
 import org.http4s.EntityEncoderSpec._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
@@ -8,7 +9,6 @@ import org.json4s.DefaultReaders._
 import org.json4s.DefaultWriters._
 import org.json4s.JValue
 import org.json4s.JsonAST.{JInt, JField, JString, JObject}
-import scalaz.syntax.std.option._
 
 trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstances[J] =>
   import Json4sSpec._
@@ -39,13 +39,13 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
 
   "jsonOf" should {
     "decode JSON from an json4s reader" in {
-      val result = jsonOf[Int].decode(Request().withBody("42").run, strict = false)
-      result.run.run must beXorRight(42)
+      val result = jsonOf[Int].decode(Request().withBody("42").unsafeRun, strict = false)
+      result.value.unsafeRun must beRight(42)
     }
 
     "handle reader failures" in {
-      val result = jsonOf[Int].decode(Request().withBody(""""oops"""").run, strict = false)
-      result.run.run must beXorLeft.like {
+      val result = jsonOf[Int].decode(Request().withBody(""""oops"""").unsafeRun, strict = false)
+      result.value.unsafeRun must beLeft.like {
         case InvalidMessageBodyFailure("Could not map JSON", _) => ok
       }
     }
@@ -55,13 +55,13 @@ trait Json4sSpec[J] extends JawnDecodeSupportSpec[JValue] { self: Json4sInstance
     implicit val formats = org.json4s.DefaultFormats
 
     "extract JSON from formats" in {
-      val result = jsonExtract[Foo].decode(Request().withBody(JObject("bar" -> JInt(42))).run, strict = false)
-      result.run.run must beXorRight(Foo(42))
+      val result = jsonExtract[Foo].decode(Request().withBody(JObject("bar" -> JInt(42))).unsafeRun, strict = false)
+      result.value.unsafeRun must beRight(Foo(42))
     }
 
     "handle extract failures" in {
-      val result = jsonExtract[Foo].decode(Request().withBody(""""oops"""").run, strict = false)
-      result.run.run must beXorLeft.like {
+      val result = jsonExtract[Foo].decode(Request().withBody(""""oops"""").unsafeRun, strict = false)
+      result.value.unsafeRun must beLeft.like {
         case InvalidMessageBodyFailure("Could not extract JSON", _) => ok
       }
     }
