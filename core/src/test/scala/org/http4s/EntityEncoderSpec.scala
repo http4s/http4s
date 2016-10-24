@@ -23,7 +23,7 @@ object EntityEncoderSpec {
       .map(_.getOrElse(""))
       .unsafeRun
 
-   def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): Chunk[Byte] =
+  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): Chunk[Byte] =
     eval(W.toEntity(a))
       .flatMap { case Entity(body, _ ) => body }
       .bufferAll
