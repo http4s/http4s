@@ -64,7 +64,7 @@ object Http4sBuild {
   lazy val catsKernelLaws      = "org.typelevel"            %% "cats-kernel-laws"        % catsLaws.revision
   lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.7.2"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
-  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.5.1"
+  lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.5.4"
   lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.4"
   lazy val fs2Cats             = "co.fs2"                   %% "fs2-cats"                % "0.1.0"
   lazy val fs2Io               = "co.fs2"                   %% "fs2-io"                  % "0.9.1"

@@ -48,17 +48,17 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       // From ArgonautSpec, which tests similar things:
       // TODO Urgh.  We need to make testing these smoother.
       // https://github.com/http4s/http4s/issues/157
-      def getBody(body: EntityBody): Array[Byte] = body.runLog.run.reduce(_ ++ _).toArray
-      val req = Request().withBody(Json.fromDoubleOrNull(157)).run
-      val body = req.decode { json: Json => Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)}.run.body
+      def getBody(body: EntityBody): Array[Byte] = body.runLog.unsafeRun.toArray
+      val req = Request().withBody(Json.fromDoubleOrNull(157)).unsafeRun
+      val body = req.decode { json: Json => Response(Ok).withBody(json.asNumber.flatMap(_.toLong).getOrElse(0L).toString)}.unsafeRun.body
       new String(getBody(body), StandardCharsets.UTF_8) must_== "157"
     }
   }
 
   "jsonOf" should {
     "decode JSON from a Circe decoder" in {
-      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).run, strict = true)
-      result.run.run must beXorRight(Foo(42))
+      val result = jsonOf[Foo].decode(Request().withBody(Json.obj("bar" -> Json.fromDoubleOrNull(42))).unsafeRun, strict = true)
+      result.value.unsafeRun must_== Right(Foo(42))
     }
 
     // https://github.com/http4s/http4s/issues/514
@@ -67,8 +67,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
       implicit val umlautDecoder = Decoder.instance(_.get("wort")(Decoder[String]).map(Umlaut))
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))
-        val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
-        result.run.run must beXorRight(Umlaut(wort))
+        val result = jsonOf[Umlaut].decode(Request().withBody(json).unsafeRun, strict = true)
+        result.value.unsafeRun must_== Right(Umlaut(wort))
       }
     }
   }
