@@ -125,7 +125,7 @@ lazy val theDsl = libraryProject("dsl")
 lazy val jawn = libraryProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
-    libraryDependencies += jawnStreamz(scalazVersion.value)
+    libraryDependencies += jawnFs2
   )
   .dependsOn(core % "compile;test->test")
 
