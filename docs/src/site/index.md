@@ -44,8 +44,8 @@ Please pick a version that suits your needs, and proceed to its tutorial:
 | ---              | ---         | ----        | ---            | ---    | ---           | --   | 
 | 0.15.0a-SNAPSHOT | Development | [docs/0.15] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
 | 0.15.0-SNAPSHOT  | Development | [docs/0.15] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
-| 0.14.10a          | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
-| 0.14.10           | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
+| 0.14.11a         | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
+| 0.14.11          | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
 | 0.13.3a          | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
 | 0.13.3           | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
 | 0.12.4           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
