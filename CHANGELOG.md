@@ -8,6 +8,9 @@
 * Added support for Zipkin headers
 * Upgrade to json4s-3.4.0
 
+# v0.14.11 (2016-10-25)
+* Fix expansion of `uri` and `q` macros by qualifying with `_root_`
+
 # v0.14.10 (2016-10-12)
 * Include timeout type and duration in blaze client timeouts
 
