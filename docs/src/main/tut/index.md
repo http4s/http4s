@@ -13,9 +13,11 @@ To get started, let's see how to define a [service].
 * About [json] encoding / decoding
 * [URI] handling
 * [Authentication]
+* `EntityDecoder` / `EntityEncoder`, also covers Media Types: [entity]
 
 [json]: json.html
 [client]: client.html
 [service]: service.html
 [URI]: uri.html
 [Authentication]: auth.html
+[entity]: entity.html
