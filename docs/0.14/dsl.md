@@ -58,7 +58,7 @@ val service = HttpService {
   case _ =>
     Task.delay(Response(Status.Ok))
 }
-// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6623/2080306253@3c5aeb67)
+// service: org.http4s.HttpService = Kleisli(org.http4s.package$HttpService$$$Lambda$6529/1518042265@3ad7303b)
 ```
 
 One beautiful thing about the `HttpService` model is that we don't
@@ -70,7 +70,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5d3d7bfa
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@1b70767a
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -107,7 +107,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@3c09eb33
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@60879f41
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -207,7 +207,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@17d16c62
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@42e0f899
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -224,7 +224,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@3f1c2ee7
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@77386eb6
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
