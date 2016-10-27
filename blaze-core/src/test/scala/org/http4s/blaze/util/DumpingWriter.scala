@@ -12,18 +12,18 @@ import org.http4s.batteries._
 import org.http4s.util.chunk.ByteChunkMonoid
 
 object DumpingWriter {
-  def dump(p: EntityBody): Chunk[Byte] = {
+  def dump(p: EntityBody): Array[Byte] = {
     val w = new DumpingWriter()
     w.writeProcess(p).unsafeRun
-    w.getVector
+    w.toArray
   }
 }
 
 class DumpingWriter extends ProcessWriter {
   private val buffers = new ListBuffer[Chunk[Byte]]
 
-  def getVector(): Chunk[Byte] = buffers.synchronized {
-    Foldable[List].fold(buffers.toList)
+  def toArray: Array[Byte] = buffers.synchronized {
+    Foldable[List].fold(buffers.toList).toBytes.values
   }
 
   override implicit protected def ec: ExecutionContext = Execution.trampoline

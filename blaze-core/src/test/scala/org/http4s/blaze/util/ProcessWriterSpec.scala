@@ -16,6 +16,7 @@ import fs2.compress.deflate
 import org.http4s.blaze.TestHead
 import org.http4s.blaze.pipeline.{LeafBuilder, TailStage}
 import org.http4s.util.StringWriter
+import org.specs2.execute.PendingUntilFixed
 
 class ProcessWriterSpec extends Http4sSpec {
   case object Failed extends RuntimeException
@@ -118,11 +119,11 @@ class ProcessWriterSpec extends Http4sSpec {
         message + "\r\n" +
         "0\r\n" +
         "\r\n"
-    }
+    }.pendingUntilFixed // TODO fs2 port: it doesn't know which chunk is last, and can't optimize
 
     "Write a single emit with length header" in {
       writeProcess(chunk(messageBuffer))(builder) must_== "Content-Length: 12\r\n\r\n" + message
-    }
+    }.pendingUntilFixed // TODO fs2 port: it doesn't know which chunk is last, and can't optimize
 
     "Write two emits" in {
       val p = chunk(messageBuffer) ++ chunk(messageBuffer)
@@ -138,7 +139,7 @@ class ProcessWriterSpec extends Http4sSpec {
     "Write an await" in {
       val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
       writeProcess(p)(builder) must_== "Content-Length: 12\r\n\r\n" + message
-    }
+    }.pendingUntilFixed // TODO fs2 port: it doesn't know which chunk is last, and can't optimize
 
     "Write two awaits" in {
       val p = eval(Task.delay(messageBuffer)).flatMap(chunk)
@@ -209,13 +210,10 @@ class ProcessWriterSpec extends Http4sSpec {
     }
 
     "ProcessWriter must be stack safe" in {
-      val p = repeatEval(Task.async[Chunk[Byte]]{ _(Right(Chunk.empty))}(Http4sSpec.TestPoolStrategy)).take(300000)
-
-      // the scalaz.stream built of Task.async's is not stack safe
-      p.run.unsafeRun must throwA[StackOverflowError]
+      val p = repeatEval(Task.async[Byte]{ _(Right(0.toByte))}(Strategy.sequential)).take(300000)
 
       // The dumping writer is stack safe when using a trampolining EC
-      DumpingWriter.dump(p.flatMap(chunk)) must_== Chunk.empty
+      (new DumpingWriter).writeProcess(p).unsafeAttemptRun must beRight
     }
 
     "Execute cleanup on a failing ProcessWriter" in {
