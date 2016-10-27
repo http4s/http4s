@@ -1,14 +1,15 @@
 package org.http4s
 package blaze
 
-import http.http_parser.Http1ClientParser
-import org.http4s.Status
-import scala.collection.mutable.ListBuffer
 import java.nio.ByteBuffer
-
-
 import java.nio.charset.StandardCharsets
-import scodec.bits.ByteVector
+import scala.collection.mutable.ListBuffer
+
+import fs2._
+import org.http4s.Status
+import org.http4s.batteries._
+import org.http4s.blaze.http.http_parser.Http1ClientParser
+import org.http4s.util.chunk.ByteChunkMonoid
 
 class ResponseParser extends Http1ClientParser {
 
@@ -22,7 +23,7 @@ class ResponseParser extends Http1ClientParser {
 
   /** Will not mutate the ByteBuffers in the Seq */
   def parseResponse(buffs: Seq[ByteBuffer]): (Status, Set[Header], String) = {
-    val b = ByteBuffer.wrap(buffs.map(b => ByteVector(b).toArray).toArray.flatten)
+    val b = ByteBuffer.wrap(buffs.map(b => b.array).toArray.flatten)
     parseResponseBuffer(b)
   }
     
@@ -39,8 +40,8 @@ class ResponseParser extends Http1ClientParser {
     }
 
     val bp = {
-      val bytes = body.foldLeft(ByteVector.empty)((c1, c2) => c1 ++ ByteVector(c2)).toArray
-      new String(bytes, StandardCharsets.ISO_8859_1)
+      val bytes = body.toList.foldMap(bb => Chunk.bytes(bb.array))
+      new String(bytes.toBytes.values, StandardCharsets.ISO_8859_1)
     }
 
     val headers = this.headers.result.map{ case (k,v) => Header(k,v): Header }.toSet

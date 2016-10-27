@@ -2,37 +2,38 @@ package org.http4s
 package blaze
 package util
 
-import scodec.bits.ByteVector
+import cats._
+import fs2._
 
 import scala.collection.mutable.ListBuffer
 import scala.concurrent.{ExecutionContext, Future}
-import scalaz.concurrent.Task
 
-import scalaz.stream.Process
+import org.http4s.batteries._
+import org.http4s.util.chunk.ByteChunkMonoid
 
 object DumpingWriter {
-  def dump(p: EntityBody): ByteVector = {
+  def dump(p: EntityBody): Chunk[Byte] = {
     val w = new DumpingWriter()
-    w.writeProcess(p).run
-    w.getVector()
+    w.writeProcess(p).unsafeRun
+    w.getVector
   }
 }
 
 class DumpingWriter extends ProcessWriter {
-  private val buffers = new ListBuffer[ByteVector]
+  private val buffers = new ListBuffer[Chunk[Byte]]
 
-  def getVector(): ByteVector = buffers.synchronized {
-    buffers.foldLeft(ByteVector.empty)(_ ++ _)
+  def getVector(): Chunk[Byte] = buffers.synchronized {
+    Foldable[List].fold(buffers.toList)
   }
 
   override implicit protected def ec: ExecutionContext = Execution.trampoline
 
-  override protected def writeEnd(chunk: ByteVector): Future[Boolean] = buffers.synchronized {
+  override protected def writeEnd(chunk: Chunk[Byte]): Future[Boolean] = buffers.synchronized {
     buffers += chunk
     Future.successful(false)
   }
 
-  override protected def writeBodyChunk(chunk: ByteVector, flush: Boolean): Future[Unit] = {
+  override protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] = {
     buffers += chunk
     Future.successful(())
   }
