@@ -130,7 +130,7 @@ Don't do this:
 client.get[EntityBody]("some-url")(request => request.body)
 ```
 
-Passing it to a `EntityDecoder` is save.
+Passing it to a `EntityDecoder` is safe.
 
 ```
 client.get[T]("some-url")(request => jsonOf(request.body))

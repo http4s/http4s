@@ -5,9 +5,9 @@ title: Dealing with Entity Bodies
 
 ## Why Entity*
 
-Http4s handles HTTP requests and responses in a streaming fashing. Your service
-will recieve a request after the header has been parsed (ok, not 100%
-streaming), but before the body has been fully recieved. The same applies to the
+Http4s handles HTTP requests and responses in a streaming fashion. Your service
+will receive a request after the header has been parsed (ok, not 100%
+streaming), but before the body has been fully received. The same applies to the
 http client usage, where you can start a connection before the body is fully
 materialized. You don't have to load the full body into memory to submit the
 request either. Taking a look at `Request` and `Response`, both have a body of
