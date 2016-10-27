@@ -39,17 +39,5 @@ class CharsetRangeSpec extends Http4sSpec {
     }
   }
 
-  checkAll(ScalazProperties.order.laws[CharsetRange])
-
-  "sort by descending q-values" in {
-    prop { (x: CharsetRange, y: CharsetRange) =>
-      x.qValue > y.qValue ==> x < y
-    }
-  }
-
-  "have no preference among equal q-values" in {
-    prop { (x: CharsetRange, y: CharsetRange, q: QValue) =>
-      x.withQValue(q) === y.withQValue(q)
-    }
-  }
+  checkAll(ScalazProperties.equal.laws[CharsetRange])
 }
