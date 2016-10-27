@@ -48,20 +48,20 @@ object Http4sBuild {
     }
   def specs2Version(scalazVersion: String) =
     VersionNumber(scalazVersion).numbers match {
-      case Seq(7, 1, _*) => "3.7-scalaz-7.1.6"
-      case Seq(7, 2, _*) => "3.7"
+      case Seq(7, 2, _*) => "3.8.5.1"
+      case Seq(7, 1, _*) => "3.8.5.1-scalaz-7.1"
     }
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.9.v20160720"
   lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.2-M3"
-  lazy val argonautShapeless   = "com.github.alexarchambault" %%"argonaut-shapeless"     % "1.2.0-M1"
+  lazy val argonautShapeless   = "com.github.alexarchambault" %%"argonaut-shapeless_6.2" % "1.2.0-M3"
   lazy val asyncHttpClient     = "org.asynchttpclient"       % "async-http-client"       % "2.0.12"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.1"
   lazy val catsKernelLaws      = "org.typelevel"            %% "cats-kernel-laws"        % catsLaws.revision
-  lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.7.2"
+  lazy val catsLaws            = "org.typelevel"            %% "cats-laws"               % "0.8.0"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
   lazy val circeJawn           = "io.circe"                 %% "circe-jawn"              % "0.5.4"
-  lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.4"
+  lazy val discipline          = "org.typelevel"            %% "discipline"              % "0.7.1"
   lazy val fs2Cats             = "co.fs2"                   %% "fs2-cats"                % "0.1.0"
   lazy val fs2Io               = "co.fs2"                   %% "fs2-io"                  % "0.9.1"
   lazy val gatlingTest         = "io.gatling"                % "gatling-test-framework"  % "2.2.1"
@@ -87,6 +87,7 @@ object Http4sBuild {
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
   def scalaCompiler(sv: String) = "org.scala-lang"           % "scala-compiler"          % sv
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
+  lazy val scalacheck          = "org.scalacheck"           %% "scalacheck"              % "1.13.3"
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
   def scalazCore(version: String)               = "org.scalaz"           %% "scalaz-core"               % version
   def scalazScalacheckBinding(version: String)  = "org.scalaz"           %% "scalaz-scalacheck-binding" % version

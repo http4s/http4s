@@ -12,9 +12,10 @@ import org.http4s.batteries._
 import org.http4s.headers._
 import org.http4s.util.string._
 
+import org.scalacheck.{Arbitrary, Cogen, Gen}
 import org.scalacheck.Arbitrary._
 import org.scalacheck.Gen._
-import org.scalacheck.{ Arbitrary, Gen }
+import org.scalacheck.rng.Seed
 
 trait TestInstances {
   implicit class ParseResultSyntax[A](self: ParseResult[A]) {
@@ -64,6 +65,8 @@ trait TestInstances {
     10 -> standardMethods,
     1 -> tokens.map(Method.fromString(_).yolo)
   ))
+  implicit lazy val cogenMethod: Cogen[Method] =
+    Cogen[Int].contramap(_.##)
 
   lazy val validStatusCodes =
     choose(100, 599)
@@ -75,10 +78,13 @@ trait TestInstances {
     code <- validStatusCodes
     reason <- arbString.arbitrary
   } yield Status.fromIntAndReason(code, reason).yolo
+
   implicit lazy val arbitraryStatus: Arbitrary[Status] = Arbitrary(frequency(
     10 -> standardStatuses,
     1 -> customStatuses
   ))
+  implicit lazy val cogenStatus: Cogen[Status] =
+    Cogen[Int].contramap(_.code)
 
   implicit lazy val arbitraryQueryParam: Arbitrary[(String, Option[String])] =
     Arbitrary { frequency(
@@ -101,21 +107,38 @@ trait TestInstances {
       major <- choose(0, 9)
       minor <- choose(0, 9)
     } yield HttpVersion.fromVersion(major, minor).yolo }
+  implicit lazy val cogenHttpVersion: Cogen[HttpVersion] =
+    Cogen[(Int, Int)].contramap(v => (v.major, v.minor))
 
   implicit lazy val arbitraryNioCharset: Arbitrary[NioCharset] =
     Arbitrary(oneOf(NioCharset.availableCharsets.values.asScala.toSeq))
+  implicit lazy val cogenNioCharset: Cogen[NioCharset] =
+    Cogen[String].contramap(_.name)
 
   implicit lazy val arbitraryCharset: Arbitrary[Charset] =
     Arbitrary { arbitrary[NioCharset].map(Charset.fromNioCharset) }
+  implicit lazy val cogenCharset: Cogen[Charset] =
+    Cogen[NioCharset].contramap(_.nioCharset)
 
   implicit lazy val arbitraryQValue: Arbitrary[QValue] =
-    Arbitrary { oneOf(const(0), const(1000), choose(0, 1000)).map(QValue.fromThousandths(_).yolo) }
+    Arbitrary { oneOf(const(0), const(1000), choose(0, 1000))
+      .map(QValue.fromThousandths(_).yolo)
+    }
+  implicit lazy val cogenQValue: Cogen[QValue] =
+    Cogen[Int].contramap(_.thousandths)
 
   implicit lazy val arbitraryCharsetRange: Arbitrary[CharsetRange] =
     Arbitrary { for {
       charsetRange <- charsetRangesNoQuality
       q <- arbitrary[QValue]
     } yield charsetRange.withQValue(q) }
+  implicit lazy val cogenCharsetRange: Cogen[CharsetRange] =
+    Cogen[Either[(Charset, QValue), QValue]].contramap {
+      case CharsetRange.Atom(charset, qValue) =>
+        Left((charset, qValue))
+      case CharsetRange.`*`(qValue) =>
+        Right(qValue)
+    }
 
   implicit lazy val arbitraryCharsetAtomRange: Arbitrary[CharsetRange.Atom] =
     Arbitrary { for {
