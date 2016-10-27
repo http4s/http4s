@@ -10,11 +10,10 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := scalazCrossBuild("0.15.0-SNAPSHOT", scalazVersion.value)
+version      in ThisBuild := "0.15.0-SNAPSHOT"
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaOrganization in ThisBuild := "org.typelevel"
 scalaVersion in ThisBuild := "2.11.8"
-scalazVersion in ThisBuild := "7.1.10"
 crossScalaVersions in ThisBuild := Seq(scalaVersion.value)
 
 // Root project
@@ -358,7 +357,6 @@ def exampleProject(name: String) = http4sProject(name)
 
 lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
 lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
-lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
 
 lazy val projectMetadata = Seq(
   homepage := Some(url("http://http4s.org/")),
@@ -451,15 +449,15 @@ lazy val commonSettings = Seq(
     if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0")
     else Seq.empty
   ),
-  libraryDependencies <++= scalazVersion(sz => Seq(
+  libraryDependencies ++= Seq(
     catsLaws,
     catsKernelLaws,
     discipline,
     logbackClassic,
     scalacheck, // 0.13.3 fixes None.get
-    specs2Core(sz),
-    specs2Scalacheck(sz)
-  ).map(_ % "test")),
+    specs2Core,
+    specs2Scalacheck
+  ).map(_ % "test"),
   // don't include scoverage as a dependency in the pom
   // https://github.com/scoverage/sbt-scoverage/issues/153
   // this code was copied from https://github.com/mongodb/mongo-spark
@@ -493,8 +491,8 @@ lazy val noCoverageSettings = Seq(
 )
 
 lazy val mimaSettings = Seq(
-  mimaFailOnProblem <<= version.zipWith(scalazVersion)(compatibleVersion(_, _).isDefined),
-  mimaPreviousArtifacts := (compatibleVersion(version.value, scalazVersion.value) map {
+  mimaFailOnProblem := compatibleVersion(version.value).isDefined,
+  mimaPreviousArtifacts := (compatibleVersion(version.value) map {
     organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
   }).toSet,
   mimaBinaryIssueFilters ++= {

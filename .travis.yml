@@ -5,9 +5,6 @@ jdk: oraclejdk8
 env:
   global:
   - secure: d1FSl5YJDbNXvOY7185WfF8PbiccHA1oyb8/qyBJcKX070ovNNA1HYl09DR+62ZxkYDWPuFx4f1FfL8OiGWdCRJC2qfBe5SDLOzjGJE8wvD0oyHp4h71XLJ6mbtInixYzgJwpDfW8c+lmODo6Z7MGr5JSlxagXpiTVu9Gv4dygw=
-  matrix:
-  - SCALAZ_VERSION=7.1.10
-  - SCALAZ_VERSION=7.2.6
 rvm:
 - 2.2.3
 before_script:
