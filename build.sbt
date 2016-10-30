@@ -263,7 +263,12 @@ lazy val docs = http4sProject("docs")
             "-sourcepath", b.getAbsolutePath)
       case _ => Seq.empty
     },
-    includeFilter in makeSite := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.swf" | "*.json" | "*.md" | "CNAME" | "_config.yml",
+    includeFilter in makeSite := (
+      "*.html" | "*.css" | 
+      "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
+      "*.js" | "*.swf" | "*.json" | "*.md" |
+      "CNAME" | "_config.yml"
+    ),
     siteMappings := {
       if (Http4sGhPages.buildMainSite) siteMappings.value
       else Seq.empty
