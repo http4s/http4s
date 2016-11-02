@@ -1,25 +1,23 @@
 package org.http4s
 package servlet
 
+import java.net.InetSocketAddress
 import java.util.concurrent.ExecutorService
-import org.http4s.headers.`Transfer-Encoding`
-import server._
+import javax.servlet._
+import javax.servlet.http.{HttpServlet, HttpServletRequest, HttpServletResponse}
 
-import javax.servlet.http.{HttpServletResponse, HttpServletRequest, HttpServlet}
-import java.net.{InetSocketAddress, InetAddress}
+import fs2.{Strategy, Task}
+import org.http4s.batteries._
+import org.http4s.headers.`Transfer-Encoding`
+import org.http4s.server._
+import org.log4s.getLogger
 
 import scala.collection.JavaConverters._
-import javax.servlet._
-
 import scala.concurrent.duration.Duration
-import scalaz.concurrent.{Strategy, Task}
-import scalaz.{-\/, \/-}
-import scala.util.control.NonFatal
-import org.log4s.getLogger
 
 class Http4sServlet(service: HttpService,
                     asyncTimeout: Duration = Duration.Inf,
-                    threadPool: ExecutorService = Strategy.DefaultExecutorService,
+                    threadPool: ExecutorService,
                     private[this] var servletIo: ServletIo = BlockingServletIo(DefaultChunkSize))
   extends HttpServlet
 {
@@ -52,8 +50,8 @@ class Http4sServlet(service: HttpService,
   }
 
   private def logServletIo(): Unit = logger.info(servletIo match {
-    case BlockingServletIo(chunkSize) => s"Using blocking servlet I/O with chunk size ${chunkSize}"
-    case NonBlockingServletIo(chunkSize) => s"Using non-blocking servlet I/O with chunk size ${chunkSize}"
+    case BlockingServletIo(chunkSize) => s"Using blocking servlet I/O with chunk size $chunkSize"
+    case NonBlockingServletIo(chunkSize) => s"Using non-blocking servlet I/O with chunk size $chunkSize"
   })
 
   override def service(servletRequest: HttpServletRequest, servletResponse: HttpServletResponse): Unit =
@@ -65,9 +63,9 @@ class Http4sServlet(service: HttpService,
       toRequest(servletRequest).fold(
         onParseFailure(_, servletResponse, bodyWriter),
         handleRequest(ctx, _, bodyWriter)
-      ).runAsync {
-        case \/-(()) => ctx.complete()
-        case -\/(t) => errorHandler(servletRequest, servletResponse)(t)
+      ).unsafeRunAsync {
+        case Right(()) => ctx.complete()
+        case Left(t) => errorHandler(servletRequest, servletResponse)(t)
       }
     }
     catch errorHandler(servletRequest, servletResponse)
@@ -83,7 +81,7 @@ class Http4sServlet(service: HttpService,
                             request: Request,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    val response = Task.fork(serviceFn(request))(threadPool)
+    val response: Task[Response] = Task.start(serviceFn(request))(Strategy.fromExecutor(threadPool)).unsafeRun
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }
@@ -94,7 +92,7 @@ class Http4sServlet(service: HttpService,
       val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
       if (!servletResponse.isCommitted) {
         val response = Response(Status.InternalServerError).withBody("Service timed out.")
-        renderResponse(response, servletResponse, bodyWriter).run
+        renderResponse(response, servletResponse, bodyWriter).unsafeRun
       }
       else {
         val servletRequest = ctx.getRequest.asInstanceOf[HttpServletRequest]
@@ -125,7 +123,7 @@ class Http4sServlet(service: HttpService,
       val response = Task.now(Response(Status.InternalServerError))
       // We don't know what I/O mode we're in here, and we're not rendering a body
       // anyway, so we use a NullBodyWriter.
-      renderResponse(response, servletResponse, NullBodyWriter).run
+      renderResponse(response, servletResponse, NullBodyWriter).unsafeRun
       if (servletRequest.isAsyncStarted)
         servletRequest.getAsyncContext.complete()
   }
