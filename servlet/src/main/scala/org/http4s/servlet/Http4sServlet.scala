@@ -81,7 +81,7 @@ class Http4sServlet(service: HttpService,
                             request: Request,
                             bodyWriter: BodyWriter): Task[Unit] = {
     ctx.addListener(new AsyncTimeoutHandler(request, bodyWriter))
-    val response: Task[Response] = Task.start(serviceFn(request))(Strategy.fromExecutor(threadPool)).unsafeRun
+    val response = Task.start(serviceFn(request))(Strategy.fromExecutor(threadPool)).flatten
     val servletResponse = ctx.getResponse.asInstanceOf[HttpServletResponse]
     renderResponse(response, servletResponse, bodyWriter)
   }

@@ -45,8 +45,6 @@ object Issue454 {
       case req@GET -> Root => Ok(insanelyHugeData)
     },
     servletIo    = org.http4s.servlet.NonBlockingServletIo(4096),
-    threadPool   = org.http4s.util.threads.newDefaultFixedThreadPool(
-      4, org.http4s.util.threads.threadFactory(i => s"org.http4s.server.jetty.DefaultExecutor-$i")
-    )
+    threadPool   = org.http4s.Http4sSpec.TestPool
   )
 }
