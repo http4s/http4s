@@ -14,3 +14,13 @@ i.fa-slack.irc {
 .eol {
   color: #666;
 }
+
+.navbar-brand {
+  font-size: 20px;
+}
+
+.navbar-logo {
+  width: 1em;
+  height: 1em;
+  vertical-align: middle;
+}
