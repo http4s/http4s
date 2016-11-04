@@ -67,7 +67,7 @@ We'll use a small library for the signing/validation of the cookies, which
 basically contains the code used by the Play framework for this specific task.
 
 ```scala
-libraryDependencies += "org.reactormonk" %% "cryptobits" % "1.0"
+libraryDependencies += "org.reactormonk" %% "cryptobits" % "1.1"
 ```
 
 First, we'll need to set the cookie. For the crypto instance, we'll need to
