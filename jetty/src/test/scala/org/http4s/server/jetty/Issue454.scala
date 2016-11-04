@@ -44,6 +44,7 @@ object Issue454 {
     service      = HttpService {
       case req@GET -> Root => Ok(insanelyHugeData)
     },
-    servletIo    = org.http4s.servlet.NonBlockingServletIo(4096)
+    servletIo    = org.http4s.servlet.NonBlockingServletIo(4096),
+    threadPool   = org.http4s.Http4sSpec.TestPool
   )
 }

@@ -2,11 +2,9 @@ package org.http4s
 package servlet
 package syntax
 
-import javax.servlet.{ServletRegistration, ServletContext}
+import javax.servlet.{ServletContext, ServletRegistration}
 
 import org.http4s.server.AsyncTimeoutSupport
-
-import scalaz.concurrent.Strategy
 
 trait ServletContextSyntax {
   implicit def ToServletContextOps(self: ServletContext): ServletContextOps = new ServletContextOps(self)
@@ -18,7 +16,11 @@ final class ServletContextOps private[syntax](val self: ServletContext) extends 
     val servlet = new Http4sServlet(
       service = service,
       asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
-      threadPool = Strategy.DefaultExecutorService,
+      // TODO fs2 port
+      // This is garbage how do we shut this down I just want it to compile argh
+      threadPool = org.http4s.util.threads.newDefaultFixedThreadPool(
+        4, org.http4s.util.threads.threadFactory(i => s"org.http4s.blaze.server.DefaultExecutor-$i")
+      ),
       servletIo = servletIo
     )
     val reg = self.addServlet(name, servlet)

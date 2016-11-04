@@ -2,26 +2,23 @@ package org.http4s
 package server
 package jetty
 
-import java.util
-import javax.servlet.{DispatcherType, Filter}
-
-import org.eclipse.jetty.util.ssl.SslContextFactory
-import org.eclipse.jetty.util.thread.QueuedThreadPool
-import org.http4s.server.SSLSupport.{StoreInfo, SSLBits}
-
 import java.net.InetSocketAddress
+import java.util
 import java.util.concurrent.ExecutorService
 import javax.servlet.http.HttpServlet
-import org.eclipse.jetty.server.ServerConnector
-import org.http4s.servlet.{ServletIo, ServletContainer, Http4sServlet}
+import javax.servlet.{DispatcherType, Filter}
 
-import scala.concurrent.duration._
-import scalaz.concurrent.Task
-
+import fs2.Task
+import org.eclipse.jetty.server.{ServerConnector, Server => JServer, _}
+import org.eclipse.jetty.servlet.{FilterHolder, ServletContextHandler, ServletHolder}
 import org.eclipse.jetty.util.component.AbstractLifeCycle.AbstractLifeCycleListener
 import org.eclipse.jetty.util.component.LifeCycle
-import org.eclipse.jetty.server.{Server => JServer, _}
-import org.eclipse.jetty.servlet.{FilterHolder, ServletHolder, ServletContextHandler}
+import org.eclipse.jetty.util.ssl.SslContextFactory
+import org.eclipse.jetty.util.thread.QueuedThreadPool
+import org.http4s.server.SSLSupport.{SSLBits, StoreInfo}
+import org.http4s.servlet.{Http4sServlet, ServletContainer, ServletIo}
+
+import scala.concurrent.duration._
 
 sealed class JettyBuilder private (
   socketAddress: InetSocketAddress,
@@ -173,7 +170,11 @@ sealed class JettyBuilder private (
 
 object JettyBuilder extends JettyBuilder(
   socketAddress = ServerBuilder.DefaultSocketAddress,
-  serviceExecutor = ServerBuilder.DefaultServiceExecutor,
+  // TODO fs2 port
+  // This is garbage how do we shut this down I just want it to compile argh
+  serviceExecutor = org.http4s.util.threads.newDefaultFixedThreadPool(
+    4, org.http4s.util.threads.threadFactory(i => s"org.http4s.server.tomcat.DefaultExecutor-$i")
+  ),
   idleTimeout = IdleTimeoutSupport.DefaultIdleTimeout,
   asyncTimeout = AsyncTimeoutSupport.DefaultAsyncTimeout,
   servletIo = ServletContainer.DefaultServletIo,
