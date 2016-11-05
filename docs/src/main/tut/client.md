@@ -127,13 +127,13 @@ Don't do this:
 
 ```scala
 // will come back to haunt you
-client.get[EntityBody]("some-url")(request => request.body)
+client.get[EntityBody]("some-url")(response => response.body)
 ```
 
 Passing it to a `EntityDecoder` is safe.
 
 ```
-client.get[T]("some-url")(request => jsonOf(request.body))
+client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
 [entity]: entity.md
