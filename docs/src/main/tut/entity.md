@@ -18,23 +18,53 @@ The `EntityDecoder` and `EntityEncoder` help with the streaming nature of the
 data in a http body, and they also have additional logic to deal with media
 types. Not all decoders are streaming, depending on the implementation.
 
-## Working with Media Types
+## Construction and Media Types
 `Entity*`s also encode which media types they correspond to. The
-`EntityDecoders` for json expect `application/json`, and when you encode a body
-with the `EntityEncoder` for json, it appends the `Content-Type:
-application/json` header. To implement this functionality, the constructor
-`EntityDecoder.decodeBy` uses `MediaRange`s, you can pass multiple as needed.
-See the [MediaRange] companion object for ranges, and [MediaType] for specific
+`EntityDecoders` for json expect `application/json`. To implement this
+functionality, the constructor `EntityDecoder.decodeBy` uses `MediaRange`s, you
+can pass multiple as needed. You can also append functionality to an existing
+one via `implicitly[EntityDecoder[T]].map` - however, you can't change the media
+type in that case.
+
+ When you encode a body with the `EntityEncoder` for json, it appends the
+`Content-Type: application/json` header. You can construct new encoders via
+`EntityEncoder.encodeBy` or reuse an already existing one via
+`implicitly[EntityEncoder[T]].contramap` and `withContentType`.
+
+ See the [MediaRange] companion object for ranges, and [MediaType] for specific
 types. Because of the implicit conversions, you can also use `(String, String)`
 for a `MediaType`.
 
-### Strictness
+By default, decoders ignore content types - it would be rather unpleasant have
+unexpected runtime errors.
 
-By default, the decoders are strict, so you will get an error when the headers
-tell you about a different data type. In some cases, an outside API might be
-broken and give you text/text as `Content-Type`, but it's really json.
+## Chaining Decoders
 
-TODO: What do?
+However, the content types are used when chaining decoders with `orElse`.
+
+```tut
+import org.http4s._
+import org.http4s.dsl._
+import scalaz._, Scalaz._
+
+sealed trait Resp
+case class Audio(body: String) extends Resp
+case class Video(body: String) extends Resp
+
+val response = Ok().withBody("").withContentType(Some(MediaType.`audio/ogg`))
+val audioDec = EntityDecoder.decodeBy(MediaType.`audio/ogg`) { msg =>
+  EitherT {
+    msg.as[String].map(s => Audio(s).right[DecodeFailure])
+  }
+}
+val videoDec = EntityDecoder.decodeBy(MediaType.`video/ogg`) { msg =>
+  EitherT {
+    msg.as[String].map(s => Video(s).right[DecodeFailure])
+  }
+}
+val bothDec = audioDec.widen[Resp] orElse videoDec.widen[Resp]
+println(response.as(bothDec).run)
+```
 
 ## Presupplied Encoders/Decoders
 The `EntityEncoder`/`EntityDecoder`s shipped with http4s.
