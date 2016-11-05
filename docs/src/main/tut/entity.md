@@ -88,6 +88,11 @@ cause conflicts with the builtin Decoders.
 
 - scala-xml: `"org.http4s" %% "http4s-scala-xml" % Http4sVersion`
 
+### Twirl
+If you're working with twirl templates, there's a bridge for that too:
+
+- scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
+
 [streams-tutorial]: https://gist.github.com/djspiewak/d93a9c4983f63721c41c
 [EntityEncoder]: http://http4s.org/api/0.15/#org.http4s.EntityEncoder$
 [EntityDecoder]: http://http4s.org/api/0.15/#org.http4s.EntityDecoder$
