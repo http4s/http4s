@@ -31,7 +31,7 @@ type in that case.
 `EntityEncoder.encodeBy` or reuse an already existing one via
 `EntityEncoder[T].contramap` and `withContentType`.
 
- See the [MediaRange] companion object for ranges, and [MediaType] for specific
+See the [MediaRange] companion object for ranges, and [MediaType] for specific
 types. Because of the implicit conversions, you can also use `(String, String)`
 for a `MediaType`.
 
