@@ -224,13 +224,13 @@ Ok(drip).run
 
 A `Request` is a regular `case class` - you can destructure it to extract its
 values. By extension, you can also `match/case` it with different possible
-destructurings. To build these different destructors, you can make use of the
+destructurings. To build these different extractors, you can make use of the
 DSL.
 
-Most often, you extract the `Request` into a HTTP verb and the path, via the
-`->` object. On the right side, you'll have the HTTP verb, on the other side the
-path. Naturally, `_` is a valid matcher too, so any call to `/api` can be
-blocked:
+Most often, you extract the `Request` into a HTTP `Method` (verb) and the path,
+via the `->` object. On the left side, you'll have the HTTP `Method`, on the
+other side the path. Naturally, `_` is a valid matcher too, so any call to
+`/api` can be blocked, regardless of `Method`:
 
 ```tut
 HttpService {
@@ -238,8 +238,8 @@ HttpService {
 }
 ```
 
-To also block all subcalls `/api/...`, you'll need `/:`, since it matches
-everything, and not just the next element:
+To also block all subcalls `/api/...`, you'll need `/:`, which is right
+associative, and matches everything after, and not just the next element:
 
 ```tut
 HttpService {
@@ -247,7 +247,7 @@ HttpService {
 }
 ```
 
-For matching some verbs, there's `|`:
+For matching more than one `Method`, there's `|`:
 
 ```tut
 HttpService {
@@ -259,7 +259,7 @@ Honorable mention: `~`, for matching file extensions.
 
 ```tut
 HttpService {
-  case GET -> Root / "example" ~ "json" => ???
+  case GET -> Root / file ~ "json" => Ok(s"""{"response": "You asked for $file"}""")
 }
 ```
 
@@ -287,6 +287,7 @@ in which `IntVar` does it.
 import java.time.LocalDate
 import scala.util.Try
 import scalaz.concurrent.Task
+import org.http4s.client._
 
 object LocalDateVar {
   def unapply(str: String): Option[LocalDate] = {
@@ -297,12 +298,14 @@ object LocalDateVar {
   }
 }
 
-def getTemperatureForecast(date: LocalDate): Task[Double] = ???
+def getTemperatureForecast(date: LocalDate): Task[Double] = Task(42.23)
 
 val dailyWeatherService = HttpService {
   case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
     Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
 }
+
+println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService).run)
 ```
 
 ### Handling query parameters

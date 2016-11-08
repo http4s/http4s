@@ -20,22 +20,22 @@ types. Not all decoders are streaming, depending on the implementation.
 
 ## Construction and Media Types
 `Entity*`s also encode which media types they correspond to. The
-`EntityDecoders` for json expect `application/json`. To implement this
-functionality, the constructor `EntityDecoder.decodeBy` uses `MediaRange`s, you
+`EntityDecoder`s for json expect `application/json`. To implement this
+functionality, the constructor `EntityDecoder.decodeBy` uses `MediaRange`s. You
 can pass multiple as needed. You can also append functionality to an existing
-one via `implicitly[EntityDecoder[T]].map` - however, you can't change the media
+one via `EntityDecoder[T].map` - however, you can't change the media
 type in that case.
 
  When you encode a body with the `EntityEncoder` for json, it appends the
 `Content-Type: application/json` header. You can construct new encoders via
 `EntityEncoder.encodeBy` or reuse an already existing one via
-`implicitly[EntityEncoder[T]].contramap` and `withContentType`.
+`EntityEncoder[T].contramap` and `withContentType`.
 
  See the [MediaRange] companion object for ranges, and [MediaType] for specific
 types. Because of the implicit conversions, you can also use `(String, String)`
 for a `MediaType`.
 
-By default, decoders ignore content types - it would be rather unpleasant have
+Decoders ignore content types by default - it would be rather unpleasant have
 unexpected runtime errors.
 
 ## Chaining Decoders
@@ -89,7 +89,7 @@ cause conflicts with the builtin Decoders.
 - scala-xml: `"org.http4s" %% "http4s-scala-xml" % Http4sVersion`
 
 ### Twirl
-If you're working with twirl templates, there's a bridge for that too:
+If you're working with [twirl] templates, there's a bridge for that too:
 
 - scala-twirl: `"org.http4s" %% "http4s-twirl" % Http4sVersion`
 
@@ -98,3 +98,4 @@ If you're working with twirl templates, there's a bridge for that too:
 [EntityDecoder]: http://http4s.org/api/0.15/#org.http4s.EntityDecoder$
 [MediaType]: http://http4s.org/api/0.15/#org.http4s.MediaType$
 [MediaRange]: http://http4s.org/api/0.15/#org.http4s.MediaRange$
+[twirl]: https://github.com/playframework/twirl
