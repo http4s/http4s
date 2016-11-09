@@ -89,7 +89,7 @@ We'll use a small library for the signing/validation of the cookies, which
 basically contains the code used by the Play framework for this specific task.
 
 ```scala
-libraryDependencies += "org.reactormonk" %% "cryptobits" % "1.0"
+libraryDependencies += "org.reactormonk" %% "cryptobits" % "1.1"
 ```
 
 First, we'll need to set the cookie. For the crypto instance, we'll need to
@@ -107,10 +107,10 @@ import java.time._
 // import java.time._
 
 val key = PrivateKey(scala.io.Codec.toUTF8(scala.util.Random.alphanumeric.take(20).mkString("")))
-// key: org.reactormonk.PrivateKey = PrivateKey([B@2e6bbbbf)
+// key: org.reactormonk.PrivateKey = PrivateKey([B@c499eb7)
 
 val crypto = CryptoBits(key)
-// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@2e6bbbbf))
+// crypto: org.reactormonk.CryptoBits = CryptoBits(PrivateKey([B@c499eb7))
 
 val clock = Clock.systemUTC
 // clock: java.time.Clock = SystemClock[Z]

@@ -54,7 +54,7 @@ import org.http4s._, org.http4s.dsl._
 // import org.http4s.dsl._
 ```
 
-Using the http4s-dsl, we can construct an `HttpService` by pattern
+Using the [http4s-dsl], we can construct an `HttpService` by pattern
 matching the request.  Let's build a service that matches requests to
 `GET /hello/:name`, where `:name` is a path parameter for the person to
 greet.
@@ -65,100 +65,6 @@ val helloWorldService = HttpService {
     Ok(s"Hello, $name.")
 }
 // helloWorldService: org.http4s.HttpService = Kleisli(<function1>)
-```
-
-#### Handling path parameters
-Path params can be extracted and converted to a specific type but are
-`String`s by default. There are numeric extractors provided in the form
-of `IntVar` and `LongVar`.
-
-```scala
-import scalaz.concurrent.Task
-// import scalaz.concurrent.Task
-
-def getUserName(userId: Int): Task[String] = ???
-// getUserName: (userId: Int)scalaz.concurrent.Task[String]
-
-val usersService = HttpService {
-  case request @ GET -> Root / "users" / IntVar(userId) =>
-    Ok(getUserName(userId))
-}
-// usersService: org.http4s.HttpService = Kleisli(<function1>)
-```
-
-If you want to extract a variable of type `T`, you can provide a custom extractor
-object which implements `def unapply(str: String): Option[T]`, similar to the way
-in which `IntVar` does it.
-
-```scala
-import java.time.LocalDate
-// import java.time.LocalDate
-
-import scala.util.Try
-// import scala.util.Try
-
-import scalaz.concurrent.Task
-// import scalaz.concurrent.Task
-
-object LocalDateVar {
-  def unapply(str: String): Option[LocalDate] = {
-    if (!str.isEmpty)
-      Try(LocalDate.parse(str)).toOption
-    else
-      None
-  }
-}
-// defined object LocalDateVar
-
-def getTemperatureForecast(date: LocalDate): Task[Double] = ???
-// getTemperatureForecast: (date: java.time.LocalDate)scalaz.concurrent.Task[Double]
-
-val dailyWeatherService = HttpService {
-  case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
-    Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
-}
-// dailyWeatherService: org.http4s.HttpService = Kleisli(<function1>)
-```
-
-#### Handling query parameters
-A query parameter needs to have a `QueryParamDecoderMatcher` provided to
-extract it. In order for the `QueryParamDecoderMatcher` to work there needs to
-be an implicit `QueryParamDecoder[T]` in scope. `QueryParamDecoder`s for simple
-types can be found in the `QueryParamDecoder` object. There are also
-`QueryParamDecoderMatcher`s available which can be used to
-return optional or validated parameter values.
-
-In the example below we're finding query params named `country` and `year` and
-then parsing them as a `String` and `java.time.Year`.
-
-```scala
-import java.time.Year
-// import java.time.Year
-
-import scalaz.ValidationNel
-// import scalaz.ValidationNel
-
-object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
-// defined object CountryQueryParamMatcher
-
-implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
-  def decode(queryParamValue: QueryParameterValue): ValidationNel[ParseFailure, Year] = {
-    QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
-  }
-}
-// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@2bd27a7
-
-object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
-// defined object YearQueryParamMatcher
-
-def getAverageTemperatureForCountryAndYear(country: String, year: Year): Task[Double] = ???
-// getAverageTemperatureForCountryAndYear: (country: String, year: java.time.Year)scalaz.concurrent.Task[Double]
-
-val averageTemperatureService = HttpService {
-  case request @ GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
-    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
-}
-// averageTemperatureService: org.http4s.HttpService = Kleisli(<function1>)
 ```
 
 ### Returning content in the response
@@ -223,11 +129,11 @@ import org.http4s.server.blaze._
 import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
-val services = usersService orElse dailyWeatherService orElse averageTemperatureService orElse tweetService
+val services = tweetService orElse helloWorldService
 // services: org.http4s.Service[org.http4s.Request,org.http4s.Response] = Kleisli(<function1>)
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(helloWorldService, "/").mountService(services, "/api")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@b38e111
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@30fdfdbc
 ```
 
 The `bindHttp` call isn't strictly necessary as the server will be set to run

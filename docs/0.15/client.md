@@ -31,7 +31,7 @@ import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@491c3944
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7281e03e
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -49,7 +49,7 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@5e536c72)
+// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@363f617c)
 ```
 
 ### Describing a call
@@ -59,7 +59,7 @@ and the URI we want:
 
 ```scala
 val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@25a1ee5b
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@15a36d27
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -93,7 +93,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@80c8235
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@4fe062c
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -115,10 +115,10 @@ greetingList.run.mkString("\n")
 //        greetingList.run.mkString("\n")
 //                     ^
 // res0: String =
-// Hello, Christopher.
-// Hello, Jessica.
 // Hello, Michael.
 // Hello, Ashley.
+// Hello, Jessica.
+// Hello, Christopher.
 ```
 
 ## Cleaning up
@@ -137,5 +137,33 @@ httpClient.shutdownNow()
 
 Take a look at [json].
 
+## Body decoding / encoding
+
+The reusable way to decode/encode a request is to write a custom `EntityDecoder`
+and `EntityEncoder`. For that topic, take a look at [entity].
+
+If you prefer the quick & dirty solution, some of the methods take a `Response
+=> Task[A]` argument, which lets you add a function which includes the decoding
+functionality, but ignores the media type.
+
+```scala
+TODO: Example here
+```
+
+However, your function has to consume the body before the returned `Task` exits.
+Don't do this:
+
+```scala
+// will come back to haunt you
+client.get[EntityBody]("some-url")(response => response.body)
+```
+
+Passing it to a `EntityDecoder` is safe.
+
+```
+client.get[T]("some-url")(response => jsonOf(response.body))
+```
+
+[entity]: entity.md
 [service]: service.html
 [json]: json.html

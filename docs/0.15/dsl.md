@@ -72,7 +72,7 @@ scala> val getRoot = Request(Method.GET, uri("/"))
 getRoot: org.http4s.Request = Request(method=GET, uri=/, headers=Headers()
 
 scala> val task = service.run(getRoot)
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@13dcb3e1
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@5b79780
 ```
 
 Where is our `Response`?  It hasn't been created yet.  We wrapped it
@@ -109,7 +109,7 @@ applying a status code:
 
 ```scala
 scala> val okTask = Ok()
-okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@54a3231d
+okTask: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@19a8a3a9
 
 scala> val ok = okTask.run
 <console>:20: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -209,7 +209,7 @@ scala> val task = Ok(Future {
      |   println("I run when the future is constructed.")
      |   "Greetings from the future!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@11118c27
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@6df61b46
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -226,7 +226,7 @@ scala> val task = Ok(Task {
      |   println("I run when the Task is run.")
      |   "Mission accomplished!"
      | })
-task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@159c07ba
+task: scalaz.concurrent.Task[org.http4s.Response] = scalaz.concurrent.Task@73651866
 
 scala> task.run
 <console>:24: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -283,3 +283,151 @@ res8: org.http4s.Response = Response(status=200, headers=Headers(Content-Type: t
 ```
 
 ## Matching and extracting requests
+
+A `Request` is a regular `case class` - you can destructure it to extract its
+values. By extension, you can also `match/case` it with different possible
+destructurings. To build these different extractors, you can make use of the
+DSL.
+
+Most often, you extract the `Request` into a HTTP `Method` (verb) and the path,
+via the `->` object. On the left side, you'll have the HTTP `Method`, on the
+other side the path. Naturally, `_` is a valid matcher too, so any call to
+`/api` can be blocked, regardless of `Method`:
+
+```scala
+scala> HttpService {
+     |   case request @ _ -> Root / "api" => Forbidden()
+     | }
+res9: org.http4s.HttpService = Kleisli(<function1>)
+```
+
+To also block all subcalls `/api/...`, you'll need `/:`, which is right
+associative, and matches everything after, and not just the next element:
+
+```scala
+scala> HttpService {
+     |   case request @ _ -> "api" /: _ => Forbidden()
+     | }
+res10: org.http4s.HttpService = Kleisli(<function1>)
+```
+
+For matching more than one `Method`, there's `|`:
+
+```scala
+scala> HttpService {
+     |   case request @ (GET | POST) -> Root / "api"  => ???
+     | }
+res11: org.http4s.HttpService = Kleisli(<function1>)
+```
+
+Honorable mention: `~`, for matching file extensions.
+
+```scala
+scala> HttpService {
+     |   case GET -> Root / file ~ "json" => Ok(s"""{"response": "You asked for $file"}""")
+     | }
+res12: org.http4s.HttpService = Kleisli(<function1>)
+```
+
+### Handling path parameters
+Path params can be extracted and converted to a specific type but are
+`String`s by default. There are numeric extractors provided in the form
+of `IntVar` and `LongVar`.
+
+```scala
+import scalaz.concurrent.Task
+// import scalaz.concurrent.Task
+
+def getUserName(userId: Int): Task[String] = ???
+// getUserName: (userId: Int)scalaz.concurrent.Task[String]
+
+val usersService = HttpService {
+  case request @ GET -> Root / "users" / IntVar(userId) =>
+    Ok(getUserName(userId))
+}
+// usersService: org.http4s.HttpService = Kleisli(<function1>)
+```
+
+If you want to extract a variable of type `T`, you can provide a custom extractor
+object which implements `def unapply(str: String): Option[T]`, similar to the way
+in which `IntVar` does it.
+
+```scala
+import java.time.LocalDate
+// import java.time.LocalDate
+
+import scala.util.Try
+// import scala.util.Try
+
+import scalaz.concurrent.Task
+// import scalaz.concurrent.Task
+
+import org.http4s.client._
+// import org.http4s.client._
+
+object LocalDateVar {
+  def unapply(str: String): Option[LocalDate] = {
+    if (!str.isEmpty)
+      Try(LocalDate.parse(str)).toOption
+    else
+      None
+  }
+}
+// defined object LocalDateVar
+
+def getTemperatureForecast(date: LocalDate): Task[Double] = Task(42.23)
+// getTemperatureForecast: (date: java.time.LocalDate)scalaz.concurrent.Task[Double]
+
+val dailyWeatherService = HttpService {
+  case request @ GET -> Root / "weather" / "temperature" / LocalDateVar(localDate) =>
+    Ok(getTemperatureForecast(localDate).map(s"The temperature on $localDate will be: " + _))
+}
+// dailyWeatherService: org.http4s.HttpService = Kleisli(<function1>)
+
+println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService).run)
+// <console>:33: warning: method run in class Task is deprecated: use unsafePerformSync
+//        println(GET(Uri.uri("/weather/temperature/2016-11-05")).flatMap(dailyWeatherService).run)
+//                                                                                             ^
+// Response(status=200, headers=Headers(Content-Type: text/plain; charset=UTF-8, Content-Length: 44))
+```
+
+### Handling query parameters
+A query parameter needs to have a `QueryParamDecoderMatcher` provided to
+extract it. In order for the `QueryParamDecoderMatcher` to work there needs to
+be an implicit `QueryParamDecoder[T]` in scope. `QueryParamDecoder`s for simple
+types can be found in the `QueryParamDecoder` object. There are also
+`QueryParamDecoderMatcher`s available which can be used to
+return optional or validated parameter values.
+
+In the example below we're finding query params named `country` and `year` and
+then parsing them as a `String` and `java.time.Year`.
+
+```scala
+import java.time.Year
+// import java.time.Year
+
+import scalaz.ValidationNel
+// import scalaz.ValidationNel
+
+object CountryQueryParamMatcher extends QueryParamDecoderMatcher[String]("country")
+// defined object CountryQueryParamMatcher
+
+implicit val yearQueryParamDecoder = new QueryParamDecoder[Year] {
+  def decode(queryParamValue: QueryParameterValue): ValidationNel[ParseFailure, Year] = {
+    QueryParamDecoder.decodeBy[Year, Int](Year.of).decode(queryParamValue)
+  }
+}
+// yearQueryParamDecoder: org.http4s.QueryParamDecoder[java.time.Year] = $anon$1@794a80a
+
+object YearQueryParamMatcher extends QueryParamDecoderMatcher[Year]("year")
+// defined object YearQueryParamMatcher
+
+def getAverageTemperatureForCountryAndYear(country: String, year: Year): Task[Double] = ???
+// getAverageTemperatureForCountryAndYear: (country: String, year: java.time.Year)scalaz.concurrent.Task[Double]
+
+val averageTemperatureService = HttpService {
+  case request @ GET -> Root / "weather" / "temperature" :? CountryQueryParamMatcher(country) +& YearQueryParamMatcher(year)  =>
+    Ok(getAverageTemperatureForCountryAndYear(country, year).map(s"Average temperature for $country in $year was: " + _))
+}
+// averageTemperatureService: org.http4s.HttpService = Kleisli(<function1>)
+```
