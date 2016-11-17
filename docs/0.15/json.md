@@ -9,10 +9,12 @@ title: JSON handling
 
 Argonaut-shapeless for automatic codec derivation.
 
+Note: argonaut-shapeless is not yet available for argonaut-6.2.
+
 ```scala
 libraryDependencies += Seq(
   "org.http4s" %% "http4s-argonaut" % "0.15.0a-SNAPSHOT",
-  "com.github.alexarchambault" %% "argonaut-shapeless_6.1" % "1.1.1" // or 1.1.0 for non-a versions
+  "com.github.alexarchambault" %% "argonaut-shapeless_6.2" % "1.2.0"
 )
 ```
 
@@ -61,21 +63,27 @@ The usage is the same for client and server, both points use an
 One of the imports above brings into scope an `EntityDecoder[Json]` 
 (or `EntityDecoder[JValue]` in the case of json4s).
 
-In argonaut, when one has an `EncodeJson` instance, `.asJson` can be
+In circe, when one has an `Encoder` instance, `.asJson` can be
 called to get to a `Json`.  In the example below, we convert the
 `Hello` case class to JSON for rendering in an `Ok` response.
 
 ```scala
-import argonaut._, Argonaut._, ArgonautShapeless._
-// import argonaut._
-// import Argonaut._
-// import ArgonautShapeless._
+import io.circe._
+// import io.circe._
 
-import org.http4s.argonaut._
-// import org.http4s.argonaut._
+import io.circe.generic.auto._
+// import io.circe.generic.auto._
 
-import org.http4s._, org.http4s.dsl._
+import io.circe.syntax._
+// import io.circe.syntax._
+
+import org.http4s._
 // import org.http4s._
+
+import org.http4s.circe._
+// import org.http4s.circe._
+
+import org.http4s.dsl._
 // import org.http4s.dsl._
 
 case class User(name: String)
@@ -96,7 +104,7 @@ import org.http4s.server.blaze._
 // import org.http4s.server.blaze._
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(jsonService, "/")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@7600e78b
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@4139f884
 
 val blazeServer = builder.run
 // blazeServer: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -117,10 +125,10 @@ import org.http4s.Uri
 // import org.http4s.Uri
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@38e30419)
+// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@10668b26)
 
 val req = Request(uri = Uri.uri("http://localhost:8080/hello"), method = Method.POST).withBody(User("Anabelle"))(jsonEncoderOf)
-// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@371ed36d
+// req: scalaz.concurrent.Task[org.http4s.Request] = scalaz.concurrent.Task@3425f06a
 
 httpClient.expect(req)(jsonOf[Hello]).run
 // <console>:44: warning: method run in class Task is deprecated: use unsafePerformSync
@@ -180,11 +188,11 @@ case class Repo(id: Long, name: String, full_name: String, owner: User, `private
 // defined class Repo
 ```
 
-This parts skips over the [client] explanation. We'll use argonaut, with
-[argonaut-shapeless] for codec derivation. The JSON decoder is provided by
-`ArgonautShapeless`, and passed to the `client.expect` method via the second
-argument, which is usually an implicit `EntityDecoder`, but in this case, we
-want to be more explicit.
+This parts skips over the [client] explanation. We'll use circe, with
+[circe-generic] for codec derivation. The JSON decoder is provided by
+circe-generic, and passed to the `client.expect` method via the second
+argument, which is usually an implicit `EntityDecoder`.  In this case,
+we want to be more explicit.
 
 <!-- For more information about the uri templating, visit [uri]. -->
 
@@ -196,7 +204,7 @@ import org.http4s.util.string._
 // import org.http4s.util.string._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@5923dee7)
+// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@79a4fbcc)
 
 def repos(organization: String): Task[List[Repo]] = {
   val uri = Uri.uri("https://api.github.com/orgs") / organization / "repos"
@@ -205,15 +213,15 @@ def repos(organization: String): Task[List[Repo]] = {
 // repos: (organization: String)scalaz.concurrent.Task[List[Repo]]
 
 val http4s = repos("http4s")
-// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@f795a4
+// http4s: scalaz.concurrent.Task[List[Repo]] = scalaz.concurrent.Task@e6688f2
 
 http4s.map(_.map(_.stargazers_count).mkString("\n")).run
 // <console>:49: warning: method run in class Task is deprecated: use unsafePerformSync
 //        http4s.map(_.map(_.stargazers_count).mkString("\n")).run
 //                                                             ^
 // res3: String =
-// 597
-// 85
+// 604
+// 87
 // 6
 // 70
 // 0
