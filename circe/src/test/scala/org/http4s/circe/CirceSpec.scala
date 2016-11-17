@@ -18,8 +18,10 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   val foo = Foo(42)
   // Beware of possible conflicting shapeless versions if using the circe-generic module
   // to derive these.
-  implicit val FooDecoder = Decoder.instance(_.get("bar")(Decoder[Int]).map(Foo))
-  implicit val FooEncoder = Encoder.instance[Foo](foo => Json.obj("bar" -> Encoder[Int].apply(foo.bar)))
+  implicit val FooDecoder: Decoder[Foo] =
+    Decoder.forProduct1("bar")(Foo.apply)
+  implicit val FooEncoder: Encoder[Foo] =
+    Encoder.forProduct1("bar")(foo => (foo.bar))
 
   "json encoder" should {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
@@ -64,7 +66,8 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     // https://github.com/http4s/http4s/issues/514
     Fragment.foreach(Seq("ärgerlich", """"ärgerlich"""")) { wort =>
       sealed case class Umlaut(wort: String)
-      implicit val umlautDecoder = Decoder.instance(_.get("wort")(Decoder[String]).map(Umlaut))
+      implicit val umlautDecoder =
+        Decoder.forProduct1("wort")(Umlaut.apply)
       s"handle JSON with umlauts: $wort" >> {
         val json = Json.obj("wort" -> Json.fromString(wort))
         val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)

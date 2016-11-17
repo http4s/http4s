@@ -16,8 +16,8 @@ scalaVersion in ThisBuild := "2.11.8"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
 // `set scalazVersion in ThisBuild := "7.2.4"` to change which version of scalaz
 // is used to build the project.
-scalazVersion in ThisBuild := "7.1.10"
-crossScalaVersions in ThisBuild := scalaVersion(Seq(_, "2.11.8")).value
+scalazVersion in ThisBuild := "7.1.11"
+crossScalaVersions in ThisBuild := Seq("2.10.6", scalaVersion.value, "2.12.0")
 
 // Root project
 name := "root"
@@ -143,8 +143,7 @@ lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sBuild.argonaut(scalazVersion.value),
-      jawnParser
+      Http4sBuild.argonaut
     )
   )
   .dependsOn(core % "compile;test->test", jawn % "compile;test->test")
@@ -169,16 +168,7 @@ lazy val json4s = libraryProject("json4s")
 lazy val json4sNative = libraryProject("json4s-native")
   .settings(
     description := "Provides json4s-native codecs for http4s",
-    libraryDependencies += Http4sBuild.json4sNative,
-    scalacOptions := {
-      VersionNumber(scalaVersion.value).numbers match {
-        case Seq(2, y, _) if y >= 11 =>
-          // scala.text.Document is deprecated starting in 2.10
-          scalacOptions.value filterNot (_ == "-Xfatal-warnings")
-        case _ =>
-          scalacOptions.value
-      }
-    }
+    libraryDependencies += Http4sBuild.json4sNative
   )
   .dependsOn(json4s % "compile;test->test")
 
@@ -236,8 +226,10 @@ lazy val docs = http4sProject("docs")
   .settings(ghpages.settings)
   .settings(tutSettings)
   .settings(
-    libraryDependencies += scalazVersion {szv => argonautShapeless(szv) }.value,
-    libraryDependencies += cryptbits,
+    libraryDependencies ++= Seq(
+      circeGeneric,
+      cryptobits
+    ),
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -291,7 +283,7 @@ lazy val docs = http4sProject("docs")
     git.remoteRepo := "git@github.com:http4s/http4s.git",
     ghpagesNoJekyll := false
   )
-  .dependsOn(client, core, theDsl, blazeServer, blazeClient, argonaut)
+  .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 
 lazy val examples = http4sProject("examples")
   .settings(noPublishSettings)
@@ -463,16 +455,17 @@ lazy val commonSettings = Seq(
       "-Ybackend:GenBCode"
     ) else Seq.empty
   }.value,
-  javacOptions ++= jvmTarget.map { jvm => Seq(
-    "-source", jvm,
-    "-target", jvm,
+  scalacOptions -= {
+    CrossVersion.partialVersion(scalaVersion.value) match {
+      case Some((2, 12)) => "-Yinline-warnings"
+      case _ => ""
+    }
+  },
+  javacOptions ++= Seq(
+    "-source", jvmTarget.value,
+    "-target", jvmTarget.value,
     "-Xlint:deprecation",
     "-Xlint:unchecked"
-  )}.value,
-  resolvers ++= Seq(
-    Resolver.typesafeRepo("releases"),
-    Resolver.sonatypeRepo("snapshots"),
-    "Scalaz Bintray Repo" at "http://dl.bintray.com/scalaz/releases"
   ),
   libraryDependencies ++= scalaVersion(v =>
     if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0")
@@ -515,7 +508,7 @@ lazy val noPublishSettings = Seq(
 )
 
 lazy val noCoverageSettings = Seq(
-  ScoverageSbtPlugin.ScoverageKeys.coverageExcludedPackages := ".*"
+  coverageExcludedPackages := ".*"
 )
 
 lazy val mimaSettings = Seq(
