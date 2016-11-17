@@ -4,10 +4,10 @@ package circe
 import java.nio.charset.StandardCharsets
 
 import io.circe._
+import Status.Ok
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.EntityEncoderSpec.writeToString
-import Status.Ok
 import org.specs2.specification.core.Fragment
 
 // Originally based on ArgonautSpec
@@ -23,6 +23,11 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
   implicit val FooEncoder: Encoder[Foo] =
     Encoder.forProduct1("bar")(foo => (foo.bar))
 
+  case class FooBar(foo: Int, bar: Option[Int])
+  val fooBar = FooBar(42, None)
+  implicit val FooBarDecoder = Decoder.forProduct2[Int, Option[Int], FooBar]("foo", "bar")(FooBar.apply)
+  implicit val FooBarEncoder = Encoder.forProduct2[Int, Option[Int], FooBar]("foo", "bar")(t => (t.foo, t.bar))
+
   "json encoder" should {
     val json = Json.obj("test" -> Json.fromString("CirceSupport"))
 
@@ -31,7 +36,7 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
 
     "write compact JSON" in {
-      writeToString(json) must_== ("""{"test":"CirceSupport"}""")
+      writeToString(json) must_== """{"test":"CirceSupport"}"""
     }
   }
 
@@ -41,7 +46,16 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     }
 
     "write compact JSON" in {
-      writeToString(foo)(jsonEncoderOf[Foo]) must_== ("""{"bar":42}""")
+      writeToString(foo)(jsonEncoderOf[Foo]) must_== """{"bar":42}"""
+    }
+
+    "allow excluding null fields" in {
+      val myCustomInstances = new CirceInstances {
+        implicit val printer: Printer = Printer.noSpaces.copy(dropNullKeys = true)
+      }
+      import myCustomInstances._
+
+      writeToString(fooBar) must_== """{"foo":42}"""
     }
   }
 
