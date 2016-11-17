@@ -1,7 +1,7 @@
 package org.http4s
 package argonaut
 
-import _root_.argonaut.{EncodeJson, DecodeJson, Argonaut, Json}
+import _root_.argonaut.{DecodeResult => _, _}
 import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
@@ -16,13 +16,19 @@ trait ArgonautInstances {
       )
     }
 
-  implicit val jsonEncoder: EntityEncoder[Json] =
+  def jsonEncoder(prettyParams: PrettyParams): EntityEncoder[Json] =
     EntityEncoder.stringEncoder(Charset.`UTF-8`).contramap[Json] { json =>
       // TODO naive implementation materializes to a String.
       // Look into replacing after https://github.com/non/jawn/issues/6#issuecomment-65018736
-      Argonaut.nospace.pretty(json)
+      prettyParams.pretty(json)
     }.withContentType(`Content-Type`(MediaType.`application/json`, Charset.`UTF-8`))
 
+  implicit val jsonEncoder: EntityEncoder[Json] =
+    jsonEncoder(Argonaut.nospace)
+
+  def jsonEncoderOf[A](prettyParams: PrettyParams)(implicit encoder: EncodeJson[A]): EntityEncoder[A] =
+    jsonEncoder(prettyParams).contramap[A](encoder.encode)
+
   def jsonEncoderOf[A](implicit encoder: EncodeJson[A]): EntityEncoder[A] =
-    jsonEncoder.contramap[A](encoder.encode)
+    jsonEncoderOf(Argonaut.nospace)
 }
