@@ -18,14 +18,30 @@ trait CirceInstances {
       )
     }
 
-  implicit val jsonEncoder: EntityEncoder[Json] =
+  protected def defaultPrinter: Printer
+
+  implicit def jsonEncoder: EntityEncoder[Json] =
+    jsonEncoderWithPrinter(defaultPrinter)
+
+  def jsonEncoderWithPrinter(printer: Printer): EntityEncoder[Json] =
     EntityEncoder[String].contramap[Json] { json =>
       // Comment from ArgonautInstances (which this code is based on):
       // TODO naive implementation materializes to a String.
       // See https://github.com/non/jawn/issues/6#issuecomment-65018736
-      Printer.noSpaces.pretty(json)
+      printer.pretty(json)
     }.withContentType(`Content-Type`(MediaType.`application/json`))
 
   def jsonEncoderOf[A](implicit encoder: Encoder[A]): EntityEncoder[A] =
-    jsonEncoder.contramap[A](encoder.apply)
+    jsonEncoderWithPrinterOf(defaultPrinter)
+
+  def jsonEncoderWithPrinterOf[A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[A] =
+    jsonEncoderWithPrinter(printer).contramap[A](encoder.apply)
+}
+
+object CirceInstances {
+  def withPrinter(p: Printer): CirceInstances = {
+    new CirceInstances {
+      def defaultPrinter: Printer = p
+    }
+  }
 }

@@ -1,9 +1,10 @@
 package org.http4s
-package circe
+package circe.test // Get out of circe package so we can import custom instances
 
 import java.nio.charset.StandardCharsets
 
 import io.circe._
+import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
 import org.http4s.EntityEncoderSpec.writeToString
@@ -33,6 +34,22 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
     "write compact JSON" in {
       writeToString(json) must_== ("""{"test":"CirceSupport"}""")
     }
+
+    "write JSON according to custom encoders" in {
+      val custom = CirceInstances.withPrinter(Printer.spaces2)
+      import custom._
+      writeToString(json) must_== (
+        """{
+          |  "test" : "CirceSupport"
+          |}""".stripMargin)
+    }
+
+    "write JSON according to explicit printer" in {
+      writeToString(json)(jsonEncoderWithPrinter(Printer.spaces2)) must_== (
+        """{
+          |  "test" : "CirceSupport"
+          |}""".stripMargin)
+    }
   }
 
   "jsonEncoderOf" should {
@@ -42,6 +59,22 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
 
     "write compact JSON" in {
       writeToString(foo)(jsonEncoderOf[Foo]) must_== ("""{"bar":42}""")
+    }
+
+    "write JSON according to custom encoders" in {
+      val custom = CirceInstances.withPrinter(Printer.spaces2)
+      import custom._
+      writeToString(foo)(jsonEncoderOf) must_== (
+        """{
+          |  "bar" : 42
+          |}""".stripMargin)
+    }
+
+    "write JSON according to explicit printer" in {
+      writeToString(foo)(jsonEncoderWithPrinterOf(Printer.spaces2)) must_== (
+        """{
+          |  "bar" : 42
+          |}""".stripMargin)
     }
   }
 
