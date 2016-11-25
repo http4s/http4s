@@ -28,10 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <img alt="Trait" src="../../../lib/trait_big.png" />
+        <a href="ArgonautInstances$.html" title="See companion object"><img alt="Trait/Object" src="../../../lib/trait_to_object_big.png" /></a>
         <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.argonaut">argonaut</a></p>
-        <h1>ArgonautInstances</h1><h3><span class="morelinks"><div>Related Doc:
-            <a href="package.html" class="extype" name="org.http4s.argonaut">package argonaut</a>
+        <h1><a href="ArgonautInstances$.html" title="See companion object">ArgonautInstances</a></h1><h3><span class="morelinks"><div>
+            Related Docs:
+            <a href="ArgonautInstances$.html" title="See companion object">object ArgonautInstances</a>
+            | <a href="package.html" class="extype" name="org.http4s.argonaut">package argonaut</a>
           </div></span></h3><span class="permalink">
       <a href="../../../index.html#org.http4s.argonaut.ArgonautInstances" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
@@ -95,10 +97,30 @@
 
         
 
-        
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="org.http4s.argonaut.ArgonautInstances#defaultPrettyParams" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="defaultPrettyParams:argonaut.PrettyParams"></a>
+      <a id="defaultPrettyParams:PrettyParams"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultPrettyParams</span><span class="result">: <span class="extype" name="argonaut.PrettyParams">PrettyParams</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.argonaut.ArgonautInstances@defaultPrettyParams:argonaut.PrettyParams" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd></dl></div>
+    </li></ol>
+            </div>
 
         <div id="values" class="values members">
-              <h3>Value Members</h3>
+              <h3>Concrete Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -474,7 +496,7 @@
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
         <span class="name">jsonEncoder</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="argonaut.Json">Json</span>]</span>
@@ -498,6 +520,40 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.argonaut.ArgonautInstances@jsonEncoderOf[A](implicitencoder:argonaut.EncodeJson[A]):org.http4s.EntityEncoder[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.argonaut.ArgonautInstances#jsonEncoderWithPrettyParams" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="jsonEncoderWithPrettyParams(prettyParams:argonaut.PrettyParams):org.http4s.EntityEncoder[argonaut.Json]"></a>
+      <a id="jsonEncoderWithPrettyParams(PrettyParams):EntityEncoder[Json]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonEncoderWithPrettyParams</span><span class="params">(<span name="prettyParams">prettyParams: <span class="extype" name="argonaut.PrettyParams">PrettyParams</span></span>)</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="argonaut.Json">Json</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.argonaut.ArgonautInstances@jsonEncoderWithPrettyParams(prettyParams:argonaut.PrettyParams):org.http4s.EntityEncoder[argonaut.Json]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.argonaut.ArgonautInstances#jsonEncoderWithPrinterOf" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="jsonEncoderWithPrinterOf[A](prettyParams:argonaut.PrettyParams)(implicitencoder:argonaut.EncodeJson[A]):org.http4s.EntityEncoder[A]"></a>
+      <a id="jsonEncoderWithPrinterOf[A](PrettyParams)(EncodeJson[A]):EntityEncoder[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonEncoderWithPrinterOf</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="prettyParams">prettyParams: <span class="extype" name="argonaut.PrettyParams">PrettyParams</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="encoder">encoder: <span class="extype" name="argonaut.EncodeJson">EncodeJson</span>[<span class="extype" name="org.http4s.argonaut.ArgonautInstances.jsonEncoderWithPrinterOf.A">A</span>]</span>)</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.argonaut.ArgonautInstances.jsonEncoderWithPrinterOf.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.argonaut.ArgonautInstances@jsonEncoderWithPrinterOf[A](prettyParams:argonaut.PrettyParams)(implicitencoder:argonaut.EncodeJson[A]):org.http4s.EntityEncoder[A]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>

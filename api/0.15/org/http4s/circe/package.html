@@ -108,11 +108,48 @@
     </li></ol>
             </div>
 
-        
+        <div id="values" class="values members">
+              <h3>Abstract Value Members</h3>
+              <ol><li name="org.http4s.circe.CirceInstances#defaultPrinter" visbl="prt" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="defaultPrinter:io.circe.Printer"></a>
+      <a id="defaultPrinter:Printer"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">defaultPrinter</span><span class="result">: <span class="extype" name="io.circe.Printer">Printer</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.circe.package@defaultPrinter:io.circe.Printer" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Attributes</dt><dd>protected </dd><dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
+    </li></ol>
+            </div>
 
         <div id="values" class="values members">
-              <h3>Value Members</h3>
-              <ol><li name="org.http4s.circe.CirceInstances#jsonDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+              <h3>Concrete Value Members</h3>
+              <ol><li name="org.http4s.circe.CirceInstances" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="CirceInstances"></a>
+      <a id="CirceInstances:CirceInstances"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">object</span>
+      </span>
+      <span class="symbol">
+        <a href="CirceInstances$.html"><span class="name">CirceInstances</span></a>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.circe.package@CirceInstances" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li><li name="org.http4s.circe.CirceInstances#jsonDecoder" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="jsonDecoder:org.http4s.EntityDecoder[io.circe.Json]"></a>
       <a id="jsonDecoder:EntityDecoder[Json]"></a>
       <h4 class="signature">
@@ -135,7 +172,7 @@
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier">implicit </span>
-        <span class="kind">val</span>
+        <span class="kind">def</span>
       </span>
       <span class="symbol">
         <span class="name">jsonEncoder</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="io.circe.Json">Json</span>]</span>
@@ -159,6 +196,40 @@
       </span>
       </h4><span class="permalink">
       <a href="../../../index.html#org.http4s.circe.package@jsonEncoderOf[A](implicitencoder:io.circe.Encoder[A]):org.http4s.EntityEncoder[A]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
+    </li><li name="org.http4s.circe.CirceInstances#jsonEncoderWithPrinter" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="jsonEncoderWithPrinter(printer:io.circe.Printer):org.http4s.EntityEncoder[io.circe.Json]"></a>
+      <a id="jsonEncoderWithPrinter(Printer):EntityEncoder[Json]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonEncoderWithPrinter</span><span class="params">(<span name="printer">printer: <span class="extype" name="io.circe.Printer">Printer</span></span>)</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="io.circe.Json">Json</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.circe.package@jsonEncoderWithPrinter(printer:io.circe.Printer):org.http4s.EntityEncoder[io.circe.Json]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd><a href="CirceInstances.html" class="extype" name="org.http4s.circe.CirceInstances">CirceInstances</a></dd></dl></div>
+    </li><li name="org.http4s.circe.CirceInstances#jsonEncoderWithPrinterOf" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
+      <a id="jsonEncoderWithPrinterOf[A](printer:io.circe.Printer)(implicitencoder:io.circe.Encoder[A]):org.http4s.EntityEncoder[A]"></a>
+      <a id="jsonEncoderWithPrinterOf[A](Printer)(Encoder[A]):EntityEncoder[A]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">jsonEncoderWithPrinterOf</span><span class="tparams">[<span name="A">A</span>]</span><span class="params">(<span name="printer">printer: <span class="extype" name="io.circe.Printer">Printer</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="encoder">encoder: <span class="extype" name="io.circe.Encoder">Encoder</span>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonEncoderWithPrinterOf.A">A</span>]</span>)</span><span class="result">: <a href="../EntityEncoder.html" class="extype" name="org.http4s.EntityEncoder">EntityEncoder</a>[<span class="extype" name="org.http4s.circe.CirceInstances.jsonEncoderWithPrinterOf.A">A</span>]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.circe.package@jsonEncoderWithPrinterOf[A](printer:io.circe.Printer)(implicitencoder:io.circe.Encoder[A]):org.http4s.EntityEncoder[A]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
