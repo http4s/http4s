@@ -133,6 +133,15 @@ object Uri extends UriFunctions {
   def fromString(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).Uri
     .run()(ScalazDeliverySchemes.Disjunction)
 
+  /** Parses a String to a [[Uri]] according to RFC 3986.  If decoding
+   *  fails, throws a [[ParseFailure]].
+   *
+   *  For totality, call [[#fromString]].  For compile-time
+   *  verification of literals, call [[#uri]].
+   */
+  def unsafeFromString(s: String): Uri =
+    fromString(s).valueOr(throw _)
+
   /** Decodes the String to a [[Uri]] using the RFC 7230 section 5.3 uri decoding specification */
   def requestTarget(s: String): ParseResult[Uri] = new RequestUriParser(s, StandardCharsets.UTF_8).RequestUri
     .run()(ScalazDeliverySchemes.Disjunction)
