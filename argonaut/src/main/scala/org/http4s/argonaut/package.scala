@@ -1,3 +1,8 @@
 package org.http4s
 
-package object argonaut extends ArgonautInstances
+import _root_.argonaut.PrettyParams
+
+package object argonaut extends ArgonautInstances {
+  protected def defaultPrettyParams: PrettyParams =
+    PrettyParams.nospace
+}

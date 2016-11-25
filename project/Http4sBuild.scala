@@ -53,7 +53,7 @@ object Http4sBuild {
     }
 
   lazy val alpnBoot            = "org.mortbay.jetty.alpn"    % "alpn-boot"               % "8.1.9.v20160720"
-  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.2-RC1"
+  lazy val argonaut            = "io.argonaut"              %% "argonaut"                % "6.2-RC2"
   lazy val asyncHttpClient     = "org.asynchttpclient"       % "async-http-client"       % "2.0.12"
   lazy val blaze               = "org.http4s"               %% "blaze-http"              % "0.12.4"
   lazy val circeGeneric        = "io.circe"                 %% "circe-generic"           % circeJawn.revision
