@@ -16,38 +16,48 @@ import scalaz.concurrent.Task
 import scalaz._
 
 /**
- * Provides Digest Authentication from RFC 2617. Note that this class creates a new thread
- * on creation to clean up stale nonces. Please call `shutdown()` when the object is not
- * used anymore to kill this thread.
- * @param realm The realm used for authentication purposes.
- * @param store A partial function mapping (realm, user) to the
- *              appropriate password.
- * @param nonceCleanupInterval Interval (in milliseconds) at which stale
- *                             nonces should be cleaned up.
- * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
- *                       is considered stale (i.e. not used for authentication
- *                       purposes anymore).
- * @param nonceBits The number of random bits a nonce should consist of.
+ * Provides Digest Authentication from RFC 2617. Note that this object
+ * creates a new thread on creation to clean up stale nonces. Please
+ * call `shutdown()` when the object is not used anymore to kill this
+ * thread.
  */
-object digestAuth {
+object DigestAuth {
+  /**
+   * A function mapping username to a user object and password, or
+   * None if no user exists.  Requires that the server can recover
+   * the password in clear text, which is _strongly_ discouraged.
+   */
+  type AuthenticationStore[A] = String => Task[Option[(A, String)]]
 
-  private trait AuthReply
-  private sealed case class OK(user: String, realm: String) extends AuthReply
-  private case object StaleNonce extends AuthReply
-  private case object BadNC extends AuthReply
-  private case object WrongResponse extends AuthReply
-  private case object BadParameters extends AuthReply
-  private case object UserUnknown extends AuthReply
-  private case object NoCredentials extends AuthReply
-  private case object NoAuthorizationHeader extends AuthReply
+  private trait AuthReply[+A]
+  private final case class OK[A](authInfo: A) extends AuthReply[A]
+  private case object StaleNonce extends AuthReply[Nothing]
+  private case object BadNC extends AuthReply[Nothing]
+  private case object WrongResponse extends AuthReply[Nothing]
+  private case object BadParameters extends AuthReply[Nothing]
+  private case object UserUnknown extends AuthReply[Nothing]
+  private case object NoCredentials extends AuthReply[Nothing]
+  private case object NoAuthorizationHeader extends AuthReply[Nothing]
 
-  def apply(
+  /**
+   *
+   * @param realm The realm used for authentication purposes.
+   * @param store A partial function mapping (realm, user) to the
+   *              appropriate password.
+   * @param nonceCleanupInterval Interval (in milliseconds) at which stale
+   *                             nonces should be cleaned up.
+   * @param nonceStaleTime Amount of time (in milliseconds) after which a nonce
+   *                       is considered stale (i.e. not used for authentication
+   *                       purposes anymore).
+   * @param nonceBits The number of random bits a nonce should consist of.
+   */
+  def apply[A](
     realm: String,
-    store: AuthenticationStore,
+    store: AuthenticationStore[A],
     nonceCleanupInterval: Duration = 1.hour,
     nonceStaleTime: Duration = 1.hour,
     nonceBits: Int = 160
-  ): AuthMiddleware[(String, String)] = {
+  ): AuthMiddleware[A] = {
     val nonceKeeper = new NonceKeeper(nonceStaleTime.toMillis, nonceCleanupInterval.toMillis, nonceBits)
     challenged(Service.lift { req =>
       getChallenge(realm, store, nonceKeeper, req)
@@ -57,16 +67,16 @@ object digestAuth {
   /** Side-effect of running the returned task: If req contains a valid
     * AuthorizationHeader, the corresponding nonce counter (nc) is increased.
     */
-  protected def getChallenge(realm: String, store: AuthenticationStore, nonceKeeper: NonceKeeper, req: Request): Task[Challenge \/ AuthedRequest[(String, String)]] = {
+  private def getChallenge[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[Challenge \/ AuthedRequest[A]] = {
     def paramsToChallenge(params: Map[String, String]) = -\/(Challenge("Digest", realm, params))
     checkAuth(realm, store, nonceKeeper, req).flatMap(_ match {
-      case OK(user, realm) => Task.now(\/-(AuthedRequest((user, realm), req)))
+      case OK(authInfo) => Task.now(\/-(AuthedRequest(authInfo, req)))
       case StaleNonce => getChallengeParams(nonceKeeper, true).map(paramsToChallenge)
       case _          => getChallengeParams(nonceKeeper, false).map(paramsToChallenge)
     })
   }
 
-  private def checkAuth(realm: String, store: AuthenticationStore, nonceKeeper: NonceKeeper, req: Request): Task[AuthReply] = req.headers.get(Authorization) match {
+  private def checkAuth[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request): Task[AuthReply[A]] = req.headers.get(Authorization) match {
     case Some(Authorization(GenericCredentials(AuthScheme.Digest, params))) =>
       checkAuthParams(realm, store, nonceKeeper, req, params)
     case Some(Authorization(_)) =>
@@ -84,7 +94,7 @@ object digestAuth {
       m
   }
 
-  private def checkAuthParams(realm: String, store: AuthenticationStore, nonceKeeper: NonceKeeper, req: Request, params: Map[String, String]): Task[AuthReply] = {
+  private def checkAuthParams[A](realm: String, store: AuthenticationStore[A], nonceKeeper: NonceKeeper, req: Request, params: Map[String, String]): Task[AuthReply[A]] = {
     if (!(Set("realm", "nonce", "nc", "username", "cnonce", "qop") subsetOf params.keySet))
       return Task.now(BadParameters)
 
@@ -100,12 +110,12 @@ object digestAuth {
       case NonceKeeper.StaleReply => Task.now(StaleNonce)
       case NonceKeeper.BadNCReply => Task.now(BadNC)
       case NonceKeeper.OKReply =>
-        store(realm, params("username")).map {
+        store(params("username")).map {
           case None => UserUnknown
-          case Some(password) =>
+          case Some((authInfo, password)) =>
             val resp = DigestUtil.computeResponse(method, params("username"), realm, password, uri, nonce, nc, params("cnonce"), params("qop"))
 
-            if (resp == params("response")) OK(params("username"), realm)
+            if (resp == params("response")) OK(authInfo)
             else WrongResponse
         }
     }

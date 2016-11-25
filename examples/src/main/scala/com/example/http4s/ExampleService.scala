@@ -185,16 +185,16 @@ object ExampleService {
   // Services can be protected using HTTP authentication.
   val realm = "testrealm"
 
-  def auth_store(r: String, u: String) = if (r == realm && u == "username") Task.now(Some("password"))
+  def authStore(creds: BasicCredentials) =
+    if (creds.username == "username" && creds.password == "password") Task.now(Some(creds.username))
     else Task.now(None)
 
-  val digest = digestAuth(realm, auth_store)
-
-  // Digest is a middleware.  A middleware is a function from one service to another.
-  // In this case, the wrapped service is protected with digest authentication.
-  def authService = digest(AuthedService.apply[(String, String)]({
-    case req @ GET -> Root / "protected" as ((user, realm)) => {
-      Ok("This page is protected using HTTP authentication; logged in user/realm: " + user + "/" + realm)
-    }
-  }))
+  // An AuthedService[A] is a Service[(A, Request), Response] for some
+  // user type A.  `BasicAuth` is an auth middleware, which binds an
+  // AuthedService to an authentication store.
+  def authService: HttpService = BasicAuth(realm, authStore)(AuthedService[String] {
+    // AuthedServices look like Services, but the user is extracted with `as`.
+    case req @ GET -> Root / "protected" as user =>
+      Ok(s"This page is protected using HTTP authentication; logged in as $user")
+  })
 }
