@@ -16,10 +16,7 @@ import scalaz.concurrent.Task
 import scalaz._
 
 /**
- * Provides Digest Authentication from RFC 2617. Note that this object
- * creates a new thread on creation to clean up stale nonces. Please
- * call `shutdown()` when the object is not used anymore to kill this
- * thread.
+ * Provides Digest Authentication from RFC 2617.
  */
 object DigestAuth {
   /**
