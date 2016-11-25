@@ -468,7 +468,7 @@ lazy val commonSettings = Seq(
     "-Xlint:unchecked"
   ),
   libraryDependencies ++= scalaVersion(v =>
-    if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0")
+    if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.8.0")
     else Seq.empty
   ).value,
   libraryDependencies ++= scalazVersion(sz => Seq(
