@@ -16,8 +16,8 @@ import scala.concurrent.duration._
 
 class AuthenticationSpec extends Http4sSpec {
 
-  def nukeService(launchTheNukes: => Unit) = AuthedService[(String, String)] {
-    case GET -> Root / "launch-the-nukes" as ((user, realm)) =>
+  def nukeService(launchTheNukes: => Unit) = AuthedService[String] {
+    case GET -> Root / "launch-the-nukes" as user =>
       for {
         _ <- Task.delay(launchTheNukes)
         r <- Response(Gone).withBody(s"Oops, ${user} launched the nukes.")
@@ -28,29 +28,34 @@ class AuthenticationSpec extends Http4sSpec {
   val username = "Test User"
   val password = "Test Password"
 
-  def authStore(r: String, u: String) = Task.now {
-    if (r == realm && u == username) Some(password)
+  def authStore(u: String) = Task.now {
+    if (u == username) Some(u -> password)
     else None
   }
 
-  val service = AuthedService[(String, String)] {
-    case GET -> Root as ((user, _)) => Ok(user)
+  def validatePassword(creds: BasicCredentials) = Task.now {
+    if (creds.username == username && creds.password == password) Some(creds.username)
+    else None
+  }
+
+  val service = AuthedService[String] {
+    case GET -> Root as user => Ok(user)
     case req as _ => Response.notFound(req)
   }
 
   "Failure to authenticate" should {
     "not run unauthorized routes" in {
-      var isNuked = false
-      val authedNukeService = basicAuth(realm, authStore)(nukeService { isNuked = true })
       val req = Request(uri = Uri(path = "/launch-the-nukes"))
-      val res = authedNukeService.run(req).run
+      var isNuked = false
+      val authedValidateNukeService = BasicAuth(realm, validatePassword _)(nukeService { isNuked = true })
+      val res = authedValidateNukeService.run(req).run
       isNuked must_== false
       res.status must_== (Unauthorized)
     }
   }
 
   "BasicAuthentication" should {
-    val basicAuthedService = basicAuth(realm, authStore)(service)
+    val basicAuthedService = BasicAuth(realm, validatePassword _)(service)
 
     "Respond to a request without authentication with 401" in {
       val req = Request(uri = Uri(path = "/"))
@@ -89,7 +94,7 @@ class AuthenticationSpec extends Http4sSpec {
 
   "DigestAuthentication" should {
     "Respond to a request without authentication with 401" in {
-      val authedService = digestAuth(realm, authStore)(service)
+      val authedService = DigestAuth(realm, authStore)(service)
       val req = Request(uri = Uri(path = "/"))
       val res = authedService.run(req).run
 
@@ -146,7 +151,7 @@ class AuthenticationSpec extends Http4sSpec {
     }
 
     "Respond to a request with correct credentials" in {
-      val digestAuthService = digestAuth(realm, authStore)(service)
+      val digestAuthService = DigestAuth(realm, authStore)(service)
       val challenge = doDigestAuth1(digestAuthService)
 
       (challenge match {
@@ -167,7 +172,7 @@ class AuthenticationSpec extends Http4sSpec {
     "Respond to many concurrent requests while cleaning up nonces" in {
       val n = 100
       val sched = Executors.newFixedThreadPool(4)
-      val digestAuthService = digestAuth(realm, authStore, 2.millis, 2.millis)(service)
+      val digestAuthService = DigestAuth(realm, authStore, 2.millis, 2.millis)(service)
       val tasks = (1 to n).map(i =>
         Task {
           val challenge = doDigestAuth1(digestAuthService)
@@ -189,7 +194,7 @@ class AuthenticationSpec extends Http4sSpec {
     "Avoid many concurrent replay attacks" in {
       val n = 100
       val sched = Executors.newFixedThreadPool(4)
-      val digestAuthService = digestAuth(realm, authStore)(service)
+      val digestAuthService = DigestAuth(realm, authStore)(service)
       val challenge = doDigestAuth1(digestAuthService)
       val tasks = (1 to n).map(i =>
         Task {
@@ -204,7 +209,7 @@ class AuthenticationSpec extends Http4sSpec {
     }
 
     "Respond to invalid requests with 401" in {
-      val digestAuthService = digestAuth(realm, authStore)(service)
+      val digestAuthService = DigestAuth(realm, authStore)(service)
       val method = "GET"
       val uri = "/"
       val qop = "auth"
