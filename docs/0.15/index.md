@@ -14,6 +14,7 @@ To get started, let's see how to define a [service] with the [dsl].
 * [URI] handling
 * [Authentication]
 * `EntityDecoder` / `EntityEncoder`, also covers Media Types: [entity]
+* Serving [static files]
 
 [json]: json.html
 [client]: client.html
@@ -22,3 +23,4 @@ To get started, let's see how to define a [service] with the [dsl].
 [Authentication]: auth.html
 [entity]: entity.html
 [dsl]: dsl.html
+[static files]: static.html
