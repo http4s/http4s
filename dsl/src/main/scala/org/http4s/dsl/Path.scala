@@ -249,6 +249,48 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
     ).toOption
 }
 
+/**
+  * Capture a query parameter that appears 0 or more times.
+  *
+  * {{{
+  *   case class Foo(i: Int)
+  *   implicit val fooDecoder: QueryParamDecoder[Foo] = ...
+  *   implicit val fooParam: QueryParam[Foo] = ...
+  *
+  *   object FooMatcher extends OptionalMultiQueryParamDecoderMatcher[Foo]("foo")
+  *   val service: HttpService = {
+  *     // matches http://.../closest?foo=2&foo=3&foo=4
+  *     case GET -> Root / "closest" :? FooMatcher(Some(Seq(2,3,4))) => ...
+  *
+  *     /*
+  *     *  matches http://.../closest?foo=2&foo=3&foo=4 as well as http://.../closest (no parameters)
+  *     *  or http://.../closest?foo=2 (single occurrence)
+  *     */
+  *     case GET -> Root / "closest" :? FooMatcher(is) => ...
+  * }}}
+  */
+abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
+  import scalaz.{ValidationNel, Success, Failure}
+
+  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidationNel[ParseFailure, Seq[T]]]] = {
+    params.get(name) match {
+      case None => Some(None) // absent
+      case Some(values) => {
+        val parses: Seq[ValidationNel[ParseFailure, T]] = values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
+        val parsed: ValidationNel[ParseFailure, Seq[T]] = parses.foldLeft(Success(Seq[T]()) : ValidationNel[ParseFailure, Seq[T]])((
+          acc: ValidationNel[ParseFailure, Seq[T]],
+          elem: ValidationNel[ParseFailure, T]
+        ) => elem match {
+          case Success(a) => acc.map(v => v :+ a)
+          case Failure(f) => Failure(f)
+        })
+
+        Some(Some(parsed))
+      }
+    }
+  }
+}
+
 abstract class OptionalQueryParamMatcher[T: QueryParamDecoder: QueryParam]
   extends OptionalQueryParamDecoderMatcher[T](QueryParam[T].key.value)
 

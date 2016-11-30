@@ -27,6 +27,8 @@ object PathInHttpServiceSpec extends Http4sSpec {
 
   object OptValidatingCounter extends OptionalValidatingQueryParamDecoderMatcher[Int]("counter")
 
+  object MultiOptCounter extends OptionalMultiQueryParamDecoderMatcher[Int]("counter")
+
   val service = HttpService {
     case GET -> Root :? I(start) +& L(limit) =>
       Ok(s"start: $start, limit: ${limit.l}")
@@ -57,6 +59,11 @@ object PathInHttpServiceSpec extends Http4sSpec {
         case Some(Success(cv)) => Ok(s"counter: $cv")
         case None => Ok("no counter")
       }
+    case GET -> Root / "multiopt" :? MultiOptCounter(counters) => counters match {
+      case Some(Success(cs)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
+      case Some(Failure(_)) => BadRequest()
+      case None => Ok("absent")
+    }
     case r =>
       NotFound("404 Not Found: " + r.pathInfo)
   }
@@ -167,6 +174,32 @@ object PathInHttpServiceSpec extends Http4sSpec {
       val response = serve(Request(GET, Uri(path = "/optvalid", query = Query.fromString("counter=foo"))))
       response.status must_== (BadRequest)
       response.as[String] must returnValue("Query decoding Int failed")
+    }
+    "optional multi parameter with no parameters" in {
+      val response = serve(Request(GET, Uri(path = "/multiopt")))
+      response.status must_== (Ok)
+      response.as[String] must returnValue("absent")
+    }
+    "optional multi parameter with multiple parameters" in {
+      val response = serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=1&counter=2&counter=3"))))
+      response.status must_== (Ok)
+      response.as[String] must returnValue("3: 1,2,3")
+    }
+    "optional multi parameter with one parameter" in {
+      val response = serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=3"))))
+      response.status must_== (Ok)
+      response.as[String] must returnValue("1: 3")
+    }
+    "optional multi parameter with incorrect format" in {
+      val response = serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo"))))
+      response.status must_== (BadRequest)
+    }
+    "optional multi parameter with one incorrect parameter" in {
+      val response = serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=foo&counter=1"))))
+      response.status must_== (BadRequest)
+
+      val response2 = serve(Request(GET, Uri(path = "/multiopt", query = Query.fromString("counter=1&counter=foo"))))
+      response2.status must_== (BadRequest)
     }
 
   }
