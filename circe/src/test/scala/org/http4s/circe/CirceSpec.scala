@@ -7,7 +7,6 @@ import io.circe._
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
-import org.http4s.EntityEncoderSpec.writeToString
 import Status.Ok
 import org.specs2.specification.core.Fragment
 

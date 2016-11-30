@@ -18,15 +18,6 @@ class ScalaXmlSpec extends Http4sSpec {
 
   implicit val byteVectorMonoid: scalaz.Monoid[ByteVector] = scalaz.Monoid.instance(_ ++ _, ByteVector.empty)
 
-  def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
-    Process.eval(W.toEntity(a))
-      .collect { case EntityEncoder.Entity(body, _ ) => body }
-      .flatMap(identity)
-      .fold1Monoid
-      .pipe(utf8Decode)
-      .runLastOr("")
-      .run
-
   "xml" should {
     val server: Request => Task[Response] = { req =>
       req.decode { elem: Elem => Response(Ok).withBody(elem.label) }
