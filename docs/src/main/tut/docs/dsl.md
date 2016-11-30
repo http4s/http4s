@@ -1,5 +1,5 @@
 ---
-layout: default
+layout: docs
 title: The http4s DSL
 ---
 

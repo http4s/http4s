@@ -1,6 +1,8 @@
 ---
 layout: page
 title: Adopters
+section: "section_home"
+position: 5
 ---
 
 ## Open Source

@@ -1,7 +1,11 @@
 ---
-layout: default
+layout: page
 title: Community
+section: "section_home"
+position: 3
 ---
+
+# Community
 
 <div class="row">
 
@@ -47,19 +51,7 @@ everyone.  Our community is governed by the
 <h2><i class="fa fa-gift"></i> Contributing</h2>
  
 http4s is an open source project, and depends on its users to continue
-to improve.  Here's how you can help:
-
-* [Submit an issue](http://github.com/http4s/http4s/issues/new).  Bug
-  reports, feature requests, whatever.  No nit too small to pick.
-* Send us a pull request with your original work, compatible with the
-  [project's Apache 2
-  Licence](https://raw.githubusercontent.com/http4s/http4s/master/LICENSE).
-  Before a major change, please file an issue or contact us first, so
-  we're not duplicating effort.
-* If you found the project helpful, pay it forward with a contribution
-  to the docs. This site is a simple [Jekyll/tut
-  project](http://github.com/http4s/http4s/tree/master/src/docs) in
-  our main repo.
+to improve.  Please see the [Contributors' Guide](contributing.html).
 </div>
 
 <div class="col-md-4" markdown="1">

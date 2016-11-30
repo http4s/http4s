@@ -1,4 +1,10 @@
-# Contributor guide
+---
+layout: page
+title: Contributors' Guide
+position: 4
+---
+
+# Contributors' guide
 
 http4s is an open source project, and depends on its users to continue
 to improve.  We are thrilled that you are interested in helping!

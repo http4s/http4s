@@ -3,7 +3,7 @@
 set -e
 
 if [[ $TRAVIS_SCALA_VERSION == 2.11* ]] && [[ $SCALAZ_VERSION = 7.2* ]]; then
-  SBT_COMMAND=";coverage ;clean ;test ;makeSite ;mimaReportBinaryIssues ;coverageOff"
+  SBT_COMMAND=";coverage ;clean ;test ;makeMicrosite ;mimaReportBinaryIssues ;coverageOff"
 else
   SBT_COMMAND=";test"
 fi
@@ -16,7 +16,7 @@ if [[ $TRAVIS_BRANCH = "master" || $TRAVIS_BRANCH = "release-"* ]] && [[ $TRAVIS
     export GIT_AUTHOR_EMAIL="travis-ci@http4s.org"
     export GIT_COMMITTER_NAME=$GIT_AUTHOR_NAME
     export GIT_COMMITTER_EMAIL=$GIT_AUTHOR_EMAIL
-    SBT_COMMAND="$SBT_COMMAND ;ghpagesPushSite"
+    SBT_COMMAND="$SBT_COMMAND ;publishMicrosite"
   fi
 fi
 

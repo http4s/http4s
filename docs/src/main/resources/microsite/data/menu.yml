@@ -1,0 +1,19 @@
+options:
+  - title: Getting Started
+    url: docs/index.html
+  - title: Authentication
+    url: docs/auth.html
+  - title: Services
+    url: docs/service.html
+  - title: Server DSL
+    url: docs/dsl.html
+  - title: Static Content
+    url: docs/static.html
+  - title: Client
+    url: docs/client.html
+  - title: Entities
+    url: docs/entity.html
+  - title: JSON
+    url: docs/json.html
+  - title: URIs
+    url: docs/uri.html
