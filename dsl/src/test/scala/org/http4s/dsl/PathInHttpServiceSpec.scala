@@ -60,9 +60,9 @@ object PathInHttpServiceSpec extends Http4sSpec {
         case None => Ok("no counter")
       }
     case GET -> Root / "multiopt" :? MultiOptCounter(counters) => counters match {
-      case Some(Success(cs)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
-      case Some(Failure(_)) => BadRequest()
-      case None => Ok("absent")
+      case Success(cs @ (c :: _)) => Ok(s"${cs.length}: ${cs.mkString(",")}")
+      case Success(Nil) => Ok("absent")
+      case Failure(_) => BadRequest()
     }
     case r =>
       NotFound("404 Not Found: " + r.pathInfo)

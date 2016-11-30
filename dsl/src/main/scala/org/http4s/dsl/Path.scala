@@ -272,9 +272,8 @@ abstract class OptionalQueryParamDecoderMatcher[T: QueryParamDecoder](name: Stri
 abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name: String) {
   import scalaz.{ValidationNel, Success, Failure}
 
-  def unapply(params: Map[String, Seq[String]]): Option[Option[ValidationNel[ParseFailure, Seq[T]]]] = {
+  def unapply(params: Map[String, Seq[String]]): Option[ValidationNel[ParseFailure, List[T]]] = {
     params.get(name) match {
-      case None => Some(None) // absent
       case Some(values) => {
         val parses: Seq[ValidationNel[ParseFailure, T]] = values.map(s => QueryParamDecoder[T].decode(QueryParameterValue(s)))
         val parsed: ValidationNel[ParseFailure, Seq[T]] = parses.foldLeft(Success(Seq[T]()) : ValidationNel[ParseFailure, Seq[T]])((
@@ -285,8 +284,9 @@ abstract class OptionalMultiQueryParamDecoderMatcher[T: QueryParamDecoder](name:
           case Failure(f) => Failure(f)
         })
 
-        Some(Some(parsed))
+        Some(parsed.map(_.toList))
       }
+      case None => Some(Success(Nil)) // absent
     }
   }
 }
