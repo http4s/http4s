@@ -36,6 +36,14 @@ trait CirceInstances {
 
   def jsonEncoderWithPrinterOf[A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[A] =
     jsonEncoderWithPrinter(printer).contramap[A](encoder.apply)
+
+  implicit val encodeUri: Encoder[Uri] =
+    Encoder.encodeString.contramap[Uri](_.toString)
+
+  implicit val decodeUri: Decoder[Uri] =
+    Decoder.decodeString.emap { str =>
+      Uri.fromString(str).leftMap(_ => "Uri").toEither
+    }
 }
 
 object CirceInstances {

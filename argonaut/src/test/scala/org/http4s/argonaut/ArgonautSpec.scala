@@ -103,4 +103,12 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
       }
     }
   }
+
+  "Uri codec" should {
+    "round trip" in {
+      // TODO would benefit from Arbitrary[Uri]
+      val uri = Uri.uri("http://www.example.com/")
+      uri.asJson.as[Uri].result must beRight(uri)
+    }
+  }
 }

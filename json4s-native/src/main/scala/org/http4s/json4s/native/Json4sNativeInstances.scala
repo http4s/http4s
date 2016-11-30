@@ -2,6 +2,8 @@ package org.http4s
 package json4s
 package native
 
+import org.json4s.{JsonFormat, JValue, Writer}
+import org.json4s.JsonAST.JString
 import org.json4s.native.{Document, JsonMethods}
 
 trait Json4sNativeInstances extends Json4sInstances[Document] {
