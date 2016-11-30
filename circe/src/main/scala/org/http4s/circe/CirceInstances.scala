@@ -1,9 +1,10 @@
 package org.http4s
 package circe
 
-import io.circe.{Encoder, Decoder, Json, Printer}
+import io.circe.{Encoder, Decoder, Json, Printer, DecodingFailure}
 import io.circe.jawn.CirceSupportParser.facade
 import org.http4s.headers.`Content-Type`
+import cats.syntax.either._
 
 // Originally based on ArgonautInstances
 trait CirceInstances {
@@ -36,6 +37,11 @@ trait CirceInstances {
 
   def jsonEncoderWithPrinterOf[A](printer: Printer)(implicit encoder: Encoder[A]): EntityEncoder[A] =
     jsonEncoderWithPrinter(printer).contramap[A](encoder.apply)
+
+  implicit val urlEnc: Encoder[Uri] = Encoder[String].contramap((uri: Uri) => uri.toString)
+  implicit val urlDec: Decoder[Uri] =
+    Decoder.instance(c => c.as[String].flatMap({str => Uri.fromString(str)
+                   .fold(err => Left(DecodingFailure(err.toString, c.history)), (x => Right(x)))}))
 }
 
 object CirceInstances {
