@@ -40,7 +40,7 @@ val httpClient = PooledHttp1Client()
 
 ### Describing a call
 
-To execute a GET request, we can call `getAs` with the type we expect
+To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
 ```tut:book
@@ -136,6 +136,6 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-[entity]: entity.md
+[entity]: entity.html
 [service]: service.html
 [json]: json.html
