@@ -40,19 +40,19 @@ a [Typelevel](http://typelevel.org) incubator project.  Please see our
 Please pick a version that suits your needs, and proceed to its tutorial:
 
 {:.table}
-| http4s Version   | Status      | Tutorial    | scala          | scalaz | scalaz-stream | java |
-| ---              | ---         | ----        | ---            | ---    | ---           | --   | 
-| 0.15.0a-SNAPSHOT | Development | [docs/0.15] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
-| 0.15.0-SNAPSHOT  | Development | [docs/0.15] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
-| 0.14.11a         | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
-| 0.14.11          | Stable      | [docs/0.14] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
-| 0.13.3a          | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
-| 0.13.3           | Stable      | [docs/0.13] | 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
-| 0.12.4           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
-| 0.11.3           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.8           | 1.8+ |
-| 0.10.1           | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.8+ |
-| 0.9.3            | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.8+ |
-| 0.8.6            | EOL         |             | 2.11.x, 2.10.x | 7.1.x  | 0.7a          | 1.7+ |
+| http4s Version   | Status      | Tutorial    | scala                  | scalaz | scalaz-stream | java |
+| ---              | ---         | ----        | ---                    | ---    | ---           | --   | 
+| 0.15.0a-SNAPSHOT | Stable      | [docs/0.15] | 2.12.x, 2.11.x, 2.10.x | 7.2.x  | 0.8.4a        | 1.8+ |
+| 0.15.0-SNAPSHOT  | Stable      | [docs/0.15] | 2.12.x, 2.11.x, 2.10.x | 7.1.x  | 0.8.4         | 1.8+ |
+| 0.14.11a         | Stable      | [docs/0.14] | 2.11.x, 2.10.x         | 7.2.x  | 0.8.4a        | 1.8+ |
+| 0.14.11          | Stable      | [docs/0.14] | 2.11.x, 2.10.x         | 7.1.x  | 0.8.4         | 1.8+ |
+| 0.13.3a          | EOL         | [docs/0.13] | 2.11.x, 2.10.x         | 7.2.x  | 0.8.4a        | 1.8+ |
+| 0.13.3           | EOL         | [docs/0.13] | 2.11.x, 2.10.x         | 7.1.x  | 0.8.4         | 1.8+ |
+| 0.12.4           | EOL         |             | 2.11.x, 2.10.x         | 7.1.x  | 0.8           | 1.8+ |
+| 0.11.3           | EOL         |             | 2.11.x, 2.10.x         | 7.1.x  | 0.8           | 1.8+ |
+| 0.10.1           | EOL         |             | 2.11.x, 2.10.x         | 7.1.x  | 0.7a          | 1.8+ |
+| 0.9.3            | EOL         |             | 2.11.x, 2.10.x         | 7.1.x  | 0.7a          | 1.8+ |
+| 0.8.6            | EOL         |             | 2.11.x, 2.10.x         | 7.1.x  | 0.7a          | 1.7+ |
 
 * _Stable_ releases are recommended for production use, and receive
 backward, binary-compatible bugfixes from the http4s team.
