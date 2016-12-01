@@ -31,7 +31,7 @@ import org.http4s.server.syntax._
 // import org.http4s.server.syntax._
 
 val builder = BlazeBuilder.bindHttp(8080, "localhost").mountService(service, "/")
-// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@208d8ba
+// builder: org.http4s.server.blaze.BlazeBuilder = org.http4s.server.blaze.BlazeBuilder@784002a0
 
 val server = builder.run
 // server: org.http4s.server.Server = BlazeServer(/127.0.0.1:8080)
@@ -49,17 +49,17 @@ import org.http4s.client.blaze._
 // import org.http4s.client.blaze._
 
 val httpClient = PooledHttp1Client()
-// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@1561f8b2)
+// httpClient: org.http4s.client.Client = Client(Kleisli(<function1>),scalaz.concurrent.Task@172ebd2a)
 ```
 
 ### Describing a call
 
-To execute a GET request, we can call `getAs` with the type we expect
+To execute a GET request, we can call `expect` with the type we expect
 and the URI we want:
 
 ```scala
 val helloJames = httpClient.expect[String]("http://localhost:8080/hello/James")
-// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@435118a4
+// helloJames: scalaz.concurrent.Task[String] = scalaz.concurrent.Task@1978c35d
 ```
 
 Note that we don't have any output yet.  We have a `Task[String]`, to
@@ -93,7 +93,7 @@ val people = Vector("Michael", "Jessica", "Ashley", "Christopher")
 // people: scala.collection.immutable.Vector[String] = Vector(Michael, Jessica, Ashley, Christopher)
 
 val greetingList = Task.gatherUnordered(people.map(hello))
-// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@52dfde9c
+// greetingList: scalaz.concurrent.Task[List[String]] = scalaz.concurrent.Task@4cf9f0f4
 ```
 
 Observe how simply we could combine a single `Task[String]` returned
@@ -115,8 +115,8 @@ greetingList.run.mkString("\n")
 //        greetingList.run.mkString("\n")
 //                     ^
 // res0: String =
-// Hello, Christopher.
 // Hello, Ashley.
+// Hello, Christopher.
 // Hello, Jessica.
 // Hello, Michael.
 ```
@@ -164,6 +164,6 @@ Passing it to a `EntityDecoder` is safe.
 client.get[T]("some-url")(response => jsonOf(response.body))
 ```
 
-[entity]: entity.md
+[entity]: entity.html
 [service]: service.html
 [json]: json.html
