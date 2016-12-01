@@ -41,20 +41,29 @@ to provide a welcoming environment for all users.  We are proud to be
 a [Typelevel](http://typelevel.org) incubator project.  Please see our
 [community] page to learn how you can participate.
 
+## Quick Start
+
+Please proceed to the [quick start] to get up and running with http4s.
+
 ## License
 
-This software is licensed under the Apache 2 license, quoted below.
+Copyright 2013-2016 [http4s.org]
 
-> Copyright 2013-2016 http4s [http://http4s.org](http://http4s.org/)
+Licensed under the Apache License, Version 2.0 (the "License");
+you may not use this file except in compliance with the License.
+You may obtain a copy of the License at [http://www.apache.org/licenses/LICENSE-2.0]
 
-> Licensed under the Apache License, Version 2.0 (the "License"); you may not use this file except in compliance with the License. You may obtain a copy of the License at
+Unless required by applicable law or agreed to in writing, software
+distributed under the License is distributed on an "AS IS" BASIS,
+WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied.
+See the License for the specific language governing permissions and
+limitations under the License.
 
-> [http://www.apache.org/licenses/LICENSE-2.0](http://www.apache.org/licenses/LICENSE-2.0)
-
-> Unless required by applicable law or agreed to in writing, software distributed under the License is distributed on an "AS IS" BASIS, WITHOUT WARRANTIES OR CONDITIONS OF ANY KIND, either express or implied. See the License for the specific language governing permissions and limitations under the License.
-
+[http4s.org]: http://http4s.org/
+[http://www.apache.org/licenses/LICENSE-2.0]: http://www.apache.org/licenses/LICENSE-2.0
 [scalaz-stream]: https://github.com/functional-streams-for-scala/fs2
 [blaze]: https://github.com/http4s/blaze
 [circe]: https://github.com/travisbrown/circe
 [argonaut]: https://github.com/argonaut-io/argonaut
-[docs]: http://http4s.org/docs/
+[quick start]: http://http4s.org/docs/
+[community]: http://http4s.org/community.html
