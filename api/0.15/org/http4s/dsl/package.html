@@ -734,6 +734,36 @@
       </a>
     </span>
       
+    </li><li name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
+      <a id="OptionalMultiQueryParamDecoderMatcher[T]extendsAnyRef"></a>
+      <a id="OptionalMultiQueryParamDecoderMatcher[T]:OptionalMultiQueryParamDecoderMatcher[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
+      </span>
+      <span class="symbol">
+        <a href="OptionalMultiQueryParamDecoderMatcher.html"><span class="name">OptionalMultiQueryParamDecoderMatcher</span></a><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.dsl.package@OptionalMultiQueryParamDecoderMatcher[T]extendsAnyRef" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      <p class="shortcomment cmt">Capture a query parameter that appears 0 or more times.</p><div class="fullcomment"><div class="comment cmt"><p>Capture a query parameter that appears 0 or more times.</p><pre><span class="kw">case</span> <span class="kw">class</span> Foo(i: <span class="std">Int</span>)
+<span class="kw">implicit</span> <span class="kw">val</span> fooDecoder: QueryParamDecoder[Foo] = ...
+<span class="kw">implicit</span> <span class="kw">val</span> fooParam: QueryParam[Foo] = ...
+
+<span class="kw">object</span> FooMatcher <span class="kw">extends</span> OptionalMultiQueryParamDecoderMatcher[Foo](<span class="lit">"foo"</span>)
+<span class="kw">val</span> service: HttpService = {
+  <span class="cmt">// matches http://.../closest?foo=2&foo=3&foo=4</span>
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(<span class="std">Some</span>(<span class="std">Seq</span>(<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>))) <span class="kw">=&gt;</span> ...
+
+  <span class="cmt">/*
+  *  matches http://.../closest?foo=2&foo=3&foo=4 as well as http://.../closest (no parameters)
+  *  or http://.../closest?foo=2 (single occurrence)
+  */</span>
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(is) <span class="kw">=&gt;</span> ...</pre></div></div>
     </li><li name="org.http4s.dsl.OptionalQueryParamDecoderMatcher" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
       <a id="OptionalQueryParamDecoderMatcher[T]extendsAnyRef"></a>
       <a id="OptionalQueryParamDecoderMatcher[T]:OptionalQueryParamDecoderMatcher[T]"></a>

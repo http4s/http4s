@@ -1,9 +1,9 @@
 <!DOCTYPE html >
 <html>
         <head>
-          <title>ServerBuilder - org.http4s.server.ServerBuilder</title>
-          <meta name="description" content="ServerBuilder - org.http4s.server.ServerBuilder" />
-          <meta name="keywords" content="ServerBuilder org.http4s.server.ServerBuilder" />
+          <title>OptionalMultiQueryParamDecoderMatcher - org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher</title>
+          <meta name="description" content="OptionalMultiQueryParamDecoderMatcher - org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher" />
+          <meta name="keywords" content="OptionalMultiQueryParamDecoderMatcher org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher" />
           <meta http-equiv="content-type" content="text/html; charset=UTF-8" />
           
       <link href="../../../lib/template.css" media="screen" type="text/css" rel="stylesheet" />
@@ -16,7 +16,7 @@
       <script type="text/javascript">
          if(top === self) {
             var url = '../../../index.html';
-            var hash = 'org.http4s.server.ServerBuilder';
+            var hash = 'org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher';
             var anchor = window.location.hash;
             var anchor_opt = '';
             if (anchor.length >= 1)
@@ -28,14 +28,12 @@
         </head>
         <body class="type">
       <div id="definition">
-        <a href="ServerBuilder$.html" title="See companion object"><img alt="Trait/Object" src="../../../lib/trait_to_object_big.png" /></a>
-        <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.server">server</a></p>
-        <h1><a href="ServerBuilder$.html" title="See companion object">ServerBuilder</a></h1><h3><span class="morelinks"><div>
-            Related Docs:
-            <a href="ServerBuilder$.html" title="See companion object">object ServerBuilder</a>
-            | <a href="package.html" class="extype" name="org.http4s.server">package server</a>
+        <img alt="Class" src="../../../lib/class_big.png" />
+        <p id="owner"><a href="../../package.html" class="extype" name="org">org</a>.<a href="../package.html" class="extype" name="org.http4s">http4s</a>.<a href="package.html" class="extype" name="org.http4s.dsl">dsl</a></p>
+        <h1>OptionalMultiQueryParamDecoderMatcher</h1><h3><span class="morelinks"><div>Related Doc:
+            <a href="package.html" class="extype" name="org.http4s.dsl">package dsl</a>
           </div></span></h3><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -43,21 +41,31 @@
 
       <h4 id="signature" class="signature">
       <span class="modifier_kind">
-        <span class="modifier"></span>
-        <span class="kind">trait</span>
+        <span class="modifier">abstract </span>
+        <span class="kind">class</span>
       </span>
       <span class="symbol">
-        <span class="name">ServerBuilder</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
+        <span class="name">OptionalMultiQueryParamDecoderMatcher</span><span class="tparams">[<span name="T">T</span>]</span><span class="result"> extends <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4>
       
-          <div id="comment" class="fullcommenttop"><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/server/src/main/scala/org/http4s/server/ServerBuilder.scala" target="_blank">ServerBuilder.scala</a></dd></dl><div class="toggleContainer block">
+          <div id="comment" class="fullcommenttop"><div class="comment cmt"><p>Capture a query parameter that appears 0 or more times.</p><pre><span class="kw">case</span> <span class="kw">class</span> Foo(i: <span class="std">Int</span>)
+<span class="kw">implicit</span> <span class="kw">val</span> fooDecoder: QueryParamDecoder[Foo] = ...
+<span class="kw">implicit</span> <span class="kw">val</span> fooParam: QueryParam[Foo] = ...
+
+<span class="kw">object</span> FooMatcher <span class="kw">extends</span> OptionalMultiQueryParamDecoderMatcher[Foo](<span class="lit">"foo"</span>)
+<span class="kw">val</span> service: HttpService = {
+  <span class="cmt">// matches http://.../closest?foo=2&foo=3&foo=4</span>
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(<span class="std">Some</span>(<span class="std">Seq</span>(<span class="num">2</span>,<span class="num">3</span>,<span class="num">4</span>))) <span class="kw">=&gt;</span> ...
+
+  <span class="cmt">/*
+  *  matches http://.../closest?foo=2&foo=3&foo=4 as well as http://.../closest (no parameters)
+  *  or http://.../closest?foo=2 (single occurrence)
+  */</span>
+  <span class="kw">case</span> GET -&gt; Root / <span class="lit">"closest"</span> :? FooMatcher(is) <span class="kw">=&gt;</span> ...</pre></div><dl class="attributes block"> <dt>Source</dt><dd><a href="https://github.com/http4s/http4s/tree/master/dsl/src/main/scala/org/http4s/dsl/Path.scala" target="_blank">Path.scala</a></dd></dl><div class="toggleContainer block">
           <span class="toggle">Linear Supertypes</span>
           <div class="superTypes hiddenContent"><span class="extype" name="scala.AnyRef">AnyRef</span>, <span class="extype" name="scala.Any">Any</span></div>
-        </div><div class="toggleContainer block">
-            <span class="toggle">Known Subclasses</span>
-            <div class="subClasses hiddenContent"><a href="blaze/BlazeBuilder.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a>, <a href="blaze/BlazeBuilder$.html" class="extype" name="org.http4s.server.blaze.BlazeBuilder">BlazeBuilder</a>, <a href="jetty/JettyBuilder.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="jetty/JettyBuilder$.html" class="extype" name="org.http4s.server.jetty.JettyBuilder">JettyBuilder</a>, <a href="../servlet/ServletContainer.html" class="extype" name="org.http4s.servlet.ServletContainer">ServletContainer</a>, <a href="tomcat/TomcatBuilder.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a>, <a href="tomcat/TomcatBuilder$.html" class="extype" name="org.http4s.server.tomcat.TomcatBuilder">TomcatBuilder</a></div>
-          </div></div>
+        </div></div>
         
 
       <div id="mbrsel">
@@ -74,7 +82,7 @@
                 <span class="filtertype">Inherited<br />
                 </span>
                 <ol id="linearization">
-                  <li class="in" name="org.http4s.server.ServerBuilder"><span>ServerBuilder</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
+                  <li class="in" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher"><span>OptionalMultiQueryParamDecoderMatcher</span></li><li class="in" name="scala.AnyRef"><span>AnyRef</span></li><li class="in" name="scala.Any"><span>Any</span></li>
                 </ol>
               </div><div id="ancestors">
                 <span class="filtertype">Implicitly<br />
@@ -96,107 +104,34 @@
 
       <div id="template">
         <div id="allMembers">
+        <div id="constructors" class="members">
+              <h3>Instance Constructors</h3>
+              <ol><li name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher#&lt;init&gt;" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="&lt;init&gt;(name:String)(implicitevidence$5:org.http4s.QueryParamDecoder[T]):org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher[T]"></a>
+      <a id="&lt;init&gt;:OptionalMultiQueryParamDecoderMatcher[T]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">new</span>
+      </span>
+      <span class="symbol">
+        <span class="name">OptionalMultiQueryParamDecoderMatcher</span><span class="params">(<span name="name">name: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="params">(<span class="implicit">implicit </span><span name="arg0">arg0: <a href="../QueryParamDecoder.html" class="extype" name="org.http4s.QueryParamDecoder">QueryParamDecoder</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]</span>)</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@&lt;init&gt;(name:String)(implicitevidence$5:org.http4s.QueryParamDecoder[T]):org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher[T]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
+    </li></ol>
+            </div>
+
         
 
-        <div id="types" class="types members">
-              <h3>Type Members</h3>
-              <ol><li name="org.http4s.server.ServerBuilder.Self" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="Self&lt;:org.http4s.server.ServerBuilder"></a>
-      <a id="Self:Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">type</span>
-      </span>
-      <span class="symbol">
-        <span class="name">Self</span><span class="result"> &lt;: <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@Self&lt;:org.http4s.server.ServerBuilder" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
+        
 
         <div id="values" class="values members">
-              <h3>Abstract Value Members</h3>
-              <ol><li name="org.http4s.server.ServerBuilder#bindSocketAddress" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="bindSocketAddress(socketAddress:java.net.InetSocketAddress):ServerBuilder.this.Self"></a>
-      <a id="bindSocketAddress(InetSocketAddress):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bindSocketAddress</span><span class="params">(<span name="socketAddress">socketAddress: <span class="extype" name="java.net.InetSocketAddress">InetSocketAddress</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@bindSocketAddress(socketAddress:java.net.InetSocketAddress):ServerBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.server.ServerBuilder#mountService" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="mountService(service:org.http4s.HttpService,prefix:String):ServerBuilder.this.Self"></a>
-      <a id="mountService(HttpService,String):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">mountService</span><span class="params">(<span name="service">service: <a href="../package.html#HttpService=org.http4s.package.Service[org.http4s.Request,org.http4s.Response]" class="extmbr" name="org.http4s.HttpService">HttpService</a></span>, <span name="prefix">prefix: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol">&quot;&quot;</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@mountService(service:org.http4s.HttpService,prefix:String):ServerBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.server.ServerBuilder#start" visbl="pub" data-isabs="true" fullComment="yes" group="Ungrouped">
-      <a id="start:scalaz.concurrent.Task[org.http4s.server.Server]"></a>
-      <a id="start:Task[Server]"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">start</span><span class="result">: <span class="extype" name="scalaz.concurrent.Task">Task</span>[<a href="Server.html" class="extype" name="org.http4s.server.Server">Server</a>]</span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@start:scalaz.concurrent.Task[org.http4s.server.Server]" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Returns a task to start a server.</p><div class="fullcomment"><div class="comment cmt"><p>Returns a task to start a server.  The task completes with a
-reference to the server when it has started.
-</p></div></div>
-    </li><li name="org.http4s.server.ServerBuilder#withServiceExecutor" visbl="pub" data-isabs="true" fullComment="no" group="Ungrouped">
-      <a id="withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self"></a>
-      <a id="withServiceExecutor(ExecutorService):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">abstract </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">withServiceExecutor</span><span class="params">(<span name="executorService">executorService: <span class="extype" name="java.util.concurrent.ExecutorService">ExecutorService</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@withServiceExecutor(executorService:java.util.concurrent.ExecutorService):ServerBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li></ol>
-            </div>
-
-        <div id="values" class="values members">
-              <h3>Concrete Value Members</h3>
+              <h3>Value Members</h3>
               <ol><li name="scala.AnyRef#!=" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="!=(x$1:Any):Boolean"></a>
       <a id="!=(Any):Boolean"></a>
@@ -209,7 +144,7 @@ reference to the server when it has started.
         <span title="gt4s: $bang$eq" class="name">!=</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@!=(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@!=(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -226,7 +161,7 @@ reference to the server when it has started.
         <span title="gt4s: $hash$hash" class="name">##</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@##():Int" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@##():Int" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -243,34 +178,34 @@ reference to the server when it has started.
         <span title="gt4s: $plus" class="implicit">+</span><span class="params">(<span name="other">other: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@+(other:String):String" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@+(other:String):String" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method any2stringadd in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method any2stringadd in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>any2stringadd</dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#-&gt;" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="-&gt;[B](y:B):(A,B)"></a>
-      <a id="-&gt;[B](B):(ServerBuilder,B)"></a>
+      <a id="-&gt;[B](B):(OptionalMultiQueryParamDecoderMatcher[T],B)"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
+        <span title="gt4s: $minus$greater" class="implicit">-&gt;</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>], <span class="extype" name="scala.Predef.ArrowAssoc.-&gt;.B">B</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@-&gt;[B](y:B):(A,B)" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@-&gt;[B](y:B):(A,B)" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -288,7 +223,7 @@ reference to the server when it has started.
         <span title="gt4s: $eq$eq" class="name">==</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@==(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@==(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -305,62 +240,11 @@ reference to the server when it has started.
         <span class="name">asInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Any.asInstanceOf.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@asInstanceOf[T0]:T0" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@asInstanceOf[T0]:T0" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>Any</dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#bindAny" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="bindAny(host:String):ServerBuilder.this.Self"></a>
-      <a id="bindAny(String):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bindAny</span><span class="params">(<span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="ServerBuilder$.html">DefaultHost</a></span></span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@bindAny(host:String):ServerBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.server.ServerBuilder#bindHttp" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="bindHttp(port:Int,host:String):ServerBuilder.this.Self"></a>
-      <a id="bindHttp(Int,String):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bindHttp</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span> = <span class="symbol"><span class="name"><a href="ServerBuilder$.html">DefaultHttpPort</a></span></span></span>, <span name="host">host: <span class="extype" name="scala.Predef.String">String</span> = <span class="symbol"><span class="name"><a href="ServerBuilder$.html">DefaultHost</a></span></span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@bindHttp(port:Int,host:String):ServerBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
-    </li><li name="org.http4s.server.ServerBuilder#bindLocal" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
-      <a id="bindLocal(port:Int):ServerBuilder.this.Self"></a>
-      <a id="bindLocal(Int):Self"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">bindLocal</span><span class="params">(<span name="port">port: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <a href="#Self&lt;:org.http4s.server.ServerBuilder" class="extmbr" name="org.http4s.server.ServerBuilder.Self">Self</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@bindLocal(port:Int):ServerBuilder.this.Self" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      
     </li><li name="scala.AnyRef#clone" visbl="prt" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="clone():Object"></a>
       <a id="clone():AnyRef"></a>
@@ -373,7 +257,7 @@ reference to the server when it has started.
         <span class="name">clone</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.AnyRef">AnyRef</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@clone():Object" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@clone():Object" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -386,86 +270,86 @@ reference to the server when it has started.
         </dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A"></a>
-      <a id="ensuring((ServerBuilder)⇒Boolean,⇒Any):ServerBuilder"></a>
+      <a id="ensuring((OptionalMultiQueryParamDecoderMatcher[T])⇒Boolean,⇒Any):OptionalMultiQueryParamDecoderMatcher[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@ensuring(cond:A=&gt;Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:A=&gt;Boolean):A"></a>
-      <a id="ensuring((ServerBuilder)⇒Boolean):ServerBuilder"></a>
+      <a id="ensuring((OptionalMultiQueryParamDecoderMatcher[T])⇒Boolean):OptionalMultiQueryParamDecoderMatcher[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: (<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]) ⇒ <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@ensuring(cond:A=&gt;Boolean):A" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:Boolean,msg:=&gt;Any):A"></a>
-      <a id="ensuring(Boolean,⇒Any):ServerBuilder"></a>
+      <a id="ensuring(Boolean,⇒Any):OptionalMultiQueryParamDecoderMatcher[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>, <span name="msg">msg: ⇒ <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@ensuring(cond:Boolean,msg:=&gt;Any):A" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.Predef.Ensuring#ensuring" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="ensuring(cond:Boolean):A"></a>
-      <a id="ensuring(Boolean):ServerBuilder"></a>
+      <a id="ensuring(Boolean):OptionalMultiQueryParamDecoderMatcher[T]"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a></span>
+        <span class="implicit">ensuring</span><span class="params">(<span name="cond">cond: <span class="extype" name="scala.Boolean">Boolean</span></span>)</span><span class="result">: <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@ensuring(cond:Boolean):A" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@ensuring(cond:Boolean):A" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method Ensuring in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method Ensuring in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>Ensuring</dd></dl></div>
     </li><li name="scala.AnyRef#eq" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
@@ -480,7 +364,7 @@ reference to the server when it has started.
         <span class="name">eq</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@eq(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -497,7 +381,7 @@ reference to the server when it has started.
         <span class="name">equals</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Any">Any</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@equals(x$1:Any):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@equals(x$1:Any):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -514,7 +398,7 @@ reference to the server when it has started.
         <span class="name">finalize</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@finalize():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@finalize():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -537,13 +421,13 @@ reference to the server when it has started.
         <span class="implicit">formatted</span><span class="params">(<span name="fmtstr">fmtstr: <span class="extype" name="scala.Predef.String">String</span></span>)</span><span class="result">: <span class="extype" name="scala.Predef.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@formatted(fmtstr:String):String" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@formatted(fmtstr:String):String" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method StringFormat in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method StringFormat in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>StringFormat</dd><dt>Annotations</dt><dd>
                 <span class="name">@inline</span><span class="args">()</span>
@@ -561,7 +445,7 @@ reference to the server when it has started.
         <span class="name">getClass</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.Class">Class</span>[_]</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@getClass():Class[_]" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@getClass():Class[_]" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -578,7 +462,7 @@ reference to the server when it has started.
         <span class="name">hashCode</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Int">Int</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@hashCode():Int" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@hashCode():Int" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -595,7 +479,7 @@ reference to the server when it has started.
         <span class="name">isInstanceOf</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@isInstanceOf[T0]:Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -612,7 +496,7 @@ reference to the server when it has started.
         <span class="name">ne</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.AnyRef">AnyRef</span></span>)</span><span class="result">: <span class="extype" name="scala.Boolean">Boolean</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@ne(x$1:AnyRef):Boolean" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -629,7 +513,7 @@ reference to the server when it has started.
         <span class="name">notify</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@notify():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@notify():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -646,30 +530,11 @@ reference to the server when it has started.
         <span class="name">notifyAll</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@notifyAll():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@notifyAll():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef</dd></dl></div>
-    </li><li name="org.http4s.server.ServerBuilder#run" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
-      <a id="run:org.http4s.server.Server"></a>
-      <a id="run:Server"></a>
-      <h4 class="signature">
-      <span class="modifier_kind">
-        <span class="modifier">final </span>
-        <span class="kind">def</span>
-      </span>
-      <span class="symbol">
-        <span class="name">run</span><span class="result">: <a href="Server.html" class="extype" name="org.http4s.server.Server">Server</a></span>
-      </span>
-      </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@run:org.http4s.server.Server" title="Permalink" target="_top">
-        <img src="../../../lib/permalink.png" alt="Permalink" />
-      </a>
-    </span>
-      <p class="shortcomment cmt">Convenience method to run a server.</p><div class="fullcomment"><div class="comment cmt"><p>Convenience method to run a server.  The method blocks
-until the server is started.
-</p></div></div>
     </li><li name="scala.AnyRef#synchronized" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="synchronized[T0](x$1:=&gt;T0):T0"></a>
       <a id="synchronized[T0](⇒T0):T0"></a>
@@ -682,7 +547,7 @@ until the server is started.
         <span class="name">synchronized</span><span class="tparams">[<span name="T0">T0</span>]</span><span class="params">(<span name="arg0">arg0: ⇒ <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>)</span><span class="result">: <span class="extype" name="java.lang.AnyRef.synchronized.T0">T0</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@synchronized[T0](x$1:=&gt;T0):T0" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -699,11 +564,28 @@ until the server is started.
         <span class="name">toString</span><span class="params">()</span><span class="result">: <span class="extype" name="java.lang.String">String</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@toString():String" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@toString():String" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt>Definition Classes</dt><dd>AnyRef → Any</dd></dl></div>
+    </li><li name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher#unapply" visbl="pub" data-isabs="false" fullComment="no" group="Ungrouped">
+      <a id="unapply(params:Map[String,Seq[String]]):Option[scalaz.ValidationNel[org.http4s.ParseFailure,List[T]]]"></a>
+      <a id="unapply(Map[String,Seq[String]]):Option[ValidationNel[ParseFailure,List[T]]]"></a>
+      <h4 class="signature">
+      <span class="modifier_kind">
+        <span class="modifier"></span>
+        <span class="kind">def</span>
+      </span>
+      <span class="symbol">
+        <span class="name">unapply</span><span class="params">(<span name="params">params: <span class="extype" name="scala.Predef.Map">Map</span>[<span class="extype" name="scala.Predef.String">String</span>, <span class="extype" name="scala.Seq">Seq</span>[<span class="extype" name="scala.Predef.String">String</span>]]</span>)</span><span class="result">: <span class="extype" name="scala.Option">Option</span>[<a href="../../../scalaz/package.html#ValidationNel[E,+X]=scalaz.Validation[scalaz.NonEmptyList[E],X]" class="extmbr" name="scalaz.ValidationNel">ValidationNel</a>[<a href="../ParseFailure.html" class="extype" name="org.http4s.ParseFailure">ParseFailure</a>, <span class="extype" name="scala.List">List</span>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]]]</span>
+      </span>
+      </h4><span class="permalink">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@unapply(params:Map[String,Seq[String]]):Option[scalaz.ValidationNel[org.http4s.ParseFailure,List[T]]]" title="Permalink" target="_top">
+        <img src="../../../lib/permalink.png" alt="Permalink" />
+      </a>
+    </span>
+      
     </li><li name="scala.AnyRef#wait" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="wait():Unit"></a>
       <a id="wait():Unit"></a>
@@ -716,7 +598,7 @@ until the server is started.
         <span class="name">wait</span><span class="params">()</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@wait():Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@wait():Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -739,7 +621,7 @@ until the server is started.
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>, <span name="arg1">arg1: <span class="extype" name="scala.Int">Int</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@wait(x$1:Long,x$2:Int):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -762,7 +644,7 @@ until the server is started.
         <span class="name">wait</span><span class="params">(<span name="arg0">arg0: <span class="extype" name="scala.Long">Long</span></span>)</span><span class="result">: <span class="extype" name="scala.Unit">Unit</span></span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@wait(x$1:Long):Unit" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@wait(x$1:Long):Unit" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
@@ -775,23 +657,23 @@ until the server is started.
         </dd></dl></div>
     </li><li name="scala.Predef.ArrowAssoc#→" visbl="pub" data-isabs="false" fullComment="yes" group="Ungrouped">
       <a id="→[B](y:B):(A,B)"></a>
-      <a id="→[B](B):(ServerBuilder,B)"></a>
+      <a id="→[B](B):(OptionalMultiQueryParamDecoderMatcher[T],B)"></a>
       <h4 class="signature">
       <span class="modifier_kind">
         <span class="modifier"></span>
         <span class="kind">def</span>
       </span>
       <span class="symbol">
-        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>, <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
+        <span title="gt4s: $u2192" class="implicit">→</span><span class="tparams">[<span name="B">B</span>]</span><span class="params">(<span name="y">y: <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span></span>)</span><span class="result">: (<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>], <span class="extype" name="scala.Predef.ArrowAssoc.→.B">B</span>)</span>
       </span>
       </h4><span class="permalink">
-      <a href="../../../index.html#org.http4s.server.ServerBuilder@→[B](y:B):(A,B)" title="Permalink" target="_top">
+      <a href="../../../index.html#org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher@→[B](y:B):(A,B)" title="Permalink" target="_top">
         <img src="../../../lib/permalink.png" alt="Permalink" />
       </a>
     </span>
       <div class="fullcomment"><dl class="attributes block"> <dt class="implicit">Implicit information</dt><dd>
-            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to
-            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>] performed by method ArrowAssoc in scala.Predef.
+            This member is added by an implicit conversion from <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to
+            <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]] performed by method ArrowAssoc in scala.Predef.
             
           </dd><dt>Definition Classes</dt><dd>ArrowAssoc</dd></dl></div>
     </li></ol>
@@ -810,19 +692,19 @@ until the server is started.
             </div>
         <div class="conversion" name="scala.Predef.any2stringadd">
               <h3>Inherited by implicit conversion any2stringadd from
-                <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>]
+                <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to <span class="extype" name="scala.Predef.any2stringadd">any2stringadd</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.StringFormat">
               <h3>Inherited by implicit conversion StringFormat from
-                <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>]
+                <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to <span class="extype" name="scala.Predef.StringFormat">StringFormat</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.Ensuring">
               <h3>Inherited by implicit conversion Ensuring from
-                <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>]
+                <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to <span class="extype" name="scala.Predef.Ensuring">Ensuring</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]]
               </h3>
             </div><div class="conversion" name="scala.Predef.ArrowAssoc">
               <h3>Inherited by implicit conversion ArrowAssoc from
-                <a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a> to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.server.ServerBuilder">ServerBuilder</a>]
+                <a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>] to <span class="extype" name="scala.Predef.ArrowAssoc">ArrowAssoc</span>[<a href="" class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher">OptionalMultiQueryParamDecoderMatcher</a>[<span class="extype" name="org.http4s.dsl.OptionalMultiQueryParamDecoderMatcher.T">T</span>]]
               </h3>
             </div>
         </div>
