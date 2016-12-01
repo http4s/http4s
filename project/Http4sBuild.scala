@@ -80,6 +80,7 @@ object Http4sBuild {
   lazy val parboiled           = "org.parboiled"            %% "parboiled"               % "2.1.3"
   lazy val quasiquotes         = "org.scalamacros"          %% "quasiquotes"             % "2.1.0"
   lazy val reactiveStreamsTck  = "org.reactivestreams"       % "reactive-streams-tck"    % "1.0.0"
+  lazy val scalacheck          = "org.scalacheck"           %% "scalacheck"              % "1.13.4"
   def scalaCompiler(sv: String) = "org.scala-lang"           % "scala-compiler"          % sv
   def scalaReflect(sv: String) = "org.scala-lang"            % "scala-reflect"           % sv
   lazy val scalaXml            = "org.scala-lang.modules"   %% "scala-xml"               % "1.0.5"
