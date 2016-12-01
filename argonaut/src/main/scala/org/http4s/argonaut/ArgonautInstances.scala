@@ -1,7 +1,7 @@
 package org.http4s
 package argonaut
 
-import _root_.argonaut.{DecodeResult => _, _}, Argonaut._
+import _root_.argonaut.{DecodeResult => ArgDecodeResult, _}, Argonaut._
 import org.http4s.headers.`Content-Type`
 
 trait ArgonautInstances {
@@ -32,6 +32,15 @@ trait ArgonautInstances {
   def jsonEncoderWithPrinterOf[A](prettyParams: PrettyParams)
     (implicit encoder: EncodeJson[A]): EntityEncoder[A] =
     jsonEncoderWithPrettyParams(prettyParams).contramap[A](encoder.encode)
+
+  implicit val uriCodec: CodecJson[Uri] = CodecJson(
+    (uri: Uri) => Json.jString(uri.toString),
+    c => c.as[String]
+      .flatMap({str =>
+        Uri.fromString(str)
+          .fold(err => ArgDecodeResult.fail(err.toString, c.history), ArgDecodeResult.ok)
+      })
+  )
 }
 
 object ArgonautInstances {
