@@ -4,10 +4,10 @@ package circe.test // Get out of circe package so we can import custom instances
 import java.nio.charset.StandardCharsets
 
 import io.circe._
+import io.circe.syntax._
 import org.http4s.circe._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
-import org.http4s.EntityEncoderSpec.writeToString
 import Status.Ok
 import org.specs2.specification.core.Fragment
 
@@ -106,6 +106,14 @@ class CirceSpec extends JawnDecodeSupportSpec[Json] {
         val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
         result.run.run must be_\/-(Umlaut(wort))
       }
+    }
+  }
+
+  "Uri codec" should {
+    "round trip" in {
+      // TODO would benefit from Arbitrary[Uri]
+      val uri = Uri.uri("http://www.example.com/")
+      uri.asJson.as[Uri] must beRight(uri)
     }
   }
 }

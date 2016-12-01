@@ -13,30 +13,7 @@ import scalaz.concurrent.Task
 import scalaz.stream.text.utf8Decode
 import scalaz.stream.Process
 
-import util.byteVector._
-
-object EntityEncoderSpec {
-  def writeToString[A](a: A)(implicit W: EntityEncoder[A]): String =
-    Process.eval(W.toEntity(a))
-      .collect { case EntityEncoder.Entity(body, _ ) => body }
-      .flatMap(identity)
-      .fold1Monoid
-      .pipe(utf8Decode)
-      .runLastOr("")
-      .run
-
-  def writeToByteVector[A](a: A)(implicit W: EntityEncoder[A]): ByteVector =
-    Process.eval(W.toEntity(a))
-      .collect { case EntityEncoder.Entity(body, _ ) => body }
-      .flatMap(identity)
-      .fold1Monoid
-      .runLastOr(ByteVector.empty)
-      .run
-}
-
 class EntityEncoderSpec extends Http4sSpec {
-  import EntityEncoderSpec._
-
   "EntityEncoder" should {
     "render strings" in {
       writeToString("pong") must_== "pong"

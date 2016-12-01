@@ -45,4 +45,22 @@ trait Json4sInstances[J] {
 
   def jsonEncoderOf[A](implicit writer: Writer[A]): EntityEncoder[A] =
     jsonEncoder.contramap[A](writer.write)
+
+
+  implicit val uriWriter: JsonFormat[Uri] =
+    new JsonFormat[Uri] {
+      def read(json: JValue): Uri =
+        json match {
+          case JString(s) =>
+            Uri.fromString(s).fold(
+              _ => throw new MappingException(s"Can't convert $json to Uri."),
+              identity
+            )
+          case _ =>
+            throw new MappingException(s"Can't convert $json to Uri.")
+        }
+
+      def write(uri: Uri): JValue =
+        JString(uri.toString)
+    }
 }

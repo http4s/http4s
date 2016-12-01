@@ -1,4 +1,4 @@
-# v0.15.0-SNASPHOT (unreleased)
+# v0.15.0 (2016-11-30)
 * Add support for Scala 2.12
 * Added `Client.fromHttpService` to assist with testing.
 * Make all case classes final where possible, sealed where not.
@@ -22,6 +22,12 @@
 * Allow custom scheduler for timeout middleware.
 * Add parametric empty `EntityEncoder` and `EntityEncoder[Unit]`.
 * Replace unlawful `Order[CharsetRange]` with `Equal[CharsetRange]`.
+* Auth middlewares renamed `BasicAuth` and `DigestAuth`.
+* `BasicAuth` passes client password to store instead of requesting
+  password from store.
+* Remove realm as an argument to the basic and digest auth stores.
+* Basic and digest auth stores return a parameterized type instead of
+  just a String username.
 * Upgrade to argonaut-6.2-RC2, circe-0.6.1, json4s-3.5.0
 
 # v0.14.11 (2016-10-25)

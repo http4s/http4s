@@ -8,7 +8,6 @@ import org.http4s.MediaType._
 import org.http4s.argonaut._
 import org.http4s.headers.`Content-Type`
 import org.http4s.jawn.JawnDecodeSupportSpec
-import org.http4s.EntityEncoderSpec.writeToString
 import org.specs2.specification.core.Fragment
 import Status.Ok
 
@@ -101,6 +100,14 @@ class ArgonautSpec extends JawnDecodeSupportSpec[Json] with Argonauts {
         val result = jsonOf[Umlaut].decode(Request().withBody(json).run, strict = true)
         result.run.run must be_\/-(Umlaut(wort))
       }
+    }
+  }
+
+  "Uri codec" should {
+    "round trip" in {
+      // TODO would benefit from Arbitrary[Uri]
+      val uri = Uri.uri("http://www.example.com/")
+      uri.asJson.as[Uri].result must beRight(uri)
     }
   }
 }

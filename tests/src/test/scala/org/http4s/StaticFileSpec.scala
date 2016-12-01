@@ -17,7 +17,7 @@ class StaticFileSpec extends Http4sSpec {
         r.flatMap(_.headers.get(`Content-Type`)) must_== tpe.map(t => `Content-Type`(t))
       }
 
-      val tests = Seq("./core/src/test/resources/logback.xml"-> Some(MediaType.`text/xml`),
+      val tests = Seq("./tests/src/test/resources/logback.xml"-> Some(MediaType.`text/xml`),
                       "./server/src/test/resources/testresource.txt" -> Some(MediaType.`text/plain`),
                       ".travis.yml" -> None)
 

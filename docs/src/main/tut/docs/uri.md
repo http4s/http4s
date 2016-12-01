@@ -44,5 +44,16 @@ val template = UriTemplate(
 template.toUriIfPossible
 ```
 
+## Receiving URIs
+URIs come in as strings from external routes or as data. Http4s provides
+encoders/decoders for `Uri` in the connector packages.
+
+For example one for [knobs]:
+
+```
+implicit val configuredUri = Configured[String].flatMap(s => Configured(_ => Uri.fromString(s).toOption))
+```
+
 [play http client]: https://www.playframework.com/documentation/2.5.x/api/scala/index.html#play.api.libs.ws.WS$
 [uri class]: http://http4s.org/api/0.15/#org.http4s.Uri
+[knobs]: https://github.com/Verizon/knobs
