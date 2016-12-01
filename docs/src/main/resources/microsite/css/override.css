@@ -1,0 +1,16 @@
+blockquote {
+    font-size: 100%;
+}
+
+i.fa-slack.irc {
+    -ms-transform: rotate(19deg);
+    -webkit-transform: rotate(19deg);
+    transform: rotate(19deg);
+}
+
+.stable {
+    background-color: #ffc;
+}
+.eol {
+    color: #666;
+}

@@ -22,3 +22,7 @@ atlassian-ide-plugin.xml
 .ensime_cache
 .cache-main
 .cache-tests
+
+# Copied from Github-relevant locations for DRYness
+docs/src/main/tut/index.md
+docs/src/main/tut/contributing.md

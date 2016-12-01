@@ -1,7 +1,6 @@
 import Http4sBuild._
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtGit.GitKeys._
-import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 import sbtunidoc.Plugin.UnidocKeys._
@@ -10,7 +9,7 @@ import scala.xml.transform.{RewriteRule, RuleTransformer}
 
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := scalazCrossBuild("0.16.0-SNAPSHOT", scalazVersion.value)
+version      in ThisBuild := scalazCrossBuild("0.15.1-SNAPSHOT", scalazVersion.value)
 apiVersion   in ThisBuild := version.map(extractApiVersion).value
 scalaVersion in ThisBuild := "2.11.8"
 // The build supports both scalaz `7.1.x` and `7.2.x`. Simply run
@@ -238,15 +237,32 @@ lazy val docs = http4sProject("docs")
   .settings(noPublishSettings)
   .settings(noCoverageSettings)
   .settings(unidocSettings)
-  .settings(site.settings)
-  .settings(ghpages.settings)
-  .settings(tutSettings)
   .settings(
     libraryDependencies ++= Seq(
       circeGeneric,
       cryptobits
     ),
     description := "Documentation for http4s",
+    micrositeName := "http4s",
+    micrositeDescription := "A typeful, purely functional HTTP library for Scala",
+    micrositeAuthor := "http4s contributors",
+    micrositeDocumentationUrl := "docs",
+    micrositeGithubOwner := "http4s",
+    micrositeGithubRepo := "http4s",
+    micrositeExtraMdFiles := Map(
+      file("README.md") -> "index.md",
+      file("CONTRIBUTING.md") -> "contributing.md"
+    ),
+    micrositePalette := Map(
+      "brand-primary"     -> "#FF8F00",
+      "brand-secondary"   -> "#3F3242",
+      "brand-tertiary"    -> "#2D232F",
+      "gray-dark"         -> "#453E46",
+      "gray"              -> "#837F84",
+      "gray-light"        -> "#E3E2E3",
+      "gray-lighter"      -> "#F4F3F4",
+      "white-color"       -> "#FFFFFF"
+    ),
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
       inProjects( // TODO would be nice if these could be introspected from noPublishSettings
@@ -263,12 +279,12 @@ lazy val docs = http4sProject("docs")
       scmInfo.value match {
         case Some(s) =>
           val b = (baseDirectory in ThisBuild).value
-          val (major, minor) = apiVersion.value
+          val VersionNumber(major, minor, patch) = version.value
           val sourceTemplate =
             if (version.value.endsWith("SNAPSHOT"))
               s"${s.browseUrl}/tree/master€{FILE_PATH}.scala"
             else
-              s"${s.browseUrl}/tree/v$major.$minor.0€{FILE_PATH}.scala"
+              s"${s.browseUrl}/tree/v$major.$minor.$patch€{FILE_PATH}.scala"
           Seq("-implicits",
               "-doc-source-url", sourceTemplate,
               "-sourcepath", b.getAbsolutePath)
@@ -279,27 +295,16 @@ lazy val docs = http4sProject("docs")
       "*.html" | "*.css" | 
       "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
       "*.js" | "*.swf" | "*.json" | "*.md" |
-      "CNAME" | "_config.yml"
+      "CNAME" | "*.yml"
     ),
-    siteMappings := {
-      if (Http4sGhPages.buildMainSite) siteMappings.value
-      else Seq.empty
-    },
-    siteMappings ++= {
-      val (major, minor) = apiVersion.value
-      for ((f, d) <- tut.value) yield (f, s"docs/$major.$minor/$d")
-    },
-    siteMappings ++= {
-      val m = (mappings in (ScalaUnidoc, packageDoc)).value
-      val (major, minor) = apiVersion.value
-      for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
-    },
-    cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
-    synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
+    docsMappingsAPIDir := "api",
+    addMappingsToSiteDir(mappings in (ScalaUnidoc, packageDoc), docsMappingsAPIDir),
     git.remoteRepo := "git@github.com:http4s/http4s.git",
-    ghpagesNoJekyll := false
+    ghpagesNoJekyll := false,
+    fork in tut := true
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
+  .enablePlugins(MicrositesPlugin)
 
 lazy val examples = http4sProject("examples")
   .settings(noPublishSettings)
@@ -380,9 +385,10 @@ def exampleProject(name: String) = http4sProject(name)
   .settings(noCoverageSettings)
   .dependsOn(examples)
 
-lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
-lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
-lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building.")
+lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project")
+lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files")
+lazy val scalazVersion = settingKey[String]("The version of Scalaz used for building")
+lazy val docsMappingsAPIDir = settingKey[String]("Name of subdirectory in site target directory for api docs")
 
 lazy val projectMetadata = Seq(
   homepage := Some(url("http://http4s.org/")),
