@@ -65,5 +65,5 @@ limitations under the License.
 [blaze]: https://github.com/http4s/blaze
 [circe]: https://github.com/travisbrown/circe
 [argonaut]: https://github.com/argonaut-io/argonaut
-[quick start]: http://http4s.org/docs/
-[community]: http://http4s.org/community.html
+[quick start]: http://http4s.org/docs
+[community]: http://http4s.org/community
