@@ -21,13 +21,14 @@ class IdentityWriter(private var headers: ByteBuffer, size: Long, out: TailStage
     if (size < 0L) false else (count + bodyBytesWritten > size)
 
   protected def writeBodyChunk(chunk: Chunk[Byte], flush: Boolean): Future[Unit] =
-    if (willOverflow(chunk.size)) {
+    if (willOverflow(chunk.size.toLong)) {
       // never write past what we have promised using the Content-Length header
       val msg = s"Will not write more bytes than what was indicated by the Content-Length header ($size)"
 
       logger.warn(msg)
 
-      writeBodyChunk(chunk.take(size - bodyBytesWritten), true) flatMap {_ =>
+      // TODO fs2 port shady .toInt... loop?
+      writeBodyChunk(chunk.take((size - bodyBytesWritten).toInt), true) flatMap {_ =>
         Future.failed(new IllegalArgumentException(msg))
       }
 

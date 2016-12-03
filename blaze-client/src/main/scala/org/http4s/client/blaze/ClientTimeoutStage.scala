@@ -32,12 +32,12 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
   override def name: String = s"ClientTimeoutStage: Idle: $idleTimeout, Request: $requestTimeout"
 
   /////////// Private impl bits //////////////////////////////////////////
-  private val killswitch = new Runnable {
+  private def killswitch(name: String, timeout: Duration) = new Runnable {
     override def run(): Unit = {
-      logger.debug(s"Client stage is disconnecting due to timeout.")
+      logger.debug(s"Client stage is disconnecting due to $name timeout after $timeout.")
 
       // check the idle timeout conditions
-      timeoutState.getAndSet(new TimeoutException(s"Client timeout.")) match {
+      timeoutState.getAndSet(new TimeoutException(s"Client $name timeout after $timeout.")) match {
         case null => // noop
         case c: Cancellable => c.cancel() // this should be the registration of us
         case _: TimeoutException => // Interesting that we got here.
@@ -56,6 +56,9 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
       }
     }
   }
+
+  private val idleTimeoutKillswitch = killswitch("idle", idleTimeout)
+  private val requestTimeoutKillswitch = killswitch("request", requestTimeout)
 
   // Startup on creation
 
@@ -93,7 +96,7 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
 
   override protected def stageStartup(): Unit = {
     super.stageStartup()
-    val timeout = exec.schedule(killswitch, ec, requestTimeout)
+    val timeout = exec.schedule(requestTimeoutKillswitch, ec, requestTimeout)
     if (!activeReqTimeout.compareAndSet(null, timeout)) {
       activeReqTimeout.get() match {
         case Closed => // NOOP: the timeout already triggered
@@ -144,7 +147,7 @@ final private class ClientTimeoutStage(idleTimeout: Duration, requestTimeout: Du
   }
 
   private def resetTimeout(): Unit = {
-    setAndCancel(exec.schedule(killswitch, idleTimeout))
+    setAndCancel(exec.schedule(idleTimeoutKillswitch, idleTimeout))
   }
 
   private def cancelTimeout(): Unit = setAndCancel(null)

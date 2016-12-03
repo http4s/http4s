@@ -43,8 +43,6 @@ class ChunkProcessWriter(private var headers: StringWriter,
         case Left(t) =>
           promise.failure(t)
           ()
-        case Right(buffer) => promise.completeWith(pipe.channelWrite(buffer).map(Function.const(false)))
-        case Left(t) => promise.failure(t)
       }
       promise.future
     }
@@ -82,7 +80,7 @@ class ChunkProcessWriter(private var headers: StringWriter,
   }
 
   private def encodeChunk(chunk: Chunk[Byte], last: List[ByteBuffer]): List[ByteBuffer] = {
-    val list = writeLength(chunk.size) :: chunk.toByteBuffer :: CRLF :: last
+    val list = writeLength(chunk.size.toLong) :: chunk.toByteBuffer :: CRLF :: last
     if (headers != null) {
       headers << "Transfer-Encoding: chunked\r\n\r\n"
       val b = ByteBuffer.wrap(headers.result.getBytes(ISO_8859_1))

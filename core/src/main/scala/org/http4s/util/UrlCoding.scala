@@ -9,6 +9,7 @@ import java.nio.charset.Charset
 import java.nio.charset.StandardCharsets.UTF_8
 import java.util.Locale
 
+import scala.collection.immutable.BitSet
 import scala.util.matching.Regex
 import scala.util.matching.Regex.Match
 
@@ -26,6 +27,19 @@ private[http4s] object UrlCodingUtils {
   private val HexUpperCaseChars = (0 until 16) map { i => Character.toUpperCase(Character.forDigit(i, 16)) }
   // scalastyle:on magic.number
 
+  /**
+    * Percent-encodes a string.  Depending on the parameters, this method is
+    * appropriate for URI or URL form encoding.  Any resulting percent-encodings
+    * are normalized to uppercase.
+    * 
+    * @param toEncode the string to encode
+    * @param charset the charset to use for characters that are percent encoded
+    * @param spaceIsPlus if space is not skipped, determines whether it will be
+    * rendreed as a `"+"` or a percent-encoding according to `charset`.
+    * @param toSkip a predicate of characters exempt from encoding.  In typical
+    * use, this is composed of all Unreserved URI characters and sometimes a
+    * subset of Reserved URI characters.
+    */
   def urlEncode(toEncode: String, charset: Charset = UTF_8, spaceIsPlus: Boolean = false, toSkip: Char => Boolean = toSkip): String = {
     val in = charset.encode(toEncode)
     val out = CharBuffer.allocate((in.remaining() * 3).toInt)
@@ -33,21 +47,6 @@ private[http4s] object UrlCodingUtils {
       val c = in.get().toChar
       if (toSkip(c)) {
         out.put(c)
-        if (c == '%' && in.hasRemaining) {
-          in.mark()
-          val c0 = in.get().toChar
-          if (CharPredicate.HexDigit(c0) && in.hasRemaining) {
-            val c1 = in.get().toChar
-            if (CharPredicate.HexDigit(c1)) {
-              out.put(c0.toUpper)
-              out.put(c1.toUpper)
-            } else {
-              in.reset()
-            }
-          } else {
-            in.reset()
-          }
-        }
       } else if (c == ' ' && spaceIsPlus) {
         out.put('+')
       } else {
@@ -66,6 +65,15 @@ private[http4s] object UrlCodingUtils {
   def pathEncode(s: String, charset: Charset = UTF_8): String =
     UrlCodingUtils.urlEncode(s, charset, false, SkipEncodeInPath)
 
+  /**
+    * Percent-decodes a string.
+    * 
+    * @param toDecode the string to decode
+    * @param charset the charset of percent-encoded characters
+    * @param plusIsSpace true if `'+'` is to be interpreted as a `' '`
+    * @param toSkip a predicate of characters whose percent-encoded form
+    * is left percent-encoded.  Almost certainly should be left empty.
+    */
   def urlDecode(toDecode: String, charset: Charset = UTF_8, plusIsSpace: Boolean = false, toSkip: Char => Boolean = Function.const(false)): String = {
     val in = CharBuffer.wrap(toDecode)
     // reserve enough space for 3-byte UTF-8 characters.  4-byte characters are represented
@@ -96,7 +104,10 @@ private[http4s] object UrlCodingUtils {
             in.position(mark + 1)
           }
         } else {
-          while(in.hasRemaining) in.get() // just burn the rest of the bytes
+          // This is an invalid encoding. Fail gracefully by treating the '%' as
+          // a literal.
+          out.put(c.toByte)
+          while(in.hasRemaining) out.put(in.get().toByte)
         }
       } else if (c == '+' && plusIsSpace) {
         out.put(' '.toByte)

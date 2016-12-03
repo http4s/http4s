@@ -1,16 +1,19 @@
+import Http4sBuild._
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
+import com.typesafe.sbt.SbtGit.GitKeys._
 import com.typesafe.sbt.SbtSite.site
 import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 import sbtunidoc.Plugin.UnidocKeys._
 
+import scala.xml.transform.{RewriteRule, RuleTransformer}
+
 // Global settings
 organization in ThisBuild := "org.http4s"
-version      in ThisBuild := scalazCrossBuild("0.15.0-SNAPSHOT", scalazVersion.value)
+version      in ThisBuild := "0.15.0-SNAPSHOT"
 apiVersion   in ThisBuild <<= version.map(extractApiVersion)
 scalaOrganization in ThisBuild := "org.typelevel"
 scalaVersion in ThisBuild := "2.11.8"
-scalazVersion in ThisBuild := "7.1.9"
 crossScalaVersions in ThisBuild := Seq(scalaVersion.value)
 
 // Root project
@@ -38,10 +41,19 @@ lazy val core = libraryProject("core")
 
 lazy val server = libraryProject("server")
   .settings(
-    description := "Base library for building http4s servers",
-    libraryDependencies += metricsCore
+    description := "Base library for building http4s servers"
   )
   .dependsOn(core % "compile;test->test", theDsl % "test->compile")
+
+lazy val serverMetrics = libraryProject("server-metrics")
+  .settings(
+    description := "Support for Dropwizard Metrics on the server",
+    libraryDependencies ++= Seq(
+      metricsCore,
+      metricsJson
+    )
+  )
+  .dependsOn(server % "compile;test->test")
 
 lazy val client = libraryProject("client")
   .settings(
@@ -55,7 +67,7 @@ lazy val blazeCore = libraryProject("blaze-core")
     description := "Base library for binding blaze to http4s clients and servers",
     libraryDependencies += blaze
   )
-  .dependsOn(core)
+  .dependsOn(core % "compile;test->test")
 
 lazy val blazeServer = libraryProject("blaze-server")
   .settings(
@@ -94,7 +106,6 @@ lazy val jetty = libraryProject("jetty")
   .settings(
     description := "Jetty implementation for http4s servers",
     libraryDependencies ++= Seq(
-      metricsJetty9,
       jettyServlet
     )
   )
@@ -104,7 +115,6 @@ lazy val tomcat = libraryProject("tomcat")
   .settings(
     description := "Tomcat implementation for http4s servers",
     libraryDependencies ++= Seq(
-      metricsServlet,
       tomcatCatalina,
       tomcatCoyote
     )
@@ -121,7 +131,7 @@ lazy val theDsl = libraryProject("dsl")
 lazy val jawn = libraryProject("jawn")
   .settings(
     description := "Base library to parse JSON to various ASTs for http4s",
-    libraryDependencies += jawnStreamz(scalazVersion.value)
+    libraryDependencies += jawnFs2
   )
   .dependsOn(core % "compile;test->test")
 
@@ -129,7 +139,7 @@ lazy val argonaut = libraryProject("argonaut")
   .settings(
     description := "Provides Argonaut codecs for http4s",
     libraryDependencies ++= Seq(
-      Http4sBuild.argonaut(scalazVersion.value),
+      Http4sBuild.argonaut,
       jawnParser
     )
   )
@@ -222,7 +232,7 @@ lazy val docs = http4sProject("docs")
   .settings(ghpages.settings)
   .settings(tutSettings)
   .settings(
-    libraryDependencies <+= scalazVersion {szv => argonautShapeless(szv) },
+    libraryDependencies ++= Seq(argonautShapeless, cryptbits),
     description := "Documentation for http4s",
     autoAPIMappings := true,
     unidocProjectFilter in (ScalaUnidoc, unidoc) := inAnyProject --
@@ -259,8 +269,8 @@ lazy val docs = http4sProject("docs")
     siteMappings <++= (mappings in (ScalaUnidoc, packageDoc), apiVersion) map {
       case (m, (major, minor)) => for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
     },
-    cleanSite <<= Http4sGhPages.cleanSite0,
-    synchLocal <<= Http4sGhPages.synchLocal0,
+    cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
+    synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
     git.remoteRepo := "git@github.com:http4s/http4s.git",
     ghpagesNoJekyll := false
   )
@@ -277,7 +287,7 @@ lazy val examples = http4sProject("examples")
       jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
     )
   )
-  .dependsOn(server, theDsl /* TODO fs2 port a,circe, scalaXml, twirl*/)
+  .dependsOn(server, serverMetrics, theDsl /*, TODO fs2 port circe, scalaXml, twirl */)
   .enablePlugins(SbtTwirl)
 
 lazy val examplesBlaze = exampleProject("examples-blaze")
@@ -301,7 +311,6 @@ lazy val examplesJetty = exampleProject("examples-jetty")
   .settings(
     description := "Example of http4s server on Jetty",
     fork := true,
-    libraryDependencies += metricsServlets,
     mainClass in reStart := Some("com.example.http4s.jetty.JettyExample")
   )
   .dependsOn(jetty)
@@ -311,7 +320,6 @@ lazy val examplesTomcat = exampleProject("examples-tomcat")
   .settings(
     description := "Example of http4s server on Tomcat",
     fork := true,
-    libraryDependencies += metricsServlets,
     mainClass in reStart := Some("com.example.http4s.tomcat.TomcatExample")
   )
   .dependsOn(tomcat)
@@ -346,6 +354,9 @@ def exampleProject(name: String) = http4sProject(name)
   .settings(noPublishSettings)
   .settings(noCoverageSettings)
   .dependsOn(examples)
+
+lazy val apiVersion = taskKey[(Int, Int)]("Defines the API compatibility version for the project.")
+lazy val jvmTarget = taskKey[String]("Defines the target JVM version for object files.")
 
 lazy val projectMetadata = Seq(
   homepage := Some(url("http://http4s.org/")),
@@ -438,14 +449,30 @@ lazy val commonSettings = Seq(
     if (delambdafyOpts(v)) Seq("org.scala-lang.modules" %% "scala-java8-compat" % "0.5.0")
     else Seq.empty
   ),
-  libraryDependencies <++= scalazVersion(sz => Seq(
+  libraryDependencies ++= Seq(
     catsLaws,
     catsKernelLaws,
     discipline,
     logbackClassic,
-    specs2Core(sz),
-    specs2Scalacheck(sz)
-  ).map(_ % "test"))
+    scalacheck, // 0.13.3 fixes None.get
+    specs2Core,
+    specs2Scalacheck
+  ).map(_ % "test"),
+  // don't include scoverage as a dependency in the pom
+  // https://github.com/scoverage/sbt-scoverage/issues/153
+  // this code was copied from https://github.com/mongodb/mongo-spark
+  pomPostProcess := { (node: xml.Node) =>
+    new RuleTransformer(
+      new RewriteRule {
+        override def transform(node: xml.Node): Seq[xml.Node] = node match {
+          case e: xml.Elem
+              if e.label == "dependency" && e.child.exists(child => child.label == "groupId" && child.text == "org.scoverage") => Nil
+          case _ => Seq(node)
+
+        }
+
+      }).transform(node).head
+  }
 )
 
 lazy val publishSettings = Seq(
@@ -464,11 +491,11 @@ lazy val noCoverageSettings = Seq(
 )
 
 lazy val mimaSettings = Seq(
-  mimaFailOnProblem <<= version.zipWith(scalazVersion)(compatibleVersion(_, _).isDefined),
-  previousArtifact <<= (version, organization, scalaBinaryVersion, moduleName, scalazVersion)((ver, org, binVer, mod, sz) => compatibleVersion(ver, sz) map {
-    org % s"${mod}_${binVer}" % _
-  }),
-  binaryIssueFilters ++= {
+  mimaFailOnProblem := compatibleVersion(version.value).isDefined,
+  mimaPreviousArtifacts := (compatibleVersion(version.value) map {
+    organization.value % s"${moduleName.value}_${scalaBinaryVersion.value}" % _
+  }).toSet,
+  mimaBinaryIssueFilters ++= {
     import com.typesafe.tools.mima.core._
     import com.typesafe.tools.mima.core.ProblemFilters._
     Seq(

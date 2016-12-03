@@ -47,8 +47,8 @@ trait ProcessWriter {
     * @return the Task which when run will unwind the Process
     */
   def writeProcess(p: EntityBody): Task[Boolean] = {
-    // TODO suboptimal vs. scalaz-stream version
-    // TODO onError is "not for resource cleanup".  This still feels wrong.
+    // TODO fs2 port suboptimal vs. scalaz-stream version
+    // TODO fs2 port onError is "not for resource cleanup".  This still feels wrong.
     val write = (p through sink).onError { e =>
       eval(futureToTask(exceptionFlush)).flatMap(_ => fail(e))
     } ++ eval(futureToTask[Boolean](writeEnd(Chunk.empty)))
@@ -56,7 +56,7 @@ trait ProcessWriter {
   }
 
   private val sink: Pipe[Task, Byte, Boolean] = { s =>
-    // TODO a Pipe instead of a sink, and a map true, for type inference issues
+    // TODO fs2 port a Pipe instead of a sink, and a map true, for type inference issues
     // This is silly, but I'm racing toward something that compiles
     s.chunks.evalMap(chunk => futureToTask(writeBodyChunk(chunk, false)).map(_ => true))
   }

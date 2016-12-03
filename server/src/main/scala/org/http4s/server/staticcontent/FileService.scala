@@ -19,15 +19,14 @@ object FileService {
     * @param pathCollector function that performs the work of collecting the file or rendering the directory into a response.
     * @param bufferSize buffer size to use for internal read buffers
     * @param executor `ExecutorService` to use when collecting content
-    * @param cacheStartegy strategy to use for caching purposes. Default to no caching.
+    * @param cacheStrategy strategy to use for caching purposes. Default to no caching.
     */
   final case class Config(systemPath: String,
                           pathPrefix: String = "",
                           pathCollector: (File, Config, Request) => Task[Option[Response]] = filesOnly,
                           bufferSize: Int = 50*1024,
                           executor: ExecutorService,
-                          cacheStartegy: CacheStrategy = NoopCacheStrategy)
-
+                          cacheStrategy: CacheStrategy = NoopCacheStrategy)
 
   /** Make a new [[org.http4s.HttpService]] that serves static files. */
   private[staticcontent] def apply(config: Config): Service[Request, Response] = Service.lift { req =>
@@ -38,7 +37,7 @@ object FileService {
       getFile(config.systemPath + '/' + getSubPath(uriPath, config.pathPrefix))
         .map { f => config.pathCollector(f, config, req) }
         .getOrElse(Task.now(None))
-        .flatMap(_.fold(Response.fallthrough)(config.cacheStartegy.cache(uriPath, _)))
+        .flatMap(_.fold(Response.fallthrough)(config.cacheStrategy.cache(uriPath, _)))
   }
 
   /* Returns responses for static files.

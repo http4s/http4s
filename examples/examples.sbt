@@ -2,11 +2,8 @@ name := "http4s-examples"
 
 description := "Common code for http4s examples on various backends"
 
-seq(Revolver.settings: _*)
-
 libraryDependencies ++= Seq(
-  logbackClassic,
-  jspApi % "runtime" // http://forums.yourkit.com/viewtopic.php?f=2&t=3733
+  "ch.qos.logback" % "logback-classic" % "1.1.7"
 )
 
 // Adds ALPN to the boot classpath for HTTP/2 support

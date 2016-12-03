@@ -1,7 +1,3 @@
 #!/bin/bash
 
-for SCALAZ_VERSION in $(sed -ne 's/.*SCALAZ_VERSION=\(.*\)/\1/p' .travis.yml); do
-  sbt "set scalazVersion in ThisBuild := \"$SCALAZ_VERSION\"" +clean +publishSigned
-done
-sbt sonatypeRelease
-
+sbt +clean +publishSigned sonatypeRelease
