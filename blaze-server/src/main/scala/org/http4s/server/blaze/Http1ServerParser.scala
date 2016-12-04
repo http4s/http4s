@@ -8,6 +8,13 @@ import scala.collection.mutable.ListBuffer
 import cats.data._
 import fs2._
 import org.log4s.Logger
+import scala.util.Either
+
+import cats.syntax.all._
+// import cats.syntax.flatMap._
+// import cats.syntax.functor._
+// import cats.syntax.bifunctor._
+import org.http4s.ParseResult.parseResultMonad
 
 
 private final class Http1ServerParser(logger: Logger,
@@ -29,7 +36,7 @@ private final class Http1ServerParser(logger: Logger,
 
   def doParseContent(buff: ByteBuffer): Option[ByteBuffer] = Option(parseContent(buff))
 
-  def collectMessage(body: EntityBody, attrs: AttributeMap): (ParseFailure,HttpVersion) Xor Request = {
+  def collectMessage(body: EntityBody, attrs: AttributeMap): Either[(ParseFailure,HttpVersion), Request] = {
     val h = Headers(headers.result())
     headers.clear()
     val protocol = if (minorVersion() == 1) HttpVersion.`HTTP/1.1` else HttpVersion.`HTTP/1.0`
@@ -44,11 +51,17 @@ private final class Http1ServerParser(logger: Logger,
         })
       } else attrs // Won't have trailers without a chunked body
 
-    (for {
-      method <- Method.fromString(this.method)
-      uri <- Uri.requestTarget(this.uri)
-    } yield Request(method, uri, protocol, h, body, attrsWithTrailers)
-    ).leftMap(_ -> protocol)
+    // (for {
+    //   method <- Method.fromString(this.method)
+    //   uri <- Uri.requestTarget(this.uri)
+    // } yield Request(method, uri, protocol, h, body, attrsWithTrailers)
+    // ).leftMap(_ -> protocol)
+
+    Method.fromString(this.method) flatMap { method =>
+    Uri.requestTarget(this.uri) map { uri =>
+      Request(method, uri, protocol, h, body, attrsWithTrailers)
+    }} leftMap (_ -> protocol)
+
   }
 
   override def submitRequestLine(methodString: String, uri: String, scheme: String, majorversion: Int, minorversion: Int): Boolean = {

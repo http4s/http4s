@@ -4,6 +4,7 @@ import scala.util.control.{NoStackTrace, NonFatal}
 
 import cats._
 import cats.data._
+import cats.instances.either.catsStdInstancesForEither
 import fs2._
 import org.http4s.batteries._
 
@@ -71,6 +72,12 @@ object ParseResult {
     catch {
       case NonFatal(e) => left(ParseFailure(sanitized, e.getMessage))
     }
+
+  implicit val parseResultMonad: MonadError[ParseResult, ParseFailure] = catsStdInstancesForEither[ParseFailure]
+
+  // implicit class ParseResultOps[A](parseResult: ParseResult[A])
+  //     extends catsStdInstancesForEither[ParseFailure]
+
 }
 
 /** Indicates a problem decoding a [[Message]].  This may either be a problem with

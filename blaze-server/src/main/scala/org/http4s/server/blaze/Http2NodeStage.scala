@@ -136,8 +136,8 @@ private class Http2NodeStage(streamId: Int,
       case (Method, v)    =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
         else if (method == null) org.http4s.Method.fromString(v) match {
-          case Xor.Right(m) => method = m
-          case Xor.Left(e) => error = s"$error Invalid method: $e "
+          case Right(m) => method = m
+          case Left(e) => error = s"$error Invalid method: $e "
         }
 
         else error += "Multiple ':method' headers defined. "
@@ -150,8 +150,8 @@ private class Http2NodeStage(streamId: Int,
       case (Path, v)      =>
         if (pseudoDone) error += "Pseudo header in invalid position. "
         else if (path == null) Uri.requestTarget(v) match {
-          case Xor.Right(p) => path = p
-          case Xor.Left(e) => error = s"$error Invalid path: $e"
+          case Right(p) => path = p
+          case Left(e) => error = s"$error Invalid path: $e"
         }
         else error += "Multiple ':path' headers defined. "
 
