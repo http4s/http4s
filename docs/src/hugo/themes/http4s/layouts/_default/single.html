@@ -1,0 +1,33 @@
+<!DOCTYPE html>
+<html lang="en">
+  {{ partial "head" . }}
+  <body>
+    <div class="container">
+      {{ partial "topnav" . }}
+
+      <div class="row">
+	<div class="col-md-3 side-nav">
+	  <ul class="nav nav-pills nav-stacked">
+            {{ $currentNode := . }}
+	    {{ range .Site.Menus.main.ByWeight }}
+	    <li class="{{if $currentNode.IsMenuCurrent "main" . }}active{{end}}">
+	      <a href="{{.URL | relURL}}">{{ .Name }}</a>
+	    </li>
+	    {{ end }}
+	  </ul>
+	</div>
+	<div class="col-md-9">
+	  <div class="page-header">
+	    <h1>
+	      {{ .Title }}
+	    </h1>
+	  </div>
+  	  {{ .Content }}
+	  
+	  {{ partial "footer" . }}
+	</div>
+      </div>
+    </div><!-- /.container -->
+    {{ partial "scripts" . }}
+  </body>
+</html>

@@ -1,0 +1,34 @@
+<!DOCTYPE html>
+<html lang="en">
+  {{ partial "head" . }}
+  <body>
+    <div class="container">
+      {{ partial "topnav" . }}
+
+      <div class="jumbotron">
+	<h1>http4s</h1>
+
+	<p>http4s is a typeful, purely functional HTTP library for
+	client and server applications written in Scala.</p>
+
+	<p><a class="btn btn-primary btn-lg" href="/quick-start/" role="button">Get started</a>
+      </div>
+
+      <div class="row">
+	<div class="col-md-12">
+	{{ range where .Site.Pages "Type" "index" }}
+	  {{ .Content }}
+	{{ end }}
+	</div>
+      </div>
+
+      <nav>
+	<ul class="pager">
+	  <li class="next"><a href="/quick-start/">Quick Start <span aria-hidden="true">&rarr;</span></a></li>
+	</ul>
+      </nav>
+    </div><!-- /.container -->
+
+    {{ partial "scripts" . }}
+  </body>
+</html>

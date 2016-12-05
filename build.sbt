@@ -1,8 +1,6 @@
 import Http4sBuild._
 import com.typesafe.sbt.SbtGhPages.GhPagesKeys._
 import com.typesafe.sbt.SbtGit.GitKeys._
-import com.typesafe.sbt.SbtSite.site
-import com.typesafe.sbt.SbtSite.SiteKeys._
 import com.typesafe.sbt.pgp.PgpKeys._
 import sbtunidoc.Plugin.UnidocKeys._
 
@@ -234,11 +232,14 @@ lazy val loadTest = http4sProject("load-test")
   )
   .enablePlugins(GatlingPlugin)
 
+val preStageSiteDirectory = SettingKey[File]("pre-stage-site-directory")
+val siteStageDirectory    = SettingKey[File]("site-stage-directory")
+val copySiteToStage       = TaskKey[Unit]("copy-site-to-stage")
 lazy val docs = http4sProject("docs")
+  .enablePlugins(HugoPlugin)
   .settings(noPublishSettings)
   .settings(noCoverageSettings)
   .settings(unidocSettings)
-  .settings(site.settings)
   .settings(ghpages.settings)
   .settings(tutSettings)
   .settings(
@@ -275,29 +276,32 @@ lazy val docs = http4sProject("docs")
         case _ => Seq.empty
       }
     },
-    includeFilter in makeSite := (
-      "*.html" | "*.css" | 
-      "*.png" | "*.jpg" | "*.gif" | "*.ico" | "*.svg" |
-      "*.js" | "*.swf" | "*.json" | "*.md" |
-      "CNAME" | "_config.yml"
-    ),
-    siteMappings := {
-      if (Http4sGhPages.buildMainSite) siteMappings.value
-      else Seq.empty
+    preStageSiteDirectory := sourceDirectory.value / "hugo",
+    siteStageDirectory := target.value / "site-stage",
+    sourceDirectory in Hugo := siteStageDirectory.value,
+    tutSourceDirectory := sourceDirectory.value / "hugo" / "content",
+    tutTargetDirectory := siteStageDirectory.value / "content",
+    copySiteToStage := {
+      streams.value.log.info(s"Copying ${preStageSiteDirectory.value} to ${siteStageDirectory.value}")
+      val src = preStageSiteDirectory.value
+      val dest = siteStageDirectory.value
+      // We skip content because these get tutted
+      val sources = PathFinder(src).*** --- PathFinder(src / "content")
+      val pairs = sources.pair(Path.rebase(src, dest))
+      IO.copy(
+        sources = pairs,
+        overwrite = true,
+        preserveLastModified = true
+      )
     },
-    siteMappings ++= {
-      val (major, minor) = apiVersion.value
-      for ((f, d) <- tut.value) yield (f, s"docs/$major.$minor/$d")
-    },
+    makeSite <<= makeSite.dependsOn(copySiteToStage, tutQuick),
     siteMappings ++= {
       val m = (mappings in (ScalaUnidoc, packageDoc)).value
-      val (major, minor) = apiVersion.value
-      for ((f, d) <- m) yield (f, s"api/$major.$minor/$d")
+      for ((f, d) <- m) yield (f, s"api/$d")
     },
-    cleanSite := Http4sGhPages.cleanSiteForRealz(updatedRepository.value, gitRunner.value, streams.value, apiVersion.value),
-    synchLocal := Http4sGhPages.synchLocalForRealz(privateMappings.value, updatedRepository.value, ghpagesNoJekyll.value, gitRunner.value, streams.value, apiVersion.value),
+    includeFilter in Hugo := "*.html" | "*.css" | "*.png" | "*.jpg" | "*.gif" | "*.js" | "*.yml" | "*.md" | "*.svg" | "*.ico" | "CNAME",
     git.remoteRepo := "git@github.com:http4s/http4s.git",
-    ghpagesNoJekyll := false
+    ghpagesNoJekyll := true
   )
   .dependsOn(client, core, theDsl, blazeServer, blazeClient, circe)
 

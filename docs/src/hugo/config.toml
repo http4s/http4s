@@ -1,0 +1,11 @@
+baseurl = "https://http4s.org/"
+languageCode = "en-us"
+title = "http4s"
+theme = "http4s"
+metadataformat = "yaml"
+
+[blackfriday]
+	smartypants = true
+	fractions = true
+	smartDashes = true
+	plainIDAnchors = true
