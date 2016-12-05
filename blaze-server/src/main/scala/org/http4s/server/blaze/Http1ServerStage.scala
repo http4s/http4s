@@ -8,6 +8,7 @@ import java.util.concurrent.ExecutorService
 
 import scala.concurrent.{ ExecutionContext, Future }
 import scala.util.{Try, Success, Failure}
+import scala.util.{Either, Left, Right}
 
 import cats.data._
 import fs2._
@@ -109,13 +110,13 @@ private class Http1ServerStage(service: HttpService,
     val (body, cleanup) = collectBodyFromParser(buffer, () => InvalidBodyException("Received premature EOF."))
 
     parser.collectMessage(body, requestAttrs) match {
-      case Xor.Right(req) =>
+      case Right(req) =>
         serviceFn(req).unsafeRunAsync {
           case Right(resp) => renderResponse(req, resp, cleanup)
           case Left(t) => internalServerError(s"Error running route: $req", t, req, cleanup)
         }
 
-      case Xor.Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
+      case Left((e,protocol)) => badMessage(e.details, new BadRequest(e.sanitized), Request().copy(httpVersion = protocol))
     }
   }
 
